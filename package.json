@@ -15,10 +15,20 @@
     ],
     "main": "./out/src/extension",
     "contributes": {
-        "commands": [{
-            "command": "extension.sayHello",
-            "title": "Hello World"
-        }]
+        "commands": [
+            {
+                "command": "extension.sayHello",
+                "title": "Hello World"
+            }
+        ],
+        "views": {
+            "explorer": [
+                {
+                    "id": "azureAppService",
+                    "name": "Azure App Service"
+                }
+            ]
+        }
     },
     "scripts": {
         "vscode:prepublish": "tsc -p ./",
@@ -32,5 +42,10 @@
         "mocha": "^2.3.3",
         "@types/node": "^6.0.40",
         "@types/mocha": "^2.2.32"
+    },
+    "dependencies": {
+        "azure-arm-resource": "^2.0.0-preview",
+        "azure-arm-website": "^1.0.0-preview",
+        "ms-rest": "^2.2.1"
     }
 }
