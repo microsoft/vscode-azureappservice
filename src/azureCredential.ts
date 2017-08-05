@@ -7,16 +7,11 @@ import { ExtensionContext, Extension, extensions } from 'vscode';
 import { ServiceClientCredentials } from 'ms-rest';
 import { AzureLogin, AzureAccount } from './azurelogin.api';
 
-export interface NotSignedInError extends Error {
+export class NotSignedInError extends Error {
+    constructor(message?: string) {
+        super(message);
+    }
 }
-
-interface NotSignedInErrorConstructor {
-    new(message?: string): NotSignedInError;
-    (message?: string): NotSignedInError;
-    readonly prototype: NotSignedInError;
-}
-
-declare const NotSignedInError: NotSignedInErrorConstructor;
 
 export class AzureCredential {
     private loginExtension: Extension<AzureLogin> | null;

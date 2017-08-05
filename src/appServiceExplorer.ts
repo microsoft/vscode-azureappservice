@@ -3,35 +3,80 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
- import { ExtensionContext, TreeDataProvider, TreeItem, TreeItemCollapsibleState } from "vscode";
+import { ExtensionContext, TreeDataProvider, TreeItem, TreeItemCollapsibleState } from "vscode";
 import { ServiceClientCredentials } from 'ms-rest';
 import { SubscriptionClient } from "azure-arm-resource";
 import WebSiteManagementClient = require("azure-arm-website");
 import { AzureCredential, NotSignedInError } from "./azureCredential";
 
-export class NodeBase {
+class NodeBase {
     public readonly label: string;
 
-    constructor(label: string) {
+    protected constructor(label: string) {
         this.label = label;
+    }
+
+    public getTreeItem(): TreeItem {
+        return {
+            label: "You are not supposed to see this",
+            collapsibleState: TreeItemCollapsibleState.None
+        }
+    }
+
+    public async getChildren(credential: ServiceClientCredentials): Promise<NodeBase[]> {
+        return [];
     }
 }
 
-export class SubscriptionNode extends NodeBase {
+class SubscriptionNode extends NodeBase {
     public readonly subscriptionId: string;
 
     constructor(label: string, subscriptionId: string) {
         super(label);
         this.subscriptionId = subscriptionId;
     }
+
+    public getTreeItem(): TreeItem {
+        return {
+            label: this.label,
+            collapsibleState: TreeItemCollapsibleState.Collapsed
+        }
+    }
+
+    public async getChildren(credential: ServiceClientCredentials): Promise<NodeBase[]> {
+        const client = new WebSiteManagementClient(credential, this.subscriptionId);
+        const webApps = await client.webApps.list();
+        const nodes = webApps.map<AppServiceNode>((site, index, array) => {
+            return new AppServiceNode('📊 ' + site.name);
+        });
+
+        return nodes;
+    }
 }
 
-export class AppServiceNode extends NodeBase {
+class AppServiceNode extends NodeBase {
+    constructor(label: string) {
+        super(label);
+    }
+
+    public getTreeItem(): TreeItem {
+        return {
+            label: this.label,
+            collapsibleState: TreeItemCollapsibleState.None
+        }
+    }
 }
 
-export class NotSignedInNode extends NodeBase {
+class NotSignedInNode extends NodeBase {
     constructor() {
         super("Azure Sign In")
+    }
+
+    public getTreeItem(): TreeItem {
+        return {
+            label: this.label,
+            collapsibleState: TreeItemCollapsibleState.None
+        }
     }
 }
 
@@ -43,23 +88,7 @@ export class AppServiceDataProvider implements TreeDataProvider<NodeBase> {
         }
 
         public getTreeItem(element: NodeBase): TreeItem {
-            if (element instanceof SubscriptionNode) {
-                return {
-                    label: element.label,
-                    collapsibleState: TreeItemCollapsibleState.Collapsed
-                }
-            }
-
-            if (element instanceof AppServiceNode) {
-                return {
-                    label: element.label,
-                    collapsibleState: TreeItemCollapsibleState.Collapsed
-                }
-            }
-
-            return {
-                label: "Place Holder"
-            };
+            return element.getTreeItem();
         }
 
         public getChildren(element?: NodeBase): NodeBase[] | Thenable<NodeBase[]> {
@@ -68,7 +97,7 @@ export class AppServiceDataProvider implements TreeDataProvider<NodeBase> {
             try {
                 cred = this.azureCredential.getCredential();    
             } catch (e) {
-                if (e instanceof NotSignedInNode) {
+                if (e instanceof NotSignedInError) {
                     return [new NotSignedInNode()];
                 }
 
@@ -79,11 +108,7 @@ export class AppServiceDataProvider implements TreeDataProvider<NodeBase> {
                 return this.getSubscriptions(cred);
             }
 
-            if (element instanceof SubscriptionNode) {
-                return this.getAppServices(cred, element.subscriptionId);
-            }
-
-            return [];
+            return element.getChildren(cred);
         }
 
         private async getSubscriptions(credential: ServiceClientCredentials): Promise<SubscriptionNode[]> {
@@ -91,16 +116,6 @@ export class AppServiceDataProvider implements TreeDataProvider<NodeBase> {
             const subscriptions = await client.subscriptions.list();
             const nodes = subscriptions.map<SubscriptionNode>((subscription, index, array) =>{
                 return new SubscriptionNode('📰 '+ subscription.displayName, subscription.subscriptionId);
-            });
-
-            return nodes;
-        }
-
-        private async getAppServices(credential: ServiceClientCredentials, subscriptionId: string): Promise<AppServiceNode[]> {
-            const client = new WebSiteManagementClient(credential, subscriptionId);
-            const webApps = await client.webApps.list();
-            const nodes = webApps.map<AppServiceNode>((site, index, array) => {
-                return new AppServiceNode('📊 ' + site.name);
             });
 
             return nodes;

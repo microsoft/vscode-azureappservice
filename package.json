@@ -10,8 +10,10 @@
     "categories": [
         "Other"
     ],
+    "preview": true,
     "activationEvents": [
-        "onCommand:extension.sayHello"
+        "onCommand:extension.sayHello",
+        "onView:azureAppService"
     ],
     "main": "./out/src/extension",
     "contributes": {
@@ -47,5 +49,8 @@
         "azure-arm-resource": "^2.0.0-preview",
         "azure-arm-website": "^1.0.0-preview",
         "ms-rest": "^2.2.1"
-    }
+    },
+    "extensionDependencies": [
+        "chrisdias.vscode-azurelogin"
+    ]
 }
