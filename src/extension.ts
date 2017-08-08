@@ -9,6 +9,9 @@
 import * as vscode from 'vscode';
 import { AzureLogin, AzureAccount } from './azurelogin.api';
 import { AppServiceDataProvider } from "./appServiceExplorer";
+import { AzureSignIn, NotSignedInError } from "./azureSignIn";
+
+var azureSignIn: AzureSignIn | undefined;
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -18,7 +21,8 @@ export function activate(context: vscode.ExtensionContext) {
     // This line of code will only be executed once when your extension is activated
     console.log('Congratulations, your extension "azure-app-service-tools" is now active!');
 
-    let appServiceDataProvider = new AppServiceDataProvider(context);
+    azureSignIn = new AzureSignIn(context);
+    let appServiceDataProvider = new AppServiceDataProvider(azureSignIn);
     
     // The command has been defined in the package.json file
     // Now provide the implementation of the command with  registerCommand

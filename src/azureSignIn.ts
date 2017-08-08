@@ -5,6 +5,7 @@
 
 import { ExtensionContext, Extension, extensions } from 'vscode';
 import { ServiceClientCredentials } from 'ms-rest';
+import { SubscriptionClient, SubscriptionModels } from "azure-arm-resource";
 import { AzureLogin, AzureAccount } from './azurelogin.api';
 
 export class NotSignedInError extends Error {
@@ -13,17 +14,27 @@ export class NotSignedInError extends Error {
     }
 }
 
-export class AzureCredential {
+export class AzureSignIn {
     private loginExtension: Extension<AzureLogin> | null;
 
-    constructor(private conext: ExtensionContext) {
+    constructor(private extensionConext: ExtensionContext) {
         this.loginExtension = extensions.getExtension<AzureLogin>('chrisdias.vscode-azurelogin');
     }
 
-    public getCredential(): ServiceClientCredentials {
+    getCredential(): ServiceClientCredentials {
         if (this.loginExtension && this.loginExtension.exports.account) {
             return this.loginExtension.exports.account.credentials;
         }
         throw new NotSignedInError();
+    }
+
+    getSubscriptions(): Promise<SubscriptionModels.Subscription[]> {
+        const client = new SubscriptionClient(this.getCredential());
+        return client.subscriptions.list();
+    }
+
+    registerAccountChangedListener(listener: (e: AzureAccount) => any, thisArg: any) {
+        let disposable = this.loginExtension.exports.onAccountChanged(listener, thisArg);
+        this.extensionConext.subscriptions.push(disposable);
     }
 }
