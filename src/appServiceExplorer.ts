@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ExtensionContext, TreeDataProvider, TreeItem, TreeItemCollapsibleState } from "vscode";
+import { ExtensionContext, TreeDataProvider, TreeItem, TreeItemCollapsibleState, EventEmitter, Event } from "vscode";
 import { ServiceClientCredentials } from 'ms-rest';
 import { SubscriptionClient } from "azure-arm-resource";
 import WebSiteManagementClient = require("azure-arm-website");
@@ -82,16 +82,22 @@ class NotSignedInNode extends NodeBase {
 
 export class AppServiceDataProvider implements TreeDataProvider<NodeBase> {
         private azureCredential: AzureCredential | null;
+        private _onDidChangeTreeData: EventEmitter<NodeBase | undefined> = new EventEmitter<NodeBase | undefined>();
+        readonly onDidChangeTreeData: Event<NodeBase | undefined> = this._onDidChangeTreeData.event;
 
         constructor(private context: ExtensionContext) {
             this.azureCredential = new AzureCredential(context)
         }
 
-        public getTreeItem(element: NodeBase): TreeItem {
+        refresh(): void {
+            this._onDidChangeTreeData.fire();
+        }
+
+        getTreeItem(element: NodeBase): TreeItem {
             return element.getTreeItem();
         }
 
-        public getChildren(element?: NodeBase): NodeBase[] | Thenable<NodeBase[]> {
+        getChildren(element?: NodeBase): NodeBase[] | Thenable<NodeBase[]> {
             var cred: ServiceClientCredentials;
 
             try {

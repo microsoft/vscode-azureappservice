@@ -12,22 +12,36 @@
     ],
     "preview": true,
     "activationEvents": [
-        "onCommand:extension.sayHello",
+        "onCommand:appService.Refresh",
         "onView:azureAppService"
     ],
     "main": "./out/src/extension",
     "contributes": {
         "commands": [
             {
-                "command": "extension.sayHello",
-                "title": "Hello World"
+                "command": "appService.Refresh",
+                "title": "Refresh",
+                "icon": {
+                    "light": "resources/light/refresh.svg",
+                    "dark": "resources/dark/refresh.svg"
+                }
             }
+
         ],
         "views": {
             "explorer": [
                 {
                     "id": "azureAppService",
                     "name": "Azure App Service"
+                }
+            ]
+        },
+        "menus": {
+            "view/title": [
+                {
+                    "command": "appService.Refresh",
+                    "when": "view == azureAppService",
+                    "group": "navigation"
                 }
             ]
         }
