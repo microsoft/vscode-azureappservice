@@ -21,12 +21,32 @@
             {
                 "command": "appService.Refresh",
                 "title": "Refresh",
+                "category": "Azure App Service",
                 "icon": {
                     "light": "resources/light/refresh.svg",
                     "dark": "resources/dark/refresh.svg"
                 }
+            },
+            {
+                "command": "appService.OpenInPortal",
+                "title": "Open In Portal",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.Browse",
+                "title": "Browse",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.Start",
+                "title": "Start",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.Stop",
+                "title": "Stop",
+                "category": "Azure App Service"
             }
-
         ],
         "views": {
             "explorer": [
@@ -42,6 +62,24 @@
                     "command": "appService.Refresh",
                     "when": "view == azureAppService",
                     "group": "navigation"
+                }
+            ],
+            "view/item/context": [
+                {
+                    "command": "appService.OpenInPortal",
+                    "when": "view == azureAppService && viewItem == appService"
+                },
+                {
+                    "command": "appService.Browse",
+                    "when": "view == azureAppService && viewItem == appService"
+                },
+                {
+                    "command": "appService.Start",
+                    "when": "view == azureAppService && viewItem == appService"
+                },
+                {
+                    "command": "appService.Stop",
+                    "when": "view == azureAppService && viewItem == appService"
                 }
             ]
         }

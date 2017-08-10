@@ -5,10 +5,12 @@
 
 import { TreeDataProvider, TreeItem, TreeItemCollapsibleState, EventEmitter, Event } from "vscode";
 import { ServiceClientCredentials } from 'ms-rest';
-import { SubscriptionClient } from "azure-arm-resource";
+import { SubscriptionClient, SubscriptionModels } from "azure-arm-resource";
 import WebSiteManagementClient = require("azure-arm-website");
+import * as WebSiteModels from "../node_modules/azure-arm-website/lib/models";
 import { AzureSignIn, NotSignedInError } from "./azureSignIn";
 import { AzureAccount } from './azurelogin.api';
+import * as path from "path";
 
 class NodeBase {
     readonly label: string;
@@ -30,11 +32,8 @@ class NodeBase {
 }
 
 class SubscriptionNode extends NodeBase {
-    readonly subscriptionId: string;
-
-    constructor(label: string, subscriptionId: string) {
-        super(label);
-        this.subscriptionId = subscriptionId;
+    constructor(readonly subscription: SubscriptionModels.Subscription) {
+        super('📰 '+ subscription.displayName);
     }
 
     getTreeItem(): TreeItem {
@@ -45,10 +44,10 @@ class SubscriptionNode extends NodeBase {
     }
 
     async getChildren(credential: ServiceClientCredentials): Promise<NodeBase[]> {
-        const client = new WebSiteManagementClient(credential, this.subscriptionId);
+        const client = new WebSiteManagementClient(credential, this.subscription.subscriptionId);
         const webApps = await client.webApps.list();
         const nodes = webApps.map<AppServiceNode>((site, index, array) => {
-            return new AppServiceNode('📊 ' + site.name);
+            return new AppServiceNode(site);
         });
 
         return nodes;
@@ -56,22 +55,28 @@ class SubscriptionNode extends NodeBase {
 }
 
 class AppServiceNode extends NodeBase {
-
-    constructor(label: string) {
-        super(label);
+    constructor(readonly site: WebSiteModels.Site) {
+        super(site.name);
     }
 
     getTreeItem(): TreeItem {
+        let iconName = this.site.kind === "functionapp" ? "AzureFunctionsApp_16x_vscode.svg" : "AzureWebsite_16x_vscode.svg";
+
         return {
             label: this.label,
-            collapsibleState: TreeItemCollapsibleState.None
+            collapsibleState: TreeItemCollapsibleState.None,
+            contextValue: "appService",
+            iconPath: { 
+                light: path.join(__filename, "..", "..", "..", "resources", "light", iconName),
+                dark: path.join(__filename, "..", "..", "..", "resources", "dark", iconName)
+            }
         }
     }
 }
 
 class NotSignedInNode extends NodeBase {
     constructor() {
-        super("Azure Sign In")
+        super("Azure Sign In...")
     }
 
     getTreeItem(): TreeItem {
@@ -121,7 +126,7 @@ export class AppServiceDataProvider implements TreeDataProvider<NodeBase> {
     private async getSubscriptions(credential: ServiceClientCredentials): Promise<SubscriptionNode[]> {
         const subscriptions = await this.azureSignIn.getSubscriptions();
         const nodes = subscriptions.map<SubscriptionNode>((subscription, index, array) =>{
-            return new SubscriptionNode('📰 '+ subscription.displayName, subscription.subscriptionId);
+            return new SubscriptionNode(subscription);
         });
 
         return nodes;

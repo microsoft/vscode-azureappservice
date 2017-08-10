@@ -33,6 +33,10 @@ export function activate(context: vscode.ExtensionContext) {
         appServiceDataProvider.refresh();
     });
 
+    let openInPortalDisposable = vscode.commands.registerCommand('appService.OpenInPortal', (...args: any[]) => {
+        console.log(args);
+    });
+
     let appServiceDataProviderDisposable = vscode.window.registerTreeDataProvider('azureAppService', appServiceDataProvider);
     
     context.subscriptions.push(refreshDisposable);
