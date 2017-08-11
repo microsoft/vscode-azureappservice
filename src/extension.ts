@@ -8,8 +8,8 @@
 // Import the module and reference it with the alias vscode in your code below
 import * as vscode from 'vscode';
 import { AzureLogin, AzureAccount } from './azurelogin.api';
-import { AppServiceDataProvider } from "./appServiceExplorer";
-import { AzureSignIn, NotSignedInError } from "./azureSignIn";
+import { AppServiceDataProvider, AppServiceNode } from './appServiceExplorer';
+import { AzureSignIn, NotSignedInError } from './azureSignIn';
 
 var azureSignIn: AzureSignIn | undefined;
 
@@ -23,26 +23,32 @@ export function activate(context: vscode.ExtensionContext) {
 
     azureSignIn = new AzureSignIn(context);
     let appServiceDataProvider = new AppServiceDataProvider(azureSignIn);
-    
-    // The command has been defined in the package.json file
-    // Now provide the implementation of the command with  registerCommand
-    // The commandId parameter must match the command field in package.json
-    let refreshDisposable = vscode.commands.registerCommand('appService.Refresh', () => {
-        // The code you place here will be executed every time your command is executed
-        // Display a message box to the user
+
+    context.subscriptions.push(vscode.window.registerTreeDataProvider('azureAppService', appServiceDataProvider));
+    context.subscriptions.push(vscode.commands.registerCommand('appService.Refresh', () => {
         appServiceDataProvider.refresh();
-    });
-
-    let openInPortalDisposable = vscode.commands.registerCommand('appService.OpenInPortal', (...args: any[]) => {
+    }));
+    context.subscriptions.push(vscode.commands.registerCommand('appService.Browse', (...args: any[]) => {
+        if (args.length === 0 || !(args[0] instanceof AppServiceNode)) {
+            return;
+        }
+        (<AppServiceNode>args[0]).browse();
+    }));
+    context.subscriptions.push(vscode.commands.registerCommand('appService.OpenInPortal', (...args: any[]) => {
+        if (args.length === 0 || !(args[0] instanceof AppServiceNode)) {
+            return;
+        }
+        (<AppServiceNode>args[0]).openInPortal(azureSignIn);
+    }));
+    context.subscriptions.push(vscode.commands.registerCommand('appService.Start', (...args: any[]) => {
         console.log(args);
-    });
-
-    let appServiceDataProviderDisposable = vscode.window.registerTreeDataProvider('azureAppService', appServiceDataProvider);
-    
-    context.subscriptions.push(refreshDisposable);
-    context.subscriptions.push(appServiceDataProviderDisposable)
+    }));
+    context.subscriptions.push(vscode.commands.registerCommand('appService.Stop', (...args: any[]) => {
+        console.log(args);
+    }));
 }
 
 // this method is called when your extension is deactivated
 export function deactivate() {
+    azureSignIn = null;
 }

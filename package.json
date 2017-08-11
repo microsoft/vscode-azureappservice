@@ -13,6 +13,10 @@
     "preview": true,
     "activationEvents": [
         "onCommand:appService.Refresh",
+        "onCommand:appService.OpenInPortal",
+        "onCommand:appService.Browse",
+        "onCommand:appService.Start",
+        "onCommand:appService.Stop",
         "onView:azureAppService"
     ],
     "main": "./out/src/extension",
@@ -100,7 +104,9 @@
     "dependencies": {
         "azure-arm-resource": "^2.0.0-preview",
         "azure-arm-website": "^1.0.0-preview",
-        "ms-rest": "^2.2.1"
+        "ms-rest": "^2.2.1",
+        "ms-rest-azure": "^2.2.3",
+        "opn": "^5.1.0"
     },
     "extensionDependencies": [
         "chrisdias.vscode-azurelogin"

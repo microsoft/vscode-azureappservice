@@ -5,7 +5,8 @@
 
 import { ExtensionContext, Extension, extensions } from 'vscode';
 import { ServiceClientCredentials } from 'ms-rest';
-import { SubscriptionClient, SubscriptionModels } from "azure-arm-resource";
+import { AzureEnvironment } from 'ms-rest-azure';
+import { SubscriptionClient, SubscriptionModels } from 'azure-arm-resource';
 import { AzureLogin, AzureAccount } from './azurelogin.api';
 
 export class NotSignedInError extends Error {
@@ -21,15 +22,32 @@ export class AzureSignIn {
         this.loginExtension = extensions.getExtension<AzureLogin>('chrisdias.vscode-azurelogin');
     }
 
-    getCredential(): ServiceClientCredentials {
+    getCredentials(): ServiceClientCredentials {
         if (this.loginExtension && this.loginExtension.exports.account) {
             return this.loginExtension.exports.account.credentials;
         }
         throw new NotSignedInError();
     }
 
+    isSignedIn() : boolean {
+        try {
+            this.getCredentials();
+        } catch (err) {
+            if (err instanceof NotSignedInError) {
+                return false;
+            }
+            throw err;
+        }
+
+        return true;
+    }
+
+    getTenantId(): string {
+        return this.loginExtension.exports.account.tenantId;
+    }
+
     getSubscriptions(): Promise<SubscriptionModels.Subscription[]> {
-        const client = new SubscriptionClient(this.getCredential());
+        const client = new SubscriptionClient(this.getCredentials());
         return client.subscriptions.list();
     }
 

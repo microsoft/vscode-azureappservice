@@ -3,14 +3,15 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { TreeDataProvider, TreeItem, TreeItemCollapsibleState, EventEmitter, Event } from "vscode";
+import { TreeDataProvider, TreeItem, TreeItemCollapsibleState, EventEmitter, Event } from 'vscode';
 import { ServiceClientCredentials } from 'ms-rest';
-import { SubscriptionClient, SubscriptionModels } from "azure-arm-resource";
-import WebSiteManagementClient = require("azure-arm-website");
-import * as WebSiteModels from "../node_modules/azure-arm-website/lib/models";
-import { AzureSignIn, NotSignedInError } from "./azureSignIn";
+import { SubscriptionClient, SubscriptionModels } from 'azure-arm-resource';
+import WebSiteManagementClient = require('azure-arm-website');
+import * as WebSiteModels from '../node_modules/azure-arm-website/lib/models';
+import { AzureSignIn, NotSignedInError } from './azureSignIn';
 import { AzureAccount } from './azurelogin.api';
-import * as path from "path";
+import * as path from 'path';
+import * as opn from 'opn';
 
 class NodeBase {
     readonly label: string;
@@ -21,19 +22,19 @@ class NodeBase {
 
     getTreeItem(): TreeItem {
         return {
-            label: "You are not supposed to see this",
+            label: 'You are not supposed to see this',
             collapsibleState: TreeItemCollapsibleState.None
         }
     }
 
-    async getChildren(credential: ServiceClientCredentials): Promise<NodeBase[]> {
+    async getChildren(azureSignIn: AzureSignIn): Promise<NodeBase[]> {
         return [];
     }
 }
 
-class SubscriptionNode extends NodeBase {
+export class SubscriptionNode extends NodeBase {
     constructor(readonly subscription: SubscriptionModels.Subscription) {
-        super('📰 '+ subscription.displayName);
+        super(`📰 ${subscription.displayName}`);
     }
 
     getTreeItem(): TreeItem {
@@ -43,40 +44,66 @@ class SubscriptionNode extends NodeBase {
         }
     }
 
-    async getChildren(credential: ServiceClientCredentials): Promise<NodeBase[]> {
+    async getChildren(azureSignIn: AzureSignIn): Promise<NodeBase[]> {
+        if (!azureSignIn.isSignedIn()) {
+            return [];
+        }
+
+        const credential = azureSignIn.getCredentials();
         const client = new WebSiteManagementClient(credential, this.subscription.subscriptionId);
         const webApps = await client.webApps.list();
-        const nodes = webApps.map<AppServiceNode>((site, index, array) => {
-            return new AppServiceNode(site);
+        const nodes = webApps.sort((a, b) => {
+            let n = a.resourceGroup.localeCompare(b.resourceGroup);
+
+            if (n !== 0) {
+                return n;
+            }
+
+            return a.name.localeCompare(b.name);
+        }).map<AppServiceNode>((site, index, array) => {
+            return new AppServiceNode(site, this.subscription);
         });
 
         return nodes;
     }
 }
 
-class AppServiceNode extends NodeBase {
-    constructor(readonly site: WebSiteModels.Site) {
+export class AppServiceNode extends NodeBase {
+    constructor(readonly site: WebSiteModels.Site, readonly subscription: SubscriptionModels.Subscription) {
         super(site.name);
     }
 
     getTreeItem(): TreeItem {
-        let iconName = this.site.kind === "functionapp" ? "AzureFunctionsApp_16x_vscode.svg" : "AzureWebsite_16x_vscode.svg";
-
+        let iconName = this.site.kind.startsWith('functionapp') ? 'AzureFunctionsApp_16x_vscode.svg' : 'AzureWebsite_16x_vscode.svg';
         return {
-            label: this.label,
+            label: `${this.label} (${this.site.resourceGroup})`,
             collapsibleState: TreeItemCollapsibleState.None,
-            contextValue: "appService",
+            contextValue: 'appService',
             iconPath: { 
-                light: path.join(__filename, "..", "..", "..", "resources", "light", iconName),
-                dark: path.join(__filename, "..", "..", "..", "resources", "dark", iconName)
+                light: path.join(__filename, '..', '..', '..', 'resources', 'light', iconName),
+                dark: path.join(__filename, '..', '..', '..', 'resources', 'dark', iconName)
             }
         }
     }
+
+    browse(): void {
+        const defaultHostName = this.site.defaultHostName;
+        const isSsl = this.site.hostNameSslStates.findIndex((value, index, arr) => 
+            value.name === defaultHostName && value.sslState === "Enabled");
+        const uri = `${isSsl ? 'https://' : 'http://'}${defaultHostName}`;
+        opn(uri);
+    }
+
+    openInPortal(azureSignIn: AzureSignIn): void {
+        const portalEndpoint = 'https://portal.azure.com';
+        const deepLink = `${portalEndpoint}/${azureSignIn.getTenantId()}/#resource${this.site.id}`;
+        opn(deepLink);
+    }
 }
 
-class NotSignedInNode extends NodeBase {
+export class NotSignedInNode extends NodeBase {
     constructor() {
-        super("Azure Sign In...")
+        super('Azure Sign In...')
     }
 
     getTreeItem(): TreeItem {
@@ -104,26 +131,20 @@ export class AppServiceDataProvider implements TreeDataProvider<NodeBase> {
     }
 
     getChildren(element?: NodeBase): NodeBase[] | Thenable<NodeBase[]> {
-        var cred: ServiceClientCredentials;
-
-        try {
-            cred = this.azureSignIn.getCredential();    
-        } catch (e) {
-            if (e instanceof NotSignedInError) {
-                return [new NotSignedInNode()];
-            }
-
-            throw e
-        }
-        
-        if (!element) {
-            return this.getSubscriptions(cred);
+        if (!this.azureSignIn.isSignedIn()) {
+            return [new NotSignedInNode()];
         }
 
-        return element.getChildren(cred);
+        const cred = this.azureSignIn.getCredentials();
+
+        if (!element) {     // Top level, no parent element.
+            return this.getSubscriptions();
+        }
+
+        return element.getChildren(this.azureSignIn);
     }
 
-    private async getSubscriptions(credential: ServiceClientCredentials): Promise<SubscriptionNode[]> {
+    private async getSubscriptions(): Promise<SubscriptionNode[]> {
         const subscriptions = await this.azureSignIn.getSubscriptions();
         const nodes = subscriptions.map<SubscriptionNode>((subscription, index, array) =>{
             return new SubscriptionNode(subscription);
