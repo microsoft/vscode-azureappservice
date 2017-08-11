@@ -50,6 +50,11 @@
                 "command": "appService.Stop",
                 "title": "Stop",
                 "category": "Azure App Service"
+            },
+            {
+                "command": "appService.Restart",
+                "title": "Restart",
+                "category": "Azure App Service"
             }
         ],
         "views": {
@@ -83,6 +88,10 @@
                 },
                 {
                     "command": "appService.Stop",
+                    "when": "view == azureAppService && viewItem == appService"
+                },
+                {
+                    "command": "appService.Restart",
                     "when": "view == azureAppService && viewItem == appService"
                 }
             ]

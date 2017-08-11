@@ -99,6 +99,21 @@ export class AppServiceNode extends NodeBase {
         const deepLink = `${portalEndpoint}/${azureSignIn.getTenantId()}/#resource${this.site.id}`;
         opn(deepLink);
     }
+
+    async start(azureSignIn: AzureSignIn): Promise<void> {
+        const client = new WebSiteManagementClient(azureSignIn.getCredentials(), this.subscription.subscriptionId);
+        return client.webApps.start(this.site.resourceGroup, this.site.name);
+    }
+
+    async stop(azureSignIn: AzureSignIn): Promise<void> {
+        const client = new WebSiteManagementClient(azureSignIn.getCredentials(), this.subscription.subscriptionId);
+        return client.webApps.stop(this.site.resourceGroup, this.site.name);
+    }
+
+    async restart(azureSignIn: AzureSignIn): Promise<void> {
+        const client = new WebSiteManagementClient(azureSignIn.getCredentials(), this.subscription.subscriptionId);
+        return client.webApps.restart(this.site.resourceGroup, this.site.name);
+    }
 }
 
 export class NotSignedInNode extends NodeBase {
