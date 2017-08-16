@@ -7,52 +7,74 @@ import { ExtensionContext, Extension, extensions } from 'vscode';
 import { ServiceClientCredentials } from 'ms-rest';
 import { AzureEnvironment } from 'ms-rest-azure';
 import { SubscriptionClient, SubscriptionModels } from 'azure-arm-resource';
-import { AzureLogin, AzureAccount } from './azurelogin.api';
+import { AzureLogin, AzureSession, AzureLoginStatus } from './azurelogin.api';
 
-export class NotSignedInError extends Error {
-    constructor(message?: string) {
-        super(message);
-    }
-}
+export class NotSignedInError extends Error { }
+
+export class CredentialError extends Error { }
 
 export class AzureSignIn {
-    private loginExtension: Extension<AzureLogin> | null;
+    readonly loginExtension: Extension<AzureLogin> | null;
 
-    constructor(private extensionConext: ExtensionContext) {
+    constructor(readonly extensionConext: ExtensionContext) {
         this.loginExtension = extensions.getExtension<AzureLogin>('chrisdias.vscode-azurelogin');
     }
 
-    getCredentials(): ServiceClientCredentials {
-        if (this.loginExtension && this.loginExtension.exports.account) {
-            return this.loginExtension.exports.account.credentials;
+    getAzureSessions(): AzureSession[] {
+        const status = this.loginExtension.exports.status;
+        if (status !== 'LoggedIn') {
+            throw new NotSignedInError(status)
         }
-        throw new NotSignedInError();
+        return this.loginExtension.exports.sessions;
     }
 
-    isSignedIn() : boolean {
-        try {
-            this.getCredentials();
-        } catch (err) {
-            if (err instanceof NotSignedInError) {
-                return false;
-            }
-            throw err;
+    getCredentialByTenantId(tenantId: string): ServiceClientCredentials {
+        const session = this.getAzureSessions().find((s, i, array) => s.tenantId.toLowerCase() === tenantId.toLowerCase());
+
+        if (session) {
+            return session.credentials;
         }
 
-        return true;
+        throw new CredentialError(`Failed to get credential, tenant ${tenantId} not found.`);
     }
 
-    getTenantId(): string {
-        return this.loginExtension.exports.account.tenantId;
+    get signInStatus(): AzureLoginStatus {
+        return this.loginExtension.exports.status;
     }
 
-    getSubscriptions(): Promise<SubscriptionModels.Subscription[]> {
-        const client = new SubscriptionClient(this.getCredentials());
-        return client.subscriptions.list();
+    async getSubscriptions(): Promise<SubscriptionModels.Subscription[]> {
+        const tasks = new Array<Promise<SubscriptionModels.Subscription[]>>();
+        
+        this.getAzureSessions().forEach((s, i, array) => {
+            const client = new SubscriptionClient(s.credentials);
+            const tenantId = s.tenantId;
+            tasks.push(client.subscriptions.list().then<SubscriptionModels.Subscription[]>((result) => {
+                return result.map<SubscriptionModels.Subscription>((value) => {
+                    // The list() API doesn't include tenantId information in the subscription object, 
+                    // however many places that uses subscription objects will be needing it, so we just create 
+                    // a copy of the subscription object with the tenantId value.
+                    return {
+                        id: value.id,
+                        subscriptionId: value.subscriptionId,
+                        tenantId: tenantId,
+                        displayName: value.displayName,
+                        state: value.state,
+                        subscriptionPolicies: value.subscriptionPolicies,
+                        authorizationSource: value.authorizationSource
+                    };
+                });
+            }));
+        });
+        
+        const results = await Promise.all(tasks);
+        const subscriptions = new Array<SubscriptionModels.Subscription>();
+        
+        results.forEach((result) => result.forEach((subscription) => subscriptions.push(subscription)));
+        return subscriptions;
     }
 
-    registerAccountChangedListener(listener: (e: AzureAccount) => any, thisArg: any) {
-        let disposable = this.loginExtension.exports.onAccountChanged(listener, thisArg);
+    registerSessionsChangedListener(listener: (e: void) => any, thisArg: any) {
+        let disposable = this.loginExtension.exports.onSessionsChanged(listener, thisArg);
         this.extensionConext.subscriptions.push(disposable);
     }
 }

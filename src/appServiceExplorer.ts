@@ -9,7 +9,6 @@ import { SubscriptionClient, SubscriptionModels } from 'azure-arm-resource';
 import WebSiteManagementClient = require('azure-arm-website');
 import * as WebSiteModels from '../node_modules/azure-arm-website/lib/models';
 import { AzureSignIn, NotSignedInError } from './azureSignIn';
-import { AzureAccount } from './azurelogin.api';
 import * as path from 'path';
 import * as opn from 'opn';
 
@@ -45,11 +44,11 @@ export class SubscriptionNode extends NodeBase {
     }
 
     async getChildren(azureSignIn: AzureSignIn): Promise<NodeBase[]> {
-        if (!azureSignIn.isSignedIn()) {
+        if (azureSignIn.signInStatus !== 'LoggedIn') {
             return [];
         }
 
-        const credential = azureSignIn.getCredentials();
+        const credential = azureSignIn.getCredentialByTenantId(this.subscription.tenantId);
         const client = new WebSiteManagementClient(credential, this.subscription.subscriptionId);
         const webApps = await client.webApps.list();
         const nodes = webApps.sort((a, b) => {
@@ -96,22 +95,22 @@ export class AppServiceNode extends NodeBase {
 
     openInPortal(azureSignIn: AzureSignIn): void {
         const portalEndpoint = 'https://portal.azure.com';
-        const deepLink = `${portalEndpoint}/${azureSignIn.getTenantId()}/#resource${this.site.id}`;
+        const deepLink = `${portalEndpoint}/${this.subscription.tenantId}/#resource${this.site.id}`;
         opn(deepLink);
     }
 
     async start(azureSignIn: AzureSignIn): Promise<void> {
-        const client = new WebSiteManagementClient(azureSignIn.getCredentials(), this.subscription.subscriptionId);
+        const client = new WebSiteManagementClient(azureSignIn.getCredentialByTenantId(this.subscription.tenantId), this.subscription.subscriptionId);
         return client.webApps.start(this.site.resourceGroup, this.site.name);
     }
 
     async stop(azureSignIn: AzureSignIn): Promise<void> {
-        const client = new WebSiteManagementClient(azureSignIn.getCredentials(), this.subscription.subscriptionId);
+        const client = new WebSiteManagementClient(azureSignIn.getCredentialByTenantId(this.subscription.tenantId), this.subscription.subscriptionId);
         return client.webApps.stop(this.site.resourceGroup, this.site.name);
     }
 
     async restart(azureSignIn: AzureSignIn): Promise<void> {
-        const client = new WebSiteManagementClient(azureSignIn.getCredentials(), this.subscription.subscriptionId);
+        const client = new WebSiteManagementClient(azureSignIn.getCredentialByTenantId(this.subscription.tenantId), this.subscription.subscriptionId);
         return client.webApps.restart(this.site.resourceGroup, this.site.name);
     }
 }
@@ -134,7 +133,7 @@ export class AppServiceDataProvider implements TreeDataProvider<NodeBase> {
     readonly onDidChangeTreeData: Event<NodeBase | undefined> = this._onDidChangeTreeData.event;
 
     constructor(private azureSignIn: AzureSignIn) {
-        this.azureSignIn.registerAccountChangedListener(this.onAccountChanged, this);
+        this.azureSignIn.registerSessionsChangedListener(this.onSessionsChanged, this);
     }
 
     refresh(): void {
@@ -146,11 +145,9 @@ export class AppServiceDataProvider implements TreeDataProvider<NodeBase> {
     }
 
     getChildren(element?: NodeBase): NodeBase[] | Thenable<NodeBase[]> {
-        if (!this.azureSignIn.isSignedIn()) {
+        if (this.azureSignIn.signInStatus !== 'LoggedIn') {
             return [new NotSignedInNode()];
         }
-
-        const cred = this.azureSignIn.getCredentials();
 
         if (!element) {     // Top level, no parent element.
             return this.getSubscriptions();
@@ -168,7 +165,7 @@ export class AppServiceDataProvider implements TreeDataProvider<NodeBase> {
         return nodes;
     }
 
-    private onAccountChanged(e: AzureAccount) {
+    private onSessionsChanged() {
         this.refresh();
     }
 }

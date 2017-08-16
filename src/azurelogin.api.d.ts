@@ -5,14 +5,19 @@
 
 import { Event } from 'vscode';
 import { ServiceClientCredentials } from 'ms-rest';
+import { AzureEnvironment } from 'ms-rest-azure';
+
+export type AzureLoginStatus = 'Initializing' | 'LoggingIn' | 'LoggedIn' | 'LoggedOut';
 
 export interface AzureLogin {
-	readonly account: AzureAccount | undefined;
-	readonly onAccountChanged: Event<AzureAccount | undefined>;
+	readonly status: AzureLoginStatus;
+	readonly onStatusChanged: Event<AzureLoginStatus>;
+	readonly sessions: AzureSession[];
+	readonly onSessionsChanged: Event<void>;
 }
 
-export interface AzureAccount {
-	readonly oid: string;
+export interface AzureSession {
+	readonly environment: AzureEnvironment;
 	readonly userId: string;
 	readonly tenantId: string;
 	readonly credentials: ServiceClientCredentials;
