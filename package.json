@@ -38,7 +38,7 @@
             },
             {
                 "command": "appService.Browse",
-                "title": "Browse",
+                "title": "Browse Website",
                 "category": "Azure App Service"
             },
             {
@@ -76,23 +76,28 @@
             "view/item/context": [
                 {
                     "command": "appService.OpenInPortal",
-                    "when": "view == azureAppService && viewItem == appService"
+                    "when": "view == azureAppService && viewItem == appService",
+                    "group": "appServiceGeneralCommands"
                 },
                 {
                     "command": "appService.Browse",
-                    "when": "view == azureAppService && viewItem == appService"
+                    "when": "view == azureAppService && viewItem == appService",
+                    "group": "appServiceGeneralCommands"
                 },
                 {
                     "command": "appService.Start",
-                    "when": "view == azureAppService && viewItem == appService"
+                    "when": "view == azureAppService && viewItem == appService",
+                    "group": "appServiceControlCommands"
                 },
                 {
                     "command": "appService.Stop",
-                    "when": "view == azureAppService && viewItem == appService"
+                    "when": "view == azureAppService && viewItem == appService",
+                    "group": "appServiceControlCommands"
                 },
                 {
                     "command": "appService.Restart",
-                    "when": "view == azureAppService && viewItem == appService"
+                    "when": "view == azureAppService && viewItem == appService",
+                    "group": "appServiceControlCommands"
                 }
             ]
         }

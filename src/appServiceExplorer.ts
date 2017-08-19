@@ -4,15 +4,15 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { TreeDataProvider, TreeItem, EventEmitter, Event } from 'vscode';
-import { AzureSignIn } from './azureSignIn';
+import { AzureAccount } from './azureAccount';
 import { NodeBase, AppServiceNode, SubscriptionNode, NotSignedInNode } from './appServiceNodes';
 
 export class AppServiceDataProvider implements TreeDataProvider<NodeBase> {
     private _onDidChangeTreeData: EventEmitter<NodeBase> = new EventEmitter<NodeBase>();
     readonly onDidChangeTreeData: Event<NodeBase> = this._onDidChangeTreeData.event;
 
-    constructor(private azureSignIn: AzureSignIn) {
-        this.azureSignIn.registerSessionsChangedListener(this.onSessionsChanged, this);
+    constructor(private azureAccount: AzureAccount) {
+        this.azureAccount.registerSessionsChangedListener(this.onSessionsChanged, this);
     }
 
     refresh(): void {
@@ -24,7 +24,7 @@ export class AppServiceDataProvider implements TreeDataProvider<NodeBase> {
     }
 
     getChildren(element?: NodeBase): NodeBase[] | Thenable<NodeBase[]> {
-        if (this.azureSignIn.signInStatus !== 'LoggedIn') {
+        if (this.azureAccount.signInStatus !== 'LoggedIn') {
             return [new NotSignedInNode()];
         }
 
@@ -32,11 +32,11 @@ export class AppServiceDataProvider implements TreeDataProvider<NodeBase> {
             return this.getSubscriptions();
         }
 
-        return element.getChildren(this.azureSignIn);
+        return element.getChildren(this.azureAccount);
     }
 
     private async getSubscriptions(): Promise<SubscriptionNode[]> {
-        const subscriptions = await this.azureSignIn.getSubscriptions();
+        const subscriptions = await this.azureAccount.getSubscriptions();
         const nodes = subscriptions.map<SubscriptionNode>((subscription, index, array) =>{
             return new SubscriptionNode(subscription);
         });

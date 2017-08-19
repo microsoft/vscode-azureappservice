@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { TreeDataProvider, TreeItem, TreeItemCollapsibleState, EventEmitter, Event } from 'vscode';
-import { AzureSignIn } from './azureSignIn';
+import { AzureAccount } from './azureAccount';
 import { SubscriptionClient, SubscriptionModels } from 'azure-arm-resource';
 import WebSiteManagementClient = require('azure-arm-website');
 import * as WebSiteModels from '../node_modules/azure-arm-website/lib/models';
@@ -19,13 +19,13 @@ export class NodeBase {
     }
 
     getTreeItem(): TreeItem {
-        return {
-            label: 'You are not supposed to see this',
+        return { 
+            label: this.label,
             collapsibleState: TreeItemCollapsibleState.None
-        }
+        };
     }
 
-    async getChildren(azureSignIn: AzureSignIn): Promise<NodeBase[]> {
+    async getChildren(azureAccount: AzureAccount): Promise<NodeBase[]> {
         return [];
     }
 }
@@ -42,12 +42,12 @@ export class SubscriptionNode extends NodeBase {
         }
     }
 
-    async getChildren(azureSignIn: AzureSignIn): Promise<NodeBase[]> {
-        if (azureSignIn.signInStatus !== 'LoggedIn') {
+    async getChildren(azureAccount: AzureAccount): Promise<NodeBase[]> {
+        if (azureAccount.signInStatus !== 'LoggedIn') {
             return [];
         }
 
-        const credential = azureSignIn.getCredentialByTenantId(this.subscription.tenantId);
+        const credential = azureAccount.getCredentialByTenantId(this.subscription.tenantId);
         const client = new WebSiteManagementClient(credential, this.subscription.subscriptionId);
         const webApps = await client.webApps.list();
         const nodes = webApps.sort((a, b) => {
@@ -92,37 +92,41 @@ export class AppServiceNode extends NodeBase {
         opn(uri);
     }
 
-    openInPortal(azureSignIn: AzureSignIn): void {
+    openInPortal(azureAccount: AzureAccount): void {
         const portalEndpoint = 'https://portal.azure.com';
         const deepLink = `${portalEndpoint}/${this.subscription.tenantId}/#resource${this.site.id}`;
         opn(deepLink);
     }
 
-    start(azureSignIn: AzureSignIn): Promise<void> {
-        return this.getWebSiteManagementClient(azureSignIn).webApps.start(this.site.resourceGroup, this.site.name);
+    start(azureAccount: AzureAccount): Promise<void> {
+        return this.getWebSiteManagementClient(azureAccount).webApps.start(this.site.resourceGroup, this.site.name);
     }
 
-    stop(azureSignIn: AzureSignIn): Promise<void> {
-        return this.getWebSiteManagementClient(azureSignIn).webApps.stop(this.site.resourceGroup, this.site.name);
+    stop(azureAccount: AzureAccount): Promise<void> {
+        return this.getWebSiteManagementClient(azureAccount).webApps.stop(this.site.resourceGroup, this.site.name);
     }
 
-    restart(azureSignIn: AzureSignIn): Promise<void> {
-        return this.getWebSiteManagementClient(azureSignIn).webApps.restart(this.site.resourceGroup, this.site.name);
+    restart(azureAccount: AzureAccount): Promise<void> {
+        return this.getWebSiteManagementClient(azureAccount).webApps.restart(this.site.resourceGroup, this.site.name);
     }
 
-    private getWebSiteManagementClient(azureSignIn: AzureSignIn) {
-        return new WebSiteManagementClient(azureSignIn.getCredentialByTenantId(this.subscription.tenantId), this.subscription.subscriptionId);
+    private getWebSiteManagementClient(azureAccount: AzureAccount) {
+        return new WebSiteManagementClient(azureAccount.getCredentialByTenantId(this.subscription.tenantId), this.subscription.subscriptionId);
     }
 }
 
 export class NotSignedInNode extends NodeBase {
     constructor() {
-        super('Sign in to Azure...')
+        super('Sign in to Azure...');
     }
 
     getTreeItem(): TreeItem {
         return {
             label: this.label,
+            command: {
+                title: this.label,
+                command: 'vscode-azurelogin.login'
+            },
             collapsibleState: TreeItemCollapsibleState.None
         }
     }

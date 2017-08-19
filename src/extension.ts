@@ -8,7 +8,7 @@
 import * as vscode from 'vscode';
 import { AppServiceDataProvider } from './appServiceExplorer';
 import { AppServiceNode } from './appServiceNodes';
-import { AzureSignIn, NotSignedInError } from './azureSignIn';
+import { AzureAccount } from './azureAccount';
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Extension "Azure App Service Tools" is now active.');
@@ -16,7 +16,7 @@ export function activate(context: vscode.ExtensionContext) {
     const outputChannel = vscode.window.createOutputChannel("Azure App Service");
     context.subscriptions.push(outputChannel);
 
-    const azureSignIn = new AzureSignIn(context);
+    const azureSignIn = new AzureAccount(context);
     const appServiceDataProvider = new AppServiceDataProvider(azureSignIn);
 
     context.subscriptions.push(vscode.window.registerTreeDataProvider('azureAppService', appServiceDataProvider));
@@ -48,6 +48,5 @@ export function activate(context: vscode.ExtensionContext) {
     }));
 }
 
-// this method is called when your extension is deactivated
 export function deactivate() {
 }

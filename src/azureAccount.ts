@@ -13,7 +13,7 @@ export class NotSignedInError extends Error { }
 
 export class CredentialError extends Error { }
 
-export class AzureSignIn {
+export class AzureAccount {
     readonly loginExtension: Extension<AzureLogin> | null;
 
     constructor(readonly extensionConext: ExtensionContext) {
