@@ -16,8 +16,8 @@ export function activate(context: vscode.ExtensionContext) {
     const outputChannel = vscode.window.createOutputChannel("Azure App Service");
     context.subscriptions.push(outputChannel);
 
-    const azureSignIn = new AzureAccount(context);
-    const appServiceDataProvider = new AppServiceDataProvider(azureSignIn);
+    const azureAccount = new AzureAccount(context);
+    const appServiceDataProvider = new AppServiceDataProvider(azureAccount);
 
     context.subscriptions.push(vscode.window.registerTreeDataProvider('azureAppService', appServiceDataProvider));
     context.subscriptions.push(vscode.commands.registerCommand('appService.Refresh', () => appServiceDataProvider.refresh()));
@@ -28,22 +28,22 @@ export function activate(context: vscode.ExtensionContext) {
     }));
     context.subscriptions.push(vscode.commands.registerCommand('appService.OpenInPortal', (node: AppServiceNode) => {
         if (node) {
-            node.openInPortal(azureSignIn);
+            node.openInPortal(azureAccount);
         }
     }));
     context.subscriptions.push(vscode.commands.registerCommand('appService.Start', (node: AppServiceNode) => {
         if (node) {
-            node.start(azureSignIn).then(() => outputChannel.appendLine(`Starting App "${node.site.name}"...`));
+            node.start(azureAccount).then(() => outputChannel.appendLine(`Starting App "${node.site.name}"...`));
         }
     }));
     context.subscriptions.push(vscode.commands.registerCommand('appService.Stop', (node: AppServiceNode) => {
         if (node) {
-            node.stop(azureSignIn).then(() => outputChannel.appendLine(`Stopping App "${node.site.name}"...`));
+            node.stop(azureAccount).then(() => outputChannel.appendLine(`Stopping App "${node.site.name}"...`));
         }
     }));
     context.subscriptions.push(vscode.commands.registerCommand('appService.Restart', (node: AppServiceNode) => {
         if (node) {
-            node.restart(azureSignIn).then(() => outputChannel.appendLine(`Restarting App "${node.site.name}"...`));
+            node.restart(azureAccount).then(() => outputChannel.appendLine(`Restarting App "${node.site.name}"...`));
         }
     }));
 }
