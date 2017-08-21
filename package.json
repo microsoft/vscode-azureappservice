@@ -1,0 +1,128 @@
+{
+    "name": "vscode-azureappservice",
+    "displayName": "Azure App Service Tools",
+    "description": "An Azure App Service management extension for Visual Studio Code.",
+    "version": "0.0.1",
+    "publisher": "Microsoft",
+    "engines": {
+        "vscode": "^1.14.0"
+    },
+    "categories": [
+        "Other"
+    ],
+    "preview": true,
+    "activationEvents": [
+        "onCommand:appService.Refresh",
+        "onCommand:appService.OpenInPortal",
+        "onCommand:appService.Browse",
+        "onCommand:appService.Start",
+        "onCommand:appService.Stop",
+        "onView:azureAppService"
+    ],
+    "main": "./out/src/extension",
+    "contributes": {
+        "commands": [
+            {
+                "command": "appService.Refresh",
+                "title": "Refresh",
+                "category": "Azure App Service",
+                "icon": {
+                    "light": "resources/light/refresh.svg",
+                    "dark": "resources/dark/refresh.svg"
+                }
+            },
+            {
+                "command": "appService.OpenInPortal",
+                "title": "Open In Portal",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.Browse",
+                "title": "Browse Website",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.Start",
+                "title": "Start",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.Stop",
+                "title": "Stop",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.Restart",
+                "title": "Restart",
+                "category": "Azure App Service"
+            }
+        ],
+        "views": {
+            "explorer": [
+                {
+                    "id": "azureAppService",
+                    "name": "Azure App Service"
+                }
+            ]
+        },
+        "menus": {
+            "view/title": [
+                {
+                    "command": "appService.Refresh",
+                    "when": "view == azureAppService",
+                    "group": "navigation"
+                }
+            ],
+            "view/item/context": [
+                {
+                    "command": "appService.OpenInPortal",
+                    "when": "view == azureAppService && viewItem == appService",
+                    "group": "appServiceGeneralCommands"
+                },
+                {
+                    "command": "appService.Browse",
+                    "when": "view == azureAppService && viewItem == appService",
+                    "group": "appServiceGeneralCommands"
+                },
+                {
+                    "command": "appService.Start",
+                    "when": "view == azureAppService && viewItem == appService",
+                    "group": "appServiceControlCommands"
+                },
+                {
+                    "command": "appService.Stop",
+                    "when": "view == azureAppService && viewItem == appService",
+                    "group": "appServiceControlCommands"
+                },
+                {
+                    "command": "appService.Restart",
+                    "when": "view == azureAppService && viewItem == appService",
+                    "group": "appServiceControlCommands"
+                }
+            ]
+        }
+    },
+    "scripts": {
+        "vscode:prepublish": "tsc -p ./",
+        "compile": "tsc -watch -p ./",
+        "postinstall": "node ./node_modules/vscode/bin/install",
+        "test": "node ./node_modules/vscode/bin/test"
+    },
+    "devDependencies": {
+        "typescript": "^2.0.3",
+        "vscode": "^1.0.0",
+        "mocha": "^2.3.3",
+        "@types/node": "^6.0.40",
+        "@types/mocha": "^2.2.32"
+    },
+    "dependencies": {
+        "azure-arm-resource": "^2.0.0-preview",
+        "azure-arm-website": "^1.0.0-preview",
+        "ms-rest": "^2.2.1",
+        "ms-rest-azure": "^2.2.3",
+        "opn": "^5.1.0"
+    },
+    "extensionDependencies": [
+        "chrisdias.vscode-azurelogin"
+    ]
+}
