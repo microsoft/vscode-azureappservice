@@ -1,9 +1,9 @@
 {
-    "name": "ms-azuretools.vscode-azureappservice",
+    "name": "vscode-azureappservice",
     "displayName": "Azure App Service Tools",
     "description": "An Azure App Service management extension for Visual Studio Code.",
     "version": "0.0.1",
-    "publisher": "Microsoft",
+    "publisher": "ms-azuretools",
     "engines": {
         "vscode": "^1.16.0"
     },
