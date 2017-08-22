@@ -8,7 +8,7 @@
         "vscode": "^1.16.0"
     },
     "categories": [
-        "Other"
+        "Azure"
     ],
     "preview": true,
     "activationEvents": [
