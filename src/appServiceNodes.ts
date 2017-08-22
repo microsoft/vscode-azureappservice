@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { TreeDataProvider, TreeItem, TreeItemCollapsibleState, EventEmitter, Event } from 'vscode';
-import { AzureAccount } from './azureAccount';
+import { AzureAccountWrapper } from './azureAccountWrapper';
 import { SubscriptionClient, SubscriptionModels } from 'azure-arm-resource';
 import WebSiteManagementClient = require('azure-arm-website');
 import * as WebSiteModels from '../node_modules/azure-arm-website/lib/models';
@@ -25,7 +25,7 @@ export class NodeBase {
         };
     }
 
-    async getChildren(azureAccount: AzureAccount): Promise<NodeBase[]> {
+    async getChildren(azureAccount: AzureAccountWrapper): Promise<NodeBase[]> {
         return [];
     }
 }
@@ -42,7 +42,7 @@ export class SubscriptionNode extends NodeBase {
         }
     }
 
-    async getChildren(azureAccount: AzureAccount): Promise<NodeBase[]> {
+    async getChildren(azureAccount: AzureAccountWrapper): Promise<NodeBase[]> {
         if (azureAccount.signInStatus !== 'LoggedIn') {
             return [];
         }
@@ -92,25 +92,25 @@ export class AppServiceNode extends NodeBase {
         opn(uri);
     }
 
-    openInPortal(azureAccount: AzureAccount): void {
+    openInPortal(azureAccount: AzureAccountWrapper): void {
         const portalEndpoint = 'https://portal.azure.com';
         const deepLink = `${portalEndpoint}/${this.subscription.tenantId}/#resource${this.site.id}`;
         opn(deepLink);
     }
 
-    start(azureAccount: AzureAccount): Promise<void> {
+    start(azureAccount: AzureAccountWrapper): Promise<void> {
         return this.getWebSiteManagementClient(azureAccount).webApps.start(this.site.resourceGroup, this.site.name);
     }
 
-    stop(azureAccount: AzureAccount): Promise<void> {
+    stop(azureAccount: AzureAccountWrapper): Promise<void> {
         return this.getWebSiteManagementClient(azureAccount).webApps.stop(this.site.resourceGroup, this.site.name);
     }
 
-    restart(azureAccount: AzureAccount): Promise<void> {
+    restart(azureAccount: AzureAccountWrapper): Promise<void> {
         return this.getWebSiteManagementClient(azureAccount).webApps.restart(this.site.resourceGroup, this.site.name);
     }
 
-    private getWebSiteManagementClient(azureAccount: AzureAccount) {
+    private getWebSiteManagementClient(azureAccount: AzureAccountWrapper) {
         return new WebSiteManagementClient(azureAccount.getCredentialByTenantId(this.subscription.tenantId), this.subscription.subscriptionId);
     }
 }
@@ -125,7 +125,7 @@ export class NotSignedInNode extends NodeBase {
             label: this.label,
             command: {
                 title: this.label,
-                command: 'vscode-azurelogin.login'
+                command: 'azure-account.login'
             },
             collapsibleState: TreeItemCollapsibleState.None
         }

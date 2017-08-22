@@ -7,25 +7,25 @@ import { ExtensionContext, Extension, extensions } from 'vscode';
 import { ServiceClientCredentials } from 'ms-rest';
 import { AzureEnvironment } from 'ms-rest-azure';
 import { SubscriptionClient, SubscriptionModels } from 'azure-arm-resource';
-import { AzureLogin, AzureSession, AzureLoginStatus } from './azurelogin.api';
+import { AzureAccount, AzureSession, AzureLoginStatus } from './azure-account.api';
 
 export class NotSignedInError extends Error { }
 
 export class CredentialError extends Error { }
 
-export class AzureAccount {
-    readonly loginExtension: Extension<AzureLogin> | null;
+export class AzureAccountWrapper {
+    readonly accountApi: AzureAccount;
 
     constructor(readonly extensionConext: ExtensionContext) {
-        this.loginExtension = extensions.getExtension<AzureLogin>('chrisdias.vscode-azurelogin');
+        this.accountApi = extensions.getExtension<AzureAccount>('vscode.azure-account')!.exports;
     }
 
     getAzureSessions(): AzureSession[] {
-        const status = this.loginExtension.exports.status;
+        const status = this.accountApi.status;
         if (status !== 'LoggedIn') {
             throw new NotSignedInError(status)
         }
-        return this.loginExtension.exports.sessions;
+        return this.accountApi.sessions;
     }
 
     getCredentialByTenantId(tenantId: string): ServiceClientCredentials {
@@ -39,7 +39,7 @@ export class AzureAccount {
     }
 
     get signInStatus(): AzureLoginStatus {
-        return this.loginExtension.exports.status;
+        return this.accountApi.status;
     }
 
     async getSubscriptions(): Promise<SubscriptionModels.Subscription[]> {
@@ -74,7 +74,7 @@ export class AzureAccount {
     }
 
     registerSessionsChangedListener(listener: (e: void) => any, thisArg: any) {
-        let disposable = this.loginExtension.exports.onSessionsChanged(listener, thisArg);
+        let disposable = this.accountApi.onSessionsChanged(listener, thisArg);
         this.extensionConext.subscriptions.push(disposable);
     }
 }

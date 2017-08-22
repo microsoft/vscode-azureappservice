@@ -123,6 +123,6 @@
         "opn": "^5.1.0"
     },
     "extensionDependencies": [
-        "chrisdias.vscode-azurelogin"
+        "vscode.azure-account"
     ]
 }
