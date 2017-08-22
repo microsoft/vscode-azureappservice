@@ -8,7 +8,7 @@
 import * as vscode from 'vscode';
 import { AppServiceDataProvider } from './appServiceExplorer';
 import { AppServiceNode } from './appServiceNodes';
-import { AzureAccount } from './azureAccount';
+import { AzureAccountWrapper } from './azureAccountWrapper';
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Extension "Azure App Service Tools" is now active.');
@@ -16,7 +16,7 @@ export function activate(context: vscode.ExtensionContext) {
     const outputChannel = vscode.window.createOutputChannel("Azure App Service");
     context.subscriptions.push(outputChannel);
 
-    const azureAccount = new AzureAccount(context);
+    const azureAccount = new AzureAccountWrapper(context);
     const appServiceDataProvider = new AppServiceDataProvider(azureAccount);
 
     context.subscriptions.push(vscode.window.registerTreeDataProvider('azureAppService', appServiceDataProvider));

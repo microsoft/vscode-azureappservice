@@ -4,14 +4,14 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { TreeDataProvider, TreeItem, EventEmitter, Event } from 'vscode';
-import { AzureAccount } from './azureAccount';
+import { AzureAccountWrapper } from './azureAccountWrapper';
 import { NodeBase, AppServiceNode, SubscriptionNode, NotSignedInNode } from './appServiceNodes';
 
 export class AppServiceDataProvider implements TreeDataProvider<NodeBase> {
     private _onDidChangeTreeData: EventEmitter<NodeBase> = new EventEmitter<NodeBase>();
     readonly onDidChangeTreeData: Event<NodeBase> = this._onDidChangeTreeData.event;
 
-    constructor(private azureAccount: AzureAccount) {
+    constructor(private azureAccount: AzureAccountWrapper) {
         this.azureAccount.registerSessionsChangedListener(this.onSessionsChanged, this);
     }
 
