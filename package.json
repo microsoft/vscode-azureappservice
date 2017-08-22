@@ -23,6 +23,15 @@
     "contributes": {
         "commands": [
             {
+                "command": "appService.CreateWebApp",
+                "title": "Create New Web App",
+                "category": "Azure App Service",
+                "icon":{
+                    "light": "resources/light/createAppSvc.svg",
+                    "dark": "resources/dark/createAppSvc.svg"
+                }
+            },
+            {
                 "command": "appService.Refresh",
                 "title": "Refresh",
                 "category": "Azure App Service",
@@ -67,6 +76,11 @@
         },
         "menus": {
             "view/title": [
+                {
+                    "command": "appService.CreateWebApp",
+                    "when": "view == azureAppService",
+                    "group": "navigation"
+                },
                 {
                     "command": "appService.Refresh",
                     "when": "view == azureAppService",
