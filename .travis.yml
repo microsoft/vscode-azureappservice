@@ -14,5 +14,3 @@ notifications:
     on_success: never
     on_failure: always
     
-
-dist: precise
