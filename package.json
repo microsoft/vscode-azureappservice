@@ -7,6 +7,11 @@
     "engines": {
         "vscode": "^1.16.0"
     },
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/Microsoft/vscode-azureappservice.git"
+    },
+    "license": "SEE LICENSE IN LICENSE",
     "categories": [
         "Azure"
     ],
