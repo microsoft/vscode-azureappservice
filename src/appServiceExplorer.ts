@@ -36,7 +36,7 @@ export class AppServiceDataProvider implements TreeDataProvider<NodeBase> {
     }
 
     private async getSubscriptions(): Promise<SubscriptionNode[]> {
-        const subscriptions = await this.azureAccount.getSubscriptions();
+        const subscriptions = await this.azureAccount.getFilteredSubscriptions();
         const nodes = subscriptions.map<SubscriptionNode>((subscription, index, array) =>{
             return new SubscriptionNode(subscription);
         });

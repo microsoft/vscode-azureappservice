@@ -79,39 +79,39 @@
                 {
                     "command": "appService.CreateWebApp",
                     "when": "view == azureAppService",
-                    "group": "navigation"
+                    "group": "navigation@1"
                 },
                 {
                     "command": "appService.Refresh",
                     "when": "view == azureAppService",
-                    "group": "navigation"
+                    "group": "navigation@2"
                 }
             ],
             "view/item/context": [
                 {
                     "command": "appService.OpenInPortal",
                     "when": "view == azureAppService && viewItem == appService",
-                    "group": "appServiceGeneralCommands"
+                    "group": "1_appServiceGeneralCommands@1"
                 },
                 {
                     "command": "appService.Browse",
                     "when": "view == azureAppService && viewItem == appService",
-                    "group": "appServiceGeneralCommands"
+                    "group": "1_appServiceGeneralCommands@2"
                 },
                 {
                     "command": "appService.Start",
                     "when": "view == azureAppService && viewItem == appService",
-                    "group": "appServiceControlCommands"
+                    "group": "2_appServiceControlCommands@1"
                 },
                 {
                     "command": "appService.Stop",
                     "when": "view == azureAppService && viewItem == appService",
-                    "group": "appServiceControlCommands"
+                    "group": "2_appServiceControlCommands@2"
                 },
                 {
                     "command": "appService.Restart",
                     "when": "view == azureAppService && viewItem == appService",
-                    "group": "appServiceControlCommands"
+                    "group": "2_appServiceControlCommands@3"
                 }
             ]
         }
