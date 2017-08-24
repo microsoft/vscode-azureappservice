@@ -124,6 +124,7 @@
         "azure-arm-resource": "^2.0.0-preview",
         "azure-arm-website": "^1.0.0-preview",
         "ms-rest": "^2.2.1",
+        "ms-rest-azure": "^2.2.3",
         "opn": "^5.1.0"
     },
     "extensionDependencies": [
