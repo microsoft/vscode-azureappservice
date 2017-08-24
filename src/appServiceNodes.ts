@@ -75,13 +75,28 @@ export class AppServiceNode extends NodeBase {
         let iconName = this.site.kind.startsWith('functionapp') ? 'AzureFunctionsApp_16x_vscode.svg' : 'AzureWebsite_16x_vscode.svg';
         return {
             label: `${this.label} (${this.site.resourceGroup})`,
-            collapsibleState: TreeItemCollapsibleState.None,
+            collapsibleState: TreeItemCollapsibleState.Collapsed,
             contextValue: 'appService',
             iconPath: { 
                 light: path.join(__filename, '..', '..', '..', 'resources', 'light', iconName),
                 dark: path.join(__filename, '..', '..', '..', 'resources', 'dark', iconName)
             }
         }
+    }
+
+    async getChildren(azureAccount: AzureAccountWrapper): Promise<NodeBase[]> {
+        if (azureAccount.signInStatus !== 'LoggedIn') {
+            return [];
+        }
+
+        var nodes = [
+            new DeploymentSlotsNode(this.subscription),
+            new FilesNode(this.subscription),
+            new LogFilesNode(this.subscription),
+            new WebJobsNode(this.subscription),
+        ];
+
+        return nodes;
     }
 
     browse(): void {
@@ -112,6 +127,84 @@ export class AppServiceNode extends NodeBase {
 
     private getWebSiteManagementClient(azureAccount: AzureAccountWrapper) {
         return new WebSiteManagementClient(azureAccount.getCredentialByTenantId(this.subscription.tenantId), this.subscription.subscriptionId);
+    }
+}
+
+export class DeploymentSlotsNode extends NodeBase {
+    constructor(readonly subscription: SubscriptionModels.Subscription) {
+        super(`📊 Deployment Slots`);
+    }
+
+    getTreeItem(): TreeItem {
+        return {
+            label: this.label,
+            collapsibleState: TreeItemCollapsibleState.Collapsed
+        }
+    }
+    
+    async getChildren(azureAccount: AzureAccountWrapper): Promise<NodeBase[]> {
+        //TODO implement the proper API calls to retrieve DeploymentSlots
+        var nodes = [];
+        return nodes;
+    }
+}
+
+export class FilesNode extends NodeBase {
+    constructor(readonly subscription: SubscriptionModels.Subscription) {
+        super(`📁 Files`);
+    }
+
+    getTreeItem(): TreeItem {
+        return {
+            label: this.label,
+            collapsibleState: TreeItemCollapsibleState.Collapsed
+        }
+    }
+
+    async getChildren(azureAccount: AzureAccountWrapper): Promise<NodeBase[]> {
+        //TODO implement the proper API calls to retrieve File Directory
+        var nodes = [];
+        return nodes;
+    }
+}
+
+export class LogFilesNode extends NodeBase {
+    constructor(readonly subscription: SubscriptionModels.Subscription) {
+        super(`📁 Log Files`);
+    }
+
+    getTreeItem(): TreeItem {
+        return {
+            label: this.label,
+            collapsibleState: TreeItemCollapsibleState.Collapsed
+        }
+    }
+
+    async getChildren(azureAccount: AzureAccountWrapper): Promise<NodeBase[]> {
+        //TODO implement the proper API calls to retrieve Log Files
+        var nodes = [];
+
+        return nodes;
+    }
+}
+
+export class WebJobsNode extends NodeBase {
+    constructor(readonly subscription: SubscriptionModels.Subscription) {
+        super(`🌐 WebJobs`);
+    }
+
+    getTreeItem(): TreeItem {
+        return {
+            label: this.label,
+            collapsibleState: TreeItemCollapsibleState.Collapsed
+        }
+    }
+
+    async getChildren(azureAccount: AzureAccountWrapper): Promise<NodeBase[]> {
+        //TODO implement the proper API calls to retrieve WebJobs
+        var nodes = [];
+    
+        return nodes;
     }
 }
 
