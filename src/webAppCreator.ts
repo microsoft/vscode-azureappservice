@@ -410,6 +410,12 @@ class WebsiteStep extends SubscriptionBasedWizardStep {
         const subscription = this.getSelectedSubscription();
         const rg = this.getSelectedResourceGroup();
         const websiteClient = new WebSiteManagementClient(this.azureAccount.getCredentialByTenantId(subscription.tenantId), subscription.subscriptionId);
+
+        // If the plan is also newly created, its resource ID won't be available at this step's prompt stage, but should be available now.
+        if (!this._website.serverFarmId) {
+            this._website.serverFarmId = this.getSelectedAppServicePlan().id;
+        }
+
         this._website = await websiteClient.webApps.createOrUpdate(rg.name, this._website.name, this._website);
         this.wizard.writeline(`Web App "${this._website.name}" created: https://${this._website.defaultHostName}`);
     }
