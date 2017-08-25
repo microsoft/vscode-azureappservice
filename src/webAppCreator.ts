@@ -283,7 +283,8 @@ class AppServicePlanStep extends SubscriptionBasedWizardStep {
             appServicePlanName: newPlanName,
             kind: 'linux',  // Currently we only support Linux web apps.
             sku: newPlanSku,
-            location: rg.location
+            location: rg.location,
+            reserved: true  // Huh? It seems only by setting this to true, the web site created will be running Linux...
         };
     }
 
@@ -397,6 +398,7 @@ class WebsiteStep extends SubscriptionBasedWizardStep {
 
         this._website = {
             name: siteName,
+            kind: 'app,linux',
             location: rg.location,
             serverFarmId: plan.id,
             siteConfig: {
