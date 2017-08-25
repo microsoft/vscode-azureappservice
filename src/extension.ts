@@ -47,9 +47,13 @@ export function activate(context: vscode.ExtensionContext) {
             node.restart(azureAccount).then(() => outputChannel.appendLine(`Restarting App "${node.site.name}"...`));
         }
     }));
-    context.subscriptions.push(vscode.commands.registerCommand('appService.CreateWebApp', () => {
-        const wizard = new WebAppCreator(azureAccount);
-        wizard.start();
+    context.subscriptions.push(vscode.commands.registerCommand('appService.CreateWebApp', async () => {
+        const wizard = new WebAppCreator(outputChannel, azureAccount);
+        const result = await wizard.start();
+        
+        if (result.status === 'Completed') {
+            vscode.commands.executeCommand('appService.Refresh');
+        }
     }));
 }
 
