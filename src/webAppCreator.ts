@@ -284,7 +284,7 @@ class AppServicePlanStep extends SubscriptionBasedWizardStep {
             kind: 'linux',  // Currently we only support Linux web apps.
             sku: newPlanSku,
             location: rg.location,
-            reserved: true  // Huh? It seems only by setting this to true, the web site created will be running Linux...
+            reserved: true  // The secret property - must be set to true to make it a Linux plan. Confirmed by the team who owns this API.
         };
     }
 
