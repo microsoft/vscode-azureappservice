@@ -27,11 +27,10 @@ export class WebAppCreator extends WizardBase {
     }
 
     protected onExecuteError(step: WizardStep, stepIndex: number, error: Error) {
+        if (error instanceof UserCancelledError) {
+            return;
+        }
         this.writeline(`Failed to create new Web App - ${error.message}`);
-    }
-
-    protected onComplete() {
-        this.writeline('Done!');
     }
 }
 
@@ -122,9 +121,8 @@ class ResourceGroupStep extends SubscriptionBasedWizardStep {
 
     async prompt(): Promise<void> {
         const createNewItem: vscode.QuickPickItem = {
-            label: '➕ New Resource Group',
-            description: 'Creates a new resource group',
-            detail: ''
+            label: '+ New Resource Group',
+            description: ''
         };
         const quickPickItems = [createNewItem];
         const quickPickOptions = { placeHolder: `Select the resource group where the new Web App will be created in. (${this.stepProgressText})` };
@@ -216,9 +214,8 @@ class AppServicePlanStep extends SubscriptionBasedWizardStep {
 
     async prompt(): Promise<void> {
         const createNewItem: vscode.QuickPickItem = {
-            label: '➕ New App Service Plan',
-            description: 'Creates a new App Service Plan',
-            detail: ''
+            label: '+ New App Service Plan',
+            description: ''
         };
         const quickPickItems = [createNewItem];
         const quickPickOptions = { placeHolder: `Select the App Service Plan for the new Web App. (${this.stepProgressText})` };

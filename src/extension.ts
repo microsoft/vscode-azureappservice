@@ -49,7 +49,7 @@ export function activate(context: vscode.ExtensionContext) {
     }));
     context.subscriptions.push(vscode.commands.registerCommand('appService.CreateWebApp', async () => {
         const wizard = new WebAppCreator(outputChannel, azureAccount);
-        const result = await wizard.start();
+        const result = await wizard.run();
         
         if (result.status === 'Completed') {
             vscode.commands.executeCommand('appService.Refresh');

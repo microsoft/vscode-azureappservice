@@ -5,7 +5,7 @@
 
 import * as vscode from 'vscode';
 
-export type WizardStatus = 'Prompting' | 'Executing' | 'Completed' | 'Faulted' | 'Cancelled';
+export type WizardStatus = 'Completed' | 'Faulted' | 'Cancelled';
 
 export class WizardBase {
     private readonly _steps: WizardStep[] = [];
@@ -13,7 +13,7 @@ export class WizardBase {
 
     protected constructor(protected readonly output: vscode.OutputChannel) {}
 
-    async start(): Promise<WizardResult> {
+    async run(): Promise<WizardResult> {
         // Go through the prompts...
         for (var i = 0; i < this.steps.length; i++) {
             const step = this.steps[i];
@@ -64,20 +64,17 @@ export class WizardBase {
             }
         }
 
-        this.onComplete();
-        return {
+        this._result = {
             status: 'Completed',
             step: this.steps[this.steps.length - 1],
             error: null
         };
+
+        return this._result;
     }
 
     get steps(): WizardStep[] {
         return this._steps;
-    }
-
-    get result(): WizardResult {
-        return this._result;
     }
 
     findStep(predicate: (step: WizardStep) => boolean, errorMessage: string): WizardStep {
@@ -99,8 +96,6 @@ export class WizardBase {
     }
 
     protected beforeExecute(step: WizardStep, stepIndex: number) {}
-
-    protected onComplete() {}
 
     protected onExecuteError(step: WizardStep, stepIndex: number, error: Error) {}
 }
