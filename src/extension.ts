@@ -9,6 +9,7 @@ import * as vscode from 'vscode';
 import { AppServiceDataProvider } from './appServiceExplorer';
 import { AppServiceNode } from './appServiceNodes';
 import { AzureAccountWrapper } from './azureAccountWrapper';
+import { WebAppCreator } from './webAppCreator';
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Extension "Azure App Service Tools" is now active.');
@@ -44,6 +45,14 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('appService.Restart', (node: AppServiceNode) => {
         if (node) {
             node.restart(azureAccount).then(() => outputChannel.appendLine(`Restarting App "${node.site.name}"...`));
+        }
+    }));
+    context.subscriptions.push(vscode.commands.registerCommand('appService.CreateWebApp', async () => {
+        const wizard = new WebAppCreator(outputChannel, azureAccount);
+        const result = await wizard.run();
+        
+        if (result.status === 'Completed') {
+            vscode.commands.executeCommand('appService.Refresh');
         }
     }));
 }
