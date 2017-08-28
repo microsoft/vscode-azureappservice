@@ -121,7 +121,7 @@ class ResourceGroupStep extends SubscriptionBasedWizardStep {
 
     async prompt(): Promise<void> {
         const createNewItem: vscode.QuickPickItem = {
-            label: '+ New Resource Group',
+            label: '$(plus) Create New Resource Group',
             description: ''
         };
         const quickPickItems = [createNewItem];
@@ -214,7 +214,7 @@ class AppServicePlanStep extends SubscriptionBasedWizardStep {
 
     async prompt(): Promise<void> {
         const createNewItem: vscode.QuickPickItem = {
-            label: '+ New App Service Plan',
+            label: '$(plus) New App Service Plan',
             description: ''
         };
         const quickPickItems = [createNewItem];
