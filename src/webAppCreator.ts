@@ -214,7 +214,7 @@ class AppServicePlanStep extends SubscriptionBasedWizardStep {
 
     async prompt(): Promise<void> {
         const createNewItem: vscode.QuickPickItem = {
-            label: '$(plus) New App Service Plan',
+            label: '$(plus) Create New App Service Plan',
             description: ''
         };
         const quickPickItems = [createNewItem];
