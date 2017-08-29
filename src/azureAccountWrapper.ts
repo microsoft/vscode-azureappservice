@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ExtensionContext, Extension, extensions } from 'vscode';
+import { ExtensionContext, Extension, extensions, Disposable } from 'vscode';
 import { ServiceClientCredentials } from 'ms-rest';
 import { AzureEnvironment } from 'ms-rest-azure';
 import { SubscriptionClient, SubscriptionModels } from 'azure-arm-resource';
@@ -95,8 +95,11 @@ export class AzureAccountWrapper {
         return locations;
     }
 
-    registerSessionsChangedListener(listener: (e: void) => any, thisArg: any) {
-        const disposable = this.accountApi.onSessionsChanged(listener, thisArg);
-        this.extensionConext.subscriptions.push(disposable);
+    registerSessionsChangedListener(listener: (e: void) => any, thisArg: any): Disposable {
+        return this.accountApi.onSessionsChanged(listener, thisArg, this.extensionConext.subscriptions);
+    }
+
+    registerFiltersChangedListener(listener: (e: void) => any, thisArg: any): Disposable {
+        return this.accountApi.onFiltersChanged(listener, thisArg, this.extensionConext.subscriptions);
     }
 }

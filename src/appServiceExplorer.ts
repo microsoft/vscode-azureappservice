@@ -5,14 +5,15 @@
 
 import { TreeDataProvider, TreeItem, EventEmitter, Event } from 'vscode';
 import { AzureAccountWrapper } from './azureAccountWrapper';
-import { NodeBase, AppServiceNode, SubscriptionNode, NotSignedInNode } from './appServiceNodes';
+import { NodeBase, AppServiceNode, SubscriptionNode, NotSignedInNode, LoadingNode } from './appServiceNodes';
 
 export class AppServiceDataProvider implements TreeDataProvider<NodeBase> {
     private _onDidChangeTreeData: EventEmitter<NodeBase> = new EventEmitter<NodeBase>();
     readonly onDidChangeTreeData: Event<NodeBase> = this._onDidChangeTreeData.event;
 
     constructor(private azureAccount: AzureAccountWrapper) {
-        this.azureAccount.registerSessionsChangedListener(this.onSessionsChanged, this);
+        this.azureAccount.registerSessionsChangedListener(this.onSubscriptionChanged, this);
+        this.azureAccount.registerFiltersChangedListener(this.onSubscriptionChanged, this);
     }
 
     refresh(): void {
@@ -24,7 +25,11 @@ export class AppServiceDataProvider implements TreeDataProvider<NodeBase> {
     }
 
     getChildren(element?: NodeBase): NodeBase[] | Thenable<NodeBase[]> {
-        if (this.azureAccount.signInStatus !== 'LoggedIn') {
+        if (this.azureAccount.signInStatus === 'Initializing' || this.azureAccount.signInStatus === 'LoggingIn' ) {
+            return [new LoadingNode()];
+        }
+
+        if (this.azureAccount.signInStatus === 'LoggedOut') {
             return [new NotSignedInNode()];
         }
 
@@ -44,7 +49,7 @@ export class AppServiceDataProvider implements TreeDataProvider<NodeBase> {
         return nodes;
     }
 
-    private onSessionsChanged() {
+    private onSubscriptionChanged() {
         this.refresh();
     }
 }
