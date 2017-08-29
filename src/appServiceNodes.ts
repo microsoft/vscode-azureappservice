@@ -32,13 +32,17 @@ export class NodeBase {
 
 export class SubscriptionNode extends NodeBase {
     constructor(readonly subscription: SubscriptionModels.Subscription) {
-        super(`📰 ${subscription.displayName}`);
+        super(subscription.displayName);
     }
 
     getTreeItem(): TreeItem {
         return {
             label: this.label,
-            collapsibleState: TreeItemCollapsibleState.Collapsed
+            collapsibleState: TreeItemCollapsibleState.Collapsed,
+            iconPath: { 
+                light: path.join(__filename, '..', '..', '..', 'resources', 'light', 'AzureSubscription_16x.svg'),
+                dark: path.join(__filename, '..', '..', '..', 'resources', 'dark', 'AzureSubscription_16x.svg')
+            }
         }
     }
 
@@ -127,6 +131,19 @@ export class NotSignedInNode extends NodeBase {
                 title: this.label,
                 command: 'azure-account.login'
             },
+            collapsibleState: TreeItemCollapsibleState.None
+        }
+    }
+}
+
+export class LoadingNode extends NodeBase {
+    constructor() {
+        super('Loading...');
+    }
+
+    getTreeItem(): TreeItem {
+        return {
+            label: this.label,
             collapsibleState: TreeItemCollapsibleState.None
         }
     }
