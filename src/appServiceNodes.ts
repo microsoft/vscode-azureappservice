@@ -150,7 +150,7 @@ export class FilesNode extends NodeBase {
         //TODO implement the proper API calls to retrieve File Directory
         let nodes = [];
         let httpsHref = this.href;
-        let accessToken = (azureAccount.getAccessToken());
+        let accessToken = azureAccount.getAccessToken();
         if (this.href.substring(0, 5) !== 'https') {
             httpsHref = this.formatHref(this.href);
         }
