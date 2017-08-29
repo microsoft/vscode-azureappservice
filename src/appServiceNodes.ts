@@ -10,6 +10,7 @@ import WebSiteManagementClient = require('azure-arm-website');
 import * as WebSiteModels from '../node_modules/azure-arm-website/lib/models';
 import * as path from 'path';
 import * as opn from 'opn';
+import * as util from './util';
 
 export class NodeBase {
     readonly label: string;
@@ -129,7 +130,7 @@ export class NotSignedInNode extends NodeBase {
             label: this.label,
             command: {
                 title: this.label,
-                command: 'azure-account.login'
+                command: util.getSignInCommandString()
             },
             collapsibleState: TreeItemCollapsibleState.None
         }
