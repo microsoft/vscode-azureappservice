@@ -7,6 +7,7 @@ import { TreeDataProvider, TreeItem, TreeItemCollapsibleState, EventEmitter, Eve
 import { AzureAccountWrapper } from './azureAccountWrapper';
 import { SubscriptionClient, SubscriptionModels } from 'azure-arm-resource';
 import WebSiteManagementClient = require('azure-arm-website');
+import request = require('request-promise');
 import * as WebSiteModels from '../node_modules/azure-arm-website/lib/models';
 import * as path from 'path';
 import * as opn from 'opn';
@@ -92,12 +93,11 @@ export class AppServiceNode extends NodeBase {
         if (azureAccount.signInStatus !== 'LoggedIn') {
             return [];
         }
-
+    
         var nodes = [
-            new DeploymentSlotsNode(this.subscription),
-            new FilesNode(this.subscription),
-            new LogFilesNode(this.subscription),
-            new WebJobsNode(this.subscription),
+            new FilesNode('Files', 'https://' + this.site.enabledHostNames[1] + '/api/vfs/site/wwwroot/'),
+            // the site's 2nd enabledHostNames seems to always be the scm url needed for the api calls
+            new FilesNode('Log Files', 'https://' + this.site.enabledHostNames[1] + '/api/vfs/LogFiles/'),
         ];
 
         return nodes;
@@ -134,81 +134,51 @@ export class AppServiceNode extends NodeBase {
     }
 }
 
-export class DeploymentSlotsNode extends NodeBase {
-    constructor(readonly subscription: SubscriptionModels.Subscription) {
-        super(`📊 Deployment Slots`);
-    }
-
-    getTreeItem(): TreeItem {
-        return {
-            label: this.label,
-            collapsibleState: TreeItemCollapsibleState.Collapsed
-        }
-    }
-    
-    async getChildren(azureAccount: AzureAccountWrapper): Promise<NodeBase[]> {
-        //TODO implement the proper API calls to retrieve DeploymentSlots
-        var nodes = [];
-        return nodes;
-    }
-}
-
 export class FilesNode extends NodeBase {
-    constructor(readonly subscription: SubscriptionModels.Subscription) {
-        super(`📁 Files`);
+    constructor(readonly label: string, readonly href: string) {
+        super(label);
     }
 
     getTreeItem(): TreeItem {
         return {
-            label: this.label,
+            label: `📁` + this.label,
             collapsibleState: TreeItemCollapsibleState.Collapsed
         }
     }
 
     async getChildren(azureAccount: AzureAccountWrapper): Promise<NodeBase[]> {
         //TODO implement the proper API calls to retrieve File Directory
-        var nodes = [];
-        return nodes;
-    }
-}
-
-export class LogFilesNode extends NodeBase {
-    constructor(readonly subscription: SubscriptionModels.Subscription) {
-        super(`📁 Log Files`);
-    }
-
-    getTreeItem(): TreeItem {
-        return {
-            label: this.label,
-            collapsibleState: TreeItemCollapsibleState.Collapsed
+        let nodes = [];
+        let httpsHref = this.href;
+        let accessToken = (azureAccount.getAccessToken());
+        if (this.href.substring(0, 5) !== 'https') {
+            httpsHref = this.formatHref(this.href);
         }
+
+        await request
+        .get(httpsHref, {
+            auth: {
+                bearer: accessToken
+            }
+        }, (err, httpResponse, body) => {
+            let files = JSON.parse(body);
+            for (let file of files) {
+                let node = file.mime === "inode/directory" ? new FilesNode(file.name, file.href) : new NodeBase(file.name);
+                nodes.push(node);
+            }
+        });
+
+        return nodes;        
     }
 
-    async getChildren(azureAccount: AzureAccountWrapper): Promise<NodeBase[]> {
-        //TODO implement the proper API calls to retrieve Log Files
-        var nodes = [];
+    formatHref(href: string): string {
+        let httpsHref;
+        httpsHref = href.slice(0, 4) + 's' + href.slice(4);
+        // if href is not in https format, adds the s
+        httpsHref = httpsHref.replace (/:[0-9]{1,4}(.*)/, '$1');
+        // if href contains a port number, regular expression to remove it
 
-        return nodes;
-    }
-}
-
-export class WebJobsNode extends NodeBase {
-    constructor(readonly subscription: SubscriptionModels.Subscription) {
-        super(`🌐 WebJobs`);
-    }
-
-    getTreeItem(): TreeItem {
-        return {
-            label: this.label,
-            collapsibleState: TreeItemCollapsibleState.Collapsed
-        }
-    }
-
-    async getChildren(azureAccount: AzureAccountWrapper): Promise<NodeBase[]> {
-        //TODO implement the proper API calls to retrieve WebJobs
-        var nodes = [];
-    
-        return nodes;
+        return httpsHref;
     }
 }
 
