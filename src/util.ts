@@ -16,3 +16,7 @@ export async function listAll<T>(client: { listNext(nextPageLink: string): Promi
 
     return all;
 }    
+
+export function getSignInCommandString(): string {
+    return 'azure-account.login';
+}
