@@ -48,6 +48,7 @@ export class WebAppCreator extends WizardBase {
             return;
         }
         this.writeline(`Failed to create new Web App - ${error.message}`);
+        this.writeline('');
     }
 }
 
@@ -447,6 +448,7 @@ class WebsiteStep extends SubscriptionBasedWizardStep {
 
         this._website = await websiteClient.webApps.createOrUpdate(rg.name, this._website.name, this._website);
         this.wizard.writeline(`Web App "${this._website.name}" created: https://${this._website.defaultHostName}`);
+        this.wizard.writeline('');
     }
 
     get website(): WebSiteModels.Site {
