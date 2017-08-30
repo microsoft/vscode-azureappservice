@@ -69,6 +69,11 @@
                 "command": "appService.Restart",
                 "title": "Restart",
                 "category": "Azure App Service"
+            },
+            {
+                "command": "appService.DeployZipPackage",
+                "title": "Deploy ZIP Package",
+                "category": "Azure App Service"
             }
         ],
         "views": {
@@ -117,6 +122,11 @@
                     "command": "appService.Restart",
                     "when": "view == azureAppService && viewItem == appService",
                     "group": "2_appServiceControlCommands@3"
+                },
+                {
+                    "command": "appService.DeployZipPackage",
+                    "when": "view == azureAppService && viewItem == appService",
+                    "group": "3_appServiceDeployCommands@1"
                 }
             ]
         }

@@ -3,6 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { ServiceClientCredentials } from 'ms-rest';
+import { SubscriptionModels } from 'azure-arm-resource';
+import { AzureAccountWrapper } from './azureAccountWrapper';
+import WebSiteManagementClient = require('azure-arm-website');
+import * as WebSiteModels from '../node_modules/azure-arm-website/lib/models';
+
+
 export interface PartialList<T> extends Array<T> {
     nextLink?: string;
 }
@@ -15,4 +22,12 @@ export async function listAll<T>(client: { listNext(nextPageLink: string): Promi
     }
 
     return all;
-}    
+}
+
+export function getWebAppPublishCredential(azureAccount: AzureAccountWrapper, 
+    subscription: SubscriptionModels.Subscription, 
+    site: WebSiteModels.Site): Promise<WebSiteModels.User> {
+    const credentials = azureAccount.getCredentialByTenantId(subscription.tenantId);
+    const websiteClient = new WebSiteManagementClient(credentials, subscription.subscriptionId);
+    return websiteClient.webApps.listPublishingCredentials(site.resourceGroup, site.name);
+}

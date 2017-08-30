@@ -10,6 +10,7 @@ import { AppServiceDataProvider } from './appServiceExplorer';
 import { AppServiceNode } from './appServiceNodes';
 import { AzureAccountWrapper } from './azureAccountWrapper';
 import { WebAppCreator } from './webAppCreator';
+import { WebAppZipPublisher } from './webAppZipPublisher'
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Extension "Azure App Service Tools" is now active.');
@@ -53,6 +54,14 @@ export function activate(context: vscode.ExtensionContext) {
         
         if (result.status === 'Completed') {
             vscode.commands.executeCommand('appService.Refresh');
+        }
+    }));
+    context.subscriptions.push(vscode.commands.registerCommand('appService.DeployZipPackage', async (context: any) => {
+        if (context instanceof AppServiceNode) {
+            const zipPath = vscode.workspace.rootPath + '\\package.zip';
+            const wizard = new WebAppZipPublisher(outputChannel, azureAccount, context.subscription, context.site, zipPath);
+
+            await wizard.run();
         }
     }));
 }
