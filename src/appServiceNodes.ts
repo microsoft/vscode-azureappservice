@@ -7,6 +7,7 @@ import { TreeDataProvider, TreeItem, TreeItemCollapsibleState, EventEmitter, Eve
 import { AzureAccountWrapper } from './azureAccountWrapper';
 import { SubscriptionClient, SubscriptionModels } from 'azure-arm-resource';
 import WebSiteManagementClient = require('azure-arm-website');
+import request = require('request-promise');
 import * as WebSiteModels from '../node_modules/azure-arm-website/lib/models';
 import * as path from 'path';
 import * as opn from 'opn';
@@ -80,13 +81,27 @@ export class AppServiceNode extends NodeBase {
         let iconName = this.site.kind.startsWith('functionapp') ? 'AzureFunctionsApp_16x_vscode.svg' : 'AzureWebsite_16x_vscode.svg';
         return {
             label: `${this.label} (${this.site.resourceGroup})`,
-            collapsibleState: TreeItemCollapsibleState.None,
+            collapsibleState: TreeItemCollapsibleState.Collapsed,
             contextValue: 'appService',
             iconPath: { 
                 light: path.join(__filename, '..', '..', '..', 'resources', 'light', iconName),
                 dark: path.join(__filename, '..', '..', '..', 'resources', 'dark', iconName)
             }
         }
+    }
+
+    async getChildren(azureAccount: AzureAccountWrapper): Promise<NodeBase[]> {
+        if (azureAccount.signInStatus !== 'LoggedIn') {
+            return [];
+        }
+    
+        var nodes = [
+            new FilesNode('Files', 'https://' + this.site.enabledHostNames[1] + '/api/vfs/site/wwwroot/'),
+            // the site's 2nd enabledHostNames seems to always be the scm url needed for the api calls
+            new FilesNode('Log Files', 'https://' + this.site.enabledHostNames[1] + '/api/vfs/LogFiles/'),
+        ];
+
+        return nodes;
     }
 
     browse(): void {
@@ -117,6 +132,54 @@ export class AppServiceNode extends NodeBase {
 
     private getWebSiteManagementClient(azureAccount: AzureAccountWrapper) {
         return new WebSiteManagementClient(azureAccount.getCredentialByTenantId(this.subscription.tenantId), this.subscription.subscriptionId);
+    }
+}
+
+export class FilesNode extends NodeBase {
+    constructor(readonly label: string, readonly href: string) {
+        super(label);
+    }
+
+    getTreeItem(): TreeItem {
+        return {
+            label: `📁` + this.label,
+            collapsibleState: TreeItemCollapsibleState.Collapsed
+        }
+    }
+
+    async getChildren(azureAccount: AzureAccountWrapper): Promise<NodeBase[]> {
+        //TODO implement the proper API calls to retrieve File Directory
+        let nodes = [];
+        let httpsHref = this.href;
+        let accessToken = azureAccount.getAccessToken();
+        if (this.href.substring(0, 5) !== 'https') {
+            httpsHref = this.formatHref(this.href);
+        }
+
+        await request
+        .get(httpsHref, {
+            auth: {
+                bearer: accessToken
+            }
+        }, (err, httpResponse, body) => {
+            let files = JSON.parse(body);
+            for (let file of files) {
+                let node = file.mime === "inode/directory" ? new FilesNode(file.name, file.href) : new NodeBase(file.name);
+                nodes.push(node);
+            }
+        });
+
+        return nodes;        
+    }
+
+    formatHref(href: string): string {
+        let httpsHref;
+        httpsHref = href.slice(0, 4) + 's' + href.slice(4);
+        // if href is not in https format, adds the s
+        httpsHref = httpsHref.replace (/:[0-9]{1,4}(.*)/, '$1');
+        // if href contains a port number, regular expression to remove it
+
+        return httpsHref;
     }
 }
 

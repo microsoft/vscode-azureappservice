@@ -102,4 +102,15 @@ export class AzureAccountWrapper {
     registerFiltersChangedListener(listener: (e: void) => any, thisArg: any): Disposable {
         return this.accountApi.onFiltersChanged(listener, thisArg, this.extensionConext.subscriptions);
     }
+
+    getAccessToken() {
+        if (this.accountApi.sessions.length) {
+            let currentSession = this.accountApi.sessions[0];
+            if (currentSession.credentials.tokenCache._entries.length) {
+                return currentSession.credentials.tokenCache._entries[0].accessToken;
+            }
+        }
+        return null;
+        
+    }
 }
