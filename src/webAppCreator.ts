@@ -84,6 +84,10 @@ class SubscriptionStep extends SubscriptionStepBase {
     }
 
     async prompt(): Promise<void> {
+        if (!!this.subscription) {
+            return;
+        }
+
         const quickPickItems = await this.getSubscriptionsAsQuickPickItems();
         const quickPickOptions = { placeHolder: `Select the subscription where the new Web App will be created in. (${this.stepProgressText})` };
         const result = await this.showQuickPick(quickPickItems, quickPickOptions);

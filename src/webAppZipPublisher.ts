@@ -5,7 +5,7 @@
 
 import * as vscode from 'vscode';
 import { AzureAccountWrapper } from './azureAccountWrapper';
-import { WizardBase, WizardResult, WizardStep, UserCancelledError } from './wizard';
+import { WizardBase, WizardResult, WizardStep, SubscriptionStepBase, UserCancelledError } from './wizard';
 import { KuduClient } from './kuduClient';
 import { SubscriptionModels } from 'azure-arm-resource';
 import WebSiteManagementClient = require('azure-arm-website');
@@ -17,7 +17,8 @@ export class WebAppZipPublisher extends WizardBase {
         readonly azureAccount: AzureAccountWrapper, 
         readonly subscription?: SubscriptionModels.Subscription,
         readonly site?: WebSiteModels.Site,
-        readonly zipFilePath?: string) {
+        readonly zipFilePath?: string,
+        readonly folderPath?: string) {
         super(output);
         this.steps.push(new SubscriptionStep(this, azureAccount, subscription));
         this.steps.push(new WebAppStep(this, azureAccount, site));
@@ -26,11 +27,22 @@ export class WebAppZipPublisher extends WizardBase {
     }
 }
 
-class SubscriptionStep extends WizardStep {
+class SubscriptionStep extends SubscriptionStepBase {
     constructor(wizard: WizardBase,
-        readonly azureAccount: AzureAccountWrapper,
-        readonly subscription?: SubscriptionModels.Subscription) {
-        super(wizard, 'Select target Subscription');
+        azureAccount: AzureAccountWrapper,
+        subscription?: SubscriptionModels.Subscription) {
+        super(wizard, 'Select target Subscription', azureAccount, subscription);
+    }
+
+    async prompt(): Promise<void> {
+        if (!!this.subscription) {
+            return;
+        }
+
+        const quickPickItems = await this.getSubscriptionsAsQuickPickItems();
+        const quickPickOptions = { placeHolder: `Select the subscription where target App Service is. (${this.stepProgressText})` };
+        const result = await this.showQuickPick(quickPickItems, quickPickOptions);
+        this._subscription = result.data;
     }
 }
 
@@ -38,7 +50,7 @@ class WebAppStep extends WizardStep {
     constructor(wizard: WizardBase,
         readonly azureAccount: AzureAccountWrapper,
         readonly site?: WebSiteModels.Site) {
-        super(wizard, 'Select or create Web App');
+        super(wizard, 'Select or create App Service');
     }
 }
 
@@ -51,7 +63,7 @@ class ZipFileStep extends WizardStep {
 
 class DeployStep extends WizardStep {
     constructor(wizard: WizardBase, readonly azureAccount: AzureAccountWrapper) {
-        super(wizard, 'Deploy to Web App');
+        super(wizard, 'Deploy to App Service');
     }
 
     async execute(): Promise<void> {
@@ -67,7 +79,7 @@ class DeployStep extends WizardStep {
         this.wizard.writeline('Uploading Zip package...');
         await kuduClient.zipUpload(zipFilePath, 'site/wwwroot');
 
-        this.wizard.writeline('Restarting web app...');
+        this.wizard.writeline('Restarting App Service...');
         const siteClient = new WebSiteManagementClient(this.azureAccount.getCredentialByTenantId(subscription.tenantId), subscription.subscriptionId);
         await siteClient.webApps.restart(site.resourceGroup, site.name);
 
@@ -89,7 +101,7 @@ class DeployStep extends WizardStep {
         const webAppStep = <WebAppStep>this.wizard.findStep(step => step instanceof WebAppStep, 'The Wizard must have a WebAppStep.');
 
         if (!webAppStep.site) {
-            throw new Error('A Web App must be selected first.');
+            throw new Error('An App Service must be selected first.');
         }
 
         return webAppStep.site;

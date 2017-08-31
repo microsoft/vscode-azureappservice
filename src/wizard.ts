@@ -144,9 +144,7 @@ export class WizardStep {
 }
 
 export class SubscriptionStepBase extends WizardStep {
-    protected _subscription: SubscriptionModels.Subscription;
-
-    constructor(wizard: WizardBase, title: string, readonly azureAccount: AzureAccountWrapper) {
+    constructor(wizard: WizardBase, title: string, readonly azureAccount: AzureAccountWrapper, protected _subscription?: SubscriptionModels.Subscription) {
         super(wizard, title);
     }
 

@@ -72,7 +72,12 @@
             },
             {
                 "command": "appService.DeployZipPackage",
-                "title": "Deploy ZIP Package",
+                "title": "Deploy Zip Package to Web App",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.ZipAndDeploy",
+                "title": "Zip & Deploy to Web App",
                 "category": "Azure App Service"
             }
         ],
@@ -127,6 +132,18 @@
                     "command": "appService.DeployZipPackage",
                     "when": "view == azureAppService && viewItem == appService",
                     "group": "3_appServiceDeployCommands@1"
+                }
+            ],
+            "explorer/context": [
+                {
+                    "command": "appService.DeployZipPackage",
+                    "when": "resourceFilename == package.zip",
+                    "group": "zzz_@appServiceDeployCommands"
+                },
+                {
+                    "command": "appService.ZipAndDeploy",
+                    "when": "explorerResourceIsFolder == true",
+                    "group": "zzz_@appServiceDeployCommands"
                 }
             ]
         }

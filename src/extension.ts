@@ -60,7 +60,13 @@ export function activate(context: vscode.ExtensionContext) {
         if (context instanceof AppServiceNode) {
             const zipPath = vscode.workspace.rootPath + '\\package.zip';
             const wizard = new WebAppZipPublisher(outputChannel, azureAccount, context.subscription, context.site, zipPath);
-
+            await wizard.run();
+        }
+    }));
+    context.subscriptions.push(vscode.commands.registerCommand('appService.ZipAndDeploy', async (context: any) => {
+        if (context instanceof vscode.Uri) {
+            const folderPath = context.fsPath;
+            const wizard = new WebAppZipPublisher(outputChannel, azureAccount, null, null, null, folderPath);
             await wizard.run();
         }
     }));
