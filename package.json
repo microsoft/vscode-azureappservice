@@ -31,7 +31,7 @@
                 "command": "appService.CreateWebApp",
                 "title": "Create New Web App",
                 "category": "Azure App Service",
-                "icon":{
+                "icon": {
                     "light": "resources/light/createAppSvc.svg",
                     "dark": "resources/dark/createAppSvc.svg"
                 }
@@ -166,7 +166,8 @@
         "azure-arm-website": "^1.0.0-preview",
         "ms-rest": "^2.2.1",
         "ms-rest-azure": "^2.2.3",
-        "opn": "^5.1.0"
+        "opn": "^5.1.0",
+        "kudu-api": "^1.4.1"
     },
     "extensionDependencies": [
         "vscode.azure-account"
