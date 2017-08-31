@@ -6,11 +6,11 @@
 import * as vscode from 'vscode';
 import { AzureAccountWrapper } from './azureAccountWrapper';
 import { WizardBase, WizardResult, WizardStep, UserCancelledError } from './wizard';
+import { KuduClient } from './kuduClient';
 import { SubscriptionModels } from 'azure-arm-resource';
 import WebSiteManagementClient = require('azure-arm-website');
 import * as WebSiteModels from '../node_modules/azure-arm-website/lib/models';
 import * as util from './util';
-import * as kuduApi from 'kudu-api';
 
 export class WebAppZipPublisher extends WizardBase {
     constructor(output: vscode.OutputChannel, 
@@ -59,37 +59,20 @@ class DeployStep extends WizardStep {
         const site = this.getSelectedWebApp();
         const zipFilePath = this.getSelectedZipFilePath();
         const user = await util.getWebAppPublishCredential(this.azureAccount, subscription, site);
-        const kuduClient = kuduApi({
-            website: site.name,
-            username: user.publishingUserName,
-            password: user.publishingPassword
-        });
+        const kuduClient = new KuduClient(site.name, user.publishingUserName, user.publishingPassword);
         
         this.wizard.writeline('Deleting existing deployment...');
-        await new Promise((resolve, reject) => {
-            kuduClient.vfs.deleteFile('site/wwwroot/hostingstart.html', function (err) {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve();
-                }
-            });
-        });
-
+        await kuduClient.vfsDeleteFile('site/wwwroot/hostingstart.html');
+        
         this.wizard.writeline('Uploading Zip package...');
-        await new Promise((resolve, reject) => {
-            kuduClient.zip.upload(zipFilePath, 'site/wwwroot', function (err) { 
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve();
-                }
-            });
-        });
+        await kuduClient.zipUpload(zipFilePath, 'site/wwwroot');
 
         this.wizard.writeline('Restarting web app...');
         const siteClient = new WebSiteManagementClient(this.azureAccount.getCredentialByTenantId(subscription.tenantId), subscription.subscriptionId);
         await siteClient.webApps.restart(site.resourceGroup, site.name);
+
+        this.wizard.writeline('Deployment completed.');
+        this.wizard.writeline('');
     }
 
     protected getSelectedSubscription(): SubscriptionModels.Subscription {
