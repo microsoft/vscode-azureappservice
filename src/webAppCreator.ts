@@ -20,6 +20,23 @@ export class WebAppCreator extends WizardBase {
         this.steps.push(new WebsiteStep(this, azureAccount));
     }
 
+    async run(): Promise<WizardResult> {
+        // If not signed in, execute the sign in command and wait for it...
+        if (this.azureAccount.signInStatus !== 'LoggedIn') {
+            await vscode.commands.executeCommand(util.getSignInCommandString());
+        }
+        // Now check again, if still not signed in, cancel.
+        if (this.azureAccount.signInStatus !== 'LoggedIn') {
+            return {
+                status: 'Cancelled',
+                step: this.steps[0],
+                error: null
+            };
+        }
+    
+        return super.run();
+    }
+
     protected beforeExecute(step: WizardStep, stepIndex: number) {
         if (stepIndex == 0) {
             this.writeline('Start creating new Web App...');
@@ -31,6 +48,7 @@ export class WebAppCreator extends WizardBase {
             return;
         }
         this.writeline(`Failed to create new Web App - ${error.message}`);
+        this.writeline('');
     }
 }
 
@@ -70,7 +88,7 @@ class SubscriptionStep extends WizardStep {
     async prompt(): Promise<void> {
         const inFilterSubscriptions = await this.azureAccount.getFilteredSubscriptions();
         const otherSubscriptions = await this.azureAccount.getAllSubscriptions();
-        const quickPickItems: vscode.QuickPickItem[] = [];
+        const quickPickItems: QuickPickItemWithData<SubscriptionModels.Subscription>[] = [];
         const quickPickOptions = { placeHolder: `Select the subscription where the new Web App will be created in. (${this.stepProgressText})` };
 
         inFilterSubscriptions.forEach(s => {
@@ -82,7 +100,8 @@ class SubscriptionStep extends WizardStep {
             const item = {
                 label: `📌 ${s.displayName}`,
                 description: '',
-                detail: s.subscriptionId
+                detail: s.subscriptionId,
+                data: s
             };
 
             quickPickItems.push(item);
@@ -92,14 +111,15 @@ class SubscriptionStep extends WizardStep {
             const item = {
                 label: s.displayName,
                 description: '',
-                detail: s.subscriptionId
+                detail: s.subscriptionId,
+                data: s
             };
 
             quickPickItems.push(item);
         });
 
         const result = await this.showQuickPick(quickPickItems, quickPickOptions);
-        this._subscription = inFilterSubscriptions.concat(otherSubscriptions).find(s => s.subscriptionId === result.detail);
+        this._subscription = (<QuickPickItemWithData<SubscriptionModels.Subscription>>result).data;
     }
 
     async execute(): Promise<void> {
@@ -120,29 +140,36 @@ class ResourceGroupStep extends SubscriptionBasedWizardStep {
     }
 
     async prompt(): Promise<void> {
-        const createNewItem: vscode.QuickPickItem = {
+        const createNewItem: QuickPickItemWithData<ResourceModels.ResourceGroup> = {
             label: '$(plus) Create New Resource Group',
-            description: ''
+            description: '',
+            data: null
         };
         const quickPickItems = [createNewItem];
         const quickPickOptions = { placeHolder: `Select the resource group where the new Web App will be created in. (${this.stepProgressText})` };
         const subscription = this.getSelectedSubscription();
         const resourceClient = new ResourceManagementClient(this.azureAccount.getCredentialByTenantId(subscription.tenantId), subscription.subscriptionId);
-        const resourceGroups = await util.listAll(resourceClient.resourceGroups, resourceClient.resourceGroups.list());
-        const locations = await this.azureAccount.getLocationsBySubscription(this.getSelectedSubscription());
-
-        resourceGroups.forEach(rg => {
-            quickPickItems.push({
-                label: rg.name,
-                description: `(${locations.find(l => l.name.toLowerCase() === rg.location.toLowerCase()).displayName})`,
-                detail: ''
+        var resourceGroups: ResourceModels.ResourceGroup[];
+        var locations: SubscriptionModels.Location[];
+        const resourceGroupsTask = util.listAll(resourceClient.resourceGroups, resourceClient.resourceGroups.list());
+        const locationsTask = this.azureAccount.getLocationsBySubscription(this.getSelectedSubscription());
+        await Promise.all([resourceGroupsTask, locationsTask]).then(results => {
+            resourceGroups = results[0];
+            locations = results[1];
+            resourceGroups.forEach(rg => {
+                quickPickItems.push({
+                    label: rg.name,
+                    description: `(${locations.find(l => l.name.toLowerCase() === rg.location.toLowerCase()).displayName})`,
+                    detail: '',
+                    data: rg
+                });
             });
         });
 
-        const result = await this.showQuickPick(quickPickItems, quickPickOptions);
+        const result = <QuickPickItemWithData<ResourceModels.ResourceGroup>>(await this.showQuickPick(quickPickItems, quickPickOptions));
 
         if (result !== createNewItem) {
-            const rg = resourceGroups.find(rg => rg.name.localeCompare(result.label) === 0);
+            const rg = result.data;
             this._createNew = false;
             this._rg = rg;
             return;
@@ -165,20 +192,21 @@ class ResourceGroupStep extends SubscriptionBasedWizardStep {
                 return null;
             }
         });
-        const locationPickItems = locations.map<vscode.QuickPickItem>(location => {
+        const locationPickItems = locations.map<QuickPickItemWithData<SubscriptionModels.Location>>(location => {
             return {
                 label: location.displayName,
                 description: `(${location.name})`,
-                detail: ''
+                detail: '',
+                data: location
             };
         });
         const locationPickOptions = { placeHolder: 'Select the location of the new resource group.' };
-        const pickedLocation = await this.showQuickPick(locationPickItems, locationPickOptions);
+        const pickedLocation = <QuickPickItemWithData<SubscriptionModels.Location>>(await this.showQuickPick(locationPickItems, locationPickOptions));
 
         this._createNew = true;
         this._rg = {
             name: newRgName,
-            location: locations.find(l => l.displayName.localeCompare(pickedLocation.label) === 0).name
+            location: pickedLocation.data.name
         }
     }
 
@@ -213,9 +241,10 @@ class AppServicePlanStep extends SubscriptionBasedWizardStep {
     }
 
     async prompt(): Promise<void> {
-        const createNewItem: vscode.QuickPickItem = {
+        const createNewItem: QuickPickItemWithData<WebSiteModels.AppServicePlan> = {
             label: '$(plus) Create New App Service Plan',
-            description: ''
+            description: '',
+            data: null
         };
         const quickPickItems = [createNewItem];
         const quickPickOptions = { placeHolder: `Select the App Service Plan for the new Web App. (${this.stepProgressText})` };
@@ -231,16 +260,17 @@ class AppServicePlanStep extends SubscriptionBasedWizardStep {
                 quickPickItems.push({
                     label: plan.appServicePlanName,
                     description: `${plan.sku.name} (${plan.geoRegion})`,
-                    detail: plan.resourceGroup
+                    detail: plan.resourceGroup,
+                    data: plan
                 });
             }
         });
         
-        const pickedItem = await this.showQuickPick(quickPickItems, quickPickOptions);
+        const pickedItem = <QuickPickItemWithData<WebSiteModels.AppServicePlan>>(await this.showQuickPick(quickPickItems, quickPickOptions));
 
         if (pickedItem !== createNewItem) {
             this._createNew = false;
-            this._plan = plans.find(plan => plan.resourceGroup === pickedItem.detail && plan.appServicePlanName === pickedItem.label);
+            this._plan = pickedItem.data;
             return;
         }
 
@@ -264,17 +294,18 @@ class AppServicePlanStep extends SubscriptionBasedWizardStep {
         });
 
         // Prompt for Pricing tier
-        const pricingTiers: vscode.QuickPickItem[] = [];
+        const pricingTiers: QuickPickItemWithData<WebSiteModels.SkuDescription>[] = [];
         const availableSkus = this.getPlanSkus();
         availableSkus.forEach(sku => {
             pricingTiers.push({
                 label: sku.name,
                 description: sku.tier,
-                detail: ''
+                detail: '',
+                data: sku
             });
         });
-        const pickedSkuItem = await this.showQuickPick(pricingTiers, { placeHolder: 'Choose your pricing tier.' })
-        const newPlanSku = availableSkus.find(s => s.name === pickedSkuItem.label);
+        const pickedSkuItem = <QuickPickItemWithData<WebSiteModels.SkuDescription>>(await this.showQuickPick(pricingTiers, { placeHolder: 'Choose your pricing tier.' }));
+        const newPlanSku = pickedSkuItem.data;
         this._createNew = true;
         this._plan = {
             appServicePlanName: newPlanName,
@@ -377,19 +408,19 @@ class WebsiteStep extends SubscriptionBasedWizardStep {
                 return null;
             }
         });
-        const runtimeItems: vscode.QuickPickItem[] = [];
+        const runtimeItems: QuickPickItemWithData<LinuxRuntimeStack>[] = [];
         const linuxRuntimeStacks = this.getLinuxRuntimeStack();
         
         linuxRuntimeStacks.forEach(rt => {
             runtimeItems.push({
                 label: rt.displayName,
                 description: '',
-                detail: ''
+                data: rt
             });
         });
 
-        const pickedItem = await this.showQuickPick(runtimeItems, { placeHolder: 'Select runtime stack.' });
-        const runtimeStack = linuxRuntimeStacks.find(rt => rt.displayName === pickedItem.label).name;
+        const pickedItem = <QuickPickItemWithData<LinuxRuntimeStack>>(await this.showQuickPick(runtimeItems, { placeHolder: 'Select runtime stack.' }));
+        const runtimeStack = pickedItem.data.name;
         const rg = this.getSelectedResourceGroup();
         const plan = this.getSelectedAppServicePlan();
 
@@ -417,6 +448,7 @@ class WebsiteStep extends SubscriptionBasedWizardStep {
 
         this._website = await websiteClient.webApps.createOrUpdate(rg.name, this._website.name, this._website);
         this.wizard.writeline(`Web App "${this._website.name}" created: https://${this._website.defaultHostName}`);
+        this.wizard.writeline('');
     }
 
     get website(): WebSiteModels.Site {
@@ -478,4 +510,8 @@ class WebsiteStep extends SubscriptionBasedWizardStep {
 interface LinuxRuntimeStack {
     name: string;
     displayName: string;
+}
+
+interface QuickPickItemWithData<T> extends vscode.QuickPickItem {
+    data: T;
 }

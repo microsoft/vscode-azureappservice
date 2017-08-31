@@ -22,7 +22,7 @@ export class AzureAccountWrapper {
     }
 
     getAzureSessions(): AzureSession[] {
-        const status = this.accountApi.status;
+        const status = this.signInStatus;
         if (status !== 'LoggedIn') {
             throw new NotSignedInError(status)
         }
