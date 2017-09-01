@@ -159,7 +159,8 @@
         "vscode": "^1.0.0",
         "mocha": "^2.3.3",
         "@types/node": "^7.0.10",
-        "@types/mocha": "^2.2.32"
+        "@types/mocha": "^2.2.32",
+        "@types/archiver": "^2.0.0"
     },
     "dependencies": {
         "azure-arm-resource": "^2.0.0-preview",
@@ -167,7 +168,8 @@
         "ms-rest": "^2.2.1",
         "ms-rest-azure": "^2.2.3",
         "opn": "^5.1.0",
-        "kudu-api": "^1.4.1"
+        "kudu-api": "^1.4.1",
+        "archiver": "^2.0.3"
     },
     "extensionDependencies": [
         "vscode.azure-account"

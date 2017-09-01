@@ -4,8 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
+import * as archiver from 'archiver';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as os from 'os';
 import { AzureAccountWrapper } from './azureAccountWrapper';
-import { WizardBase, WizardResult, WizardStep, SubscriptionStepBase, UserCancelledError } from './wizard';
+import { WizardBase, WizardResult, WizardStep, SubscriptionStepBase, UserCancelledError, QuickPickItemWithData } from './wizard';
 import { KuduClient } from './kuduClient';
 import { SubscriptionModels } from 'azure-arm-resource';
 import WebSiteManagementClient = require('azure-arm-website');
@@ -20,10 +24,76 @@ export class WebAppZipPublisher extends WizardBase {
         readonly zipFilePath?: string,
         readonly folderPath?: string) {
         super(output);
+        this.steps.push(new ZipFileStep(this, zipFilePath, folderPath));
         this.steps.push(new SubscriptionStep(this, azureAccount, subscription));
         this.steps.push(new WebAppStep(this, azureAccount, site));
-        this.steps.push(new ZipFileStep(this, zipFilePath));
         this.steps.push(new DeployStep(this, azureAccount));
+    }
+}
+
+class ZipFileStep extends WizardStep {
+    private _zipFilePath: string;
+    private _folderPath: string;
+
+    constructor(wizard: WizardBase,
+        zipFilePath?: string,
+        folderPath?: string) {
+        super(wizard, 'Select or create Zip File');
+        this._zipFilePath = zipFilePath;
+        this._folderPath = folderPath;
+    }
+
+    async prompt(): Promise<void> {
+        if (this._zipFilePath) {
+            return;
+        }
+
+        if (!this._folderPath) {
+            if (!vscode.workspace.workspaceFolders) {
+                throw new Error('No open folder.');
+            }
+
+            const folderQuickPickItems = vscode.workspace.workspaceFolders.map((value) => {
+                {
+                    return <QuickPickItemWithData<vscode.WorkspaceFolder>>{
+                        label: value.name,
+                        description: '',
+                        data: value
+                    }
+                }
+            });
+            const folderQuickPickOption = { placeHolder: `Select the folder to Zip and deploy. (${this.stepProgressText})` };
+            const pickedItem = folderQuickPickItems.length == 1 ? 
+                folderQuickPickItems[0] : await this.showQuickPick(folderQuickPickItems, folderQuickPickOption);
+            this._folderPath = pickedItem.data.uri.fsPath;
+        }
+
+        this._zipFilePath = path.join(os.tmpdir(), `deploy${Math.floor(os.uptime())}.zip`);
+    }
+
+    async execute(): Promise<void> {
+        this.wizard.writeline(`Creating Zip file for deployment: ${this.zipFilePath} ...`)
+        await this.zipDirectory(this.zipFilePath, this._folderPath, path.sep);
+    }
+
+    get zipFilePath(): string {
+        return this._zipFilePath;
+    }
+
+    private zipDirectory(zipFilePath: string, sourcePath: string, targetPath: string): Promise<void> {
+        if (!sourcePath.endsWith(path.sep)) {
+            sourcePath += path.sep;
+        }
+        return new Promise((resolve, reject) =>{
+            const zipOutput = fs.createWriteStream(zipFilePath)
+            zipOutput.on('close', () => resolve());
+
+            const zipper = archiver('zip', { zlib: { level: 9 }});
+            zipper.on('error', err => reject(err));
+            zipper.pipe(zipOutput);
+            zipper.directory(this._folderPath, path.sep);
+            zipper.finalize();
+        });
     }
 }
 
@@ -54,13 +124,6 @@ class WebAppStep extends WizardStep {
     }
 }
 
-class ZipFileStep extends WizardStep {
-    constructor(wizard: WizardBase,
-        readonly zipFilePath?: string) {
-        super(wizard, 'Select or create Zip File');
-    }
-}
-
 class DeployStep extends WizardStep {
     constructor(wizard: WizardBase, readonly azureAccount: AzureAccountWrapper) {
         super(wizard, 'Deploy to App Service');
@@ -73,11 +136,13 @@ class DeployStep extends WizardStep {
         const user = await util.getWebAppPublishCredential(this.azureAccount, subscription, site);
         const kuduClient = new KuduClient(site.name, user.publishingUserName, user.publishingPassword);
         
+        this.wizard.writeline(`Start Zip deployment to ${site.name}...`);
         this.wizard.writeline('Deleting existing deployment...');
         await kuduClient.vfsDeleteFile('site/wwwroot/hostingstart.html');
         
         this.wizard.writeline('Uploading Zip package...');
         await kuduClient.zipUpload(zipFilePath, 'site/wwwroot');
+        fs.unlinkSync(zipFilePath);
 
         this.wizard.writeline('Restarting App Service...');
         const siteClient = new WebSiteManagementClient(this.azureAccount.getCredentialByTenantId(subscription.tenantId), subscription.subscriptionId);

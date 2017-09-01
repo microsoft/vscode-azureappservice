@@ -19,7 +19,7 @@ export class KuduClient {
 
      vfsDeleteFile(filePath: string): Promise<void> {
         return new Promise((resolve, reject) => {
-            this._api.vfs.deleteFile(filePath, function (err) {
+            this._api.vfs.deleteFile(filePath, err => {
                 if (err) {
                     reject(err);
                 } else {
@@ -31,7 +31,7 @@ export class KuduClient {
 
      zipUpload(zipFilePath: string, remoteFolder: string) {
         return new Promise((resolve, reject) => {
-            this._api.zip.upload(zipFilePath, remoteFolder, function (err) { 
+            this._api.zip.upload(zipFilePath, remoteFolder, err => { 
                 if (err) {
                     reject(err);
                 } else {
