@@ -172,6 +172,6 @@
         "archiver": "^2.0.3"
     },
     "extensionDependencies": [
-        "vscode.azure-account"
+        "ms-vscode.azure-account"
     ]
 }

@@ -7,7 +7,7 @@ import * as vscode from 'vscode';
 import { AzureAccountWrapper } from './azureAccountWrapper';
 import { SubscriptionModels } from 'azure-arm-resource';
 
-export type WizardStatus = 'Completed' | 'Faulted' | 'Cancelled';
+export type WizardStatus = 'PromptCompleted' | 'Completed' | 'Faulted' | 'Cancelled';
 
 export class WizardBase {
     private readonly _steps: WizardStep[] = [];
@@ -15,7 +15,7 @@ export class WizardBase {
 
     protected constructor(protected readonly output: vscode.OutputChannel) {}
 
-    async run(): Promise<WizardResult> {
+    async run(promptOnly = false): Promise<WizardResult> {
         // Go through the prompts...
         for (var i = 0; i < this.steps.length; i++) {
             const step = this.steps[i];
@@ -39,6 +39,18 @@ export class WizardBase {
             }
         }
 
+        if (promptOnly) {
+            return {
+                status: 'PromptCompleted',
+                step: this.steps[this.steps.length - 1],
+                error: null
+            };
+        }
+
+        return this.execute();
+    }
+
+    async execute(): Promise<WizardResult> {
         // Execute each step...
         this.output.show(true);
         for (var i = 0; i < this.steps.length; i++) {

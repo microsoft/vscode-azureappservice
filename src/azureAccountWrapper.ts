@@ -18,7 +18,7 @@ export class AzureAccountWrapper {
     readonly accountApi: AzureAccount;
 
     constructor(readonly extensionConext: ExtensionContext) {
-        this.accountApi = extensions.getExtension<AzureAccount>('vscode.azure-account')!.exports;
+        this.accountApi = extensions.getExtension<AzureAccount>('ms-vscode.azure-account')!.exports;
     }
 
     getAzureSessions(): AzureSession[] {

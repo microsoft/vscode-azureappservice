@@ -12,15 +12,15 @@ import * as WebSiteModels from '../node_modules/azure-arm-website/lib/models';
 import * as util from './util';
 
 export class WebAppCreator extends WizardBase {
-    constructor(output: vscode.OutputChannel, readonly azureAccount: AzureAccountWrapper) {
+    constructor(output: vscode.OutputChannel, readonly azureAccount: AzureAccountWrapper, subscription?: SubscriptionModels.Subscription) {
         super(output);
-        this.steps.push(new SubscriptionStep(this, azureAccount));
+        this.steps.push(new SubscriptionStep(this, azureAccount, subscription));
         this.steps.push(new ResourceGroupStep(this, azureAccount));
         this.steps.push(new AppServicePlanStep(this, azureAccount));
         this.steps.push(new WebsiteStep(this, azureAccount));
     }
 
-    async run(): Promise<WizardResult> {
+    async run(promptOnly = false): Promise<WizardResult> {
         // If not signed in, execute the sign in command and wait for it...
         if (this.azureAccount.signInStatus !== 'LoggedIn') {
             await vscode.commands.executeCommand(util.getSignInCommandString());
@@ -34,7 +34,12 @@ export class WebAppCreator extends WizardBase {
             };
         }
     
-        return super.run();
+        return super.run(promptOnly);
+    }
+
+    get createdWebSite(): WebSiteModels.Site {
+        const websiteStep = this.steps.find(step => step instanceof WebsiteStep);
+        return (<WebsiteStep>websiteStep).website;
     }
 
     protected beforeExecute(step: WizardStep, stepIndex: number) {
@@ -79,8 +84,9 @@ class SubscriptionBasedWizardStep extends WizardStep {
 }
 
 class SubscriptionStep extends SubscriptionStepBase {
-    constructor(wizard: WizardBase, azureAccount: AzureAccountWrapper) {
+    constructor(wizard: WizardBase, azureAccount: AzureAccountWrapper, subscrption?: SubscriptionModels.Subscription) {
         super(wizard, 'Select subscription', azureAccount);
+        this._subscription = subscrption;
     }
 
     async prompt(): Promise<void> {

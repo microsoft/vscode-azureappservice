@@ -6,6 +6,7 @@
 'use strict';
 
 import * as vscode from 'vscode';
+import * as util from "./util";
 import { AppServiceDataProvider } from './appServiceExplorer';
 import { AppServiceNode } from './appServiceNodes';
 import { AzureAccountWrapper } from './azureAccountWrapper';
@@ -15,7 +16,7 @@ import { WebAppZipPublisher } from './webAppZipPublisher'
 export function activate(context: vscode.ExtensionContext) {
     console.log('Extension "Azure App Service Tools" is now active.');
 
-    const outputChannel = vscode.window.createOutputChannel("Azure App Service");
+    const outputChannel = util.getOutputChannel();
     context.subscriptions.push(outputChannel);
 
     const azureAccount = new AzureAccountWrapper(context);
@@ -35,17 +36,20 @@ export function activate(context: vscode.ExtensionContext) {
     }));
     context.subscriptions.push(vscode.commands.registerCommand('appService.Start', (node: AppServiceNode) => {
         if (node) {
-            node.start(azureAccount).then(() => outputChannel.appendLine(`Starting App "${node.site.name}"...`));
+            outputChannel.appendLine(`Starting App "${node.site.name}"...`);
+            node.start(azureAccount).then(() => outputChannel.appendLine(`App "${node.site.name}" has been started.`), err => outputChannel.appendLine(err));
         }
     }));
     context.subscriptions.push(vscode.commands.registerCommand('appService.Stop', (node: AppServiceNode) => {
         if (node) {
-            node.stop(azureAccount).then(() => outputChannel.appendLine(`Stopping App "${node.site.name}"...`));
+            outputChannel.appendLine(`Stopping App "${node.site.name}"...`);
+            node.stop(azureAccount).then(() => outputChannel.appendLine(`App "${node.site.name}" has been stopped.`), err => outputChannel.appendLine(err));
         }
     }));
     context.subscriptions.push(vscode.commands.registerCommand('appService.Restart', (node: AppServiceNode) => {
         if (node) {
-            node.restart(azureAccount).then(() => outputChannel.appendLine(`Restarting App "${node.site.name}"...`));
+            outputChannel.appendLine(`Restarting App "${node.site.name}"...`);
+            node.restart(azureAccount).then(() => outputChannel.appendLine(`App "${node.site.name}" has been restarted.`), err => outputChannel.appendLine(err));
         }
     }));
     context.subscriptions.push(vscode.commands.registerCommand('appService.CreateWebApp', async () => {
@@ -59,6 +63,9 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.commands.registerCommand('appService.DeployZipPackage', async (context: any) => {
         if (context instanceof AppServiceNode) {
             const wizard = new WebAppZipPublisher(outputChannel, azureAccount, context.subscription, context.site);
+            await wizard.run();
+        } else if (context instanceof vscode.Uri) {
+            const wizard = new WebAppZipPublisher(outputChannel, azureAccount, null, null, context.fsPath, null);
             await wizard.run();
         }
     }));
