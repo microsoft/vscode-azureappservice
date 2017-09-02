@@ -18,7 +18,6 @@ export class KuduClient {
      }
 
      vfsDeleteDirectory(directoryPath: string): Promise<void> {
-        
         return new Promise((resolve, reject) => {
             this._api.vfs.deleteDirectory(directoryPath, err => {
                 if (err) {
