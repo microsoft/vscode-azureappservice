@@ -229,7 +229,7 @@ class DeployStep extends WizardStep {
     }
 
     async execute(): Promise<void> {
-        const remoteFolder = 'site/wwwroot';
+        const remoteFolder = 'site/wwwroot/';
         const subscription = this.getSelectedSubscription();
         const site = this.getSelectedWebApp();
         const zipFilePath = this.getSelectedZipFilePath();
@@ -243,7 +243,7 @@ class DeployStep extends WizardStep {
         await util.waitForWebSiteState(siteClient, site, 'stopped');
 
         this.wizard.writeline('Deleting existing deployment...');
-        await kuduClient.vfsDeleteDirectory(remoteFolder);
+        await kuduClient.vfsEmptyDirectory(remoteFolder);
         
         this.wizard.writeline('Uploading Zip package...');
         await kuduClient.zipUpload(zipFilePath, remoteFolder);
