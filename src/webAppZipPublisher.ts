@@ -116,7 +116,11 @@ class ZipFileStep extends WizardStep {
             const zipper = archiver('zip', { zlib: { level: 9 }});
             zipper.on('error', err => reject(err));
             zipper.pipe(zipOutput);
-            zipper.directory(this._folderPath, path.sep);
+            zipper.glob('**/*', { 
+                cwd: this._folderPath,
+                dot: true, 
+                ignore: 'node_modules{,/**}'
+            });
             zipper.finalize();
         });
     }
@@ -243,11 +247,13 @@ class DeployStep extends WizardStep {
         await util.waitForWebSiteState(siteClient, site, 'stopped');
 
         this.wizard.writeline('Deleting existing deployment...');
-        await kuduClient.vfsEmptyDirectory(remoteFolder);
+        await kuduClient.vfsEmptyDirectory(`/home/${remoteFolder}`);
+        await kuduClient.cmdExecute(`mkdir /home/${remoteFolder}`, '/');
         
         this.wizard.writeline('Uploading Zip package...');
         await kuduClient.zipUpload(zipFilePath, remoteFolder);
-
+        await kuduClient.cmdExecute(`npm install`, remoteFolder);
+        
         if (this.isZipCreatedByDeployment()) {
             await new Promise((resolve, reject) => fs.unlink(zipFilePath, err => {
                 if (err) {

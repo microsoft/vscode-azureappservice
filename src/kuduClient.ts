@@ -6,56 +6,25 @@
 import * as kuduApi from 'kudu-api';
 
 export class KuduClient {
-     private readonly _api;
+    private readonly _api;
 
-     constructor(webAppName: string, publishingUserName: string, publishingPassword: string, domain?: string) {
+    constructor(webAppName: string, publishingUserName: string, publishingPassword: string, domain?: string) {
          this._api = kuduApi({
             website: webAppName,
             username: publishingUserName,
             password: publishingPassword,
             domain: domain
          });
-     }
+    }
 
-     vfsList(directoryPath: string): Promise<Array<any>> {
+    vfsEmptyDirectory(directoryPath: string): Promise<void> {
+        const cmd = `rm -r ${directoryPath}`;
+        return this.cmdExecute(cmd, '/');
+    }
+
+    cmdExecute(command: string, remotePath: string): Promise<void> {
         return new Promise((resolve, reject) => {
-            this._api.vfs.listFiles(directoryPath, (err, body, response) => {
-                if (err) {
-                    reject(err);
-                    return;
-                }
-
-                if (response.statusCode !== 200) {
-                    reject(new Error(`${response.statusCode}: ${body}`));
-                    return;
-                }
-
-                resolve(<Array<any>>body);
-            });
-        });
-     }
-
-     async vfsEmptyDirectory(directoryPath: string): Promise<void> {
-        const list = await this.vfsList(directoryPath);
-
-        for (let i = 0; i < list.length; i++) {
-            const element = list[i];
-            const path = this.removeHomeFromPath(element.path);
-            
-            if (element.mime === 'inode/directory') {
-                console.log('Deleting folder: ' + path);
-                await this.vfsEmptyDirectory(path);
-                await this.vfsDeleteDirectory(path);
-            } else {
-                console.log('Deleting file: ' + path);
-                await this.vfsDeleteFile(path);
-            }
-        }
-     }
-
-     vfsDeleteDirectory(directoryPath: string): Promise<void> {
-        return new Promise((resolve, reject) => {
-            this._api.vfs.deleteDirectory(directoryPath, (err, body, response) => {
+            this._api.command.exec(command, remotePath, (err, body, response) => {
                 if (err) {
                     reject(err);
                     return;
@@ -69,27 +38,9 @@ export class KuduClient {
                 resolve();
             });
         });
-     }
+    }
 
-     vfsDeleteFile(filePath: string): Promise<void> {
-         return new Promise((resolve, reject) => {
-             this._api.vfs.deleteFile(filePath, (err, body, response) => {
-                if (err) {
-                    reject(err);
-                    return;
-                }
-
-                if (response.statusCode !== 200) {
-                    reject(new Error(`${response.statusCode}: ${body}`));
-                    return;
-                }
-
-                resolve();
-             });
-         })
-     }
-
-     zipUpload(zipFilePath: string, remoteFolder: string) {
+    zipUpload(zipFilePath: string, remoteFolder: string) {
         return new Promise((resolve, reject) => {
             this._api.zip.upload(zipFilePath, remoteFolder, (err, body, response) => { 
                 if (err) {
@@ -105,9 +56,9 @@ export class KuduClient {
                 resolve();
             });
         });
-     }
+    }
 
-     private removeHomeFromPath(path: string): string {
+    private removeHomeFromPath(path: string): string {
          return path.substring('/home/'.length);
-     }
+    }
  }
