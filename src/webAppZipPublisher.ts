@@ -252,7 +252,7 @@ class DeployStep extends WizardStep {
         
         this.wizard.writeline('Uploading Zip package...');
         await kuduClient.zipUpload(zipFilePath, remoteFolder);
-        await kuduClient.cmdExecute(`npm install`, remoteFolder);
+        await kuduClient.cmdExecute(`npm install --production`, remoteFolder);
         
         if (this.isZipCreatedByDeployment()) {
             await new Promise((resolve, reject) => fs.unlink(zipFilePath, err => {
