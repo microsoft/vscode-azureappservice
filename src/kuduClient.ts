@@ -17,13 +17,13 @@ export class KuduClient {
          });
     }
 
-    vfsEmptyDirectory(directoryPath: string): Promise<void> {
+    async vfsEmptyDirectory(directoryPath: string): Promise<void> {
         const cmd = `rm -r ${directoryPath}`;
-        return this.cmdExecute(cmd, '/');
+        await this.cmdExecute(cmd, '/');
     }
 
-    cmdExecute(command: string, remotePath: string): Promise<void> {
-        return new Promise((resolve, reject) => {
+    cmdExecute(command: string, remotePath: string): Promise<CommandResult> {
+        return new Promise<CommandResult>((resolve, reject) => {
             this._api.command.exec(command, remotePath, (err, body, response) => {
                 if (err) {
                     reject(err);
@@ -35,7 +35,11 @@ export class KuduClient {
                     return;
                 }
 
-                resolve();
+                resolve({
+                    Error: body.Error,
+                    ExitCode: body.ExitCode,
+                    Output: body.Output
+                });
             });
         });
     }
@@ -61,4 +65,10 @@ export class KuduClient {
     private removeHomeFromPath(path: string): string {
          return path.substring('/home/'.length);
     }
+ }
+
+ export interface CommandResult {
+    Error: string,
+    ExitCode: number,
+    Output: string
  }

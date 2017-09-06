@@ -11,7 +11,7 @@ import * as os from 'os';
 import { AzureAccountWrapper } from './azureAccountWrapper';
 import { WizardBase, WizardResult, WizardStep, SubscriptionStepBase, UserCancelledError, QuickPickItemWithData } from './wizard';
 import { WebAppCreator } from './webAppCreator';
-import { KuduClient } from './kuduClient';
+import { KuduClient, CommandResult } from './kuduClient';
 import { SubscriptionModels } from 'azure-arm-resource';
 import WebSiteManagementClient = require('azure-arm-website');
 import * as WebSiteModels from '../node_modules/azure-arm-website/lib/models';
@@ -252,7 +252,9 @@ class DeployStep extends WizardStep {
         
         this.wizard.writeline('Uploading Zip package...');
         await kuduClient.zipUpload(zipFilePath, remoteFolder);
-        await kuduClient.cmdExecute(`npm install --production`, remoteFolder);
+        this.wizard.writeline('Installing npm packages...');
+        const installResult = await kuduClient.cmdExecute(`npm install --production`, remoteFolder);
+        this.wizard.writeline(`${installResult.Output}\n${installResult.Error}`);
         
         if (this.isZipCreatedByDeployment()) {
             await new Promise((resolve, reject) => fs.unlink(zipFilePath, err => {
