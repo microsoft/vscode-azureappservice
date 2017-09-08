@@ -94,7 +94,7 @@ class SubscriptionStep extends SubscriptionStepBase {
             return;
         }
 
-        const quickPickItems = await this.getSubscriptionsAsQuickPickItems();
+        const quickPickItems = this.getSubscriptionsAsQuickPickItems();
         const quickPickOptions = { placeHolder: `Select the subscription where the new Web App will be created in. (${this.stepProgressText})` };
         const result = await this.showQuickPick(quickPickItems, quickPickOptions);
         this._subscription = result.data;
@@ -119,7 +119,6 @@ class ResourceGroupStep extends SubscriptionBasedWizardStep {
             description: '',
             data: null
         };
-        const quickPickItems = [createNewItem];
         const quickPickOptions = { placeHolder: `Select the resource group where the new Web App will be created in. (${this.stepProgressText})` };
         const subscription = this.getSelectedSubscription();
         const resourceClient = new ResourceManagementClient(this.azureAccount.getCredentialByTenantId(subscription.tenantId), subscription.subscriptionId);
@@ -127,7 +126,8 @@ class ResourceGroupStep extends SubscriptionBasedWizardStep {
         var locations: SubscriptionModels.Location[];
         const resourceGroupsTask = util.listAll(resourceClient.resourceGroups, resourceClient.resourceGroups.list());
         const locationsTask = this.azureAccount.getLocationsBySubscription(this.getSelectedSubscription());
-        await Promise.all([resourceGroupsTask, locationsTask]).then(results => {
+        const quickPickItemsTask = Promise.all([resourceGroupsTask, locationsTask]).then(results => {
+            const quickPickItems = [createNewItem];
             resourceGroups = results[0];
             locations = results[1];
             resourceGroups.forEach(rg => {
@@ -138,9 +138,11 @@ class ResourceGroupStep extends SubscriptionBasedWizardStep {
                     data: rg
                 });
             });
+
+            return quickPickItems;
         });
 
-        const result = await this.showQuickPick(quickPickItems, quickPickOptions);
+        const result = await this.showQuickPick(quickPickItemsTask, quickPickOptions);
 
         if (result !== createNewItem) {
             const rg = result.data;
@@ -220,27 +222,32 @@ class AppServicePlanStep extends SubscriptionBasedWizardStep {
             description: '',
             data: null
         };
-        const quickPickItems = [createNewItem];
         const quickPickOptions = { placeHolder: `Select the App Service Plan for the new Web App. (${this.stepProgressText})` };
         const subscription = this.getSelectedSubscription();
         const client = new WebSiteManagementClient(this.azureAccount.getCredentialByTenantId(subscription.tenantId), subscription.subscriptionId);
         // You can create a web app and associate it with a plan from another resource group.
         // That's why we use list instead of listByResourceGroup below; and show resource group name in the quick pick list.
-        const plans = await util.listAll(client.appServicePlans, client.appServicePlans.list());
-
-        plans.forEach(plan => {
-            // Currently we only support Linux web apps.
-            if (plan.kind.toLowerCase() === 'linux') {
-                quickPickItems.push({
-                    label: plan.appServicePlanName,
-                    description: `${plan.sku.name} (${plan.geoRegion})`,
-                    detail: plan.resourceGroup,
-                    data: plan
-                });
-            }
+        let plans: WebSiteModels.AppServicePlan[];
+        const plansTask = util.listAll(client.appServicePlans, client.appServicePlans.list()).then(result => {
+            const quickPickItems = [createNewItem];
+            plans = result;
+            plans.forEach(plan => {
+                // Currently we only support Linux web apps.
+                if (plan.kind.toLowerCase() === 'linux') {
+                    quickPickItems.push({
+                        label: plan.appServicePlanName,
+                        description: `${plan.sku.name} (${plan.geoRegion})`,
+                        detail: plan.resourceGroup,
+                        data: plan
+                    });
+                }
+            });
+    
+            return quickPickItems;
         });
+
         
-        const pickedItem = await this.showQuickPick(quickPickItems, quickPickOptions);
+        const pickedItem = await this.showQuickPick(plansTask, quickPickOptions);
 
         if (pickedItem !== createNewItem) {
             this._createNew = false;
