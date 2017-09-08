@@ -37,7 +37,7 @@
                 "command": "appService.CreateWebApp",
                 "title": "Create New Web App",
                 "category": "Azure App Service",
-                "icon":{
+                "icon": {
                     "light": "resources/light/createAppSvc.svg",
                     "dark": "resources/dark/createAppSvc.svg"
                 }
@@ -74,6 +74,16 @@
             {
                 "command": "appService.Restart",
                 "title": "Restart",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.DeployZipPackage",
+                "title": "Deploy Zip Package to Web App",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.ZipAndDeploy",
+                "title": "Zip & Deploy to Web App",
                 "category": "Azure App Service"
             }
         ],
@@ -123,6 +133,23 @@
                     "command": "appService.Restart",
                     "when": "view == azureAppService && viewItem == appService",
                     "group": "2_appServiceControlCommands@3"
+                },
+                {
+                    "command": "appService.DeployZipPackage",
+                    "when": "view == azureAppService && viewItem == appService",
+                    "group": "3_appServiceDeployCommands@1"
+                }
+            ],
+            "explorer/context": [
+                {
+                    "command": "appService.DeployZipPackage",
+                    "when": "resourceFilename == package.zip",
+                    "group": "zzz_@appServiceDeployCommands"
+                },
+                {
+                    "command": "appService.ZipAndDeploy",
+                    "when": "explorerResourceIsFolder == true",
+                    "group": "zzz_@appServiceDeployCommands"
                 }
             ]
         }
@@ -138,16 +165,19 @@
         "vscode": "^1.0.0",
         "mocha": "^2.3.3",
         "@types/node": "^7.0.10",
-        "@types/mocha": "^2.2.32"
+        "@types/mocha": "^2.2.32",
+        "@types/archiver": "^2.0.0"
     },
     "dependencies": {
         "azure-arm-resource": "^2.0.0-preview",
         "azure-arm-website": "^1.0.0-preview",
         "ms-rest": "^2.2.1",
         "ms-rest-azure": "^2.2.3",
-        "opn": "^5.1.0"
+        "opn": "^5.1.0",
+        "kudu-api": "^1.4.1",
+        "archiver": "^2.0.3"
     },
     "extensionDependencies": [
-        "vscode.azure-account"
+        "ms-vscode.azure-account"
     ]
 }

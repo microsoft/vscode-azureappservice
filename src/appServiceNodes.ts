@@ -103,16 +103,19 @@ export class AppServiceNode extends NodeBase {
         opn(deepLink);
     }
 
-    start(azureAccount: AzureAccountWrapper): Promise<void> {
-        return this.getWebSiteManagementClient(azureAccount).webApps.start(this.site.resourceGroup, this.site.name);
+    async start(azureAccount: AzureAccountWrapper): Promise<void> {
+        await this.getWebSiteManagementClient(azureAccount).webApps.start(this.site.resourceGroup, this.site.name);
+        return util.waitForWebSiteState(this.getWebSiteManagementClient(azureAccount), this.site, 'running');
     }
 
-    stop(azureAccount: AzureAccountWrapper): Promise<void> {
-        return this.getWebSiteManagementClient(azureAccount).webApps.stop(this.site.resourceGroup, this.site.name);
+    async stop(azureAccount: AzureAccountWrapper): Promise<void> {
+        await this.getWebSiteManagementClient(azureAccount).webApps.stop(this.site.resourceGroup, this.site.name);
+        return util.waitForWebSiteState(this.getWebSiteManagementClient(azureAccount), this.site, 'stopped');
     }
 
-    restart(azureAccount: AzureAccountWrapper): Promise<void> {
-        return this.getWebSiteManagementClient(azureAccount).webApps.restart(this.site.resourceGroup, this.site.name);
+    async restart(azureAccount: AzureAccountWrapper): Promise<void> {
+        await this.stop(azureAccount);
+        return this.start(azureAccount);
     }
 
     private getWebSiteManagementClient(azureAccount: AzureAccountWrapper) {

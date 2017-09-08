@@ -4,8 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
+import { AzureAccountWrapper } from './azureAccountWrapper';
+import { SubscriptionModels } from 'azure-arm-resource';
 
-export type WizardStatus = 'Completed' | 'Faulted' | 'Cancelled';
+export type WizardStatus = 'PromptCompleted' | 'Completed' | 'Faulted' | 'Cancelled';
 
 export class WizardBase {
     private readonly _steps: WizardStep[] = [];
@@ -13,7 +15,7 @@ export class WizardBase {
 
     protected constructor(protected readonly output: vscode.OutputChannel) {}
 
-    async run(): Promise<WizardResult> {
+    async run(promptOnly = false): Promise<WizardResult> {
         // Go through the prompts...
         for (var i = 0; i < this.steps.length; i++) {
             const step = this.steps[i];
@@ -37,6 +39,18 @@ export class WizardBase {
             }
         }
 
+        if (promptOnly) {
+            return {
+                status: 'PromptCompleted',
+                step: this.steps[this.steps.length - 1],
+                error: null
+            };
+        }
+
+        return this.execute();
+    }
+
+    async execute(): Promise<WizardResult> {
         // Execute each step...
         this.output.show(true);
         for (var i = 0; i < this.steps.length; i++) {
@@ -120,7 +134,7 @@ export class WizardStep {
         return `Step ${this.stepIndex + 1}/${this.wizard.steps.length}`;
     }
 
-    async showQuickPick(items: vscode.QuickPickItem[], options: vscode.QuickPickOptions, token?: vscode.CancellationToken): Promise<vscode.QuickPickItem> {
+    async showQuickPick<T>(items: QuickPickItemWithData<T>[], options: vscode.QuickPickOptions, token?: vscode.CancellationToken): Promise<QuickPickItemWithData<T>> {
         const result = await vscode.window.showQuickPick(items, options, token);
 
         if (!result) {
@@ -139,6 +153,58 @@ export class WizardStep {
 
         return result;
     }
+}
+
+export class SubscriptionStepBase extends WizardStep {
+    constructor(wizard: WizardBase, title: string, readonly azureAccount: AzureAccountWrapper, protected _subscription?: SubscriptionModels.Subscription) {
+        super(wizard, title);
+    }
+
+    protected async getSubscriptionsAsQuickPickItems(): Promise<QuickPickItemWithData<SubscriptionModels.Subscription>[]> {
+        const quickPickItems: QuickPickItemWithData<SubscriptionModels.Subscription>[] = [];
+
+        await Promise.all([this.azureAccount.getFilteredSubscriptions(), this.azureAccount.getAllSubscriptions()]).then(results => {
+            const inFilterSubscriptions = results[0];
+            const otherSubscriptions = results[1];
+
+            inFilterSubscriptions.forEach(s => {
+                const index = otherSubscriptions.findIndex(other => other.subscriptionId === s.subscriptionId);
+                if (index >= 0) {   // Remove duplicated items from "all subscriptions".
+                    otherSubscriptions.splice(index, 1);
+                }
+
+                const item = {
+                    label: `📌 ${s.displayName}`,
+                    description: '',
+                    detail: s.subscriptionId,
+                    data: s
+                };
+
+                quickPickItems.push(item);
+            });
+
+            otherSubscriptions.forEach(s => {
+                const item = {
+                    label: s.displayName,
+                    description: '',
+                    detail: s.subscriptionId,
+                    data: s
+                };
+
+                quickPickItems.push(item);
+            });
+        });
+
+        return quickPickItems;
+    }
+
+    get subscription(): SubscriptionModels.Subscription {
+        return this._subscription;
+    }
+}
+
+export interface QuickPickItemWithData<T> extends vscode.QuickPickItem {
+    data: T;
 }
 
 export class UserCancelledError extends Error {}
