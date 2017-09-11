@@ -18,6 +18,7 @@ export class WebAppCreator extends WizardBase {
         this.steps.push(new ResourceGroupStep(this, azureAccount));
         this.steps.push(new AppServicePlanStep(this, azureAccount));
         this.steps.push(new WebsiteStep(this, azureAccount));
+        this.steps.push(new ShellScriptStep(this, azureAccount));
     }
 
     async run(promptOnly = false): Promise<WizardResult> {
@@ -57,7 +58,7 @@ export class WebAppCreator extends WizardBase {
     }
 }
 
-class SubscriptionBasedWizardStep extends WizardStep {
+class WebAppCreatorStepBase extends WizardStep {
     protected constructor(wizard: WizardBase, stepTitle: string, readonly azureAccount: AzureAccountWrapper) {
         super(wizard, stepTitle);
     }
@@ -80,6 +81,26 @@ class SubscriptionBasedWizardStep extends WizardStep {
         }
 
         return resourceGroupStep.resourceGroup;
+    }
+
+    protected getSelectedAppServicePlan(): WebSiteModels.AppServicePlan {
+        const appServicePlanStep = <AppServicePlanStep>this.wizard.findStep(step => step instanceof AppServicePlanStep, 'The Wizard must have a AppServicePlanStep.');
+        
+        if (!appServicePlanStep.servicePlan) {
+            throw new Error('An App Service Plan must be selected first.');
+        }
+
+        return appServicePlanStep.servicePlan;
+    }
+
+    protected getWebSite(): WebSiteModels.Site {
+        const websiteStep = <WebsiteStep>this.wizard.findStep(step => step instanceof WebsiteStep, 'The Wizard must have a WebsiteStep.');
+        
+        if (!websiteStep.website) {
+            throw new Error('A website must be created first.');
+        }
+
+        return websiteStep.website;
     }
 }
 
@@ -105,7 +126,7 @@ class SubscriptionStep extends SubscriptionStepBase {
     }
 }
 
-class ResourceGroupStep extends SubscriptionBasedWizardStep {
+class ResourceGroupStep extends WebAppCreatorStepBase {
     private _createNew: boolean;
     private _rg: ResourceModels.ResourceGroup;
 
@@ -206,7 +227,7 @@ class ResourceGroupStep extends SubscriptionBasedWizardStep {
     }
 }
 
-class AppServicePlanStep extends SubscriptionBasedWizardStep {
+class AppServicePlanStep extends WebAppCreatorStepBase {
     private _createNew: boolean;
     private _plan: WebSiteModels.AppServicePlan;
 
@@ -360,7 +381,7 @@ class AppServicePlanStep extends SubscriptionBasedWizardStep {
     }
 }
 
-class WebsiteStep extends SubscriptionBasedWizardStep {
+class WebsiteStep extends WebAppCreatorStepBase {
     private _website: WebSiteModels.Site;
 
     constructor(wizard: WizardBase, azureAccount: AzureAccountWrapper) {
@@ -421,22 +442,14 @@ class WebsiteStep extends SubscriptionBasedWizardStep {
         }
 
         this._website = await websiteClient.webApps.createOrUpdate(rg.name, this._website.name, this._website);
+        this._website.siteConfig = await websiteClient.webApps.getConfiguration(rg.name, this._website.name);
+        
         this.wizard.writeline(`Web App "${this._website.name}" created: https://${this._website.defaultHostName}`);
         this.wizard.writeline('');
     }
 
     get website(): WebSiteModels.Site {
         return this._website;
-    }
-
-    private getSelectedAppServicePlan(): WebSiteModels.AppServicePlan {
-        const appServicePlanStep = <AppServicePlanStep>this.wizard.findStep(step => step instanceof AppServicePlanStep, 'The Wizard must have a AppServicePlanStep.');
-        
-        if (!appServicePlanStep.servicePlan) {
-            throw new Error('An App Service Plan must be selected first.');
-        }
-
-        return appServicePlanStep.servicePlan;
     }
 
     private getLinuxRuntimeStack(): LinuxRuntimeStack[] {
@@ -481,7 +494,75 @@ class WebsiteStep extends SubscriptionBasedWizardStep {
     }
 }
 
+class ShellScriptStep extends WebAppCreatorStepBase {
+    constructor(wizard: WizardBase, azureAccount: AzureAccountWrapper) {
+        super(wizard, 'Create Web App', azureAccount);
+    }
+    
+    async execute(): Promise<void> {
+        const subscription = this.getSelectedSubscription();
+        const rg = this.getSelectedResourceGroup();
+        const plan = this.getSelectedAppServicePlan();
+        const site = this.getWebSite();
+        
+        const script = scriptTemplate.replace('%SUBSCRIPTION_NAME%', subscription.displayName)
+            .replace('%RG_NAME%', rg.name)
+            .replace('%LOCATION%', rg.location)
+            .replace('%PLAN_NAME%', plan.name)
+            .replace('%PLAN_SKU%', plan.sku.name)
+            .replace('%SITE_NAME%', site.name)
+            .replace('%RUNTIME%', site.siteConfig.linuxFxVersion);
+        vscode.workspace.openTextDocument({
+            content: script,
+            language: 'shellscript'
+        }).then(doc => vscode.window.showTextDocument(doc));
+    }    
+}
+
 interface LinuxRuntimeStack {
     name: string;
     displayName: string;
 }
+
+const scriptTemplate = 'SUBSCRIPTION="%SUBSCRIPTION_NAME%"\n\
+RESOURCEGROUP="%RG_NAME%"\n\
+LOCATION="%LOCATION%"\n\
+PLANNAME="%PLAN_NAME%"\n\
+PLANSKU="%PLAN_SKU%"\n\
+SITENAME="%SITE_NAME%"\n\
+RUNTIME="%RUNTIME%"\n\
+\n\
+# login supports device login, username/password, and service principals\n\
+# see https://docs.microsoft.com/en-us/cli/azure/?view=azure-cli-latest#az_login\n\
+az login\n\
+# list all of the available subscriptions\n\
+az account list -o table\n\
+# set the default subscription for subsequent operations\n\
+az account set --subscription $SUBSCRIPTION\n\
+# create a resource group for your application\n\
+az group create --name $RESOURCEGROUP --location $LOCATION\n\
+# create an appservice plan (a machine) where your site will run\n\
+az appservice plan create --name $PLANNAME --location $LOCATION --is-linux --sku $PLANSKU --resource-group $RESOURCEGROUP\n\
+# create the web application on the plan\n\
+# specify the node version your app requires\n\
+az webapp create --name $SITENAME --plan $PLANNAME --runtime $RUNTIME --resource-group $RESOURCEGROUP\n\
+\n\
+# To set up deployment from a local git repository, uncomment the following commands.\n\
+# first, set the username and password (use environment variables!)\n\
+# USERNAME=""\n\
+# PASSWORD=""\n\
+# az webapp deployment user set --user-name $USERNAME --password $PASSWORD\n\
+\n\
+# now, configure the site for deployment. in this case, we will deploy from the local git repository\n\
+# you can also configure your site to be deployed from a remote git repository or set up a CI/CD workflow\n\
+# az webapp deployment source config-local-git --name $SITENAME --resource-group $RESOURCEGROUP\n\
+\n\
+# the previous command returned the git remote to deploy to\n\
+# use this to set up a new remote named "azure"\n\
+# git remote add azure "https://$USERNAME@$SITENAME.scm.azurewebsites.net/cdias-appname-site.git"\n\
+# push master to deploy the site\n\
+# git push azure master\n\
+\n\
+# browse to the site\n\
+# az webapp browse --name $SITENAME --resource-group $RESOURCEGROUP\n\
+';
