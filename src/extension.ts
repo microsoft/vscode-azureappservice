@@ -11,10 +11,13 @@ import { AppServiceDataProvider } from './appServiceExplorer';
 import { AppServiceNode } from './appServiceNodes';
 import { AzureAccountWrapper } from './azureAccountWrapper';
 import { WebAppCreator } from './webAppCreator';
-import { WebAppZipPublisher } from './webAppZipPublisher'
+import { WebAppZipPublisher } from './webAppZipPublisher';
+import { Reporter } from './telemetry/reporter';
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Extension "Azure App Service Tools" is now active.');
+
+    context.subscriptions.push(new Reporter(context));
 
     const outputChannel = util.getOutputChannel();
     context.subscriptions.push(outputChannel);
