@@ -134,7 +134,7 @@ export class WizardStep {
         return `Step ${this.stepIndex + 1}/${this.wizard.steps.length}`;
     }
 
-    async showQuickPick<T>(items: QuickPickItemWithData<T>[], options: vscode.QuickPickOptions, token?: vscode.CancellationToken): Promise<QuickPickItemWithData<T>> {
+    async showQuickPick<T>(items: QuickPickItemWithData<T>[] | Thenable<QuickPickItemWithData<T>[]>, options: vscode.QuickPickOptions, token?: vscode.CancellationToken): Promise<QuickPickItemWithData<T>> {
         const result = await vscode.window.showQuickPick(items, options, token);
 
         if (!result) {
@@ -160,42 +160,17 @@ export class SubscriptionStepBase extends WizardStep {
         super(wizard, title);
     }
 
-    protected async getSubscriptionsAsQuickPickItems(): Promise<QuickPickItemWithData<SubscriptionModels.Subscription>[]> {
-        const quickPickItems: QuickPickItemWithData<SubscriptionModels.Subscription>[] = [];
-
-        await Promise.all([this.azureAccount.getFilteredSubscriptions(), this.azureAccount.getAllSubscriptions()]).then(results => {
-            const inFilterSubscriptions = results[0];
-            const otherSubscriptions = results[1];
-
-            inFilterSubscriptions.forEach(s => {
-                const index = otherSubscriptions.findIndex(other => other.subscriptionId === s.subscriptionId);
-                if (index >= 0) {   // Remove duplicated items from "all subscriptions".
-                    otherSubscriptions.splice(index, 1);
-                }
-
-                const item = {
-                    label: `📌 ${s.displayName}`,
-                    description: '',
-                    detail: s.subscriptionId,
-                    data: s
-                };
-
-                quickPickItems.push(item);
-            });
-
-            otherSubscriptions.forEach(s => {
-                const item = {
+    protected getSubscriptionsAsQuickPickItems(): Promise<QuickPickItemWithData<SubscriptionModels.Subscription>[]> {
+        return Promise.resolve(
+            this.azureAccount.getFilteredSubscriptions().map(s => {
+                return {
                     label: s.displayName,
                     description: '',
                     detail: s.subscriptionId,
                     data: s
                 };
-
-                quickPickItems.push(item);
-            });
-        });
-
-        return quickPickItems;
+            })
+        );
     }
 
     get subscription(): SubscriptionModels.Subscription {
