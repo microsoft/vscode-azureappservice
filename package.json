@@ -4,7 +4,8 @@
     "description": "An Azure App Service management extension for Visual Studio Code.",
     "version": "0.0.1",
     "publisher": "ms-azuretools",
-    "icon": "resources/windows-azure-web-site.png",        
+    "icon": "resources/windows-azure-web-site.png",
+    "aiKey": "AIF-d9b70cd4-b9f9-4d70-929b-a071c400b217",
     "engines": {
         "vscode": "^1.16.0"
     },
@@ -161,21 +162,22 @@
         "test": "node ./node_modules/vscode/bin/test"
     },
     "devDependencies": {
-        "typescript": "^2.0.3",
-        "vscode": "^1.0.0",
-        "mocha": "^2.3.3",
-        "@types/node": "^7.0.10",
+        "@types/archiver": "^2.0.0",
         "@types/mocha": "^2.2.32",
-        "@types/archiver": "^2.0.0"
+        "@types/node": "^7.0.10",
+        "mocha": "^2.3.3",
+        "typescript": "^2.0.3",
+        "vscode": "^1.0.0"
     },
     "dependencies": {
+        "archiver": "^2.0.3",
         "azure-arm-resource": "^2.0.0-preview",
         "azure-arm-website": "^1.0.0-preview",
+        "kudu-api": "^1.4.1",
         "ms-rest": "^2.2.1",
         "ms-rest-azure": "^2.2.3",
         "opn": "^5.1.0",
-        "kudu-api": "^1.4.1",
-        "archiver": "^2.0.3"
+        "vscode-extension-telemetry": "^0.0.6"
     },
     "extensionDependencies": [
         "ms-vscode.azure-account"
