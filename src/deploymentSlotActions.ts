@@ -9,8 +9,8 @@ import { WizardBase, WizardResult, WizardStep, UserCancelledError, QuickPickItem
 import { SubscriptionModels, ResourceManagementClient, ResourceModels } from 'azure-arm-resource';
 import WebSiteManagementClient = require('azure-arm-website');
 import models = require('azure-arm-website');
-import { NodeBase } from './nodeBase';
-import { DeploymentSlotNode } from './deploymentSlotNodes';
+import { NodeBase } from './nodes/nodeBase';
+import { DeploymentSlotNode } from './nodes/deploymentSlotNodes';
 import * as WebSiteModels from '../node_modules/azure-arm-website/lib/models';
 import * as util from './util';
 
