@@ -5,6 +5,7 @@
 
 'use strict';
 
+import * as os from 'os';
 import * as vscode from 'vscode';
 import * as util from "./util";
 import { AppServiceDataProvider } from './appServiceExplorer';
@@ -26,44 +27,45 @@ export function activate(context: vscode.ExtensionContext) {
     const appServiceDataProvider = new AppServiceDataProvider(azureAccount);
 
     context.subscriptions.push(vscode.window.registerTreeDataProvider('azureAppService', appServiceDataProvider));
-    context.subscriptions.push(vscode.commands.registerCommand('appService.Refresh', () => appServiceDataProvider.refresh()));
-    context.subscriptions.push(vscode.commands.registerCommand('appService.Browse', (node: AppServiceNode) => {
+
+    initCommand(context, 'appService.Refresh', () => appServiceDataProvider.refresh());
+    initCommand(context, 'appService.Browse', (node: AppServiceNode) => {
         if (node) {
             node.browse();
         }
-    }));
-    context.subscriptions.push(vscode.commands.registerCommand('appService.OpenInPortal', (node: AppServiceNode) => {
+    });
+    initCommand(context, 'appService.OpenInPortal', (node: AppServiceNode) => {
         if (node) {
             node.openInPortal(azureAccount);
         }
-    }));
-    context.subscriptions.push(vscode.commands.registerCommand('appService.Start', (node: AppServiceNode) => {
+    });
+    initAsyncCommand(context,'appService.Start', async (node: AppServiceNode) => {
         if (node) {
             outputChannel.appendLine(`Starting App "${node.site.name}"...`);
-            node.start(azureAccount).then(() => outputChannel.appendLine(`App "${node.site.name}" has been started.`), err => outputChannel.appendLine(err));
+            await node.start(azureAccount).then(() => outputChannel.appendLine(`App "${node.site.name}" has been started.`), err => outputChannel.appendLine(err));
         }
-    }));
-    context.subscriptions.push(vscode.commands.registerCommand('appService.Stop', (node: AppServiceNode) => {
+    });
+    initAsyncCommand(context, 'appService.Stop', async (node: AppServiceNode) => {
         if (node) {
             outputChannel.appendLine(`Stopping App "${node.site.name}"...`);
-            node.stop(azureAccount).then(() => outputChannel.appendLine(`App "${node.site.name}" has been stopped.`), err => outputChannel.appendLine(err));
+            await node.stop(azureAccount).then(() => outputChannel.appendLine(`App "${node.site.name}" has been stopped.`), err => outputChannel.appendLine(err));
         }
-    }));
-    context.subscriptions.push(vscode.commands.registerCommand('appService.Restart', (node: AppServiceNode) => {
+    });
+    initAsyncCommand(context, 'appService.Restart', async (node: AppServiceNode) => {
         if (node) {
             outputChannel.appendLine(`Restarting App "${node.site.name}"...`);
-            node.restart(azureAccount).then(() => outputChannel.appendLine(`App "${node.site.name}" has been restarted.`), err => outputChannel.appendLine(err));
+            await node.restart(azureAccount).then(() => outputChannel.appendLine(`App "${node.site.name}" has been restarted.`), err => outputChannel.appendLine(err));
         }
-    }));
-    context.subscriptions.push(vscode.commands.registerCommand('appService.CreateWebApp', async () => {
+    });
+    initAsyncCommand(context, 'appService.CreateWebApp', async () => {
         const wizard = new WebAppCreator(outputChannel, azureAccount);
         const result = await wizard.run();
         
         if (result.status === 'Completed') {
             vscode.commands.executeCommand('appService.Refresh');
         }
-    }));
-    context.subscriptions.push(vscode.commands.registerCommand('appService.DeployZipPackage', async (context: any) => {
+    });
+    initAsyncCommand(context,'appService.DeployZipPackage', async (context: any) => {
         if (context instanceof AppServiceNode) {
             const wizard = new WebAppZipPublisher(outputChannel, azureAccount, context.subscription, context.site);
             await wizard.run();
@@ -71,15 +73,38 @@ export function activate(context: vscode.ExtensionContext) {
             const wizard = new WebAppZipPublisher(outputChannel, azureAccount, null, null, context.fsPath, null);
             await wizard.run();
         }
-    }));
-    context.subscriptions.push(vscode.commands.registerCommand('appService.ZipAndDeploy', async (context: any) => {
+    });
+    initAsyncCommand(context, 'appService.ZipAndDeploy', async (context: any) => {
         if (context instanceof vscode.Uri) {
             const folderPath = context.fsPath;
             const wizard = new WebAppZipPublisher(outputChannel, azureAccount, null, null, null, folderPath);
             await wizard.run();
         }
-    }));
+    });
 }
 
 export function deactivate() {
+}
+
+function initCommand(context: vscode.ExtensionContext, commandId: string, callback: (...args: any[]) => any) {
+    initAsyncCommand(context, commandId, (...args: any[]) => Promise.resolve(callback(...args)));
+}
+
+function initAsyncCommand(context: vscode.ExtensionContext, commandId: string, callback: (...args: any[]) => Promise<any>) {
+    context.subscriptions.push(vscode.commands.registerCommand(commandId, async (...args: any[]) => {
+        const start = os.uptime();
+        let result = 'Succeeded';
+        let errorData: string = '';
+
+        try {
+            await callback(...args);
+        } catch (err) {
+            result = 'Failed';
+            errorData = JSON.stringify(err);
+            throw err;
+        } finally {
+            const end = os.uptime();
+            util.sendTelemetry(commandId, { result: result, error: errorData }, { duration: end - start });
+        }
+    }));
 }

@@ -32,6 +32,12 @@ export class WebAppZipPublisher extends WizardBase {
     }
 
     protected onExecuteError(step: WizardStep, stepIndex: number, error: Error) {
+        util.sendTelemetry('WebAppZipPublisherError', 
+        {
+            step: step ? step.stepTitle : 'Unknown',
+            error: error ? JSON.stringify(error) : ''
+        });
+
         if (error instanceof UserCancelledError) {
             return;
         }

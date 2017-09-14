@@ -6,6 +6,7 @@
 import { ServiceClientCredentials } from 'ms-rest';
 import { SubscriptionModels } from 'azure-arm-resource';
 import { AzureAccountWrapper } from './azureAccountWrapper';
+import { reporter } from './telemetry/reporter';
 import WebSiteManagementClient = require('azure-arm-website');
 import * as vscode from 'vscode';
 import * as WebSiteModels from '../node_modules/azure-arm-website/lib/models';
@@ -60,4 +61,11 @@ const outputChannel = vscode.window.createOutputChannel("Azure App Service");
 
 export function getOutputChannel(): vscode.OutputChannel {
     return outputChannel;
+}
+
+// Telemetry for the extension
+export function sendTelemetry(eventName: string, properties?: { [key: string]: string; }, measures?: { [key: string]: number; }) {
+    if (reporter) {
+        reporter.sendTelemetryEvent(eventName, properties, measures);
+    }
 }
