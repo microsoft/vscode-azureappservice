@@ -50,12 +50,6 @@ export class WebAppCreator extends WizardBase {
     }
 
     protected onExecuteError(step: WizardStep, stepIndex: number, error: Error) {
-        util.sendTelemetry('WebAppCreatorError', 
-        {
-            step: step ? step.stepTitle : 'Unknown',
-            error: error ? JSON.stringify(error) : ''
-        });
-
         if (error instanceof UserCancelledError) {
             return;
         }

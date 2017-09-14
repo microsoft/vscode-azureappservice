@@ -69,3 +69,29 @@ export function sendTelemetry(eventName: string, properties?: { [key: string]: s
         reporter.sendTelemetryEvent(eventName, properties, measures);
     }
 }
+
+export function errToString(error: any): string {
+    if (error === null || error === undefined) {
+        return '';
+    }
+
+    if (error instanceof Error) {
+        return JSON.stringify({
+            'Error': error.constructor.name,
+            'Message': error.message
+        });
+    }
+
+    if (error instanceof Array) {
+        return JSON.stringify(error);
+    }
+
+    if (typeof(error) === 'object') {
+        return JSON.stringify({
+            'object': error.constructor.name,
+            'toString': error.toString()
+        });
+    }
+
+    return error.toString();
+}

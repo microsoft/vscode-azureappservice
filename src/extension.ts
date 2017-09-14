@@ -5,7 +5,6 @@
 
 'use strict';
 
-import * as os from 'os';
 import * as vscode from 'vscode';
 import * as util from "./util";
 import { AppServiceDataProvider } from './appServiceExplorer';
@@ -92,7 +91,7 @@ function initCommand(context: vscode.ExtensionContext, commandId: string, callba
 
 function initAsyncCommand(context: vscode.ExtensionContext, commandId: string, callback: (...args: any[]) => Promise<any>) {
     context.subscriptions.push(vscode.commands.registerCommand(commandId, async (...args: any[]) => {
-        const start = os.uptime();
+        const start = Date.now();
         let result = 'Succeeded';
         let errorData: string = '';
 
@@ -100,11 +99,11 @@ function initAsyncCommand(context: vscode.ExtensionContext, commandId: string, c
             await callback(...args);
         } catch (err) {
             result = 'Failed';
-            errorData = JSON.stringify(err);
+            errorData = util.errToString(err);
             throw err;
         } finally {
-            const end = os.uptime();
-            util.sendTelemetry(commandId, { result: result, error: errorData }, { duration: end - start });
+            const end = Date.now();
+            util.sendTelemetry(commandId, { result: result, error: errorData }, { duration: (end - start) / 1000 });
         }
     }));
 }
