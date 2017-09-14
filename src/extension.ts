@@ -7,11 +7,12 @@
 
 import * as vscode from 'vscode';
 import * as util from "./util";
-import { AppServiceDataProvider } from './appServiceExplorer';
-import { NodeBase } from './nodes/nodeBase';
-import { AppServiceNode } from './nodes/appServiceNodes';
-import { DeploymentSlotsNode } from './nodes/deploymentSlotsNodes';
-import { DeploymentSlotNode } from './nodes/deploymentSlotNodes';
+import { AppServiceDataProvider } from './explorer/appServiceExplorer';
+import { NodeBase } from './explorer/nodeBase';
+import { AppServiceNode } from './explorer/appServiceNodes';
+import { DeploymentSlotsNode } from './explorer/deploymentSlotsNodes';
+import { DeploymentSlotNode } from './explorer/deploymentSlotNodes';
+import { WebJobsNode } from './explorer/webJobsNodes';
 import { AzureAccountWrapper } from './azureAccountWrapper';
 import { WebAppCreator } from './webAppCreator';
 import { WebAppZipPublisher } from './webAppZipPublisher';
@@ -38,9 +39,9 @@ export function activate(context: vscode.ExtensionContext) {
             node.browse();
         }
     });
-    initCommand(context, 'appService.OpenInPortal', (node: AppServiceNode) => {
-        if (node) {
-            node.openInPortal(azureAccount);
+    initCommand(context, 'appService.OpenInPortal', (node: NodeBase) => {
+        if (node && node.openInPortal) {
+            node.openInPortal();
         }
     });
     initAsyncCommand(context,'appService.Start', async (node: AppServiceNode) => {
@@ -88,11 +89,6 @@ export function activate(context: vscode.ExtensionContext) {
     initCommand(context, 'deploymentSlot.Browse', (node: DeploymentSlotNode) => {
         if (node) {
             node.browse();
-        }
-    });
-    initCommand(context, 'deploymentSlot.OpenInPortal', (node: DeploymentSlotNode) => {
-        if (node) {
-            node.openInPortal(azureAccount);
         }
     });
     initAsyncCommand(context, 'deploymentSlot.SwapSlots', async (node: DeploymentSlotNode) => {

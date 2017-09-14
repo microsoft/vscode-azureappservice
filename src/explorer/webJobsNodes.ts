@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models';
+import * as opn from 'opn';
 import { NodeBase } from './nodeBase';
 import { SubscriptionModels } from 'azure-arm-resource';
 import { TreeDataProvider, TreeItem, TreeItemCollapsibleState, EventEmitter, Event, OutputChannel } from 'vscode';
@@ -21,6 +22,7 @@ export class WebJobsNode extends NodeBase {
         return {
             label: this.label,
             collapsibleState: TreeItemCollapsibleState.Collapsed,
+            contextValue: "webJobs",
             iconPath: { 
                 light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'AzureWebJobs_16x_vscode.svg'),
                 dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'AzureWebJobs_16x_vscode.svg')
@@ -39,5 +41,11 @@ export class WebJobsNode extends NodeBase {
             nodes.push(new NodeBase(job.name));
         }
         return nodes;
+    }
+
+    openInPortal(): void {
+        const portalEndpoint = 'https://portal.azure.com';
+        const deepLink = `${portalEndpoint}/${this.subscription.tenantId}/#resource${this.site.id}/webJobs`;
+        opn(deepLink);
     }
 }

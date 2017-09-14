@@ -33,10 +33,9 @@ export class DeploymentSlotNode extends NodeBase {
         opn(uri);
     }
 
-    openInPortal(azureAccount: AzureAccountWrapper): void {
+    openInPortal(): void {
         const portalEndpoint = 'https://portal.azure.com';
         const deepLink = `${portalEndpoint}/${this.subscription.tenantId}/#resource${this.site.id}`;
-        console.log(deepLink);
         opn(deepLink);
     }
 

@@ -45,4 +45,10 @@ export class DeploymentSlotsNode extends NodeBase {
         }
         return nodes;
     }
+    
+    openInPortal(): void {
+        const portalEndpoint = 'https://portal.azure.com';
+        const deepLink = `${portalEndpoint}/${this.subscription.tenantId}/#resource${this.site.id}/deploymentSlots`;
+        opn(deepLink);
+    }
 }

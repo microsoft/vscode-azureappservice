@@ -81,8 +81,11 @@ export class AppServiceNode extends NodeBase {
             return [];
         }
         
+        // https://github.com/Microsoft/vscode-azureappservice/issues/45
         return [
             new DeploymentSlotsNode(this.site, this.subscription),
+            // new FilesNode('Files', '/site/wwwroot', this.site, this.subscription),
+            // new FilesNode('Log Files', '/LogFiles', this.site, this.subscription),
             new WebJobsNode(this.site, this.subscription)
         ];
     }
@@ -95,7 +98,7 @@ export class AppServiceNode extends NodeBase {
         opn(uri);
     }
 
-    openInPortal(azureAccount: AzureAccountWrapper): void {
+    openInPortal(): void {
         const portalEndpoint = 'https://portal.azure.com';
         const deepLink = `${portalEndpoint}/${this.subscription.tenantId}/#resource${this.site.id}`;
         opn(deepLink);

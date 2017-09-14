@@ -23,4 +23,8 @@ export class NodeBase {
     async getChildren(azureAccount: AzureAccountWrapper): Promise<NodeBase[]> {
         return [];
     }
+
+    openInPortal?(): void {
+        
+    }
 }

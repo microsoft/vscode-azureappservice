@@ -91,11 +91,6 @@
                 "category": "Azure App Service"
             },
             {
-                "command": "deploymentSlot.OpenInPortal",
-                "title": "Open in Portal",
-                "category": "Azure App Service"
-            },
-            {
                 "command": "deploymentSlot.SwapSlots",
                 "title": "Swap Deployment Slot",
                 "category": "Azure App Service"
@@ -159,14 +154,19 @@
                     "group": "3_appServiceDeployCommands@1"
                 },
                 {
-                    "command": "deploymentSlot.OpenInPortal",
-                    "when": "view == azureAppService && viewItem == deploymentSlot",
-                    "group": "1_deploymentSlotGeneralCommands@1"
+                    "command": "appService.OpenInPortal",
+                    "when": "view == azureAppService && viewItem == deploymentSlots",
+                    "group": "1_deploymentSlotsGeneralCommands@1"
                 },
                 {
                     "command": "appService.Refresh",
                     "when": "view == azureAppService && viewItem == deploymentSlots",
-                    "group": "1_deploymentSlotsGeneralCommands@1"
+                    "group": "1_deploymentSlotsGeneralCommands@2"
+                },
+                {
+                    "command": "appService.OpenInPortal",
+                    "when": "view == azureAppService && viewItem == deploymentSlot",
+                    "group": "1_deploymentSlotGeneralCommands@1"
                 },
                 {
                     "command": "deploymentSlot.Browse",
@@ -177,6 +177,16 @@
                     "command": "deploymentSlot.SwapSlots",
                     "when": "view == azureAppService && viewItem == deploymentSlot",
                     "group": "2_deploymentSlotGeneralCommands@2"
+                },
+                {
+                    "command": "appService.OpenInPortal",
+                    "when": "view == azureAppService && viewItem == webJobs",
+                    "group": "1_webJobsGeneralCommands@1"
+                },
+                {
+                    "command": "appService.Refresh",
+                    "when": "view == azureAppService && viewItem == webJobs",
+                    "group": "1_webJobsGeneralCommands@2"
                 }
             ],
             "explorer/context": [

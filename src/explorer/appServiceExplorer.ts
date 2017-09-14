@@ -4,9 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { TreeDataProvider, TreeItem, EventEmitter, Event } from 'vscode';
-import { AzureAccountWrapper } from './azureAccountWrapper';
-import { AppServiceNode, SubscriptionNode, NotSignedInNode, LoadingNode } from './nodes/appServiceNodes';
-import { NodeBase } from './nodes/nodeBase';
+import { AzureAccountWrapper } from '../azureAccountWrapper';
+import { AppServiceNode, SubscriptionNode, NotSignedInNode, LoadingNode } from './appServiceNodes';
+import { NodeBase } from './nodeBase';
 
 export class AppServiceDataProvider implements TreeDataProvider<NodeBase> {
     private _onDidChangeTreeData: EventEmitter<NodeBase> = new EventEmitter<NodeBase>();
