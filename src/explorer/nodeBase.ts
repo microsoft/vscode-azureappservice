@@ -24,7 +24,11 @@ export class NodeBase {
         return [];
     }
 
+<<<<<<< HEAD:src/explorer/nodeBase.ts
     openInPortal?(): void {
         
+=======
+    openInPortal?(azureAccount: AzureAccountWrapper): void {
+>>>>>>> NodeBase owns OpenInPortal function:src/nodes/nodeBase.ts
     }
 }
