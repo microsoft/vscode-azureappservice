@@ -8,13 +8,21 @@
 import * as vscode from 'vscode';
 import * as util from "./util";
 import { AppServiceDataProvider } from './appServiceExplorer';
+import { NodeBase } from './nodeBase';
 import { AppServiceNode } from './appServiceNodes';
+import { DeploymentSlotsNode } from './deploymentSlotsNodes';
+import { DeploymentSlotNode } from './deploymentSlotNodes';
 import { AzureAccountWrapper } from './azureAccountWrapper';
 import { WebAppCreator } from './webAppCreator';
-import { WebAppZipPublisher } from './webAppZipPublisher'
+import { WebAppZipPublisher } from './webAppZipPublisher';
+import { Reporter } from './telemetry/reporter';
+import { DeploymentSlotSwapper } from './deploymentSlotActions';
+
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Extension "Azure App Service Tools" is now active.');
+
+    context.subscriptions.push(new Reporter(context));
 
     const outputChannel = util.getOutputChannel();
     context.subscriptions.push(outputChannel);
@@ -23,7 +31,9 @@ export function activate(context: vscode.ExtensionContext) {
     const appServiceDataProvider = new AppServiceDataProvider(azureAccount);
 
     context.subscriptions.push(vscode.window.registerTreeDataProvider('azureAppService', appServiceDataProvider));
-    context.subscriptions.push(vscode.commands.registerCommand('appService.Refresh', () => appServiceDataProvider.refresh()));
+    context.subscriptions.push(vscode.commands.registerCommand('appService.Refresh', (node? : NodeBase) => {
+            node ? appServiceDataProvider.refresh(node) : appServiceDataProvider.refresh();
+    }));
     context.subscriptions.push(vscode.commands.registerCommand('appService.Browse', (node: AppServiceNode) => {
         if (node) {
             node.browse();
@@ -74,6 +84,22 @@ export function activate(context: vscode.ExtensionContext) {
             const folderPath = context.fsPath;
             const wizard = new WebAppZipPublisher(outputChannel, azureAccount, null, null, null, folderPath);
             await wizard.run();
+        }
+    }));
+    context.subscriptions.push(vscode.commands.registerCommand('deploymentSlot.Browse', (node: DeploymentSlotNode) => {
+        if (node) {
+            node.browse();
+        }
+    }));
+
+    context.subscriptions.push(vscode.commands.registerCommand('deploymentSlot.OpenInPortal', (node: DeploymentSlotNode) => {
+        if (node) {
+            node.openInPortal(azureAccount);
+        }
+    }));
+    context.subscriptions.push(vscode.commands.registerCommand('deploymentSlot.SwapSlots', async (node: DeploymentSlotNode) => {
+        if (node) {
+            node.swapDeploymentSlots(outputChannel, azureAccount);
         }
     }));
 }

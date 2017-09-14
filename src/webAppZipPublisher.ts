@@ -138,9 +138,9 @@ class SubscriptionStep extends SubscriptionStepBase {
             return;
         }
 
-        const quickPickItems = await this.getSubscriptionsAsQuickPickItems();
+        const quickPickItemsTask = this.getSubscriptionsAsQuickPickItems();
         const quickPickOptions = { placeHolder: `Select the subscription where target Web App is. (${this.stepProgressText})` };
-        const result = await this.showQuickPick(quickPickItems, quickPickOptions);
+        const result = await this.showQuickPick(quickPickItemsTask, quickPickOptions);
         this._subscription = result.data;
     }
 }
@@ -164,25 +164,28 @@ class WebAppStep extends WizardStep {
 
         const subscription = this.getSelectedSubscription();
         const websiteClient = new WebSiteManagementClient(this.azureAccount.getCredentialByTenantId(subscription.tenantId), subscription.subscriptionId);
-        const webApps = await util.listAll(websiteClient.webApps, websiteClient.webApps.list());
-        const quickPickItems: QuickPickItemWithData<WebSiteModels.Site>[] = [];
-        quickPickItems.push({
-            label: '$(plus) Create new Web App',
-            description: '',
-            data: null
-        });
-        webApps.forEach(element => {
-            if (element.kind.toLowerCase().indexOf('app') >= 0 &&
-                element.kind.toLowerCase().indexOf('linux') >= 0) {
-                quickPickItems.push({
-                    label: element.name,
-                    description: `(${element.resourceGroup})`,
-                    data: element
-                });
-            }
+        const webAppsTask = util.listAll(websiteClient.webApps, websiteClient.webApps.list()).then(webApps => {
+            const quickPickItems: QuickPickItemWithData<WebSiteModels.Site>[] = [];
+            quickPickItems.push({
+                label: '$(plus) Create new Web App',
+                description: '',
+                data: null
+            });
+            webApps.forEach(element => {
+                if (element.kind.toLowerCase().indexOf('app') >= 0 &&
+                    element.kind.toLowerCase().indexOf('linux') >= 0) {
+                    quickPickItems.push({
+                        label: element.name,
+                        description: `(${element.resourceGroup})`,
+                        data: element
+                    });
+                }
+            });
+    
+            return quickPickItems;
         });
         
-        const pickedItem = await this.showQuickPick(quickPickItems, { placeHolder: 'Select the target Web App' });
+        const pickedItem = await this.showQuickPick(webAppsTask, { placeHolder: 'Select the target Web App' });
         
         if (pickedItem.data) {
             this._site = pickedItem.data;
