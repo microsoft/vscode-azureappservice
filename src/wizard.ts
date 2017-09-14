@@ -135,7 +135,6 @@ export class WizardStep {
     }
 
     async showQuickPick<T>(items: QuickPickItemWithData<T>[] | Thenable<QuickPickItemWithData<T>[]>, options: vscode.QuickPickOptions, token?: vscode.CancellationToken): Promise<QuickPickItemWithData<T>> {
-        
         options.ignoreFocusOut = true;
         const result = await vscode.window.showQuickPick(items, options, token);
 
