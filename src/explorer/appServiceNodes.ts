@@ -84,8 +84,13 @@ export class AppServiceNode extends NodeBase {
         // https://github.com/Microsoft/vscode-azureappservice/issues/45
         return [
             new DeploymentSlotsNode(this.site, this.subscription),
+<<<<<<< HEAD:src/explorer/appServiceNodes.ts
             // new FilesNode('Files', '/site/wwwroot', this.site, this.subscription),
             // new FilesNode('Log Files', '/LogFiles', this.site, this.subscription),
+=======
+            // new FilesNode('Files', '/site/wwwroot', this.site, this.subscription), 
+            // new FilesNode('Log Files', '/LogFiles', this.site, this.subscription),             
+>>>>>>> NodeBase owns OpenInPortal function:src/nodes/appServiceNodes.ts
             new WebJobsNode(this.site, this.subscription)
         ];
     }
