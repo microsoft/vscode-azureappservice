@@ -8,10 +8,10 @@
 import * as vscode from 'vscode';
 import * as util from "./util";
 import { AppServiceDataProvider } from './appServiceExplorer';
-import { NodeBase } from './nodeBase';
-import { AppServiceNode } from './appServiceNodes';
-import { DeploymentSlotsNode } from './deploymentSlotsNodes';
-import { DeploymentSlotNode } from './deploymentSlotNodes';
+import { NodeBase } from './nodes/nodeBase';
+import { AppServiceNode } from './nodes/appServiceNodes';
+import { DeploymentSlotsNode } from './nodes/deploymentSlotsNodes';
+import { DeploymentSlotNode } from './nodes/deploymentSlotNodes';
 import { AzureAccountWrapper } from './azureAccountWrapper';
 import { WebAppCreator } from './webAppCreator';
 import { WebAppZipPublisher } from './webAppZipPublisher';

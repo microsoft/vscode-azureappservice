@@ -4,10 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { TreeDataProvider, TreeItem, TreeItemCollapsibleState, EventEmitter, Event, OutputChannel } from 'vscode';
-import { AzureAccountWrapper } from './azureAccountWrapper';
+import { AzureAccountWrapper } from '../azureAccountWrapper';
 import { SubscriptionClient, SubscriptionModels } from 'azure-arm-resource';
 import WebSiteManagementClient = require('azure-arm-website');
-import * as WebSiteModels from '../node_modules/azure-arm-website/lib/models';
+import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models';
 import { NodeBase } from './nodeBase';
 import { DeploymentSlotNode } from './deploymentSlotNodes';
 import { DeploymentSlotsNode } from './deploymentSlotsNodes';
@@ -15,7 +15,7 @@ import { FilesNode } from './filesNodes';
 import { WebJobsNode } from './webJobsNodes';
 import * as path from 'path';
 import * as opn from 'opn';
-import * as util from './util';
+import * as util from '../util';
 import * as kuduApi from 'kudu-api';
 
 export class SubscriptionNode extends NodeBase {
@@ -28,8 +28,8 @@ export class SubscriptionNode extends NodeBase {
             label: this.label,
             collapsibleState: TreeItemCollapsibleState.Collapsed,
             iconPath: { 
-                light: path.join(__filename, '..', '..', '..', 'resources', 'light', 'AzureSubscription_16x.svg'),
-                dark: path.join(__filename, '..', '..', '..', 'resources', 'dark', 'AzureSubscription_16x.svg')
+                light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'AzureSubscription_16x.svg'),
+                dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'AzureSubscription_16x.svg')
             }
         }
     }
@@ -70,8 +70,8 @@ export class AppServiceNode extends NodeBase {
             collapsibleState: TreeItemCollapsibleState.Collapsed,
             contextValue: 'appService',
             iconPath: { 
-                light: path.join(__filename, '..', '..', '..', 'resources', 'light', iconName),
-                dark: path.join(__filename, '..', '..', '..', 'resources', 'dark', iconName)
+                light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', iconName),
+                dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', iconName)
             }
         }
     }
