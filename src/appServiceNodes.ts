@@ -83,8 +83,6 @@ export class AppServiceNode extends NodeBase {
         
         return [
             new DeploymentSlotsNode(this.site, this.subscription),
-            new FilesNode('Files', '/site/wwwroot', this.site, this.subscription),
-            new FilesNode('Log Files', '/LogFiles', this.site, this.subscription),
             new WebJobsNode(this.site, this.subscription)
         ];
     }
