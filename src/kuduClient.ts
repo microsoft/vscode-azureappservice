@@ -5,6 +5,9 @@
 
 import * as kuduApi from 'kudu-api';
 
+export type kuduFile = { mime: string, name: string, path: string }; 
+export type webJob = { name: string, Message: string };
+
 export class KuduClient {
     private readonly _api;
 
@@ -40,6 +43,39 @@ export class KuduClient {
                     ExitCode: body.ExitCode,
                     Output: body.Output
                 });
+            });
+        });
+    }
+
+    listFiles(path: string): Promise<kuduFile[]> {
+        return new Promise<kuduFile[]>((resolve, reject) => {
+            this._api.vfs.listFiles(path, (err, body) => {
+                if (err) {
+                    var errorMessage = [];
+                    errorMessage[0] = { name: err.Message };
+                    reject(errorMessage);
+                    // format error to be processed as a NodeBase
+                } else {
+                    // if file is not found, kudu returns an Object rather than an array
+                    if (body.Message) {
+                        body = [{ name: body.Message, path: 'Error' }];
+                    }
+                    resolve(body);
+                }
+            });
+        });
+    }
+
+    listAllWebJobs(): Promise<webJob[]> {
+        return new Promise<webJob[]>((resolve, reject) => {
+            this._api.webjobs.listAll((err, jobList) => {
+                if (err) {
+                    var errorMessage = [];
+                    errorMessage[0] = { name: err.Message };
+                    reject(errorMessage);
+                } else {
+                    resolve(jobList);
+                }
             });
         });
     }

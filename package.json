@@ -29,6 +29,9 @@
         "onCommand:appService.Browse",
         "onCommand:appService.Start",
         "onCommand:appService.Stop",
+        "onCommand:deploymentSlot.OpenInPortal",
+        "onCommand:deploymentSlot.SwapSlots",
+        "onCommand:deploymentSlot.Browse",
         "onView:azureAppService"
     ],
     "main": "./out/src/extension",
@@ -86,6 +89,21 @@
                 "command": "appService.ZipAndDeploy",
                 "title": "Zip & Deploy to Web App",
                 "category": "Azure App Service"
+            },
+            {
+                "command": "deploymentSlot.OpenInPortal",
+                "title": "Open in Portal",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "deploymentSlot.SwapSlots",
+                "title": "Swap Deployment Slot",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "deploymentSlot.Browse",
+                "title": "Browse Deployment Slot",
+                "category": "Azure App Service"
             }
         ],
         "views": {
@@ -139,6 +157,26 @@
                     "command": "appService.DeployZipPackage",
                     "when": "view == azureAppService && viewItem == appService",
                     "group": "3_appServiceDeployCommands@1"
+                },
+                {
+                    "command": "deploymentSlot.OpenInPortal",
+                    "when": "view == azureAppService && viewItem == deploymentSlot",
+                    "group": "1_deploymentSlotGeneralCommands@1"
+                },
+                {
+                    "command": "appService.Refresh",
+                    "when": "view == azureAppService && viewItem == deploymentSlots",
+                    "group": "1_deploymentSlotsGeneralCommands@1"
+                },
+                {
+                    "command": "deploymentSlot.Browse",
+                    "when": "view == azureAppService && viewItem == deploymentSlot",
+                    "group": "1_deploymentSlotGeneralCommands@2"
+                },
+                {
+                    "command": "deploymentSlot.SwapSlots",
+                    "when": "view == azureAppService && viewItem == deploymentSlot",
+                    "group": "2_deploymentSlotGeneralCommands@2"
                 }
             ],
             "explorer/context": [

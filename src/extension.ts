@@ -8,11 +8,16 @@
 import * as vscode from 'vscode';
 import * as util from "./util";
 import { AppServiceDataProvider } from './appServiceExplorer';
+import { NodeBase } from './nodeBase';
 import { AppServiceNode } from './appServiceNodes';
+import { DeploymentSlotsNode } from './deploymentSlotsNodes';
+import { DeploymentSlotNode } from './deploymentSlotNodes';
 import { AzureAccountWrapper } from './azureAccountWrapper';
 import { WebAppCreator } from './webAppCreator';
 import { WebAppZipPublisher } from './webAppZipPublisher';
 import { Reporter } from './telemetry/reporter';
+import { DeploymentSlotSwapper } from './deploymentSlotActions';
+
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Extension "Azure App Service Tools" is now active.');
@@ -78,6 +83,21 @@ export function activate(context: vscode.ExtensionContext) {
             const folderPath = context.fsPath;
             const wizard = new WebAppZipPublisher(outputChannel, azureAccount, null, null, null, folderPath);
             await wizard.run();
+        }
+    });
+    initCommand(context, 'deploymentSlot.Browse', (node: DeploymentSlotNode) => {
+        if (node) {
+            node.browse();
+        }
+    });
+    initCommand(context, 'deploymentSlot.OpenInPortal', (node: DeploymentSlotNode) => {
+        if (node) {
+            node.openInPortal(azureAccount);
+        }
+    });
+    initAsyncCommand(context, 'deploymentSlot.SwapSlots', async (node: DeploymentSlotNode) => {
+        if (node) {
+            await node.swapDeploymentSlots(outputChannel, azureAccount);
         }
     });
 }
