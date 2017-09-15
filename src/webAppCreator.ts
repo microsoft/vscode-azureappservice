@@ -532,6 +532,8 @@ class ShellScriptStep extends WebAppCreatorStepBase {
                 if (!vscode.workspace.textDocuments.find(doc => doc.uri.fsPath === uri.fsPath) && !fs.existsSync(uri.fsPath)) {
                     uri = uri.with({ scheme: 'untitled' });
                     break;
+                } else {
+                    uri = null;
                 }
                 count++;
             }
