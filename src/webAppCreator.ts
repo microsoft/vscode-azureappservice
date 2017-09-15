@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as path from 'path';
+import * as fs from 'fs';
 import * as vscode from 'vscode';
 import { AzureAccountWrapper } from './azureAccountWrapper';
 import { WizardBase, WizardResult, WizardStep, SubscriptionStepBase, QuickPickItemWithData, UserCancelledError } from './wizard';
@@ -519,10 +521,32 @@ class ShellScriptStep extends WebAppCreatorStepBase {
             .replace('%PLAN_SKU%', plan.sku.name)
             .replace('%SITE_NAME%', site.name)
             .replace('%RUNTIME%', site.siteConfig.linuxFxVersion);
-        vscode.workspace.openTextDocument({
-            content: script,
-            language: 'shellscript'
-        }).then(doc => vscode.window.showTextDocument(doc));
+
+        let uri: vscode.Uri;
+        if (vscode.workspace.rootPath) {
+            let count = 0;
+            const maxCount = 1024;
+            
+            while (count < maxCount) {
+                uri = vscode.Uri.file(path.join(vscode.workspace.rootPath, `deploy-${site.name}${count === 0 ? '' : count.toString()}.sh`));
+                if (!vscode.workspace.textDocuments.find(doc => doc.uri.fsPath === uri.fsPath) && !fs.existsSync(uri.fsPath)) {
+                    uri = uri.with({ scheme: 'untitled' });
+                    break;
+                } else {
+                    uri = null;
+                }
+                count++;
+            }
+        }
+
+        if (uri) {
+            const doc = await vscode.workspace.openTextDocument(uri);
+            const editor = await vscode.window.showTextDocument(doc);
+            await editor.edit(editorBuilder => editorBuilder.insert(new vscode.Position(0,0), script));
+        } else {
+            const doc = await vscode.workspace.openTextDocument({ content: script, language: 'shellscript' });
+            await vscode.window.showTextDocument(doc);
+        }
     }    
 }
 
@@ -566,7 +590,7 @@ az webapp create --name $SITENAME --plan $PLANNAME --runtime $RUNTIME --resource
 \n\
 # the previous command returned the git remote to deploy to\n\
 # use this to set up a new remote named "azure"\n\
-# git remote add azure "https://$USERNAME@$SITENAME.scm.azurewebsites.net/cdias-appname-site.git"\n\
+# git remote add azure "https://$USERNAME@$SITENAME.scm.azurewebsites.net/$SITENAME.git"\n\
 # push master to deploy the site\n\
 # git push azure master\n\
 \n\
