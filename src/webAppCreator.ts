@@ -566,7 +566,7 @@ az webapp create --name $SITENAME --plan $PLANNAME --runtime $RUNTIME --resource
 \n\
 # the previous command returned the git remote to deploy to\n\
 # use this to set up a new remote named "azure"\n\
-# git remote add azure "https://$USERNAME@$SITENAME.scm.azurewebsites.net/cdias-appname-site.git"\n\
+# git remote add azure "https://$USERNAME@$SITENAME.scm.azurewebsites.net/$SITENAME.git"\n\
 # push master to deploy the site\n\
 # git push azure master\n\
 \n\
