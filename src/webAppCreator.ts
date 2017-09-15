@@ -177,7 +177,7 @@ class ResourceGroupStep extends WebAppCreatorStepBase {
         const newRgName = await this.showInputBox({
             prompt: 'Enter the name of the new resource group.',
             validateInput: (value: string) => {
-                value = value.trim();
+                value = value ? value.trim() : '';
 
                 if (resourceGroups.findIndex(rg => rg.name.localeCompare(value) === 0) >= 0) {
                     return `Resource group name "${value}" already exists.`;
@@ -204,7 +204,7 @@ class ResourceGroupStep extends WebAppCreatorStepBase {
 
         this._createNew = true;
         this._rg = {
-            name: newRgName,
+            name: newRgName.trim(),
             location: pickedLocation.data.name
         }
     }
@@ -283,13 +283,13 @@ class AppServicePlanStep extends WebAppCreatorStepBase {
         const newPlanName = await this.showInputBox({
             prompt: 'Enter the name of the new App Service Plan.',
             validateInput: (value: string) => {
-                value = value.trim();
+                value = value ? value.trim() : '';
 
                 if (plans.findIndex(plan => plan.resourceGroup.toLowerCase() === rg.name && value.localeCompare(plan.name) === 0) >= 0) {
                     return `App Service Plan name "${value}" already exists in resource group "${rg.name}".`;
                 }
 
-                if (!value.match(/^[a-z0-9\-]{0,39}$/ig)) {
+                if (!value.match(/^[a-z0-9\-]{1,40}$/ig)) {
                     return 'App Service Plan name should be 1-40 characters long and can only include alphanumeric characters and hyphens.';
                 }
 
@@ -312,7 +312,7 @@ class AppServicePlanStep extends WebAppCreatorStepBase {
         const newPlanSku = pickedSkuItem.data;
         this._createNew = true;
         this._plan = {
-            appServicePlanName: newPlanName,
+            appServicePlanName: newPlanName.trim(),
             kind: 'linux',  // Currently we only support Linux web apps.
             sku: newPlanSku,
             location: rg.location,
@@ -403,7 +403,7 @@ class WebsiteStep extends WebAppCreatorStepBase {
         const siteName = await this.showInputBox({
             prompt: `Enter the name of the new Web App. (${this.stepProgressText})`,
             validateInput: (value: string) => {
-                value = value.trim();
+                value = value ? value.trim() : '';
 
                 if (!value.match(/^[a-z0-9\-]{0,59}$/ig)) {
                     return 'App name should be 1-60 characters long and can only include alphanumeric characters and hyphens.';
@@ -429,7 +429,7 @@ class WebsiteStep extends WebAppCreatorStepBase {
         const plan = this.getSelectedAppServicePlan();
 
         this._website = {
-            name: siteName,
+            name: siteName.trim(),
             kind: 'app,linux',
             location: rg.location,
             serverFarmId: plan.id,

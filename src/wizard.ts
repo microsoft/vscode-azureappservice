@@ -158,6 +158,7 @@ export class WizardStep {
     }
 
     async showInputBox(options?: vscode.InputBoxOptions, token?: vscode.CancellationToken): Promise<string> {
+        options.ignoreFocusOut = true;
         const result = await vscode.window.showInputBox(options, token);
 
         if (!result) {
