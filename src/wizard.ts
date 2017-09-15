@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
+import * as util from './util';
 import { AzureAccountWrapper } from './azureAccountWrapper';
 import { SubscriptionModels } from 'azure-arm-resource';
 
@@ -23,6 +24,7 @@ export class WizardBase {
             try {
                 await this.steps[i].prompt();
             } catch (err) {
+                this.sendErrorTelemetry(step, err);
                 if (err instanceof UserCancelledError) {
                     return {
                         status: 'Cancelled',
@@ -60,6 +62,7 @@ export class WizardBase {
                 this.beforeExecute(step, i);
                 await this.steps[i].execute();
             } catch (err) {
+                this.sendErrorTelemetry(step, err);
                 this.onExecuteError(step, i, err);
                 if (err instanceof UserCancelledError) {
                     this._result = {
@@ -112,6 +115,15 @@ export class WizardBase {
     protected beforeExecute(step: WizardStep, stepIndex: number) {}
 
     protected onExecuteError(step: WizardStep, stepIndex: number, error: Error) {}
+
+    protected sendErrorTelemetry(step: WizardStep, error: any) {
+        const eventName = `${this.constructor.name}Error`
+        util.sendTelemetry(eventName, 
+        {
+            step: step ? step.stepTitle : 'Unknown',
+            error: util.errToString(error)
+        });
+    }
 }
 
 export interface WizardResult {
