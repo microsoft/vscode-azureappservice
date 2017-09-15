@@ -33,7 +33,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     context.subscriptions.push(vscode.window.registerTreeDataProvider('azureAppService', appServiceDataProvider));
 
-    initCommand(context, 'appService.Refresh', () => appServiceDataProvider.refresh());
+    initCommand(context, 'appService.Refresh', (node?: NodeBase) => node ? appServiceDataProvider.refresh(node) : appServiceDataProvider.refresh());
     initCommand(context, 'appService.Browse', (node: AppServiceNode) => {
         if (node) {
             node.browse();
