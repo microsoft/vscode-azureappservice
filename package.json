@@ -202,7 +202,7 @@
     "devDependencies": {
         "@types/archiver": "^2.0.0",
         "@types/mocha": "^2.2.32",
-        "@types/node": "^7.0.10",
+        "@types/node": "^8.0.28",
         "mocha": "^2.3.3",
         "typescript": "^2.0.3",
         "vscode": "^1.0.0"
@@ -212,8 +212,8 @@
         "azure-arm-resource": "^2.0.0-preview",
         "azure-arm-website": "^1.0.0-preview",
         "kudu-api": "^1.4.1",
-        "ms-rest": "^2.2.1",
-        "ms-rest-azure": "^2.2.3",
+        "ms-rest": "^2.2.2",
+        "ms-rest-azure": "^2.3.1",
         "opn": "^5.1.0",
         "vscode-extension-telemetry": "^0.0.6"
     },
