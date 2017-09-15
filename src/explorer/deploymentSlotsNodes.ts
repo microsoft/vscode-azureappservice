@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as WebSiteModels from '../node_modules/azure-arm-website/lib/models';
+import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models';
 import * as opn from 'opn';
 import * as path from 'path';
 import { NodeBase } from './nodeBase';
@@ -11,7 +11,7 @@ import { SubscriptionClient, SubscriptionModels } from 'azure-arm-resource';
 import WebSiteManagementClient = require('azure-arm-website');
 import { TreeDataProvider, TreeItem, TreeItemCollapsibleState, EventEmitter, Event, OutputChannel } from 'vscode';
 import { DeploymentSlotNode } from './deploymentSlotNodes';
-import { AzureAccountWrapper } from './azureAccountWrapper';
+import { AzureAccountWrapper } from '../azureAccountWrapper';
 
 
 export class DeploymentSlotsNode extends NodeBase {
@@ -25,8 +25,8 @@ export class DeploymentSlotsNode extends NodeBase {
             collapsibleState: TreeItemCollapsibleState.Collapsed,
             contextValue: "deploymentSlots",
             iconPath: { 
-                light: path.join(__filename, '..', '..', '..', 'resources', 'light', 'AzureDeploymentSlots_16x_vscode.svg'),
-                dark: path.join(__filename, '..', '..', '..', 'resources', 'dark', 'AzureDeploymentSlots_16x_vscode.svg')
+                light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'AzureDeploymentSlots_16x_vscode.svg'),
+                dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'AzureDeploymentSlots_16x_vscode.svg')
             }
         }
     }
@@ -44,5 +44,11 @@ export class DeploymentSlotsNode extends NodeBase {
             }
         }
         return nodes;
+    }
+    
+    openInPortal(): void {
+        const portalEndpoint = 'https://portal.azure.com';
+        const deepLink = `${portalEndpoint}/${this.subscription.tenantId}/#resource${this.site.id}/deploymentSlots`;
+        opn(deepLink);
     }
 }

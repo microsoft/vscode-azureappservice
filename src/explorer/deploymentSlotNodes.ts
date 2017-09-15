@@ -3,14 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as WebSiteModels from '../node_modules/azure-arm-website/lib/models';
+import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models';
 import * as opn from 'opn';
 import { NodeBase } from './nodeBase';
 import { SubscriptionClient, SubscriptionModels } from 'azure-arm-resource';
 import { TreeDataProvider, TreeItem, TreeItemCollapsibleState, EventEmitter, Event, OutputChannel } from 'vscode';
 import { DeploymentSlotsNode } from './deploymentSlotsNodes';
-import { DeploymentSlotSwapper } from './deploymentSlotActions';
-import { AzureAccountWrapper } from './azureAccountWrapper';
+import { DeploymentSlotSwapper } from '../deploymentSlotActions';
+import { AzureAccountWrapper } from '../azureAccountWrapper';
 
 export class DeploymentSlotNode extends NodeBase {
     constructor(readonly label: string, readonly site: WebSiteModels.Site, readonly subscription: SubscriptionModels.Subscription, readonly parent: DeploymentSlotsNode) {
@@ -33,10 +33,9 @@ export class DeploymentSlotNode extends NodeBase {
         opn(uri);
     }
 
-    openInPortal(azureAccount: AzureAccountWrapper): void {
+    openInPortal(): void {
         const portalEndpoint = 'https://portal.azure.com';
         const deepLink = `${portalEndpoint}/${this.subscription.tenantId}/#resource${this.site.id}`;
-        console.log(deepLink);
         opn(deepLink);
     }
 

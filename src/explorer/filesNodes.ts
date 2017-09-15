@@ -3,14 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as WebSiteModels from '../node_modules/azure-arm-website/lib/models';
+import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models';
 import { NodeBase } from './nodeBase';
 import { SubscriptionModels } from 'azure-arm-resource';
 import { TreeDataProvider, TreeItem, TreeItemCollapsibleState, EventEmitter, Event, OutputChannel } from 'vscode';
-import { AzureAccountWrapper } from './azureAccountWrapper';
+import { AzureAccountWrapper } from '../azureAccountWrapper';
 import * as path from 'path';
-import { KuduClient, kuduFile } from './kuduClient';
-import * as util from './util';
+import { KuduClient, kuduFile } from '../kuduClient';
+import * as util from '../util';
 
 
 export class FilesNode extends NodeBase {
@@ -23,8 +23,8 @@ export class FilesNode extends NodeBase {
             label: this.label,
             collapsibleState: TreeItemCollapsibleState.Collapsed,
             iconPath: { 
-                light: path.join(__filename, '..', '..', '..', 'resources', 'light', 'Folder_16x_vscode.svg'),
-                dark: path.join(__filename, '..', '..', '..', 'resources', 'dark', 'Folder_16x_vscode.svg')
+                light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'Folder_16x_vscode.svg'),
+                dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'Folder_16x_vscode.svg')
             }
         }
     }

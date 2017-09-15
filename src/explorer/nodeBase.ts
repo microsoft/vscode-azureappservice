@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { AzureAccountWrapper } from './azureAccountWrapper';
+import { AzureAccountWrapper } from '../azureAccountWrapper';
 import { TreeDataProvider, TreeItem, TreeItemCollapsibleState, EventEmitter, Event, OutputChannel } from 'vscode';
 
 export class NodeBase {
@@ -22,5 +22,9 @@ export class NodeBase {
 
     async getChildren(azureAccount: AzureAccountWrapper): Promise<NodeBase[]> {
         return [];
+    }
+
+    openInPortal?(): void {
+        
     }
 }

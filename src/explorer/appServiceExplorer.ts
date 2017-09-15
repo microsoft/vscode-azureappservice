@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { TreeDataProvider, TreeItem, EventEmitter, Event } from 'vscode';
-import { AzureAccountWrapper } from './azureAccountWrapper';
+import { AzureAccountWrapper } from '../azureAccountWrapper';
 import { AppServiceNode, SubscriptionNode, NotSignedInNode, LoadingNode } from './appServiceNodes';
 import { NodeBase } from './nodeBase';
 
