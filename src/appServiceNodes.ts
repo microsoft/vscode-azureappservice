@@ -3,33 +3,20 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { TreeDataProvider, TreeItem, TreeItemCollapsibleState, EventEmitter, Event } from 'vscode';
+import { TreeDataProvider, TreeItem, TreeItemCollapsibleState, EventEmitter, Event, OutputChannel } from 'vscode';
 import { AzureAccountWrapper } from './azureAccountWrapper';
 import { SubscriptionClient, SubscriptionModels } from 'azure-arm-resource';
 import WebSiteManagementClient = require('azure-arm-website');
 import * as WebSiteModels from '../node_modules/azure-arm-website/lib/models';
+import { NodeBase } from './nodeBase';
+import { DeploymentSlotNode } from './deploymentSlotNodes';
+import { DeploymentSlotsNode } from './deploymentSlotsNodes';
+import { FilesNode } from './filesNodes';
+import { WebJobsNode } from './webJobsNodes';
 import * as path from 'path';
 import * as opn from 'opn';
 import * as util from './util';
-
-export class NodeBase {
-    readonly label: string;
-
-    protected constructor(label: string) {
-        this.label = label;
-    }
-
-    getTreeItem(): TreeItem {
-        return { 
-            label: this.label,
-            collapsibleState: TreeItemCollapsibleState.None
-        };
-    }
-
-    async getChildren(azureAccount: AzureAccountWrapper): Promise<NodeBase[]> {
-        return [];
-    }
-}
+import * as kuduApi from 'kudu-api';
 
 export class SubscriptionNode extends NodeBase {
     constructor(readonly subscription: SubscriptionModels.Subscription) {
@@ -80,13 +67,26 @@ export class AppServiceNode extends NodeBase {
         let iconName = this.site.kind.startsWith('functionapp') ? 'AzureFunctionsApp_16x_vscode.svg' : 'AzureWebsite_16x_vscode.svg';
         return {
             label: `${this.label} (${this.site.resourceGroup})`,
-            collapsibleState: TreeItemCollapsibleState.None,
+            collapsibleState: TreeItemCollapsibleState.Collapsed,
             contextValue: 'appService',
             iconPath: { 
                 light: path.join(__filename, '..', '..', '..', 'resources', 'light', iconName),
                 dark: path.join(__filename, '..', '..', '..', 'resources', 'dark', iconName)
             }
         }
+    }
+
+    async getChildren(azureAccount: AzureAccountWrapper): Promise<NodeBase[]> {
+        if (azureAccount.signInStatus !== 'LoggedIn') {
+            return [];
+        }
+        
+        return [
+            new DeploymentSlotsNode(this.site, this.subscription),
+            new FilesNode('Files', '/site/wwwroot', this.site, this.subscription),
+            new FilesNode('Log Files', '/LogFiles', this.site, this.subscription),
+            new WebJobsNode(this.site, this.subscription)
+        ];
     }
 
     browse(): void {
@@ -103,16 +103,19 @@ export class AppServiceNode extends NodeBase {
         opn(deepLink);
     }
 
-    start(azureAccount: AzureAccountWrapper): Promise<void> {
-        return this.getWebSiteManagementClient(azureAccount).webApps.start(this.site.resourceGroup, this.site.name);
+    async start(azureAccount: AzureAccountWrapper): Promise<void> {
+        await this.getWebSiteManagementClient(azureAccount).webApps.start(this.site.resourceGroup, this.site.name);
+        return util.waitForWebSiteState(this.getWebSiteManagementClient(azureAccount), this.site, 'running');
     }
 
-    stop(azureAccount: AzureAccountWrapper): Promise<void> {
-        return this.getWebSiteManagementClient(azureAccount).webApps.stop(this.site.resourceGroup, this.site.name);
+    async stop(azureAccount: AzureAccountWrapper): Promise<void> {
+        await this.getWebSiteManagementClient(azureAccount).webApps.stop(this.site.resourceGroup, this.site.name);
+        return util.waitForWebSiteState(this.getWebSiteManagementClient(azureAccount), this.site, 'stopped');
     }
 
-    restart(azureAccount: AzureAccountWrapper): Promise<void> {
-        return this.getWebSiteManagementClient(azureAccount).webApps.restart(this.site.resourceGroup, this.site.name);
+    async restart(azureAccount: AzureAccountWrapper): Promise<void> {
+        await this.stop(azureAccount);
+        return this.start(azureAccount);
     }
 
     private getWebSiteManagementClient(azureAccount: AzureAccountWrapper) {

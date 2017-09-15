@@ -1,16 +1,19 @@
-# azure-app-service-tools README
+# Azure App Services for Visual Studio Code
+The Azure App Services extension for VS Code lets you quickly browse, create, manage, and deploy Azure App Service websites.
 
 ## Features
 
+* Browse sites across all of your Azure subscriptions
+* Create new sites
+* Deploy to your site
+* Start, stop, and restart the site
+* Browse to the Azure Portal for advanced tasks, such as scaling
+
 ## Requirements
 
-## Extension Settings
+All you need is an Azure Subscription to get started. If you don't have one, [click here](https://azure.microsoft.com/en-us/free/) for a free subscription with $200 in Azure credits!
 
-## Known Issues
-
-## Release Notes
-
-# Contributing
+## Contributing
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a
 Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
@@ -23,3 +26,6 @@ provided by the bot. You will only need to do this once across all repos using o
 This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
 For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
 contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+
+## License
+[MIT](LICENSE.md)

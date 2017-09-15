@@ -4,6 +4,8 @@
     "description": "An Azure App Service management extension for Visual Studio Code.",
     "version": "0.0.1",
     "publisher": "ms-azuretools",
+    "icon": "resources/windows-azure-web-site.png",
+    "aiKey": "AIF-d9b70cd4-b9f9-4d70-929b-a071c400b217",
     "engines": {
         "vscode": "^1.16.0"
     },
@@ -11,7 +13,12 @@
         "type": "git",
         "url": "https://github.com/Microsoft/vscode-azureappservice"
     },
-    "license": "SEE LICENSE IN LICENSE",
+    "galleryBanner": {
+        "color": "#0072c6",
+        "theme": "dark"
+    },
+    "homepage": "https://github.com/Microsoft/vscode-azureappservice/blob/master/README.md",
+    "license": "SEE LICENSE IN LICENSE.md",
     "categories": [
         "Azure"
     ],
@@ -22,6 +29,9 @@
         "onCommand:appService.Browse",
         "onCommand:appService.Start",
         "onCommand:appService.Stop",
+        "onCommand:deploymentSlot.OpenInPortal",
+        "onCommand:deploymentSlot.SwapSlots",
+        "onCommand:deploymentSlot.Browse",
         "onView:azureAppService"
     ],
     "main": "./out/src/extension",
@@ -31,7 +41,7 @@
                 "command": "appService.CreateWebApp",
                 "title": "Create New Web App",
                 "category": "Azure App Service",
-                "icon":{
+                "icon": {
                     "light": "resources/light/createAppSvc.svg",
                     "dark": "resources/dark/createAppSvc.svg"
                 }
@@ -68,6 +78,31 @@
             {
                 "command": "appService.Restart",
                 "title": "Restart",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.DeployZipPackage",
+                "title": "Deploy Zip Package to Web App",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.ZipAndDeploy",
+                "title": "Zip & Deploy to Web App",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "deploymentSlot.OpenInPortal",
+                "title": "Open in Portal",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "deploymentSlot.SwapSlots",
+                "title": "Swap Deployment Slot",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "deploymentSlot.Browse",
+                "title": "Browse Deployment Slot",
                 "category": "Azure App Service"
             }
         ],
@@ -117,6 +152,43 @@
                     "command": "appService.Restart",
                     "when": "view == azureAppService && viewItem == appService",
                     "group": "2_appServiceControlCommands@3"
+                },
+                {
+                    "command": "appService.DeployZipPackage",
+                    "when": "view == azureAppService && viewItem == appService",
+                    "group": "3_appServiceDeployCommands@1"
+                },
+                {
+                    "command": "deploymentSlot.OpenInPortal",
+                    "when": "view == azureAppService && viewItem == deploymentSlot",
+                    "group": "1_deploymentSlotGeneralCommands@1"
+                },
+                {
+                    "command": "appService.Refresh",
+                    "when": "view == azureAppService && viewItem == deploymentSlots",
+                    "group": "1_deploymentSlotsGeneralCommands@1"
+                },
+                {
+                    "command": "deploymentSlot.Browse",
+                    "when": "view == azureAppService && viewItem == deploymentSlot",
+                    "group": "1_deploymentSlotGeneralCommands@2"
+                },
+                {
+                    "command": "deploymentSlot.SwapSlots",
+                    "when": "view == azureAppService && viewItem == deploymentSlot",
+                    "group": "2_deploymentSlotGeneralCommands@2"
+                }
+            ],
+            "explorer/context": [
+                {
+                    "command": "appService.DeployZipPackage",
+                    "when": "resourceFilename == package.zip",
+                    "group": "zzz_@appServiceDeployCommands"
+                },
+                {
+                    "command": "appService.ZipAndDeploy",
+                    "when": "explorerResourceIsFolder == true",
+                    "group": "zzz_@appServiceDeployCommands"
                 }
             ]
         }
@@ -128,20 +200,24 @@
         "test": "node ./node_modules/vscode/bin/test"
     },
     "devDependencies": {
-        "typescript": "^2.0.3",
-        "vscode": "^1.0.0",
+        "@types/archiver": "^2.0.0",
+        "@types/mocha": "^2.2.32",
+        "@types/node": "^8.0.28",
         "mocha": "^2.3.3",
-        "@types/node": "^7.0.10",
-        "@types/mocha": "^2.2.32"
+        "typescript": "^2.0.3",
+        "vscode": "^1.0.0"
     },
     "dependencies": {
+        "archiver": "^2.0.3",
         "azure-arm-resource": "^2.0.0-preview",
         "azure-arm-website": "^1.0.0-preview",
-        "ms-rest": "^2.2.1",
-        "ms-rest-azure": "^2.2.3",
-        "opn": "^5.1.0"
+        "kudu-api": "^1.4.1",
+        "ms-rest": "^2.2.2",
+        "ms-rest-azure": "^2.3.1",
+        "opn": "^5.1.0",
+        "vscode-extension-telemetry": "^0.0.6"
     },
     "extensionDependencies": [
-        "vscode.azure-account"
+        "ms-vscode.azure-account"
     ]
 }

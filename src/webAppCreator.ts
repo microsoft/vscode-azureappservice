@@ -3,24 +3,27 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as path from 'path';
+import * as fs from 'fs';
 import * as vscode from 'vscode';
 import { AzureAccountWrapper } from './azureAccountWrapper';
-import { WizardBase, WizardResult, WizardStep, UserCancelledError } from './wizard';
+import { WizardBase, WizardResult, WizardStep, SubscriptionStepBase, QuickPickItemWithData, UserCancelledError } from './wizard';
 import { SubscriptionModels, ResourceManagementClient, ResourceModels } from 'azure-arm-resource';
 import WebSiteManagementClient = require('azure-arm-website');
 import * as WebSiteModels from '../node_modules/azure-arm-website/lib/models';
 import * as util from './util';
 
 export class WebAppCreator extends WizardBase {
-    constructor(output: vscode.OutputChannel, readonly azureAccount: AzureAccountWrapper) {
+    constructor(output: vscode.OutputChannel, readonly azureAccount: AzureAccountWrapper, subscription?: SubscriptionModels.Subscription) {
         super(output);
-        this.steps.push(new SubscriptionStep(this, azureAccount));
+        this.steps.push(new SubscriptionStep(this, azureAccount, subscription));
         this.steps.push(new ResourceGroupStep(this, azureAccount));
         this.steps.push(new AppServicePlanStep(this, azureAccount));
         this.steps.push(new WebsiteStep(this, azureAccount));
+        this.steps.push(new ShellScriptStep(this, azureAccount));
     }
 
-    async run(): Promise<WizardResult> {
+    async run(promptOnly = false): Promise<WizardResult> {
         // If not signed in, execute the sign in command and wait for it...
         if (this.azureAccount.signInStatus !== 'LoggedIn') {
             await vscode.commands.executeCommand(util.getSignInCommandString());
@@ -34,7 +37,12 @@ export class WebAppCreator extends WizardBase {
             };
         }
     
-        return super.run();
+        return super.run(promptOnly);
+    }
+
+    get createdWebSite(): WebSiteModels.Site {
+        const websiteStep = this.steps.find(step => step instanceof WebsiteStep);
+        return (<WebsiteStep>websiteStep).website;
     }
 
     protected beforeExecute(step: WizardStep, stepIndex: number) {
@@ -52,7 +60,7 @@ export class WebAppCreator extends WizardBase {
     }
 }
 
-class SubscriptionBasedWizardStep extends WizardStep {
+class WebAppCreatorStepBase extends WizardStep {
     protected constructor(wizard: WizardBase, stepTitle: string, readonly azureAccount: AzureAccountWrapper) {
         super(wizard, stepTitle);
     }
@@ -76,62 +84,51 @@ class SubscriptionBasedWizardStep extends WizardStep {
 
         return resourceGroupStep.resourceGroup;
     }
+
+    protected getSelectedAppServicePlan(): WebSiteModels.AppServicePlan {
+        const appServicePlanStep = <AppServicePlanStep>this.wizard.findStep(step => step instanceof AppServicePlanStep, 'The Wizard must have a AppServicePlanStep.');
+        
+        if (!appServicePlanStep.servicePlan) {
+            throw new Error('An App Service Plan must be selected first.');
+        }
+
+        return appServicePlanStep.servicePlan;
+    }
+
+    protected getWebSite(): WebSiteModels.Site {
+        const websiteStep = <WebsiteStep>this.wizard.findStep(step => step instanceof WebsiteStep, 'The Wizard must have a WebsiteStep.');
+        
+        if (!websiteStep.website) {
+            throw new Error('A website must be created first.');
+        }
+
+        return websiteStep.website;
+    }
 }
 
-class SubscriptionStep extends WizardStep {
-    private _subscription: SubscriptionModels.Subscription;
-
-    constructor(wizard: WizardBase, readonly azureAccount: AzureAccountWrapper) {
-        super(wizard, 'Select subscription');
+class SubscriptionStep extends SubscriptionStepBase {
+    constructor(wizard: WizardBase, azureAccount: AzureAccountWrapper, subscrption?: SubscriptionModels.Subscription) {
+        super(wizard, 'Select subscription', azureAccount);
+        this._subscription = subscrption;
     }
 
     async prompt(): Promise<void> {
-        const inFilterSubscriptions = await this.azureAccount.getFilteredSubscriptions();
-        const otherSubscriptions = await this.azureAccount.getAllSubscriptions();
-        const quickPickItems: QuickPickItemWithData<SubscriptionModels.Subscription>[] = [];
+        if (!!this.subscription) {
+            return;
+        }
+
+        const quickPickItems = this.getSubscriptionsAsQuickPickItems();
         const quickPickOptions = { placeHolder: `Select the subscription where the new Web App will be created in. (${this.stepProgressText})` };
-
-        inFilterSubscriptions.forEach(s => {
-            const index = otherSubscriptions.findIndex(other => other.subscriptionId === s.subscriptionId);
-            if (index >= 0) {   // Remove duplicated items from "all subscriptions".
-                otherSubscriptions.splice(index, 1);
-            }
-
-            const item = {
-                label: `📌 ${s.displayName}`,
-                description: '',
-                detail: s.subscriptionId,
-                data: s
-            };
-
-            quickPickItems.push(item);
-        });
-
-        otherSubscriptions.forEach(s => {
-            const item = {
-                label: s.displayName,
-                description: '',
-                detail: s.subscriptionId,
-                data: s
-            };
-
-            quickPickItems.push(item);
-        });
-
         const result = await this.showQuickPick(quickPickItems, quickPickOptions);
-        this._subscription = (<QuickPickItemWithData<SubscriptionModels.Subscription>>result).data;
+        this._subscription = result.data;
     }
 
     async execute(): Promise<void> {
         this.wizard.writeline(`The new Web App will be created in subscription "${this.subscription.displayName}" (${this.subscription.subscriptionId}).`);
     }
-
-    get subscription(): SubscriptionModels.Subscription {
-        return this._subscription;
-    }
 }
 
-class ResourceGroupStep extends SubscriptionBasedWizardStep {
+class ResourceGroupStep extends WebAppCreatorStepBase {
     private _createNew: boolean;
     private _rg: ResourceModels.ResourceGroup;
 
@@ -145,7 +142,6 @@ class ResourceGroupStep extends SubscriptionBasedWizardStep {
             description: '',
             data: null
         };
-        const quickPickItems = [createNewItem];
         const quickPickOptions = { placeHolder: `Select the resource group where the new Web App will be created in. (${this.stepProgressText})` };
         const subscription = this.getSelectedSubscription();
         const resourceClient = new ResourceManagementClient(this.azureAccount.getCredentialByTenantId(subscription.tenantId), subscription.subscriptionId);
@@ -153,7 +149,8 @@ class ResourceGroupStep extends SubscriptionBasedWizardStep {
         var locations: SubscriptionModels.Location[];
         const resourceGroupsTask = util.listAll(resourceClient.resourceGroups, resourceClient.resourceGroups.list());
         const locationsTask = this.azureAccount.getLocationsBySubscription(this.getSelectedSubscription());
-        await Promise.all([resourceGroupsTask, locationsTask]).then(results => {
+        const quickPickItemsTask = Promise.all([resourceGroupsTask, locationsTask]).then(results => {
+            const quickPickItems = [createNewItem];
             resourceGroups = results[0];
             locations = results[1];
             resourceGroups.forEach(rg => {
@@ -164,9 +161,11 @@ class ResourceGroupStep extends SubscriptionBasedWizardStep {
                     data: rg
                 });
             });
+
+            return quickPickItems;
         });
 
-        const result = <QuickPickItemWithData<ResourceModels.ResourceGroup>>(await this.showQuickPick(quickPickItems, quickPickOptions));
+        const result = await this.showQuickPick(quickPickItemsTask, quickPickOptions);
 
         if (result !== createNewItem) {
             const rg = result.data;
@@ -201,7 +200,7 @@ class ResourceGroupStep extends SubscriptionBasedWizardStep {
             };
         });
         const locationPickOptions = { placeHolder: 'Select the location of the new resource group.' };
-        const pickedLocation = <QuickPickItemWithData<SubscriptionModels.Location>>(await this.showQuickPick(locationPickItems, locationPickOptions));
+        const pickedLocation = await this.showQuickPick(locationPickItems, locationPickOptions);
 
         this._createNew = true;
         this._rg = {
@@ -232,7 +231,7 @@ class ResourceGroupStep extends SubscriptionBasedWizardStep {
     }
 }
 
-class AppServicePlanStep extends SubscriptionBasedWizardStep {
+class AppServicePlanStep extends WebAppCreatorStepBase {
     private _createNew: boolean;
     private _plan: WebSiteModels.AppServicePlan;
 
@@ -246,27 +245,32 @@ class AppServicePlanStep extends SubscriptionBasedWizardStep {
             description: '',
             data: null
         };
-        const quickPickItems = [createNewItem];
         const quickPickOptions = { placeHolder: `Select the App Service Plan for the new Web App. (${this.stepProgressText})` };
         const subscription = this.getSelectedSubscription();
         const client = new WebSiteManagementClient(this.azureAccount.getCredentialByTenantId(subscription.tenantId), subscription.subscriptionId);
         // You can create a web app and associate it with a plan from another resource group.
         // That's why we use list instead of listByResourceGroup below; and show resource group name in the quick pick list.
-        const plans = await util.listAll(client.appServicePlans, client.appServicePlans.list());
-
-        plans.forEach(plan => {
-            // Currently we only support Linux web apps.
-            if (plan.kind.toLowerCase() === 'linux') {
-                quickPickItems.push({
-                    label: plan.appServicePlanName,
-                    description: `${plan.sku.name} (${plan.geoRegion})`,
-                    detail: plan.resourceGroup,
-                    data: plan
-                });
-            }
+        let plans: WebSiteModels.AppServicePlan[];
+        const plansTask = util.listAll(client.appServicePlans, client.appServicePlans.list()).then(result => {
+            const quickPickItems = [createNewItem];
+            plans = result;
+            plans.forEach(plan => {
+                // Currently we only support Linux web apps.
+                if (plan.kind.toLowerCase() === 'linux') {
+                    quickPickItems.push({
+                        label: plan.appServicePlanName,
+                        description: `${plan.sku.name} (${plan.geoRegion})`,
+                        detail: plan.resourceGroup,
+                        data: plan
+                    });
+                }
+            });
+    
+            return quickPickItems;
         });
+
         
-        const pickedItem = <QuickPickItemWithData<WebSiteModels.AppServicePlan>>(await this.showQuickPick(quickPickItems, quickPickOptions));
+        const pickedItem = await this.showQuickPick(plansTask, quickPickOptions);
 
         if (pickedItem !== createNewItem) {
             this._createNew = false;
@@ -304,7 +308,7 @@ class AppServicePlanStep extends SubscriptionBasedWizardStep {
                 data: sku
             });
         });
-        const pickedSkuItem = <QuickPickItemWithData<WebSiteModels.SkuDescription>>(await this.showQuickPick(pricingTiers, { placeHolder: 'Choose your pricing tier.' }));
+        const pickedSkuItem = await this.showQuickPick(pricingTiers, { placeHolder: 'Choose your pricing tier.' });
         const newPlanSku = pickedSkuItem.data;
         this._createNew = true;
         this._plan = {
@@ -386,7 +390,7 @@ class AppServicePlanStep extends SubscriptionBasedWizardStep {
     }
 }
 
-class WebsiteStep extends SubscriptionBasedWizardStep {
+class WebsiteStep extends WebAppCreatorStepBase {
     private _website: WebSiteModels.Site;
 
     constructor(wizard: WizardBase, azureAccount: AzureAccountWrapper) {
@@ -419,7 +423,7 @@ class WebsiteStep extends SubscriptionBasedWizardStep {
             });
         });
 
-        const pickedItem = <QuickPickItemWithData<LinuxRuntimeStack>>(await this.showQuickPick(runtimeItems, { placeHolder: 'Select runtime stack.' }));
+        const pickedItem = await this.showQuickPick(runtimeItems, { placeHolder: 'Select runtime stack.' });
         const runtimeStack = pickedItem.data.name;
         const rg = this.getSelectedResourceGroup();
         const plan = this.getSelectedAppServicePlan();
@@ -447,22 +451,14 @@ class WebsiteStep extends SubscriptionBasedWizardStep {
         }
 
         this._website = await websiteClient.webApps.createOrUpdate(rg.name, this._website.name, this._website);
+        this._website.siteConfig = await websiteClient.webApps.getConfiguration(rg.name, this._website.name);
+        
         this.wizard.writeline(`Web App "${this._website.name}" created: https://${this._website.defaultHostName}`);
         this.wizard.writeline('');
     }
 
     get website(): WebSiteModels.Site {
         return this._website;
-    }
-
-    private getSelectedAppServicePlan(): WebSiteModels.AppServicePlan {
-        const appServicePlanStep = <AppServicePlanStep>this.wizard.findStep(step => step instanceof AppServicePlanStep, 'The Wizard must have a AppServicePlanStep.');
-        
-        if (!appServicePlanStep.servicePlan) {
-            throw new Error('An App Service Plan must be selected first.');
-        }
-
-        return appServicePlanStep.servicePlan;
     }
 
     private getLinuxRuntimeStack(): LinuxRuntimeStack[] {
@@ -507,11 +503,97 @@ class WebsiteStep extends SubscriptionBasedWizardStep {
     }
 }
 
+class ShellScriptStep extends WebAppCreatorStepBase {
+    constructor(wizard: WizardBase, azureAccount: AzureAccountWrapper) {
+        super(wizard, 'Create Web App', azureAccount);
+    }
+    
+    async execute(): Promise<void> {
+        const subscription = this.getSelectedSubscription();
+        const rg = this.getSelectedResourceGroup();
+        const plan = this.getSelectedAppServicePlan();
+        const site = this.getWebSite();
+        
+        const script = scriptTemplate.replace('%SUBSCRIPTION_NAME%', subscription.displayName)
+            .replace('%RG_NAME%', rg.name)
+            .replace('%LOCATION%', rg.location)
+            .replace('%PLAN_NAME%', plan.name)
+            .replace('%PLAN_SKU%', plan.sku.name)
+            .replace('%SITE_NAME%', site.name)
+            .replace('%RUNTIME%', site.siteConfig.linuxFxVersion);
+
+        let uri: vscode.Uri;
+        if (vscode.workspace.rootPath) {
+            let count = 0;
+            const maxCount = 1024;
+            
+            while (count < maxCount) {
+                uri = vscode.Uri.file(path.join(vscode.workspace.rootPath, `deploy-${site.name}${count === 0 ? '' : count.toString()}.sh`));
+                if (!vscode.workspace.textDocuments.find(doc => doc.uri.fsPath === uri.fsPath) && !fs.existsSync(uri.fsPath)) {
+                    uri = uri.with({ scheme: 'untitled' });
+                    break;
+                } else {
+                    uri = null;
+                }
+                count++;
+            }
+        }
+
+        if (uri) {
+            const doc = await vscode.workspace.openTextDocument(uri);
+            const editor = await vscode.window.showTextDocument(doc);
+            await editor.edit(editorBuilder => editorBuilder.insert(new vscode.Position(0,0), script));
+        } else {
+            const doc = await vscode.workspace.openTextDocument({ content: script, language: 'shellscript' });
+            await vscode.window.showTextDocument(doc);
+        }
+    }    
+}
+
 interface LinuxRuntimeStack {
     name: string;
     displayName: string;
 }
 
-interface QuickPickItemWithData<T> extends vscode.QuickPickItem {
-    data: T;
-}
+const scriptTemplate = 'SUBSCRIPTION="%SUBSCRIPTION_NAME%"\n\
+RESOURCEGROUP="%RG_NAME%"\n\
+LOCATION="%LOCATION%"\n\
+PLANNAME="%PLAN_NAME%"\n\
+PLANSKU="%PLAN_SKU%"\n\
+SITENAME="%SITE_NAME%"\n\
+RUNTIME="%RUNTIME%"\n\
+\n\
+# login supports device login, username/password, and service principals\n\
+# see https://docs.microsoft.com/en-us/cli/azure/?view=azure-cli-latest#az_login\n\
+az login\n\
+# list all of the available subscriptions\n\
+az account list -o table\n\
+# set the default subscription for subsequent operations\n\
+az account set --subscription $SUBSCRIPTION\n\
+# create a resource group for your application\n\
+az group create --name $RESOURCEGROUP --location $LOCATION\n\
+# create an appservice plan (a machine) where your site will run\n\
+az appservice plan create --name $PLANNAME --location $LOCATION --is-linux --sku $PLANSKU --resource-group $RESOURCEGROUP\n\
+# create the web application on the plan\n\
+# specify the node version your app requires\n\
+az webapp create --name $SITENAME --plan $PLANNAME --runtime $RUNTIME --resource-group $RESOURCEGROUP\n\
+\n\
+# To set up deployment from a local git repository, uncomment the following commands.\n\
+# first, set the username and password (use environment variables!)\n\
+# USERNAME=""\n\
+# PASSWORD=""\n\
+# az webapp deployment user set --user-name $USERNAME --password $PASSWORD\n\
+\n\
+# now, configure the site for deployment. in this case, we will deploy from the local git repository\n\
+# you can also configure your site to be deployed from a remote git repository or set up a CI/CD workflow\n\
+# az webapp deployment source config-local-git --name $SITENAME --resource-group $RESOURCEGROUP\n\
+\n\
+# the previous command returned the git remote to deploy to\n\
+# use this to set up a new remote named "azure"\n\
+# git remote add azure "https://$USERNAME@$SITENAME.scm.azurewebsites.net/$SITENAME.git"\n\
+# push master to deploy the site\n\
+# git push azure master\n\
+\n\
+# browse to the site\n\
+# az webapp browse --name $SITENAME --resource-group $RESOURCEGROUP\n\
+';

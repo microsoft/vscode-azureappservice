@@ -5,7 +5,8 @@
 
 import { TreeDataProvider, TreeItem, EventEmitter, Event } from 'vscode';
 import { AzureAccountWrapper } from './azureAccountWrapper';
-import { NodeBase, AppServiceNode, SubscriptionNode, NotSignedInNode, LoadingNode } from './appServiceNodes';
+import { AppServiceNode, SubscriptionNode, NotSignedInNode, LoadingNode } from './appServiceNodes';
+import { NodeBase } from './nodeBase';
 
 export class AppServiceDataProvider implements TreeDataProvider<NodeBase> {
     private _onDidChangeTreeData: EventEmitter<NodeBase> = new EventEmitter<NodeBase>();
@@ -16,8 +17,8 @@ export class AppServiceDataProvider implements TreeDataProvider<NodeBase> {
         this.azureAccount.registerFiltersChangedListener(this.onSubscriptionChanged, this);
     }
 
-    refresh(): void {
-        this._onDidChangeTreeData.fire();
+    refresh(element?: NodeBase): void {
+        this._onDidChangeTreeData.fire(element);
     }
 
     getTreeItem(element: NodeBase): TreeItem {
