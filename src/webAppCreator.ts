@@ -204,7 +204,7 @@ class ResourceGroupStep extends WebAppCreatorStepBase {
 
         this._createNew = true;
         this._rg = {
-            name: newRgName,
+            name: newRgName.trim(),
             location: pickedLocation.data.name
         }
     }
@@ -312,7 +312,7 @@ class AppServicePlanStep extends WebAppCreatorStepBase {
         const newPlanSku = pickedSkuItem.data;
         this._createNew = true;
         this._plan = {
-            appServicePlanName: newPlanName,
+            appServicePlanName: newPlanName.trim(),
             kind: 'linux',  // Currently we only support Linux web apps.
             sku: newPlanSku,
             location: rg.location,
@@ -429,7 +429,7 @@ class WebsiteStep extends WebAppCreatorStepBase {
         const plan = this.getSelectedAppServicePlan();
 
         this._website = {
-            name: siteName,
+            name: siteName.trim(),
             kind: 'app,linux',
             location: rg.location,
             serverFarmId: plan.id,
