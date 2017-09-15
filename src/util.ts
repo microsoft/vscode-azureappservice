@@ -82,14 +82,9 @@ export function errToString(error: any): string {
         });
     }
 
-    if (error instanceof Array) {
-        return JSON.stringify(error);
-    }
-
     if (typeof(error) === 'object') {
         return JSON.stringify({
-            'object': error.constructor.name,
-            'toString': error.toString()
+            'object': error.constructor.name
         });
     }
 
