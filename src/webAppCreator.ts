@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as dns from 'dns';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as vscode from 'vscode';
@@ -400,18 +401,54 @@ class WebsiteStep extends WebAppCreatorStepBase {
     async prompt(): Promise<void> {
         const subscription = this.getSelectedSubscription();
         const client = new WebSiteManagementClient(this.azureAccount.getCredentialByTenantId(subscription.tenantId), subscription.subscriptionId);
-        const siteName = await this.showInputBox({
-            prompt: `Enter the name of the new Web App. (${this.stepProgressText})`,
-            validateInput: (value: string) => {
-                value = value ? value.trim() : '';
+        let siteName: string;
+        let siteNameOkay = false;
 
-                if (!value.match(/^[a-z0-9\-]{0,59}$/ig)) {
-                    return 'App name should be 1-60 characters long and can only include alphanumeric characters and hyphens.';
+        // Do not use the system default DNS server(s) because sometimes it can be hijacked by ISV.
+        // Some ISV resolves names that don't exist to their own search site, causing false positive results.
+        dns.setServers([
+            '204.79.195.43', // prd1.azuredns-cloud.net
+            '65.55.117.43',  // prd2.azuredns-cloud.net
+            '204.79.195.48', // prd3.azuredns-cloud.net
+            '65.55.117.48',  // prd4.azuredns-cloud.net
+            '4.4.4.4',       // Google DNS servers for backup
+            '8.8.8.8'
+        ]);
+
+        while (!siteNameOkay) {
+            siteName = await this.showInputBox({
+                prompt: `Enter the name of the new Web App. (${this.stepProgressText})`,
+                validateInput: (value: string) => {
+                    value = value ? value.trim() : '';
+
+                    if (!value.match(/^[a-z0-9\-]{0,59}$/ig)) {
+                        return 'App name should be 1-60 characters long and can only include alphanumeric characters and hyphens.';
+                    }
+
+                    return null;
                 }
+            });
 
-                return null;
+            const fullSiteName = `${siteName}.azurewebsites.net`;
+
+            // Check if the name has already been taken...
+            const nameAvailableTask = new Promise<boolean>((resolve, reject) => {
+                dns.resolve(fullSiteName, (err, addresses) => {
+                    if (err && err.code === dns.NOTFOUND) {
+                        resolve(true);
+                        return;
+                    }
+
+                    resolve(false);
+                });
+            });
+
+            siteNameOkay = await nameAvailableTask;
+            if (!siteNameOkay) {
+                await vscode.window.showWarningMessage(`The app name ${siteName} is not available.`);
             }
-        });
+        }
+
         const runtimeItems: QuickPickItemWithData<LinuxRuntimeStack>[] = [];
         const linuxRuntimeStacks = this.getLinuxRuntimeStack();
         
