@@ -421,7 +421,7 @@ class WebsiteStep extends WebAppCreatorStepBase {
                 validateInput: (value: string) => {
                     value = value ? value.trim() : '';
 
-                    if (!value.match(/^[a-z0-9\-]{0,59}$/ig)) {
+                    if (!value.match(/^[a-z0-9\-]{1,60}$/ig)) {
                         return 'App name should be 1-60 characters long and can only include alphanumeric characters and hyphens.';
                     }
 
