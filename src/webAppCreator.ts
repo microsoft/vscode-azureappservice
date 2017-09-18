@@ -401,7 +401,7 @@ class WebsiteStep extends WebAppCreatorStepBase {
         const subscription = this.getSelectedSubscription();
         const client = new WebSiteManagementClient(this.azureAccount.getCredentialByTenantId(subscription.tenantId), subscription.subscriptionId);
         const siteName = await this.showInputBox({
-            prompt: `Enter the name of the new Web App. (${this.stepProgressText})`,
+            prompt: `Enter a globally unique name for the new Web App. (${this.stepProgressText})`,
             validateInput: (value: string) => {
                 value = value ? value.trim() : '';
 
