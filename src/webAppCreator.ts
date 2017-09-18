@@ -407,12 +407,9 @@ class WebsiteStep extends WebAppCreatorStepBase {
         // Do not use the system default DNS server(s) because sometimes it can be hijacked by ISV.
         // Some ISV resolves names that don't exist to their own search site, causing false positive results.
         dns.setServers([
-            '204.79.195.43', // prd1.azuredns-cloud.net
-            '65.55.117.43',  // prd2.azuredns-cloud.net
-            '204.79.195.48', // prd3.azuredns-cloud.net
-            '65.55.117.48',  // prd4.azuredns-cloud.net
-            '4.4.4.4',       // Google DNS servers for backup
-            '8.8.8.8'
+            '208.84.2.53',  // ns2.msft.net
+            '8.8.8.8',      // Google Public DNS
+            '8.8.4.4'       // Google Public DNS
         ]);
 
         while (!siteNameOkay) {
