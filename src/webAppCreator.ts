@@ -414,7 +414,7 @@ class WebsiteStep extends WebAppCreatorStepBase {
 
         while (!siteNameOkay) {
             siteName = await this.showInputBox({
-                prompt: `Enter the name of the new Web App. (${this.stepProgressText})`,
+                prompt: `Enter a globally unique name for the new Web App. (${this.stepProgressText})`,
                 validateInput: (value: string) => {
                     value = value ? value.trim() : '';
 
