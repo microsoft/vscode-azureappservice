@@ -36,9 +36,8 @@ export class DeploymentSlotsNode extends NodeBase {
         const credential = azureAccount.getCredentialByTenantId(this.subscription.tenantId);
         const client = new WebSiteManagementClient(credential, this.subscription.subscriptionId);
         const deploymentSlots = await client.webApps.listByResourceGroup(this.site.resourceGroup, {includeSlots: true});
-        
         for (let slot of deploymentSlots) {
-            if (slot.type === 'Microsoft.Web/sites/slots') {
+            if (slot.type === 'Microsoft.Web/sites/slots' && slot.repositorySiteName === this.site.name) {
                 nodes.push(new DeploymentSlotNode(slot.name.substring(slot.name.lastIndexOf('/') + 1), slot, this.subscription, this));
                 // to pluck off the entire web app domain name from the deployment slot name
             }
