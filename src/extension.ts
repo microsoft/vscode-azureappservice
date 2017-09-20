@@ -9,7 +9,7 @@ import * as vscode from 'vscode';
 import * as util from "./util";
 import { AppServiceDataProvider } from './explorer/appServiceExplorer';
 import { NodeBase } from './explorer/nodeBase';
-import { AppServiceNode } from './explorer/appServiceNodes';
+import { AppServiceNode, SubscriptionNode } from './explorer/appServiceNodes';
 import { DeploymentSlotsNode } from './explorer/deploymentSlotsNodes';
 import { DeploymentSlotNode } from './explorer/deploymentSlotNodes';
 import { WebJobsNode } from './explorer/webJobsNodes';
@@ -62,12 +62,17 @@ export function activate(context: vscode.ExtensionContext) {
             await node.restart(azureAccount).then(() => outputChannel.appendLine(`App "${node.site.name}" has been restarted.`), err => outputChannel.appendLine(err));
         }
     });
-    initAsyncCommand(context, 'appService.CreateWebApp', async () => {
-        const wizard = new WebAppCreator(outputChannel, azureAccount);
+    initAsyncCommand(context, 'appService.CreateWebApp', async (node?: SubscriptionNode) => {
+        let subscription;
+        if (node) {
+            subscription = node.subscription;
+        }
+        
+        const wizard = new WebAppCreator(outputChannel, azureAccount, subscription);
         const result = await wizard.run();
         
         if (result.status === 'Completed') {
-            vscode.commands.executeCommand('appService.Refresh');
+            vscode.commands.executeCommand('appService.Refresh', node);
         }
     });
     initAsyncCommand(context,'appService.DeployZipPackage', async (context: any) => {
