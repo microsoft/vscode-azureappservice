@@ -137,6 +137,11 @@
                     "group": "1_appServiceGeneralCommands@2"
                 },
                 {
+                    "command": "appService.CreateWebApp",
+                    "when": "view == azureAppService && viewItem == subscription",
+                    "group": "1_subscriptionGeneralCommands@1"
+                },
+                {
                     "command": "appService.Start",
                     "when": "view == azureAppService && viewItem == appService",
                     "group": "2_appServiceControlCommands@1"
