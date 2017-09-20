@@ -66,7 +66,10 @@ export function activate(context: vscode.ExtensionContext) {
     });
     initAsyncCommand(context, 'appService.Delete', async (node: AppServiceNode) => {
         if (node) {
-            console.log('Delete this app!');
+            outputChannel.appendLine(`Deleting App "${node.site.name}"...`);
+            
+            await node.delete(azureAccount).then(() => outputChannel.appendLine(`App "${node.site.name}" has been deleted.`), err => outputChannel.appendLine(err));
+            appServiceDataProvider.refresh();
         }
     });
     initAsyncCommand(context, 'appService.CreateWebApp', async (node?: SubscriptionNode) => {
