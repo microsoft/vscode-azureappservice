@@ -10,5 +10,5 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 - App Service UI components (sash)
 - Create new Linux Web App
 - Deploy via zip to a Linux Web App
-- Generate az shell script with creation/deploymeny commands
+- Generate az shell script with creation/deployment commands
 - Wizard style pick list
