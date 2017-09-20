@@ -64,14 +64,16 @@ export class AppServiceNode extends NodeBase {
     }
 
     getTreeItem(): TreeItem {
-        let iconName = this.site.kind.startsWith('functionapp') ? 'AzureFunctionsApp_16x_vscode.svg' : 'AzureWebsite_16x_vscode.svg';
-        return {
-            label: `${this.label} (${this.site.resourceGroup})`,
-            collapsibleState: TreeItemCollapsibleState.Collapsed,
-            contextValue: 'appService',
-            iconPath: { 
-                light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', iconName),
-                dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', iconName)
+        if (!this.site.kind.startsWith('functionapp')) {
+            let iconName =  'AzureWebsite_16x_vscode.svg';
+            return {
+                label: `${this.label} (${this.site.resourceGroup})`,
+                collapsibleState: TreeItemCollapsibleState.Collapsed,
+                contextValue: 'appService',
+                iconPath: { 
+                    light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', iconName),
+                    dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', iconName)
+                }
             }
         }
     }
