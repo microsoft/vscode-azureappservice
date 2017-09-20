@@ -12,3 +12,4 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 - Deploy via zip to a Linux Web App
 - Generate az shell script with creation/deployment commands
 - Wizard style pick list
+- Basic support for Deployment Slot - browse, open in portal and swap.
