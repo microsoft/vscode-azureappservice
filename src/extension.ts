@@ -9,7 +9,7 @@ import * as vscode from 'vscode';
 import * as util from "./util";
 import { AppServiceDataProvider } from './explorer/appServiceExplorer';
 import { NodeBase } from './explorer/nodeBase';
-import { AppServiceNode } from './explorer/appServiceNodes';
+import { AppServiceNode, SubscriptionNode } from './explorer/appServiceNodes';
 import { DeploymentSlotsNode } from './explorer/deploymentSlotsNodes';
 import { DeploymentSlotNode } from './explorer/deploymentSlotNodes';
 import { WebJobsNode } from './explorer/webJobsNodes';
@@ -42,6 +42,16 @@ export function activate(context: vscode.ExtensionContext) {
     initCommand(context, 'appService.OpenInPortal', (node: NodeBase) => {
         if (node && node.openInPortal) {
             node.openInPortal();
+        }
+    });
+    initAsyncCommand(context, 'subscription.CreateWebApp', async (node: SubscriptionNode) => {
+        if (node && node.openInPortal) {
+            const wizard = new WebAppCreator(outputChannel, azureAccount, node.subscription);
+            const result = await wizard.run();
+            
+            if (result.status === 'Completed') {
+                vscode.commands.executeCommand('appService.Refresh', node);
+            }
         }
     });
     initAsyncCommand(context,'appService.Start', async (node: AppServiceNode) => {

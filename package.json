@@ -56,6 +56,11 @@
                 }
             },
             {
+                "command": "subscription.CreateWebApp",
+                "title": "Create New Web App",
+                "category": "Azure App Service"
+            },
+            {
                 "command": "appService.OpenInPortal",
                 "title": "Open In Portal",
                 "category": "Azure App Service"
@@ -132,6 +137,11 @@
                     "command": "appService.Browse",
                     "when": "view == azureAppService && viewItem == appService",
                     "group": "1_appServiceGeneralCommands@2"
+                },
+                {
+                    "command": "subscription.CreateWebApp",
+                    "when": "view == azureAppService && viewItem == subscription",
+                    "group": "1_subscriptionGeneralCommands@1"
                 },
                 {
                     "command": "appService.Start",
