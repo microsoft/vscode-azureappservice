@@ -24,12 +24,15 @@
     ],
     "preview": true,
     "activationEvents": [
+        "onCommand:appService.CreateWebApp",
         "onCommand:appService.Refresh",
         "onCommand:appService.OpenInPortal",
         "onCommand:appService.Browse",
         "onCommand:appService.Start",
         "onCommand:appService.Stop",
-        "onCommand:deploymentSlot.OpenInPortal",
+        "onCommand:appService.Restart",
+        "onCommand:appService.DeployZipPackage",
+        "onCommand:appService.ZipAndDeploy",
         "onCommand:deploymentSlot.SwapSlots",
         "onCommand:deploymentSlot.Browse",
         "onView:azureAppService"
@@ -132,6 +135,11 @@
                     "command": "appService.Browse",
                     "when": "view == azureAppService && viewItem == appService",
                     "group": "1_appServiceGeneralCommands@2"
+                },
+                {
+                    "command": "appService.CreateWebApp",
+                    "when": "view == azureAppService && viewItem == subscription",
+                    "group": "1_subscriptionGeneralCommands@1"
                 },
                 {
                     "command": "appService.Start",
