@@ -44,16 +44,6 @@ export function activate(context: vscode.ExtensionContext) {
             node.openInPortal();
         }
     });
-    initAsyncCommand(context, 'subscription.CreateWebApp', async (node: SubscriptionNode) => {
-        if (node && node.openInPortal) {
-            const wizard = new WebAppCreator(outputChannel, azureAccount, node.subscription);
-            const result = await wizard.run();
-            
-            if (result.status === 'Completed') {
-                vscode.commands.executeCommand('appService.Refresh', node);
-            }
-        }
-    });
     initAsyncCommand(context,'appService.Start', async (node: AppServiceNode) => {
         if (node) {
             outputChannel.appendLine(`Starting App "${node.site.name}"...`);
@@ -72,12 +62,17 @@ export function activate(context: vscode.ExtensionContext) {
             await node.restart(azureAccount).then(() => outputChannel.appendLine(`App "${node.site.name}" has been restarted.`), err => outputChannel.appendLine(err));
         }
     });
-    initAsyncCommand(context, 'appService.CreateWebApp', async () => {
-        const wizard = new WebAppCreator(outputChannel, azureAccount);
+    initAsyncCommand(context, 'appService.CreateWebApp', async (node?: SubscriptionNode) => {
+        let subscription;
+        if (node) {
+            subscription = node.subscription;
+        }
+        
+        const wizard = new WebAppCreator(outputChannel, azureAccount, subscription);
         const result = await wizard.run();
         
         if (result.status === 'Completed') {
-            vscode.commands.executeCommand('appService.Refresh');
+            vscode.commands.executeCommand('appService.Refresh', node);
         }
     });
     initAsyncCommand(context,'appService.DeployZipPackage', async (context: any) => {
