@@ -88,6 +88,11 @@
                 "category": "Azure App Service"
             },
             {
+                "command": "appService.Delete",
+                "title": "Delete",
+                "category": "Azure App Service"
+            },
+            {
                 "command": "appService.DeployZipPackage",
                 "title": "Deploy Zip Package to Web App",
                 "category": "Azure App Service"
@@ -184,6 +189,11 @@
                     "command": "appService.Restart",
                     "when": "view == azureAppService && viewItem == appService",
                     "group": "2_appServiceControlCommands@3"
+                },
+                {
+                    "command": "appService.Delete",
+                    "when": "view == azureAppService && viewItem == appService",
+                    "group": "2_appServiceControlCommands@4"
                 },
                 {
                     "command": "appService.DeployZipPackage",

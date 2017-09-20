@@ -82,6 +82,11 @@ export function activate(context: vscode.ExtensionContext) {
             }
         }
     });
+    initAsyncCommand(context, 'appService.Delete', async (node: AppServiceNode) => {
+        if (node) {
+            console.log('Delete this app!');
+        }
+    });
     initAsyncCommand(context, 'appService.CreateWebApp', async (node?: SubscriptionNode) => {
         let subscription;
         if (node) {
