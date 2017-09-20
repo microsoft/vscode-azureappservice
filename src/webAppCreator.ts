@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as dns from 'dns';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as vscode from 'vscode';
@@ -404,14 +403,6 @@ class WebsiteStep extends WebAppCreatorStepBase {
         let siteName: string;
         let siteNameOkay = false;
 
-        // Do not use the system default DNS server(s) because sometimes it can be hijacked by ISV.
-        // Some ISV resolves names that don't exist to their own search site, causing false positive results.
-        dns.setServers([
-            '208.84.2.53',  // ns2.msft.net
-            '8.8.8.8',      // Google Public DNS
-            '8.8.4.4'       // Google Public DNS
-        ]);
-
         while (!siteNameOkay) {
             siteName = await this.showInputBox({
                 prompt: `Enter a globally unique name for the new Web App. (${this.stepProgressText})`,
@@ -426,23 +417,12 @@ class WebsiteStep extends WebAppCreatorStepBase {
                 }
             });
 
-            const fullSiteName = `${siteName}.azurewebsites.net`;
-
             // Check if the name has already been taken...
-            const nameAvailableTask = new Promise<boolean>((resolve, reject) => {
-                dns.resolve(fullSiteName, (err, addresses) => {
-                    if (err && err.code === dns.NOTFOUND) {
-                        resolve(true);
-                        return;
-                    }
+            const nameAvailability = await client.checkNameAvailability(siteName, 'site');
+            siteNameOkay = nameAvailability.nameAvailable;
 
-                    resolve(false);
-                });
-            });
-
-            siteNameOkay = await nameAvailableTask;
             if (!siteNameOkay) {
-                await vscode.window.showWarningMessage(`The app name ${siteName} is not available.`);
+                await vscode.window.showWarningMessage(nameAvailability.message);
             }
         }
 
