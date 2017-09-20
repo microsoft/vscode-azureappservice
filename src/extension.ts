@@ -64,6 +64,11 @@ export function activate(context: vscode.ExtensionContext) {
             await node.restart().then(() => outputChannel.appendLine(`App "${node.site.name}" has been restarted.`), err => outputChannel.appendLine(err));
         }
     });
+    initAsyncCommand(context, 'appService.Delete', async (node: AppServiceNode) => {
+        if (node) {
+            console.log('Delete this app!');
+        }
+    });
     initAsyncCommand(context, 'appService.CreateWebApp', async (node?: SubscriptionNode) => {
         let subscription;
         if (node) {
