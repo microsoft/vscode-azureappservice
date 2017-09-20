@@ -400,18 +400,32 @@ class WebsiteStep extends WebAppCreatorStepBase {
     async prompt(): Promise<void> {
         const subscription = this.getSelectedSubscription();
         const client = new WebSiteManagementClient(this.azureAccount.getCredentialByTenantId(subscription.tenantId), subscription.subscriptionId);
-        const siteName = await this.showInputBox({
-            prompt: `Enter a globally unique name for the new Web App. (${this.stepProgressText})`,
-            validateInput: (value: string) => {
-                value = value ? value.trim() : '';
+        let siteName: string;
+        let siteNameOkay = false;
 
-                if (!value.match(/^[a-z0-9\-]{0,59}$/ig)) {
-                    return 'App name should be 1-60 characters long and can only include alphanumeric characters and hyphens.';
+        while (!siteNameOkay) {
+            siteName = await this.showInputBox({
+                prompt: `Enter a globally unique name for the new Web App. (${this.stepProgressText})`,
+                validateInput: (value: string) => {
+                    value = value ? value.trim() : '';
+
+                    if (!value.match(/^[a-z0-9\-]{1,60}$/ig)) {
+                        return 'App name should be 1-60 characters long and can only include alphanumeric characters and hyphens.';
+                    }
+
+                    return null;
                 }
+            });
 
-                return null;
+            // Check if the name has already been taken...
+            const nameAvailability = await client.checkNameAvailability(siteName, 'site');
+            siteNameOkay = nameAvailability.nameAvailable;
+
+            if (!siteNameOkay) {
+                await vscode.window.showWarningMessage(nameAvailability.message);
             }
-        });
+        }
+
         const runtimeItems: QuickPickItemWithData<LinuxRuntimeStack>[] = [];
         const linuxRuntimeStacks = this.getLinuxRuntimeStack();
         
