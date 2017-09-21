@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { TreeDataProvider, TreeItem, TreeItemCollapsibleState, EventEmitter, Event, OutputChannel } from 'vscode';
+import { TreeDataProvider, TreeItem, TreeItemCollapsibleState, EventEmitter, Event, OutputChannel, window, MessageItem, MessageOptions } from 'vscode';
 import { AzureAccountWrapper } from '../azureAccountWrapper';
 import { SubscriptionClient, SubscriptionModels } from 'azure-arm-resource';
 import WebSiteManagementClient = require('azure-arm-website');
@@ -122,9 +122,52 @@ export class AppServiceNode extends NodeBase {
         return this.start(azureAccount);
     }
 
-    async delete(azureAccount: AzureAccountWrapper): Promise<void> {
-        await this.getWebSiteManagementClient(azureAccount).appServicePlans.list();
-        // await this.getWebSiteManagementClient(azureAccount).webApps.deleteMethod(this.site.resourceGroup, this.site.name);
+    async delete(azureAccount: AzureAccountWrapper): Promise<boolean> {
+        return new Promise<boolean>(async (resolve, reject) => {
+            let servicePlanName = this.site.serverFarmId.substring(this.site.serverFarmId.lastIndexOf('/serverfarms/') + '/serverfarms/'.length);
+            let servicePlanRG = this.site.serverFarmId.substring(this.site.serverFarmId.indexOf('resourceGroups/') + 'resourceGroups/'.length, this.site.serverFarmId.indexOf('/providers/'));
+            let servicePlan = await this.getWebSiteManagementClient(azureAccount).appServicePlans.get(servicePlanRG, servicePlanName);
+
+            //for demoing purposes
+            console.log(await this.getWebSiteManagementClient(azureAccount).appServicePlans.list());
+    
+            let options = {};
+            options['deleteEmptyServerFarms'] = false;
+            let mOptions: MessageOptions = {modal: true};
+            console.log(servicePlan);
+            if (servicePlan.numberOfSites < 2) {
+                window.showInformationMessage(`This is the last web app on the plan, "${servicePlanName}".  Delete the Web App and App Service Plan?`, mOptions, ...['Both', 'Web App ONLY'])
+                .then(async (input) => {
+                    let deleteServicePlan = false;
+                    if (!input) {
+                        //if undefined, the user canceled the delete
+                        reject(false);
+                    } else  {
+                        if (input === 'Both') {
+                            deleteServicePlan  = true;
+                        }
+                        await this.getWebSiteManagementClient(azureAccount).webApps.deleteMethod(this.site.resourceGroup, this.site.name, {deleteEmptyServerFarm: deleteServicePlan});  
+                        resolve(true);
+                    }
+                });
+            } else {
+                window.showInformationMessage(`Delete the Web App "${this.site.name}"?`, mOptions, ...['Confirm'])
+                .then(async (input) => {
+                    if (!input) {
+                        resolve(false);
+                    } else {
+                        await this.getWebSiteManagementClient(azureAccount).webApps.deleteMethod(this.site.resourceGroup, this.site.name, ((error, response) => {
+                            console.log(response);
+                            resolve(true);
+                        }));
+                        
+                    }
+                    
+                });
+            }
+
+        });
+        
     }
 
     private getWebSiteManagementClient(azureAccount: AzureAccountWrapper) {
