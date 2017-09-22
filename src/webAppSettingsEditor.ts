@@ -30,7 +30,7 @@ class EditStep extends SubscriptionStepBase {
     private _isDirty = false;
     private _appSettings: WebSiteModels.StringDictionary;
     private _applySettingsItem: QuickPickItemWithData<{key: string, value: string}> = {
-        label: '️️️️✔️ Apply changes',
+        label: '💾 Apply changes',
         description: null,
         data: null
     };
