@@ -15,6 +15,7 @@ import { DeploymentSlotNode } from './explorer/deploymentSlotNodes';
 import { WebJobsNode } from './explorer/webJobsNodes';
 import { AzureAccountWrapper } from './azureAccountWrapper';
 import { WebAppCreator } from './webAppCreator';
+import { WebAppSettingsEditor } from './webAppSettingsEditor';
 import { WebAppZipPublisher } from './webAppZipPublisher';
 import { Reporter } from './telemetry/reporter';
 import { DeploymentSlotSwapper } from './deploymentSlotActions';
@@ -100,6 +101,23 @@ export function activate(context: vscode.ExtensionContext) {
         if (node) {
             await node.swapDeploymentSlots(outputChannel, azureAccount);
         }
+    });
+    initAsyncCommand(context, 'appService.AppSettings', async (context: any) => {
+        let subscription;
+        let site;
+
+        if (context instanceof AppServiceNode) {
+            subscription = context.subscription;
+            site = context.site;
+        } else if (context instanceof DeploymentSlotNode) {
+            subscription = context.subscription;
+            site = context.site;
+        } else {
+            return;
+        }
+
+        const wizard = new WebAppSettingsEditor(outputChannel, azureAccount, subscription, site);
+        await wizard.run();
     });
 }
 
