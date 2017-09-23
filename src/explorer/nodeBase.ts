@@ -3,13 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { AzureAccountWrapper } from '../azureAccountWrapper';
-import { TreeDataProvider, TreeItem, TreeItemCollapsibleState, EventEmitter, Event, OutputChannel } from 'vscode';
+import { TreeDataProvider, TreeItem, TreeItemCollapsibleState } from 'vscode';
 
 export class NodeBase {
     readonly label: string;
 
-    protected constructor(label: string) {
+    protected constructor(label: string, private readonly treeDataProvider: TreeDataProvider<NodeBase>, private readonly parentNode?: NodeBase) {
         this.label = label;
     }
 
@@ -20,11 +19,17 @@ export class NodeBase {
         };
     }
 
-    async getChildren(azureAccount: AzureAccountWrapper): Promise<NodeBase[]> {
+    getTreeDataProvider<T extends TreeDataProvider<NodeBase>>(): T {
+        return <T>this.treeDataProvider;
+    }
+
+    getParentNode<T extends NodeBase>(): T {
+        return <T>this.parentNode;
+    }
+
+    async getChildren(): Promise<NodeBase[]> {
         return [];
     }
 
-    openInPortal?(): void {
-        
-    }
+    openInPortal?(): void
 }

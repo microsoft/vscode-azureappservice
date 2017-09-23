@@ -6,6 +6,7 @@
 import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models';
 import * as opn from 'opn';
 import { NodeBase } from './nodeBase';
+import { AppServiceDataProvider } from './appServiceExplorer';
 import { SubscriptionModels } from 'azure-arm-resource';
 import { TreeDataProvider, TreeItem, TreeItemCollapsibleState, EventEmitter, Event, OutputChannel } from 'vscode';
 import { AzureAccountWrapper } from '../azureAccountWrapper';
@@ -14,8 +15,11 @@ import { KuduClient, webJob } from '../kuduClient';
 import * as util from '../util';
 
 export class WebJobsNode extends NodeBase {
-    constructor(readonly site: WebSiteModels.Site, readonly subscription: SubscriptionModels.Subscription) {
-        super('WebJobs');
+    constructor(readonly site: WebSiteModels.Site, 
+        readonly subscription: SubscriptionModels.Subscription,
+        treeDataProvider: AppServiceDataProvider,
+        parentNode: NodeBase) {
+        super('WebJobs', treeDataProvider, parentNode);
     }
 
     getTreeItem(): TreeItem {
@@ -30,15 +34,15 @@ export class WebJobsNode extends NodeBase {
         }
     }
 
-    async getChildren(azureAccount: AzureAccountWrapper): Promise<NodeBase[]> {
+    async getChildren(): Promise<NodeBase[]> {
         let nodes = [];
-        let user = await util.getWebAppPublishCredential(azureAccount, this.subscription, this.site);
+        let user = await util.getWebAppPublishCredential(this.azureAccount, this.subscription, this.site);
         let kuduClient = new KuduClient(this.site.name, user.publishingUserName, user.publishingPassword);
         
         let jobList: webJob[] = await kuduClient.listAllWebJobs() ;
 
         for (let job of jobList) {
-            nodes.push(new NodeBase(job.name));
+            nodes.push(new NodeBase(job.name, this.getTreeDataProvider(), this));
         }
         return nodes;
     }
@@ -48,4 +52,8 @@ export class WebJobsNode extends NodeBase {
         const deepLink = `${portalEndpoint}/${this.subscription.tenantId}/#resource${this.site.id}/webJobs`;
         opn(deepLink);
     }
+
+    get azureAccount(): AzureAccountWrapper {
+        return this.getTreeDataProvider<AppServiceDataProvider>().azureAccount;
+    }    
 }

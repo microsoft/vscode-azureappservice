@@ -6,14 +6,25 @@
 import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models';
 import * as opn from 'opn';
 import * as path from 'path';
+import { AzureAccountWrapper } from '../azureAccountWrapper';
 import { NodeBase } from './nodeBase';
+import { AppServiceDataProvider } from './appServiceExplorer';
 import { SubscriptionClient, SubscriptionModels } from 'azure-arm-resource';
 import { TreeDataProvider, TreeItem, TreeItemCollapsibleState, EventEmitter, Event, OutputChannel } from 'vscode';
 import WebSiteManagementClient = require('azure-arm-website');
 
 export class AppSettingsNode extends NodeBase {
-    constructor(readonly site: WebSiteModels.Site, readonly subscription: SubscriptionModels.Subscription) {
-        super('Application Settings');
+    private _settings: WebSiteModels.StringDictionary;
+    private _isSlot: boolean;
+    private _siteName: string;
+    private _slotName: string;
+    private _websiteClient: WebSiteManagementClient;
+    
+    constructor(readonly site: WebSiteModels.Site, 
+        readonly subscription: SubscriptionModels.Subscription, 
+        treeDataProvider: AppServiceDataProvider,
+        parentNode: NodeBase) {
+        super('Application Settings', treeDataProvider, parentNode);
     }
 
     getTreeItem(): TreeItem {
@@ -27,4 +38,29 @@ export class AppSettingsNode extends NodeBase {
             }
         }
     }
+
+    async getChildren(): Promise<NodeBase[]> {
+        this._isSlot = this.site.type.toLowerCase() === 'microsoft.web/sites/slots';
+        this._siteName = this._isSlot ? this.site.name.substring(0, this.site.name.lastIndexOf('/')) : this.site.name;
+        this._slotName = this._isSlot ? this.site.name.substring(this.site.name.lastIndexOf('/') + 1) : undefined;
+
+        return [];
+    }
+
+    protected get WebSiteManagementClient(): WebSiteManagementClient {
+        if (!this._websiteClient) {
+            this._websiteClient = new WebSiteManagementClient(
+                this.azureAccount.getCredentialByTenantId(this.subscription.tenantId),
+                this.subscription.subscriptionId);
+        }
+        return this._websiteClient;
+    }
+
+    get azureAccount(): AzureAccountWrapper {
+        return this.getTreeDataProvider<AppServiceDataProvider>().azureAccount;
+    }
+}
+
+class AppSettingNode extends NodeBase {
+
 }

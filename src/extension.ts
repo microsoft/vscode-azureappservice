@@ -9,10 +9,11 @@ import * as vscode from 'vscode';
 import * as util from "./util";
 import { AppServiceDataProvider } from './explorer/appServiceExplorer';
 import { NodeBase } from './explorer/nodeBase';
-import { AppServiceNode, SubscriptionNode } from './explorer/appServiceNodes';
-import { DeploymentSlotsNode } from './explorer/deploymentSlotsNodes';
-import { DeploymentSlotNode } from './explorer/deploymentSlotNodes';
-import { WebJobsNode } from './explorer/webJobsNodes';
+import { AppServiceNode } from './explorer/appServiceNode';
+import { DeploymentSlotsNode } from './explorer/deploymentSlotsNode';
+import { DeploymentSlotNode } from './explorer/deploymentSlotNode';
+import { SubscriptionNode } from './explorer/subscriptionNode';
+import { WebJobsNode } from './explorer/webJobsNode';
 import { AzureAccountWrapper } from './azureAccountWrapper';
 import { WebAppCreator } from './webAppCreator';
 import { WebAppZipPublisher } from './webAppZipPublisher';
@@ -98,7 +99,7 @@ export function activate(context: vscode.ExtensionContext) {
     });
     initAsyncCommand(context, 'deploymentSlot.SwapSlots', async (node: DeploymentSlotNode) => {
         if (node) {
-            await node.swapDeploymentSlots(outputChannel, azureAccount);
+            await node.swapDeploymentSlots(outputChannel);
         }
     });
 }

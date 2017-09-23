@@ -5,64 +5,23 @@
 
 import { TreeDataProvider, TreeItem, TreeItemCollapsibleState, EventEmitter, Event, OutputChannel } from 'vscode';
 import { AzureAccountWrapper } from '../azureAccountWrapper';
-import { SubscriptionClient, SubscriptionModels } from 'azure-arm-resource';
-import WebSiteManagementClient = require('azure-arm-website');
+import { SubscriptionModels } from 'azure-arm-resource';
 import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models';
+import { AppServiceDataProvider } from './appServiceExplorer';
 import { NodeBase } from './nodeBase';
-import { DeploymentSlotNode } from './deploymentSlotNodes';
-import { DeploymentSlotsNode } from './deploymentSlotsNodes';
+import { DeploymentSlotNode } from './deploymentSlotNode';
+import { DeploymentSlotsNode } from './deploymentSlotsNode';
 import { FilesNode } from './filesNodes';
-import { WebJobsNode } from './webJobsNodes';
+import { WebJobsNode } from './webJobsNode';
 import { AppSettingsNode } from './appSettingsNodes';
+import WebSiteManagementClient = require('azure-arm-website');
 import * as path from 'path';
 import * as opn from 'opn';
 import * as util from '../util';
-import * as kuduApi from 'kudu-api';
-
-export class SubscriptionNode extends NodeBase {
-    constructor(readonly subscription: SubscriptionModels.Subscription) {
-        super(subscription.displayName);
-    }
-
-    getTreeItem(): TreeItem {
-        return {
-            label: this.label,
-            collapsibleState: TreeItemCollapsibleState.Collapsed,
-            contextValue: 'subscription',
-            iconPath: { 
-                light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'AzureSubscription_16x.svg'),
-                dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'AzureSubscription_16x.svg')
-            }
-        }
-    }
-
-    async getChildren(azureAccount: AzureAccountWrapper): Promise<NodeBase[]> {
-        if (azureAccount.signInStatus !== 'LoggedIn') {
-            return [];
-        }
-
-        const credential = azureAccount.getCredentialByTenantId(this.subscription.tenantId);
-        const client = new WebSiteManagementClient(credential, this.subscription.subscriptionId);
-        const webApps = await client.webApps.list();
-        const nodes = webApps.sort((a, b) => {
-            let n = a.resourceGroup.localeCompare(b.resourceGroup);
-
-            if (n !== 0) {
-                return n;
-            }
-
-            return a.name.localeCompare(b.name);
-        }).map<AppServiceNode>((site, index, array) => {
-            return new AppServiceNode(site, this.subscription);
-        });
-
-        return nodes;
-    }
-}
 
 export class AppServiceNode extends NodeBase {
-    constructor(readonly site: WebSiteModels.Site, readonly subscription: SubscriptionModels.Subscription) {
-        super(site.name);
+    constructor(readonly site: WebSiteModels.Site, readonly subscription: SubscriptionModels.Subscription, treeDataProvider: AppServiceDataProvider, parentNode: NodeBase) {
+        super(site.name, treeDataProvider, parentNode);
     }
 
     getTreeItem(): TreeItem {
@@ -80,18 +39,20 @@ export class AppServiceNode extends NodeBase {
         }
     }
 
-    async getChildren(azureAccount: AzureAccountWrapper): Promise<NodeBase[]> {
-        if (azureAccount.signInStatus !== 'LoggedIn') {
+    async getChildren(): Promise<NodeBase[]> {
+        if (this.azureAccount.signInStatus !== 'LoggedIn') {
             return [];
         }
         
+        const treeDataProvider = this.getTreeDataProvider<AppServiceDataProvider>();
+
         // https://github.com/Microsoft/vscode-azureappservice/issues/45
         return [
-            new DeploymentSlotsNode(this.site, this.subscription),
+            new DeploymentSlotsNode(this.site, this.subscription, treeDataProvider, this),
             // new FilesNode('Files', '/site/wwwroot', this.site, this.subscription),
             // new FilesNode('Log Files', '/LogFiles', this.site, this.subscription),
-            new WebJobsNode(this.site, this.subscription),
-            new AppSettingsNode(this.site, this.subscription)
+            new WebJobsNode(this.site, this.subscription, treeDataProvider, this),
+            new AppSettingsNode(this.site, this.subscription, treeDataProvider, this)
         ];
     }
 
@@ -124,37 +85,11 @@ export class AppServiceNode extends NodeBase {
         return this.start(azureAccount);
     }
 
+    get azureAccount(): AzureAccountWrapper {
+        return this.getTreeDataProvider<AppServiceDataProvider>().azureAccount;
+    }
+
     private getWebSiteManagementClient(azureAccount: AzureAccountWrapper) {
         return new WebSiteManagementClient(azureAccount.getCredentialByTenantId(this.subscription.tenantId), this.subscription.subscriptionId);
-    }
-}
-
-export class NotSignedInNode extends NodeBase {
-    constructor() {
-        super('Sign in to Azure...');
-    }
-
-    getTreeItem(): TreeItem {
-        return {
-            label: this.label,
-            command: {
-                title: this.label,
-                command: util.getSignInCommandString()
-            },
-            collapsibleState: TreeItemCollapsibleState.None
-        }
-    }
-}
-
-export class LoadingNode extends NodeBase {
-    constructor() {
-        super('Loading...');
-    }
-
-    getTreeItem(): TreeItem {
-        return {
-            label: this.label,
-            collapsibleState: TreeItemCollapsibleState.None
-        }
     }
 }

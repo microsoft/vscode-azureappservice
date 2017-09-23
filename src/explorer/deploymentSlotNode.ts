@@ -7,15 +7,20 @@ import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models'
 import * as opn from 'opn';
 import * as path from 'path';
 import { NodeBase } from './nodeBase';
+import { AppServiceDataProvider } from './appServiceExplorer';
 import { SubscriptionClient, SubscriptionModels } from 'azure-arm-resource';
 import { TreeDataProvider, TreeItem, TreeItemCollapsibleState, EventEmitter, Event, OutputChannel } from 'vscode';
-import { DeploymentSlotsNode } from './deploymentSlotsNodes';
+import { DeploymentSlotsNode } from './deploymentSlotsNode';
 import { DeploymentSlotSwapper } from '../deploymentSlotActions';
 import { AzureAccountWrapper } from '../azureAccountWrapper';
 
 export class DeploymentSlotNode extends NodeBase {
-    constructor(readonly label: string, readonly site: WebSiteModels.Site, readonly subscription: SubscriptionModels.Subscription, readonly parent: DeploymentSlotsNode) {
-        super(label);
+    constructor(readonly label: string, 
+        readonly site: WebSiteModels.Site, 
+        readonly subscription: SubscriptionModels.Subscription,
+        treeDataProvider: AppServiceDataProvider,
+        parentNode: NodeBase) {
+        super(label, treeDataProvider, parentNode);
     }
 
     getTreeItem(): TreeItem {
@@ -44,8 +49,12 @@ export class DeploymentSlotNode extends NodeBase {
         opn(deepLink);
     }
 
-    async swapDeploymentSlots(output: OutputChannel, azureAccount: AzureAccountWrapper): Promise<void> {
-        const wizard = new DeploymentSlotSwapper(output, azureAccount, this);
+    async swapDeploymentSlots(output: OutputChannel): Promise<void> {
+        const wizard = new DeploymentSlotSwapper(output, this.azureAccount, this);
         const result = await wizard.run();
     }
+
+    get azureAccount(): AzureAccountWrapper {
+        return this.getTreeDataProvider<AppServiceDataProvider>().azureAccount;
+    }    
 }
