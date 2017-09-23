@@ -5,6 +5,7 @@
 
 import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models';
 import * as opn from 'opn';
+import * as path from 'path';
 import { NodeBase } from './nodeBase';
 import { SubscriptionClient, SubscriptionModels } from 'azure-arm-resource';
 import { TreeDataProvider, TreeItem, TreeItemCollapsibleState, EventEmitter, Event, OutputChannel } from 'vscode';
@@ -22,6 +23,10 @@ export class DeploymentSlotNode extends NodeBase {
             label: this.label,
             collapsibleState: TreeItemCollapsibleState.None,
             contextValue: 'deploymentSlot',
+            iconPath: { 
+                light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'DeploymentSlots_16x_vscode.svg'),
+                dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'DeploymentSlots_16x_vscode.svg')
+            }
         }
     }
 

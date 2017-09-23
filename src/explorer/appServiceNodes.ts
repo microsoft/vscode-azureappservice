@@ -13,6 +13,7 @@ import { DeploymentSlotNode } from './deploymentSlotNodes';
 import { DeploymentSlotsNode } from './deploymentSlotsNodes';
 import { FilesNode } from './filesNodes';
 import { WebJobsNode } from './webJobsNodes';
+import { AppSettingsNode } from './appSettingsNodes';
 import * as path from 'path';
 import * as opn from 'opn';
 import * as util from '../util';
@@ -89,7 +90,8 @@ export class AppServiceNode extends NodeBase {
             new DeploymentSlotsNode(this.site, this.subscription),
             // new FilesNode('Files', '/site/wwwroot', this.site, this.subscription),
             // new FilesNode('Log Files', '/LogFiles', this.site, this.subscription),
-            new WebJobsNode(this.site, this.subscription)
+            new WebJobsNode(this.site, this.subscription),
+            new AppSettingsNode(this.site, this.subscription)
         ];
     }
 
