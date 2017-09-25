@@ -53,7 +53,7 @@ export class SubscriptionNode extends NodeBase {
         return nodes;
     }
 
-    get azureAccount(): AzureAccountWrapper {
+    private get azureAccount(): AzureAccountWrapper {
         return this.getTreeDataProvider<AppServiceDataProvider>().azureAccount;
     }
 }

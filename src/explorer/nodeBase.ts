@@ -6,7 +6,7 @@
 import { TreeDataProvider, TreeItem, TreeItemCollapsibleState } from 'vscode';
 
 export class NodeBase {
-    readonly label: string;
+    public label: string;
 
     protected constructor(label: string, private readonly treeDataProvider: TreeDataProvider<NodeBase>, private readonly parentNode?: NodeBase) {
         this.label = label;

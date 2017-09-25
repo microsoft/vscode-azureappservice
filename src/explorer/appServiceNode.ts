@@ -70,22 +70,22 @@ export class AppServiceNode extends NodeBase {
         opn(deepLink);
     }
 
-    async start(azureAccount: AzureAccountWrapper): Promise<void> {
-        await this.getWebSiteManagementClient(azureAccount).webApps.start(this.site.resourceGroup, this.site.name);
-        return util.waitForWebSiteState(this.getWebSiteManagementClient(azureAccount), this.site, 'running');
+    async start(): Promise<void> {
+        await this.getWebSiteManagementClient(this.azureAccount).webApps.start(this.site.resourceGroup, this.site.name);
+        return util.waitForWebSiteState(this.getWebSiteManagementClient(this.azureAccount), this.site, 'running');
     }
 
-    async stop(azureAccount: AzureAccountWrapper): Promise<void> {
-        await this.getWebSiteManagementClient(azureAccount).webApps.stop(this.site.resourceGroup, this.site.name);
-        return util.waitForWebSiteState(this.getWebSiteManagementClient(azureAccount), this.site, 'stopped');
+    async stop(): Promise<void> {
+        await this.getWebSiteManagementClient(this.azureAccount).webApps.stop(this.site.resourceGroup, this.site.name);
+        return util.waitForWebSiteState(this.getWebSiteManagementClient(this.azureAccount), this.site, 'stopped');
     }
 
-    async restart(azureAccount: AzureAccountWrapper): Promise<void> {
-        await this.stop(azureAccount);
-        return this.start(azureAccount);
+    async restart(): Promise<void> {
+        await this.stop();
+        return this.start();
     }
 
-    get azureAccount(): AzureAccountWrapper {
+    private get azureAccount(): AzureAccountWrapper {
         return this.getTreeDataProvider<AppServiceDataProvider>().azureAccount;
     }
 

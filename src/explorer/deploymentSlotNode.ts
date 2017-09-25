@@ -54,7 +54,7 @@ export class DeploymentSlotNode extends NodeBase {
         const result = await wizard.run();
     }
 
-    get azureAccount(): AzureAccountWrapper {
+    private get azureAccount(): AzureAccountWrapper {
         return this.getTreeDataProvider<AppServiceDataProvider>().azureAccount;
     }    
 }

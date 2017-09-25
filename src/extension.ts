@@ -10,6 +10,7 @@ import * as util from "./util";
 import { AppServiceDataProvider } from './explorer/appServiceExplorer';
 import { NodeBase } from './explorer/nodeBase';
 import { AppServiceNode } from './explorer/appServiceNode';
+import { AppSettingsNode, AppSettingNode } from './explorer/appSettingsNodes';
 import { DeploymentSlotsNode } from './explorer/deploymentSlotsNode';
 import { DeploymentSlotNode } from './explorer/deploymentSlotNode';
 import { SubscriptionNode } from './explorer/subscriptionNode';
@@ -48,19 +49,19 @@ export function activate(context: vscode.ExtensionContext) {
     initAsyncCommand(context,'appService.Start', async (node: AppServiceNode) => {
         if (node) {
             outputChannel.appendLine(`Starting App "${node.site.name}"...`);
-            await node.start(azureAccount).then(() => outputChannel.appendLine(`App "${node.site.name}" has been started.`), err => outputChannel.appendLine(err));
+            await node.start().then(() => outputChannel.appendLine(`App "${node.site.name}" has been started.`), err => outputChannel.appendLine(err));
         }
     });
     initAsyncCommand(context, 'appService.Stop', async (node: AppServiceNode) => {
         if (node) {
             outputChannel.appendLine(`Stopping App "${node.site.name}"...`);
-            await node.stop(azureAccount).then(() => outputChannel.appendLine(`App "${node.site.name}" has been stopped.`), err => outputChannel.appendLine(err));
+            await node.stop().then(() => outputChannel.appendLine(`App "${node.site.name}" has been stopped.`), err => outputChannel.appendLine(err));
         }
     });
     initAsyncCommand(context, 'appService.Restart', async (node: AppServiceNode) => {
         if (node) {
             outputChannel.appendLine(`Restarting App "${node.site.name}"...`);
-            await node.restart(azureAccount).then(() => outputChannel.appendLine(`App "${node.site.name}" has been restarted.`), err => outputChannel.appendLine(err));
+            await node.restart().then(() => outputChannel.appendLine(`App "${node.site.name}" has been restarted.`), err => outputChannel.appendLine(err));
         }
     });
     initAsyncCommand(context, 'appService.CreateWebApp', async (node?: SubscriptionNode) => {
@@ -100,6 +101,21 @@ export function activate(context: vscode.ExtensionContext) {
     initAsyncCommand(context, 'deploymentSlot.SwapSlots', async (node: DeploymentSlotNode) => {
         if (node) {
             await node.swapDeploymentSlots(outputChannel);
+        }
+    });
+    initAsyncCommand(context, 'appSettings.Add', async (node: AppSettingsNode) => {
+        if (node) {
+            await node.addSettingItem();
+        }
+    });
+    initAsyncCommand(context, 'appSettings.Edit', async (node: AppSettingNode) => {
+        if (node) {
+            await node.edit();
+        }
+    });
+    initAsyncCommand(context, 'appSettings.Delete', async (node: AppSettingNode) => {
+        if (node) {
+            await node.delete();
         }
     });
 }

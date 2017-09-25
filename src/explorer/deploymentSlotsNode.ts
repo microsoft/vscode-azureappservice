@@ -59,7 +59,7 @@ export class DeploymentSlotsNode extends NodeBase {
         opn(deepLink);
     }
 
-    get azureAccount(): AzureAccountWrapper {
+    private get azureAccount(): AzureAccountWrapper {
         return this.getTreeDataProvider<AppServiceDataProvider>().azureAccount;
     }
 }
