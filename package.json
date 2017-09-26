@@ -113,12 +113,12 @@
             },
             {
                 "command": "appSettings.Edit",
-                "title": "Edit...",
+                "title": "Edit Setting...",
                 "category": "Azure App Service"
             },
             {
                 "command": "appSettings.Delete",
-                "title": "Delete",
+                "title": "Delete Setting",
                 "category": "Azure App Service"
             }
         ],
