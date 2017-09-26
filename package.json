@@ -87,6 +87,11 @@
                 "category": "Azure App Service"
             },
             {
+                "command": "appService.AppSettings",
+                "title": "Edit Application Settings",
+                "category": "Azure App Service"
+            },
+            {
                 "command": "appService.DeployZipPackage",
                 "title": "Deploy Zip Package to Web App",
                 "category": "Azure App Service"
@@ -180,6 +185,11 @@
                     "group": "3_appServiceDeployCommands@1"
                 },
                 {
+                    "command": "appService.AppSettings",
+                    "when": "view == azureAppService && viewItem == appService",
+                    "group": "3_appServiceDeployCommands@2"
+                },
+                {
                     "command": "appService.OpenInPortal",
                     "when": "view == azureAppService && viewItem == deploymentSlots",
                     "group": "1_deploymentSlotsGeneralCommands@1"
@@ -203,6 +213,11 @@
                     "command": "deploymentSlot.SwapSlots",
                     "when": "view == azureAppService && viewItem == deploymentSlot",
                     "group": "2_deploymentSlotGeneralCommands@2"
+                },
+                {
+                    "command": "appService.AppSettings",
+                    "when": "view == azureAppService && viewItem == deploymentSlot",
+                    "group": "3_deploymentSlotDeployCommands@1"
                 },
                 {
                     "command": "appService.OpenInPortal",
