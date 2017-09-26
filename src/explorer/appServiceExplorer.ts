@@ -3,18 +3,22 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { TreeDataProvider, TreeItem, EventEmitter, Event } from 'vscode';
+import { TreeDataProvider, TreeItemCollapsibleState, TreeItem, EventEmitter, Event } from 'vscode';
 import { AzureAccountWrapper } from '../azureAccountWrapper';
-import { AppServiceNode, SubscriptionNode, NotSignedInNode, LoadingNode } from './appServiceNodes';
+import { AppServiceNode } from './appServiceNode';
+import { SubscriptionNode } from './subscriptionNode';
 import { NodeBase } from './nodeBase';
+import * as util from '../util';
 
 export class AppServiceDataProvider implements TreeDataProvider<NodeBase> {
+    private readonly _azureAccount;
     private _onDidChangeTreeData: EventEmitter<NodeBase> = new EventEmitter<NodeBase>();
     readonly onDidChangeTreeData: Event<NodeBase> = this._onDidChangeTreeData.event;
 
-    constructor(private azureAccount: AzureAccountWrapper) {
-        this.azureAccount.registerSessionsChangedListener(this.onSubscriptionChanged, this);
-        this.azureAccount.registerFiltersChangedListener(this.onSubscriptionChanged, this);
+    constructor(azureAccount: AzureAccountWrapper) {
+        this._azureAccount = azureAccount;
+        this._azureAccount.registerSessionsChangedListener(this.onSubscriptionChanged, this);
+        this._azureAccount.registerFiltersChangedListener(this.onSubscriptionChanged, this);
     }
 
     refresh(element?: NodeBase): void {
@@ -27,24 +31,28 @@ export class AppServiceDataProvider implements TreeDataProvider<NodeBase> {
 
     getChildren(element?: NodeBase): NodeBase[] | Thenable<NodeBase[]> {
         if (this.azureAccount.signInStatus === 'Initializing' || this.azureAccount.signInStatus === 'LoggingIn' ) {
-            return [new LoadingNode()];
+            return [new LoadingNode(this)];
         }
 
         if (this.azureAccount.signInStatus === 'LoggedOut') {
-            return [new NotSignedInNode()];
+            return [new NotSignedInNode(this)];
         }
 
         if (!element) {     // Top level, no parent element.
             return this.getSubscriptions();
         }
 
-        return element.getChildren(this.azureAccount);
+        return element.getChildren();
+    }
+
+    get azureAccount(): AzureAccountWrapper {
+        return this._azureAccount;
     }
 
     private async getSubscriptions(): Promise<SubscriptionNode[]> {
         const subscriptions = await this.azureAccount.getFilteredSubscriptions();
         const nodes = subscriptions.map<SubscriptionNode>((subscription, index, array) =>{
-            return new SubscriptionNode(subscription);
+            return new SubscriptionNode(subscription, this, null);
         });
 
         return nodes;
@@ -52,5 +60,35 @@ export class AppServiceDataProvider implements TreeDataProvider<NodeBase> {
 
     private onSubscriptionChanged() {
         this.refresh();
+    }
+}
+
+export class NotSignedInNode extends NodeBase {
+    constructor(treeDataProvider: AppServiceDataProvider, parentNode?: NodeBase) {
+        super('Sign in to Azure...', treeDataProvider, parentNode);
+    }
+
+    getTreeItem(): TreeItem {
+        return {
+            label: this.label,
+            command: {
+                title: this.label,
+                command: util.getSignInCommandString()
+            },
+            collapsibleState: TreeItemCollapsibleState.None
+        }
+    }
+}
+
+export class LoadingNode extends NodeBase {
+    constructor(treeDataProvider: AppServiceDataProvider, parentNode?: NodeBase) {
+        super('Loading...', treeDataProvider, parentNode);
+    }
+
+    getTreeItem(): TreeItem {
+        return {
+            label: this.label,
+            collapsibleState: TreeItemCollapsibleState.None
+        }
     }
 }

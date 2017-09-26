@@ -35,6 +35,9 @@
         "onCommand:appService.ZipAndDeploy",
         "onCommand:deploymentSlot.SwapSlots",
         "onCommand:deploymentSlot.Browse",
+        "onCommand:appSettings.Add",
+        "onCommand:appSettings.Edit",
+        "onCommand:appSettings.Delete",
         "onView:azureAppService"
     ],
     "main": "./out/src/extension",
@@ -101,6 +104,21 @@
             {
                 "command": "deploymentSlot.Browse",
                 "title": "Browse Deployment Slot",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appSettings.Add",
+                "title": "Add New Setting...",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appSettings.Edit",
+                "title": "Edit Setting...",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appSettings.Delete",
+                "title": "Delete Setting",
                 "category": "Azure App Service"
             }
         ],
@@ -195,6 +213,26 @@
                     "command": "appService.Refresh",
                     "when": "view == azureAppService && viewItem == webJobs",
                     "group": "1_webJobsGeneralCommands@2"
+                },
+                {
+                    "command": "appSettings.Add",
+                    "when": "view == azureAppService && viewItem == applicationSettings",
+                    "group": "1_appSettingsEdit@1"
+                },
+                {
+                    "command": "appService.Refresh",
+                    "when": "view == azureAppService && viewItem == applicationSettings",
+                    "group": "2_appSettingsGeneral@1"
+                },
+                {
+                    "command": "appSettings.Edit",
+                    "when": "view == azureAppService && viewItem == applicationSettingItem",
+                    "group": "1_appSettingItemEdit@1"
+                },
+                {
+                    "command": "appSettings.Delete",
+                    "when": "view == azureAppService && viewItem == applicationSettingItem",
+                    "group": "1_appSettingItemEdit@2"
                 }
             ],
             "explorer/context": [

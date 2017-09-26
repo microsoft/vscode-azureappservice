@@ -10,7 +10,8 @@ import { SubscriptionModels, ResourceManagementClient, ResourceModels } from 'az
 import WebSiteManagementClient = require('azure-arm-website');
 import models = require('azure-arm-website');
 import { NodeBase } from './explorer/nodeBase';
-import { DeploymentSlotNode } from './explorer/deploymentSlotNodes';
+import { DeploymentSlotNode } from './explorer/deploymentSlotNode';
+import { DeploymentSlotsNode } from './explorer/deploymentSlotsNode';
 import * as WebSiteModels from '../node_modules/azure-arm-website/lib/models';
 import * as util from './util';
 
@@ -52,7 +53,7 @@ class SwapStep extends WizardStep {
     }
 
     async prompt(): Promise<void> {
-        const deploymentSlots: DeploymentSlotNode[] = await this.slot.parent.getChildren(this.azureAccount);
+        const deploymentSlots: DeploymentSlotNode[] = await this.slot.getParentNode<DeploymentSlotsNode>().getChildren();
         let otherSlots: QuickPickItemWithData<null>[] = [];
 
         for (let slot of deploymentSlots) {

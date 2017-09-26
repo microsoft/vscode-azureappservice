@@ -5,6 +5,7 @@
 
 import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models';
 import { NodeBase } from './nodeBase';
+import { AppServiceDataProvider } from './appServiceExplorer';
 import { SubscriptionModels } from 'azure-arm-resource';
 import { TreeDataProvider, TreeItem, TreeItemCollapsibleState, EventEmitter, Event, OutputChannel } from 'vscode';
 import { AzureAccountWrapper } from '../azureAccountWrapper';
@@ -14,8 +15,13 @@ import * as util from '../util';
 
 
 export class FilesNode extends NodeBase {
-    constructor(readonly label: string, readonly path: string, readonly site: WebSiteModels.Site, readonly subscription: SubscriptionModels.Subscription) {
-        super(label);
+    constructor(readonly label: string, 
+        readonly path: string, 
+        readonly site: WebSiteModels.Site, 
+        readonly subscription: SubscriptionModels.Subscription,
+        treeDataProvider: AppServiceDataProvider,
+        parentNode: NodeBase) {
+        super(label, treeDataProvider, parentNode);
     }
 
     getTreeItem(): TreeItem {
@@ -29,9 +35,9 @@ export class FilesNode extends NodeBase {
         }
     }
 
-    async getChildren(azureAccount: AzureAccountWrapper): Promise<NodeBase[]> {
+    async getChildren(): Promise<NodeBase[]> {
         let nodes = [];
-        let user = await util.getWebAppPublishCredential(azureAccount, this.subscription, this.site);
+        let user = await util.getWebAppPublishCredential(this.azureAccount, this.subscription, this.site);
         let kuduClient = new KuduClient(this.site.name, user.publishingUserName, user.publishingPassword);
         
         let files : kuduFile[] = await kuduClient.listFiles(this.path);
@@ -44,10 +50,17 @@ export class FilesNode extends NodeBase {
             }
             // vfs.listFiles searches for a relative path file
 
-            let node = file.mime === "inode/directory" ? new FilesNode(file.name, path, this.site, this.subscription) : new NodeBase(file.name);            
+            const treeDataProvider = this.getTreeDataProvider<AppServiceDataProvider>();
+            let node = file.mime === "inode/directory" ? 
+                new FilesNode(file.name, path, this.site, this.subscription, treeDataProvider, this) : 
+                new NodeBase(file.name, treeDataProvider, this);            
             nodes.push(node);
         }
 
         return nodes;
+    }
+
+    private get azureAccount(): AzureAccountWrapper {
+        return this.getTreeDataProvider<AppServiceDataProvider>().azureAccount;
     }
 }
