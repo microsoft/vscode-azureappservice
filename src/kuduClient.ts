@@ -82,7 +82,7 @@ export class KuduClient {
         });
     }
 
-    zipUpload(zipFilePath: string, remoteFolder: string) {
+    zipUpload(zipFilePath: string, remoteFolder: string): Promise<void> {
         return new Promise((resolve, reject) => {
             this._api.zip.upload(zipFilePath, remoteFolder, (err, body, response) => {
                 if (err) {
