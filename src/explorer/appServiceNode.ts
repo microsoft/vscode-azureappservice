@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { TreeDataProvider, TreeItem, TreeItemCollapsibleState, EventEmitter, Event, OutputChannel } from 'vscode';
+import { TreeDataProvider, TreeItem, TreeItemCollapsibleState, EventEmitter, Event, workspace, window } from 'vscode';
 import { AzureAccountWrapper } from '../azureAccountWrapper';
 import { SubscriptionModels } from 'azure-arm-resource';
 import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models';
@@ -89,7 +89,55 @@ export class AppServiceNode extends NodeBase {
         return this.getTreeDataProvider<AppServiceDataProvider>().azureAccount;
     }
 
+    async localGitDeploy(azureAccount): Promise<boolean> {
+        const publishCredentials = await this.getWebSiteManagementClient(azureAccount).webApps.listPublishingCredentials(this.site.resourceGroup, this.site.name);
+        const config = await this.getWebSiteManagementClient(azureAccount).webApps.getConfiguration(this.site.resourceGroup, this.site.name);
+        const oldDeployment = await this.getWebSiteManagementClient(azureAccount).webApps.listDeployments(this.site.resourceGroup, this.site.name);
+        if (config.scmType !== 'LocalGit') {    
+            await window.showErrorMessage(`Local Git Deployment is not set up. Set it up in the Azure Portal.`, `Go to Portal`)
+            .then(input => {
+                if (input === 'Go to Portal') {
+                    const deepLink = `https://ms.portal.azure.com/#resource${config.id.substring(0, config.id.indexOf('/config/web'))}/DeploymentSource`
+                    opn(deepLink);   
+                }
+            });
+            return;
+        }
+
+        const username = publishCredentials.publishingUserName;
+        const password = publishCredentials.publishingPassword;
+        const repo = `${this.site.enabledHostNames[1]}:443/${this.site.repositorySiteName}.git`;
+        const remote = `https://${username}:${password}@${repo}`;
+    
+        let git = require('simple-git/promise')(workspace.rootPath);
+        
+        git.init()
+        .catch(async err => {
+            await window.showErrorMessage(`Git must be installed to use Local Git Deploy.`, `Install`) 
+            .then(input => {
+                if (input === 'Install') {
+                    opn(`https://git-scm.com/downloads`);
+                }
+            });
+            return;
+        })
+        git.add('./*');
+        git.commit('Deployed through VS Code')
+        git.push(['-f', remote, 'master'])
+        .then(async (err, res) => {
+            const newDeployments =  await this.getWebSiteManagementClient(azureAccount).webApps.listDeployments(this.site.resourceGroup, this.site.name);
+            // weird logic here
+            if (newDeployments[0] === oldDeployment[0]) {
+                console.log(`it's not a new deployment`)
+                await window.showWarningMessage(`No new commit to deploy to Local Git, "${repo}"`);
+                return;
+            }
+            return true;
+        })
+    }
+
     private getWebSiteManagementClient(azureAccount: AzureAccountWrapper) {
         return new WebSiteManagementClient(azureAccount.getCredentialByTenantId(this.subscription.tenantId), this.subscription.subscriptionId);
     }
 }
+
