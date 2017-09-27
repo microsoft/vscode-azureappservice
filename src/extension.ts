@@ -95,7 +95,7 @@ export function activate(context: vscode.ExtensionContext) {
     });
     initAsyncCommand(context, 'appService.LocalGitDeploy', async (node: any) => {
         if (node instanceof AppServiceNode) {
-            outputChannel.appendLine(`Deploying Local Git Repository to "${node.site.name}"...`);
+            outputChannel.appendLine(`Deploying Local Git repository to "${node.site.name}"...`);
             const deployment = await node.localGitDeploy(azureAccount);
             if (deployment) {
                 outputChannel.appendLine('Deployment completed.');

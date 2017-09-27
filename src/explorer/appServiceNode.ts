@@ -49,7 +49,7 @@ export class AppServiceNode extends NodeBase {
         // https://github.com/Microsoft/vscode-azureappservice/issues/45
         return [
             new DeploymentSlotsNode(this.site, this.subscription, treeDataProvider, this),
-            // new FilesNode('Files', '/site/wwwroot', this.site, this.subscription),
+            // new FilesNode('Files', '/site/wwwroot', this.site, this.subscription, treeDataProvider, this),
             // new FilesNode('Log Files', '/LogFiles', this.site, this.subscription),
             new WebJobsNode(this.site, this.subscription, treeDataProvider, this),
             new AppSettingsNode(this.site, this.subscription, treeDataProvider, this)
@@ -96,8 +96,7 @@ export class AppServiceNode extends NodeBase {
         if (config.scmType !== 'LocalGit') {
             let input = await window.showErrorMessage(`Local Git Deployment is not set up. Set it up in the Azure Portal.`, `Go to Portal`)
             if (input === 'Go to Portal') {
-                const deepLink = `https://ms.portal.azure.com/#resource${config.id.substring(0, config.id.indexOf('/config/web'))}/DeploymentSource`
-                opn(deepLink);
+                this.openInPortal();
             }
             return;
         }
@@ -109,22 +108,30 @@ export class AppServiceNode extends NodeBase {
 
         let git = require('simple-git/promise')(workspace.rootPath);
 
-        await git.init()
-            .catch(err => {
-                window.showErrorMessage(`Git must be installed to use Local Git Deploy.`, `Install`)
-                    .then(input => {
-                        if (input === 'Install') {
-                            opn(`https://git-scm.com/downloads`);
-                        }
-                    });
+        try {
+            await git.init()
+            await git.push(remote, 'master')
+        }
+        catch (err) {
+            if (err.message.indexOf('spawn git ENOENT') >= 0) {
+                let input = await window.showErrorMessage(`Git must be installed to use Local Git Deploy.`, `Install`)
+                if (input === 'Install') {
+                    opn(`https://git-scm.com/downloads`);
+                }
                 return;
-            })
-        git.add('./*');
-        git.commit('Deployed through VS Code');
-        await git.push(['-f', remote, 'master']);
+            } else if (err.message.indexOf('error: failed to push') >= 0) {
+                let input = await window.showErrorMessage(`Push rejected due to Git history diverging. Force push?`, `Yes`)
+                if (input === 'Yes') {
+                    await git.push(['-f', remote, 'master']);
+                } else {
+                    return;
+                }
+            }
+        }
+
         const newDeployment = await this.getWebSiteManagementClient(azureAccount).webApps.listDeployments(this.site.resourceGroup, this.site.name);
         if (newDeployment[0].deploymentId === oldDeployment[0].deploymentId) {
-            await window.showWarningMessage(`No new commit to deploy to Local Git repo, "${repo}"`);
+            await window.showWarningMessage(`Local Git repo is current with "${repo}".`);
             return;
         }
         return true;
