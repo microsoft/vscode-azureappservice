@@ -38,6 +38,7 @@
         "onCommand:appSettings.Add",
         "onCommand:appSettings.Edit",
         "onCommand:appSettings.Delete",
+        "onCommand:diagnostics.OpenLogStream",
         "onView:azureAppService"
     ],
     "main": "./out/src/extension",
@@ -120,6 +121,11 @@
                 "command": "appSettings.Delete",
                 "title": "Delete Setting",
                 "category": "Azure App Service"
+            },
+            {
+                "command": "diagnostics.OpenLogStream",
+                "title": "View Streaming Logs",
+                "category": "Azure App Service"
             }
         ],
         "views": {
@@ -180,6 +186,11 @@
                     "group": "3_appServiceDeployCommands@1"
                 },
                 {
+                    "command": "diagnostics.OpenLogStream",
+                    "when": "view == azureAppService && viewItem == appService",
+                    "group": "4_appServiceDiagnosticsCommands@1"
+                },
+                {
                     "command": "appService.OpenInPortal",
                     "when": "view == azureAppService && viewItem == deploymentSlots",
                     "group": "1_deploymentSlotsGeneralCommands@1"
@@ -203,6 +214,11 @@
                     "command": "deploymentSlot.SwapSlots",
                     "when": "view == azureAppService && viewItem == deploymentSlot",
                     "group": "2_deploymentSlotGeneralCommands@2"
+                },
+                {
+                    "command": "diagnostics.OpenLogStream",
+                    "when": "view == azureAppService && viewItem == deploymentSlot",
+                    "group": "4_deploymentSlotDiagnosticsCommands@1"
                 },
                 {
                     "command": "appService.OpenInPortal",
