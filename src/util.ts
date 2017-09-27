@@ -65,11 +65,10 @@ export function extractDeploymentSlotName(site: WebSiteModels.Site): string {
 
 export function getWebAppPublishCredential(azureAccount: AzureAccountWrapper, subscription: SubscriptionModels.Subscription, site: WebSiteModels.Site): Promise<WebSiteModels.User> {
     const credentials = azureAccount.getCredentialByTenantId(subscription.tenantId);
-    const websiteClient = new WebSiteManagementClient(credentials, subscription.subscriptionId);
+    const webApps = new WebSiteManagementClient(credentials, subscription.subscriptionId).webApps;
     const siteName = extractSiteName(site);
     const slotName = extractDeploymentSlotName(site);
-    return isSiteDeploymentSlot(site) ? websiteClient.webApps.listPublishingCredentialsSlot(site.resourceGroup, siteName, slotName) :
-        websiteClient.webApps.listPublishingCredentials(site.resourceGroup, siteName);
+    return isSiteDeploymentSlot(site) ? webApps.listPublishingCredentialsSlot(site.resourceGroup, siteName, slotName) : webApps.listPublishingCredentials(site.resourceGroup, siteName);
 }
 
 // Output channel for the extension

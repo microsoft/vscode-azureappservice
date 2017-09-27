@@ -130,6 +130,10 @@ export function activate(context: vscode.ExtensionContext) {
 
             kuduClient.getLogStream().on('data', chunk => {
                 c.append(chunk.toString());
+            }).on('error', err => {
+                c.append(err.message);
+            }).on('complete', (resp, body) => {
+                c.appendLine('Log stream closed.');
             });
         }
     });
