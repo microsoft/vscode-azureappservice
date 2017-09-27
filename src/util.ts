@@ -50,10 +50,26 @@ export function getSignInCommandString(): string {
     return 'azure-account.login';
 }
 
+// Web app & deployment slots
+export function isSiteDeploymentSlot(site: WebSiteModels.Site): boolean {
+    return site.type.toLowerCase() === 'microsoft.web/sites/slots';
+}
+
+export function extractSiteName(site: WebSiteModels.Site): string {
+    return isSiteDeploymentSlot(site) ? site.name.substring(0, site.name.lastIndexOf('/')) : site.name;
+}
+
+export function extractDeploymentSlotName(site: WebSiteModels.Site): string {
+    return isSiteDeploymentSlot(site) ? site.name.substring(site.name.lastIndexOf('/') + 1) : null;
+}
+
 export function getWebAppPublishCredential(azureAccount: AzureAccountWrapper, subscription: SubscriptionModels.Subscription, site: WebSiteModels.Site): Promise<WebSiteModels.User> {
     const credentials = azureAccount.getCredentialByTenantId(subscription.tenantId);
     const websiteClient = new WebSiteManagementClient(credentials, subscription.subscriptionId);
-    return websiteClient.webApps.listPublishingCredentials(site.resourceGroup, site.name);
+    const siteName = extractSiteName(site);
+    const slotName = extractDeploymentSlotName(site);
+    return isSiteDeploymentSlot(site) ? websiteClient.webApps.listPublishingCredentialsSlot(site.resourceGroup, siteName, slotName) :
+        websiteClient.webApps.listPublishingCredentials(site.resourceGroup, siteName);
 }
 
 // Output channel for the extension
@@ -82,7 +98,7 @@ export function errToString(error: any): string {
         });
     }
 
-    if (typeof(error) === 'object') {
+    if (typeof (error) === 'object') {
         return JSON.stringify({
             'object': error.constructor.name
         });

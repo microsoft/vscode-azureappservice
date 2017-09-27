@@ -20,7 +20,7 @@ import { WebAppCreator } from './webAppCreator';
 import { WebAppZipPublisher } from './webAppZipPublisher';
 import { Reporter } from './telemetry/reporter';
 import { DeploymentSlotSwapper } from './deploymentSlotActions';
-
+import { KuduClient } from './kuduClient';
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Extension "Azure App Service Tools" is now active.');
@@ -46,7 +46,7 @@ export function activate(context: vscode.ExtensionContext) {
             node.openInPortal();
         }
     });
-    initAsyncCommand(context,'appService.Start', async (node: AppServiceNode) => {
+    initAsyncCommand(context, 'appService.Start', async (node: AppServiceNode) => {
         if (node) {
             outputChannel.appendLine(`Starting App "${node.site.name}"...`);
             await node.start().then(() => outputChannel.appendLine(`App "${node.site.name}" has been started.`), err => outputChannel.appendLine(err));
@@ -69,15 +69,15 @@ export function activate(context: vscode.ExtensionContext) {
         if (node) {
             subscription = node.subscription;
         }
-        
+
         const wizard = new WebAppCreator(outputChannel, azureAccount, subscription);
         const result = await wizard.run();
-        
+
         if (result.status === 'Completed') {
             vscode.commands.executeCommand('appService.Refresh', node);
         }
     });
-    initAsyncCommand(context,'appService.DeployZipPackage', async (context: any) => {
+    initAsyncCommand(context, 'appService.DeployZipPackage', async (context: any) => {
         if (context instanceof AppServiceNode) {
             const wizard = new WebAppZipPublisher(outputChannel, azureAccount, context.subscription, context.site);
             await wizard.run();
@@ -116,6 +116,21 @@ export function activate(context: vscode.ExtensionContext) {
     initAsyncCommand(context, 'appSettings.Delete', async (node: AppSettingNode) => {
         if (node) {
             await node.delete();
+        }
+    });
+    initAsyncCommand(context, 'diagnostics.OpenLogStream', async (node: NodeBase) => {
+        if (node instanceof AppServiceNode || node instanceof DeploymentSlotNode) {
+            const siteName = util.extractSiteName(node.site) + (util.isSiteDeploymentSlot(node.site) ? '-' + util.extractDeploymentSlotName(node.site) : '');
+            const user = await util.getWebAppPublishCredential(azureAccount, node.subscription, node.site);
+            const kuduClient = new KuduClient(siteName, user.publishingUserName, user.publishingPassword);
+
+            const c = vscode.window.createOutputChannel(`${siteName} - Log Stream`);
+            c.appendLine('Connecting to log-streaming service...')
+            c.show(true);
+
+            kuduClient.getLogStream().on('data', chunk => {
+                c.append(chunk.toString());
+            });
         }
     });
 }
