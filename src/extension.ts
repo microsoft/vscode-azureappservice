@@ -46,7 +46,7 @@ export function activate(context: vscode.ExtensionContext) {
             node.openInPortal();
         }
     });
-    initAsyncCommand(context,'appService.Start', async (node: AppServiceNode) => {
+    initAsyncCommand(context, 'appService.Start', async (node: AppServiceNode) => {
         if (node) {
             outputChannel.appendLine(`Starting App "${node.site.name}"...`);
             await node.start().then(() => outputChannel.appendLine(`App "${node.site.name}" has been started.`), err => outputChannel.appendLine(err));
@@ -67,17 +67,13 @@ export function activate(context: vscode.ExtensionContext) {
     initAsyncCommand(context, 'appService.Delete', async (node: AppServiceNode) => {
         if (node) {
             outputChannel.appendLine(`Deleting App "${node.site.name}"...`);
-            await node.delete(azureAccount).then((result) => {
-                if (result) {
-                    outputChannel.appendLine(`App "${node.site.name}" has been deleted.`), err => outputChannel.appendLine(err);
-                    appServiceDataProvider.refresh();
-                } else {
-                    console.log(result);
-                }
-                
+            let result = await node.delete(azureAccount);
+            if (result) {
+                outputChannel.appendLine(`App "${node.site.name}" has been deleted.`), err => outputChannel.appendLine(err);
+                appServiceDataProvider.refresh(node.getParentNode());
+            } else {
+                outputChannel.appendLine('Delete was canceled.');
             }
-        );
-            
         }
     });
     initAsyncCommand(context, 'appService.CreateWebApp', async (node?: SubscriptionNode) => {
@@ -85,15 +81,15 @@ export function activate(context: vscode.ExtensionContext) {
         if (node) {
             subscription = node.subscription;
         }
-        
+
         const wizard = new WebAppCreator(outputChannel, azureAccount, subscription);
         const result = await wizard.run();
-        
+
         if (result.status === 'Completed') {
             vscode.commands.executeCommand('appService.Refresh', node);
         }
     });
-    initAsyncCommand(context,'appService.DeployZipPackage', async (context: any) => {
+    initAsyncCommand(context, 'appService.DeployZipPackage', async (context: any) => {
         if (context instanceof AppServiceNode) {
             const wizard = new WebAppZipPublisher(outputChannel, azureAccount, context.subscription, context.site);
             await wizard.run();
