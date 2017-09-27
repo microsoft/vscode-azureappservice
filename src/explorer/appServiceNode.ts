@@ -3,12 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { TreeDataProvider, TreeItem, TreeItemCollapsibleState, EventEmitter, Event, OutputChannel } from 'vscode';
+import { TreeDataProvider, TreeItem, TreeItemCollapsibleState } from 'vscode';
 import { AzureAccountWrapper } from '../azureAccountWrapper';
 import { SubscriptionModels } from 'azure-arm-resource';
 import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models';
 import { AppServiceDataProvider } from './appServiceExplorer';
 import { NodeBase } from './nodeBase';
+import { SiteNodeBase } from './siteNodeBase';
 import { DeploymentSlotNode } from './deploymentSlotNode';
 import { DeploymentSlotsNode } from './deploymentSlotsNode';
 import { FilesNode } from './filesNodes';
@@ -16,22 +17,21 @@ import { WebJobsNode } from './webJobsNode';
 import { AppSettingsNode } from './appSettingsNodes';
 import WebSiteManagementClient = require('azure-arm-website');
 import * as path from 'path';
-import * as opn from 'opn';
 import * as util from '../util';
 
-export class AppServiceNode extends NodeBase {
-    constructor(readonly site: WebSiteModels.Site, readonly subscription: SubscriptionModels.Subscription, treeDataProvider: AppServiceDataProvider, parentNode: NodeBase) {
-        super(site.name, treeDataProvider, parentNode);
+export class AppServiceNode extends SiteNodeBase {
+    constructor(site: WebSiteModels.Site, subscription: SubscriptionModels.Subscription, treeDataProvider: AppServiceDataProvider, parentNode: NodeBase) {
+        super(site.name, site, subscription, treeDataProvider, parentNode);
     }
 
     getTreeItem(): TreeItem {
         if (!this.site.kind.startsWith('functionapp')) {
-            let iconName =  'AzureWebsite_16x_vscode.svg';
+            const iconName = 'AzureWebsite_16x_vscode.svg';
             return {
                 label: `${this.label} (${this.site.resourceGroup})`,
                 collapsibleState: TreeItemCollapsibleState.Collapsed,
                 contextValue: 'appService',
-                iconPath: { 
+                iconPath: {
                     light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', iconName),
                     dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', iconName)
                 }
@@ -43,7 +43,7 @@ export class AppServiceNode extends NodeBase {
         if (this.azureAccount.signInStatus !== 'LoggedIn') {
             return [];
         }
-        
+
         const treeDataProvider = this.getTreeDataProvider<AppServiceDataProvider>();
 
         // https://github.com/Microsoft/vscode-azureappservice/issues/45
@@ -54,20 +54,6 @@ export class AppServiceNode extends NodeBase {
             new WebJobsNode(this.site, this.subscription, treeDataProvider, this),
             new AppSettingsNode(this.site, this.subscription, treeDataProvider, this)
         ];
-    }
-
-    browse(): void {
-        const defaultHostName = this.site.defaultHostName;
-        const isSsl = this.site.hostNameSslStates.findIndex((value, index, arr) => 
-            value.name === defaultHostName && value.sslState === "Enabled");
-        const uri = `${isSsl ? 'https://' : 'http://'}${defaultHostName}`;
-        opn(uri);
-    }
-
-    openInPortal(): void {
-        const portalEndpoint = 'https://portal.azure.com';
-        const deepLink = `${portalEndpoint}/${this.subscription.tenantId}/#resource${this.site.id}`;
-        opn(deepLink);
     }
 
     async start(): Promise<void> {
@@ -83,10 +69,6 @@ export class AppServiceNode extends NodeBase {
     async restart(): Promise<void> {
         await this.stop();
         return this.start();
-    }
-
-    private get azureAccount(): AzureAccountWrapper {
-        return this.getTreeDataProvider<AppServiceDataProvider>().azureAccount;
     }
 
     private getWebSiteManagementClient(azureAccount: AzureAccountWrapper) {

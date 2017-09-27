@@ -9,6 +9,7 @@ import * as vscode from 'vscode';
 import * as util from "./util";
 import { AppServiceDataProvider } from './explorer/appServiceExplorer';
 import { NodeBase } from './explorer/nodeBase';
+import { SiteNodeBase } from './explorer/siteNodeBase';
 import { AppServiceNode } from './explorer/appServiceNode';
 import { AppSettingsNode, AppSettingNode } from './explorer/appSettingsNodes';
 import { DeploymentSlotsNode } from './explorer/deploymentSlotsNode';
@@ -20,7 +21,6 @@ import { WebAppCreator } from './webAppCreator';
 import { WebAppZipPublisher } from './webAppZipPublisher';
 import { Reporter } from './telemetry/reporter';
 import { DeploymentSlotSwapper } from './deploymentSlotActions';
-import { KuduClient } from './kuduClient';
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Extension "Azure App Service Tools" is now active.');
@@ -36,7 +36,7 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.window.registerTreeDataProvider('azureAppService', appServiceDataProvider));
 
     initCommand(context, 'appService.Refresh', (node?: NodeBase) => appServiceDataProvider.refresh(node));
-    initCommand(context, 'appService.Browse', (node: AppServiceNode) => {
+    initCommand(context, 'appService.Browse', (node: SiteNodeBase) => {
         if (node) {
             node.browse();
         }
@@ -93,11 +93,6 @@ export function activate(context: vscode.ExtensionContext) {
             await wizard.run();
         }
     });
-    initCommand(context, 'deploymentSlot.Browse', (node: DeploymentSlotNode) => {
-        if (node) {
-            node.browse();
-        }
-    });
     initAsyncCommand(context, 'deploymentSlot.SwapSlots', async (node: DeploymentSlotNode) => {
         if (node) {
             await node.swapDeploymentSlots(outputChannel);
@@ -118,23 +113,9 @@ export function activate(context: vscode.ExtensionContext) {
             await node.delete();
         }
     });
-    initAsyncCommand(context, 'diagnostics.OpenLogStream', async (node: NodeBase) => {
-        if (node instanceof AppServiceNode || node instanceof DeploymentSlotNode) {
-            const siteName = util.extractSiteName(node.site) + (util.isSiteDeploymentSlot(node.site) ? '-' + util.extractDeploymentSlotName(node.site) : '');
-            const user = await util.getWebAppPublishCredential(azureAccount, node.subscription, node.site);
-            const kuduClient = new KuduClient(siteName, user.publishingUserName, user.publishingPassword);
-
-            const c = vscode.window.createOutputChannel(`${siteName} - Log Stream`);
-            c.appendLine('Connecting to log-streaming service...')
-            c.show(true);
-
-            kuduClient.getLogStream().on('data', chunk => {
-                c.append(chunk.toString());
-            }).on('error', err => {
-                c.append(err.message);
-            }).on('complete', (resp, body) => {
-                c.appendLine('Log stream closed.');
-            });
+    initAsyncCommand(context, 'diagnostics.OpenLogStream', async (node: SiteNodeBase) => {
+        if (node) {
+            await node.connectToLogStream(context);
         }
     });
 }

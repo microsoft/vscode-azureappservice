@@ -34,7 +34,6 @@
         "onCommand:appService.DeployZipPackage",
         "onCommand:appService.ZipAndDeploy",
         "onCommand:deploymentSlot.SwapSlots",
-        "onCommand:deploymentSlot.Browse",
         "onCommand:appSettings.Add",
         "onCommand:appSettings.Edit",
         "onCommand:appSettings.Delete",
@@ -100,11 +99,6 @@
             {
                 "command": "deploymentSlot.SwapSlots",
                 "title": "Swap Deployment Slot",
-                "category": "Azure App Service"
-            },
-            {
-                "command": "deploymentSlot.Browse",
-                "title": "Browse Deployment Slot",
                 "category": "Azure App Service"
             },
             {
@@ -211,7 +205,7 @@
                     "group": "1_deploymentSlotGeneralCommands@1"
                 },
                 {
-                    "command": "deploymentSlot.Browse",
+                    "command": "appService.Browse",
                     "when": "view == azureAppService && viewItem == deploymentSlot",
                     "group": "1_deploymentSlotGeneralCommands@2"
                 },
