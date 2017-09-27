@@ -26,12 +26,12 @@ export class AppServiceNode extends NodeBase {
 
     getTreeItem(): TreeItem {
         if (!this.site.kind.startsWith('functionapp')) {
-            let iconName =  'AzureWebsite_16x_vscode.svg';
+            let iconName = 'AzureWebsite_16x_vscode.svg';
             return {
                 label: `${this.label} (${this.site.resourceGroup})`,
                 collapsibleState: TreeItemCollapsibleState.Collapsed,
                 contextValue: 'appService',
-                iconPath: { 
+                iconPath: {
                     light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', iconName),
                     dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', iconName)
                 }
@@ -43,7 +43,7 @@ export class AppServiceNode extends NodeBase {
         if (this.azureAccount.signInStatus !== 'LoggedIn') {
             return [];
         }
-        
+
         const treeDataProvider = this.getTreeDataProvider<AppServiceDataProvider>();
 
         // https://github.com/Microsoft/vscode-azureappservice/issues/45
@@ -58,7 +58,7 @@ export class AppServiceNode extends NodeBase {
 
     browse(): void {
         const defaultHostName = this.site.defaultHostName;
-        const isSsl = this.site.hostNameSslStates.findIndex((value, index, arr) => 
+        const isSsl = this.site.hostNameSslStates.findIndex((value, index, arr) =>
             value.name === defaultHostName && value.sslState === "Enabled");
         const uri = `${isSsl ? 'https://' : 'http://'}${defaultHostName}`;
         opn(uri);
@@ -93,14 +93,12 @@ export class AppServiceNode extends NodeBase {
         const publishCredentials = await this.getWebSiteManagementClient(azureAccount).webApps.listPublishingCredentials(this.site.resourceGroup, this.site.name);
         const config = await this.getWebSiteManagementClient(azureAccount).webApps.getConfiguration(this.site.resourceGroup, this.site.name);
         const oldDeployment = await this.getWebSiteManagementClient(azureAccount).webApps.listDeployments(this.site.resourceGroup, this.site.name);
-        if (config.scmType !== 'LocalGit') {    
-            await window.showErrorMessage(`Local Git Deployment is not set up. Set it up in the Azure Portal.`, `Go to Portal`)
-            .then(input => {
-                if (input === 'Go to Portal') {
-                    const deepLink = `https://ms.portal.azure.com/#resource${config.id.substring(0, config.id.indexOf('/config/web'))}/DeploymentSource`
-                    opn(deepLink);   
-                }
-            });
+        if (config.scmType !== 'LocalGit') {
+            let input = await window.showErrorMessage(`Local Git Deployment is not set up. Set it up in the Azure Portal.`, `Go to Portal`)
+            if (input === 'Go to Portal') {
+                const deepLink = `https://ms.portal.azure.com/#resource${config.id.substring(0, config.id.indexOf('/config/web'))}/DeploymentSource`
+                opn(deepLink);
+            }
             return;
         }
 
@@ -108,32 +106,29 @@ export class AppServiceNode extends NodeBase {
         const password = publishCredentials.publishingPassword;
         const repo = `${this.site.enabledHostNames[1]}:443/${this.site.repositorySiteName}.git`;
         const remote = `https://${username}:${password}@${repo}`;
-    
+
         let git = require('simple-git/promise')(workspace.rootPath);
-        
-        git.init()
-        .catch(async err => {
-            await window.showErrorMessage(`Git must be installed to use Local Git Deploy.`, `Install`) 
-            .then(input => {
-                if (input === 'Install') {
-                    opn(`https://git-scm.com/downloads`);
-                }
-            });
-            return;
-        })
-        git.add('./*');
-        git.commit('Deployed through VS Code')
-        git.push(['-f', remote, 'master'])
-        .then(async (err, res) => {
-            const newDeployments =  await this.getWebSiteManagementClient(azureAccount).webApps.listDeployments(this.site.resourceGroup, this.site.name);
-            // weird logic here
-            if (newDeployments[0] === oldDeployment[0]) {
-                console.log(`it's not a new deployment`)
-                await window.showWarningMessage(`No new commit to deploy to Local Git, "${repo}"`);
+
+        await git.init()
+            .catch(err => {
+                window.showErrorMessage(`Git must be installed to use Local Git Deploy.`, `Install`)
+                    .then(input => {
+                        if (input === 'Install') {
+                            opn(`https://git-scm.com/downloads`);
+                        }
+                    });
                 return;
-            }
-            return true;
-        })
+            })
+        git.add('./*');
+        git.commit('Deployed through VS Code');
+        await git.push(['-f', remote, 'master']);
+        const newDeployment = await this.getWebSiteManagementClient(azureAccount).webApps.listDeployments(this.site.resourceGroup, this.site.name);
+        if (newDeployment[0].deploymentId === oldDeployment[0].deploymentId) {
+            await window.showWarningMessage(`No new commit to deploy to Local Git repo, "${repo}"`);
+            return;
+        }
+        return true;
+
     }
 
     private getWebSiteManagementClient(azureAccount: AzureAccountWrapper) {

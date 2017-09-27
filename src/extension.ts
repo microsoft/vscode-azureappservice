@@ -46,7 +46,7 @@ export function activate(context: vscode.ExtensionContext) {
             node.openInPortal();
         }
     });
-    initAsyncCommand(context,'appService.Start', async (node: AppServiceNode) => {
+    initAsyncCommand(context, 'appService.Start', async (node: AppServiceNode) => {
         if (node) {
             outputChannel.appendLine(`Starting App "${node.site.name}"...`);
             await node.start().then(() => outputChannel.appendLine(`App "${node.site.name}" has been started.`), err => outputChannel.appendLine(err));
@@ -69,15 +69,15 @@ export function activate(context: vscode.ExtensionContext) {
         if (node) {
             subscription = node.subscription;
         }
-        
+
         const wizard = new WebAppCreator(outputChannel, azureAccount, subscription);
         const result = await wizard.run();
-        
+
         if (result.status === 'Completed') {
             vscode.commands.executeCommand('appService.Refresh', node);
         }
     });
-    initAsyncCommand(context,'appService.DeployZipPackage', async (context: any) => {
+    initAsyncCommand(context, 'appService.DeployZipPackage', async (context: any) => {
         if (context instanceof AppServiceNode) {
             const wizard = new WebAppZipPublisher(outputChannel, azureAccount, context.subscription, context.site);
             await wizard.run();
@@ -97,7 +97,11 @@ export function activate(context: vscode.ExtensionContext) {
         if (node instanceof AppServiceNode) {
             outputChannel.appendLine(`Deploying Local Git Repository to "${node.site.name}"...`);
             const deployment = await node.localGitDeploy(azureAccount);
-            outputChannel.appendLine(`${deployment}`);
+            if (deployment) {
+                outputChannel.appendLine('Deployment completed.');
+            } else {
+                outputChannel.appendLine('Deployment failed.');
+            }
         }
     });
     initCommand(context, 'deploymentSlot.Browse', (node: DeploymentSlotNode) => {
