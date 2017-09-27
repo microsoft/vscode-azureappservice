@@ -115,7 +115,11 @@ export function activate(context: vscode.ExtensionContext) {
         if (node instanceof AppServiceNode) {
             outputChannel.appendLine(`Deploying Local Git Repository to "${node.site.name}"...`);
             const deployment = await node.localGitDeploy(azureAccount);
-            outputChannel.appendLine(`${deployment}`);
+            if (deployment) {
+                outputChannel.appendLine('Deployment completed.');
+            } else {
+                outputChannel.appendLine('Deployment failed.');
+            }
         }
     });
     initAsyncCommand(context, 'deploymentSlot.SwapSlots', async (node: DeploymentSlotNode) => {
