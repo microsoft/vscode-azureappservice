@@ -111,6 +111,13 @@ export function activate(context: vscode.ExtensionContext) {
             await wizard.run();
         }
     });
+    initAsyncCommand(context, 'appService.LocalGitDeploy', async (node: any) => {
+        if (node instanceof AppServiceNode) {
+            outputChannel.appendLine(`Deploying Local Git Repository to "${node.site.name}"...`);
+            const deployment = await node.localGitDeploy(azureAccount);
+            outputChannel.appendLine(`${deployment}`);
+        }
+    });
     initAsyncCommand(context, 'deploymentSlot.SwapSlots', async (node: DeploymentSlotNode) => {
         if (node) {
             await node.swapDeploymentSlots(outputChannel);
