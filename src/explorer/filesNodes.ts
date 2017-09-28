@@ -12,12 +12,12 @@ import { AzureAccountWrapper } from '../azureAccountWrapper';
 import * as path from 'path';
 import { KuduClient, kuduFile } from '../kuduClient';
 import * as util from '../util';
-
+import WebSiteManagementClient = require('azure-arm-website');
 
 export class FilesNode extends NodeBase {
-    constructor(readonly label: string, 
-        readonly path: string, 
-        readonly site: WebSiteModels.Site, 
+    constructor(readonly label: string,
+        readonly path: string,
+        readonly site: WebSiteModels.Site,
         readonly subscription: SubscriptionModels.Subscription,
         treeDataProvider: AppServiceDataProvider,
         parentNode: NodeBase) {
@@ -28,7 +28,7 @@ export class FilesNode extends NodeBase {
         return {
             label: this.label,
             collapsibleState: TreeItemCollapsibleState.Collapsed,
-            iconPath: { 
+            iconPath: {
                 light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'Folder_16x_vscode.svg'),
                 dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'Folder_16x_vscode.svg')
             }
@@ -36,11 +36,12 @@ export class FilesNode extends NodeBase {
     }
 
     async getChildren(): Promise<NodeBase[]> {
-        let nodes = [];
-        let user = await util.getWebAppPublishCredential(this.azureAccount, this.subscription, this.site);
-        let kuduClient = new KuduClient(this.site.name, user.publishingUserName, user.publishingPassword);
-        
-        let files : kuduFile[] = await kuduClient.listFiles(this.path);
+        const nodes = [];
+        const webAppClient = new WebSiteManagementClient(this.azureAccount.getCredentialByTenantId(this.subscription.tenantId), this.subscription.subscriptionId);
+        const user = await util.getWebAppPublishCredential(webAppClient, this.site);
+        const kuduClient = new KuduClient(this.site.name, user.publishingUserName, user.publishingPassword);
+
+        const files: kuduFile[] = await kuduClient.listFiles(this.path);
 
         for (let file of files) {
             let path = file.path.substring('/home/'.length);
@@ -51,9 +52,9 @@ export class FilesNode extends NodeBase {
             // vfs.listFiles searches for a relative path file
 
             const treeDataProvider = this.getTreeDataProvider<AppServiceDataProvider>();
-            let node = file.mime === "inode/directory" ? 
-                new FilesNode(file.name, path, this.site, this.subscription, treeDataProvider, this) : 
-                new NodeBase(file.name, treeDataProvider, this);            
+            let node = file.mime === "inode/directory" ?
+                new FilesNode(file.name, path, this.site, this.subscription, treeDataProvider, this) :
+                new NodeBase(file.name, treeDataProvider, this);
             nodes.push(node);
         }
 
