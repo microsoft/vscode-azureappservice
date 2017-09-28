@@ -5,19 +5,19 @@
 
 import * as kuduApi from 'kudu-api';
 
-export type kuduFile = { mime: string, name: string, path: string }; 
+export type kuduFile = { mime: string, name: string, path: string };
 export type webJob = { name: string, Message: string };
 
 export class KuduClient {
     private readonly _api;
 
     constructor(webAppName: string, publishingUserName: string, publishingPassword: string, domain?: string) {
-         this._api = kuduApi({
+        this._api = kuduApi({
             website: webAppName,
             username: publishingUserName,
             password: publishingPassword,
             domain: domain
-         });
+        });
     }
 
     async vfsEmptyDirectory(directoryPath: string): Promise<void> {
@@ -82,7 +82,7 @@ export class KuduClient {
 
     zipUpload(zipFilePath: string, remoteFolder: string) {
         return new Promise((resolve, reject) => {
-            this._api.zip.upload(zipFilePath, remoteFolder, (err, body, response) => { 
+            this._api.zip.upload(zipFilePath, remoteFolder, (err, body, response) => {
                 if (err) {
                     reject(err);
                     return;
@@ -97,14 +97,10 @@ export class KuduClient {
             });
         });
     }
+}
 
-    private removeHomeFromPath(path: string): string {
-         return path.substring('/home/'.length);
-    }
- }
-
- export interface CommandResult {
+export interface CommandResult {
     Error: string,
     ExitCode: number,
     Output: string
- }
+}
