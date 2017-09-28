@@ -111,10 +111,6 @@ export class KuduClient {
         });
         return r('/api/logstream');
     }
-
-    private removeHomeFromPath(path: string): string {
-        return path.substring('/home/'.length);
-    }
 }
 
 export interface CommandResult {

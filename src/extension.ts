@@ -49,19 +49,37 @@ export function activate(context: vscode.ExtensionContext) {
     initAsyncCommand(context, 'appService.Start', async (node: AppServiceNode) => {
         if (node) {
             outputChannel.appendLine(`Starting App "${node.site.name}"...`);
-            await node.start().then(() => outputChannel.appendLine(`App "${node.site.name}" has been started.`), err => outputChannel.appendLine(err));
+            try {
+                await node.start();
+                outputChannel.appendLine(`App "${node.site.name}" has been started.`);
+            } catch (err) {
+                outputChannel.appendLine(err);
+                throw err;
+            }
         }
     });
     initAsyncCommand(context, 'appService.Stop', async (node: AppServiceNode) => {
         if (node) {
             outputChannel.appendLine(`Stopping App "${node.site.name}"...`);
-            await node.stop().then(() => outputChannel.appendLine(`App "${node.site.name}" has been stopped.`), err => outputChannel.appendLine(err));
+            try {
+                await node.stop();
+                outputChannel.appendLine(`App "${node.site.name}" has been stopped.`);
+            } catch (err) {
+                outputChannel.appendLine(err);
+                throw err;
+            }
         }
     });
     initAsyncCommand(context, 'appService.Restart', async (node: AppServiceNode) => {
         if (node) {
             outputChannel.appendLine(`Restarting App "${node.site.name}"...`);
-            await node.restart().then(() => outputChannel.appendLine(`App "${node.site.name}" has been restarted.`), err => outputChannel.appendLine(err));
+            try {
+                await node.restart();
+                outputChannel.appendLine(`App "${node.site.name}" has been restarted.`);
+            } catch (err) {
+                outputChannel.appendLine(err);
+                throw err;
+            }
         }
     });
     initAsyncCommand(context, 'appService.CreateWebApp', async (node?: SubscriptionNode) => {
