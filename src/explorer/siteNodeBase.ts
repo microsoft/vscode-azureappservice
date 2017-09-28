@@ -18,7 +18,6 @@ import { KuduClient } from '../kuduClient';
 import { Request } from 'request';
 
 export class SiteNodeBase extends NodeBase {
-    private _webSiteClient: WebSiteManagementClient;
     private _logStreamOutputChannel: OutputChannel;
     private _logStream: Request;
 
@@ -87,9 +86,6 @@ export class SiteNodeBase extends NodeBase {
     }
 
     protected get webSiteClient(): WebSiteManagementClient {
-        if (!this._webSiteClient) {
-            this._webSiteClient = new WebSiteManagementClient(this.azureAccount.getCredentialByTenantId(this.subscription.tenantId), this.subscription.subscriptionId);
-        }
-        return this._webSiteClient;
+        return new WebSiteManagementClient(this.azureAccount.getCredentialByTenantId(this.subscription.tenantId), this.subscription.subscriptionId);
     }
 }
