@@ -91,6 +91,10 @@ export class AppServiceNode extends SiteNodeBase {
         const repo = `${this.site.enabledHostNames[1]}:443/${this.site.repositorySiteName}.git`;
         const remote = `https://${username}:${password}@${repo}`;
 
+        if (!workspace.rootPath) {
+            let input = await window.showErrorMessage(`You have not yet opened a folder to deploy.`);
+            return;
+        }
         let git = require('simple-git/promise')(workspace.rootPath);
 
         try {
