@@ -15,7 +15,6 @@ import { DeploymentSlotsNode } from './deploymentSlotsNode';
 import { FilesNode } from './filesNodes';
 import { WebJobsNode } from './webJobsNode';
 import { AppSettingsNode } from './appSettingsNodes';
-import WebSiteManagementClient = require('azure-arm-website');
 import * as path from 'path';
 import * as util from '../util';
 
@@ -57,21 +56,17 @@ export class AppServiceNode extends SiteNodeBase {
     }
 
     async start(): Promise<void> {
-        await this.getWebSiteManagementClient(this.azureAccount).webApps.start(this.site.resourceGroup, this.site.name);
-        return util.waitForWebSiteState(this.getWebSiteManagementClient(this.azureAccount), this.site, 'running');
+        await this.webSiteClient.webApps.start(this.site.resourceGroup, this.site.name);
+        await util.waitForWebSiteState(this.webSiteClient, this.site, 'running');
     }
 
     async stop(): Promise<void> {
-        await this.getWebSiteManagementClient(this.azureAccount).webApps.stop(this.site.resourceGroup, this.site.name);
-        return util.waitForWebSiteState(this.getWebSiteManagementClient(this.azureAccount), this.site, 'stopped');
+        await this.webSiteClient.webApps.stop(this.site.resourceGroup, this.site.name);
+        await util.waitForWebSiteState(this.webSiteClient, this.site, 'stopped');
     }
 
     async restart(): Promise<void> {
         await this.stop();
-        return this.start();
-    }
-
-    private getWebSiteManagementClient(azureAccount: AzureAccountWrapper) {
-        return new WebSiteManagementClient(azureAccount.getCredentialByTenantId(this.subscription.tenantId), this.subscription.subscriptionId);
+        await this.start();
     }
 }

@@ -7,6 +7,7 @@ import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models'
 import * as opn from 'opn';
 import * as path from 'path';
 import * as util from '../util';
+import WebSiteManagementClient = require('azure-arm-website');
 import { NodeBase } from './nodeBase';
 import { AppSettingsNode } from './appSettingsNodes';
 import { AppServiceDataProvider } from './appServiceExplorer';
@@ -17,6 +18,7 @@ import { KuduClient } from '../kuduClient';
 import { Request } from 'request';
 
 export class SiteNodeBase extends NodeBase {
+    private _webSiteClient: WebSiteManagementClient;
     private _logStreamOutputChannel: OutputChannel;
     private _logStream: Request;
 
@@ -48,7 +50,7 @@ export class SiteNodeBase extends NodeBase {
 
     async connectToLogStream(extensionContext: ExtensionContext): Promise<void> {
         const siteName = util.extractSiteName(this.site) + (util.isSiteDeploymentSlot(this.site) ? '-' + util.extractDeploymentSlotName(this.site) : '');
-        const user = await util.getWebAppPublishCredential(this.azureAccount, this.subscription, this.site);
+        const user = await util.getWebAppPublishCredential(this.webSiteClient, this.site);
         const kuduClient = new KuduClient(siteName, user.publishingUserName, user.publishingPassword);
 
         if (!this._logStreamOutputChannel) {
@@ -71,5 +73,12 @@ export class SiteNodeBase extends NodeBase {
         }).on('complete', (resp, body) => {
             this._logStreamOutputChannel.appendLine('Disconnected from log-streaming service.');
         });
+    }
+
+    protected get webSiteClient(): WebSiteManagementClient {
+        if (!this._webSiteClient) {
+            this._webSiteClient = new WebSiteManagementClient(this.azureAccount.getCredentialByTenantId(this.subscription.tenantId), this.subscription.subscriptionId);
+        }
+        return this._webSiteClient;
     }
 }

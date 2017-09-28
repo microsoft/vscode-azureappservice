@@ -3,9 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ServiceClientCredentials } from 'ms-rest';
-import { SubscriptionModels } from 'azure-arm-resource';
-import { AzureAccountWrapper } from './azureAccountWrapper';
 import { reporter } from './telemetry/reporter';
 import WebSiteManagementClient = require('azure-arm-website');
 import * as vscode from 'vscode';
@@ -63,9 +60,8 @@ export function extractDeploymentSlotName(site: WebSiteModels.Site): string {
     return isSiteDeploymentSlot(site) ? site.name.substring(site.name.lastIndexOf('/') + 1) : null;
 }
 
-export function getWebAppPublishCredential(azureAccount: AzureAccountWrapper, subscription: SubscriptionModels.Subscription, site: WebSiteModels.Site): Promise<WebSiteModels.User> {
-    const credentials = azureAccount.getCredentialByTenantId(subscription.tenantId);
-    const webApps = new WebSiteManagementClient(credentials, subscription.subscriptionId).webApps;
+export function getWebAppPublishCredential(webSiteManagementClient: WebSiteManagementClient, site: WebSiteModels.Site): Promise<WebSiteModels.User> {
+    const webApps = webSiteManagementClient.webApps;
     const siteName = extractSiteName(site);
     const slotName = extractDeploymentSlotName(site);
     return isSiteDeploymentSlot(site) ? webApps.listPublishingCredentialsSlot(site.resourceGroup, siteName, slotName) : webApps.listPublishingCredentials(site.resourceGroup, siteName);
