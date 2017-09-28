@@ -13,9 +13,10 @@ import { AzureAccountWrapper } from '../azureAccountWrapper';
 import * as path from 'path';
 import { KuduClient, webJob } from '../kuduClient';
 import * as util from '../util';
+import WebSiteManagementClient = require('azure-arm-website');
 
 export class WebJobsNode extends NodeBase {
-    constructor(readonly site: WebSiteModels.Site, 
+    constructor(readonly site: WebSiteModels.Site,
         readonly subscription: SubscriptionModels.Subscription,
         treeDataProvider: AppServiceDataProvider,
         parentNode: NodeBase) {
@@ -27,7 +28,7 @@ export class WebJobsNode extends NodeBase {
             label: this.label,
             collapsibleState: TreeItemCollapsibleState.Collapsed,
             contextValue: "webJobs",
-            iconPath: { 
+            iconPath: {
                 light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'AzureWebJobs_16x_vscode.svg'),
                 dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'AzureWebJobs_16x_vscode.svg')
             }
@@ -35,11 +36,12 @@ export class WebJobsNode extends NodeBase {
     }
 
     async getChildren(): Promise<NodeBase[]> {
-        let nodes = [];
-        let user = await util.getWebAppPublishCredential(this.azureAccount, this.subscription, this.site);
-        let kuduClient = new KuduClient(this.site.name, user.publishingUserName, user.publishingPassword);
-        
-        let jobList: webJob[] = await kuduClient.listAllWebJobs() ;
+        const nodes = [];
+        const webAppClient = new WebSiteManagementClient(this.azureAccount.getCredentialByTenantId(this.subscription.tenantId), this.subscription.subscriptionId);
+        const user = await util.getWebAppPublishCredential(webAppClient, this.site);
+        const kuduClient = new KuduClient(this.site.name, user.publishingUserName, user.publishingPassword);
+
+        const jobList: webJob[] = await kuduClient.listAllWebJobs();
 
         for (let job of jobList) {
             nodes.push(new NodeBase(job.name, this.getTreeDataProvider(), this));
@@ -55,5 +57,5 @@ export class WebJobsNode extends NodeBase {
 
     private get azureAccount(): AzureAccountWrapper {
         return this.getTreeDataProvider<AppServiceDataProvider>().azureAccount;
-    }    
+    }
 }

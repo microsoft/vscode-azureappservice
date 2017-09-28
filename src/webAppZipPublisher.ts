@@ -18,8 +18,8 @@ import * as WebSiteModels from '../node_modules/azure-arm-website/lib/models';
 import * as util from './util';
 
 export class WebAppZipPublisher extends WizardBase {
-    constructor(output: vscode.OutputChannel, 
-        readonly azureAccount: AzureAccountWrapper, 
+    constructor(output: vscode.OutputChannel,
+        readonly azureAccount: AzureAccountWrapper,
         readonly subscription?: SubscriptionModels.Subscription,
         readonly site?: WebSiteModels.Site,
         readonly zipFilePath?: string,
@@ -74,7 +74,7 @@ class ZipFileStep extends WizardStep {
                 }
             });
             const folderQuickPickOption = { placeHolder: `Select the folder to Zip and deploy. (${this.stepProgressText})` };
-            const pickedItem = folderQuickPickItems.length == 1 ? 
+            const pickedItem = folderQuickPickItems.length == 1 ?
                 folderQuickPickItems[0] : await this.showQuickPick(folderQuickPickItems, folderQuickPickOption);
             this._folderPath = pickedItem.data.uri.fsPath;
         }
@@ -109,16 +109,16 @@ class ZipFileStep extends WizardStep {
         if (!sourcePath.endsWith(path.sep)) {
             sourcePath += path.sep;
         }
-        return new Promise((resolve, reject) =>{
+        return new Promise((resolve, reject) => {
             const zipOutput = fs.createWriteStream(zipFilePath)
             zipOutput.on('close', () => resolve());
 
-            const zipper = archiver('zip', { zlib: { level: 9 }});
-            zipper.on('error', err => reject(err));
+            const zipper = archiver('zip', { zlib: { level: 9 } });
+            zipper.on('error',  err => reject(err));
             zipper.pipe(zipOutput);
-            zipper.glob('**/*', { 
+            zipper.glob('**/*', {
                 cwd: this._folderPath,
-                dot: true, 
+                dot: true,
                 ignore: 'node_modules{,/**}'
             });
             zipper.finalize();
@@ -181,12 +181,12 @@ class WebAppStep extends WizardStep {
                     });
                 }
             });
-    
+
             return quickPickItems;
         });
-        
+
         const pickedItem = await this.showQuickPick(webAppsTask, { placeHolder: 'Select the target Web App' });
-        
+
         if (pickedItem.data) {
             this._site = pickedItem.data;
             return;
@@ -240,10 +240,10 @@ class DeployStep extends WizardStep {
         const subscription = this.getSelectedSubscription();
         const site = this.getSelectedWebApp();
         const zipFilePath = this.getSelectedZipFilePath();
-        const user = await util.getWebAppPublishCredential(this.azureAccount, subscription, site);
-        const kuduClient = new KuduClient(site.name, user.publishingUserName, user.publishingPassword);
         const siteClient = new WebSiteManagementClient(this.azureAccount.getCredentialByTenantId(subscription.tenantId), subscription.subscriptionId);
-        
+        const user = await util.getWebAppPublishCredential(siteClient, site);
+        const kuduClient = new KuduClient(site.name, user.publishingUserName, user.publishingPassword);
+
         this.wizard.writeline(`Start Zip deployment to ${site.name}...`);
         this.wizard.writeline('Stopping Web App...');
         await siteClient.webApps.stop(site.resourceGroup, site.name);
@@ -252,13 +252,13 @@ class DeployStep extends WizardStep {
         this.wizard.writeline('Deleting existing deployment...');
         await kuduClient.vfsEmptyDirectory(`/home/${remoteFolder}`);
         await kuduClient.cmdExecute(`mkdir /home/${remoteFolder}`, '/');
-        
+
         this.wizard.writeline('Uploading Zip package...');
         await kuduClient.zipUpload(zipFilePath, remoteFolder);
         this.wizard.writeline('Installing npm packages...');
         const installResult = await kuduClient.cmdExecute(`npm install --production`, remoteFolder);
         this.wizard.writeline(`${installResult.Output}\n${installResult.Error}`);
-        
+
         if (this.isZipCreatedByDeployment()) {
             await new Promise((resolve, reject) => fs.unlink(zipFilePath, err => {
                 if (err) {
@@ -285,7 +285,7 @@ class DeployStep extends WizardStep {
 
         return subscriptionStep.subscription;
     }
-    
+
     protected getSelectedWebApp(): WebSiteModels.Site {
         const webAppStep = <WebAppStep>this.wizard.findStep(step => step instanceof WebAppStep, 'The Wizard must have a WebAppStep.');
 
@@ -298,7 +298,7 @@ class DeployStep extends WizardStep {
 
     protected getSelectedZipFilePath(): string {
         const zipFileStep = <ZipFileStep>this.wizard.findStep(step => step instanceof ZipFileStep, 'The Wizard must have a ZipFileStep.');
-        
+
         if (!zipFileStep.zipFilePath) {
             throw new Error('A Zip file must be selected first.');
         }
@@ -308,7 +308,7 @@ class DeployStep extends WizardStep {
 
     protected isZipCreatedByDeployment(): boolean {
         const zipFileStep = <ZipFileStep>this.wizard.findStep(step => step instanceof ZipFileStep, 'The Wizard must have a ZipFileStep.');
-        
+
         if (!zipFileStep.zipFilePath) {
             throw new Error('A Zip file must be selected first.');
         }

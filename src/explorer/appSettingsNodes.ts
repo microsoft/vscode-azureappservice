@@ -7,6 +7,7 @@ import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models'
 import * as opn from 'opn';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import * as util from '../util';
 import { AzureAccountWrapper } from '../azureAccountWrapper';
 import { NodeBase } from './nodeBase';
 import { AppServiceDataProvider } from './appServiceExplorer';
@@ -20,15 +21,15 @@ export class AppSettingsNode extends NodeBase {
     readonly _siteName: string;
     readonly _slotName: string;
     readonly _websiteClient: WebSiteManagementClient;
-    
-    constructor(readonly site: WebSiteModels.Site, 
-        readonly subscription: SubscriptionModels.Subscription, 
+
+    constructor(readonly site: WebSiteModels.Site,
+        readonly subscription: SubscriptionModels.Subscription,
         treeDataProvider: AppServiceDataProvider,
         parentNode: NodeBase) {
         super('Application Settings', treeDataProvider, parentNode);
-        this._isSlot = this.site.type.toLowerCase() === 'microsoft.web/sites/slots';
-        this._siteName = this._isSlot ? this.site.name.substring(0, this.site.name.lastIndexOf('/')) : this.site.name;
-        this._slotName = this._isSlot ? this.site.name.substring(this.site.name.lastIndexOf('/') + 1) : undefined;
+        this._isSlot = util.isSiteDeploymentSlot(site);
+        this._siteName = util.extractSiteName(site);
+        this._slotName = util.extractDeploymentSlotName(site);
         this._websiteClient = new WebSiteManagementClient(
             this.azureAccount.getCredentialByTenantId(this.subscription.tenantId),
             this.subscription.subscriptionId);
@@ -39,7 +40,7 @@ export class AppSettingsNode extends NodeBase {
             label: this.label,
             collapsibleState: TreeItemCollapsibleState.Collapsed,
             contextValue: "applicationSettings",
-            iconPath: { 
+            iconPath: {
                 light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'Settings_16x_vscode.svg'),
                 dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'Settings_16x_vscode.svg')
             }
@@ -49,7 +50,7 @@ export class AppSettingsNode extends NodeBase {
     async getChildren(): Promise<NodeBase[]> {
         const webApps = this.WebSiteManagementClient.webApps;
         const children: AppSettingNode[] = [];
-        this._settings = this._isSlot ? await webApps.listApplicationSettingsSlot(this.site.resourceGroup, this._siteName, this._slotName) : 
+        this._settings = this._isSlot ? await webApps.listApplicationSettingsSlot(this.site.resourceGroup, this._siteName, this._slotName) :
             await webApps.listApplicationSettings(this.site.resourceGroup, this._siteName);
 
         if (this._settings.properties) {
@@ -111,11 +112,11 @@ export class AppSettingsNode extends NodeBase {
 
     validateNewKeyInput(newKey: string, oldKey?: string): string {
         if (!newKey || newKey.trim().length === 0) {
-            return 'Key must have at least one non-whitespace character.'; 
+            return 'Key must have at least one non-whitespace character.';
         }
 
         if (this._settings.properties && this._settings.properties[newKey] && newKey !== oldKey) {
-            return `Setting "${newKey}" already exists.`; 
+            return `Setting "${newKey}" already exists.`;
         }
     }
 
@@ -148,7 +149,7 @@ export class AppSettingNode extends NodeBase {
             label: this.label,
             collapsibleState: TreeItemCollapsibleState.None,
             contextValue: "applicationSettingItem",
-            iconPath: { 
+            iconPath: {
                 light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'Item_16x_vscode.svg'),
                 dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'Item_16x_vscode.svg')
             }

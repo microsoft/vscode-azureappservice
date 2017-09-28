@@ -34,10 +34,11 @@
         "onCommand:appService.DeployZipPackage",
         "onCommand:appService.ZipAndDeploy",
         "onCommand:deploymentSlot.SwapSlots",
-        "onCommand:deploymentSlot.Browse",
         "onCommand:appSettings.Add",
         "onCommand:appSettings.Edit",
         "onCommand:appSettings.Delete",
+        "onCommand:diagnostics.OpenLogStream",
+        "onCommand:diagnostics.StopLogStream",
         "onView:azureAppService"
     ],
     "main": "./out/src/extension",
@@ -102,11 +103,6 @@
                 "category": "Azure App Service"
             },
             {
-                "command": "deploymentSlot.Browse",
-                "title": "Browse Deployment Slot",
-                "category": "Azure App Service"
-            },
-            {
                 "command": "appSettings.Add",
                 "title": "Add New Setting...",
                 "category": "Azure App Service"
@@ -119,6 +115,16 @@
             {
                 "command": "appSettings.Delete",
                 "title": "Delete Setting",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "diagnostics.OpenLogStream",
+                "title": "View Streaming Logs",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "diagnostics.StopLogStream",
+                "title": "Stop Streaming Logs",
                 "category": "Azure App Service"
             }
         ],
@@ -145,6 +151,16 @@
             ],
             "view/item/context": [
                 {
+                    "command": "appService.CreateWebApp",
+                    "when": "view == azureAppService && viewItem == subscription",
+                    "group": "1_subscriptionGeneralCommands@1"
+                },
+                {
+                    "command": "appService.Refresh",
+                    "when": "view == azureAppService && viewItem == subscription",
+                    "group": "2_subscriptionGeneralCommands@1"
+                },
+                {
                     "command": "appService.OpenInPortal",
                     "when": "view == azureAppService && viewItem == appService",
                     "group": "1_appServiceGeneralCommands@1"
@@ -153,11 +169,6 @@
                     "command": "appService.Browse",
                     "when": "view == azureAppService && viewItem == appService",
                     "group": "1_appServiceGeneralCommands@2"
-                },
-                {
-                    "command": "appService.CreateWebApp",
-                    "when": "view == azureAppService && viewItem == subscription",
-                    "group": "1_subscriptionGeneralCommands@1"
                 },
                 {
                     "command": "appService.Start",
@@ -180,6 +191,16 @@
                     "group": "3_appServiceDeployCommands@1"
                 },
                 {
+                    "command": "diagnostics.OpenLogStream",
+                    "when": "view == azureAppService && viewItem == appService",
+                    "group": "4_appServiceDiagnosticsCommands@1"
+                },
+                {
+                    "command": "diagnostics.StopLogStream",
+                    "when": "view == azureAppService && viewItem == appService",
+                    "group": "4_appServiceDiagnosticsCommands@2"
+                },
+                {
                     "command": "appService.OpenInPortal",
                     "when": "view == azureAppService && viewItem == deploymentSlots",
                     "group": "1_deploymentSlotsGeneralCommands@1"
@@ -195,7 +216,7 @@
                     "group": "1_deploymentSlotGeneralCommands@1"
                 },
                 {
-                    "command": "deploymentSlot.Browse",
+                    "command": "appService.Browse",
                     "when": "view == azureAppService && viewItem == deploymentSlot",
                     "group": "1_deploymentSlotGeneralCommands@2"
                 },
@@ -203,6 +224,16 @@
                     "command": "deploymentSlot.SwapSlots",
                     "when": "view == azureAppService && viewItem == deploymentSlot",
                     "group": "2_deploymentSlotGeneralCommands@2"
+                },
+                {
+                    "command": "diagnostics.OpenLogStream",
+                    "when": "view == azureAppService && viewItem == deploymentSlot",
+                    "group": "4_deploymentSlotDiagnosticsCommands@1"
+                },
+                {
+                    "command": "diagnostics.StopLogStream",
+                    "when": "view == azureAppService && viewItem == deploymentSlot",
+                    "group": "4_deploymentSlotDiagnosticsCommands@2"
                 },
                 {
                     "command": "appService.OpenInPortal",
@@ -259,6 +290,7 @@
         "@types/archiver": "^2.0.0",
         "@types/mocha": "^2.2.32",
         "@types/node": "^8.0.28",
+        "@types/request": "^2.0.3",
         "mocha": "^2.3.3",
         "typescript": "^2.0.3",
         "vscode": "^1.0.0"
@@ -271,6 +303,7 @@
         "ms-rest": "^2.2.2",
         "ms-rest-azure": "^2.3.1",
         "opn": "^5.1.0",
+        "request": "^2.83.0",
         "vscode-extension-telemetry": "^0.0.6"
     },
     "extensionDependencies": [

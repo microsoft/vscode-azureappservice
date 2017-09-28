@@ -9,6 +9,7 @@ import * as vscode from 'vscode';
 import * as util from "./util";
 import { AppServiceDataProvider } from './explorer/appServiceExplorer';
 import { NodeBase } from './explorer/nodeBase';
+import { SiteNodeBase } from './explorer/siteNodeBase';
 import { AppServiceNode } from './explorer/appServiceNode';
 import { AppSettingsNode, AppSettingNode } from './explorer/appSettingsNodes';
 import { DeploymentSlotsNode } from './explorer/deploymentSlotsNode';
@@ -20,7 +21,6 @@ import { WebAppCreator } from './webAppCreator';
 import { WebAppZipPublisher } from './webAppZipPublisher';
 import { Reporter } from './telemetry/reporter';
 import { DeploymentSlotSwapper } from './deploymentSlotActions';
-
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Extension "Azure App Service Tools" is now active.');
@@ -36,7 +36,7 @@ export function activate(context: vscode.ExtensionContext) {
     context.subscriptions.push(vscode.window.registerTreeDataProvider('azureAppService', appServiceDataProvider));
 
     initCommand(context, 'appService.Refresh', (node?: NodeBase) => appServiceDataProvider.refresh(node));
-    initCommand(context, 'appService.Browse', (node: AppServiceNode) => {
+    initCommand(context, 'appService.Browse', (node: SiteNodeBase) => {
         if (node) {
             node.browse();
         }
@@ -46,22 +46,40 @@ export function activate(context: vscode.ExtensionContext) {
             node.openInPortal();
         }
     });
-    initAsyncCommand(context,'appService.Start', async (node: AppServiceNode) => {
+    initAsyncCommand(context, 'appService.Start', async (node: AppServiceNode) => {
         if (node) {
             outputChannel.appendLine(`Starting App "${node.site.name}"...`);
-            await node.start().then(() => outputChannel.appendLine(`App "${node.site.name}" has been started.`), err => outputChannel.appendLine(err));
+            try {
+                await node.start();
+                outputChannel.appendLine(`App "${node.site.name}" has been started.`);
+            } catch (err) {
+                outputChannel.appendLine(err);
+                throw err;
+            }
         }
     });
     initAsyncCommand(context, 'appService.Stop', async (node: AppServiceNode) => {
         if (node) {
             outputChannel.appendLine(`Stopping App "${node.site.name}"...`);
-            await node.stop().then(() => outputChannel.appendLine(`App "${node.site.name}" has been stopped.`), err => outputChannel.appendLine(err));
+            try {
+                await node.stop();
+                outputChannel.appendLine(`App "${node.site.name}" has been stopped.`);
+            } catch (err) {
+                outputChannel.appendLine(err);
+                throw err;
+            }
         }
     });
     initAsyncCommand(context, 'appService.Restart', async (node: AppServiceNode) => {
         if (node) {
             outputChannel.appendLine(`Restarting App "${node.site.name}"...`);
-            await node.restart().then(() => outputChannel.appendLine(`App "${node.site.name}" has been restarted.`), err => outputChannel.appendLine(err));
+            try {
+                await node.restart();
+                outputChannel.appendLine(`App "${node.site.name}" has been restarted.`);
+            } catch (err) {
+                outputChannel.appendLine(err);
+                throw err;
+            }
         }
     });
     initAsyncCommand(context, 'appService.CreateWebApp', async (node?: SubscriptionNode) => {
@@ -69,15 +87,15 @@ export function activate(context: vscode.ExtensionContext) {
         if (node) {
             subscription = node.subscription;
         }
-        
+
         const wizard = new WebAppCreator(outputChannel, azureAccount, subscription);
         const result = await wizard.run();
-        
+
         if (result.status === 'Completed') {
             vscode.commands.executeCommand('appService.Refresh', node);
         }
     });
-    initAsyncCommand(context,'appService.DeployZipPackage', async (context: any) => {
+    initAsyncCommand(context, 'appService.DeployZipPackage', async (context: any) => {
         if (context instanceof AppServiceNode) {
             const wizard = new WebAppZipPublisher(outputChannel, azureAccount, context.subscription, context.site);
             await wizard.run();
@@ -91,11 +109,6 @@ export function activate(context: vscode.ExtensionContext) {
             const folderPath = context.fsPath;
             const wizard = new WebAppZipPublisher(outputChannel, azureAccount, null, null, null, folderPath);
             await wizard.run();
-        }
-    });
-    initCommand(context, 'deploymentSlot.Browse', (node: DeploymentSlotNode) => {
-        if (node) {
-            node.browse();
         }
     });
     initAsyncCommand(context, 'deploymentSlot.SwapSlots', async (node: DeploymentSlotNode) => {
@@ -116,6 +129,16 @@ export function activate(context: vscode.ExtensionContext) {
     initAsyncCommand(context, 'appSettings.Delete', async (node: AppSettingNode) => {
         if (node) {
             await node.delete();
+        }
+    });
+    initAsyncCommand(context, 'diagnostics.OpenLogStream', async (node: SiteNodeBase) => {
+        if (node) {
+            await node.connectToLogStream(context);
+        }
+    });
+    initCommand(context, 'diagnostics.StopLogStream', (node: SiteNodeBase) => {
+        if (node) {
+            node.stopLogStream();
         }
     });
 }

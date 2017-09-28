@@ -4,20 +4,22 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as kuduApi from 'kudu-api';
+import * as request from 'request';
 
-export type kuduFile = { mime: string, name: string, path: string }; 
+export type kuduFile = { mime: string, name: string, path: string };
 export type webJob = { name: string, Message: string };
 
 export class KuduClient {
     private readonly _api;
 
-    constructor(webAppName: string, publishingUserName: string, publishingPassword: string, domain?: string) {
-         this._api = kuduApi({
+    constructor(private webAppName: string, private publishingUserName: string, private publishingPassword: string, private domain?: string) {
+        this.domain = domain || "scm.azurewebsites.net";
+        this._api = kuduApi({
             website: webAppName,
             username: publishingUserName,
             password: publishingPassword,
-            domain: domain
-         });
+            domain: this.domain
+        });
     }
 
     async vfsEmptyDirectory(directoryPath: string): Promise<void> {
@@ -80,9 +82,9 @@ export class KuduClient {
         });
     }
 
-    zipUpload(zipFilePath: string, remoteFolder: string) {
+    zipUpload(zipFilePath: string, remoteFolder: string): Promise<void> {
         return new Promise((resolve, reject) => {
-            this._api.zip.upload(zipFilePath, remoteFolder, (err, body, response) => { 
+            this._api.zip.upload(zipFilePath, remoteFolder, (err, body, response) => {
                 if (err) {
                     reject(err);
                     return;
@@ -98,13 +100,21 @@ export class KuduClient {
         });
     }
 
-    private removeHomeFromPath(path: string): string {
-         return path.substring('/home/'.length);
+    getLogStream(): request.Request {
+        const baseUrl = `https://${this.webAppName}.${this.domain}/`;
+        const headers = {
+            Authorization: 'Basic ' + new Buffer(this.publishingUserName + ':' + this.publishingPassword).toString('base64')
+        };
+        const r = request.defaults({
+            baseUrl: baseUrl,
+            headers: headers,
+        });
+        return r('/api/logstream');
     }
- }
+}
 
- export interface CommandResult {
+export interface CommandResult {
     Error: string,
     ExitCode: number,
     Output: string
- }
+}
