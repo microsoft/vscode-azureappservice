@@ -101,7 +101,13 @@
             {
                 "command": "appService.LocalGitDeploy",
                 "title": "Local Git Deploy to Web App",
-                "category": "Azure App Service"
+<<<<<<< HEAD
+======="category": "Azure App Service"
+            },
+            {
+                "command": "deploymentSlot.SwapSlots",
+                "title": "Swap Deployment Slot",
+>>>>>>>3c978b3fe076f68b685bb8a87bdc0cb34fcdc3d4"category": "Azure App Service"
             },
             {
                 "command": "deploymentSlot.SwapSlots",
@@ -197,7 +203,7 @@
                     "group": "3_appServiceDeployCommands@1"
                 },
                 {
-                    "when": "view == azureAppService && viewItem == appService",
+<<<<<<< HEAD"when": "view == azureAppService && viewItem == appService",
                     "group": "4_appServiceDiagnosticsCommands@1"
                 },
                 {
@@ -206,7 +212,8 @@
                     "group": "4_appServiceDiagnosticsCommands@2"
                 },
                 {
-                    "command": "appService.LocalGitDeploy",
+=======
+>>>>>>>3c978b3fe076f68b685bb8a87bdc0cb34fcdc3d4"command": "appService.LocalGitDeploy",
                     "when": "view == azureAppService && viewItem == appService",
                     "group": "3_appServiceDeployCommands@2"
                 },
