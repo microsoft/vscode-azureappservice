@@ -19,6 +19,13 @@ import * as path from 'path';
 import * as opn from 'opn';
 import * as util from '../util';
 
+export type ServerFarmId = {
+    subscriptions: string,
+    resourceGroups: string,
+    providers: string,
+    serverfarms: string
+}
+
 export class AppServiceNode extends NodeBase {
     constructor(readonly site: WebSiteModels.Site, readonly subscription: SubscriptionModels.Subscription, treeDataProvider: AppServiceDataProvider, parentNode: NodeBase) {
         super(site.name, treeDataProvider, parentNode);
@@ -82,35 +89,40 @@ export class AppServiceNode extends NodeBase {
 
     async restart(): Promise<void> {
         await this.stop();
-        return this.start();
+        await this.start();
     }
 
     async delete(azureAccount: AzureAccountWrapper): Promise<boolean> {
-        let servicePlanName = this.site.serverFarmId.substring(this.site.serverFarmId.lastIndexOf('/serverfarms/') + '/serverfarms/'.length);
-        let servicePlanRG = this.site.serverFarmId.substring(this.site.serverFarmId.indexOf('resourceGroups/') + 'resourceGroups/'.length, this.site.serverFarmId.indexOf('/providers/'));
-        let servicePlan = await this.getWebSiteManagementClient(azureAccount).appServicePlans.get(servicePlanRG, servicePlanName);
-        let options = {};
-        options['deleteEmptyServerFarms'] = false;
-        let mOptions: MessageOptions = { modal: true };
-        if (servicePlan.numberOfSites < 2) {
-            let input = await window.showInformationMessage(`This is the last web app on the plan, "${servicePlanName}".  Delete the Web App and App Service Plan?`, mOptions, ...['Both', 'Web App ONLY']);
-            if (input) {
-                let deleteServicePlan = false;
-                if (input === 'Both') {
-                    deleteServicePlan = true;
-                }
-                await this.getWebSiteManagementClient(azureAccount).webApps.deleteMethod(this.site.resourceGroup, this.site.name, { deleteEmptyServerFarm: deleteServicePlan });
-                return true;
-            }
-            return false;
-        } else {
-            let input = await window.showInformationMessage(`Delete the Web App "${this.site.name}"?`, mOptions, ...['Confirm']);
-            if (input) {
-                await this.getWebSiteManagementClient(azureAccount).webApps.deleteMethod(this.site.resourceGroup, this.site.name);
-                return true;
-            }
-            return false;
+
+        let serverFarmArr = this.site.serverFarmId.substring(1).split('/');
+        if (serverFarmArr.length % 2 !== 0) {
+            throw new Error('Invalid web app ID.');
         }
+        let serverFarmId: ServerFarmId = {
+            subscriptions: serverFarmArr[1],
+            resourceGroups: serverFarmArr[3],
+            providers: serverFarmArr[5],
+            serverfarms: serverFarmArr[7]
+        };
+
+        let servicePlan = await this.getWebSiteManagementClient(azureAccount).appServicePlans.get(serverFarmId.resourceGroups, serverFarmId.serverfarms);
+        let mOptions: MessageOptions = { modal: true };
+        let deleteServicePlan = false;
+        let input = await window.showWarningMessage(`Are you sure you want to delete "${this.site.name}"?`, mOptions, 'Yes');
+        if (input) {
+            if (servicePlan.numberOfSites < 2) {
+                let input = await window.showWarningMessage(`This is the last app in the App Service plan, "${serverFarmId.serverfarms}". Delete this App Service plan to prevent unexpected charges.`, mOptions, 'Yes', 'No');
+                if (input) {
+                    deleteServicePlan = input === 'Yes';
+                } else {
+                    return false;
+                }
+            }
+            await this.getWebSiteManagementClient(azureAccount).webApps.deleteMethod(this.site.resourceGroup, this.site.name, { deleteEmptyServerFarm: deleteServicePlan });
+            return true;
+        }
+
+        return false;
     }
 
     private get azureAccount(): AzureAccountWrapper {

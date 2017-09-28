@@ -49,19 +49,22 @@ export function activate(context: vscode.ExtensionContext) {
     initAsyncCommand(context, 'appService.Start', async (node: AppServiceNode) => {
         if (node) {
             outputChannel.appendLine(`Starting App "${node.site.name}"...`);
-            await node.start().then(() => outputChannel.appendLine(`App "${node.site.name}" has been started.`), err => outputChannel.appendLine(err));
+            await node.start();
+            outputChannel.appendLine(`App "${node.site.name}" has been started.`);
         }
     });
     initAsyncCommand(context, 'appService.Stop', async (node: AppServiceNode) => {
         if (node) {
             outputChannel.appendLine(`Stopping App "${node.site.name}"...`);
-            await node.stop().then(() => outputChannel.appendLine(`App "${node.site.name}" has been stopped.`), err => outputChannel.appendLine(err));
+            await node.stop();
+            outputChannel.appendLine(`App "${node.site.name}" has been stopped.`);
         }
     });
     initAsyncCommand(context, 'appService.Restart', async (node: AppServiceNode) => {
         if (node) {
             outputChannel.appendLine(`Restarting App "${node.site.name}"...`);
-            await node.restart().then(() => outputChannel.appendLine(`App "${node.site.name}" has been restarted.`), err => outputChannel.appendLine(err));
+            await node.restart()
+            outputChannel.appendLine(`App "${node.site.name}" has been restarted.`);
         }
     });
     initAsyncCommand(context, 'appService.Delete', async (node: AppServiceNode) => {
@@ -69,7 +72,7 @@ export function activate(context: vscode.ExtensionContext) {
             outputChannel.appendLine(`Deleting App "${node.site.name}"...`);
             let result = await node.delete(azureAccount);
             if (result) {
-                outputChannel.appendLine(`App "${node.site.name}" has been deleted.`), err => outputChannel.appendLine(err);
+                outputChannel.appendLine(`App "${node.site.name}" has been deleted.`);
                 appServiceDataProvider.refresh(node.getParentNode());
             } else {
                 outputChannel.appendLine('Delete was canceled.');
