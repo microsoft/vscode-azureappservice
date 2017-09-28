@@ -38,6 +38,7 @@
         "onCommand:appSettings.Edit",
         "onCommand:appSettings.Delete",
         "onCommand:diagnostics.OpenLogStream",
+        "onCommand:diagnostics.StopLogStream",
         "onView:azureAppService"
     ],
     "main": "./out/src/extension",
@@ -120,6 +121,11 @@
                 "command": "diagnostics.OpenLogStream",
                 "title": "View Streaming Logs",
                 "category": "Azure App Service"
+            },
+            {
+                "command": "diagnostics.StopLogStream",
+                "title": "Stop Streaming Logs",
+                "category": "Azure App Service"
             }
         ],
         "views": {
@@ -190,6 +196,11 @@
                     "group": "4_appServiceDiagnosticsCommands@1"
                 },
                 {
+                    "command": "diagnostics.StopLogStream",
+                    "when": "view == azureAppService && viewItem == appService",
+                    "group": "4_appServiceDiagnosticsCommands@2"
+                },
+                {
                     "command": "appService.OpenInPortal",
                     "when": "view == azureAppService && viewItem == deploymentSlots",
                     "group": "1_deploymentSlotsGeneralCommands@1"
@@ -218,6 +229,11 @@
                     "command": "diagnostics.OpenLogStream",
                     "when": "view == azureAppService && viewItem == deploymentSlot",
                     "group": "4_deploymentSlotDiagnosticsCommands@1"
+                },
+                {
+                    "command": "diagnostics.StopLogStream",
+                    "when": "view == azureAppService && viewItem == deploymentSlot",
+                    "group": "4_deploymentSlotDiagnosticsCommands@2"
                 },
                 {
                     "command": "appService.OpenInPortal",

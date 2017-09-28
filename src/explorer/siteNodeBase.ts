@@ -61,18 +61,29 @@ export class SiteNodeBase extends NodeBase {
         this._logStreamOutputChannel.appendLine('Connecting to log-streaming service...')
         this._logStreamOutputChannel.show();
 
-        if (this._logStream) {
-            this._logStream.destroy();
-        }
+        this.stopLogStream();
 
         this._logStream = kuduClient.getLogStream().on('data', chunk => {
             this._logStreamOutputChannel.append(chunk.toString());
         }).on('error', err => {
+            util.sendTelemetry('ConnectToLogStreamError', { name: err.name, message: err.message });
             this._logStreamOutputChannel.appendLine('Error connecting to log-streaming service:');
             this._logStreamOutputChannel.appendLine(err.message);
         }).on('complete', (resp, body) => {
             this._logStreamOutputChannel.appendLine('Disconnected from log-streaming service.');
         });
+    }
+
+    stopLogStream(): void {
+        if (this._logStream) {
+            this._logStream.removeAllListeners();
+            this._logStream.destroy();
+            this._logStream = null;
+
+            if (this._logStreamOutputChannel) {
+                this._logStreamOutputChannel.appendLine('Disconnected from log-streaming service.');
+            }
+        }
     }
 
     protected get webSiteClient(): WebSiteManagementClient {

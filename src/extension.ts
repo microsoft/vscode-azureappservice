@@ -118,6 +118,11 @@ export function activate(context: vscode.ExtensionContext) {
             await node.connectToLogStream(context);
         }
     });
+    initCommand(context, 'diagnostics.StopLogStream', (node: SiteNodeBase) => {
+        if (node) {
+            node.stopLogStream();
+        }
+    });
 }
 
 export function deactivate() {
