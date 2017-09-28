@@ -87,7 +87,7 @@ export function activate(context: vscode.ExtensionContext) {
             outputChannel.appendLine(`Deleting App "${node.site.name}"...`);
             let result = await node.delete(azureAccount);
             if (result) {
-                outputChannel.appendLine(`App "${node.site.name}" has been deleted.`), err => outputChannel.appendLine(err);
+                outputChannel.appendLine(`App "${node.site.name}" has been deleted.`);
                 appServiceDataProvider.refresh(node.getParentNode());
             } else {
                 outputChannel.appendLine('Delete was canceled.');
