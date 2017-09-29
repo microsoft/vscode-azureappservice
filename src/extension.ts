@@ -47,36 +47,42 @@ export function activate(context: vscode.ExtensionContext) {
             node.openInPortal();
         }
     });
-    initAsyncCommand(context, 'appService.Start', async (node: AppServiceNode) => {
+    initAsyncCommand(context, 'appService.Start', async (node: SiteNodeBase) => {
         if (node) {
-            outputChannel.appendLine(`Starting App "${node.site.name}"...`);
+            const siteType = util.isSiteDeploymentSlot(node.site) ? 'Deployment Slot' : 'Web App';
+            outputChannel.show();
+            outputChannel.appendLine(`Starting ${siteType} "${node.site.name}"...`);
             try {
                 await node.start();
-                outputChannel.appendLine(`App "${node.site.name}" has been started.`);
+                outputChannel.appendLine(`${siteType} "${node.site.name}" has been started.`);
             } catch (err) {
                 outputChannel.appendLine(err);
                 throw err;
             }
         }
     });
-    initAsyncCommand(context, 'appService.Stop', async (node: AppServiceNode) => {
+    initAsyncCommand(context, 'appService.Stop', async (node: SiteNodeBase) => {
         if (node) {
-            outputChannel.appendLine(`Stopping App "${node.site.name}"...`);
+            const siteType = util.isSiteDeploymentSlot(node.site) ? 'Deployment Slot' : 'Web App';
+            outputChannel.show();
+            outputChannel.appendLine(`Stopping ${siteType} "${node.site.name}"...`);
             try {
                 await node.stop();
-                outputChannel.appendLine(`App "${node.site.name}" has been stopped.`);
+                outputChannel.appendLine(`${siteType} "${node.site.name}" has been stopped. App Service plan charges still apply.`);
             } catch (err) {
                 outputChannel.appendLine(err);
                 throw err;
             }
         }
     });
-    initAsyncCommand(context, 'appService.Restart', async (node: AppServiceNode) => {
+    initAsyncCommand(context, 'appService.Restart', async (node: SiteNodeBase) => {
         if (node) {
-            outputChannel.appendLine(`Restarting App "${node.site.name}"...`);
+            const siteType = util.isSiteDeploymentSlot(node.site) ? 'Deployment Slot' : 'Web App';
+            outputChannel.show();
+            outputChannel.appendLine(`Restarting ${siteType} "${node.site.name}"...`);
             try {
                 await node.restart();
-                outputChannel.appendLine(`App "${node.site.name}" has been restarted.`);
+                outputChannel.appendLine(`${siteType} "${node.site.name}" has been restarted.`);
             } catch (err) {
                 outputChannel.appendLine(err);
                 throw err;

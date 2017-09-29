@@ -26,7 +26,12 @@ export async function listAll<T>(client: { listNext(nextPageLink: string): Promi
 export function waitForWebSiteState(webSiteManagementClient: WebSiteManagementClient, site: WebSiteModels.Site, state: string, intervalMs = 5000, timeoutMs = 60000): Promise<void> {
     return new Promise((resolve, reject) => {
         const func = async (count: number) => {
-            const currentSite = await webSiteManagementClient.webApps.get(site.resourceGroup, site.name);
+            const rgName = site.resourceGroup;
+            const isSlot = isSiteDeploymentSlot(site);
+            const siteName = extractSiteName(site);
+            const slotName = extractDeploymentSlotName(site);
+            const currentSite = await (isSlot ? webSiteManagementClient.webApps.getSlot(rgName, siteName, slotName) : webSiteManagementClient.webApps.get(rgName, siteName));
+
             if (currentSite.state.toLowerCase() === state.toLowerCase()) {
                 resolve();
             } else {
@@ -35,7 +40,7 @@ export function waitForWebSiteState(webSiteManagementClient: WebSiteManagementCl
                 if (count < timeoutMs) {
                     setTimeout(func, intervalMs, count);
                 } else {
-                    reject(new Error(`Timeout waiting for Web Site "${site.name}" state "${state}".`));
+                    reject(new Error(`Timeout waiting for Web Site "${siteName}" state "${state}".`));
                 }
             }
         };

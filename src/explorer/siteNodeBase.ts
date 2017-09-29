@@ -55,6 +55,37 @@ export class SiteNodeBase extends NodeBase {
         opn(deepLink);
     }
 
+    async start(): Promise<void> {
+        const rgName = this.site.resourceGroup;
+        const siteName = util.extractSiteName(this.site);
+
+        if (util.isSiteDeploymentSlot(this.site)) {
+            const slotName = util.extractDeploymentSlotName(this.site);
+            await this.webSiteClient.webApps.startSlot(rgName, siteName, slotName);
+        } else {
+            await this.webSiteClient.webApps.start(rgName, siteName);
+        }
+        await util.waitForWebSiteState(this.webSiteClient, this.site, 'running');
+    }
+
+    async stop(): Promise<void> {
+        const rgName = this.site.resourceGroup;
+        const siteName = util.extractSiteName(this.site);
+
+        if (util.isSiteDeploymentSlot(this.site)) {
+            const slotName = util.extractDeploymentSlotName(this.site);
+            await this.webSiteClient.webApps.stopSlot(rgName, siteName, slotName);
+        } else {
+            await this.webSiteClient.webApps.stop(rgName, siteName);
+        }
+        await util.waitForWebSiteState(this.webSiteClient, this.site, 'stopped');
+    }
+
+    async restart(): Promise<void> {
+        await this.stop();
+        await this.start();
+    }
+
     async delete(azureAccount: AzureAccountWrapper): Promise<void> {
         let mOptions: MessageOptions = { modal: true };
         let deleteServicePlan = false;
