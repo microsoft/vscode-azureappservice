@@ -18,7 +18,7 @@ import * as util from './util';
 export class DeploymentSlotSwapper extends WizardBase {
     constructor(output: vscode.OutputChannel, readonly azureAccount: AzureAccountWrapper, readonly slot: DeploymentSlotNode) {
         super(output);
-        this.steps.push(new SwapStep(this, azureAccount,slot));
+        this.steps.push(new SwapStep(this, azureAccount, slot));
     }
 
     protected onExecuteError(step: WizardStep, stepIndex: number, error: Error) {
@@ -33,7 +33,7 @@ class SwapStep extends WizardStep {
     private _subscription: SubscriptionModels.Subscription;
     private _sourceSlot;
     private _targetSlot;
-    
+
     get sourceSlot(): DeploymentSlotNode {
         return this._sourceSlot;
     }
@@ -62,14 +62,14 @@ class SwapStep extends WizardStep {
                 const otherSlot: QuickPickItemWithData<null> = {
                     label: slot.label,
                     description: '',
-                    detail: 'Destination Slot',
+                    detail: null,
                     data: null
                 };
 
                 otherSlots.push(otherSlot);
             }
         }
-            
+
         const quickPickOptions = { placeHolder: `"${this.sourceSlot.label}" will be swapped with the destination slot.` };
         const result = await this.showQuickPick(otherSlots, quickPickOptions);
 
@@ -77,15 +77,15 @@ class SwapStep extends WizardStep {
             this.targetSlot = result.label;
             const credential = this.azureAccount.getCredentialByTenantId(this.slot.subscription.tenantId);
             const client = new WebSiteManagementClient(credential, this.slot.subscription.subscriptionId);
-    
-            await client.webApps.swapSlotSlot(this.slot.site.resourceGroup, this.slot.site.repositorySiteName, { targetSlot: this.targetSlot, preserveVnet: true }, this.sourceSlot.label, {}, 
+
+            await client.webApps.swapSlotSlot(this.slot.site.resourceGroup, this.slot.site.repositorySiteName, { targetSlot: this.targetSlot, preserveVnet: true }, this.sourceSlot.label, {},
                 (err, result, request, response) => {
-                if (!err && response.statusCode === 200) {
-                    this.wizard.writeline(`"${this.targetSlot}" was swapped with "${this.sourceSlot.label}"`);
-                } else {
-                    this.wizard.writeline(JSON.parse(err.message).Message);
-                } 
-            });
+                    if (!err && response.statusCode === 200) {
+                        this.wizard.writeline(`"${this.targetSlot}" was swapped with "${this.sourceSlot.label}"`);
+                    } else {
+                        this.wizard.writeline(JSON.parse(err.message).Message);
+                    }
+                });
         }
     }
 

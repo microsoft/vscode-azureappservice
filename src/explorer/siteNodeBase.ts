@@ -12,7 +12,7 @@ import { NodeBase } from './nodeBase';
 import { AppSettingsNode } from './appSettingsNodes';
 import { AppServiceDataProvider } from './appServiceExplorer';
 import { SubscriptionModels } from 'azure-arm-resource';
-import { ExtensionContext, TreeDataProvider, TreeItem, OutputChannel, window } from 'vscode';
+import { ExtensionContext, TreeDataProvider, TreeItem, OutputChannel, window, workspace } from 'vscode';
 import { AzureAccountWrapper } from '../azureAccountWrapper';
 import { KuduClient } from '../kuduClient';
 import { Request } from 'request';
@@ -83,6 +83,72 @@ export class SiteNodeBase extends NodeBase {
                 this._logStreamOutputChannel.appendLine('Disconnected from log-streaming service.');
             }
         }
+    }
+
+    async localGitDeploy(azureAccount): Promise<boolean> {
+        const publishCredentials = !util.isSiteDeploymentSlot ?
+            await this.webSiteClient.webApps.listPublishingCredentials(this.site.resourceGroup, this.site.name) :
+            await this.webSiteClient.webApps.listPublishingCredentialsSlot(this.site.resourceGroup, util.extractSiteName(this.site), util.extractDeploymentSlotName(this.site));
+        const config = !util.isSiteDeploymentSlot ?
+            await this.webSiteClient.webApps.getConfiguration(this.site.resourceGroup, this.site.name) :
+            await this.webSiteClient.webApps.getConfigurationSlot(this.site.resourceGroup, util.extractSiteName(this.site), util.extractDeploymentSlotName(this.site));
+        const oldDeployment = !util.isSiteDeploymentSlot ?
+            await this.webSiteClient.webApps.listDeployments(this.site.resourceGroup, this.site.name) :
+            await this.webSiteClient.webApps.listDeploymentsSlot(this.site.resourceGroup, util.extractSiteName(this.site), util.extractDeploymentSlotName(this.site));
+
+        if (config.scmType !== 'LocalGit') {
+            let input = await window.showErrorMessage(`Local Git Deployment is not set up. Set it up in the Azure Portal.`, `Go to Portal`)
+            if (input === 'Go to Portal') {
+                this.openInPortal();
+            }
+            return;
+        }
+
+        const username = publishCredentials.publishingUserName;
+        const password = publishCredentials.publishingPassword;
+        const repo = `${this.site.enabledHostNames[1]}:443/${this.site.repositorySiteName}.git`;
+        const remote = `https://${username}:${password}@${repo}`;
+
+        if (!workspace.rootPath) {
+            let input = await window.showErrorMessage(`You have not yet opened a folder to deploy.`);
+            return;
+        }
+        let git = require('simple-git/promise')(workspace.rootPath);
+
+        try {
+            await git.init();
+            await git.push(remote, 'master');
+        }
+        catch (err) {
+            if (err.message.indexOf('spawn git ENOENT') >= 0) {
+                let input = await window.showErrorMessage(`Git must be installed to use Local Git Deploy.`, `Install`)
+                if (input === 'Install') {
+                    opn(`https://git-scm.com/downloads`);
+                }
+                throw err;
+            } else if (err.message.indexOf('error: failed to push') >= 0) {
+                let input = await window.showErrorMessage(`Push rejected due to Git history diverging. Force push?`, `Yes`)
+                if (input === 'Yes') {
+                    await git.push(['-f', remote, 'master']);
+                } else {
+                    throw err;
+                }
+            } else {
+                throw err;
+                // ask about this later
+            }
+        }
+
+        const newDeployment = !util.isSiteDeploymentSlot ?
+            await this.webSiteClient.webApps.listDeployments(this.site.resourceGroup, this.site.name) :
+            await this.webSiteClient.webApps.listDeploymentsSlot(this.site.resourceGroup, util.extractSiteName(this.site), util.extractDeploymentSlotName(this.site));
+
+        if (newDeployment[0].deploymentId === oldDeployment[0].deploymentId) {
+            await window.showWarningMessage(`Local Git repo is current with "${repo}".`);
+            return;
+        }
+        return true;
+
     }
 
     protected get webSiteClient(): WebSiteManagementClient {

@@ -101,13 +101,12 @@
             {
                 "command": "appService.LocalGitDeploy",
                 "title": "Local Git Deploy to Web App",
-<<<<<<< HEAD
-======="category": "Azure App Service"
+                "category": "Azure App Service"
             },
             {
                 "command": "deploymentSlot.SwapSlots",
                 "title": "Swap Deployment Slot",
->>>>>>>3c978b3fe076f68b685bb8a87bdc0cb34fcdc3d4"category": "Azure App Service"
+                "category": "Azure App Service"
             },
             {
                 "command": "deploymentSlot.SwapSlots",
@@ -203,7 +202,8 @@
                     "group": "3_appServiceDeployCommands@1"
                 },
                 {
-<<<<<<< HEAD"when": "view == azureAppService && viewItem == appService",
+                    "command": "diagnostics.OpenLogStream",
+                    "when": "view == azureAppService && viewItem == appService",
                     "group": "4_appServiceDiagnosticsCommands@1"
                 },
                 {
@@ -212,8 +212,7 @@
                     "group": "4_appServiceDiagnosticsCommands@2"
                 },
                 {
-=======
->>>>>>>3c978b3fe076f68b685bb8a87bdc0cb34fcdc3d4"command": "appService.LocalGitDeploy",
+                    "command": "appService.LocalGitDeploy",
                     "when": "view == azureAppService && viewItem == appService",
                     "group": "3_appServiceDeployCommands@2"
                 },
@@ -241,6 +240,11 @@
                     "command": "deploymentSlot.SwapSlots",
                     "when": "view == azureAppService && viewItem == deploymentSlot",
                     "group": "2_deploymentSlotGeneralCommands@2"
+                },
+                {
+                    "command": "appService.LocalGitDeploy",
+                    "when": "view == azureAppService && viewItem == deploymentSlot",
+                    "group": "3_appServiceDeployCommands@1"
                 },
                 {
                     "command": "diagnostics.OpenLogStream",
