@@ -54,7 +54,7 @@ export class SiteNodeBase extends NodeBase {
         opn(deepLink);
     }
 
-    async delete(azureAccount: AzureAccountWrapper): Promise<boolean> {
+    async delete(azureAccount: AzureAccountWrapper): Promise<void> {
         let mOptions: MessageOptions = { modal: true };
         let deleteServicePlan = false;
         let servicePlan;
@@ -82,16 +82,16 @@ export class SiteNodeBase extends NodeBase {
                 if (input) {
                     deleteServicePlan = input === 'Yes';
                 } else {
-                    return false;
+                    throw new Error('Deleting app has been canceled.')
                 }
             }
             await !util.isSiteDeploymentSlot(this.site) ?
                 this.webSiteClient.webApps.deleteMethod(this.site.resourceGroup, this.site.name, { deleteEmptyServerFarm: deleteServicePlan }) :
                 this.webSiteClient.webApps.deleteSlot(this.site.resourceGroup, util.extractSiteName(this.site), util.extractDeploymentSlotName(this.site));
-            return true;
+            return;
         }
 
-        return false;
+        throw new Error('Deleting app has been canceled.')
     }
 
     async connectToLogStream(extensionContext: ExtensionContext): Promise<void> {
