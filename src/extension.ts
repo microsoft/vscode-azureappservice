@@ -115,9 +115,10 @@ export function activate(context: vscode.ExtensionContext) {
         if (node) {
             outputChannel.appendLine(`Deploying Local Git repository to "${node.site.name}"...`);
             try {
-                await node.localGitDeploy(azureAccount);
+                await node.localGitDeploy();
                 outputChannel.appendLine(`Local repository has been deployed to "${node.site.name}".`);
             } catch (err) {
+                outputChannel.appendLine(`Local Git deploy has failed.`);
                 outputChannel.appendLine(err);
                 throw err;
             }

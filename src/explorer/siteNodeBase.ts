@@ -85,14 +85,14 @@ export class SiteNodeBase extends NodeBase {
         }
     }
 
-    async localGitDeploy(azureAccount): Promise<boolean> {
-        const publishCredentials = !util.isSiteDeploymentSlot ?
+    async localGitDeploy(): Promise<boolean> {
+        const publishCredentials = !util.isSiteDeploymentSlot(this.site) ?
             await this.webSiteClient.webApps.listPublishingCredentials(this.site.resourceGroup, this.site.name) :
             await this.webSiteClient.webApps.listPublishingCredentialsSlot(this.site.resourceGroup, util.extractSiteName(this.site), util.extractDeploymentSlotName(this.site));
-        const config = !util.isSiteDeploymentSlot ?
+        const config = !util.isSiteDeploymentSlot(this.site) ?
             await this.webSiteClient.webApps.getConfiguration(this.site.resourceGroup, this.site.name) :
             await this.webSiteClient.webApps.getConfigurationSlot(this.site.resourceGroup, util.extractSiteName(this.site), util.extractDeploymentSlotName(this.site));
-        const oldDeployment = !util.isSiteDeploymentSlot ?
+        const oldDeployment = !util.isSiteDeploymentSlot(this.site) ?
             await this.webSiteClient.webApps.listDeployments(this.site.resourceGroup, this.site.name) :
             await this.webSiteClient.webApps.listDeploymentsSlot(this.site.resourceGroup, util.extractSiteName(this.site), util.extractDeploymentSlotName(this.site));
 
@@ -101,7 +101,7 @@ export class SiteNodeBase extends NodeBase {
             if (input === 'Go to Portal') {
                 this.openInPortal();
             }
-            return;
+            throw new Error(`Local Git Deployment is not set up. Set it up in the Azure Portal.`);
         }
 
         const username = publishCredentials.publishingUserName;
@@ -135,17 +135,16 @@ export class SiteNodeBase extends NodeBase {
                 }
             } else {
                 throw err;
-                // ask about this later
             }
         }
 
-        const newDeployment = !util.isSiteDeploymentSlot ?
+        const newDeployment = !util.isSiteDeploymentSlot(this.site) ?
             await this.webSiteClient.webApps.listDeployments(this.site.resourceGroup, this.site.name) :
             await this.webSiteClient.webApps.listDeploymentsSlot(this.site.resourceGroup, util.extractSiteName(this.site), util.extractDeploymentSlotName(this.site));
 
         if (newDeployment[0].deploymentId === oldDeployment[0].deploymentId) {
             await window.showWarningMessage(`Local Git repo is current with "${repo}".`);
-            return;
+            throw new Error(`Local Git repo is current with "${repo}".`);
         }
         return true;
 
