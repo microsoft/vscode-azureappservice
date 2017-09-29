@@ -17,13 +17,13 @@ import { WebJobsNode } from './webJobsNode';
 import { AppSettingsNode } from './appSettingsNodes';
 import * as path from 'path';
 import * as util from '../util';
+
 export type ServerFarmId = {
     subscriptions: string,
     resourceGroups: string,
     providers: string,
     serverfarms: string
 }
-
 
 export class AppServiceNode extends SiteNodeBase {
     constructor(site: WebSiteModels.Site, subscription: SubscriptionModels.Subscription, treeDataProvider: AppServiceDataProvider, parentNode: NodeBase) {
@@ -90,7 +90,7 @@ export class AppServiceNode extends SiteNodeBase {
             serverfarms: serverFarmArr[7]
         };
 
-        let servicePlan = await this.getWebSiteManagementClient(azureAccount).appServicePlans.get(serverFarmId.resourceGroups, serverFarmId.serverfarms);
+        let servicePlan = await this.webSiteClient.appServicePlans.get(serverFarmId.resourceGroups, serverFarmId.serverfarms);
         let mOptions: MessageOptions = { modal: true };
         let deleteServicePlan = false;
         let input = await window.showWarningMessage(`Are you sure you want to delete "${this.site.name}"?`, mOptions, 'Yes');
@@ -103,18 +103,10 @@ export class AppServiceNode extends SiteNodeBase {
                     return false;
                 }
             }
-            await this.getWebSiteManagementClient(azureAccount).webApps.deleteMethod(this.site.resourceGroup, this.site.name, { deleteEmptyServerFarm: deleteServicePlan });
+            await this.webSiteClient.webApps.deleteMethod(this.site.resourceGroup, this.site.name, { deleteEmptyServerFarm: deleteServicePlan });
             return true;
         }
 
         return false;
-    }
-
-    private get azureAccount(): AzureAccountWrapper {
-        return this.getTreeDataProvider<AppServiceDataProvider>().azureAccount;
-    }
-
-    private getWebSiteManagementClient(azureAccount: AzureAccountWrapper) {
-        return new WebSiteManagementClient(azureAccount.getCredentialByTenantId(this.subscription.tenantId), this.subscription.subscriptionId);
     }
 }
