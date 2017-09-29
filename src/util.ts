@@ -26,18 +26,12 @@ export async function listAll<T>(client: { listNext(nextPageLink: string): Promi
 export function waitForWebSiteState(webSiteManagementClient: WebSiteManagementClient, site: WebSiteModels.Site, state: string, intervalMs = 5000, timeoutMs = 60000): Promise<void> {
     return new Promise((resolve, reject) => {
         const func = async (count: number) => {
-<<<<<<< HEAD
             const rgName = site.resourceGroup;
             const isSlot = isSiteDeploymentSlot(site);
             const siteName = extractSiteName(site);
             const slotName = extractDeploymentSlotName(site);
             const currentSite = await (isSlot ? webSiteManagementClient.webApps.getSlot(rgName, siteName, slotName) : webSiteManagementClient.webApps.get(rgName, siteName));
 
-=======
-            const currentSite = this.isSiteDeploymentSlot(site) ?
-                await webSiteManagementClient.webApps.getSlot(site.resourceGroup, this.extractSiteName(site), this.extractDeploymentSlotName(site)) :
-                await webSiteManagementClient.webApps.get(site.resourceGroup, site.name);
->>>>>>> Implement Zip deploy to Deployment Slots
             if (currentSite.state.toLowerCase() === state.toLowerCase()) {
                 resolve();
             } else {
