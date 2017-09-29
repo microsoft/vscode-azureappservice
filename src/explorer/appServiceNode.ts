@@ -55,20 +55,5 @@ export class AppServiceNode extends SiteNodeBase {
             new AppSettingsNode(this.site, this.subscription, treeDataProvider, this)
         ];
     }
-
-    async start(): Promise<void> {
-        await this.webSiteClient.webApps.start(this.site.resourceGroup, this.site.name);
-        await util.waitForWebSiteState(this.webSiteClient, this.site, 'running');
-    }
-
-    async stop(): Promise<void> {
-        await this.webSiteClient.webApps.stop(this.site.resourceGroup, this.site.name);
-        await util.waitForWebSiteState(this.webSiteClient, this.site, 'stopped');
-    }
-
-    async restart(): Promise<void> {
-        await this.stop();
-        await this.start();
-    }
 }
 
