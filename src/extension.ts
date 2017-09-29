@@ -125,6 +125,19 @@ export function activate(context: vscode.ExtensionContext) {
             await wizard.run();
         }
     });
+    initAsyncCommand(context, 'appService.LocalGitDeploy', async (node: SiteNodeBase) => {
+        if (node) {
+            outputChannel.appendLine(`Deploying Local Git repository to "${node.site.name}"...`);
+            try {
+                await node.localGitDeploy();
+                outputChannel.appendLine(`Local repository has been deployed to "${node.site.name}".`);
+            } catch (err) {
+                outputChannel.appendLine(`Local Git deploy has failed.`);
+                outputChannel.appendLine(err);
+                throw err;
+            }
+        }
+    });
     initAsyncCommand(context, 'deploymentSlot.SwapSlots', async (node: DeploymentSlotNode) => {
         if (node) {
             await node.swapDeploymentSlots(outputChannel);

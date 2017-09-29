@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { TreeDataProvider, TreeItem, TreeItemCollapsibleState } from 'vscode';
+import { TreeDataProvider, TreeItem, TreeItemCollapsibleState, EventEmitter, Event, workspace, window } from 'vscode';
 import { AzureAccountWrapper } from '../azureAccountWrapper';
 import { SubscriptionModels } from 'azure-arm-resource';
 import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models';
@@ -17,6 +17,7 @@ import { WebJobsNode } from './webJobsNode';
 import { AppSettingsNode } from './appSettingsNodes';
 import * as path from 'path';
 import * as util from '../util';
+import * as opn from 'opn';
 
 export class AppServiceNode extends SiteNodeBase {
     constructor(site: WebSiteModels.Site, subscription: SubscriptionModels.Subscription, treeDataProvider: AppServiceDataProvider, parentNode: NodeBase) {
@@ -48,7 +49,7 @@ export class AppServiceNode extends SiteNodeBase {
         // https://github.com/Microsoft/vscode-azureappservice/issues/45
         return [
             new DeploymentSlotsNode(this.site, this.subscription, treeDataProvider, this),
-            // new FilesNode('Files', '/site/wwwroot', this.site, this.subscription),
+            // new FilesNode('Files', '/site/wwwroot', this.site, this.subscription, treeDataProvider, this),
             // new FilesNode('Log Files', '/LogFiles', this.site, this.subscription),
             new WebJobsNode(this.site, this.subscription, treeDataProvider, this),
             new AppSettingsNode(this.site, this.subscription, treeDataProvider, this)
@@ -70,3 +71,4 @@ export class AppServiceNode extends SiteNodeBase {
         await this.start();
     }
 }
+
