@@ -5,13 +5,14 @@
 
 import * as vscode from 'vscode';
 import { AzureAccountWrapper } from './azureAccountWrapper';
-import { WizardBase, WizardResult, WizardStep, UserCancelledError, QuickPickItemWithData } from './wizard';
+import { WizardBase, WizardResult, WizardStep, QuickPickItemWithData } from './wizard';
 import { SubscriptionModels, ResourceManagementClient, ResourceModels } from 'azure-arm-resource';
 import WebSiteManagementClient = require('azure-arm-website');
 import models = require('azure-arm-website');
 import { NodeBase } from './explorer/nodeBase';
 import { DeploymentSlotNode } from './explorer/deploymentSlotNode';
 import { DeploymentSlotsNode } from './explorer/deploymentSlotsNode';
+import { UserCancelledError } from './errors';
 import * as WebSiteModels from '../node_modules/azure-arm-website/lib/models';
 import * as util from './util';
 

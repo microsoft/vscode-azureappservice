@@ -31,6 +31,7 @@
         "onCommand:appService.Start",
         "onCommand:appService.Stop",
         "onCommand:appService.Restart",
+        "onCommand:appService.Delete",
         "onCommand:appService.DeployZipPackage",
         "onCommand:appService.ZipAndDeploy",
         "onCommand:appService.LocalGitDeploy",
@@ -86,6 +87,11 @@
             {
                 "command": "appService.Restart",
                 "title": "Restart",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.Delete",
+                "title": "Delete",
                 "category": "Azure App Service"
             },
             {
@@ -197,6 +203,11 @@
                     "group": "2_appServiceControlCommands@3"
                 },
                 {
+                    "command": "appService.Delete",
+                    "when": "view == azureAppService && viewItem == appService",
+                    "group": "2_appServiceControlCommands@4"
+                },
+                {
                     "command": "appService.DeployZipPackage",
                     "when": "view == azureAppService && viewItem == appService",
                     "group": "3_appServiceDeployCommands@1"
@@ -238,6 +249,11 @@
                 },
                 {
                     "command": "deploymentSlot.SwapSlots",
+                    "when": "view == azureAppService && viewItem == deploymentSlot",
+                    "group": "2_deploymentSlotGeneralCommands@1"
+                },
+                {
+                    "command": "appService.Delete",
                     "when": "view == azureAppService && viewItem == deploymentSlot",
                     "group": "2_deploymentSlotGeneralCommands@2"
                 },

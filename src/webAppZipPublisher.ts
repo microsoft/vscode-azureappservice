@@ -9,13 +9,15 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import { AzureAccountWrapper } from './azureAccountWrapper';
-import { WizardBase, WizardResult, WizardStep, SubscriptionStepBase, UserCancelledError, QuickPickItemWithData } from './wizard';
+import { WizardBase, WizardResult, WizardStep, SubscriptionStepBase, QuickPickItemWithData } from './wizard';
 import { WebAppCreator } from './webAppCreator';
 import { KuduClient, CommandResult } from './kuduClient';
 import { SubscriptionModels } from 'azure-arm-resource';
+import { UserCancelledError } from './errors';
 import WebSiteManagementClient = require('azure-arm-website');
 import * as WebSiteModels from '../node_modules/azure-arm-website/lib/models';
 import * as util from './util';
+
 
 export class WebAppZipPublisher extends WizardBase {
     constructor(output: vscode.OutputChannel,
@@ -114,7 +116,7 @@ class ZipFileStep extends WizardStep {
             zipOutput.on('close', () => resolve());
 
             const zipper = archiver('zip', { zlib: { level: 9 } });
-            zipper.on('error',  err => reject(err));
+            zipper.on('error', err => reject(err));
             zipper.pipe(zipOutput);
             zipper.glob('**/*', {
                 cwd: this._folderPath,

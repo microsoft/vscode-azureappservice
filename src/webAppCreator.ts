@@ -7,8 +7,9 @@ import * as path from 'path';
 import * as fs from 'fs';
 import * as vscode from 'vscode';
 import { AzureAccountWrapper } from './azureAccountWrapper';
-import { WizardBase, WizardResult, WizardStep, SubscriptionStepBase, QuickPickItemWithData, UserCancelledError } from './wizard';
+import { WizardBase, WizardResult, WizardStep, SubscriptionStepBase, QuickPickItemWithData } from './wizard';
 import { SubscriptionModels, ResourceManagementClient, ResourceModels } from 'azure-arm-resource';
+import { UserCancelledError } from './errors';
 import WebSiteManagementClient = require('azure-arm-website');
 import * as WebSiteModels from '../node_modules/azure-arm-website/lib/models';
 import * as util from './util';
@@ -36,7 +37,7 @@ export class WebAppCreator extends WizardBase {
                 error: null
             };
         }
-    
+
         return super.run(promptOnly);
     }
 
@@ -87,7 +88,7 @@ class WebAppCreatorStepBase extends WizardStep {
 
     protected getSelectedAppServicePlan(): WebSiteModels.AppServicePlan {
         const appServicePlanStep = <AppServicePlanStep>this.wizard.findStep(step => step instanceof AppServicePlanStep, 'The Wizard must have a AppServicePlanStep.');
-        
+
         if (!appServicePlanStep.servicePlan) {
             throw new Error('An App Service Plan must be selected first.');
         }
@@ -97,7 +98,7 @@ class WebAppCreatorStepBase extends WizardStep {
 
     protected getWebSite(): WebSiteModels.Site {
         const websiteStep = <WebsiteStep>this.wizard.findStep(step => step instanceof WebsiteStep, 'The Wizard must have a WebsiteStep.');
-        
+
         if (!websiteStep.website) {
             throw new Error('A website must be created first.');
         }
@@ -265,11 +266,11 @@ class AppServicePlanStep extends WebAppCreatorStepBase {
                     });
                 }
             });
-    
+
             return quickPickItems;
         });
 
-        
+
         const pickedItem = await this.showQuickPick(plansTask, quickPickOptions);
 
         if (pickedItem !== createNewItem) {
@@ -428,7 +429,7 @@ class WebsiteStep extends WebAppCreatorStepBase {
 
         const runtimeItems: QuickPickItemWithData<LinuxRuntimeStack>[] = [];
         const linuxRuntimeStacks = this.getLinuxRuntimeStack();
-        
+
         linuxRuntimeStacks.forEach(rt => {
             runtimeItems.push({
                 label: rt.displayName,
@@ -466,7 +467,7 @@ class WebsiteStep extends WebAppCreatorStepBase {
 
         this._website = await websiteClient.webApps.createOrUpdate(rg.name, this._website.name, this._website);
         this._website.siteConfig = await websiteClient.webApps.getConfiguration(rg.name, this._website.name);
-        
+
         this.wizard.writeline(`Web App "${this._website.name}" created: https://${this._website.defaultHostName}`);
         this.wizard.writeline('');
     }
@@ -521,13 +522,13 @@ class ShellScriptStep extends WebAppCreatorStepBase {
     constructor(wizard: WizardBase, azureAccount: AzureAccountWrapper) {
         super(wizard, 'Create Web App', azureAccount);
     }
-    
+
     async execute(): Promise<void> {
         const subscription = this.getSelectedSubscription();
         const rg = this.getSelectedResourceGroup();
         const plan = this.getSelectedAppServicePlan();
         const site = this.getWebSite();
-        
+
         const script = scriptTemplate.replace('%SUBSCRIPTION_NAME%', subscription.displayName)
             .replace('%RG_NAME%', rg.name)
             .replace('%LOCATION%', rg.location)
@@ -540,7 +541,7 @@ class ShellScriptStep extends WebAppCreatorStepBase {
         if (vscode.workspace.rootPath) {
             let count = 0;
             const maxCount = 1024;
-            
+
             while (count < maxCount) {
                 uri = vscode.Uri.file(path.join(vscode.workspace.rootPath, `deploy-${site.name}${count === 0 ? '' : count.toString()}.sh`));
                 if (!vscode.workspace.textDocuments.find(doc => doc.uri.fsPath === uri.fsPath) && !fs.existsSync(uri.fsPath)) {
@@ -556,12 +557,12 @@ class ShellScriptStep extends WebAppCreatorStepBase {
         if (uri) {
             const doc = await vscode.workspace.openTextDocument(uri);
             const editor = await vscode.window.showTextDocument(doc);
-            await editor.edit(editorBuilder => editorBuilder.insert(new vscode.Position(0,0), script));
+            await editor.edit(editorBuilder => editorBuilder.insert(new vscode.Position(0, 0), script));
         } else {
             const doc = await vscode.workspace.openTextDocument({ content: script, language: 'shellscript' });
             await vscode.window.showTextDocument(doc);
         }
-    }    
+    }
 }
 
 interface LinuxRuntimeStack {

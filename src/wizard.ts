@@ -7,6 +7,7 @@ import * as vscode from 'vscode';
 import * as util from './util';
 import { AzureAccountWrapper } from './azureAccountWrapper';
 import { SubscriptionModels } from 'azure-arm-resource';
+import { UserCancelledError } from './errors';
 
 export type WizardStatus = 'PromptCompleted' | 'Completed' | 'Faulted' | 'Cancelled';
 
@@ -14,7 +15,7 @@ export class WizardBase {
     private readonly _steps: WizardStep[] = [];
     private _result: WizardResult;
 
-    protected constructor(protected readonly output: vscode.OutputChannel) {}
+    protected constructor(protected readonly output: vscode.OutputChannel) { }
 
     async run(promptOnly = false): Promise<WizardResult> {
         // Go through the prompts...
@@ -57,7 +58,7 @@ export class WizardBase {
         this.output.show(true);
         for (var i = 0; i < this.steps.length; i++) {
             const step = this.steps[i];
-            
+
             try {
                 this.beforeExecute(step, i);
                 await this.steps[i].execute();
@@ -96,7 +97,7 @@ export class WizardBase {
 
     findStep(predicate: (step: WizardStep) => boolean, errorMessage: string): WizardStep {
         const step = this.steps.find(predicate);
-       
+
         if (!step) {
             throw new Error(errorMessage);
         }
@@ -112,17 +113,17 @@ export class WizardBase {
         this.output.appendLine(text);
     }
 
-    protected beforeExecute(step: WizardStep, stepIndex: number) {}
+    protected beforeExecute(step: WizardStep, stepIndex: number) { }
 
-    protected onExecuteError(step: WizardStep, stepIndex: number, error: Error) {}
+    protected onExecuteError(step: WizardStep, stepIndex: number, error: Error) { }
 
     protected sendErrorTelemetry(step: WizardStep, error: any) {
         const eventName = `${this.constructor.name}Error`
-        util.sendTelemetry(eventName, 
-        {
-            step: step ? step.stepTitle : 'Unknown',
-            error: util.errToString(error)
-        });
+        util.sendTelemetry(eventName,
+            {
+                step: step ? step.stepTitle : 'Unknown',
+                error: util.errToString(error)
+            });
     }
 }
 
@@ -133,10 +134,10 @@ export interface WizardResult {
 }
 
 export class WizardStep {
-    protected constructor(readonly wizard: WizardBase, readonly stepTitle: string) {}
+    protected constructor(readonly wizard: WizardBase, readonly stepTitle: string) { }
 
-    async prompt(): Promise<void> {}
-    async execute(): Promise<void> {}
+    async prompt(): Promise<void> { }
+    async execute(): Promise<void> { }
 
     get stepIndex(): number {
         return this.wizard.steps.findIndex(step => step === this);
@@ -195,5 +196,3 @@ export class SubscriptionStepBase extends WizardStep {
 export interface QuickPickItemWithData<T> extends vscode.QuickPickItem {
     data: T;
 }
-
-export class UserCancelledError extends Error {}
