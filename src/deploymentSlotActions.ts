@@ -5,7 +5,7 @@
 
 import * as vscode from 'vscode';
 import { AzureAccountWrapper } from './azureAccountWrapper';
-import { WizardBase, WizardResult, WizardStep, UserCancelledError, QuickPickItemWithData } from './wizard';
+import { WizardBase, WizardResult, WizardStep, QuickPickItemWithData } from './wizard';
 import { SubscriptionModels, ResourceManagementClient, ResourceModels } from 'azure-arm-resource';
 import WebSiteManagementClient = require('azure-arm-website');
 import models = require('azure-arm-website');
@@ -22,7 +22,7 @@ export class DeploymentSlotSwapper extends WizardBase {
     }
 
     protected onExecuteError(step: WizardStep, stepIndex: number, error: Error) {
-        if (error instanceof UserCancelledError) {
+        if (error instanceof util.UserCancelledError) {
             return;
         }
         this.writeline(`Failed to swap deployment slots - ${error.message}`);

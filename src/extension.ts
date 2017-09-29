@@ -91,8 +91,12 @@ export function activate(context: vscode.ExtensionContext) {
                 outputChannel.appendLine(`App "${node.site.name}" has been deleted.`);
                 vscode.commands.executeCommand('appService.Refresh', node.getParentNode());
             } catch (err) {
+                if (err instanceof util.UserCancelledError) {
+                    return;
+                }
                 outputChannel.appendLine(err.message);
                 throw err;
+
             }
         }
     });

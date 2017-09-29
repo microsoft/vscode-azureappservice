@@ -9,7 +9,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import { AzureAccountWrapper } from './azureAccountWrapper';
-import { WizardBase, WizardResult, WizardStep, SubscriptionStepBase, UserCancelledError, QuickPickItemWithData } from './wizard';
+import { WizardBase, WizardResult, WizardStep, SubscriptionStepBase, QuickPickItemWithData } from './wizard';
 import { WebAppCreator } from './webAppCreator';
 import { KuduClient, CommandResult } from './kuduClient';
 import { SubscriptionModels } from 'azure-arm-resource';
@@ -32,7 +32,7 @@ export class WebAppZipPublisher extends WizardBase {
     }
 
     protected onExecuteError(step: WizardStep, stepIndex: number, error: Error) {
-        if (error instanceof UserCancelledError) {
+        if (error instanceof util.UserCancelledError) {
             return;
         }
         this.writeline(`Deployment failed - ${error.message}`);
@@ -114,7 +114,7 @@ class ZipFileStep extends WizardStep {
             zipOutput.on('close', () => resolve());
 
             const zipper = archiver('zip', { zlib: { level: 9 } });
-            zipper.on('error',  err => reject(err));
+            zipper.on('error', err => reject(err));
             zipper.pipe(zipOutput);
             zipper.glob('**/*', {
                 cwd: this._folderPath,

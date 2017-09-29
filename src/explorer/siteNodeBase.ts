@@ -82,7 +82,7 @@ export class SiteNodeBase extends NodeBase {
                 if (input) {
                     deleteServicePlan = input === 'Yes';
                 } else {
-                    throw new Error('Deleting app has been canceled.')
+                    throw new util.UserCancelledError();
                 }
             }
             await !util.isSiteDeploymentSlot(this.site) ?
@@ -91,7 +91,7 @@ export class SiteNodeBase extends NodeBase {
             return;
         }
 
-        throw new Error('Deleting app has been canceled.')
+        throw new util.UserCancelledError();
     }
 
     async connectToLogStream(extensionContext: ExtensionContext): Promise<void> {
