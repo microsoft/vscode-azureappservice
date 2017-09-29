@@ -12,6 +12,7 @@ import models = require('azure-arm-website');
 import { NodeBase } from './explorer/nodeBase';
 import { DeploymentSlotNode } from './explorer/deploymentSlotNode';
 import { DeploymentSlotsNode } from './explorer/deploymentSlotsNode';
+import { UserCancelledError } from './errors';
 import * as WebSiteModels from '../node_modules/azure-arm-website/lib/models';
 import * as util from './util';
 
@@ -22,7 +23,7 @@ export class DeploymentSlotSwapper extends WizardBase {
     }
 
     protected onExecuteError(step: WizardStep, stepIndex: number, error: Error) {
-        if (error instanceof util.UserCancelledError) {
+        if (error instanceof UserCancelledError) {
             return;
         }
         this.writeline(`Failed to swap deployment slots - ${error.message}`);

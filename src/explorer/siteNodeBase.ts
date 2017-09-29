@@ -16,6 +16,7 @@ import { ExtensionContext, TreeDataProvider, TreeItem, OutputChannel, window, wo
 import { AzureAccountWrapper } from '../azureAccountWrapper';
 import { KuduClient } from '../kuduClient';
 import { Request } from 'request';
+import { UserCancelledError } from '../errors';
 
 export type ServerFarmId = {
     subscriptions: string,
@@ -82,7 +83,7 @@ export class SiteNodeBase extends NodeBase {
                 if (input) {
                     deleteServicePlan = input === 'Yes';
                 } else {
-                    throw new util.UserCancelledError();
+                    throw new UserCancelledError();
                 }
             }
             await !util.isSiteDeploymentSlot(this.site) ?
@@ -91,7 +92,7 @@ export class SiteNodeBase extends NodeBase {
             return;
         }
 
-        throw new util.UserCancelledError();
+        throw new UserCancelledError();
     }
 
     async connectToLogStream(extensionContext: ExtensionContext): Promise<void> {

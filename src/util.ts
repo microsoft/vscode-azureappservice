@@ -101,5 +101,3 @@ export function errToString(error: any): string {
 
     return error.toString();
 }
-
-export class UserCancelledError extends Error { }

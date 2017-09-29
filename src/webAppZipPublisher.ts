@@ -13,9 +13,11 @@ import { WizardBase, WizardResult, WizardStep, SubscriptionStepBase, QuickPickIt
 import { WebAppCreator } from './webAppCreator';
 import { KuduClient, CommandResult } from './kuduClient';
 import { SubscriptionModels } from 'azure-arm-resource';
+import { UserCancelledError } from './errors';
 import WebSiteManagementClient = require('azure-arm-website');
 import * as WebSiteModels from '../node_modules/azure-arm-website/lib/models';
 import * as util from './util';
+
 
 export class WebAppZipPublisher extends WizardBase {
     constructor(output: vscode.OutputChannel,
@@ -32,7 +34,7 @@ export class WebAppZipPublisher extends WizardBase {
     }
 
     protected onExecuteError(step: WizardStep, stepIndex: number, error: Error) {
-        if (error instanceof util.UserCancelledError) {
+        if (error instanceof UserCancelledError) {
             return;
         }
         this.writeline(`Deployment failed - ${error.message}`);

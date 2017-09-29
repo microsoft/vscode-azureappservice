@@ -21,6 +21,7 @@ import { WebAppCreator } from './webAppCreator';
 import { WebAppZipPublisher } from './webAppZipPublisher';
 import { Reporter } from './telemetry/reporter';
 import { DeploymentSlotSwapper } from './deploymentSlotActions';
+import { UserCancelledError } from './errors';
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Extension "Azure App Service Tools" is now active.');
@@ -91,10 +92,9 @@ export function activate(context: vscode.ExtensionContext) {
                 outputChannel.appendLine(`App "${node.site.name}" has been deleted.`);
                 vscode.commands.executeCommand('appService.Refresh', node.getParentNode());
             } catch (err) {
-                if (err instanceof util.UserCancelledError) {
-                    return;
+                if (!(err instanceof UserCancelledError)) {
+                    outputChannel.appendLine(err.message);
                 }
-                outputChannel.appendLine(err.message);
                 throw err;
 
             }
@@ -190,9 +190,13 @@ function initAsyncCommand(context: vscode.ExtensionContext, commandId: string, c
         try {
             await callback(...args);
         } catch (err) {
-            result = 'Failed';
-            errorData = util.errToString(err);
-            throw err;
+            if (err instanceof UserCancelledError) {
+                result = 'Canceled';
+            } else {
+                result = 'Failed';
+                errorData = util.errToString(err);
+                throw err;
+            }
         } finally {
             const end = Date.now();
             util.sendTelemetry(commandId, { result: result, error: errorData }, { duration: (end - start) / 1000 });

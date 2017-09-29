@@ -7,6 +7,7 @@ import * as vscode from 'vscode';
 import * as util from './util';
 import { AzureAccountWrapper } from './azureAccountWrapper';
 import { SubscriptionModels } from 'azure-arm-resource';
+import { UserCancelledError } from './errors';
 
 export type WizardStatus = 'PromptCompleted' | 'Completed' | 'Faulted' | 'Cancelled';
 
@@ -25,7 +26,7 @@ export class WizardBase {
                 await this.steps[i].prompt();
             } catch (err) {
                 this.sendErrorTelemetry(step, err);
-                if (err instanceof util.UserCancelledError) {
+                if (err instanceof UserCancelledError) {
                     return {
                         status: 'Cancelled',
                         step: step,
@@ -64,7 +65,7 @@ export class WizardBase {
             } catch (err) {
                 this.sendErrorTelemetry(step, err);
                 this.onExecuteError(step, i, err);
-                if (err instanceof util.UserCancelledError) {
+                if (err instanceof UserCancelledError) {
                     this._result = {
                         status: 'Cancelled',
                         step: step,
@@ -151,7 +152,7 @@ export class WizardStep {
         const result = await vscode.window.showQuickPick(items, options, token);
 
         if (!result) {
-            throw new util.UserCancelledError();
+            throw new UserCancelledError();
         }
 
         return result;
@@ -162,7 +163,7 @@ export class WizardStep {
         const result = await vscode.window.showInputBox(options, token);
 
         if (!result) {
-            throw new util.UserCancelledError();
+            throw new UserCancelledError();
         }
 
         return result;
