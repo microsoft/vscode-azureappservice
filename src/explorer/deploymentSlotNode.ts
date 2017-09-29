@@ -14,6 +14,7 @@ import { TreeDataProvider, TreeItem, TreeItemCollapsibleState, OutputChannel } f
 import { DeploymentSlotsNode } from './deploymentSlotsNode';
 import { DeploymentSlotSwapper } from '../deploymentSlotActions';
 import { AzureAccountWrapper } from '../azureAccountWrapper';
+import * as util from '../util';
 
 export class DeploymentSlotNode extends SiteNodeBase {
     constructor(label: string,

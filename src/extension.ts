@@ -120,7 +120,7 @@ export function activate(context: vscode.ExtensionContext) {
         }
     });
     initAsyncCommand(context, 'appService.DeployZipPackage', async (context: any) => {
-        if (context instanceof AppServiceNode) {
+        if (context instanceof SiteNodeBase) {
             const wizard = new WebAppZipPublisher(outputChannel, azureAccount, context.subscription, context.site);
             await wizard.run();
         } else if (context instanceof vscode.Uri) {
