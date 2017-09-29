@@ -232,9 +232,14 @@
                     "group": "1_deploymentSlotGeneralCommands@2"
                 },
                 {
+                    "command": "appService.Delete",
+                    "when": "view == azureAppService && viewItem == deploymentSlot",
+                    "group": "1_deploymentSlotGeneralCommands@3"
+                },
+                {
                     "command": "deploymentSlot.SwapSlots",
                     "when": "view == azureAppService && viewItem == deploymentSlot",
-                    "group": "2_deploymentSlotGeneralCommands@2"
+                    "group": "2_deploymentSlotGeneralCommands@1"
                 },
                 {
                     "command": "diagnostics.OpenLogStream",

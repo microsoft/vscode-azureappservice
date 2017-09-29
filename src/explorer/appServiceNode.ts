@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { TreeDataProvider, TreeItem, TreeItemCollapsibleState, EventEmitter, Event, window, MessageItem, MessageOptions } from 'vscode';
+import { TreeDataProvider, TreeItem, TreeItemCollapsibleState } from 'vscode';
 import { AzureAccountWrapper } from '../azureAccountWrapper';
 import { SubscriptionModels } from 'azure-arm-resource';
 import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models';
@@ -17,13 +17,6 @@ import { WebJobsNode } from './webJobsNode';
 import { AppSettingsNode } from './appSettingsNodes';
 import * as path from 'path';
 import * as util from '../util';
-
-export type ServerFarmId = {
-    subscriptions: string,
-    resourceGroups: string,
-    providers: string,
-    serverfarms: string
-}
 
 export class AppServiceNode extends SiteNodeBase {
     constructor(site: WebSiteModels.Site, subscription: SubscriptionModels.Subscription, treeDataProvider: AppServiceDataProvider, parentNode: NodeBase) {
@@ -75,38 +68,5 @@ export class AppServiceNode extends SiteNodeBase {
     async restart(): Promise<void> {
         await this.stop();
         await this.start();
-    }
-
-    async delete(azureAccount: AzureAccountWrapper): Promise<boolean> {
-
-        let serverFarmArr = this.site.serverFarmId.substring(1).split('/');
-        if (serverFarmArr.length % 2 !== 0) {
-            throw new Error('Invalid web app ID.');
-        }
-        let serverFarmId: ServerFarmId = {
-            subscriptions: serverFarmArr[1],
-            resourceGroups: serverFarmArr[3],
-            providers: serverFarmArr[5],
-            serverfarms: serverFarmArr[7]
-        };
-
-        let servicePlan = await this.webSiteClient.appServicePlans.get(serverFarmId.resourceGroups, serverFarmId.serverfarms);
-        let mOptions: MessageOptions = { modal: true };
-        let deleteServicePlan = false;
-        let input = await window.showWarningMessage(`Are you sure you want to delete "${this.site.name}"?`, mOptions, 'Yes');
-        if (input) {
-            if (servicePlan.numberOfSites < 2) {
-                let input = await window.showWarningMessage(`This is the last app in the App Service plan, "${serverFarmId.serverfarms}". Delete this App Service plan to prevent unexpected charges.`, mOptions, 'Yes', 'No');
-                if (input) {
-                    deleteServicePlan = input === 'Yes';
-                } else {
-                    return false;
-                }
-            }
-            await this.webSiteClient.webApps.deleteMethod(this.site.resourceGroup, this.site.name, { deleteEmptyServerFarm: deleteServicePlan });
-            return true;
-        }
-
-        return false;
     }
 }

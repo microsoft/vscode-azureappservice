@@ -49,7 +49,6 @@ export function activate(context: vscode.ExtensionContext) {
     initAsyncCommand(context, 'appService.Start', async (node: AppServiceNode) => {
         if (node) {
             outputChannel.appendLine(`Starting App "${node.site.name}"...`);
-<<<<<<< HEAD
             try {
                 await node.start();
                 outputChannel.appendLine(`App "${node.site.name}" has been started.`);
@@ -57,16 +56,11 @@ export function activate(context: vscode.ExtensionContext) {
                 outputChannel.appendLine(err);
                 throw err;
             }
-=======
-            await node.start();
-            outputChannel.appendLine(`App "${node.site.name}" has been started.`);
->>>>>>> 07ae297192ae1197a79dfb790dd8af129a641c59
         }
     });
     initAsyncCommand(context, 'appService.Stop', async (node: AppServiceNode) => {
         if (node) {
             outputChannel.appendLine(`Stopping App "${node.site.name}"...`);
-<<<<<<< HEAD
             try {
                 await node.stop();
                 outputChannel.appendLine(`App "${node.site.name}" has been stopped.`);
@@ -74,16 +68,11 @@ export function activate(context: vscode.ExtensionContext) {
                 outputChannel.appendLine(err);
                 throw err;
             }
-=======
-            await node.stop();
-            outputChannel.appendLine(`App "${node.site.name}" has been stopped.`);
->>>>>>> 07ae297192ae1197a79dfb790dd8af129a641c59
         }
     });
     initAsyncCommand(context, 'appService.Restart', async (node: AppServiceNode) => {
         if (node) {
             outputChannel.appendLine(`Restarting App "${node.site.name}"...`);
-<<<<<<< HEAD
             try {
                 await node.restart();
                 outputChannel.appendLine(`App "${node.site.name}" has been restarted.`);
@@ -91,19 +80,15 @@ export function activate(context: vscode.ExtensionContext) {
                 outputChannel.appendLine(err);
                 throw err;
             }
-=======
-            await node.restart()
-            outputChannel.appendLine(`App "${node.site.name}" has been restarted.`);
->>>>>>> 07ae297192ae1197a79dfb790dd8af129a641c59
         }
     });
-    initAsyncCommand(context, 'appService.Delete', async (node: AppServiceNode) => {
+    initAsyncCommand(context, 'appService.Delete', async (node: SiteNodeBase) => {
         if (node) {
             outputChannel.appendLine(`Deleting App "${node.site.name}"...`);
             let result = await node.delete(azureAccount);
             if (result) {
                 outputChannel.appendLine(`App "${node.site.name}" has been deleted.`);
-                appServiceDataProvider.refresh(node.getParentNode());
+                vscode.commands.executeCommand('appService.Refresh', node.getParentNode());
             } else {
                 outputChannel.appendLine('Delete was canceled.');
             }

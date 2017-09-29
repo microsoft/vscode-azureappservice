@@ -12,10 +12,17 @@ import { NodeBase } from './nodeBase';
 import { AppSettingsNode } from './appSettingsNodes';
 import { AppServiceDataProvider } from './appServiceExplorer';
 import { SubscriptionModels } from 'azure-arm-resource';
-import { ExtensionContext, TreeDataProvider, TreeItem, OutputChannel, window } from 'vscode';
+import { ExtensionContext, TreeDataProvider, TreeItem, OutputChannel, window, MessageItem, MessageOptions } from 'vscode';
 import { AzureAccountWrapper } from '../azureAccountWrapper';
 import { KuduClient } from '../kuduClient';
 import { Request } from 'request';
+
+export type ServerFarmId = {
+    subscriptions: string,
+    resourceGroups: string,
+    providers: string,
+    serverfarms: string
+}
 
 export class SiteNodeBase extends NodeBase {
     private _logStreamOutputChannel: OutputChannel;
@@ -45,6 +52,46 @@ export class SiteNodeBase extends NodeBase {
         const portalEndpoint = 'https://portal.azure.com';
         const deepLink = `${portalEndpoint}/${this.subscription.tenantId}/#resource${this.site.id}`;
         opn(deepLink);
+    }
+
+    async delete(azureAccount: AzureAccountWrapper): Promise<boolean> {
+        let mOptions: MessageOptions = { modal: true };
+        let deleteServicePlan = false;
+        let servicePlan;
+        let serverFarmId: ServerFarmId;
+
+        if (!util.isSiteDeploymentSlot(this.site)) {
+            // API calls not necessary for deployment slots
+            let serverFarmArr = this.site.serverFarmId.substring(1).split('/');
+            if (serverFarmArr.length % 2 !== 0) {
+                throw new Error('Invalid web app ID.');
+            }
+            serverFarmId = {
+                subscriptions: serverFarmArr[1],
+                resourceGroups: serverFarmArr[3],
+                providers: serverFarmArr[5],
+                serverfarms: serverFarmArr[7]
+            };
+            servicePlan = await this.webSiteClient.appServicePlans.get(serverFarmId.resourceGroups, serverFarmId.serverfarms);
+        }
+
+        let input = await window.showWarningMessage(`Are you sure you want to delete "${this.site.name}"?`, mOptions, 'Yes');
+        if (input) {
+            if (!util.isSiteDeploymentSlot(this.site) && servicePlan.numberOfSites < 2) {
+                let input = await window.showWarningMessage(`This is the last app in the App Service plan, "${serverFarmId.serverfarms}". Delete this App Service plan to prevent unexpected charges.`, mOptions, 'Yes', 'No');
+                if (input) {
+                    deleteServicePlan = input === 'Yes';
+                } else {
+                    return false;
+                }
+            }
+            await !util.isSiteDeploymentSlot(this.site) ?
+                this.webSiteClient.webApps.deleteMethod(this.site.resourceGroup, this.site.name, { deleteEmptyServerFarm: deleteServicePlan }) :
+                this.webSiteClient.webApps.deleteSlot(this.site.resourceGroup, util.extractSiteName(this.site), util.extractDeploymentSlotName(this.site));
+            return true;
+        }
+
+        return false;
     }
 
     async connectToLogStream(extensionContext: ExtensionContext): Promise<void> {
