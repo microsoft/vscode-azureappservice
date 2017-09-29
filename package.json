@@ -33,6 +33,7 @@
         "onCommand:appService.Restart",
         "onCommand:appService.DeployZipPackage",
         "onCommand:appService.ZipAndDeploy",
+        "onCommand:appService.LocalGitDeploy",
         "onCommand:deploymentSlot.SwapSlots",
         "onCommand:appSettings.Add",
         "onCommand:appSettings.Edit",
@@ -95,6 +96,16 @@
             {
                 "command": "appService.ZipAndDeploy",
                 "title": "Zip & Deploy to Web App",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.LocalGitDeploy",
+                "title": "Local Git Deploy to Web App",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "deploymentSlot.SwapSlots",
+                "title": "Swap Deployment Slot",
                 "category": "Azure App Service"
             },
             {
@@ -201,6 +212,11 @@
                     "group": "4_appServiceDiagnosticsCommands@2"
                 },
                 {
+                    "command": "appService.LocalGitDeploy",
+                    "when": "view == azureAppService && viewItem == appService",
+                    "group": "3_appServiceDeployCommands@2"
+                },
+                {
                     "command": "appService.OpenInPortal",
                     "when": "view == azureAppService && viewItem == deploymentSlots",
                     "group": "1_deploymentSlotsGeneralCommands@1"
@@ -224,6 +240,11 @@
                     "command": "deploymentSlot.SwapSlots",
                     "when": "view == azureAppService && viewItem == deploymentSlot",
                     "group": "2_deploymentSlotGeneralCommands@2"
+                },
+                {
+                    "command": "appService.LocalGitDeploy",
+                    "when": "view == azureAppService && viewItem == deploymentSlot",
+                    "group": "3_appServiceDeployCommands@1"
                 },
                 {
                     "command": "diagnostics.OpenLogStream",
@@ -304,6 +325,7 @@
         "ms-rest-azure": "^2.3.1",
         "opn": "^5.1.0",
         "request": "^2.83.0",
+        "simple-git": "^1.77.0",
         "vscode-extension-telemetry": "^0.0.6"
     },
     "extensionDependencies": [
