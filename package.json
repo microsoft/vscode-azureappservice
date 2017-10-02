@@ -213,6 +213,11 @@
                     "group": "3_appServiceDeployCommands@1"
                 },
                 {
+                    "command": "appService.LocalGitDeploy",
+                    "when": "view == azureAppService && viewItem == appService",
+                    "group": "3_appServiceDeployCommands@2"
+                },
+                {
                     "command": "diagnostics.OpenLogStream",
                     "when": "view == azureAppService && viewItem == appService",
                     "group": "4_appServiceDiagnosticsCommands@1"
@@ -221,11 +226,6 @@
                     "command": "diagnostics.StopLogStream",
                     "when": "view == azureAppService && viewItem == appService",
                     "group": "4_appServiceDiagnosticsCommands@2"
-                },
-                {
-                    "command": "appService.LocalGitDeploy",
-                    "when": "view == azureAppService && viewItem == appService",
-                    "group": "3_appServiceDeployCommands@2"
                 },
                 {
                     "command": "appService.OpenInPortal",
@@ -273,9 +273,14 @@
                     "group": "2_deploymentSlotControlCommands@5"
                 },
                 {
+                    "command": "appService.DeployZipPackage",
+                    "when": "view == azureAppService && viewItem == deploymentSlot",
+                    "group": "3_deploymentSlotDeployCommands@1"
+                },
+                {
                     "command": "appService.LocalGitDeploy",
                     "when": "view == azureAppService && viewItem == deploymentSlot",
-                    "group": "3_appServiceDeployCommands@1"
+                    "group": "3_deploymentSlotDeployCommands@2"
                 },
                 {
                     "command": "diagnostics.OpenLogStream",

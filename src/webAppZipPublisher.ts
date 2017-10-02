@@ -244,11 +244,15 @@ class DeployStep extends WizardStep {
         const zipFilePath = this.getSelectedZipFilePath();
         const siteClient = new WebSiteManagementClient(this.azureAccount.getCredentialByTenantId(subscription.tenantId), subscription.subscriptionId);
         const user = await util.getWebAppPublishCredential(siteClient, site);
-        const kuduClient = new KuduClient(site.name, user.publishingUserName, user.publishingPassword);
+        const siteName = util.extractSiteName(site) + (util.isSiteDeploymentSlot(site) ? '-' + util.extractDeploymentSlotName(site) : '');
+        const kuduClient = new KuduClient(siteName, user.publishingUserName, user.publishingPassword);
 
         this.wizard.writeline(`Start Zip deployment to ${site.name}...`);
         this.wizard.writeline('Stopping Web App...');
-        await siteClient.webApps.stop(site.resourceGroup, site.name);
+        util.isSiteDeploymentSlot(site) ?
+            await siteClient.webApps.stopSlot(site.resourceGroup, util.extractSiteName(site), util.extractDeploymentSlotName(site)) :
+            await siteClient.webApps.stop(site.resourceGroup, site.name);
+
         await util.waitForWebSiteState(siteClient, site, 'stopped');
 
         this.wizard.writeline('Deleting existing deployment...');
@@ -271,7 +275,9 @@ class DeployStep extends WizardStep {
         }
 
         this.wizard.writeline('Starting Web App...');
-        await siteClient.webApps.start(site.resourceGroup, site.name);
+        util.isSiteDeploymentSlot(site) ?
+            await siteClient.webApps.startSlot(site.resourceGroup, util.extractSiteName(site), util.extractDeploymentSlotName(site)) :
+            await siteClient.webApps.start(site.resourceGroup, site.name);
         await util.waitForWebSiteState(siteClient, site, 'running');
 
         this.wizard.writeline('Deployment completed.');
