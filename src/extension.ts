@@ -142,8 +142,9 @@ export function activate(context: vscode.ExtensionContext) {
                 await node.localGitDeploy();
                 outputChannel.appendLine(`Local repository has been deployed to "${node.site.name}".`);
             } catch (err) {
-                outputChannel.appendLine(`Local Git deploy has failed.`);
-                outputChannel.appendLine(err);
+                if (!(err instanceof UserCancelledError)) {
+                    outputChannel.appendLine(err.message);
+                }
                 throw err;
             }
         }
