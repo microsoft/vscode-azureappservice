@@ -173,7 +173,11 @@ export class AppSettingNode extends NodeBase {
             ignoreFocusOut: true,
             prompt: `Enter setting value for "${newKey}"`,
             value: this.value
-        }) || '';
+        });
+
+        if (!newValue) {
+            return;
+        }
 
         this.key = newKey;
         this.value = newValue;
