@@ -212,25 +212,9 @@ export class SiteNodeBase extends NodeBase {
         let git = require('simple-git/promise')(workspace.rootPath);
 
         try {
-            await git.init();
             let status = await git.status();
             if (status.files.length > 0) {
-                let input = await window.showInformationMessage(`There ${status.files.length > 1 ? 'are' : 'is'} ${status.files.length} uncommitted change${status.files.length > 1 ? 's' : ''} in local repo "${workspace.rootPath}". Commit?`, 'Yes', 'Push without changes');
-                if (input === 'Yes') {
-                    await git.add('./*');
-                    let message = await window.showInputBox({
-                        value: 'Committed through VS Code',
-                        prompt: 'Enter a commit message'
-                    });
-
-                    if (!message) {
-                        throw new UserCancelledError();
-                    }
-                    await git.commit(message);
-                } else if (!input) {
-                    commands.executeCommand('workbench.view.scm');
-                    throw new UserCancelledError();
-                }
+                window.showWarningMessage(`There ${status.files.length > 1 ? 'are' : 'is'} ${status.files.length} uncommitted change${status.files.length > 1 ? 's' : ''} in local repo "${workspace.rootPath}"`);
             }
 
             await git.push(remote, 'master');
@@ -259,7 +243,7 @@ export class SiteNodeBase extends NodeBase {
             await this.webSiteClient.webApps.listDeploymentsSlot(this.site.resourceGroup, util.extractSiteName(this.site), util.extractDeploymentSlotName(this.site));
 
         if (newDeployment[0].deploymentId === oldDeployment[0].deploymentId) {
-            await window.showWarningMessage(`Local Git repo is current with "${repo}".`);
+            await window.showErrorMessage(`Local Git repo is current with "${repo}".`);
             throw new Error(`Local Git repo is current with "${repo}".`);
         }
         return true;
