@@ -197,7 +197,6 @@ export class SiteNodeBase extends NodeBase {
                 !isSlot ?
                     await this.webSiteClient.webApps.updateConfiguration(this.site.resourceGroup, siteName, updateConfig) :
                     await this.webSiteClient.webApps.updateConfigurationSlot(this.site.resourceGroup, siteName, updateConfig, util.extractDeploymentSlotName(this.site));
-                console.log('Updated Config!');
             } else {
                 throw new UserCancelledError();
             }
