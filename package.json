@@ -278,11 +278,6 @@
                     "group": "3_deploymentSlotDeployCommands@1"
                 },
                 {
-                    "command": "appService.DeployZipPackage",
-                    "when": "view == azureAppService && viewItem == deploymentSlot",
-                    "group": "3_deploymentSlotDeployCommands@1"
-                },
-                {
                     "command": "appService.LocalGitDeploy",
                     "when": "view == azureAppService && viewItem == deploymentSlot",
                     "group": "3_deploymentSlotDeployCommands@2"
