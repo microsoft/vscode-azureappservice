@@ -112,14 +112,24 @@ export class AppSettingsNode extends NodeBase {
 
     validateNewKeyInput(newKey: string, oldKey?: string): string {
         newKey = newKey ? newKey.trim() : '';
+<<<<<<< HEAD
         oldKey = oldKey ? oldKey.trim().toLowerCase() : oldKey;
+=======
+        oldKey = oldKey ? oldKey.trim().toLocaleLowerCase() : oldKey;
+>>>>>>> Make app setting name validation case insensitive to match portal behavior
         if (newKey.length === 0) {
             return 'Key must have at least one non-whitespace character.';
         }
 
+<<<<<<< HEAD
         if (this._settings.properties && newKey.toLowerCase() !== oldKey) {
             for (let key in this._settings.properties) {
                 if (key.toLowerCase() === newKey.toLowerCase()) {
+=======
+        if (this._settings.properties && newKey.toLocaleLowerCase() !== oldKey) {
+            for (let key in this._settings.properties) {
+                if (key.toLocaleLowerCase() === newKey.toLocaleLowerCase()) {
+>>>>>>> Make app setting name validation case insensitive to match portal behavior
                     return `Setting "${newKey}" already exists.`;
                 }
             }
