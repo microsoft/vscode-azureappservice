@@ -12,7 +12,7 @@ import { NodeBase } from './nodeBase';
 import { AppSettingsNode } from './appSettingsNodes';
 import { AppServiceDataProvider } from './appServiceExplorer';
 import { SubscriptionModels } from 'azure-arm-resource';
-import { ExtensionContext, TreeDataProvider, TreeItem, OutputChannel, window, workspace, MessageItem, MessageOptions } from 'vscode';
+import { ExtensionContext, TreeDataProvider, TreeItem, OutputChannel, window, workspace, MessageItem, MessageOptions, commands } from 'vscode';
 import { AzureAccountWrapper } from '../azureAccountWrapper';
 import { KuduClient } from '../kuduClient';
 import { Request } from 'request';
@@ -165,22 +165,41 @@ export class SiteNodeBase extends NodeBase {
     }
 
     async localGitDeploy(): Promise<boolean> {
-        const publishCredentials = !util.isSiteDeploymentSlot(this.site) ?
-            await this.webSiteClient.webApps.listPublishingCredentials(this.site.resourceGroup, this.site.name) :
-            await this.webSiteClient.webApps.listPublishingCredentialsSlot(this.site.resourceGroup, util.extractSiteName(this.site), util.extractDeploymentSlotName(this.site));
-        const config = !util.isSiteDeploymentSlot(this.site) ?
-            await this.webSiteClient.webApps.getConfiguration(this.site.resourceGroup, this.site.name) :
-            await this.webSiteClient.webApps.getConfigurationSlot(this.site.resourceGroup, util.extractSiteName(this.site), util.extractDeploymentSlotName(this.site));
-        const oldDeployment = !util.isSiteDeploymentSlot(this.site) ?
-            await this.webSiteClient.webApps.listDeployments(this.site.resourceGroup, this.site.name) :
-            await this.webSiteClient.webApps.listDeploymentsSlot(this.site.resourceGroup, util.extractSiteName(this.site), util.extractDeploymentSlotName(this.site));
+
+        if (!workspace.rootPath) {
+            let input = await window.showErrorMessage(`You have not yet opened a folder to deploy.`);
+            throw new Error('No open workspace');
+        }
+
+        const siteName = util.extractSiteName(this.site);
+        const isSlot = util.isSiteDeploymentSlot(this.site);
+        const publishCredentials = !isSlot ?
+            await this.webSiteClient.webApps.listPublishingCredentials(this.site.resourceGroup, siteName) :
+            await this.webSiteClient.webApps.listPublishingCredentialsSlot(this.site.resourceGroup, siteName, util.extractDeploymentSlotName(this.site));
+        const config = !isSlot ?
+            await this.webSiteClient.webApps.getConfiguration(this.site.resourceGroup, siteName) :
+            await this.webSiteClient.webApps.getConfigurationSlot(this.site.resourceGroup, siteName, util.extractDeploymentSlotName(this.site));
+        const oldDeployment = !isSlot ?
+            await this.webSiteClient.webApps.listDeployments(this.site.resourceGroup, siteName) :
+            await this.webSiteClient.webApps.listDeploymentsSlot(this.site.resourceGroup, siteName, util.extractDeploymentSlotName(this.site));
 
         if (config.scmType !== 'LocalGit') {
-            let input = await window.showErrorMessage(`Local Git Deployment is not set up. Set it up in the Azure Portal.`, `Go to Portal`)
-            if (input === 'Go to Portal') {
-                this.openInPortal();
+            let input;
+            let oldScmType = config.scmType;
+            let updateConfig = config;
+            updateConfig.scmType = 'LocalGit';
+
+            if (oldScmType !== 'None') {
+                input = await window.showWarningMessage(`Deployment source for "${siteName}" is set as "${oldScmType}".  Change to "LocalGit"?`, 'Yes');
             }
-            throw new Error(`Local Git Deployment is not set up. Set it up in the Azure Portal.`);
+
+            if (oldScmType === 'None' || input === 'Yes') {
+                !isSlot ?
+                    await this.webSiteClient.webApps.updateConfiguration(this.site.resourceGroup, siteName, updateConfig) :
+                    await this.webSiteClient.webApps.updateConfigurationSlot(this.site.resourceGroup, siteName, updateConfig, util.extractDeploymentSlotName(this.site));
+            } else {
+                throw new UserCancelledError();
+            }
         }
 
         const username = publishCredentials.publishingUserName;
@@ -188,14 +207,15 @@ export class SiteNodeBase extends NodeBase {
         const repo = `${this.site.enabledHostNames[1]}:443/${this.site.repositorySiteName}.git`;
         const remote = `https://${username}:${password}@${repo}`;
 
-        if (!workspace.rootPath) {
-            let input = await window.showErrorMessage(`You have not yet opened a folder to deploy.`);
-            return;
-        }
+
         let git = require('simple-git/promise')(workspace.rootPath);
 
         try {
-            await git.init();
+            let status = await git.status();
+            if (status.files.length > 0) {
+                window.showWarningMessage(`There ${status.files.length > 1 ? 'are' : 'is'} ${status.files.length} uncommitted change${status.files.length > 1 ? 's' : ''} in local repo "${workspace.rootPath}"`);
+            }
+
             await git.push(remote, 'master');
         }
         catch (err) {
@@ -222,7 +242,7 @@ export class SiteNodeBase extends NodeBase {
             await this.webSiteClient.webApps.listDeploymentsSlot(this.site.resourceGroup, util.extractSiteName(this.site), util.extractDeploymentSlotName(this.site));
 
         if (newDeployment[0].deploymentId === oldDeployment[0].deploymentId) {
-            await window.showWarningMessage(`Local Git repo is current with "${repo}".`);
+            await window.showErrorMessage(`Local Git repo is current with "${repo}".`);
             throw new Error(`Local Git repo is current with "${repo}".`);
         }
         return true;
