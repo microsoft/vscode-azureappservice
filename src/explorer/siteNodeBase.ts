@@ -12,7 +12,7 @@ import { NodeBase } from './nodeBase';
 import { AppSettingsNode } from './appSettingsNodes';
 import { AppServiceDataProvider } from './appServiceExplorer';
 import { SubscriptionModels } from 'azure-arm-resource';
-import { ExtensionContext, TreeDataProvider, TreeItem, OutputChannel, window, workspace, MessageItem, MessageOptions } from 'vscode';
+import { ExtensionContext, TreeDataProvider, TreeItem, OutputChannel, window, workspace, MessageItem, MessageOptions, commands } from 'vscode';
 import { AzureAccountWrapper } from '../azureAccountWrapper';
 import { KuduClient } from '../kuduClient';
 import { Request } from 'request';
@@ -215,12 +215,24 @@ export class SiteNodeBase extends NodeBase {
             await git.init();
             let status = await git.status();
             if (status.files.length > 0) {
-                let input = await window.showInformationMessage(`There are uncommitted changes in local repo "${workspace.rootPath}". Commit?`, 'Yes');
-                if (input) {
+                let input = await window.showInformationMessage(`There ${status.files.length > 1 ? 'are' : 'is'} ${status.files.length} uncommitted change${status.files.length > 1 ? 's' : ''} in local repo "${workspace.rootPath}". Commit?`, 'Yes', 'Push without changes');
+                if (input === 'Yes') {
                     await git.add('./*');
-                    await git.commit('Deployed through VS Code');
+                    let message = await window.showInputBox({
+                        value: 'Committed through VS Code',
+                        prompt: 'Enter a commit message'
+                    });
+
+                    if (!message) {
+                        throw new UserCancelledError();
+                    }
+                    await git.commit(message);
+                } else if (!input) {
+                    commands.executeCommand('workbench.view.scm');
+                    throw new UserCancelledError();
                 }
             }
+
             await git.push(remote, 'master');
         }
         catch (err) {
