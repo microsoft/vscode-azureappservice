@@ -22,7 +22,6 @@ import { WebAppZipPublisher } from './webAppZipPublisher';
 import { Reporter } from './telemetry/reporter';
 import { DeploymentSlotSwapper } from './deploymentSlotActions';
 import { UserCancelledError } from './errors';
-import * as msrest from 'ms-rest';
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Extension "Azure App Service Tools" is now active.');
