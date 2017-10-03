@@ -6,11 +6,15 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 ## [Unreleased]
 
 ## 0.2.0 - 2017-10-03
+### Added
 - Deploy to Deployment Slots
 - Local Git deployment
 - View web app log stream
 - View and edit web app settings
-- [Bug fixes](https://github.com/Microsoft/vscode-azureappservice/issues?q=is%3Aissue+milestone%3A%22Version+0.2.0%22+label%3Abug+is%3Aclosed)
+### Removed
+- The Explorer view no longer shows Function apps. Function app will have its own Visual Studio Code extension.
+### Fixed
+- [Bugs fixed](https://github.com/Microsoft/vscode-azureappservice/issues?q=is%3Aissue+milestone%3A%22Version+0.2.0%22+label%3Abug+is%3Aclosed)
 
 ## 0.1.0 - 2017-09-19
 ### Added
