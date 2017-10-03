@@ -10,7 +10,7 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 - Local Git deployment
 - View web app log stream
 - View and edit web app settings
-- Various bug fixes
+- Various [bug fixes](https://github.com/Microsoft/vscode-azureappservice/issues?q=is%3Aissue+milestone%3A%22Version+0.2.0%22+label%3Abug+is%3Aclosed)
 
 ## 0.1.0 - 2017-09-19
 ### Added
