@@ -5,6 +5,13 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 
 ## [Unreleased]
 
+## 0.2.0 - 2017-10-03
+- Deploy to Deployment Slots
+- Local Git deployment
+- View web app log stream
+- View and edit web app settings
+- Various bug fixes
+
 ## 0.1.0 - 2017-09-19
 ### Added
 - App Service UI components (sash)

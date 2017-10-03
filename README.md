@@ -1,12 +1,14 @@
-# Azure App Services for Visual Studio Code
+# Azure App Services for Visual Studio Code (Preview)
 The Azure App Services extension for VS Code lets you quickly browse, create, manage, and deploy Azure App Service websites.
 
 ## Features
 
 * Browse sites across all of your Azure subscriptions
-* Create new sites
-* Deploy to your site
-* Start, stop, and restart the site
+* Create new sites (Linux with Node.js only)
+* Deploy to your site via local Git push or Zip
+* Start, stop, and restart the web app/deployment slot
+* View and edit web app settings
+* View web app log stream
 * Browse to the Azure Portal for advanced tasks, such as scaling
 
 ## Requirements
