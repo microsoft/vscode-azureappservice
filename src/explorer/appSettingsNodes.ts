@@ -112,14 +112,14 @@ export class AppSettingsNode extends NodeBase {
 
     validateNewKeyInput(newKey: string, oldKey?: string): string {
         newKey = newKey ? newKey.trim() : '';
-        oldKey = oldKey ? oldKey.trim().toLocaleLowerCase() : oldKey;
+        oldKey = oldKey ? oldKey.trim().toLowerCase() : oldKey;
         if (newKey.length === 0) {
             return 'Key must have at least one non-whitespace character.';
         }
 
-        if (this._settings.properties && newKey.toLocaleLowerCase() !== oldKey) {
+        if (this._settings.properties && newKey.toLowerCase() !== oldKey) {
             for (let key in this._settings.properties) {
-                if (key.toLocaleLowerCase() === newKey.toLocaleLowerCase()) {
+                if (key.toLowerCase() === newKey.toLowerCase()) {
                     return `Setting "${newKey}" already exists.`;
                 }
             }
