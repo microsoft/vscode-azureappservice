@@ -117,13 +117,15 @@ export class SiteNodeBase extends NodeBase {
                     throw new UserCancelledError();
                 }
             }
-            await !util.isSiteDeploymentSlot(this.site) ?
-                this.webSiteClient.webApps.deleteMethod(this.site.resourceGroup, this.site.name, { deleteEmptyServerFarm: deleteServicePlan }) :
-                this.webSiteClient.webApps.deleteSlot(this.site.resourceGroup, util.extractSiteName(this.site), util.extractDeploymentSlotName(this.site));
-            return;
-        }
+            let pendingRequest = await !util.isSiteDeploymentSlot(this.site) ?
+                this.webSiteClient.webApps.deleteMethodWithHttpOperationResponse(this.site.resourceGroup, this.site.name, { deleteEmptyServerFarm: deleteServicePlan }) :
+                this.webSiteClient.webApps.deleteSlotWithHttpOperationResponse(this.site.resourceGroup, util.extractSiteName(this.site), util.extractDeploymentSlotName(this.site));
 
-        throw new UserCancelledError();
+            await pendingRequest;
+            // to ensure that the asset gets deleted before the explorer refresh happens
+        } else {
+            throw new UserCancelledError();
+        }
     }
 
     async connectToLogStream(extensionContext: ExtensionContext): Promise<void> {
@@ -205,6 +207,7 @@ export class SiteNodeBase extends NodeBase {
         const username = publishCredentials.publishingUserName;
         const password = publishCredentials.publishingPassword;
         const repo = `${this.site.enabledHostNames[1]}:443/${this.site.repositorySiteName}.git`;
+        // the scm url lives in the 1 index of enabledHostNames, not 0
         const remote = `https://${username}:${password}@${repo}`;
 
 
@@ -215,7 +218,6 @@ export class SiteNodeBase extends NodeBase {
             if (status.files.length > 0) {
                 window.showWarningMessage(`There ${status.files.length > 1 ? 'are' : 'is'} ${status.files.length} uncommitted change${status.files.length > 1 ? 's' : ''} in local repo "${workspace.rootPath}"`);
             }
-
             await git.push(remote, 'master');
         }
         catch (err) {
@@ -240,8 +242,9 @@ export class SiteNodeBase extends NodeBase {
         const newDeployment = !util.isSiteDeploymentSlot(this.site) ?
             await this.webSiteClient.webApps.listDeployments(this.site.resourceGroup, this.site.name) :
             await this.webSiteClient.webApps.listDeploymentsSlot(this.site.resourceGroup, util.extractSiteName(this.site), util.extractDeploymentSlotName(this.site));
-
-        if (newDeployment[0].deploymentId === oldDeployment[0].deploymentId) {
+        // if the oldDeployment has a length of 0, then there has never been a deployment
+        if (newDeployment.length && oldDeployment.length &&
+            newDeployment[0].deploymentId === oldDeployment[0].deploymentId) {
             await window.showErrorMessage(`Local Git repo is current with "${repo}".`);
             throw new Error(`Local Git repo is current with "${repo}".`);
         }
