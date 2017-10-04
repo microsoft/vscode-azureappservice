@@ -99,7 +99,14 @@ export function activate(context: vscode.ExtensionContext) {
                 vscode.commands.executeCommand('appService.Refresh', node.getParentNode());
             } catch (err) {
                 if (!(err instanceof UserCancelledError)) {
-                    outputChannel.appendLine(err.message);
+                    try {
+                        // Azure REST error messages come as a JSON string with more details
+                        outputChannel.appendLine(JSON.parse(err.message).Message);
+
+                    } catch {
+                        outputChannel.appendLine(err.message);
+                    }
+
                 }
                 throw err;
 
@@ -143,9 +150,15 @@ export function activate(context: vscode.ExtensionContext) {
                 outputChannel.appendLine(`Local repository has been deployed to "${node.site.name}".`);
             } catch (err) {
                 if (!(err instanceof UserCancelledError)) {
-                    outputChannel.appendLine(err.message);
+                    try {
+                        // Azure REST error messages come as a JSON string with more details
+                        outputChannel.appendLine(JSON.parse(err.message).Message);
+
+                    } catch {
+                        outputChannel.appendLine(err.message);
+                    }
+
                 }
-                throw err;
             }
         }
     });

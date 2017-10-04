@@ -30,7 +30,7 @@ export class AppServiceDataProvider implements TreeDataProvider<NodeBase> {
     }
 
     getChildren(element?: NodeBase): NodeBase[] | Thenable<NodeBase[]> {
-        if (this.azureAccount.signInStatus === 'Initializing' || this.azureAccount.signInStatus === 'LoggingIn' ) {
+        if (this.azureAccount.signInStatus === 'Initializing' || this.azureAccount.signInStatus === 'LoggingIn') {
             return [new LoadingNode(this)];
         }
 
@@ -51,7 +51,7 @@ export class AppServiceDataProvider implements TreeDataProvider<NodeBase> {
 
     private async getSubscriptions(): Promise<SubscriptionNode[]> {
         const subscriptions = await this.azureAccount.getFilteredSubscriptions();
-        const nodes = subscriptions.map<SubscriptionNode>((subscription, index, array) =>{
+        const nodes = subscriptions.map<SubscriptionNode>((subscription, index, array) => {
             return new SubscriptionNode(subscription, this, null);
         });
 
