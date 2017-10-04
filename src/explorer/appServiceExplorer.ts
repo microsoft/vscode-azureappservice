@@ -17,8 +17,9 @@ export class AppServiceDataProvider implements TreeDataProvider<NodeBase> {
 
     constructor(azureAccount: AzureAccountWrapper) {
         this._azureAccount = azureAccount;
-        this._azureAccount.registerSessionsChangedListener(this.onSubscriptionChanged, this);
+        this._azureAccount.registerStatusChangedListener(this.onSubscriptionChanged, this);
         this._azureAccount.registerFiltersChangedListener(this.onSubscriptionChanged, this);
+
     }
 
     refresh(element?: NodeBase): void {
