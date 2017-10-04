@@ -115,11 +115,6 @@
                 "category": "Azure App Service"
             },
             {
-                "command": "deploymentSlot.SwapSlots",
-                "title": "Swap Deployment Slot",
-                "category": "Azure App Service"
-            },
-            {
                 "command": "appSettings.Add",
                 "title": "Add New Setting...",
                 "category": "Azure App Service"
