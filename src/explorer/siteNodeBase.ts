@@ -61,9 +61,9 @@ export class SiteNodeBase extends NodeBase {
 
         if (util.isSiteDeploymentSlot(this.site)) {
             const slotName = util.extractDeploymentSlotName(this.site);
-            await this.webSiteClient.webApps.startSlot(rgName, siteName, slotName);
+            await this.webSiteClient.webApps.startSlotWithHttpOperationResponse(rgName, siteName, slotName);
         } else {
-            await this.webSiteClient.webApps.start(rgName, siteName);
+            await this.webSiteClient.webApps.startWithHttpOperationResponse(rgName, siteName);
         }
         await util.waitForWebSiteState(this.webSiteClient, this.site, 'running');
     }
@@ -74,9 +74,9 @@ export class SiteNodeBase extends NodeBase {
 
         if (util.isSiteDeploymentSlot(this.site)) {
             const slotName = util.extractDeploymentSlotName(this.site);
-            await this.webSiteClient.webApps.stopSlot(rgName, siteName, slotName);
+            await this.webSiteClient.webApps.stopSlotWithHttpOperationResponse(rgName, siteName, slotName);
         } else {
-            await this.webSiteClient.webApps.stop(rgName, siteName);
+            await this.webSiteClient.webApps.stopWithHttpOperationResponse(rgName, siteName);
         }
         await util.waitForWebSiteState(this.webSiteClient, this.site, 'stopped');
     }
@@ -136,10 +136,9 @@ export class SiteNodeBase extends NodeBase {
             extensionContext.subscriptions.push(this._logStreamOutputChannel);
         }
 
+        this.stopLogStream();
         this._logStreamOutputChannel.appendLine('Connecting to log-streaming service...')
         this._logStreamOutputChannel.show();
-
-        this.stopLogStream();
 
         this._logStream = kuduClient.getLogStream().on('data', chunk => {
             this._logStreamOutputChannel.append(chunk.toString());
