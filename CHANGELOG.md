@@ -4,6 +4,8 @@ All notable changes to the "azure-appservice" extension will be documented in th
 Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
 
 ## [Unreleased]
+### Added
+- Local Git deployment
 
 ## 0.2.0 - 2017-10-03
 ### Added
