@@ -8,9 +8,9 @@ Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how 
 ## 0.2.0 - 2017-10-03
 ### Added
 - Deploy to Deployment Slots
-- Local Git deployment
 - View web app log stream
 - View and edit web app settings
+- Delete Deployment Slots and Web Apps
 ### Removed
 - The Explorer view no longer shows Function apps. Function app will have its own Visual Studio Code extension.
 ### Fixed
