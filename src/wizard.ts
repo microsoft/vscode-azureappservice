@@ -11,7 +11,7 @@ import { UserCancelledError } from './errors';
 
 export type WizardStatus = 'PromptCompleted' | 'Completed' | 'Faulted' | 'Cancelled';
 
-export class WizardBase {
+export abstract class WizardBase {
     private readonly _steps: WizardStep[] = [];
     private _result: WizardResult;
 
@@ -113,7 +113,7 @@ export class WizardBase {
         this.output.appendLine(text);
     }
 
-    protected beforeExecute(step: WizardStep, stepIndex: number) { }
+    protected abstract beforeExecute(step: WizardStep, stepIndex: number);
 
     protected onExecuteError(step: WizardStep, stepIndex: number, error: Error) { }
 
@@ -130,7 +130,7 @@ export class WizardBase {
 export interface WizardResult {
     status: WizardStatus;
     step: WizardStep;
-    error: Error;
+    error: Error | null;
 }
 
 export class WizardStep {

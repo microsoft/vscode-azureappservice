@@ -10,9 +10,7 @@ import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models'
 import { AppServiceDataProvider } from './appServiceExplorer';
 import { NodeBase } from './nodeBase';
 import { SiteNodeBase } from './siteNodeBase';
-import { DeploymentSlotNode } from './deploymentSlotNode';
 import { DeploymentSlotsNode } from './deploymentSlotsNode';
-import { FilesNode } from './filesNodes';
 import { WebJobsNode } from './webJobsNode';
 import { AppSettingsNode } from './appSettingsNodes';
 import * as fs from 'fs';
