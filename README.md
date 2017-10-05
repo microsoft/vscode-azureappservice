@@ -6,7 +6,7 @@ The Azure App Services extension for VS Code lets you quickly browse, create, ma
 * Browse sites across all of your Azure subscriptions
 * Browse to the Azure Portal for advanced tasks, such as scaling
 * Create new sites (Linux with Node.js only)
-* Deploy to your site via local Git push or Zip
+* Deploy to your web apps/deployment slots
 
 ![Deploy to Web App](resources/WebApp_Deploy.png)
 * Start, stop, and restart the web app/deployment slot
