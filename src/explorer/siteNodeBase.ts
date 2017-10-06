@@ -117,13 +117,15 @@ export class SiteNodeBase extends NodeBase {
                     throw new UserCancelledError();
                 }
             }
-            await !util.isSiteDeploymentSlot(this.site) ?
-                this.webSiteClient.webApps.deleteMethod(this.site.resourceGroup, this.site.name, { deleteEmptyServerFarm: deleteServicePlan }) :
-                this.webSiteClient.webApps.deleteSlot(this.site.resourceGroup, util.extractSiteName(this.site), util.extractDeploymentSlotName(this.site));
-            return;
-        }
+            let pendingRequest = await !util.isSiteDeploymentSlot(this.site) ?
+                this.webSiteClient.webApps.deleteMethodWithHttpOperationResponse(this.site.resourceGroup, this.site.name, { deleteEmptyServerFarm: deleteServicePlan }) :
+                this.webSiteClient.webApps.deleteSlotWithHttpOperationResponse(this.site.resourceGroup, util.extractSiteName(this.site), util.extractDeploymentSlotName(this.site));
 
-        throw new UserCancelledError();
+            await pendingRequest;
+            // to ensure that the asset gets deleted before the explorer refresh happens
+        } else {
+            throw new UserCancelledError();
+        }
     }
 
     async connectToLogStream(extensionContext: ExtensionContext): Promise<void> {
@@ -215,7 +217,6 @@ export class SiteNodeBase extends NodeBase {
             if (status.files.length > 0) {
                 window.showWarningMessage(`There ${status.files.length > 1 ? 'are' : 'is'} ${status.files.length} uncommitted change${status.files.length > 1 ? 's' : ''} in local repo "${workspace.rootPath}"`);
             }
-
             await git.push(remote, 'master');
         }
         catch (err) {

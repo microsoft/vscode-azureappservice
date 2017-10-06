@@ -17,8 +17,9 @@ export class AppServiceDataProvider implements TreeDataProvider<NodeBase> {
 
     constructor(azureAccount: AzureAccountWrapper) {
         this._azureAccount = azureAccount;
-        this._azureAccount.registerSessionsChangedListener(this.onSubscriptionChanged, this);
+        this._azureAccount.registerStatusChangedListener(this.onSubscriptionChanged, this);
         this._azureAccount.registerFiltersChangedListener(this.onSubscriptionChanged, this);
+
     }
 
     refresh(element?: NodeBase): void {
@@ -30,7 +31,7 @@ export class AppServiceDataProvider implements TreeDataProvider<NodeBase> {
     }
 
     getChildren(element?: NodeBase): NodeBase[] | Thenable<NodeBase[]> {
-        if (this.azureAccount.signInStatus === 'Initializing' || this.azureAccount.signInStatus === 'LoggingIn' ) {
+        if (this.azureAccount.signInStatus === 'Initializing' || this.azureAccount.signInStatus === 'LoggingIn') {
             return [new LoadingNode(this)];
         }
 
@@ -51,7 +52,7 @@ export class AppServiceDataProvider implements TreeDataProvider<NodeBase> {
 
     private async getSubscriptions(): Promise<SubscriptionNode[]> {
         const subscriptions = await this.azureAccount.getFilteredSubscriptions();
-        const nodes = subscriptions.map<SubscriptionNode>((subscription, index, array) =>{
+        const nodes = subscriptions.map<SubscriptionNode>((subscription, index, array) => {
             return new SubscriptionNode(subscription, this, null);
         });
 

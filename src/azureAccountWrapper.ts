@@ -64,8 +64,8 @@ export class AzureAccountWrapper {
         return locations;
     }
 
-    registerSessionsChangedListener(listener: (e: void) => any, thisArg: any): Disposable {
-        return this.accountApi.onSessionsChanged(listener, thisArg, this.extensionConext.subscriptions);
+    registerStatusChangedListener(listener: (e: AzureLoginStatus) => any, thisArg: any): Disposable {
+        return this.accountApi.onStatusChanged(listener, thisArg, this.extensionConext.subscriptions);
     }
 
     registerFiltersChangedListener(listener: (e: void) => any, thisArg: any): Disposable {
