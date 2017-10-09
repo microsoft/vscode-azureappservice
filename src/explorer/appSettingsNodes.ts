@@ -140,6 +140,12 @@ export class AppSettingsNode extends NodeBase {
             webApps.updateApplicationSettings(this.site.resourceGroup, this._siteName, this._settings);
         return updateTask;
     }
+
+    openInPortal(): void {
+        const portalEndpoint = 'https://portal.azure.com';
+        const deepLink = `${portalEndpoint}/${this.subscription.tenantId}/#resource${this.site.id}/application`;
+        opn(deepLink);
+    }
 }
 
 export class AppSettingNode extends NodeBase {
