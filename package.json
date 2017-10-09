@@ -287,6 +287,11 @@
                     "group": "1_appSettingsEdit@1"
                 },
                 {
+                    "command": "appService.OpenInPortal",
+                    "when": "view == azureAppService && viewItem == applicationSettings",
+                    "group": "1_appSettingsEdit@2"
+                },
+                {
                     "command": "appService.Refresh",
                     "when": "view == azureAppService && viewItem == applicationSettings",
                     "group": "2_appSettingsGeneral@1"
