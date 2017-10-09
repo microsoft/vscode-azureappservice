@@ -162,6 +162,14 @@ export function activate(context: vscode.ExtensionContext) {
             }
         }
     });
+    initAsyncCommand(context, 'appService.DeploymentScript', async (node: AppServiceNode) => {
+        if (node) {
+            await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, p => {
+                p.report({ message: 'Generating deployment script...' });
+                return node.generateDeploymentScript();
+            });
+        }
+    });
     initAsyncCommand(context, 'deploymentSlot.SwapSlots', async (node: DeploymentSlotNode) => {
         if (node) {
             await node.swapDeploymentSlots(outputChannel);
