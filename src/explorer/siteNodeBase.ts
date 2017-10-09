@@ -137,10 +137,9 @@ export class SiteNodeBase extends NodeBase {
             extensionContext.subscriptions.push(this._logStreamOutputChannel);
         }
 
+        this.stopLogStream();
         this._logStreamOutputChannel.appendLine('Connecting to log-streaming service...')
         this._logStreamOutputChannel.show();
-
-        this.stopLogStream();
 
         this._logStream = kuduClient.getLogStream().on('data', chunk => {
             this._logStreamOutputChannel.append(chunk.toString());

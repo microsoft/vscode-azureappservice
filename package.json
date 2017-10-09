@@ -34,7 +34,6 @@
         "onCommand:appService.Delete",
         "onCommand:appService.DeployZipPackage",
         "onCommand:appService.ZipAndDeploy",
-        "onCommand:appService.LocalGitDeploy",
         "onCommand:deploymentSlot.SwapSlots",
         "onCommand:appSettings.Add",
         "onCommand:appSettings.Edit",
@@ -102,11 +101,6 @@
             {
                 "command": "appService.ZipAndDeploy",
                 "title": "Zip & Deploy to Web App",
-                "category": "Azure App Service"
-            },
-            {
-                "command": "appService.LocalGitDeploy",
-                "title": "Local Git Deploy to Web App",
                 "category": "Azure App Service"
             },
             {
@@ -203,11 +197,6 @@
                     "group": "2_appServiceControlCommands@4"
                 },
                 {
-                    "command": "appService.LocalGitDeploy",
-                    "when": "view == azureAppService && viewItem == appService",
-                    "group": "3_appServiceDeployCommands@1"
-                },
-                {
                     "command": "appService.DeployZipPackage",
                     "when": "view == azureAppService && viewItem == appService",
                     "group": "3_appServiceDeployCommands@2"
@@ -266,11 +255,6 @@
                     "command": "appService.Delete",
                     "when": "view == azureAppService && viewItem == deploymentSlot",
                     "group": "2_deploymentSlotControlCommands@5"
-                },
-                {
-                    "command": "appService.LocalGitDeploy",
-                    "when": "view == azureAppService && viewItem == deploymentSlot",
-                    "group": "3_deploymentSlotDeployCommands@1"
                 },
                 {
                     "command": "appService.DeployZipPackage",
