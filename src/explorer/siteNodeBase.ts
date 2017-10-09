@@ -258,4 +258,8 @@ export class SiteNodeBase extends NodeBase {
         const serverFarmId = util.parseAzureResourceId(this.site.serverFarmId.toLowerCase());
         return await this.webSiteClient.appServicePlans.get(serverFarmId.resourcegroups, serverFarmId.serverfarms);
     }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> Move 'generate deployment script' to its own command
