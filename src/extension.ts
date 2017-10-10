@@ -10,6 +10,7 @@ import * as util from "./util";
 import { AppServiceDataProvider } from './explorer/appServiceExplorer';
 import { NodeBase } from './explorer/nodeBase';
 import { SiteNodeBase } from './explorer/siteNodeBase';
+import { AppServiceNode } from './explorer/appServiceNode';
 import { AppSettingsNode, AppSettingNode } from './explorer/appSettingsNodes';
 import { DeploymentSlotNode } from './explorer/deploymentSlotNode';
 import { SubscriptionNode } from './explorer/subscriptionNode';

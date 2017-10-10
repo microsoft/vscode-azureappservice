@@ -7,6 +7,7 @@ import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models'
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as util from '../util';
+import * as opn from 'opn';
 import { AzureAccountWrapper } from '../azureAccountWrapper';
 import { NodeBase } from './nodeBase';
 import { AppServiceDataProvider } from './appServiceExplorer';
