@@ -94,17 +94,7 @@ export class SiteNodeBase extends NodeBase {
 
         if (!util.isSiteDeploymentSlot(this.site)) {
             // API calls not necessary for deployment slots
-            let serverFarmArr = this.site.serverFarmId.substring(1).split('/');
-            if (serverFarmArr.length % 2 !== 0) {
-                throw new Error('Invalid web app ID.');
-            }
-            serverFarmId = {
-                subscriptions: serverFarmArr[1],
-                resourceGroups: serverFarmArr[3],
-                providers: serverFarmArr[5],
-                serverfarms: serverFarmArr[7]
-            };
-            servicePlan = await this.webSiteClient.appServicePlans.get(serverFarmId.resourceGroups, serverFarmId.serverfarms);
+            servicePlan = await this.getAppServicePlan();
         }
 
         let input = await window.showWarningMessage(`Are you sure you want to delete "${this.site.name}"?`, mOptions, 'Yes');
@@ -253,5 +243,10 @@ export class SiteNodeBase extends NodeBase {
 
     protected get webSiteClient(): WebSiteManagementClient {
         return new WebSiteManagementClient(this.azureAccount.getCredentialByTenantId(this.subscription.tenantId), this.subscription.subscriptionId);
+    }
+
+    protected async getAppServicePlan(): Promise<WebSiteModels.AppServicePlan> {
+        const serverFarmId = util.parseAzureResourceId(this.site.serverFarmId.toLowerCase());
+        return await this.webSiteClient.appServicePlans.get(serverFarmId.resourcegroups, serverFarmId.serverfarms);
     }
 }

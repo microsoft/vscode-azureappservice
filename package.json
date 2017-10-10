@@ -32,6 +32,7 @@
         "onCommand:appService.Stop",
         "onCommand:appService.Restart",
         "onCommand:appService.Delete",
+        "onCommand:appService.DeploymentScript",
         "onCommand:appService.DeployZipPackage",
         "onCommand:appService.ZipAndDeploy",
         "onCommand:deploymentSlot.SwapSlots",
@@ -91,6 +92,11 @@
             {
                 "command": "appService.Delete",
                 "title": "Delete",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.DeploymentScript",
+                "title": "Generate Azure CLI Script",
                 "category": "Azure App Service"
             },
             {
@@ -210,6 +216,11 @@
                     "command": "diagnostics.StopLogStream",
                     "when": "view == azureAppService && viewItem == appService",
                     "group": "4_appServiceDiagnosticsCommands@2"
+                },
+                {
+                    "command": "appService.DeploymentScript",
+                    "when": "view == azureAppService && viewItem == appService",
+                    "group": "5_appServiceMiscCommands@1"
                 },
                 {
                     "command": "appService.OpenInPortal",

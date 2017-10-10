@@ -106,3 +106,32 @@ export function errToString(error: any): string {
 
     return error.toString();
 }
+
+// Resource ID
+export function parseAzureResourceId(resourceId: string): { [key: string]: string } {
+    const invalidIdErr = new Error('Invalid web app ID.');
+    const result = {};
+
+    if (!resourceId || resourceId.length < 2 || resourceId.charAt(0) !== '/') {
+        throw invalidIdErr;
+    }
+
+    const parts = resourceId.substring(1).split('/');
+
+    if (parts.length % 2 !== 0) {
+        throw invalidIdErr;
+    }
+
+    for (let i = 0; i < parts.length; i += 2) {
+        const key = parts[i];
+        const value = parts[i + 1];
+
+        if (key === '' || value === '') {
+            throw invalidIdErr;
+        }
+
+        result[key] = value;
+    }
+
+    return result;
+}

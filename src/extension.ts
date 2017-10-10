@@ -109,7 +109,6 @@ export function activate(context: vscode.ExtensionContext) {
 
                 }
                 throw err;
-
             }
         }
     });
@@ -157,9 +156,16 @@ export function activate(context: vscode.ExtensionContext) {
                     } catch {
                         outputChannel.appendLine(err.message);
                     }
-
                 }
             }
+        }
+    });
+    initAsyncCommand(context, 'appService.DeploymentScript', async (node: AppServiceNode) => {
+        if (node) {
+            await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, p => {
+                p.report({ message: 'Generating script...' });
+                return node.generateDeploymentScript();
+            });
         }
     });
     initAsyncCommand(context, 'deploymentSlot.SwapSlots', async (node: DeploymentSlotNode) => {
