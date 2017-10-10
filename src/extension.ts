@@ -166,7 +166,13 @@ export function activate(context: vscode.ExtensionContext) {
     });
     initAsyncCommand(context, 'deploymentSlot.SwapSlots', async (node: DeploymentSlotNode) => {
         if (node) {
-            await node.swapDeploymentSlots(outputChannel);
+            try {
+                outputChannel.appendLine('Initializing deployment slot swap...');
+                await node.swapDeploymentSlots(outputChannel);
+            } catch (err) {
+                outputChannel.appendLine(err.message);
+            }
+
         }
     });
     initAsyncCommand(context, 'appSettings.Add', async (node: AppSettingsNode) => {
