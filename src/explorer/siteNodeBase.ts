@@ -5,14 +5,12 @@
 
 import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models';
 import * as opn from 'opn';
-import * as path from 'path';
 import * as util from '../util';
 import WebSiteManagementClient = require('azure-arm-website');
 import { NodeBase } from './nodeBase';
-import { AppSettingsNode } from './appSettingsNodes';
 import { AppServiceDataProvider } from './appServiceExplorer';
 import { SubscriptionModels } from 'azure-arm-resource';
-import { ExtensionContext, TreeDataProvider, TreeItem, OutputChannel, window, workspace, MessageItem, MessageOptions, commands } from 'vscode';
+import { ExtensionContext, OutputChannel, window, workspace, MessageOptions } from 'vscode';
 import { AzureAccountWrapper } from '../azureAccountWrapper';
 import { KuduClient } from '../kuduClient';
 import { Request } from 'request';
@@ -27,7 +25,7 @@ export type ServerFarmId = {
 
 export class SiteNodeBase extends NodeBase {
     private _logStreamOutputChannel: OutputChannel;
-    private _logStream: Request;
+    private _logStream: Request | null;
 
     constructor(readonly label: string,
         readonly site: WebSiteModels.Site,
@@ -43,7 +41,7 @@ export class SiteNodeBase extends NodeBase {
 
     browse(): void {
         const defaultHostName = this.site.defaultHostName;
-        const isSsl = this.site.hostNameSslStates.findIndex((value, index, arr) =>
+        const isSsl = this.site.hostNameSslStates.findIndex(value =>
             value.name === defaultHostName && value.sslState === "Enabled");
         const uri = `${isSsl ? 'https://' : 'http://'}${defaultHostName}`;
         opn(uri);
@@ -86,11 +84,11 @@ export class SiteNodeBase extends NodeBase {
         await this.start();
     }
 
-    async delete(azureAccount: AzureAccountWrapper): Promise<void> {
+    async delete(): Promise<void> {
         let mOptions: MessageOptions = { modal: true };
         let deleteServicePlan = false;
         let servicePlan;
-        let serverFarmId: ServerFarmId;
+        let serverFarmMap: ServerFarmId;
 
         if (!util.isSiteDeploymentSlot(this.site)) {
             // API calls not necessary for deployment slots
@@ -100,7 +98,7 @@ export class SiteNodeBase extends NodeBase {
         let input = await window.showWarningMessage(`Are you sure you want to delete "${this.site.name}"?`, mOptions, 'Yes');
         if (input) {
             if (!util.isSiteDeploymentSlot(this.site) && servicePlan.numberOfSites < 2) {
-                let input = await window.showWarningMessage(`This is the last app in the App Service plan, "${serverFarmId.serverfarms}". Delete this App Service plan to prevent unexpected charges.`, mOptions, 'Yes', 'No');
+                let input = await window.showWarningMessage(`This is the last app in the App Service plan, "${serverFarmMap!.serverfarms}". Delete this App Service plan to prevent unexpected charges.`, mOptions, 'Yes', 'No');
                 if (input) {
                     deleteServicePlan = input === 'Yes';
                 } else {
@@ -138,7 +136,7 @@ export class SiteNodeBase extends NodeBase {
             util.sendTelemetry('ConnectToLogStreamError', { name: err.name, message: err.message });
             this._logStreamOutputChannel.appendLine('Error connecting to log-streaming service:');
             this._logStreamOutputChannel.appendLine(err.message);
-        }).on('complete', (resp, body) => {
+        }).on('complete', () => {
             this._logStreamOutputChannel.appendLine('Disconnected from log-streaming service.');
         });
     }
@@ -158,7 +156,7 @@ export class SiteNodeBase extends NodeBase {
     async localGitDeploy(): Promise<boolean> {
 
         if (!workspace.rootPath) {
-            let input = await window.showErrorMessage(`You have not yet opened a folder to deploy.`);
+            await window.showErrorMessage(`You have not yet opened a folder to deploy.`);
             throw new Error('No open workspace');
         }
 

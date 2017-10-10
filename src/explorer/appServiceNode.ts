@@ -25,16 +25,14 @@ export class AppServiceNode extends SiteNodeBase {
     }
 
     getTreeItem(): TreeItem {
-        if (!this.site.kind.startsWith('functionapp')) {
-            const iconName = 'AzureWebsite_16x_vscode.svg';
-            return {
-                label: `${this.label} (${this.site.resourceGroup})`,
-                collapsibleState: TreeItemCollapsibleState.Collapsed,
-                contextValue: 'appService',
-                iconPath: {
-                    light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', iconName),
-                    dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', iconName)
-                }
+        const iconName = 'AzureWebsite_16x_vscode.svg';
+        return {
+            label: `${this.label} (${this.site.resourceGroup})`,
+            collapsibleState: TreeItemCollapsibleState.Collapsed,
+            contextValue: 'appService',
+            iconPath: {
+                light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', iconName),
+                dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', iconName)
             }
         }
     }

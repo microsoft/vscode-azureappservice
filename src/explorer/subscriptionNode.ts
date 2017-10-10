@@ -3,9 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { TreeDataProvider, TreeItem, TreeItemCollapsibleState, EventEmitter, Event, OutputChannel } from 'vscode';
+import { TreeItem, TreeItemCollapsibleState } from 'vscode';
 import { AzureAccountWrapper } from '../azureAccountWrapper';
-import { SubscriptionClient, SubscriptionModels } from 'azure-arm-resource';
+import { SubscriptionModels } from 'azure-arm-resource';
 import { AppServiceDataProvider } from './appServiceExplorer';
 import { NodeBase } from './nodeBase';
 import { AppServiceNode } from './appServiceNode';
@@ -14,7 +14,7 @@ import * as path from 'path';
 
 
 export class SubscriptionNode extends NodeBase {
-    constructor(readonly subscription: SubscriptionModels.Subscription, treeDataProvider: AppServiceDataProvider, parentNode: NodeBase) {
+    constructor(readonly subscription: SubscriptionModels.Subscription, treeDataProvider: AppServiceDataProvider, parentNode: NodeBase | null) {
         super(subscription.displayName, treeDataProvider, parentNode);
     }
 
@@ -23,7 +23,7 @@ export class SubscriptionNode extends NodeBase {
             label: this.label,
             collapsibleState: TreeItemCollapsibleState.Collapsed,
             contextValue: 'subscription',
-            iconPath: { 
+            iconPath: {
                 light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'AzureSubscription_16x.svg'),
                 dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'AzureSubscription_16x.svg')
             }
@@ -40,14 +40,16 @@ export class SubscriptionNode extends NodeBase {
         const webApps = await client.webApps.list();
         const nodes = webApps.sort((a, b) => {
             let n = a.resourceGroup.localeCompare(b.resourceGroup);
-
             if (n !== 0) {
                 return n;
             }
 
             return a.name.localeCompare(b.name);
-        }).map<AppServiceNode>((site, index, array) => {
-            return new AppServiceNode(site, this.subscription, this.getTreeDataProvider(), this);
+        }).map<AppServiceNode>(site => {
+            if (!site.kind.startsWith('functionapp')) {
+                return new AppServiceNode(site, this.subscription, this.getTreeDataProvider(), this);
+            }
+            return null;
         });
 
         return nodes;

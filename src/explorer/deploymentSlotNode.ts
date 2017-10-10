@@ -10,10 +10,8 @@ import { SiteNodeBase } from './siteNodeBase';
 import { AppSettingsNode } from './appSettingsNodes';
 import { AppServiceDataProvider } from './appServiceExplorer';
 import { SubscriptionModels } from 'azure-arm-resource';
-import { TreeDataProvider, TreeItem, TreeItemCollapsibleState, OutputChannel } from 'vscode';
-import { DeploymentSlotsNode } from './deploymentSlotsNode';
+import { TreeItem, TreeItemCollapsibleState, OutputChannel } from 'vscode';
 import { DeploymentSlotSwapper } from '../deploymentSlotActions';
-import { AzureAccountWrapper } from '../azureAccountWrapper';
 
 export class DeploymentSlotNode extends SiteNodeBase {
     constructor(label: string,
@@ -44,6 +42,6 @@ export class DeploymentSlotNode extends SiteNodeBase {
 
     async swapDeploymentSlots(output: OutputChannel): Promise<void> {
         const wizard = new DeploymentSlotSwapper(output, this.azureAccount, this);
-        const result = await wizard.run();
+        await wizard.run();
     }
 }

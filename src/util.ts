@@ -61,7 +61,7 @@ export function extractSiteName(site: WebSiteModels.Site): string {
     return isSiteDeploymentSlot(site) ? site.name.substring(0, site.name.lastIndexOf('/')) : site.name;
 }
 
-export function extractDeploymentSlotName(site: WebSiteModels.Site): string {
+export function extractDeploymentSlotName(site: WebSiteModels.Site): string | null {
     return isSiteDeploymentSlot(site) ? site.name.substring(site.name.lastIndexOf('/') + 1) : null;
 }
 

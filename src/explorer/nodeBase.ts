@@ -13,7 +13,7 @@ export class NodeBase {
     }
 
     getTreeItem(): TreeItem {
-        return { 
+        return {
             label: this.label,
             collapsibleState: TreeItemCollapsibleState.None
         };

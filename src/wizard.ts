@@ -64,7 +64,7 @@ export abstract class WizardBase {
                 await this.steps[i].execute();
             } catch (err) {
                 this.sendErrorTelemetry(step, err);
-                this.onExecuteError(step, i, err);
+                this.onExecuteError(err, step, i);
                 if (err instanceof UserCancelledError) {
                     this._result = {
                         status: 'Cancelled',
@@ -113,9 +113,9 @@ export abstract class WizardBase {
         this.output.appendLine(text);
     }
 
-    protected abstract beforeExecute(step: WizardStep, stepIndex: number);
+    protected abstract beforeExecute(step?: WizardStep, stepIndex?: number);
 
-    protected onExecuteError(step: WizardStep, stepIndex: number, error: Error) { }
+    protected abstract onExecuteError(error: Error, step?: WizardStep, stepIndex?: number)
 
     protected sendErrorTelemetry(step: WizardStep, error: any) {
         const eventName = `${this.constructor.name}Error`

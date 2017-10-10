@@ -9,9 +9,9 @@ import * as path from 'path';
 import * as util from '../util';
 import { NodeBase } from './nodeBase';
 import { AppServiceDataProvider } from './appServiceExplorer';
-import { SubscriptionClient, SubscriptionModels } from 'azure-arm-resource';
+import { SubscriptionModels } from 'azure-arm-resource';
 import WebSiteManagementClient = require('azure-arm-website');
-import { TreeDataProvider, TreeItem, TreeItemCollapsibleState, EventEmitter, Event, OutputChannel } from 'vscode';
+import { TreeItem, TreeItemCollapsibleState } from 'vscode';
 import { DeploymentSlotNode } from './deploymentSlotNode';
 import { AzureAccountWrapper } from '../azureAccountWrapper';
 
@@ -38,17 +38,14 @@ export class DeploymentSlotsNode extends NodeBase {
     }
 
     async getChildren(): Promise<DeploymentSlotNode[]> {
-        let nodes = [];
+        let nodes: DeploymentSlotNode[] = [];
         const credential = this.azureAccount.getCredentialByTenantId(this.subscription.tenantId);
         const client = new WebSiteManagementClient(credential, this.subscription.subscriptionId);
         const deploymentSlots = await client.webApps.listByResourceGroup(this.site.resourceGroup, { includeSlots: true });
         for (let slot of deploymentSlots) {
             if (util.isSiteDeploymentSlot(slot) && slot.repositorySiteName === this.site.name) {
                 nodes.push(new DeploymentSlotNode(util.extractDeploymentSlotName(slot),
-                    slot,
-                    this.subscription,
-                    this.getTreeDataProvider(),
-                    this));
+                    slot, this.subscription, this.getTreeDataProvider(), this));
             }
         }
         return nodes;

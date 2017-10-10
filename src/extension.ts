@@ -10,17 +10,13 @@ import * as util from "./util";
 import { AppServiceDataProvider } from './explorer/appServiceExplorer';
 import { NodeBase } from './explorer/nodeBase';
 import { SiteNodeBase } from './explorer/siteNodeBase';
-import { AppServiceNode } from './explorer/appServiceNode';
 import { AppSettingsNode, AppSettingNode } from './explorer/appSettingsNodes';
-import { DeploymentSlotsNode } from './explorer/deploymentSlotsNode';
 import { DeploymentSlotNode } from './explorer/deploymentSlotNode';
 import { SubscriptionNode } from './explorer/subscriptionNode';
-import { WebJobsNode } from './explorer/webJobsNode';
 import { AzureAccountWrapper } from './azureAccountWrapper';
 import { WebAppCreator } from './webAppCreator';
 import { WebAppZipPublisher } from './webAppZipPublisher';
 import { Reporter } from './telemetry/reporter';
-import { DeploymentSlotSwapper } from './deploymentSlotActions';
 import { UserCancelledError } from './errors';
 
 export function activate(context: vscode.ExtensionContext) {
@@ -94,7 +90,7 @@ export function activate(context: vscode.ExtensionContext) {
             outputChannel.appendLine(`Deleting app "${node.site.name}"...`);
 
             try {
-                await node.delete(azureAccount);
+                await node.delete();
                 outputChannel.appendLine(`App "${node.site.name}" has been deleted.`);
                 vscode.commands.executeCommand('appService.Refresh', node.getParentNode());
             } catch (err) {
@@ -130,14 +126,14 @@ export function activate(context: vscode.ExtensionContext) {
             const wizard = new WebAppZipPublisher(outputChannel, azureAccount, context.subscription, context.site);
             await wizard.run();
         } else if (context instanceof vscode.Uri) {
-            const wizard = new WebAppZipPublisher(outputChannel, azureAccount, null, null, context.fsPath, null);
+            const wizard = new WebAppZipPublisher(outputChannel, azureAccount, undefined, undefined, context.fsPath, undefined);
             await wizard.run();
         }
     });
     initAsyncCommand(context, 'appService.ZipAndDeploy', async (context: any) => {
         if (context instanceof vscode.Uri) {
             const folderPath = context.fsPath;
-            const wizard = new WebAppZipPublisher(outputChannel, azureAccount, null, null, null, folderPath);
+            const wizard = new WebAppZipPublisher(outputChannel, azureAccount, undefined, undefined, undefined, folderPath);
             await wizard.run();
         }
     });
