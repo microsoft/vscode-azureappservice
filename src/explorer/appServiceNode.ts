@@ -62,14 +62,14 @@ export class AppServiceNode extends SiteNodeBase {
         const resourceClient = new ResourceManagementClient(this.azureAccount.getCredentialByTenantId(this.subscription.tenantId), this.subscription.subscriptionId);
         const subscription = this.subscription;
         const site = this.site;
-        const tasks = await Promise.all([
+        const taskResults = await Promise.all([
             resourceClient.resourceGroups.get(this.site.resourceGroup),
             this.getAppServicePlan(),
             this.webSiteClient.webApps.getConfiguration(this.site.resourceGroup, this.site.name)
         ]);
-        const rg = tasks[0];
-        const plan = tasks[1];
-        const siteConfig = tasks[2];
+        const rg = taskResults[0];
+        const plan = taskResults[1];
+        const siteConfig = taskResults[2];
         const script = scriptTemplate.replace('%SUBSCRIPTION_NAME%', subscription.displayName)
             .replace('%RG_NAME%', rg.name)
             .replace('%LOCATION%', rg.location)
