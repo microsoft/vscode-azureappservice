@@ -25,7 +25,7 @@ export type ServerFarmId = {
 
 export class SiteNodeBase extends NodeBase {
     private _logStreamOutputChannel: OutputChannel;
-    private _logStream: Request | null;
+    private _logStream: Request | undefined;
 
     constructor(readonly label: string,
         readonly site: WebSiteModels.Site,
@@ -145,7 +145,7 @@ export class SiteNodeBase extends NodeBase {
         if (this._logStream) {
             this._logStream.removeAllListeners();
             this._logStream.destroy();
-            this._logStream = null;
+            this._logStream = undefined;
 
             if (this._logStreamOutputChannel) {
                 this._logStreamOutputChannel.appendLine('Disconnected from log-streaming service.');

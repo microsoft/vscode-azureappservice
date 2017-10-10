@@ -109,7 +109,7 @@ export class AppSettingsNode extends NodeBase {
         this.getTreeDataProvider<AppServiceDataProvider>().refresh(this);
     }
 
-    validateNewKeyInput(newKey: string, oldKey?: string): string | null {
+    validateNewKeyInput(newKey: string, oldKey?: string): string | undefined {
         newKey = newKey ? newKey.trim() : '';
         oldKey = oldKey ? oldKey.trim().toLowerCase() : oldKey;
         if (newKey.length === 0) {
@@ -124,7 +124,7 @@ export class AppSettingsNode extends NodeBase {
             }
         }
 
-        return null;
+        return undefined;
     }
 
     protected get WebSiteManagementClient(): WebSiteManagementClient {

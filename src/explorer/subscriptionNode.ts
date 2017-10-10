@@ -14,7 +14,7 @@ import * as path from 'path';
 
 
 export class SubscriptionNode extends NodeBase {
-    constructor(readonly subscription: SubscriptionModels.Subscription, treeDataProvider: AppServiceDataProvider, parentNode: NodeBase | null) {
+    constructor(readonly subscription: SubscriptionModels.Subscription, treeDataProvider: AppServiceDataProvider, parentNode: NodeBase | undefined) {
         super(subscription.displayName, treeDataProvider, parentNode);
     }
 
@@ -49,7 +49,7 @@ export class SubscriptionNode extends NodeBase {
             if (!site.kind.startsWith('functionapp')) {
                 return new AppServiceNode(site, this.subscription, this.getTreeDataProvider(), this);
             }
-            return null;
+            return undefined;
         });
 
         return nodes;
