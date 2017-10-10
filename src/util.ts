@@ -130,7 +130,7 @@ export function parseAzureResourceId(resourceId: string): { [key: string]: strin
             throw invalidIdErr;
         }
 
-        result[parts[i]] = parts[i + 1];
+        result[key] = value;
     }
 
     return result;

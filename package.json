@@ -96,7 +96,7 @@
             },
             {
                 "command": "appService.DeploymentScript",
-                "title": "Generate Deployment Script",
+                "title": "Generate Azure CLI Script",
                 "category": "Azure App Service"
             },
             {
@@ -208,11 +208,6 @@
                     "group": "3_appServiceDeployCommands@2"
                 },
                 {
-                    "command": "appService.DeploymentScript",
-                    "when": "view == azureAppService && viewItem == appService",
-                    "group": "3_appServiceDeployCommands@3"
-                },
-                {
                     "command": "diagnostics.OpenLogStream",
                     "when": "view == azureAppService && viewItem == appService",
                     "group": "4_appServiceDiagnosticsCommands@1"
@@ -221,6 +216,11 @@
                     "command": "diagnostics.StopLogStream",
                     "when": "view == azureAppService && viewItem == appService",
                     "group": "4_appServiceDiagnosticsCommands@2"
+                },
+                {
+                    "command": "appService.DeploymentScript",
+                    "when": "view == azureAppService && viewItem == appService",
+                    "group": "5_appServiceMiscCommands@1"
                 },
                 {
                     "command": "appService.OpenInPortal",
