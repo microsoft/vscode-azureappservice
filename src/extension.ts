@@ -197,14 +197,12 @@ export function activate(context: vscode.ExtensionContext) {
             });
 
             if (!isEnabled && enableButton === await vscode.window.showWarningMessage('Do you want to enable logging and restart this container?', enableButton)) {
-                await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async p => {
-                    p.report({ message: 'Enabling Logging for the container...' });
-                    await node.enableHttpLogs();
-                    p.report({ message: 'Restarting the container...' });
-                    await node.restart();
-                });
+                outputChannel.show();
+                outputChannel.appendLine(`Enabling Logging for "${node.site.name}"...`);
+                await node.enableHttpLogs();
+                await vscode.commands.executeCommand('appService.Restart', node);
             }
-            // Otherwise connect to log stream anyways, users might see similar log not enabled message with how to enable link from the stream output.
+            // Otherwise connect to log stream anyways, users might see similar "log not enabled" message with how to enable link from the stream output.
             await node.connectToLogStream(context);
         }
     });
