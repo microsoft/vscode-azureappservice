@@ -169,7 +169,7 @@ class WebAppStep extends WizardStep {
         const webAppsTask = util.listAll(websiteClient.webApps, websiteClient.webApps.list()).then(webApps => {
             const quickPickItems: QuickPickItemWithData<WebSiteModels.Site>[] = [];
             quickPickItems.push({
-                persistenceId: "$new", // asdf
+                persistenceId: "$new",
                 label: '$(plus) Create new Web App',
                 description: '',
                 data: null
@@ -197,7 +197,7 @@ class WebAppStep extends WizardStep {
         }
 
         this._newSite = true;
-        this._createWebAppWizard = new WebAppCreator(util.getOutputChannel(), this.azureAccount, null/*asdf*/, subscription);
+        this._createWebAppWizard = new WebAppCreator(util.getOutputChannel(), this.azureAccount, subscription);
         const wizardResult = await this._createWebAppWizard.run(true);
 
         if (wizardResult.status !== 'PromptCompleted') {

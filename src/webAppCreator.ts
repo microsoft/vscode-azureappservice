@@ -13,7 +13,7 @@ import * as WebSiteModels from '../node_modules/azure-arm-website/lib/models';
 import * as util from './util';
 
 export class WebAppCreator extends WizardBase {
-    constructor(output: vscode.OutputChannel, readonly azureAccount: AzureAccountWrapper, persistence: vscode.Memento, subscription: SubscriptionModels.Subscription) {
+    constructor(output: vscode.OutputChannel, readonly azureAccount: AzureAccountWrapper, subscription: SubscriptionModels.Subscription, persistence?: vscode.Memento) {
         super(output);
         this.steps.push(new SubscriptionStep(this, azureAccount, subscription, persistence));
         this.steps.push(new WebsiteNameStep(this, azureAccount, persistence));
@@ -559,7 +559,6 @@ class WebsiteNameStep extends WebAppCreatorStepBase {
         this._suggestedRGAndPlanName = await this.suggestRGAndPlanPName(siteName);
     }
 
-    // asdf are there website names that aren't valid in an RG/hosting plan?
     private async suggestRGAndPlanPName(siteName: string): Promise<string> {
         const subscription = this.getSelectedSubscription();
         const resourceClient = new ResourceManagementClient(this.azureAccount.getCredentialByTenantId(subscription.tenantId), subscription.subscriptionId);
@@ -601,12 +600,6 @@ class WebsiteNameStep extends WebAppCreatorStepBase {
 
             ++i;
         }
-
-        // TODO asdf
-        // if (!value.match(/^[a-z0-9.\-_()]{0,89}[a-z0-9\-_()]$/ig)) {
-        //     return 'Resource group name should be 1-90 characters long and can only include alphanumeric characters, periods, ' +
-        //         'underscores, hyphens and parenthesis and cannot end in a period.';
-        // }
     }
 
     async execute(): Promise<void> {
