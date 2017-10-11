@@ -119,9 +119,34 @@ export class SiteNodeBase extends NodeBase {
         }
     }
 
+    async isHttpLogsEnabled(): Promise<boolean> {
+        const logsConfig = this._isSlot ? await this.webSiteClient.webApps.getDiagnosticLogsConfigurationSlot(this.site.resourceGroup, this._siteName, this._slotName) :
+            await this.webSiteClient.webApps.getDiagnosticLogsConfiguration(this.site.resourceGroup, this._siteName);
+        return logsConfig.httpLogs && logsConfig.httpLogs.fileSystem && logsConfig.httpLogs.fileSystem.enabled;
+    }
+
+    async enableHttpLogs(): Promise<void> {
+        const logsConfig: WebSiteModels.SiteLogsConfig = {
+            location: this.site.location,
+            httpLogs: {
+                fileSystem: {
+                    enabled: true,
+                    retentionInDays: 7,
+                    retentionInMb: 35
+                }
+            }
+        };
+
+        if (this._isSlot) {
+            await this.webSiteClient.webApps.updateDiagnosticLogsConfigSlot(this.site.resourceGroup, this._siteName, logsConfig, this._slotName);
+        } else {
+            await this.webSiteClient.webApps.updateDiagnosticLogsConfig(this.site.resourceGroup, this._siteName, logsConfig);
+        }
+    }
+
     async connectToLogStream(extensionContext: ExtensionContext): Promise<void> {
-        const siteName = this._siteName + (this._isSlot ? '-' + this._slotName : '');
-        const user = await util.getWebAppPublishCredential(this.webSiteClient, this.site);
+        const siteName = this._isSlot ? `${this._siteName}-${this._slotName}` : this._siteName;
+        const user = await util.getWebAppPublishCredential(this.webSiteClient, this.site)
         const kuduClient = new KuduClient(siteName, user.publishingUserName, user.publishingPassword);
 
         if (!this._logStreamOutputChannel) {
