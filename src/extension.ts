@@ -118,7 +118,7 @@ export function activate(context: vscode.ExtensionContext) {
             subscription = node.subscription;
         }
 
-        const wizard = new WebAppCreator(outputChannel, azureAccount, subscription);
+        const wizard = new WebAppCreator(outputChannel, azureAccount, context.globalState, subscription);
         const result = await wizard.run();
 
         if (result.status === 'Completed') {
