@@ -153,7 +153,7 @@ export class AppSettingNode extends NodeBase {
         private value: string,
         treeDataProvider: AppServiceDataProvider,
         parentNode: NodeBase) {
-        super(`${key} : ${value}`, treeDataProvider, parentNode);
+        super(`${key}=${value}`, treeDataProvider, parentNode);
     }
 
     getTreeItem(): TreeItem {
