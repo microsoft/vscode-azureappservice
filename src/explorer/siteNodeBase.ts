@@ -5,14 +5,12 @@
 
 import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models';
 import * as opn from 'opn';
-import * as path from 'path';
 import * as util from '../util';
 import WebSiteManagementClient = require('azure-arm-website');
 import { NodeBase } from './nodeBase';
-import { AppSettingsNode } from './appSettingsNodes';
 import { AppServiceDataProvider } from './appServiceExplorer';
 import { SubscriptionModels } from 'azure-arm-resource';
-import { ExtensionContext, TreeDataProvider, TreeItem, OutputChannel, window, workspace, MessageItem, MessageOptions, commands } from 'vscode';
+import { ExtensionContext, OutputChannel, window, workspace } from 'vscode';
 import { AzureAccountWrapper } from '../azureAccountWrapper';
 import { KuduClient } from '../kuduClient';
 import { Request } from 'request';
@@ -26,8 +24,8 @@ export type ServerFarmId = {
 }
 
 export class SiteNodeBase extends NodeBase {
-    private _logStreamOutputChannel: OutputChannel;
-    private _logStream: Request;
+    private _logStreamOutputChannel: OutputChannel | undefined;
+    private _logStream: Request | undefined;
     private readonly _siteName: string;
     private readonly _isSlot: boolean;
     private readonly _slotName: string;
@@ -50,7 +48,7 @@ export class SiteNodeBase extends NodeBase {
 
     browse(): void {
         const defaultHostName = this.site.defaultHostName;
-        const isSsl = this.site.hostNameSslStates.findIndex((value, index, arr) =>
+        const isSsl = this.site.hostNameSslStates.findIndex(value =>
             value.name === defaultHostName && value.sslState === "Enabled");
         const uri = `${isSsl ? 'https://' : 'http://'}${defaultHostName}`;
         opn(uri);
@@ -89,7 +87,7 @@ export class SiteNodeBase extends NodeBase {
         await this.start();
     }
 
-    async delete(azureAccount: AzureAccountWrapper): Promise<void> {
+    async delete(): Promise<void> {
         let deleteServicePlan = false;
         let servicePlan;
 
@@ -165,7 +163,7 @@ export class SiteNodeBase extends NodeBase {
             util.sendTelemetry('ConnectToLogStreamError', { name: err.name, message: err.message });
             this._logStreamOutputChannel.appendLine('Error connecting to log-streaming service:');
             this._logStreamOutputChannel.appendLine(err.message);
-        }).on('complete', (resp, body) => {
+        }).on('complete', () => {
             this._logStreamOutputChannel.appendLine('Disconnected from log-streaming service.');
         });
     }
@@ -174,7 +172,7 @@ export class SiteNodeBase extends NodeBase {
         if (this._logStream) {
             this._logStream.removeAllListeners();
             this._logStream.destroy();
-            this._logStream = null;
+            this._logStream = undefined;
 
             if (this._logStreamOutputChannel) {
                 this._logStreamOutputChannel.appendLine('Disconnected from log-streaming service.');
@@ -183,9 +181,8 @@ export class SiteNodeBase extends NodeBase {
     }
 
     async localGitDeploy(): Promise<boolean> {
-
         if (!workspace.rootPath) {
-            let input = await window.showErrorMessage(`You have not yet opened a folder to deploy.`);
+            await window.showErrorMessage(`You have not yet opened a folder to deploy.`);
             throw new Error('No open workspace');
         }
 

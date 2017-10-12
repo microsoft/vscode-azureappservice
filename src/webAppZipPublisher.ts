@@ -9,9 +9,9 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import { AzureAccountWrapper } from './azureAccountWrapper';
-import { WizardBase, WizardResult, WizardStep, SubscriptionStepBase, QuickPickItemWithData } from './wizard';
+import { WizardBase, WizardStep, SubscriptionStepBase, QuickPickItemWithData } from './wizard';
 import { WebAppCreator } from './webAppCreator';
-import { KuduClient, CommandResult } from './kuduClient';
+import { KuduClient } from './kuduClient';
 import { SubscriptionModels } from 'azure-arm-resource';
 import { UserCancelledError } from './errors';
 import WebSiteManagementClient = require('azure-arm-website');
@@ -33,7 +33,9 @@ export class WebAppZipPublisher extends WizardBase {
         this.steps.push(new DeployStep(this, azureAccount));
     }
 
-    protected onExecuteError(step: WizardStep, stepIndex: number, error: Error) {
+    protected beforeExecute() { }
+
+    protected onExecuteError(error: Error) {
         if (error instanceof UserCancelledError) {
             return;
         }
@@ -84,7 +86,7 @@ class ZipFileStep extends WizardStep {
         let deployNumber = Math.floor(os.uptime());
         while (true) {
             this._zipFilePath = path.join(os.tmpdir(), `vscdeploy${deployNumber}.zip`);
-            const fileExists = await new Promise<boolean>((resolve, reject) => fs.exists(this._zipFilePath, exists => resolve(exists)));
+            const fileExists = await new Promise<boolean>(resolve => fs.exists(this._zipFilePath, exists => resolve(exists)));
             if (!fileExists) {
                 break;
             }
@@ -95,7 +97,7 @@ class ZipFileStep extends WizardStep {
     async execute(): Promise<void> {
         if (this._zipCreatedByStep) {
             this.wizard.writeline(`Creating Zip file for deployment: ${this.zipFilePath} ...`)
-            await this.zipDirectory(this.zipFilePath, this._folderPath, path.sep);
+            await this.zipDirectory(this.zipFilePath, this._folderPath);
         }
     }
 
@@ -107,7 +109,7 @@ class ZipFileStep extends WizardStep {
         return this._zipCreatedByStep;
     }
 
-    private zipDirectory(zipFilePath: string, sourcePath: string, targetPath: string): Promise<void> {
+    private zipDirectory(zipFilePath: string, sourcePath: string): Promise<void> {
         if (!sourcePath.endsWith(path.sep)) {
             sourcePath += path.sep;
         }
@@ -266,7 +268,7 @@ class DeployStep extends WizardStep {
         this.wizard.writeline(`${installResult.Output}\n${installResult.Error}`);
 
         if (this.isZipCreatedByDeployment()) {
-            await new Promise((resolve, reject) => fs.unlink(zipFilePath, err => {
+            await new Promise(resolve => fs.unlink(zipFilePath, err => {
                 if (err) {
                     this.wizard.writeline(`Unable to delete the local Zip file "${zipFilePath}", you may want to delete it manually. Error:\n${err}`);
                 }

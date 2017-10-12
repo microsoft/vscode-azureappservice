@@ -61,8 +61,8 @@ export function extractSiteName(site: WebSiteModels.Site): string {
     return isSiteDeploymentSlot(site) ? site.name.substring(0, site.name.lastIndexOf('/')) : site.name;
 }
 
-export function extractDeploymentSlotName(site: WebSiteModels.Site): string {
-    return isSiteDeploymentSlot(site) ? site.name.substring(site.name.lastIndexOf('/') + 1) : null;
+export function extractDeploymentSlotName(site: WebSiteModels.Site): string | undefined {
+    return isSiteDeploymentSlot(site) ? site.name.substring(site.name.lastIndexOf('/') + 1) : undefined;
 }
 
 export function getWebAppPublishCredential(webSiteManagementClient: WebSiteManagementClient, site: WebSiteModels.Site): Promise<WebSiteModels.User> {

@@ -5,7 +5,6 @@
 
 import { TreeDataProvider, TreeItemCollapsibleState, TreeItem, EventEmitter, Event } from 'vscode';
 import { AzureAccountWrapper } from '../azureAccountWrapper';
-import { AppServiceNode } from './appServiceNode';
 import { SubscriptionNode } from './subscriptionNode';
 import { NodeBase } from './nodeBase';
 import * as util from '../util';
@@ -52,7 +51,7 @@ export class AppServiceDataProvider implements TreeDataProvider<NodeBase> {
 
     private async getSubscriptions(): Promise<SubscriptionNode[]> {
         const subscriptions = await this.azureAccount.getFilteredSubscriptions();
-        const nodes = subscriptions.map<SubscriptionNode>((subscription, index, array) => {
+        const nodes = subscriptions.map<SubscriptionNode>(subscription => {
             return new SubscriptionNode(subscription, this, null);
         });
 

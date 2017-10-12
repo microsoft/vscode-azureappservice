@@ -3,22 +3,17 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { TreeDataProvider, TreeItem, TreeItemCollapsibleState, EventEmitter, Event, workspace, window } from 'vscode';
-import { AzureAccountWrapper } from '../azureAccountWrapper';
-import { SubscriptionModels, ResourceManagementClient, ResourceModels } from 'azure-arm-resource';
+import { TreeItem, TreeItemCollapsibleState } from 'vscode';
+import { SubscriptionModels, ResourceManagementClient, } from 'azure-arm-resource';
 import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models';
 import { AppServiceDataProvider } from './appServiceExplorer';
 import { NodeBase } from './nodeBase';
 import { SiteNodeBase } from './siteNodeBase';
-import { DeploymentSlotNode } from './deploymentSlotNode';
 import { DeploymentSlotsNode } from './deploymentSlotsNode';
-import { FilesNode } from './filesNodes';
 import { WebJobsNode } from './webJobsNode';
 import { AppSettingsNode } from './appSettingsNodes';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as util from '../util';
-import * as opn from 'opn';
 import * as vscode from 'vscode';
 
 export class AppServiceNode extends SiteNodeBase {
@@ -27,16 +22,14 @@ export class AppServiceNode extends SiteNodeBase {
     }
 
     getTreeItem(): TreeItem {
-        if (!this.site.kind.startsWith('functionapp')) {
-            const iconName = 'AzureWebsite_16x_vscode.svg';
-            return {
-                label: `${this.label} (${this.site.resourceGroup})`,
-                collapsibleState: TreeItemCollapsibleState.Collapsed,
-                contextValue: 'appService',
-                iconPath: {
-                    light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', iconName),
-                    dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', iconName)
-                }
+        const iconName = 'AzureWebsite_16x_vscode.svg';
+        return {
+            label: `${this.label} (${this.site.resourceGroup})`,
+            collapsibleState: TreeItemCollapsibleState.Collapsed,
+            contextValue: 'appService',
+            iconPath: {
+                light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', iconName),
+                dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', iconName)
             }
         }
     }
