@@ -26,6 +26,7 @@ export abstract class WizardBase {
                 await this.steps[i].prompt();
             } catch (err) {
                 this.sendErrorTelemetry(step, err);
+                this.onRunError(step, i, err);
                 if (err instanceof UserCancelledError) {
                     return {
                         status: 'Cancelled',
@@ -95,6 +96,10 @@ export abstract class WizardBase {
         return this._steps;
     }
 
+    findStepOfType<T extends WizardStep>(stepTypeConstructor: { new(...args: any[]): T }): T {
+        return <T>this.findStep(step => step instanceof stepTypeConstructor, `The Wizard should have had a ${stepTypeConstructor.name} step`);
+    }
+
     findStep(predicate: (step: WizardStep) => boolean, errorMessage: string): WizardStep {
         const step = this.steps.find(predicate);
 
@@ -111,6 +116,12 @@ export abstract class WizardBase {
 
     writeline(text: string) {
         this.output.appendLine(text);
+    }
+
+    protected onRunError(_step: WizardStep, _stepIndex: number, error: Error) {
+        if (!(error instanceof UserCancelledError)) {
+            vscode.window.showErrorMessage(error.message);
+        }
     }
 
     protected abstract beforeExecute(step?: WizardStep, stepIndex?: number);
@@ -133,8 +144,12 @@ export interface WizardResult {
     error: Error | null;
 }
 
+export interface WizardStatePersistence {
+
+}
+
 export class WizardStep {
-    protected constructor(readonly wizard: WizardBase, readonly stepTitle: string) { }
+    protected constructor(readonly wizard: WizardBase, readonly stepTitle: string, private persistenceState?: vscode.Memento) { }
 
     async prompt(): Promise<void> { }
     async execute(): Promise<void> { }
@@ -147,12 +162,25 @@ export class WizardStep {
         return `Step ${this.stepIndex + 1}/${this.wizard.steps.length}`;
     }
 
-    async showQuickPick<T>(items: QuickPickItemWithData<T>[] | Thenable<QuickPickItemWithData<T>[]>, options: vscode.QuickPickOptions, token?: vscode.CancellationToken): Promise<QuickPickItemWithData<T>> {
+    async showQuickPick<T>(items: QuickPickItemWithData<T>[] | Thenable<QuickPickItemWithData<T>[]>, options: vscode.QuickPickOptions, persistenceKey?: string, token?: vscode.CancellationToken): Promise<QuickPickItemWithData<T>> {
         options.ignoreFocusOut = true;
-        const result = await vscode.window.showQuickPick(items, options, token);
+        var resolvedItems = await items;
+        if (this.persistenceState && persistenceKey) {
+            // See if the previous value selected by the user is in this list, and move it to the top as default
+            var previousId = this.persistenceState.get(persistenceKey);
+            var previousItem = previousId && resolvedItems.find(item => item.persistenceId === previousId);
+            if (previousItem) {
+                resolvedItems = ([previousItem]).concat(resolvedItems.filter(item => item !== previousItem));
+            }
+        }
 
+        const result = await vscode.window.showQuickPick(resolvedItems, options, token);
         if (!result) {
             throw new UserCancelledError();
+        }
+
+        if (this.persistenceState && persistenceKey) {
+            this.persistenceState.update(persistenceKey, result.persistenceId);
         }
 
         return result;
@@ -171,14 +199,15 @@ export class WizardStep {
 }
 
 export class SubscriptionStepBase extends WizardStep {
-    constructor(wizard: WizardBase, title: string, readonly azureAccount: AzureAccountWrapper, protected _subscription?: SubscriptionModels.Subscription) {
-        super(wizard, title);
+    constructor(wizard: WizardBase, title: string, readonly azureAccount: AzureAccountWrapper, protected _subscription?: SubscriptionModels.Subscription, persistence?: vscode.Memento) {
+        super(wizard, title, persistence);
     }
 
     protected getSubscriptionsAsQuickPickItems(): Promise<QuickPickItemWithData<SubscriptionModels.Subscription>[]> {
         return Promise.resolve(
             this.azureAccount.getFilteredSubscriptions().map(s => {
                 return {
+                    persistenceId: s.subscriptionId,
                     label: s.displayName,
                     description: '',
                     detail: s.subscriptionId,
@@ -194,5 +223,6 @@ export class SubscriptionStepBase extends WizardStep {
 }
 
 export interface QuickPickItemWithData<T> extends vscode.QuickPickItem {
-    data: T;
+    persistenceId?: string; // A unique key to identify this item items across sessions, used in persisting previous selections
+    data?: T;
 }

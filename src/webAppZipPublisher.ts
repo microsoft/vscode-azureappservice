@@ -171,6 +171,7 @@ class WebAppStep extends WizardStep {
         const webAppsTask = util.listAll(websiteClient.webApps, websiteClient.webApps.list()).then(webApps => {
             const quickPickItems: QuickPickItemWithData<WebSiteModels.Site>[] = [];
             quickPickItems.push({
+                persistenceId: "$new",
                 label: '$(plus) Create new Web App',
                 description: '',
                 data: null
@@ -179,6 +180,7 @@ class WebAppStep extends WizardStep {
                 if (element.kind.toLowerCase().indexOf('app') >= 0 &&
                     element.kind.toLowerCase().indexOf('linux') >= 0) {
                     quickPickItems.push({
+                        persistenceId: element.id,
                         label: element.name,
                         description: `(${element.resourceGroup})`,
                         data: element
@@ -224,7 +226,7 @@ class WebAppStep extends WizardStep {
     }
 
     protected getSelectedSubscription(): SubscriptionModels.Subscription {
-        const subscriptionStep = <SubscriptionStep>this.wizard.findStep(step => step instanceof SubscriptionStep, 'The Wizard must have a SubscriptionStep.');
+        const subscriptionStep = this.wizard.findStepOfType(SubscriptionStep);
 
         if (!subscriptionStep.subscription) {
             throw new Error('A subscription must be selected first.');
@@ -287,7 +289,7 @@ class DeployStep extends WizardStep {
     }
 
     protected getSelectedSubscription(): SubscriptionModels.Subscription {
-        const subscriptionStep = <SubscriptionStep>this.wizard.findStep(step => step instanceof SubscriptionStep, 'The Wizard must have a SubscriptionStep.');
+        const subscriptionStep = this.wizard.findStepOfType(SubscriptionStep);
 
         if (!subscriptionStep.subscription) {
             throw new Error('A subscription must be selected first.');
@@ -297,7 +299,7 @@ class DeployStep extends WizardStep {
     }
 
     protected getSelectedWebApp(): WebSiteModels.Site {
-        const webAppStep = <WebAppStep>this.wizard.findStep(step => step instanceof WebAppStep, 'The Wizard must have a WebAppStep.');
+        const webAppStep = this.wizard.findStepOfType(WebAppStep);
 
         if (!webAppStep.site) {
             throw new Error('A Web App must be selected first.');
@@ -307,7 +309,7 @@ class DeployStep extends WizardStep {
     }
 
     protected getSelectedZipFilePath(): string {
-        const zipFileStep = <ZipFileStep>this.wizard.findStep(step => step instanceof ZipFileStep, 'The Wizard must have a ZipFileStep.');
+        const zipFileStep = this.wizard.findStepOfType(ZipFileStep);
 
         if (!zipFileStep.zipFilePath) {
             throw new Error('A Zip file must be selected first.');
@@ -317,7 +319,7 @@ class DeployStep extends WizardStep {
     }
 
     protected isZipCreatedByDeployment(): boolean {
-        const zipFileStep = <ZipFileStep>this.wizard.findStep(step => step instanceof ZipFileStep, 'The Wizard must have a ZipFileStep.');
+        const zipFileStep = this.wizard.findStepOfType(ZipFileStep);
 
         if (!zipFileStep.zipFilePath) {
             throw new Error('A Zip file must be selected first.');
