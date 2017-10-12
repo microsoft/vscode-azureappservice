@@ -175,7 +175,7 @@ export class AppSettingNode extends NodeBase {
             value: this.value
         });
 
-        if (!newValue) {
+        if (newValue === undefined) {
             return;
         }
 
