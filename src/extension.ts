@@ -192,6 +192,19 @@ export function activate(context: vscode.ExtensionContext) {
     });
     initAsyncCommand(context, 'diagnostics.OpenLogStream', async (node: SiteNodeBase) => {
         if (node) {
+            const enableButton = 'Yes';
+            const isEnabled = await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, p => {
+                p.report({ message: 'Checking container diagnostics settings...' });
+                return node.isHttpLogsEnabled();
+            });
+
+            if (!isEnabled && enableButton === await vscode.window.showWarningMessage('Do you want to enable logging and restart this container?', enableButton)) {
+                outputChannel.show();
+                outputChannel.appendLine(`Enabling Logging for "${node.site.name}"...`);
+                await node.enableHttpLogs();
+                await vscode.commands.executeCommand('appService.Restart', node);
+            }
+            // Otherwise connect to log stream anyways, users might see similar "log not enabled" message with how to enable link from the stream output.
             await node.connectToLogStream(context);
         }
     });
