@@ -90,29 +90,30 @@ export class SiteNodeBase extends NodeBase {
     }
 
     async delete(azureAccount: AzureAccountWrapper): Promise<void> {
-        let mOptions: MessageOptions = { modal: true };
         let deleteServicePlan = false;
         let servicePlan;
-        let serverFarmId: ServerFarmId;
 
         if (!this._isSlot) {
             // API calls not necessary for deployment slots
             servicePlan = await this.getAppServicePlan();
         }
 
-        let input = await window.showWarningMessage(`Are you sure you want to delete "${this.site.name}"?`, mOptions, 'Yes');
+        let input = await window.showWarningMessage(`Are you sure you want to delete "${this.site.name}"?`, 'Yes');
         if (input) {
             if (!this._isSlot && servicePlan.numberOfSites < 2) {
-                let input = await window.showWarningMessage(`This is the last app in the App Service plan, "${serverFarmId.serverfarms}". Delete this App Service plan to prevent unexpected charges.`, mOptions, 'Yes', 'No');
+                let input = await window.showWarningMessage(`This is the last app in the App Service plan "${servicePlan.name}". Do you want to delete this App Service plan to prevent unexpected charges?`, 'Yes');
                 if (input) {
                     deleteServicePlan = input === 'Yes';
                 } else {
                     throw new UserCancelledError();
                 }
             }
-            !this._isSlot ?
-                await this.webSiteClient.webApps.deleteMethodWithHttpOperationResponse(this.site.resourceGroup, this._siteName, { deleteEmptyServerFarm: deleteServicePlan }) :
+
+            if (!this._isSlot) {
+                await this.webSiteClient.webApps.deleteMethodWithHttpOperationResponse(this.site.resourceGroup, this._siteName, { deleteEmptyServerFarm: deleteServicePlan });
+            } else {
                 await this.webSiteClient.webApps.deleteSlotWithHttpOperationResponse(this.site.resourceGroup, this._siteName, this._slotName);
+            }
             // to ensure that the asset gets deleted before the explorer refresh happens
         } else {
             throw new UserCancelledError();
@@ -205,7 +206,7 @@ export class SiteNodeBase extends NodeBase {
             updateConfig.scmType = 'LocalGit';
 
             if (oldScmType !== 'None') {
-                input = await window.showWarningMessage(`Deployment source for "${this._siteName}" is set as "${oldScmType}".  Change to "LocalGit"?`, 'Yes');
+                input = await window.showWarningMessage(`Deployment source for "${this._siteName}" is set to "${oldScmType}". Change to "LocalGit"?`, 'Yes');
             }
 
             if (oldScmType === 'None' || input === 'Yes') {
