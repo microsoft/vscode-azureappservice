@@ -16,13 +16,6 @@ import { KuduClient } from '../kuduClient';
 import { Request } from 'request';
 import { UserCancelledError } from '../errors';
 
-export type ServerFarmId = {
-    subscriptions: string,
-    resourceGroups: string,
-    providers: string,
-    serverfarms: string
-}
-
 export class SiteNodeBase extends NodeBase {
     private _logStreamOutputChannel: OutputChannel | undefined;
     private _logStream: Request | undefined;
@@ -98,8 +91,8 @@ export class SiteNodeBase extends NodeBase {
 
         let input = await window.showWarningMessage(`Are you sure you want to delete "${this.site.name}"?`, 'Yes');
         if (input) {
-            if (!this._isSlot && servicePlan.numberOfSites < 2) {
-                let input = await window.showWarningMessage(`This is the last app in the App Service plan "${servicePlan.name}". Do you want to delete this App Service plan to prevent unexpected charges?`, 'Yes');
+            if (!util.isSiteDeploymentSlot(this.site) && servicePlan.numberOfSites < 2) {
+                let input = await window.showWarningMessage(`This is the last app in the App Service plan, "${servicePlan.name}". Do you want to delete this App Service plan to prevent unexpected charges?`, 'Yes', 'No');
                 if (input) {
                     deleteServicePlan = input === 'Yes';
                 } else {
@@ -112,7 +105,6 @@ export class SiteNodeBase extends NodeBase {
             } else {
                 await this.webSiteClient.webApps.deleteSlotWithHttpOperationResponse(this.site.resourceGroup, this._siteName, this._slotName);
             }
-            // to ensure that the asset gets deleted before the explorer refresh happens
         } else {
             throw new UserCancelledError();
         }
