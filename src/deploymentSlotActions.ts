@@ -5,24 +5,23 @@
 
 import * as vscode from 'vscode';
 import { AzureAccountWrapper } from './azureAccountWrapper';
-import { WizardBase, WizardResult, WizardStep, QuickPickItemWithData } from './wizard';
-import { SubscriptionModels, ResourceManagementClient, ResourceModels } from 'azure-arm-resource';
+import { WizardBase, WizardStep, QuickPickItemWithData } from './wizard';
+import { SubscriptionModels } from 'azure-arm-resource';
 import WebSiteManagementClient = require('azure-arm-website');
-import models = require('azure-arm-website');
-import { NodeBase } from './explorer/nodeBase';
 import { DeploymentSlotNode } from './explorer/deploymentSlotNode';
 import { DeploymentSlotsNode } from './explorer/deploymentSlotsNode';
 import { UserCancelledError } from './errors';
-import * as WebSiteModels from '../node_modules/azure-arm-website/lib/models';
-import * as util from './util';
 
 export class DeploymentSlotSwapper extends WizardBase {
     constructor(output: vscode.OutputChannel, readonly azureAccount: AzureAccountWrapper, readonly slot: DeploymentSlotNode) {
         super(output);
         this.steps.push(new SwapStep(this, azureAccount, slot));
     }
+    protected beforeExecute () {
 
-    protected onExecuteError(step: WizardStep, stepIndex: number, error: Error) {
+    }
+    
+    protected onExecuteError(error: Error) {
         if (error instanceof UserCancelledError) {
             return;
         }
@@ -63,7 +62,6 @@ class SwapStep extends WizardStep {
                 const otherSlot: QuickPickItemWithData<null> = {
                     label: slot.label,
                     description: '',
-                    detail: null,
                     data: null
                 };
 
@@ -80,10 +78,11 @@ class SwapStep extends WizardStep {
             const client = new WebSiteManagementClient(credential, this.slot.subscription.subscriptionId);
 
             await client.webApps.swapSlotSlot(this.slot.site.resourceGroup, this.slot.site.repositorySiteName, { targetSlot: this.targetSlot, preserveVnet: true }, this.sourceSlot.label, {},
-                (err, result, request, response) => {
+                (err, _result, _request, response) => {
                     if (!err && response.statusCode === 200) {
                         this.wizard.writeline(`"${this.targetSlot}" was swapped with "${this.sourceSlot.label}"`);
                     } else {
+                        // the format of Azure error messages are JSON strings
                         this.wizard.writeline(JSON.parse(err.message).Message);
                     }
                 });

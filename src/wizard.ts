@@ -11,7 +11,7 @@ import { UserCancelledError } from './errors';
 
 export type WizardStatus = 'PromptCompleted' | 'Completed' | 'Faulted' | 'Cancelled';
 
-export class WizardBase {
+export abstract class WizardBase {
     private readonly _steps: WizardStep[] = [];
     private _result: WizardResult;
 
@@ -65,7 +65,7 @@ export class WizardBase {
                 await this.steps[i].execute();
             } catch (err) {
                 this.sendErrorTelemetry(step, err);
-                this.onExecuteError(step, i, err);
+                this.onExecuteError(err, step, i);
                 if (err instanceof UserCancelledError) {
                     this._result = {
                         status: 'Cancelled',
@@ -118,15 +118,15 @@ export class WizardBase {
         this.output.appendLine(text);
     }
 
-    protected onRunError(step: WizardStep, stepIndex: number, error: Error) {
+    protected onRunError(_step: WizardStep, _stepIndex: number, error: Error) {
         if (!(error instanceof UserCancelledError)) {
             vscode.window.showErrorMessage(error.message);
         }
     }
 
-    protected beforeExecute(step: WizardStep, stepIndex: number) { }
+    protected abstract beforeExecute(step?: WizardStep, stepIndex?: number);
 
-    protected onExecuteError(step: WizardStep, stepIndex: number, error: Error) { }
+    protected abstract onExecuteError(error: Error, step?: WizardStep, stepIndex?: number)
 
     protected sendErrorTelemetry(step: WizardStep, error: any) {
         const eventName = `${this.constructor.name}Error`
@@ -141,7 +141,7 @@ export class WizardBase {
 export interface WizardResult {
     status: WizardStatus;
     step: WizardStep;
-    error: Error;
+    error: Error | null;
 }
 
 export interface WizardStatePersistence {
@@ -224,5 +224,5 @@ export class SubscriptionStepBase extends WizardStep {
 
 export interface QuickPickItemWithData<T> extends vscode.QuickPickItem {
     persistenceId?: string; // A unique key to identify this item items across sessions, used in persisting previous selections
-    data: T;
+    data?: T;
 }

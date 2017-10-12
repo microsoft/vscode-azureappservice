@@ -38,6 +38,7 @@
         "onCommand:deploymentSlot.SwapSlots",
         "onCommand:appSettings.Add",
         "onCommand:appSettings.Edit",
+        "onCommand:appSettings.Rename",
         "onCommand:appSettings.Delete",
         "onCommand:diagnostics.OpenLogStream",
         "onCommand:diagnostics.StopLogStream",
@@ -121,12 +122,17 @@
             },
             {
                 "command": "appSettings.Edit",
-                "title": "Edit Setting...",
+                "title": "Edit...",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appSettings.Rename",
+                "title": "Rename...",
                 "category": "Azure App Service"
             },
             {
                 "command": "appSettings.Delete",
-                "title": "Delete Setting",
+                "title": "Delete",
                 "category": "Azure App Service"
             },
             {
@@ -313,9 +319,14 @@
                     "group": "1_appSettingItemEdit@1"
                 },
                 {
-                    "command": "appSettings.Delete",
+                    "command": "appSettings.Rename",
                     "when": "view == azureAppService && viewItem == applicationSettingItem",
                     "group": "1_appSettingItemEdit@2"
+                },
+                {
+                    "command": "appSettings.Delete",
+                    "when": "view == azureAppService && viewItem == applicationSettingItem",
+                    "group": "1_appSettingItemEdit@3"
                 }
             ],
             "explorer/context": [
@@ -335,6 +346,7 @@
     "scripts": {
         "vscode:prepublish": "tsc -p ./",
         "compile": "tsc -watch -p ./",
+        "lint": "tslint --project tsconfig.json src/*.ts -e src/*.d.ts --type-check -t verbose",
         "postinstall": "node ./node_modules/vscode/bin/install",
         "test": "node ./node_modules/vscode/bin/test"
     },
@@ -344,6 +356,8 @@
         "@types/node": "^8.0.28",
         "@types/request": "^2.0.3",
         "mocha": "^2.3.3",
+        "tslint": "^5.7.0",
+        "tslint-microsoft-contrib": "5.0.1",
         "typescript": "^2.0.3",
         "vscode": "^1.0.0"
     },

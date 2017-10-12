@@ -3,12 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ExtensionContext, Extension, extensions, Disposable } from 'vscode';
+import { ExtensionContext, extensions, Disposable } from 'vscode';
 import { ServiceClientCredentials } from 'ms-rest';
-import { AzureEnvironment } from 'ms-rest-azure';
 import { SubscriptionClient, SubscriptionModels } from 'azure-arm-resource';
 import { AzureAccount, AzureSession, AzureLoginStatus } from './azure-account.api';
-import * as util from './util';
 
 export class NotSignedInError extends Error { }
 
@@ -30,7 +28,7 @@ export class AzureAccountWrapper {
     }
 
     getCredentialByTenantId(tenantId: string): ServiceClientCredentials {
-        const session = this.getAzureSessions().find((s, i, array) => s.tenantId.toLowerCase() === tenantId.toLowerCase());
+        const session = this.getAzureSessions().find(s => s.tenantId.toLowerCase() === tenantId.toLowerCase());
 
         if (session) {
             return session.credentials;

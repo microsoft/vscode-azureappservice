@@ -43,13 +43,13 @@ export class WebAppCreator extends WizardBase {
         return this.findStepOfType(WebsiteStep).website;
     }
 
-    protected beforeExecute(step: WizardStep, stepIndex: number) {
+    protected beforeExecute(_step: WizardStep, stepIndex: number) {
         if (stepIndex == 0) {
             this.writeline('Start creating new Web App...');
         }
     }
 
-    protected onExecuteError(step: WizardStep, stepIndex: number, error: Error) {
+    protected onExecuteError(error: Error) {
         if (error instanceof UserCancelledError) {
             return;
         }
@@ -159,7 +159,7 @@ class ResourceGroupStep extends WebAppCreatorStepBase {
         var suggestedName = this.getSuggestedRGAndPlanName();
 
         const quickPickItemsTask = Promise.all([resourceGroupsTask, locationsTask]).then(results => {
-            const quickPickItems = [createNewItem];
+            const quickPickItems: QuickPickItemWithData<ResourceModels.ResourceGroup>[] = [createNewItem];
             resourceGroups = results[0];
             locations = results[1];
             resourceGroups.forEach(rg => {
@@ -257,7 +257,7 @@ class AppServicePlanStep extends WebAppCreatorStepBase {
             persistenceId: "$new",
             label: '$(plus) Create New App Service Plan',
             description: '',
-            data: null
+            data: this._plan
         };
         const quickPickOptions = { placeHolder: `Select the App Service Plan for the new Web App. (${this.stepProgressText}) ` };
         const subscription = this.getSelectedSubscription();
@@ -419,8 +419,6 @@ class WebsiteStep extends WebAppCreatorStepBase {
     }
 
     async prompt(): Promise<void> {
-        const subscription = this.getSelectedSubscription();
-        const client = new WebSiteManagementClient(this.azureAccount.getCredentialByTenantId(subscription.tenantId), subscription.subscriptionId);
         const siteName = this.getWebsiteName();
 
         var runtimeStack: string;
@@ -581,6 +579,8 @@ class WebsiteNameStep extends WebAppCreatorStepBase {
             if (plans.findIndex(hp => hp.name.toLowerCase() === name.toLowerCase()) >= 0) {
                 return true;
             }
+
+            return false;
         };
 
         if (!nameTaken(siteName)) {
