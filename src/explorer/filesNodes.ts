@@ -7,7 +7,7 @@ import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models'
 import { NodeBase } from './nodeBase';
 import { AppServiceDataProvider } from './appServiceExplorer';
 import { SubscriptionModels } from 'azure-arm-resource';
-import { TreeDataProvider, TreeItem, TreeItemCollapsibleState, EventEmitter, Event, OutputChannel } from 'vscode';
+import { TreeItem, TreeItemCollapsibleState } from 'vscode';
 import { AzureAccountWrapper } from '../azureAccountWrapper';
 import * as path from 'path';
 import { KuduClient, kuduFile } from '../kuduClient';
@@ -36,7 +36,7 @@ export class FilesNode extends NodeBase {
     }
 
     async getChildren(): Promise<NodeBase[]> {
-        const nodes = [];
+        const nodes: NodeBase[] = [];
         const webAppClient = new WebSiteManagementClient(this.azureAccount.getCredentialByTenantId(this.subscription.tenantId), this.subscription.subscriptionId);
         const user = await util.getWebAppPublishCredential(webAppClient, this.site);
         const kuduClient = new KuduClient(this.site.name, user.publishingUserName, user.publishingPassword);

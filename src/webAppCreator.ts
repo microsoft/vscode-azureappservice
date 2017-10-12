@@ -43,13 +43,13 @@ export class WebAppCreator extends WizardBase {
         return (<WebsiteStep>websiteStep).website;
     }
 
-    protected beforeExecute(step: WizardStep, stepIndex: number) {
+    protected beforeExecute(_step: WizardStep, stepIndex: number) {
         if (stepIndex == 0) {
             this.writeline('Start creating new Web App...');
         }
     }
 
-    protected onExecuteError(step: WizardStep, stepIndex: number, error: Error) {
+    protected onExecuteError(error: Error) {
         if (error instanceof UserCancelledError) {
             return;
         }
@@ -138,7 +138,7 @@ class ResourceGroupStep extends WebAppCreatorStepBase {
         const createNewItem: QuickPickItemWithData<ResourceModels.ResourceGroup> = {
             label: '$(plus) Create New Resource Group',
             description: '',
-            data: null
+            data: this._rg
         };
         const quickPickOptions = { placeHolder: `Select the resource group where the new Web App will be created in. (${this.stepProgressText})` };
         const subscription = this.getSelectedSubscription();
@@ -148,7 +148,7 @@ class ResourceGroupStep extends WebAppCreatorStepBase {
         const resourceGroupsTask = util.listAll(resourceClient.resourceGroups, resourceClient.resourceGroups.list());
         const locationsTask = this.azureAccount.getLocationsBySubscription(this.getSelectedSubscription());
         const quickPickItemsTask = Promise.all([resourceGroupsTask, locationsTask]).then(results => {
-            const quickPickItems = [createNewItem];
+            const quickPickItems: QuickPickItemWithData<ResourceModels.ResourceGroup>[] = [createNewItem];
             resourceGroups = results[0];
             locations = results[1];
             resourceGroups.forEach(rg => {
@@ -241,7 +241,7 @@ class AppServicePlanStep extends WebAppCreatorStepBase {
         const createNewItem: QuickPickItemWithData<WebSiteModels.AppServicePlan> = {
             label: '$(plus) Create New App Service Plan',
             description: '',
-            data: null
+            data: this._plan
         };
         const quickPickOptions = { placeHolder: `Select the App Service Plan for the new Web App. (${this.stepProgressText})` };
         const subscription = this.getSelectedSubscription();
@@ -441,7 +441,7 @@ class WebsiteStep extends WebAppCreatorStepBase {
         const plan = this.getSelectedAppServicePlan();
 
         this._website = {
-            name: siteName.trim(),
+            name: siteName!.trim(),
             kind: 'app,linux',
             location: rg.location,
             serverFarmId: plan.id,

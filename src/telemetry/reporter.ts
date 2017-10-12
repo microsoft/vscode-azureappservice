@@ -13,7 +13,9 @@ export class Reporter extends vscode.Disposable {
         super(() => reporter.dispose());
 
         let packageInfo = getPackageInfo(ctx);
-        reporter = packageInfo && new TelemetryReporter(packageInfo.name, packageInfo.version, packageInfo.aiKey);
+        if (packageInfo) {
+            reporter = new TelemetryReporter(packageInfo.name, packageInfo.version, packageInfo.aiKey);
+        }
     }
 }
 
@@ -23,7 +25,7 @@ interface IPackageInfo {
     aiKey: string;
 }
 
-function getPackageInfo(context: vscode.ExtensionContext): IPackageInfo {
+function getPackageInfo(context: vscode.ExtensionContext): IPackageInfo | undefined {
     let extensionPackage = require(context.asAbsolutePath('./package.json'));
     if (extensionPackage) {
         return {
@@ -32,5 +34,5 @@ function getPackageInfo(context: vscode.ExtensionContext): IPackageInfo {
             aiKey: extensionPackage.aiKey
         };
     }
-    return;
+    return undefined;
 }

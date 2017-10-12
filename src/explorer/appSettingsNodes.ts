@@ -4,15 +4,15 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models';
-import * as opn from 'opn';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as util from '../util';
+import * as opn from 'opn';
 import { AzureAccountWrapper } from '../azureAccountWrapper';
 import { NodeBase } from './nodeBase';
 import { AppServiceDataProvider } from './appServiceExplorer';
-import { SubscriptionClient, SubscriptionModels } from 'azure-arm-resource';
-import { TreeDataProvider, TreeItem, TreeItemCollapsibleState, EventEmitter, Event, OutputChannel } from 'vscode';
+import { SubscriptionModels } from 'azure-arm-resource';
+import { TreeItem, TreeItemCollapsibleState } from 'vscode';
 import WebSiteManagementClient = require('azure-arm-website');
 
 export class AppSettingsNode extends NodeBase {
@@ -110,7 +110,7 @@ export class AppSettingsNode extends NodeBase {
         this.getTreeDataProvider<AppServiceDataProvider>().refresh(this);
     }
 
-    validateNewKeyInput(newKey: string, oldKey?: string): string {
+    validateNewKeyInput(newKey: string, oldKey?: string): string | undefined {
         newKey = newKey ? newKey.trim() : '';
         oldKey = oldKey ? oldKey.trim().toLowerCase() : oldKey;
         if (newKey.length === 0) {
@@ -124,6 +124,8 @@ export class AppSettingsNode extends NodeBase {
                 }
             }
         }
+
+        return undefined;
     }
 
     protected get WebSiteManagementClient(): WebSiteManagementClient {
