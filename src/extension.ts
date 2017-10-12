@@ -183,6 +183,11 @@ export function activate(context: vscode.ExtensionContext) {
             await node.edit();
         }
     });
+    initAsyncCommand(context, 'appSettings.Rename', async (node: AppSettingNode) => {
+        if (node) {
+            await node.rename();
+        }
+    });
     initAsyncCommand(context, 'appSettings.Delete', async (node: AppSettingNode) => {
         if (node) {
             await node.delete();
