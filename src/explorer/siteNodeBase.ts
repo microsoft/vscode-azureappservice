@@ -17,8 +17,11 @@ import { Request } from 'request';
 import { UserCancelledError } from '../errors';
 
 export class SiteNodeBase extends NodeBase {
-    private _logStreamOutputChannel: OutputChannel;
+    private _logStreamOutputChannel: OutputChannel | undefined;
     private _logStream: Request | undefined;
+    private readonly _siteName: string;
+    private readonly _isSlot: boolean;
+    private readonly _slotName: string;
 
     constructor(readonly label: string,
         readonly site: WebSiteModels.Site,
@@ -26,6 +29,10 @@ export class SiteNodeBase extends NodeBase {
         treeDataProvider: AppServiceDataProvider,
         parentNode: NodeBase) {
         super(label, treeDataProvider, parentNode);
+
+        this._siteName = util.extractSiteName(site);
+        this._isSlot = util.isSiteDeploymentSlot(site);
+        this._slotName = util.extractDeploymentSlotName(site);
     }
 
     protected get azureAccount(): AzureAccountWrapper {
@@ -48,26 +55,22 @@ export class SiteNodeBase extends NodeBase {
 
     async start(): Promise<void> {
         const rgName = this.site.resourceGroup;
-        const siteName = util.extractSiteName(this.site);
 
-        if (util.isSiteDeploymentSlot(this.site)) {
-            const slotName = util.extractDeploymentSlotName(this.site);
-            await this.webSiteClient.webApps.startSlot(rgName, siteName, slotName);
+        if (this._isSlot) {
+            await this.webSiteClient.webApps.startSlot(rgName, this._siteName, this._slotName);
         } else {
-            await this.webSiteClient.webApps.start(rgName, siteName);
+            await this.webSiteClient.webApps.start(rgName, this._siteName);
         }
         await util.waitForWebSiteState(this.webSiteClient, this.site, 'running');
     }
 
     async stop(): Promise<void> {
         const rgName = this.site.resourceGroup;
-        const siteName = util.extractSiteName(this.site);
 
-        if (util.isSiteDeploymentSlot(this.site)) {
-            const slotName = util.extractDeploymentSlotName(this.site);
-            await this.webSiteClient.webApps.stopSlot(rgName, siteName, slotName);
+        if (this._isSlot) {
+            await this.webSiteClient.webApps.stopSlot(rgName, this._siteName, this._slotName);
         } else {
-            await this.webSiteClient.webApps.stop(rgName, siteName);
+            await this.webSiteClient.webApps.stop(rgName, this._siteName);
         }
         await util.waitForWebSiteState(this.webSiteClient, this.site, 'stopped');
     }
@@ -81,7 +84,7 @@ export class SiteNodeBase extends NodeBase {
         let deleteServicePlan = false;
         let servicePlan;
 
-        if (!util.isSiteDeploymentSlot(this.site)) {
+        if (!this._isSlot) {
             // API calls not necessary for deployment slots
             servicePlan = await this.getAppServicePlan();
         }
@@ -96,20 +99,45 @@ export class SiteNodeBase extends NodeBase {
                     throw new UserCancelledError();
                 }
             }
-            let pendingRequest = await !util.isSiteDeploymentSlot(this.site) ?
-                this.webSiteClient.webApps.deleteMethodWithHttpOperationResponse(this.site.resourceGroup, this.site.name, { deleteEmptyServerFarm: deleteServicePlan }) :
-                this.webSiteClient.webApps.deleteSlotWithHttpOperationResponse(this.site.resourceGroup, util.extractSiteName(this.site), util.extractDeploymentSlotName(this.site));
 
-            await pendingRequest;
-            // to ensure that the asset gets deleted before the explorer refresh happens
+            if (!this._isSlot) {
+                await this.webSiteClient.webApps.deleteMethodWithHttpOperationResponse(this.site.resourceGroup, this._siteName, { deleteEmptyServerFarm: deleteServicePlan });
+            } else {
+                await this.webSiteClient.webApps.deleteSlotWithHttpOperationResponse(this.site.resourceGroup, this._siteName, this._slotName);
+            }
         } else {
             throw new UserCancelledError();
         }
     }
 
+    async isHttpLogsEnabled(): Promise<boolean> {
+        const logsConfig = this._isSlot ? await this.webSiteClient.webApps.getDiagnosticLogsConfigurationSlot(this.site.resourceGroup, this._siteName, this._slotName) :
+            await this.webSiteClient.webApps.getDiagnosticLogsConfiguration(this.site.resourceGroup, this._siteName);
+        return logsConfig.httpLogs && logsConfig.httpLogs.fileSystem && logsConfig.httpLogs.fileSystem.enabled;
+    }
+
+    async enableHttpLogs(): Promise<void> {
+        const logsConfig: WebSiteModels.SiteLogsConfig = {
+            location: this.site.location,
+            httpLogs: {
+                fileSystem: {
+                    enabled: true,
+                    retentionInDays: 7,
+                    retentionInMb: 35
+                }
+            }
+        };
+
+        if (this._isSlot) {
+            await this.webSiteClient.webApps.updateDiagnosticLogsConfigSlot(this.site.resourceGroup, this._siteName, logsConfig, this._slotName);
+        } else {
+            await this.webSiteClient.webApps.updateDiagnosticLogsConfig(this.site.resourceGroup, this._siteName, logsConfig);
+        }
+    }
+
     async connectToLogStream(extensionContext: ExtensionContext): Promise<void> {
-        const siteName = util.extractSiteName(this.site) + (util.isSiteDeploymentSlot(this.site) ? '-' + util.extractDeploymentSlotName(this.site) : '');
-        const user = await util.getWebAppPublishCredential(this.webSiteClient, this.site);
+        const siteName = this._isSlot ? `${this._siteName}-${this._slotName}` : this._siteName;
+        const user = await util.getWebAppPublishCredential(this.webSiteClient, this.site)
         const kuduClient = new KuduClient(siteName, user.publishingUserName, user.publishingPassword);
 
         if (!this._logStreamOutputChannel) {
@@ -145,23 +173,20 @@ export class SiteNodeBase extends NodeBase {
     }
 
     async localGitDeploy(): Promise<boolean> {
-
         if (!workspace.rootPath) {
             await window.showErrorMessage(`You have not yet opened a folder to deploy.`);
             throw new Error('No open workspace');
         }
 
-        const siteName = util.extractSiteName(this.site);
-        const isSlot = util.isSiteDeploymentSlot(this.site);
-        const publishCredentials = !isSlot ?
-            await this.webSiteClient.webApps.listPublishingCredentials(this.site.resourceGroup, siteName) :
-            await this.webSiteClient.webApps.listPublishingCredentialsSlot(this.site.resourceGroup, siteName, util.extractDeploymentSlotName(this.site));
-        const config = !isSlot ?
-            await this.webSiteClient.webApps.getConfiguration(this.site.resourceGroup, siteName) :
-            await this.webSiteClient.webApps.getConfigurationSlot(this.site.resourceGroup, siteName, util.extractDeploymentSlotName(this.site));
-        const oldDeployment = !isSlot ?
-            await this.webSiteClient.webApps.listDeployments(this.site.resourceGroup, siteName) :
-            await this.webSiteClient.webApps.listDeploymentsSlot(this.site.resourceGroup, siteName, util.extractDeploymentSlotName(this.site));
+        const publishCredentials = !this._isSlot ?
+            await this.webSiteClient.webApps.listPublishingCredentials(this.site.resourceGroup, this._siteName) :
+            await this.webSiteClient.webApps.listPublishingCredentialsSlot(this.site.resourceGroup, this._siteName, this._slotName);
+        const config = !this._isSlot ?
+            await this.webSiteClient.webApps.getConfiguration(this.site.resourceGroup, this._siteName) :
+            await this.webSiteClient.webApps.getConfigurationSlot(this.site.resourceGroup, this._siteName, this._slotName);
+        const oldDeployment = !this._isSlot ?
+            await this.webSiteClient.webApps.listDeployments(this.site.resourceGroup, this._siteName) :
+            await this.webSiteClient.webApps.listDeploymentsSlot(this.site.resourceGroup, this._siteName, this._slotName);
 
         if (config.scmType !== 'LocalGit') {
             let input;
@@ -170,13 +195,13 @@ export class SiteNodeBase extends NodeBase {
             updateConfig.scmType = 'LocalGit';
 
             if (oldScmType !== 'None') {
-                input = await window.showWarningMessage(`Deployment source for "${siteName}" is set as "${oldScmType}".  Change to "LocalGit"?`, 'Yes');
+                input = await window.showWarningMessage(`Deployment source for "${this._siteName}" is set to "${oldScmType}". Change to "LocalGit"?`, 'Yes');
             }
 
             if (oldScmType === 'None' || input === 'Yes') {
-                !isSlot ?
-                    await this.webSiteClient.webApps.updateConfiguration(this.site.resourceGroup, siteName, updateConfig) :
-                    await this.webSiteClient.webApps.updateConfigurationSlot(this.site.resourceGroup, siteName, updateConfig, util.extractDeploymentSlotName(this.site));
+                !this._isSlot ?
+                    await this.webSiteClient.webApps.updateConfiguration(this.site.resourceGroup, this._siteName, updateConfig) :
+                    await this.webSiteClient.webApps.updateConfigurationSlot(this.site.resourceGroup, this._siteName, updateConfig, this._slotName);
             } else {
                 throw new UserCancelledError();
             }
@@ -217,9 +242,9 @@ export class SiteNodeBase extends NodeBase {
             }
         }
 
-        const newDeployment = !util.isSiteDeploymentSlot(this.site) ?
-            await this.webSiteClient.webApps.listDeployments(this.site.resourceGroup, this.site.name) :
-            await this.webSiteClient.webApps.listDeploymentsSlot(this.site.resourceGroup, util.extractSiteName(this.site), util.extractDeploymentSlotName(this.site));
+        const newDeployment = !this._isSlot ?
+            await this.webSiteClient.webApps.listDeployments(this.site.resourceGroup, this._siteName) :
+            await this.webSiteClient.webApps.listDeploymentsSlot(this.site.resourceGroup, this._siteName, this._slotName);
         // if the oldDeployment has a length of 0, then there has never been a deployment
         if (newDeployment.length && oldDeployment.length &&
             newDeployment[0].deploymentId === oldDeployment[0].deploymentId) {
