@@ -10,18 +10,11 @@ import WebSiteManagementClient = require('azure-arm-website');
 import { NodeBase } from './nodeBase';
 import { AppServiceDataProvider } from './appServiceExplorer';
 import { SubscriptionModels } from 'azure-arm-resource';
-import { ExtensionContext, OutputChannel, window, workspace, MessageOptions } from 'vscode';
+import { ExtensionContext, OutputChannel, window, workspace } from 'vscode';
 import { AzureAccountWrapper } from '../azureAccountWrapper';
 import { KuduClient } from '../kuduClient';
 import { Request } from 'request';
 import { UserCancelledError } from '../errors';
-
-export type ServerFarmId = {
-    subscriptions: string,
-    resourceGroups: string,
-    providers: string,
-    serverfarms: string
-}
 
 export class SiteNodeBase extends NodeBase {
     private _logStreamOutputChannel: OutputChannel;
@@ -85,20 +78,18 @@ export class SiteNodeBase extends NodeBase {
     }
 
     async delete(): Promise<void> {
-        let mOptions: MessageOptions = { modal: true };
         let deleteServicePlan = false;
         let servicePlan;
-        let serverFarmMap: ServerFarmId;
 
         if (!util.isSiteDeploymentSlot(this.site)) {
             // API calls not necessary for deployment slots
             servicePlan = await this.getAppServicePlan();
         }
 
-        let input = await window.showWarningMessage(`Are you sure you want to delete "${this.site.name}"?`, mOptions, 'Yes');
+        let input = await window.showWarningMessage(`Are you sure you want to delete "${this.site.name}"?`, 'Yes');
         if (input) {
             if (!util.isSiteDeploymentSlot(this.site) && servicePlan.numberOfSites < 2) {
-                let input = await window.showWarningMessage(`This is the last app in the App Service plan, "${serverFarmMap!.serverfarms}". Delete this App Service plan to prevent unexpected charges.`, mOptions, 'Yes', 'No');
+                let input = await window.showWarningMessage(`This is the last app in the App Service plan, "${servicePlan.name}". Do you want to delete this App Service plan to prevent unexpected charges.`, 'Yes', 'No');
                 if (input) {
                     deleteServicePlan = input === 'Yes';
                 } else {
