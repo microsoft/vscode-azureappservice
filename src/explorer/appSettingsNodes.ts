@@ -155,7 +155,7 @@ export class AppSettingNode extends NodeBase {
         private value: string,
         treeDataProvider: AppServiceDataProvider,
         parentNode: NodeBase) {
-        super(`${key} : ${value}`, treeDataProvider, parentNode);
+        super(`${key}=${value}`, treeDataProvider, parentNode);
     }
 
     getTreeItem(): TreeItem {
@@ -171,10 +171,26 @@ export class AppSettingNode extends NodeBase {
     }
 
     async edit(): Promise<void> {
+        const newValue = await vscode.window.showInputBox({
+            ignoreFocusOut: true,
+            prompt: `Enter setting value for "${this.key}"`,
+            value: this.value
+        });
+
+        if (newValue === undefined) {
+            return;
+        }
+
+        this.value = newValue;
+        await this.getParentNode<AppSettingsNode>().editSettingItem(this.key, this.key, newValue);
+        this.refresh();
+    }
+
+    async rename(): Promise<void> {
         const oldKey = this.key;
         const newKey = await vscode.window.showInputBox({
             ignoreFocusOut: true,
-            prompt: 'Enter setting key',
+            prompt: `Enter a new name for "${oldKey}"`,
             value: this.key,
             validateInput: v => this.getParentNode<AppSettingsNode>().validateNewKeyInput(v, oldKey)
         });
@@ -183,26 +199,9 @@ export class AppSettingNode extends NodeBase {
             return;
         }
 
-        const newValue = await vscode.window.showInputBox({
-            ignoreFocusOut: true,
-            prompt: `Enter setting value for "${newKey}"`,
-            value: this.value
-        });
-
-        if (!newValue) {
-            return;
-        }
-
         this.key = newKey;
-        this.value = newValue;
-        this.label = `${this.key} : ${this.value}`;
-
-        await this.getParentNode<AppSettingsNode>().editSettingItem(oldKey, newKey, newValue);
-
-        // Ideally we only need to refresh the current item, but because of this https://github.com/Microsoft/vscode/issues/34789,
-        // have to use workaround for now.
-        // this.getTreeDataProvider<AppServiceDataProvider>().refresh(this);
-        this.getTreeDataProvider<AppServiceDataProvider>().refresh(this.getParentNode());
+        await this.getParentNode<AppSettingsNode>().editSettingItem(oldKey, newKey, this.value);
+        this.refresh();
     }
 
     async delete(): Promise<void> {
@@ -213,5 +212,13 @@ export class AppSettingNode extends NodeBase {
             await this.getParentNode<AppSettingsNode>().deleteSettingItem(this.key);
             this.getTreeDataProvider<AppServiceDataProvider>().refresh(this.getParentNode());
         }
+    }
+
+    refresh(): void {
+        this.label = `${this.key}=${this.value}`;
+        // Ideally we only need to refresh the current item, but because of this https://github.com/Microsoft/vscode/issues/34789,
+        // have to use workaround for now.
+        // this.getTreeDataProvider<AppServiceDataProvider>().refresh(this);
+        this.getTreeDataProvider<AppServiceDataProvider>().refresh(this.getParentNode());
     }
 }
