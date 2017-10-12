@@ -154,11 +154,11 @@ class ResourceGroupStep extends WebAppCreatorStepBase {
         var resourceGroups: ResourceModels.ResourceGroup[];
         const resourceGroupsTask = util.listAll(resourceClient.resourceGroups, resourceClient.resourceGroups.list());
         var locationsTask = this.azureAccount.getLocationsBySubscription(this.getSelectedSubscription());
-        var locations = await locationsTask;
+        var locations: SubscriptionModels.Location[];
         var newRgName: string;
         var suggestedName = this.getSuggestedRGAndPlanName();
 
-        const quickPickItemsTask = Promise.all([resourceGroupsTask, locations]).then(results => {
+        const quickPickItemsTask = Promise.all([resourceGroupsTask, locationsTask]).then(results => {
             const quickPickItems = [createNewItem];
             resourceGroups = results[0];
             locations = results[1];
@@ -207,7 +207,7 @@ class ResourceGroupStep extends WebAppCreatorStepBase {
         const locationPickItems = locations.map<QuickPickItemWithData<SubscriptionModels.Location>>(location => {
             return {
                 label: location.displayName,
-                description: `(${location.name}) `,
+                description: `(${location.name})`,
                 detail: '',
                 persistenceId: location.name,
                 data: location
@@ -479,7 +479,7 @@ class WebsiteStep extends WebAppCreatorStepBase {
         return [
             {
                 name: 'node|4.4',
-                displayName: 'Node.js 4.4',
+                displayName: 'Node.js 4.4'
             },
             {
                 name: 'node|4.5',

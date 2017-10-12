@@ -174,9 +174,7 @@ export class WizardStep {
             }
         }
 
-        const result =
-            await vscode.window.showQuickPick(resolvedItems, options, token);
-
+        const result = await vscode.window.showQuickPick(resolvedItems, options, token);
         if (!result) {
             throw new UserCancelledError();
         }
