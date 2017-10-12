@@ -87,7 +87,6 @@ export class SiteNodeBase extends NodeBase {
     }
 
     async delete(azureAccount: AzureAccountWrapper): Promise<void> {
-        let mOptions: MessageOptions = { modal: true };
         let deleteServicePlan = false;
         let servicePlan;
         let serverFarmId: ServerFarmId;
@@ -97,10 +96,10 @@ export class SiteNodeBase extends NodeBase {
             servicePlan = await this.getAppServicePlan();
         }
 
-        let input = await window.showWarningMessage(`Are you sure you want to delete "${this.site.name}"?`, mOptions, 'Yes');
+        let input = await window.showWarningMessage(`Are you sure you want to delete "${this.site.name}"?`, 'Yes');
         if (input) {
             if (!util.isSiteDeploymentSlot(this.site) && servicePlan.numberOfSites < 2) {
-                let input = await window.showWarningMessage(`This is the last app in the App Service plan, "${serverFarmId.serverfarms}". Delete this App Service plan to prevent unexpected charges.`, mOptions, 'Yes', 'No');
+                let input = await window.showWarningMessage(`This is the last app in the App Service plan, "${serverFarmId.serverfarms}". Delete this App Service plan to prevent unexpected charges.`, 'Yes', 'No');
                 if (input) {
                     deleteServicePlan = input === 'Yes';
                 } else {
@@ -185,9 +184,10 @@ export class SiteNodeBase extends NodeBase {
             }
 
             if (oldScmType === 'None' || input === 'Yes') {
-                !isSlot ?
-                    await this.webSiteClient.webApps.updateConfiguration(this.site.resourceGroup, siteName, updateConfig) :
-                    await this.webSiteClient.webApps.updateConfigurationSlot(this.site.resourceGroup, siteName, updateConfig, util.extractDeploymentSlotName(this.site));
+                let pending = !isSlot ?
+                    await this.webSiteClient.webApps.updateConfigurationWithHttpOperationResponse(this.site.resourceGroup, siteName, updateConfig) :
+                    await this.webSiteClient.webApps.updateConfigurationSlotWithHttpOperationResponse(this.site.resourceGroup, siteName, updateConfig, util.extractDeploymentSlotName(this.site));
+                await pending;
             } else {
                 throw new UserCancelledError();
             }
@@ -201,13 +201,16 @@ export class SiteNodeBase extends NodeBase {
 
 
         let git = require('simple-git/promise')(workspace.rootPath);
+        let currentBranch;
 
         try {
             let status = await git.status();
+            currentBranch = await git.branchLocal();
             if (status.files.length > 0) {
                 window.showWarningMessage(`There ${status.files.length > 1 ? 'are' : 'is'} ${status.files.length} uncommitted change${status.files.length > 1 ? 's' : ''} in local repo "${workspace.rootPath}"`);
             }
-            await git.push(remote, 'master');
+            await git.push(remote, 'HEAD:master');
+
         }
         catch (err) {
             if (err.message.indexOf('spawn git ENOENT') >= 0) {
@@ -219,7 +222,14 @@ export class SiteNodeBase extends NodeBase {
             } else if (err.message.indexOf('error: failed to push') >= 0) {
                 let input = await window.showErrorMessage(`Push rejected due to Git history diverging. Force push?`, `Yes`)
                 if (input === 'Yes') {
-                    await git.push(['-f', remote, 'master']);
+                    await git.push(['-f', remote, 'HEAD:master']);
+                } else {
+                    throw err;
+                }
+            } else if (err.message.indexOf('502 Bad Gateway') >= 0) {
+                let input = await window.showErrorMessage(`Wow!  That's a large repo! Keep going?`, `Yes`)
+                if (input === 'Yes') {
+                    this.localGitDeploy();
                 } else {
                     throw err;
                 }
