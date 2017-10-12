@@ -8,7 +8,6 @@ install:
 
 script:
   - tsc -p ./
-  - tslint --project tsconfig.json -e src/*.d.ts --type-check -t verbose
 
 notifications:
   email:
