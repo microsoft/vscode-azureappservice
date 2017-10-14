@@ -49,13 +49,18 @@ export class AppServiceDataProvider implements TreeDataProvider<NodeBase> {
         return this._azureAccount;
     }
 
-    private async getSubscriptions(): Promise<SubscriptionNode[]> {
+    private async getSubscriptions(): Promise<NodeBase[]> {
         const subscriptions = await this.azureAccount.getFilteredSubscriptions();
-        const nodes = subscriptions.map<SubscriptionNode>(subscription => {
-            return new SubscriptionNode(subscription, this, null);
-        });
 
-        return nodes;
+        if (subscriptions.length > 0) {
+            const nodes = subscriptions.map<SubscriptionNode>(subscription => {
+                return new SubscriptionNode(subscription, this, null);
+            });
+
+            return nodes;
+        }
+
+        return [new SelectSubscriptionsNode(this, null)];
     }
 
     private onSubscriptionChanged() {
@@ -88,6 +93,23 @@ export class LoadingNode extends NodeBase {
     getTreeItem(): TreeItem {
         return {
             label: this.label,
+            collapsibleState: TreeItemCollapsibleState.None
+        }
+    }
+}
+
+export class SelectSubscriptionsNode extends NodeBase {
+    constructor(treeDataProvider: AppServiceDataProvider, parentNode?: NodeBase) {
+        super('Select Subscriptions...', treeDataProvider, parentNode);
+    }
+
+    getTreeItem(): TreeItem {
+        return {
+            label: this.label,
+            command: {
+                title: this.label,
+                command: 'azure-account.selectSubscriptions'
+            },
             collapsibleState: TreeItemCollapsibleState.None
         }
     }
