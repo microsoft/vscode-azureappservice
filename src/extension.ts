@@ -87,14 +87,9 @@ export function activate(context: vscode.ExtensionContext) {
         }
     });
     initAsyncCommand(context, 'appService.Delete', async (node: SiteNodeBase) => {
-        if (node) {
-            const yes = 'Yes';
-            const input = await vscode.window.showWarningMessage(`Are you sure you want to delete "${node.site.name}"?`, yes);
-
-            if (input !== yes) {
-                return;
-            }
-
+        const yes = 'Yes';
+        if (node &&
+            await vscode.window.showWarningMessage(`Are you sure you want to delete "${node.site.name}"?`, yes) === yes) {
             try {
                 outputChannel.appendLine(`Deleting app "${node.site.name}"...`);
                 await node.delete();
