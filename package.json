@@ -155,6 +155,76 @@
             ]
         },
         "menus": {
+            "commandPalette": [
+                {
+                    "command": "appService.Refresh",
+                    "when": "never"
+                },
+                {
+                    "command": "appService.OpenInPortal",
+                    "when": "never"
+                },
+                {
+                    "command": "appService.Browse",
+                    "when": "never"
+                },
+                {
+                    "command": "appService.Start",
+                    "when": "never"
+                },
+                {
+                    "command": "appService.Stop",
+                    "when": "never"
+                },
+                {
+                    "command": "appService.Restart",
+                    "when": "never"
+                },
+                {
+                    "command": "appService.Delete",
+                    "when": "never"
+                },
+                {
+                    "command": "appService.DeploymentScript",
+                    "when": "never"
+                },
+                {
+                    "command": "appService.DeployZipPackage",
+                    "when": "never"
+                },
+                {
+                    "command": "appService.ZipAndDeploy",
+                    "when": "never"
+                },
+                {
+                    "command": "deploymentSlot.SwapSlots",
+                    "when": "never"
+                },
+                {
+                    "command": "appSettings.Add",
+                    "when": "never"
+                },
+                {
+                    "command": "appSettings.Edit",
+                    "when": "never"
+                },
+                {
+                    "command": "appSettings.Rename",
+                    "when": "never"
+                },
+                {
+                    "command": "appSettings.Delete",
+                    "when": "never"
+                },
+                {
+                    "command": "diagnostics.OpenLogStream",
+                    "when": "never"
+                },
+                {
+                    "command": "diagnostics.StopLogStream",
+                    "when": "never"
+                }
+            ],
             "view/title": [
                 {
                     "command": "appService.CreateWebApp",
