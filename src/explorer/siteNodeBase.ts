@@ -263,7 +263,7 @@ export class SiteNodeBase extends NodeBase {
         if (oldScmType === 'None' || input === 'Yes') {
             !node._isSlot ?
                 await this.webSiteClient.webApps.updateConfiguration(node.site.resourceGroup, node._siteName, updateConfig) :
-                await this.webSiteClient.webApps.updateConfigurationSlot(node.site.resourceGroup, node._siteName, updateConfig, util.extractDeploymentSlotName(node._site));
+                await this.webSiteClient.webApps.updateConfigurationSlot(node.site.resourceGroup, node._siteName, updateConfig, util.extractDeploymentSlotName(node.site));
         } else {
             throw new UserCancelledError();
         }
