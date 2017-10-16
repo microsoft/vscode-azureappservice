@@ -87,10 +87,11 @@ export function activate(context: vscode.ExtensionContext) {
         }
     });
     initAsyncCommand(context, 'appService.Delete', async (node: SiteNodeBase) => {
-        if (node) {
-            outputChannel.appendLine(`Deleting app "${node.site.name}"...`);
-
+        const yes = 'Yes';
+        if (node &&
+            await vscode.window.showWarningMessage(`Are you sure you want to delete "${node.site.name}"?`, yes) === yes) {
             try {
+                outputChannel.appendLine(`Deleting app "${node.site.name}"...`);
                 await node.delete();
                 outputChannel.appendLine(`App "${node.site.name}" has been deleted.`);
                 vscode.commands.executeCommand('appService.Refresh', node.getParentNode());
@@ -99,11 +100,9 @@ export function activate(context: vscode.ExtensionContext) {
                     try {
                         // Azure REST error messages come as a JSON string with more details
                         outputChannel.appendLine(JSON.parse(err.message).Message);
-
                     } catch {
                         outputChannel.appendLine(err.message);
                     }
-
                 }
                 throw err;
             }
