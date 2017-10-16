@@ -150,7 +150,8 @@
             "explorer": [
                 {
                     "id": "azureAppService",
-                    "name": "Azure App Service"
+                    "name": "Azure App Service",
+                    "when": "config.appService.showExplorer == true"
                 }
             ]
         },
@@ -411,6 +412,16 @@
                     "group": "zzz_@appServiceDeployCommands"
                 }
             ]
+        },
+        "configuration": {
+            "title": "Azure App Service",
+            "properties": {
+                "appService.showExplorer": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Show or hide the App Service Explorer"
+                }
+            }
         }
     },
     "scripts": {
