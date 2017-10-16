@@ -17,7 +17,7 @@ export class DeploymentSlotSwapper extends WizardBase {
         super(output);
         this.steps.push(new SwapStep(this, azureAccount, slot));
     }
-    protected beforeExecute () {
+    protected beforeExecute() {
 
     }
 
@@ -80,12 +80,11 @@ class SwapStep extends WizardStep {
         if (result) {
             this.targetSlot = result.label;
             const credential = this.azureAccount.getCredentialByTenantId(this.slot.subscription.tenantId);
-            const client = new WebSiteManagementClient(credential, this.slot.subscription.subscriptionId); \
+            const client = new WebSiteManagementClient(credential, this.slot.subscription.subscriptionId);
             try {
-                const swapResponse = this.targetSlot === 'production' ?
+                this.targetSlot === 'production' ?
                     await client.webApps.swapSlotWithProductionWithHttpOperationResponse(this.slot.site.resourceGroup, this.slot.site.repositorySiteName, { targetSlot: this.sourceSlot.label, preserveVnet: true }) :
-                    await client.webApps.swapSlotSlotWithHttpOperationResponse(this.slot.site.resourceGroup, this.slot.site.repositorySiteName, { targetSlot: this.targetSlot + 'a', preserveVnet: true }, this.sourceSlot.label);
-                console.log(swapResponse);
+                    await client.webApps.swapSlotSlotWithHttpOperationResponse(this.slot.site.resourceGroup, this.slot.site.repositorySiteName, { targetSlot: this.targetSlot, preserveVnet: true }, this.sourceSlot.label);
             } catch (err) {
                 throw err;
             }

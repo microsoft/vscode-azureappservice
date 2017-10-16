@@ -515,7 +515,6 @@ class WebsiteStep extends WebAppCreatorStepBase {
     }
 }
 
-<<<<<<< HEAD
 class WebsiteNameStep extends WebAppCreatorStepBase {
     private _websiteName: string;
     private _suggestedRGAndPlanName: string;
@@ -615,8 +614,6 @@ class WebsiteNameStep extends WebAppCreatorStepBase {
     }
 }
 
-=======
->>>>>>> Move 'generate deployment script' to its own command
 interface LinuxRuntimeStack {
     name: string;
     displayName: string;
