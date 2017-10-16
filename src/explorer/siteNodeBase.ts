@@ -176,7 +176,7 @@ export class SiteNodeBase extends NodeBase {
         let config: WebSiteModels.SiteConfigResource;
         let oldDeployment;
 
-        if (this._isSlot) {
+        if (!this._isSlot) {
             publishCredentials = await this.webSiteClient.webApps.listPublishingCredentials(this.site.resourceGroup, this._siteName);
             config = await this.webSiteClient.webApps.getConfiguration(this.site.resourceGroup, this._siteName);
             oldDeployment = await this.webSiteClient.webApps.listDeployments(this.site.resourceGroup, this._siteName);
