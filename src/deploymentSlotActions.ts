@@ -79,18 +79,18 @@ class SwapStep extends WizardStep {
 
         if (result) {
             this.targetSlot = result.label;
-            const credential = this.azureAccount.getCredentialByTenantId(this.slot.subscription.tenantId);
-            const client = new WebSiteManagementClient(credential, this.slot.subscription.subscriptionId);
-            this.targetSlot === 'production' ?
-                await client.webApps.swapSlotWithProduction(this.slot.site.resourceGroup, this.slot.site.repositorySiteName, { targetSlot: this.sourceSlot.label, preserveVnet: true }) :
-                await client.webApps.swapSlotSlot(this.slot.site.resourceGroup, this.slot.site.repositorySiteName, { targetSlot: this.targetSlot, preserveVnet: true }, this.sourceSlot.label);
-
         } else {
             throw new UserCancelledError;
         }
     }
 
     async execute(): Promise<void> {
+        const credential = this.azureAccount.getCredentialByTenantId(this.slot.subscription.tenantId);
+        const client = new WebSiteManagementClient(credential, this.slot.subscription.subscriptionId);
+        this.targetSlot === 'production' ?
+            await client.webApps.swapSlotWithProduction(this.slot.site.resourceGroup, this.slot.site.repositorySiteName, { targetSlot: this.sourceSlot.label, preserveVnet: true }) :
+            await client.webApps.swapSlotSlot(this.slot.site.resourceGroup, this.slot.site.repositorySiteName, { targetSlot: this.targetSlot, preserveVnet: true }, this.sourceSlot.label);
+
         this.wizard.writeline(`"${this.targetSlot}" was swapped with "${this.sourceSlot.label}".`);
     }
 
