@@ -15,7 +15,7 @@ export abstract class WizardBase {
     private readonly _steps: WizardStep[] = [];
     private _result: WizardResult;
 
-    protected constructor(protected readonly output: vscode.OutputChannel) { }
+    protected constructor(readonly output: vscode.OutputChannel) { }
 
     async run(promptOnly = false): Promise<WizardResult> {
         // Go through the prompts...
