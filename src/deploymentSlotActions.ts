@@ -81,13 +81,10 @@ class SwapStep extends WizardStep {
             this.targetSlot = result.label;
             const credential = this.azureAccount.getCredentialByTenantId(this.slot.subscription.tenantId);
             const client = new WebSiteManagementClient(credential, this.slot.subscription.subscriptionId);
-            try {
-                this.targetSlot === 'production' ?
-                    await client.webApps.swapSlotWithProductionWithHttpOperationResponse(this.slot.site.resourceGroup, this.slot.site.repositorySiteName, { targetSlot: this.sourceSlot.label, preserveVnet: true }) :
-                    await client.webApps.swapSlotSlotWithHttpOperationResponse(this.slot.site.resourceGroup, this.slot.site.repositorySiteName, { targetSlot: this.targetSlot, preserveVnet: true }, this.sourceSlot.label);
-            } catch (err) {
-                throw err;
-            }
+            this.targetSlot === 'production' ?
+                await client.webApps.swapSlotWithProduction(this.slot.site.resourceGroup, this.slot.site.repositorySiteName, { targetSlot: this.sourceSlot.label, preserveVnet: true }) :
+                await client.webApps.swapSlotSlot(this.slot.site.resourceGroup, this.slot.site.repositorySiteName, { targetSlot: this.targetSlot, preserveVnet: true }, this.sourceSlot.label);
+
         } else {
             throw new UserCancelledError;
         }

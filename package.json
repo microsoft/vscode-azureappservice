@@ -284,11 +284,6 @@
                     "group": "3_appServiceDeployCommands@2"
                 },
                 {
-                    "command": "appService.DeploymentScript",
-                    "when": "view == azureAppService && viewItem == appService",
-                    "group": "3_appServiceDeployCommands@3"
-                },
-                {
                     "command": "diagnostics.OpenLogStream",
                     "when": "view == azureAppService && viewItem == appService",
                     "group": "4_appServiceDiagnosticsCommands@1"
