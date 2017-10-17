@@ -186,6 +186,13 @@ export class SiteNodeBase extends NodeBase {
             oldDeployment = await this.webSiteClient.webApps.listDeploymentsSlot(this.site.resourceGroup, this._siteName, util.extractDeploymentSlotName(this.site));
         }
 
+        if (config.scmType !== 'LocalGit') {
+            let update = await this.updateScmType(this, config);
+            if (!update) {
+                throw new UserCancelledError();
+            }
+        }
+
         const username = publishCredentials.publishingUserName;
         const password = publishCredentials.publishingPassword;
         const repo = `${this.site.enabledHostNames[1]}:443/${this.site.repositorySiteName}.git`;
@@ -193,38 +200,29 @@ export class SiteNodeBase extends NodeBase {
         const remote = `https://${username}:${password}@${repo}`;
 
         const git = require('simple-git/promise')(workspace.rootPath);
-        let forcePush = false;
-        for (let i = 0; i < 2; i++) {
-            try {
-                if (config.scmType !== 'LocalGit') {
-                    await this.convertScmType(this, config);
-                }
-                const status = await git.status();
-                if (!forcePush && status.files.length > 0) {
-                    window.showWarningMessage(`There ${status.files.length > 1 ? 'are' : 'is'} ${status.files.length} uncommitted change${status.files.length > 1 ? 's' : ''} in local repo "${workspace.rootPath}"`);
-                }
+        try {
 
-                !forcePush ?
-                    await git.push(remote, 'HEAD:master') :
+            const status = await git.status();
+            if (status.files.length > 0) {
+                window.showWarningMessage(`There ${status.files.length > 1 ? 'are' : 'is'} ${status.files.length} uncommitted change${status.files.length > 1 ? 's' : ''} in local repo "${workspace.rootPath}"`);
+            }
+            await git.push(remote, 'HEAD:master');
+        } catch (err) {
+            if (err.message.indexOf('spawn git ENOENT') >= 0) {
+                const input = await window.showErrorMessage(`Git must be installed to use Local Git Deploy.`, `Install`);
+                if (input === 'Install') {
+                    opn(`https://git-scm.com/downloads`);
+                }
+                throw err;
+            } else if (err.message.indexOf('error: failed to push') >= 0) {
+                const input = await window.showErrorMessage(`Push rejected due to Git history diverging. Force push?`, `Yes`);
+                if (input === 'Yes') {
                     await git.push(['-f', remote, 'HEAD:master']);
-                break;
-            } catch (err) {
-                if (err.message.indexOf('spawn git ENOENT') >= 0) {
-                    const input = await window.showErrorMessage(`Git must be installed to use Local Git Deploy.`, `Install`);
-                    if (input === 'Install') {
-                        opn(`https://git-scm.com/downloads`);
-                    }
-                    throw err;
-                } else if (err.message.indexOf('error: failed to push') >= 0) {
-                    const input = await window.showErrorMessage(`Push rejected due to Git history diverging. Force push?`, `Yes`);
-                    if (input === 'Yes') {
-                        forcePush = true;
-                    } else {
-                        throw err;
-                    }
                 } else {
                     throw err;
                 }
+            } else {
+                throw err;
             }
         }
 
@@ -250,22 +248,20 @@ export class SiteNodeBase extends NodeBase {
         return await this.webSiteClient.appServicePlans.get(serverFarmId.resourcegroups, serverFarmId.serverfarms);
     }
 
-    protected async convertScmType(node: SiteNodeBase, config: WebSiteModels.SiteConfigResource): Promise<void> {
+    private async updateScmType(node: SiteNodeBase, config: WebSiteModels.SiteConfigResource): Promise<boolean> {
         let input;
         const oldScmType = config.scmType;
         const updateConfig = config;
         updateConfig.scmType = 'LocalGit';
-
-        if (oldScmType !== 'None') {
-            input = await window.showWarningMessage(`Deployment source for "${node._siteName}" is set as "${oldScmType}".  Change to "LocalGit"?`, 'Yes');
-        }
-
-        if (oldScmType === 'None' || input === 'Yes') {
+        input = await window.showWarningMessage(`Deployment source for "${node._siteName}" is set as "${oldScmType}".  Change to "LocalGit"?`, 'Yes');
+        if (input) {
             !node._isSlot ?
                 await this.webSiteClient.webApps.updateConfiguration(node.site.resourceGroup, node._siteName, updateConfig) :
                 await this.webSiteClient.webApps.updateConfigurationSlot(node.site.resourceGroup, node._siteName, updateConfig, util.extractDeploymentSlotName(node.site));
+            return true;
+
         } else {
-            throw new UserCancelledError();
+            return false;
         }
     }
 }
