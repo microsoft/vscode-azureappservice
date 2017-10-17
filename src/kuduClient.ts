@@ -9,6 +9,9 @@ import * as request from 'request';
 export type kuduFile = { mime: string, name: string, path: string };
 export type webJob = { name: string, Message: string };
 
+/*
+    DEPRECATED - Use 'vscode-azureappservice' or 'vscode-azurekudu' npm package instead
+*/
 export class KuduClient {
     private readonly _api;
 
@@ -19,33 +22,6 @@ export class KuduClient {
             username: publishingUserName,
             password: publishingPassword,
             domain: this.domain
-        });
-    }
-
-    async vfsEmptyDirectory(directoryPath: string): Promise<void> {
-        const cmd = `rm -r ${directoryPath}`;
-        await this.cmdExecute(cmd, '/');
-    }
-
-    cmdExecute(command: string, remotePath: string): Promise<CommandResult> {
-        return new Promise<CommandResult>((resolve, reject) => {
-            this._api.command.exec(command, remotePath, (err, body, response) => {
-                if (err) {
-                    reject(err);
-                    return;
-                }
-
-                if (response.statusCode !== 200) {
-                    reject(new Error(`${response.statusCode}: ${body}`));
-                    return;
-                }
-
-                resolve({
-                    Error: body.Error,
-                    ExitCode: body.ExitCode,
-                    Output: body.Output
-                });
-            });
         });
     }
 
@@ -82,24 +58,6 @@ export class KuduClient {
         });
     }
 
-    zipUpload(zipFilePath: string, remoteFolder: string): Promise<void> {
-        return new Promise((resolve, reject) => {
-            this._api.zip.upload(zipFilePath, remoteFolder, (err, body, response) => {
-                if (err) {
-                    reject(err);
-                    return;
-                }
-
-                if (response.statusCode !== 200) {
-                    reject(new Error(`${response.statusCode}: ${body}`));
-                    return;
-                }
-
-                resolve();
-            });
-        });
-    }
-
     getLogStream(): request.Request {
         const baseUrl = `https://${this.webAppName}.${this.domain}/`;
         const headers = {
@@ -111,10 +69,4 @@ export class KuduClient {
         });
         return r('/api/logstream');
     }
-}
-
-export interface CommandResult {
-    Error: string,
-    ExitCode: number,
-    Output: string
 }
