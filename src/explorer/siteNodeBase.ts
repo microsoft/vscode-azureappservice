@@ -15,6 +15,7 @@ import { AzureAccountWrapper } from '../azureAccountWrapper';
 import { KuduClient } from '../kuduClient';
 import { Request } from 'request';
 import { UserCancelledError } from '../errors';
+import { SiteWrapper } from 'vscode-azureappservice';
 
 export class SiteNodeBase extends NodeBase {
     private _logStreamOutputChannel: OutputChannel | undefined;
@@ -22,6 +23,7 @@ export class SiteNodeBase extends NodeBase {
     private readonly _siteName: string;
     private readonly _isSlot: boolean;
     private readonly _slotName: string;
+    private readonly _siteWrapper: SiteWrapper;
 
     constructor(readonly label: string,
         readonly site: WebSiteModels.Site,
@@ -33,6 +35,7 @@ export class SiteNodeBase extends NodeBase {
         this._siteName = util.extractSiteName(site);
         this._isSlot = util.isSiteDeploymentSlot(site);
         this._slotName = util.extractDeploymentSlotName(site);
+        this._siteWrapper = new SiteWrapper(site);
     }
 
     protected get azureAccount(): AzureAccountWrapper {
@@ -54,25 +57,11 @@ export class SiteNodeBase extends NodeBase {
     }
 
     async start(): Promise<void> {
-        const rgName = this.site.resourceGroup;
-
-        if (this._isSlot) {
-            await this.webSiteClient.webApps.startSlot(rgName, this._siteName, this._slotName);
-        } else {
-            await this.webSiteClient.webApps.start(rgName, this._siteName);
-        }
-        await util.waitForWebSiteState(this.webSiteClient, this.site, 'running');
+        await this._siteWrapper.start(this.webSiteClient);
     }
 
     async stop(): Promise<void> {
-        const rgName = this.site.resourceGroup;
-
-        if (this._isSlot) {
-            await this.webSiteClient.webApps.stopSlot(rgName, this._siteName, this._slotName);
-        } else {
-            await this.webSiteClient.webApps.stop(rgName, this._siteName);
-        }
-        await util.waitForWebSiteState(this.webSiteClient, this.site, 'stopped');
+        await this._siteWrapper.stop(this.webSiteClient);
     }
 
     async restart(): Promise<void> {
