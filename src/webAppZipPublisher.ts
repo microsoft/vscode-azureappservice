@@ -4,30 +4,24 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import * as archiver from 'archiver';
-import * as fs from 'fs';
-import * as path from 'path';
-import * as os from 'os';
 import { AzureAccountWrapper } from './azureAccountWrapper';
 import { WizardBase, WizardStep, SubscriptionStepBase, QuickPickItemWithData } from './wizard';
 import { WebAppCreator } from './webAppCreator';
-import { KuduClient } from './kuduClient';
 import { SubscriptionModels } from 'azure-arm-resource';
 import { UserCancelledError } from './errors';
 import WebSiteManagementClient = require('azure-arm-website');
 import * as WebSiteModels from '../node_modules/azure-arm-website/lib/models';
 import * as util from './util';
-
+import { SiteWrapper } from 'vscode-azureappservice';
 
 export class WebAppZipPublisher extends WizardBase {
     constructor(output: vscode.OutputChannel,
         readonly azureAccount: AzureAccountWrapper,
         readonly subscription?: SubscriptionModels.Subscription,
         readonly site?: WebSiteModels.Site,
-        readonly zipFilePath?: string,
-        readonly folderPath?: string) {
+        readonly fsPath?: string) {
         super(output);
-        this.steps.push(new ZipFileStep(this, zipFilePath, folderPath));
+        this.steps.push(new ZipFileStep(this, fsPath));
         this.steps.push(new SubscriptionStep(this, azureAccount, subscription));
         this.steps.push(new WebAppStep(this, azureAccount, site));
         this.steps.push(new DeployStep(this, azureAccount));
@@ -45,25 +39,15 @@ export class WebAppZipPublisher extends WizardBase {
 }
 
 class ZipFileStep extends WizardStep {
-    private _zipFilePath: string;
-    private _folderPath: string;
-    private _zipCreatedByStep = true;
+    private _fsPath: string;
 
-    constructor(wizard: WizardBase,
-        zipFilePath?: string,
-        folderPath?: string) {
+    constructor(wizard: WizardBase, fsPath?: string) {
         super(wizard, 'Select or create Zip File');
-        this._zipFilePath = zipFilePath;
-        this._folderPath = folderPath;
+        this._fsPath = fsPath;
     }
 
     async prompt(): Promise<void> {
-        if (this._zipFilePath) {
-            this._zipCreatedByStep = false;
-            return;
-        }
-
-        if (!this._folderPath) {
+        if (!this._fsPath) {
             if (!vscode.workspace.workspaceFolders) {
                 throw new Error('There is no open folder to deploy.');
             }
@@ -80,53 +64,12 @@ class ZipFileStep extends WizardStep {
             const folderQuickPickOption = { placeHolder: `Select the folder to Zip and deploy. (${this.stepProgressText})` };
             const pickedItem = folderQuickPickItems.length == 1 ?
                 folderQuickPickItems[0] : await this.showQuickPick(folderQuickPickItems, folderQuickPickOption);
-            this._folderPath = pickedItem.data.uri.fsPath;
-        }
-
-        let deployNumber = Math.floor(os.uptime());
-        while (true) {
-            this._zipFilePath = path.join(os.tmpdir(), `vscdeploy${deployNumber}.zip`);
-            const fileExists = await new Promise<boolean>(resolve => fs.exists(this._zipFilePath, exists => resolve(exists)));
-            if (!fileExists) {
-                break;
-            }
-            deployNumber++;
+            this._fsPath = pickedItem.data.uri.fsPath;
         }
     }
 
-    async execute(): Promise<void> {
-        if (this._zipCreatedByStep) {
-            this.wizard.writeline(`Creating Zip file for deployment: ${this.zipFilePath} ...`)
-            await this.zipDirectory(this.zipFilePath, this._folderPath);
-        }
-    }
-
-    get zipFilePath(): string {
-        return this._zipFilePath;
-    }
-
-    get zipCreatedByStep(): boolean {
-        return this._zipCreatedByStep;
-    }
-
-    private zipDirectory(zipFilePath: string, sourcePath: string): Promise<void> {
-        if (!sourcePath.endsWith(path.sep)) {
-            sourcePath += path.sep;
-        }
-        return new Promise((resolve, reject) => {
-            const zipOutput = fs.createWriteStream(zipFilePath)
-            zipOutput.on('close', () => resolve());
-
-            const zipper = archiver('zip', { zlib: { level: 9 } });
-            zipper.on('error', err => reject(err));
-            zipper.pipe(zipOutput);
-            zipper.glob('**/*', {
-                cwd: this._folderPath,
-                dot: true,
-                ignore: 'node_modules{,/**}'
-            });
-            zipper.finalize();
-        });
+    get fsPath(): string {
+        return this._fsPath;
     }
 }
 
@@ -242,50 +185,12 @@ class DeployStep extends WizardStep {
     }
 
     async execute(): Promise<void> {
-        const remoteFolder = 'site/wwwroot/';
         const subscription = this.getSelectedSubscription();
-        const site = this.getSelectedWebApp();
-        const zipFilePath = this.getSelectedZipFilePath();
+        const fsPath = this.getFsPath();
         const siteClient = new WebSiteManagementClient(this.azureAccount.getCredentialByTenantId(subscription.tenantId), subscription.subscriptionId);
-        const user = await util.getWebAppPublishCredential(siteClient, site);
-        const siteName = util.extractSiteName(site) + (util.isSiteDeploymentSlot(site) ? '-' + util.extractDeploymentSlotName(site) : '');
-        const kuduClient = new KuduClient(siteName, user.publishingUserName, user.publishingPassword);
 
-        this.wizard.writeline(`Start Zip deployment to ${site.name}...`);
-        this.wizard.writeline('Stopping Web App...');
-        util.isSiteDeploymentSlot(site) ?
-            await siteClient.webApps.stopSlot(site.resourceGroup, util.extractSiteName(site), util.extractDeploymentSlotName(site)) :
-            await siteClient.webApps.stop(site.resourceGroup, site.name);
-
-        await util.waitForWebSiteState(siteClient, site, 'stopped');
-
-        this.wizard.writeline('Deleting existing deployment...');
-        await kuduClient.vfsEmptyDirectory(`/home/${remoteFolder}`);
-        await kuduClient.cmdExecute(`mkdir /home/${remoteFolder}`, '/');
-
-        this.wizard.writeline('Uploading Zip package...');
-        await kuduClient.zipUpload(zipFilePath, remoteFolder);
-        this.wizard.writeline('Installing npm packages...');
-        const installResult = await kuduClient.cmdExecute(`npm install --production`, remoteFolder);
-        this.wizard.writeline(`${installResult.Output}\n${installResult.Error}`);
-
-        if (this.isZipCreatedByDeployment()) {
-            await new Promise(resolve => fs.unlink(zipFilePath, err => {
-                if (err) {
-                    this.wizard.writeline(`Unable to delete the local Zip file "${zipFilePath}", you may want to delete it manually. Error:\n${err}`);
-                }
-                resolve();
-            }));
-        }
-
-        this.wizard.writeline('Starting Web App...');
-        util.isSiteDeploymentSlot(site) ?
-            await siteClient.webApps.startSlot(site.resourceGroup, util.extractSiteName(site), util.extractDeploymentSlotName(site)) :
-            await siteClient.webApps.start(site.resourceGroup, site.name);
-        await util.waitForWebSiteState(siteClient, site, 'running');
-
-        this.wizard.writeline('Deployment completed.');
-        this.wizard.writeline('');
+        const siteWrapper: SiteWrapper = new SiteWrapper(this.getSelectedWebApp());
+        await siteWrapper.deployZip(fsPath, siteClient, this.wizard.output);
     }
 
     protected getSelectedSubscription(): SubscriptionModels.Subscription {
@@ -308,23 +213,13 @@ class DeployStep extends WizardStep {
         return webAppStep.site;
     }
 
-    protected getSelectedZipFilePath(): string {
+    protected getFsPath(): string {
         const zipFileStep = this.wizard.findStepOfType(ZipFileStep);
 
-        if (!zipFileStep.zipFilePath) {
+        if (!zipFileStep.fsPath) {
             throw new Error('A Zip file must be selected first.');
         }
 
-        return zipFileStep.zipFilePath;
-    }
-
-    protected isZipCreatedByDeployment(): boolean {
-        const zipFileStep = this.wizard.findStepOfType(ZipFileStep);
-
-        if (!zipFileStep.zipFilePath) {
-            throw new Error('A Zip file must be selected first.');
-        }
-
-        return zipFileStep.zipCreatedByStep;
+        return zipFileStep.fsPath;
     }
 }
