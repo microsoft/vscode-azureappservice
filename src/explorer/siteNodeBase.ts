@@ -210,8 +210,6 @@ export class SiteNodeBase extends NodeBase {
                 } else {
                     throw err;
                 }
-            } else {
-                throw err;
             }
         }
 
