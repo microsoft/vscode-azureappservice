@@ -150,7 +150,8 @@
             "explorer": [
                 {
                     "id": "azureAppService",
-                    "name": "Azure App Service"
+                    "name": "Azure App Service",
+                    "when": "config.appService.showExplorer == true"
                 }
             ]
         },
@@ -411,6 +412,16 @@
                     "group": "zzz_@appServiceDeployCommands"
                 }
             ]
+        },
+        "configuration": {
+            "title": "Azure App Service",
+            "properties": {
+                "appService.showExplorer": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Show or hide the App Service Explorer"
+                }
+            }
         }
     },
     "scripts": {
@@ -441,7 +452,8 @@
         "opn": "^5.1.0",
         "request": "^2.83.0",
         "simple-git": "^1.77.0",
-        "vscode-extension-telemetry": "^0.0.6"
+        "vscode-extension-telemetry": "^0.0.6",
+        "vscode-azureappservice": "^0.1.1"
     },
     "extensionDependencies": [
         "ms-vscode.azure-account"

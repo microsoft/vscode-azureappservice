@@ -120,14 +120,14 @@ export function activate(context: vscode.ExtensionContext) {
             const wizard = new WebAppZipPublisher(outputChannel, azureAccount, context.subscription, context.site);
             await wizard.run();
         } else if (context instanceof vscode.Uri) {
-            const wizard = new WebAppZipPublisher(outputChannel, azureAccount, undefined, undefined, context.fsPath, undefined);
+            const wizard = new WebAppZipPublisher(outputChannel, azureAccount, undefined, undefined, context.fsPath);
             await wizard.run();
         }
     });
     initAsyncCommand(context, 'appService.ZipAndDeploy', async (context: any) => {
         if (context instanceof vscode.Uri) {
             const folderPath = context.fsPath;
-            const wizard = new WebAppZipPublisher(outputChannel, azureAccount, undefined, undefined, undefined, folderPath);
+            const wizard = new WebAppZipPublisher(outputChannel, azureAccount, undefined, undefined, folderPath);
             await wizard.run();
         }
     });
