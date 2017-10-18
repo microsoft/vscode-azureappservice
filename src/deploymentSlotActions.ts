@@ -22,10 +22,7 @@ export class DeploymentSlotSwapper extends WizardBase {
     }
 
     protected onExecuteError(error: Error) {
-        if (error instanceof UserCancelledError) {
-            return;
-        }
-        this.writeline(`Failed to swap deployment slots - ${error.message}`);
+        throw error;
     }
 }
 
