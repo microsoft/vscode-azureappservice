@@ -156,38 +156,32 @@ export class SiteNodeBase extends NodeBase {
         }
     }
 
-    async localGitDeploy(): Promise<boolean> {
+    public async localGitDeploy(): Promise<void> {
+        const installString = `Install`;
         if (!workspace.rootPath) {
             throw new Error(`You have not yet opened a folder to deploy.`);
         }
+        let taskResults: [WebSiteModels.User, WebSiteModels.SiteConfigResource, WebSiteModels.DeploymentCollection];
+        if (!this._isSlot) {
+            taskResults = await Promise.all([
+                this.webSiteClient.webApps.listPublishingCredentials(this.site.resourceGroup, this._siteName),
+                this.webSiteClient.webApps.getConfiguration(this.site.resourceGroup, this._siteName),
+                this.webSiteClient.webApps.listDeployments(this.site.resourceGroup, this._siteName)
+            ]);
+        } else {
+            taskResults = await Promise.all([
+                this.webSiteClient.webApps.listPublishingCredentialsSlot(this.site.resourceGroup, this._siteName, util.extractDeploymentSlotName(this.site)),
+                this.webSiteClient.webApps.getConfigurationSlot(this.site.resourceGroup, this._siteName, util.extractDeploymentSlotName(this.site)),
+                this.webSiteClient.webApps.listDeploymentsSlot(this.site.resourceGroup, this._siteName, util.extractDeploymentSlotName(this.site))
+            ]);
+        }
 
-        const publishCredentials = !this._isSlot ?
-            await this.webSiteClient.webApps.listPublishingCredentials(this.site.resourceGroup, this._siteName) :
-            await this.webSiteClient.webApps.listPublishingCredentialsSlot(this.site.resourceGroup, this._siteName, this._slotName);
-        const config = !this._isSlot ?
-            await this.webSiteClient.webApps.getConfiguration(this.site.resourceGroup, this._siteName) :
-            await this.webSiteClient.webApps.getConfigurationSlot(this.site.resourceGroup, this._siteName, this._slotName);
-        const oldDeployment = !this._isSlot ?
-            await this.webSiteClient.webApps.listDeployments(this.site.resourceGroup, this._siteName) :
-            await this.webSiteClient.webApps.listDeploymentsSlot(this.site.resourceGroup, this._siteName, this._slotName);
+        const publishCredentials = taskResults[0];
+        const config = taskResults[1];
+        const oldDeployment = taskResults[2];
 
         if (config.scmType !== 'LocalGit') {
-            let input;
-            let oldScmType = config.scmType;
-            let updateConfig = config;
-            updateConfig.scmType = 'LocalGit';
-
-            if (oldScmType !== 'None') {
-                input = await window.showWarningMessage(`Deployment source for "${this._siteName}" is set to "${oldScmType}". Change to "LocalGit"?`, 'Yes');
-            }
-
-            if (oldScmType === 'None' || input === 'Yes') {
-                !this._isSlot ?
-                    await this.webSiteClient.webApps.updateConfiguration(this.site.resourceGroup, this._siteName, updateConfig) :
-                    await this.webSiteClient.webApps.updateConfigurationSlot(this.site.resourceGroup, this._siteName, updateConfig, this._slotName);
-            } else {
-                throw new UserCancelledError();
-            }
+            await this.updateScmType(this, config);
         }
 
         const username = publishCredentials.publishingUserName;
@@ -195,26 +189,25 @@ export class SiteNodeBase extends NodeBase {
         const repo = `${this.site.enabledHostNames[1]}:443/${this.site.repositorySiteName}.git`;
         // the scm url lives in the 1 index of enabledHostNames, not 0
         const remote = `https://${username}:${password}@${repo}`;
-        let git = require('simple-git/promise')(workspace.rootPath);
-
+        const git = require('simple-git/promise')(workspace.rootPath);
         try {
-            let status = await git.status();
+
+            const status = await git.status();
             if (status.files.length > 0) {
-                window.showWarningMessage(`There ${status.files.length > 1 ? 'are' : 'is'} ${status.files.length} uncommitted change${status.files.length > 1 ? 's' : ''} in local repo "${workspace.rootPath}"`);
+                window.showWarningMessage(`${status.files.length} uncommitted change(s) in local repo "${workspace.rootPath}"`);
             }
-            await git.push(remote, 'master');
-        }
-        catch (err) {
+            await git.push(remote, 'HEAD:master');
+        } catch (err) {
             if (err.message.indexOf('spawn git ENOENT') >= 0) {
-                let input = await window.showErrorMessage(`Git must be installed to use Local Git Deploy.`, `Install`)
+                const input = await window.showErrorMessage(`Git must be installed to use Local Git Deploy.`, installString);
                 if (input === 'Install') {
                     opn(`https://git-scm.com/downloads`);
                 }
                 throw err;
             } else if (err.message.indexOf('error: failed to push') >= 0) {
-                let input = await window.showErrorMessage(`Push rejected due to Git history diverging. Force push?`, `Yes`)
+                const input = await window.showErrorMessage(`Push rejected due to Git history diverging. Force push?`, `Yes`);
                 if (input === 'Yes') {
-                    await git.push(['-f', remote, 'master']);
+                    await git.push(['-f', remote, 'HEAD:master']);
                 } else {
                     throw err;
                 }
@@ -223,17 +216,7 @@ export class SiteNodeBase extends NodeBase {
             }
         }
 
-        const newDeployment = !this._isSlot ?
-            await this.webSiteClient.webApps.listDeployments(this.site.resourceGroup, this._siteName) :
-            await this.webSiteClient.webApps.listDeploymentsSlot(this.site.resourceGroup, this._siteName, this._slotName);
-        // if the oldDeployment has a length of 0, then there has never been a deployment
-        if (newDeployment.length && oldDeployment.length &&
-            newDeployment[0].deploymentId === oldDeployment[0].deploymentId) {
-            await window.showErrorMessage(`Local Git repo is current with "${repo}".`);
-            throw new Error(`Local Git repo is current with "${repo}".`);
-        }
-        return true;
-
+        await this.validateNewDeployment(oldDeployment, repo);
     }
 
     protected get webSiteClient(): WebSiteManagementClient {
@@ -243,5 +226,31 @@ export class SiteNodeBase extends NodeBase {
     protected async getAppServicePlan(): Promise<WebSiteModels.AppServicePlan> {
         const serverFarmId = util.parseAzureResourceId(this.site.serverFarmId.toLowerCase());
         return await this.webSiteClient.appServicePlans.get(serverFarmId.resourcegroups, serverFarmId.serverfarms);
+    }
+
+    private async updateScmType(node: SiteNodeBase, config: WebSiteModels.SiteConfigResource): Promise<void> {
+        let input;
+        const oldScmType = config.scmType;
+        const updateConfig = config;
+        updateConfig.scmType = 'LocalGit';
+        input = await window.showWarningMessage(`Deployment source for "${node._siteName}" is set as "${oldScmType}".  Change to "LocalGit"?`, 'Yes');
+        if (input === 'Yes') {
+            !node._isSlot ?
+                await this.webSiteClient.webApps.updateConfiguration(node.site.resourceGroup, node._siteName, updateConfig) :
+                await this.webSiteClient.webApps.updateConfigurationSlot(node.site.resourceGroup, node._siteName, updateConfig, util.extractDeploymentSlotName(node.site));
+        } else {
+            throw new UserCancelledError;
+        }
+    }
+
+    private async validateNewDeployment(oldDeployment: WebSiteModels.DeploymentCollection, repo: string): Promise<void> {
+        const newDeployment = !this._isSlot ?
+            await this.webSiteClient.webApps.listDeployments(this.site.resourceGroup, this._siteName) :
+            await this.webSiteClient.webApps.listDeploymentsSlot(this.site.resourceGroup, this._siteName, util.extractDeploymentSlotName(this.site));
+        // if the oldDeployment has a length of 0, then there has never been a deployment
+        if (newDeployment.length && oldDeployment.length &&
+            newDeployment[0].deploymentId === oldDeployment[0].deploymentId) {
+            throw new Error(`Azure Remote Repo is current with ${repo}`);
+        }
     }
 }
