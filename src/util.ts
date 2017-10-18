@@ -92,10 +92,20 @@ export function errToString(error: any): string {
     }
 
     if (error instanceof Error) {
-        return JSON.stringify({
-            'Error': error.constructor.name,
-            'Message': error.message
-        });
+        try {
+            // errors from Azure come as JSON string
+            return JSON.stringify({
+                'Error': JSON.parse(error.message).Code,
+                'Message': JSON.parse(error.message).Message
+            });
+
+        } catch (error) {
+            return JSON.stringify({
+                'Error': error.constructor.name,
+                'Message': error.message
+            });
+        }
+
     }
 
     if (typeof (error) === 'object') {

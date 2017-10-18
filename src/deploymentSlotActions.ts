@@ -17,15 +17,12 @@ export class DeploymentSlotSwapper extends WizardBase {
         super(output);
         this.steps.push(new SwapStep(this, azureAccount, slot));
     }
-    protected beforeExecute () {
+    protected beforeExecute() {
 
     }
-    
+
     protected onExecuteError(error: Error) {
-        if (error instanceof UserCancelledError) {
-            return;
-        }
-        this.writeline(`Failed to swap deployment slots - ${error.message}`);
+        throw error;
     }
 }
 
@@ -54,7 +51,12 @@ class SwapStep extends WizardStep {
 
     async prompt(): Promise<void> {
         const deploymentSlots: DeploymentSlotNode[] = await this.slot.getParentNode<DeploymentSlotsNode>().getChildren();
-        let otherSlots: QuickPickItemWithData<null>[] = [];
+        let otherSlots: QuickPickItemWithData<null>[] = [{
+            label: 'production',
+            description: 'Swap slot with production',
+            detail: null,
+            data: null
+        }];
 
         for (let slot of deploymentSlots) {
             if (this.slot.label !== slot.label) {
@@ -74,23 +76,19 @@ class SwapStep extends WizardStep {
 
         if (result) {
             this.targetSlot = result.label;
-            const credential = this.azureAccount.getCredentialByTenantId(this.slot.subscription.tenantId);
-            const client = new WebSiteManagementClient(credential, this.slot.subscription.subscriptionId);
-
-            await client.webApps.swapSlotSlot(this.slot.site.resourceGroup, this.slot.site.repositorySiteName, { targetSlot: this.targetSlot, preserveVnet: true }, this.sourceSlot.label, {},
-                (err, _result, _request, response) => {
-                    if (!err && response.statusCode === 200) {
-                        this.wizard.writeline(`"${this.targetSlot}" was swapped with "${this.sourceSlot.label}"`);
-                    } else {
-                        // the format of Azure error messages are JSON strings
-                        this.wizard.writeline(JSON.parse(err.message).Message);
-                    }
-                });
+        } else {
+            throw new UserCancelledError;
         }
     }
 
     async execute(): Promise<void> {
-        this.wizard.writeline(`The deployment slot "${this.targetSlot}" is being swapped with "${this.sourceSlot.label}".`);
+        const credential = this.azureAccount.getCredentialByTenantId(this.slot.subscription.tenantId);
+        const client = new WebSiteManagementClient(credential, this.slot.subscription.subscriptionId);
+        this.targetSlot === 'production' ?
+            await client.webApps.swapSlotWithProduction(this.slot.site.resourceGroup, this.slot.site.repositorySiteName, { targetSlot: this.sourceSlot.label, preserveVnet: true }) :
+            await client.webApps.swapSlotSlot(this.slot.site.resourceGroup, this.slot.site.repositorySiteName, { targetSlot: this.targetSlot, preserveVnet: true }, this.sourceSlot.label);
+
+        this.wizard.writeline(`"${this.targetSlot}" was swapped with "${this.sourceSlot.label}".`);
     }
 
     get subscription(): SubscriptionModels.Subscription {

@@ -120,7 +120,12 @@ export abstract class WizardBase {
 
     protected onRunError(_step: WizardStep, _stepIndex: number, error: Error) {
         if (!(error instanceof UserCancelledError)) {
-            vscode.window.showErrorMessage(error.message);
+            try {
+                vscode.window.showErrorMessage(JSON.parse(error.message).Message);
+            } catch (err) {
+                vscode.window.showErrorMessage(error.message);
+            }
+
         }
     }
 

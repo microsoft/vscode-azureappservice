@@ -158,8 +158,7 @@ export class SiteNodeBase extends NodeBase {
 
     async localGitDeploy(): Promise<boolean> {
         if (!workspace.rootPath) {
-            await window.showErrorMessage(`You have not yet opened a folder to deploy.`);
-            throw new Error('No open workspace');
+            throw new Error(`You have not yet opened a folder to deploy.`);
         }
 
         const publishCredentials = !this._isSlot ?
@@ -196,8 +195,6 @@ export class SiteNodeBase extends NodeBase {
         const repo = `${this.site.enabledHostNames[1]}:443/${this.site.repositorySiteName}.git`;
         // the scm url lives in the 1 index of enabledHostNames, not 0
         const remote = `https://${username}:${password}@${repo}`;
-
-
         let git = require('simple-git/promise')(workspace.rootPath);
 
         try {
