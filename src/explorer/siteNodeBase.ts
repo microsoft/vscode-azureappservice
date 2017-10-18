@@ -159,8 +159,7 @@ export class SiteNodeBase extends NodeBase {
     public async localGitDeploy(): Promise<void> {
         const installString = `Install`;
         if (!workspace.rootPath) {
-            await window.showErrorMessage(`You have not yet opened a folder to deploy.`);
-            throw new Error('No open workspace');
+            throw new Error(`You have not yet opened a folder to deploy.`);
         }
         let taskResults: [WebSiteModels.User, WebSiteModels.SiteConfigResource, WebSiteModels.DeploymentCollection];
         if (!this._isSlot) {

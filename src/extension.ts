@@ -49,13 +49,8 @@ export function activate(context: vscode.ExtensionContext) {
             const siteType = util.isSiteDeploymentSlot(node.site) ? 'Deployment Slot' : 'Web App';
             outputChannel.show();
             outputChannel.appendLine(`Starting ${siteType} "${node.site.name}"...`);
-            try {
-                await node.start();
-                outputChannel.appendLine(`${siteType} "${node.site.name}" has been started.`);
-            } catch (err) {
-                outputChannel.appendLine(err);
-                throw err;
-            }
+            await node.start();
+            outputChannel.appendLine(`${siteType} "${node.site.name}" has been started.`);
         }
     });
     initAsyncCommand(context, 'appService.Stop', async (node: SiteNodeBase) => {
@@ -63,13 +58,9 @@ export function activate(context: vscode.ExtensionContext) {
             const siteType = util.isSiteDeploymentSlot(node.site) ? 'Deployment Slot' : 'Web App';
             outputChannel.show();
             outputChannel.appendLine(`Stopping ${siteType} "${node.site.name}"...`);
-            try {
-                await node.stop();
-                outputChannel.appendLine(`${siteType} "${node.site.name}" has been stopped. App Service plan charges still apply.`);
-            } catch (err) {
-                outputChannel.appendLine(err);
-                throw err;
-            }
+            await node.stop();
+            outputChannel.appendLine(`${siteType} "${node.site.name}" has been stopped. App Service plan charges still apply.`);
+
         }
     });
     initAsyncCommand(context, 'appService.Restart', async (node: SiteNodeBase) => {
@@ -77,35 +68,20 @@ export function activate(context: vscode.ExtensionContext) {
             const siteType = util.isSiteDeploymentSlot(node.site) ? 'Deployment Slot' : 'Web App';
             outputChannel.show();
             outputChannel.appendLine(`Restarting ${siteType} "${node.site.name}"...`);
-            try {
-                await node.restart();
-                outputChannel.appendLine(`${siteType} "${node.site.name}" has been restarted.`);
-            } catch (err) {
-                outputChannel.appendLine(err);
-                throw err;
-            }
+            await node.restart();
+            outputChannel.appendLine(`${siteType} "${node.site.name}" has been restarted.`);
+
         }
     });
     initAsyncCommand(context, 'appService.Delete', async (node: SiteNodeBase) => {
         const yes = 'Yes';
         if (node &&
             await vscode.window.showWarningMessage(`Are you sure you want to delete "${node.site.name}"?`, yes) === yes) {
-            try {
-                outputChannel.appendLine(`Deleting app "${node.site.name}"...`);
-                await node.delete();
-                outputChannel.appendLine(`App "${node.site.name}" has been deleted.`);
-                vscode.commands.executeCommand('appService.Refresh', node.getParentNode());
-            } catch (err) {
-                if (!(err instanceof UserCancelledError)) {
-                    try {
-                        // Azure REST error messages come as a JSON string with more details
-                        outputChannel.appendLine(JSON.parse(err.message).Message);
-                    } catch {
-                        outputChannel.appendLine(err.message);
-                    }
-                }
-                throw err;
-            }
+            outputChannel.appendLine(`Deleting app "${node.site.name}"...`);
+            await node.delete();
+            outputChannel.appendLine(`App "${node.site.name}" has been deleted.`);
+            vscode.commands.executeCommand('appService.Refresh', node.getParentNode());
+
         }
     });
     initAsyncCommand(context, 'appService.CreateWebApp', async (node?: SubscriptionNode) => {
@@ -113,10 +89,8 @@ export function activate(context: vscode.ExtensionContext) {
         if (node) {
             subscription = node.subscription;
         }
-
         const wizard = new WebAppCreator(outputChannel, azureAccount, subscription, context.globalState);
         const result = await wizard.run();
-
         if (result.status === 'Completed') {
             vscode.commands.executeCommand('appService.Refresh', node);
         }
@@ -140,20 +114,8 @@ export function activate(context: vscode.ExtensionContext) {
     initAsyncCommand(context, 'appService.LocalGitDeploy', async (node: SiteNodeBase) => {
         if (node) {
             outputChannel.appendLine(`Deploying Local Git repository to "${node.site.name}"...`);
-            try {
-                await node.localGitDeploy();
-                outputChannel.appendLine(`Local repository has been deployed to "${node.site.name}".`);
-            } catch (err) {
-                if (!(err instanceof UserCancelledError)) {
-                    try {
-                        // Azure REST error messages come as a JSON string with more details
-                        outputChannel.appendLine(JSON.parse(err.message).Message);
-
-                    } catch {
-                        outputChannel.appendLine(err.message);
-                    }
-                }
-            }
+            await node.localGitDeploy();
+            outputChannel.appendLine(`Local repository has been deployed to "${node.site.name}".`);
         }
     });
     initAsyncCommand(context, 'appService.DeploymentScript', async (node: AppServiceNode) => {
@@ -166,6 +128,7 @@ export function activate(context: vscode.ExtensionContext) {
     });
     initAsyncCommand(context, 'deploymentSlot.SwapSlots', async (node: DeploymentSlotNode) => {
         if (node) {
+            outputChannel.appendLine('Initializing deployment slot swap...');
             await node.swapDeploymentSlots(outputChannel);
         }
     });
@@ -235,6 +198,7 @@ function initAsyncCommand(context: vscode.ExtensionContext, commandId: string, c
             } else {
                 result = 'Failed';
                 errorData = util.errToString(err);
+                vscode.window.showErrorMessage(errorData);
                 throw err;
             }
         } finally {
