@@ -156,30 +156,33 @@ export class SiteNodeBase extends NodeBase {
         }
     }
 
-    public async localGitDeploy(): Promise<boolean> {
+    public async localGitDeploy(): Promise<void> {
+        const installString = `Install`;
         if (!workspace.rootPath) {
             await window.showErrorMessage(`You have not yet opened a folder to deploy.`);
             throw new Error('No open workspace');
         }
-        let publishCredentials;
-        let config: WebSiteModels.SiteConfigResource;
-        let oldDeployment;
-
+        let taskResults: [WebSiteModels.User, WebSiteModels.SiteConfigResource, WebSiteModels.DeploymentCollection];
         if (!this._isSlot) {
-            publishCredentials = await this.webSiteClient.webApps.listPublishingCredentials(this.site.resourceGroup, this._siteName);
-            config = await this.webSiteClient.webApps.getConfiguration(this.site.resourceGroup, this._siteName);
-            oldDeployment = await this.webSiteClient.webApps.listDeployments(this.site.resourceGroup, this._siteName);
+            taskResults = await Promise.all([
+                this.webSiteClient.webApps.listPublishingCredentials(this.site.resourceGroup, this._siteName),
+                this.webSiteClient.webApps.getConfiguration(this.site.resourceGroup, this._siteName),
+                this.webSiteClient.webApps.listDeployments(this.site.resourceGroup, this._siteName)
+            ]);
         } else {
-            publishCredentials = await this.webSiteClient.webApps.listPublishingCredentialsSlot(this.site.resourceGroup, this._siteName, util.extractDeploymentSlotName(this.site));
-            config = await this.webSiteClient.webApps.getConfigurationSlot(this.site.resourceGroup, this._siteName, util.extractDeploymentSlotName(this.site));
-            oldDeployment = await this.webSiteClient.webApps.listDeploymentsSlot(this.site.resourceGroup, this._siteName, util.extractDeploymentSlotName(this.site));
+            taskResults = await Promise.all([
+                this.webSiteClient.webApps.listPublishingCredentialsSlot(this.site.resourceGroup, this._siteName, util.extractDeploymentSlotName(this.site)),
+                this.webSiteClient.webApps.getConfigurationSlot(this.site.resourceGroup, this._siteName, util.extractDeploymentSlotName(this.site)),
+                this.webSiteClient.webApps.listDeploymentsSlot(this.site.resourceGroup, this._siteName, util.extractDeploymentSlotName(this.site))
+            ]);
         }
 
+        const publishCredentials = taskResults[0];
+        const config = taskResults[1];
+        const oldDeployment = taskResults[2];
+
         if (config.scmType !== 'LocalGit') {
-            let update = await this.updateScmType(this, config);
-            if (!update) {
-                throw new UserCancelledError();
-            }
+            await this.updateScmType(this, config);
         }
 
         const username = publishCredentials.publishingUserName;
@@ -187,18 +190,17 @@ export class SiteNodeBase extends NodeBase {
         const repo = `${this.site.enabledHostNames[1]}:443/${this.site.repositorySiteName}.git`;
         // the scm url lives in the 1 index of enabledHostNames, not 0
         const remote = `https://${username}:${password}@${repo}`;
-
         const git = require('simple-git/promise')(workspace.rootPath);
         try {
 
             const status = await git.status();
             if (status.files.length > 0) {
-                window.showWarningMessage(`There ${status.files.length > 1 ? 'are' : 'is'} ${status.files.length} uncommitted change${status.files.length > 1 ? 's' : ''} in local repo "${workspace.rootPath}"`);
+                window.showWarningMessage(`${status.files.length} uncommitted change(s) in local repo "${workspace.rootPath}"`);
             }
             await git.push(remote, 'HEAD:master');
         } catch (err) {
             if (err.message.indexOf('spawn git ENOENT') >= 0) {
-                const input = await window.showErrorMessage(`Git must be installed to use Local Git Deploy.`, `Install`);
+                const input = await window.showErrorMessage(`Git must be installed to use Local Git Deploy.`, installString);
                 if (input === 'Install') {
                     opn(`https://git-scm.com/downloads`);
                 }
@@ -213,17 +215,7 @@ export class SiteNodeBase extends NodeBase {
             }
         }
 
-        const newDeployment = !this._isSlot ?
-            await this.webSiteClient.webApps.listDeployments(this.site.resourceGroup, this._siteName) :
-            await this.webSiteClient.webApps.listDeploymentsSlot(this.site.resourceGroup, this._siteName, util.extractDeploymentSlotName(this.site));
-        // if the oldDeployment has a length of 0, then there has never been a deployment
-        if (newDeployment.length && oldDeployment.length &&
-            newDeployment[0].deploymentId === oldDeployment[0].deploymentId) {
-            await window.showErrorMessage(`Local Git repo is current with "${repo}".`);
-            throw new Error(`Local Git repo is current with "${repo}".`);
-        }
-
-        return true;
+        await this.validateNewDeployment(oldDeployment, repo);
     }
 
     protected get webSiteClient(): WebSiteManagementClient {
@@ -235,20 +227,29 @@ export class SiteNodeBase extends NodeBase {
         return await this.webSiteClient.appServicePlans.get(serverFarmId.resourcegroups, serverFarmId.serverfarms);
     }
 
-    private async updateScmType(node: SiteNodeBase, config: WebSiteModels.SiteConfigResource): Promise<boolean> {
+    private async updateScmType(node: SiteNodeBase, config: WebSiteModels.SiteConfigResource): Promise<voidboolean> {
         let input;
         const oldScmType = config.scmType;
         const updateConfig = config;
         updateConfig.scmType = 'LocalGit';
         input = await window.showWarningMessage(`Deployment source for "${node._siteName}" is set as "${oldScmType}".  Change to "LocalGit"?`, 'Yes');
-        if (input) {
+        if (input === 'Yes') {
             !node._isSlot ?
                 await this.webSiteClient.webApps.updateConfiguration(node.site.resourceGroup, node._siteName, updateConfig) :
                 await this.webSiteClient.webApps.updateConfigurationSlot(node.site.resourceGroup, node._siteName, updateConfig, util.extractDeploymentSlotName(node.site));
-            return true;
-
         } else {
-            return false;
+            throw new UserCancelledError;
+        }
+    }
+
+    private async validateNewDeployment(oldDeployment: WebSiteModels.DeploymentCollection, repo: string): Promise<void> {
+        const newDeployment = !this._isSlot ?
+            await this.webSiteClient.webApps.listDeployments(this.site.resourceGroup, this._siteName) :
+            await this.webSiteClient.webApps.listDeploymentsSlot(this.site.resourceGroup, this._siteName, util.extractDeploymentSlotName(this.site));
+        // if the oldDeployment has a length of 0, then there has never been a deployment
+        if (newDeployment.length && oldDeployment.length &&
+            newDeployment[0].deploymentId === oldDeployment[0].deploymentId) {
+            throw new Error(`Azure Remote Repo is current with ${repo}`);
         }
     }
 }
