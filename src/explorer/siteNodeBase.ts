@@ -212,6 +212,8 @@ export class SiteNodeBase extends NodeBase {
                 } else {
                     throw err;
                 }
+            } else {
+                throw err;
             }
         }
 
@@ -227,7 +229,7 @@ export class SiteNodeBase extends NodeBase {
         return await this.webSiteClient.appServicePlans.get(serverFarmId.resourcegroups, serverFarmId.serverfarms);
     }
 
-    private async updateScmType(node: SiteNodeBase, config: WebSiteModels.SiteConfigResource): Promise<voidboolean> {
+    private async updateScmType(node: SiteNodeBase, config: WebSiteModels.SiteConfigResource): Promise<void> {
         let input;
         const oldScmType = config.scmType;
         const updateConfig = config;
