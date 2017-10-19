@@ -10,12 +10,13 @@ import WebSiteManagementClient = require('azure-arm-website');
 import { NodeBase } from './nodeBase';
 import { AppServiceDataProvider } from './appServiceExplorer';
 import { SubscriptionModels } from 'azure-arm-resource';
-import { ExtensionContext, OutputChannel, window, workspace } from 'vscode';
+import { ExtensionContext, OutputChannel, window, workspace, WorkspaceFolder } from 'vscode';
 import { AzureAccountWrapper } from '../azureAccountWrapper';
 import { KuduClient } from '../kuduClient';
 import { Request } from 'request';
 import { UserCancelledError, GitNotInstalledError, LocalGitDeployError } from '../errors';
 import { SiteWrapper } from 'vscode-azureappservice';
+import { QuickPickItemWithData } from '../wizard';
 
 export class SiteNodeBase extends NodeBase {
     private _logStreamOutputChannel: OutputChannel | undefined;
@@ -157,9 +158,13 @@ export class SiteNodeBase extends NodeBase {
     }
 
     public async localGitDeploy(): Promise<void> {
-        if (!workspace.rootPath) {
-            throw new Error(`You have not yet opened a folder to deploy.`);
+        const installString = `Install`;
+        if (!workspace.workspaceFolders) {
+            throw new Error(`There is no open folder to deploy.`);
         }
+
+        const fsPath = await this.showWorkspaceFoldersQuickPick();
+
         let taskResults: [WebSiteModels.User, WebSiteModels.SiteConfigResource, WebSiteModels.DeploymentCollection];
         if (!this._isSlot) {
             taskResults = await Promise.all([
@@ -187,7 +192,7 @@ export class SiteNodeBase extends NodeBase {
         const repo = `${this.site.enabledHostNames[1]}:443/${this.site.repositorySiteName}.git`;
         // the scm url lives in the 1 index of enabledHostNames, not 0
         const remote = `https://${username}:${password}@${repo}`;
-        const git = require('simple-git/promise')(workspace.rootPath);
+        const git = require('simple-git/promise')(fsPath);
         try {
 
             const status = await git.status();
@@ -247,5 +252,27 @@ export class SiteNodeBase extends NodeBase {
             newDeployment[0].deploymentId === oldDeployment[0].deploymentId) {
             throw new Error(`Azure Remote Repo is current with ${repo}`);
         }
+    }
+
+    private async showWorkspaceFoldersQuickPick(): Promise<string> {
+        const folderQuickPickItems = workspace.workspaceFolders.map((value) => {
+            {
+                return <QuickPickItemWithData<WorkspaceFolder>>{
+                    label: value.name,
+                    description: '',
+                    data: value
+                }
+            }
+        });
+
+        const folderQuickPickOption = { placeHolder: `Select the folder to Local Git deploy.` };
+        const pickedItem = folderQuickPickItems.length == 1 ?
+            folderQuickPickItems[0] : await window.showQuickPick(folderQuickPickItems, folderQuickPickOption);
+
+        if (!pickedItem) {
+            throw new UserCancelledError();
+        }
+
+        return pickedItem.data.uri.fsPath;
     }
 }
