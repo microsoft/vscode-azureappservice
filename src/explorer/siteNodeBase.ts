@@ -157,7 +157,6 @@ export class SiteNodeBase extends NodeBase {
     }
 
     public async localGitDeploy(): Promise<void> {
-        const installString = `Install`;
         if (!workspace.rootPath) {
             throw new Error(`You have not yet opened a folder to deploy.`);
         }
@@ -183,7 +182,6 @@ export class SiteNodeBase extends NodeBase {
         if (config.scmType !== 'LocalGit') {
             await this.updateScmType(this, config);
         }
-        const servicePlan = await this.getAppServicePlan();
         const username = publishCredentials.publishingUserName;
         const password = publishCredentials.publishingPassword;
         const repo = `${this.site.enabledHostNames[1]}:443/${this.site.repositorySiteName}.git`;
@@ -199,10 +197,6 @@ export class SiteNodeBase extends NodeBase {
             await git.push(remote, 'HEAD:master');
         } catch (err) {
             if (err.message.indexOf('spawn git ENOENT') >= 0) {
-                const input = await window.showErrorMessage(`Git must be installed to use Local Git Deploy.`, installString);
-                if (input === 'Install') {
-                    opn(`https://git-scm.com/downloads`);
-                }
                 throw new GitNotInstalledError();
             } else if (err.message.indexOf('error: failed to push') >= 0) {
                 const input = await window.showErrorMessage(`Push rejected due to Git history diverging. Force push?`, `Yes`);
@@ -212,6 +206,7 @@ export class SiteNodeBase extends NodeBase {
                     throw new UserCancelledError();
                 }
             } else {
+                const servicePlan = await this.getAppServicePlan();
                 throw new LocalGitDeployError(err, servicePlan.sku.size);
             }
         }

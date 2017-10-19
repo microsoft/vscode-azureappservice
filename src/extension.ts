@@ -18,7 +18,7 @@ import { AzureAccountWrapper } from './azureAccountWrapper';
 import { WebAppCreator } from './webAppCreator';
 import { WebAppZipPublisher } from './webAppZipPublisher';
 import { Reporter } from './telemetry/reporter';
-import { UserCancelledError, GitNotInstalledError, LocalGitDeployError } from './errors';
+import { UserCancelledError, GitNotInstalledError, LocalGitDeployError, WizardFailedError } from './errors';
 import { ErrorData } from './ErrorData';
 
 export function activate(context: vscode.ExtensionContext) {
@@ -189,7 +189,7 @@ function initAsyncCommand(context: vscode.ExtensionContext, commandId: string, c
     context.subscriptions.push(vscode.commands.registerCommand(commandId, async (...args: any[]) => {
         const start = Date.now();
         const properties: { [key: string]: string; } = {};
-        let result = 'Succeeded';
+        properties.result = 'Succeeded';
         let errorData: ErrorData | undefined;
 
         try {
@@ -198,20 +198,23 @@ function initAsyncCommand(context: vscode.ExtensionContext, commandId: string, c
             if (err instanceof LocalGitDeployError) {
                 properties.servicePlan = err.servicePlanSize;
             }
+
+            if (err instanceof WizardFailedError) {
+                properties.stepTitle = err.stepTitle;
+                properties.stepIndex = err.stepIndex.toString();
+            }
+
             if (err instanceof UserCancelledError) {
-                result = 'Canceled';
-                errorData = new ErrorData(err);
+                properties.result = 'Canceled';
             } else if (err instanceof GitNotInstalledError) {
-                result = 'Failed';
+                properties.result = 'Failed';
                 errorData = new ErrorData(err);
             } else {
-                result = 'Failed';
+                properties.result = 'Failed';
                 errorData = new ErrorData(err);
                 vscode.window.showErrorMessage(errorData.message);
-                throw err;
             }
         } finally {
-            properties.result = result;
             if (errorData) {
                 properties.error = errorData.errorType;
                 properties.errorMessage = errorData.message;

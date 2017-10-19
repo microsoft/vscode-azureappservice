@@ -7,7 +7,7 @@ import * as vscode from 'vscode';
 import { AzureAccountWrapper } from './azureAccountWrapper';
 import { WizardBase, WizardResult, WizardStep, SubscriptionStepBase, QuickPickItemWithData } from './wizard';
 import { SubscriptionModels, ResourceManagementClient, ResourceModels } from 'azure-arm-resource';
-import { UserCancelledError } from './errors';
+import { UserCancelledError, WizardFailedError } from './errors';
 import WebSiteManagementClient = require('azure-arm-website');
 import * as WebSiteModels from '../node_modules/azure-arm-website/lib/models';
 import * as util from './util';
@@ -49,12 +49,20 @@ export class WebAppCreator extends WizardBase {
         }
     }
 
-    protected onExecuteError(error: Error) {
+    protected onRunError(error: Error, step: WizardStep) {
+        if (error instanceof UserCancelledError) {
+            return;
+        }
+        throw new WizardFailedError(error, step.stepTitle, step.stepIndex);
+    }
+
+    protected onExecuteError(error: Error, step: WizardStep) {
         if (error instanceof UserCancelledError) {
             return;
         }
         this.writeline(`Failed to create new Web App - ${error.message}`);
         this.writeline('');
+        throw new WizardFailedError(error, step.stepTitle, step.stepIndex);
     }
 }
 

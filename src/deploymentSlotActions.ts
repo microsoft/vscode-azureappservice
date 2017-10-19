@@ -10,7 +10,7 @@ import { SubscriptionModels } from 'azure-arm-resource';
 import WebSiteManagementClient = require('azure-arm-website');
 import { DeploymentSlotNode } from './explorer/deploymentSlotNode';
 import { DeploymentSlotsNode } from './explorer/deploymentSlotsNode';
-import { UserCancelledError } from './errors';
+import { UserCancelledError, WizardFailedError } from './errors';
 
 export class DeploymentSlotSwapper extends WizardBase {
     constructor(output: vscode.OutputChannel, readonly azureAccount: AzureAccountWrapper, readonly slot: DeploymentSlotNode) {
@@ -20,9 +20,20 @@ export class DeploymentSlotSwapper extends WizardBase {
     protected beforeExecute() {
 
     }
+    protected onRunError(error: Error, step: WizardStep) {
+        if (error instanceof UserCancelledError) {
+            return;
+        }
+        throw new WizardFailedError(error, step.stepTitle, step.stepIndex);
+    }
 
-    protected onExecuteError(error: Error) {
-        throw error;
+    protected onExecuteError(error: Error, step: WizardStep) {
+        if (error instanceof UserCancelledError) {
+            return;
+        }
+        this.writeline(`Failed to swap deployment slots - ${error.message}`);
+        this.writeline('');
+        throw new WizardFailedError(error, step.stepTitle, step.stepIndex);
     }
 }
 
