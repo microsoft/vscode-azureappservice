@@ -99,7 +99,7 @@ export function errToString(error: any): string {
                 'Message': JSON.parse(error.message).Message
             });
 
-        } catch (error) {
+        } catch (e) {
             return JSON.stringify({
                 'Error': error.constructor.name,
                 'Message': error.message
