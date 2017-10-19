@@ -19,7 +19,7 @@ import { WebAppCreator } from './webAppCreator';
 import { WebAppZipPublisher } from './webAppZipPublisher';
 import { Reporter } from './telemetry/reporter';
 import { UserCancelledError, GitNotInstalledError, LocalGitDeployError } from './errors';
-import { ErrorData } from './errorData';
+import { ErrorData } from './ErrorData';
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Extension "Azure App Service Tools" is now active.');
