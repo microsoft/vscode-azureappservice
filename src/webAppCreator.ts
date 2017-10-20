@@ -5,7 +5,7 @@
 
 import * as vscode from 'vscode';
 import { AzureAccountWrapper } from './azureAccountWrapper';
-import { WizardBase, WizardResult, WizardStep, SubscriptionStepBase, QuickPickItemWithData } from './wizard';
+import { WizardBase, WizardResult, WizardStep, SubscriptionStepBase } from './wizard';
 import { SubscriptionModels, ResourceManagementClient, ResourceModels } from 'azure-arm-resource';
 import WebSiteManagementClient = require('azure-arm-website');
 import * as WebSiteModels from '../node_modules/azure-arm-website/lib/models';
@@ -133,7 +133,7 @@ class ResourceGroupStep extends WebAppCreatorStepBase {
     }
 
     async prompt(): Promise<void> {
-        const createNewItem: QuickPickItemWithData<ResourceModels.ResourceGroup> = {
+        const createNewItem: util.QuickPickItemWithData<ResourceModels.ResourceGroup> = {
             persistenceId: "",
             label: '$(plus) Create New Resource Group',
             description: null,
@@ -150,7 +150,7 @@ class ResourceGroupStep extends WebAppCreatorStepBase {
         var suggestedName = this.getSuggestedRGAndPlanName();
 
         const quickPickItemsTask = Promise.all([resourceGroupsTask, locationsTask]).then(results => {
-            const quickPickItems: QuickPickItemWithData<ResourceModels.ResourceGroup>[] = [createNewItem];
+            const quickPickItems: util.QuickPickItemWithData<ResourceModels.ResourceGroup>[] = [createNewItem];
             resourceGroups = results[0];
             locations = results[1];
             resourceGroups.forEach(rg => {
@@ -195,7 +195,7 @@ class ResourceGroupStep extends WebAppCreatorStepBase {
             }
         });
 
-        const locationPickItems = locations.map<QuickPickItemWithData<SubscriptionModels.Location>>(location => {
+        const locationPickItems = locations.map<util.QuickPickItemWithData<SubscriptionModels.Location>>(location => {
             return {
                 label: location.displayName,
                 description: `(${location.name})`,
@@ -244,7 +244,7 @@ class AppServicePlanStep extends WebAppCreatorStepBase {
     }
 
     async prompt(): Promise<void> {
-        const createNewItem: QuickPickItemWithData<WebSiteModels.AppServicePlan> = {
+        const createNewItem: util.QuickPickItemWithData<WebSiteModels.AppServicePlan> = {
             persistenceId: "$new",
             label: '$(plus) Create New App Service Plan',
             description: '',
@@ -309,7 +309,7 @@ class AppServicePlanStep extends WebAppCreatorStepBase {
         });
 
         // Prompt for Pricing tier
-        const pricingTiers: QuickPickItemWithData<WebSiteModels.SkuDescription>[] = [];
+        const pricingTiers: util.QuickPickItemWithData<WebSiteModels.SkuDescription>[] = [];
         const availableSkus = this.getPlanSkus();
         availableSkus.forEach(sku => {
             pricingTiers.push({
@@ -413,7 +413,7 @@ class WebsiteStep extends WebAppCreatorStepBase {
         const siteName = this.getWebsiteName();
 
         var runtimeStack: string;
-        const runtimeItems: QuickPickItemWithData<LinuxRuntimeStack>[] = [];
+        const runtimeItems: util.QuickPickItemWithData<LinuxRuntimeStack>[] = [];
         const linuxRuntimeStacks = this.getLinuxRuntimeStack();
 
         linuxRuntimeStacks.forEach(rt => {

@@ -10,13 +10,12 @@ import WebSiteManagementClient = require('azure-arm-website');
 import { NodeBase } from './nodeBase';
 import { AppServiceDataProvider } from './appServiceExplorer';
 import { SubscriptionModels } from 'azure-arm-resource';
-import { ExtensionContext, OutputChannel, window, workspace, WorkspaceFolder } from 'vscode';
+import { ExtensionContext, OutputChannel, window, workspace } from 'vscode';
 import { AzureAccountWrapper } from '../azureAccountWrapper';
 import { KuduClient } from '../kuduClient';
 import { Request } from 'request';
 import { UserCancelledError, GitNotInstalledError, LocalGitDeployError } from '../errors';
 import { SiteWrapper } from 'vscode-azureappservice';
-import { QuickPickItemWithData } from '../wizard';
 
 export class SiteNodeBase extends NodeBase {
     private _logStreamOutputChannel: OutputChannel | undefined;
@@ -163,7 +162,7 @@ export class SiteNodeBase extends NodeBase {
             throw new Error(`There is no open folder to deploy.`);
         }
 
-        const fsPath = await this.showWorkspaceFoldersQuickPick();
+        const fsPath = await util.showWorkspaceFoldersQuickPick();
 
         let taskResults: [WebSiteModels.User, WebSiteModels.SiteConfigResource, WebSiteModels.DeploymentCollection];
         if (!this._isSlot) {
@@ -252,27 +251,5 @@ export class SiteNodeBase extends NodeBase {
             newDeployment[0].deploymentId === oldDeployment[0].deploymentId) {
             throw new Error(`Azure Remote Repo is current with ${repo}`);
         }
-    }
-
-    private async showWorkspaceFoldersQuickPick(): Promise<string> {
-        const folderQuickPickItems = workspace.workspaceFolders.map((value) => {
-            {
-                return <QuickPickItemWithData<WorkspaceFolder>>{
-                    label: value.name,
-                    description: '',
-                    data: value
-                }
-            }
-        });
-
-        const folderQuickPickOption = { placeHolder: `Select the folder to Local Git deploy.` };
-        const pickedItem = folderQuickPickItems.length == 1 ?
-            folderQuickPickItems[0] : await window.showQuickPick(folderQuickPickItems, folderQuickPickOption);
-
-        if (!pickedItem) {
-            throw new UserCancelledError();
-        }
-
-        return pickedItem.data.uri.fsPath;
     }
 }

@@ -125,7 +125,7 @@ export class WizardStep {
         return `Step ${this.stepIndex + 1}/${this.wizard.steps.length}`;
     }
 
-    async showQuickPick<T>(items: QuickPickItemWithData<T>[] | Thenable<QuickPickItemWithData<T>[]>, options: vscode.QuickPickOptions, persistenceKey?: string, token?: vscode.CancellationToken): Promise<QuickPickItemWithData<T>> {
+    async showQuickPick<T>(items: util.QuickPickItemWithData<T>[] | Thenable<util.QuickPickItemWithData<T>[]>, options: vscode.QuickPickOptions, persistenceKey?: string, token?: vscode.CancellationToken): Promise<util.QuickPickItemWithData<T>> {
         options.ignoreFocusOut = true;
         var resolvedItems = await items;
         if (this.persistenceState && persistenceKey) {
@@ -166,7 +166,7 @@ export class SubscriptionStepBase extends WizardStep {
         super(wizard, title, persistence);
     }
 
-    protected getSubscriptionsAsQuickPickItems(): Promise<QuickPickItemWithData<SubscriptionModels.Subscription>[]> {
+    protected getSubscriptionsAsQuickPickItems(): Promise<util.QuickPickItemWithData<SubscriptionModels.Subscription>[]> {
         return Promise.resolve(
             this.azureAccount.getFilteredSubscriptions().map(s => {
                 return {
@@ -183,9 +183,4 @@ export class SubscriptionStepBase extends WizardStep {
     get subscription(): SubscriptionModels.Subscription {
         return this._subscription;
     }
-}
-
-export interface QuickPickItemWithData<T> extends vscode.QuickPickItem {
-    persistenceId?: string; // A unique key to identify this item items across sessions, used in persisting previous selections
-    data?: T;
 }

@@ -145,3 +145,30 @@ export function parseAzureResourceId(resourceId: string): { [key: string]: strin
 
     return result;
 }
+
+export async function showWorkspaceFoldersQuickPick(): Promise<vscode.WorkspaceFolder | undefined> {
+    const folderQuickPickItems = vscode.workspace.workspaceFolders.map((value) => {
+        {
+            return <QuickPickItemWithData<vscode.WorkspaceFolder>>{
+                label: value.name,
+                description: '',
+                data: value
+            }
+        }
+    });
+
+    const folderQuickPickOption = { placeHolder: `Select the folder to Local Git deploy.` };
+    const pickedItem = folderQuickPickItems.length == 1 ?
+        folderQuickPickItems[0] : await vscode.window.showQuickPick(folderQuickPickItems, folderQuickPickOption);
+
+    if (!pickedItem) {
+        return undefined
+    }
+
+    return pickedItem.data;
+}
+
+export interface QuickPickItemWithData<T> extends vscode.QuickPickItem {
+    persistenceId?: string; // A unique key to identify this item items across sessions, used in persisting previous selections
+    data?: T;
+}
