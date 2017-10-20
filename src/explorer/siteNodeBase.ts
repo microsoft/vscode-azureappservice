@@ -162,7 +162,7 @@ export class SiteNodeBase extends NodeBase {
             throw new Error(`There is no open folder to deploy.`);
         }
 
-        const fsPath = await util.showWorkspaceFoldersQuickPick();
+        const fsWorkspaceFolder = await util.showWorkspaceFoldersQuickPick();
 
         let taskResults: [WebSiteModels.User, WebSiteModels.SiteConfigResource, WebSiteModels.DeploymentCollection];
         if (!this._isSlot) {
@@ -191,12 +191,12 @@ export class SiteNodeBase extends NodeBase {
         const repo = `${this.site.enabledHostNames[1]}:443/${this.site.repositorySiteName}.git`;
         // the scm url lives in the 1 index of enabledHostNames, not 0
         const remote = `https://${username}:${password}@${repo}`;
-        const git = require('simple-git/promise')(fsPath);
+        const git = require('simple-git/promise')(fsWorkspaceFolder.uri.path);
         try {
 
             const status = await git.status();
             if (status.files.length > 0) {
-                window.showWarningMessage(`${status.files.length} uncommitted change(s) in local repo "${workspace.rootPath}"`);
+                window.showWarningMessage(`${status.files.length} uncommitted change(s) in local repo "${fsWorkspaceFolder.uri.path}"`);
             }
             await git.push(remote, 'HEAD:master');
         } catch (err) {

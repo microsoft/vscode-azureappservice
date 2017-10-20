@@ -7,6 +7,7 @@ import { reporter } from './telemetry/reporter';
 import WebSiteManagementClient = require('azure-arm-website');
 import * as vscode from 'vscode';
 import * as WebSiteModels from '../node_modules/azure-arm-website/lib/models';
+import { UserCancelledError } from './errors';
 
 
 export interface PartialList<T> extends Array<T> {
@@ -146,12 +147,12 @@ export function parseAzureResourceId(resourceId: string): { [key: string]: strin
     return result;
 }
 
-export async function showWorkspaceFoldersQuickPick(): Promise<vscode.WorkspaceFolder | undefined> {
+export async function showWorkspaceFoldersQuickPick(): Promise<vscode.WorkspaceFolder> {
     const folderQuickPickItems = vscode.workspace.workspaceFolders.map((value) => {
         {
             return <QuickPickItemWithData<vscode.WorkspaceFolder>>{
                 label: value.name,
-                description: '',
+                description: value.uri.fsPath,
                 data: value
             }
         }
@@ -162,7 +163,7 @@ export async function showWorkspaceFoldersQuickPick(): Promise<vscode.WorkspaceF
         folderQuickPickItems[0] : await vscode.window.showQuickPick(folderQuickPickItems, folderQuickPickOption);
 
     if (!pickedItem) {
-        return undefined
+        throw new UserCancelledError;
     }
 
     return pickedItem.data;

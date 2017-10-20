@@ -43,19 +43,8 @@ class ZipFileStep extends WizardStep {
                 throw new Error('There is no open folder to deploy.');
             }
 
-            const folderQuickPickItems = vscode.workspace.workspaceFolders.map((value) => {
-                {
-                    return <util.QuickPickItemWithData<vscode.WorkspaceFolder>>{
-                        label: value.name,
-                        description: '',
-                        data: value
-                    }
-                }
-            });
-            const folderQuickPickOption = { placeHolder: `Select the folder to Zip and deploy. (${this.stepProgressText})` };
-            const pickedItem = folderQuickPickItems.length == 1 ?
-                folderQuickPickItems[0] : await this.showQuickPick(folderQuickPickItems, folderQuickPickOption);
-            this._fsPath = pickedItem.data.uri.fsPath;
+            const fsWorkspaceFolder = await util.showWorkspaceFoldersQuickPick();
+            this._fsPath = fsWorkspaceFolder.uri.path;
         }
     }
 
