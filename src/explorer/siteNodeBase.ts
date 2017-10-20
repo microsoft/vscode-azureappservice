@@ -157,7 +157,6 @@ export class SiteNodeBase extends NodeBase {
     }
 
     public async localGitDeploy(): Promise<void> {
-        const installString = `Install`;
         if (!workspace.workspaceFolders) {
             throw new Error(`There is no open folder to deploy.`);
         }
