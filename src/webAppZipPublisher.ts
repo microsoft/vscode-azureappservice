@@ -205,7 +205,7 @@ class DeployStep extends WizardStep {
         const subscriptionStep = this.wizard.findStepOfType(SubscriptionStep);
 
         if (!subscriptionStep.subscription) {
-            throw new Error('A subscription must be selected first.';
+            throw new Error('A subscription must be selected first.');
         }
 
         return subscriptionStep.subscription;
