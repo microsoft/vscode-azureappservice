@@ -50,7 +50,7 @@ export abstract class WizardBase {
                 this.beforeExecute(step, i);
                 await this.steps[i].execute();
             } catch (err) {
-                this.onExecuteError(err, step);
+                console.log(step);
             }
         }
 

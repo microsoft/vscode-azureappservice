@@ -18,25 +18,19 @@ export class GitNotInstalledError extends Error {
 }
 
 export class LocalGitDeployError extends Error {
-    public readonly name: string;
-    public readonly message: string;
     public readonly servicePlanSize: string;
     constructor(error: Error, servicePlanSize: string) {
         super();
-        this.name = error.constructor.name;
         this.message = error.message;
         this.servicePlanSize = servicePlanSize;
     }
 }
 
 export class WizardFailedError extends Error {
-    public readonly name: string;
-    public readonly message: string;
     public readonly stepTitle: string;
     public readonly stepIndex: number;
     constructor(error: Error, stepTitle: string, stepIndex: number) {
         super();
-        this.name = error.constructor.name;
         this.message = error.message;
         this.stepTitle = stepTitle;
         this.stepIndex = stepIndex;
