@@ -8,7 +8,6 @@ import { AzureAccountWrapper } from './azureAccountWrapper';
 import { WizardBase, WizardStep, SubscriptionStepBase, QuickPickItemWithData } from './wizard';
 import { WebAppCreator } from './webAppCreator';
 import { SubscriptionModels } from 'azure-arm-resource';
-import { UserCancelledError } from './errors';
 import WebSiteManagementClient = require('azure-arm-website');
 import * as WebSiteModels from '../node_modules/azure-arm-website/lib/models';
 import * as util from './util';
@@ -28,14 +27,6 @@ export class WebAppZipPublisher extends WizardBase {
     }
 
     protected beforeExecute() { }
-
-    protected onExecuteError(error: Error) {
-        if (error instanceof UserCancelledError) {
-            return;
-        }
-        this.writeline(`Deployment failed - ${error.message}`);
-        this.writeline('');
-    }
 }
 
 class ZipFileStep extends WizardStep {
@@ -217,7 +208,7 @@ class DeployStep extends WizardStep {
         const zipFileStep = this.wizard.findStepOfType(ZipFileStep);
 
         if (!zipFileStep.fsPath) {
-            throw new Error('A Zip file must be selected first.');
+            throw new Error('A Zip File must be selected first.');
         }
 
         return zipFileStep.fsPath;

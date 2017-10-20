@@ -14,7 +14,7 @@ import { ExtensionContext, OutputChannel, window, workspace } from 'vscode';
 import { AzureAccountWrapper } from '../azureAccountWrapper';
 import { KuduClient } from '../kuduClient';
 import { Request } from 'request';
-import { UserCancelledError } from '../errors';
+import { UserCancelledError, GitNotInstalledError, LocalGitDeployError } from '../errors';
 import { SiteWrapper } from 'vscode-azureappservice';
 
 export class SiteNodeBase extends NodeBase {
@@ -88,9 +88,9 @@ export class SiteNodeBase extends NodeBase {
         }
 
         if (!this._isSlot) {
-            await this.webSiteClient.webApps.deleteMethodWithHttpOperationResponse(this.site.resourceGroup, this._siteName, { deleteEmptyServerFarm: deleteServicePlan });
+            await this.webSiteClient.webApps.deleteMethod(this.site.resourceGroup, this._siteName, { deleteEmptyServerFarm: deleteServicePlan });
         } else {
-            await this.webSiteClient.webApps.deleteSlotWithHttpOperationResponse(this.site.resourceGroup, this._siteName, this._slotName);
+            await this.webSiteClient.webApps.deleteSlot(this.site.resourceGroup, this._siteName, this._slotName);
         }
     }
 
@@ -157,7 +157,6 @@ export class SiteNodeBase extends NodeBase {
     }
 
     public async localGitDeploy(): Promise<void> {
-        const installString = `Install`;
         if (!workspace.rootPath) {
             throw new Error(`You have not yet opened a folder to deploy.`);
         }
@@ -183,7 +182,6 @@ export class SiteNodeBase extends NodeBase {
         if (config.scmType !== 'LocalGit') {
             await this.updateScmType(this, config);
         }
-
         const username = publishCredentials.publishingUserName;
         const password = publishCredentials.publishingPassword;
         const repo = `${this.site.enabledHostNames[1]}:443/${this.site.repositorySiteName}.git`;
@@ -199,20 +197,17 @@ export class SiteNodeBase extends NodeBase {
             await git.push(remote, 'HEAD:master');
         } catch (err) {
             if (err.message.indexOf('spawn git ENOENT') >= 0) {
-                const input = await window.showErrorMessage(`Git must be installed to use Local Git Deploy.`, installString);
-                if (input === 'Install') {
-                    opn(`https://git-scm.com/downloads`);
-                }
-                throw err;
+                throw new GitNotInstalledError();
             } else if (err.message.indexOf('error: failed to push') >= 0) {
                 const input = await window.showErrorMessage(`Push rejected due to Git history diverging. Force push?`, `Yes`);
                 if (input === 'Yes') {
                     await git.push(['-f', remote, 'HEAD:master']);
                 } else {
-                    throw err;
+                    throw new UserCancelledError();
                 }
             } else {
-                throw err;
+                const servicePlan = await this.getAppServicePlan();
+                throw new LocalGitDeployError(err, servicePlan.sku.size);
             }
         }
 

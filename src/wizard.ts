@@ -4,10 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import * as util from './util';
 import { AzureAccountWrapper } from './azureAccountWrapper';
 import { SubscriptionModels } from 'azure-arm-resource';
-import { UserCancelledError } from './errors';
+import { UserCancelledError, WizardFailedError } from './errors';
 
 export type WizardStatus = 'PromptCompleted' | 'Completed' | 'Faulted' | 'Cancelled';
 
@@ -25,21 +24,7 @@ export abstract class WizardBase {
             try {
                 await this.steps[i].prompt();
             } catch (err) {
-                this.sendErrorTelemetry(step, err);
-                this.onRunError(step, i, err);
-                if (err instanceof UserCancelledError) {
-                    return {
-                        status: 'Cancelled',
-                        step: step,
-                        error: err
-                    };
-                }
-
-                return {
-                    status: 'Faulted',
-                    step: step,
-                    error: err
-                };
+                this.onError(err, step);
             }
         }
 
@@ -64,22 +49,7 @@ export abstract class WizardBase {
                 this.beforeExecute(step, i);
                 await this.steps[i].execute();
             } catch (err) {
-                this.sendErrorTelemetry(step, err);
-                this.onExecuteError(err, step, i);
-                if (err instanceof UserCancelledError) {
-                    this._result = {
-                        status: 'Cancelled',
-                        step: step,
-                        error: err
-                    };
-                } else {
-                    this._result = {
-                        status: 'Faulted',
-                        step: step,
-                        error: err
-                    };
-                }
-                return this._result;
+                this.onError(err, step);
             }
         }
 
@@ -118,29 +88,17 @@ export abstract class WizardBase {
         this.output.appendLine(text);
     }
 
-    protected onRunError(_step: WizardStep, _stepIndex: number, error: Error) {
-        if (!(error instanceof UserCancelledError)) {
-            try {
-                vscode.window.showErrorMessage(JSON.parse(error.message).Message);
-            } catch (err) {
-                vscode.window.showErrorMessage(error.message);
-            }
-
+    private onError(err: Error, step: WizardStep) {
+        if (err instanceof UserCancelledError) {
+            throw err;
         }
+
+        this.writeline(`Error: ${err.message}`);
+        this.writeline('');
+        throw new WizardFailedError(err, step.stepTitle, step.stepIndex);
     }
 
     protected abstract beforeExecute(step?: WizardStep, stepIndex?: number);
-
-    protected abstract onExecuteError(error: Error, step?: WizardStep, stepIndex?: number)
-
-    protected sendErrorTelemetry(step: WizardStep, error: any) {
-        const eventName = `${this.constructor.name}Error`
-        util.sendTelemetry(eventName,
-            {
-                step: step ? step.stepTitle : 'Unknown',
-                error: util.errToString(error)
-            });
-    }
 }
 
 export interface WizardResult {

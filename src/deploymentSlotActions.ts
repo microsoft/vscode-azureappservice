@@ -17,13 +17,7 @@ export class DeploymentSlotSwapper extends WizardBase {
         super(output);
         this.steps.push(new SwapStep(this, azureAccount, slot));
     }
-    protected beforeExecute() {
-
-    }
-
-    protected onExecuteError(error: Error) {
-        throw error;
-    }
+    protected beforeExecute() { }
 }
 
 class SwapStep extends WizardStep {

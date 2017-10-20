@@ -18,7 +18,8 @@ import { AzureAccountWrapper } from './azureAccountWrapper';
 import { WebAppCreator } from './webAppCreator';
 import { WebAppZipPublisher } from './webAppZipPublisher';
 import { Reporter } from './telemetry/reporter';
-import { UserCancelledError } from './errors';
+import { UserCancelledError, GitNotInstalledError, LocalGitDeployError, WizardFailedError } from './errors';
+import { ErrorData } from './ErrorData';
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Extension "Azure App Service Tools" is now active.');
@@ -187,23 +188,39 @@ function initCommand(context: vscode.ExtensionContext, commandId: string, callba
 function initAsyncCommand(context: vscode.ExtensionContext, commandId: string, callback: (...args: any[]) => Promise<any>) {
     context.subscriptions.push(vscode.commands.registerCommand(commandId, async (...args: any[]) => {
         const start = Date.now();
-        let result = 'Succeeded';
-        let errorData: string = '';
+        const properties: { [key: string]: string; } = {};
+        properties.result = 'Succeeded';
+        let errorData: ErrorData | undefined;
 
         try {
             await callback(...args);
         } catch (err) {
+            if (err instanceof LocalGitDeployError) {
+                properties.servicePlan = err.servicePlanSize;
+            }
+
+            if (err instanceof WizardFailedError) {
+                properties.stepTitle = err.stepTitle;
+                properties.stepIndex = err.stepIndex.toString();
+            }
+
             if (err instanceof UserCancelledError) {
-                result = 'Canceled';
+                properties.result = 'Canceled';
+            } else if (err instanceof GitNotInstalledError) {
+                properties.result = 'Failed';
+                errorData = new ErrorData(err);
             } else {
-                result = 'Failed';
-                errorData = util.errToString(err);
-                vscode.window.showErrorMessage(errorData);
-                throw err;
+                properties.result = 'Failed';
+                errorData = new ErrorData(err);
+                vscode.window.showErrorMessage(errorData.message);
             }
         } finally {
+            if (errorData) {
+                properties.error = errorData.errorType;
+                properties.errorMessage = errorData.message;
+            }
             const end = Date.now();
-            util.sendTelemetry(commandId, { result: result, error: errorData }, { duration: (end - start) / 1000 });
+            util.sendTelemetry(commandId, properties, { duration: (end - start) / 1000 });
         }
     }));
 }
