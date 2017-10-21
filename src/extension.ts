@@ -76,13 +76,15 @@ export function activate(context: vscode.ExtensionContext) {
     });
     initAsyncCommand(context, 'appService.Delete', async (node: SiteNodeBase) => {
         const yes = 'Yes';
-        if (node &&
-            await vscode.window.showWarningMessage(`Are you sure you want to delete "${node.site.name}"?`, yes) === yes) {
-            outputChannel.appendLine(`Deleting app "${node.site.name}"...`);
-            await node.delete();
-            outputChannel.appendLine(`App "${node.site.name}" has been deleted.`);
-            vscode.commands.executeCommand('appService.Refresh', node.getParentNode());
-
+        if (node) {
+            if (await vscode.window.showWarningMessage(`Are you sure you want to delete "${node.site.name}"?`, yes) === yes) {
+                outputChannel.appendLine(`Deleting app "${node.site.name}"...`);
+                await node.delete();
+                outputChannel.appendLine(`App "${node.site.name}" has been deleted.`);
+                vscode.commands.executeCommand('appService.Refresh', node.getParentNode());
+            } else {
+                throw new UserCancelledError();
+            }
         }
     });
     initAsyncCommand(context, 'appService.CreateWebApp', async (node?: SubscriptionNode) => {
