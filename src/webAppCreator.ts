@@ -251,7 +251,7 @@ export class AppServicePlanStep extends WebsiteCreatorStepBase {
     async prompt(): Promise<void> {
         const createNewItem: QuickPickItemWithData<WebSiteModels.AppServicePlan> = {
             persistenceId: "$new",
-            label: '$(plus) Create New App Service Plan',
+            label: '$(plus) Create New App Service',
             description: '',
             data: this._plan
         };
