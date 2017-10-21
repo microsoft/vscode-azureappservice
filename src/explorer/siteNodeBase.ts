@@ -79,7 +79,7 @@ export class SiteNodeBase extends NodeBase {
         }
 
         if (!util.isSiteDeploymentSlot(this.site) && servicePlan.numberOfSites < 2) {
-            let input = await window.showWarningMessage(`This is the last app in the App Service plan, "${servicePlan.name}". Do you want to delete this App Service plan to prevent unexpected charges?`, 'Yes', 'No');
+            let input = await window.showWarningMessage(`This is the last app in the App Service plan "${servicePlan.name}". Do you want to delete this App Service plan to prevent unexpected charges?`, 'Yes', 'No');
             if (input) {
                 deleteServicePlan = input === 'Yes';
             } else {

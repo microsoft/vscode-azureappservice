@@ -16,7 +16,11 @@ export abstract class WizardBase {
 
     protected constructor(readonly output: vscode.OutputChannel) { }
 
+    protected abstract initSteps();
+
     async run(promptOnly = false): Promise<WizardResult> {
+        this.initSteps();
+
         // Go through the prompts...
         for (var i = 0; i < this.steps.length; i++) {
             const step = this.steps[i];
@@ -66,14 +70,16 @@ export abstract class WizardBase {
         return this._steps;
     }
 
-    findStepOfType<T extends WizardStep>(stepTypeConstructor: { new(...args: any[]): T }): T {
-        return <T>this.findStep(step => step instanceof stepTypeConstructor, `The Wizard should have had a ${stepTypeConstructor.name} step`);
+    findStepOfType<T extends WizardStep>(stepTypeConstructor: { new(...args: any[]): T }, isOptional?: boolean): T {
+        return <T>this.findStep(
+            step => step instanceof stepTypeConstructor,
+            isOptional ? null : `The Wizard should have had a ${stepTypeConstructor.name} step`);
     }
 
-    findStep(predicate: (step: WizardStep) => boolean, errorMessage: string): WizardStep {
+    findStep(predicate: (step: WizardStep) => boolean, errorMessage?: string): WizardStep {
         const step = this.steps.find(predicate);
 
-        if (!step) {
+        if (!step && errorMessage) {
             throw new Error(errorMessage);
         }
 
