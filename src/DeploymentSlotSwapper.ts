@@ -3,25 +3,26 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as vscode from 'vscode';
-import { AzureAccountWrapper } from './azureAccountWrapper';
-import { WizardBase, WizardStep, QuickPickItemWithData } from './wizard';
 import { SubscriptionModels } from 'azure-arm-resource';
+// tslint:disable-next-line:no-require-imports
 import WebSiteManagementClient = require('azure-arm-website');
-import { DeploymentSlotNode } from './explorer/deploymentSlotNode';
-import { DeploymentSlotsNode } from './explorer/deploymentSlotsNode';
+import * as vscode from 'vscode';
+import { AzureAccountWrapper } from './AzureAccountWrapper';
 import { UserCancelledError } from './errors';
+import { DeploymentSlotNode } from './explorer/DeploymentSlotNode';
+import { DeploymentSlotsNode } from './explorer/DeploymentSlotsNode';
+import { IQuickPickItemWithData, WizardBase, WizardStep } from './wizard';
 
 export class DeploymentSlotSwapper extends WizardBase {
     constructor(output: vscode.OutputChannel, readonly azureAccount: AzureAccountWrapper, readonly slot: DeploymentSlotNode) {
         super(output);
     }
 
-    protected initSteps() {
+    protected initSteps(): void {
         this.steps.push(new SwapStep(this, this.azureAccount, this.slot));
     }
 
-    protected beforeExecute() { }
+    protected beforeExecute(): void { }
 }
 
 class SwapStep extends WizardStep {
@@ -47,19 +48,19 @@ class SwapStep extends WizardStep {
         this.sourceSlot = slot;
     }
 
-    async prompt(): Promise<void> {
+    public async prompt(): Promise<void> {
         const deploymentSlots: DeploymentSlotNode[] = await this.slot.getParentNode<DeploymentSlotsNode>().getChildren();
-        let otherSlots: QuickPickItemWithData<null>[] = [{
+        const otherSlots: IQuickPickItemWithData<null>[] = [{
             label: 'production',
             description: 'Swap slot with production',
             detail: null,
             data: null
         }];
 
-        for (let slot of deploymentSlots) {
+        for (const slot of deploymentSlots) {
             if (this.slot.label !== slot.label) {
                 // Deployment slots must have an unique name
-                const otherSlot: QuickPickItemWithData<null> = {
+                const otherSlot: IQuickPickItemWithData<null> = {
                     label: slot.label,
                     description: '',
                     data: null
@@ -79,7 +80,7 @@ class SwapStep extends WizardStep {
         }
     }
 
-    async execute(): Promise<void> {
+    public async execute(): Promise<void> {
         const credential = this.azureAccount.getCredentialByTenantId(this.slot.subscription.tenantId);
         const client = new WebSiteManagementClient(credential, this.slot.subscription.subscriptionId);
         this.targetSlot === 'production' ?

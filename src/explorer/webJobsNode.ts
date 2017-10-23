@@ -5,13 +5,13 @@
 
 import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models';
 import * as opn from 'opn';
-import { NodeBase } from './nodeBase';
+import { NodeBase } from './NodeBase';
 import { AppServiceDataProvider } from './appServiceExplorer';
 import { SubscriptionModels } from 'azure-arm-resource';
 import { TreeItem, TreeItemCollapsibleState } from 'vscode';
-import { AzureAccountWrapper } from '../azureAccountWrapper';
+import { AzureAccountWrapper } from '../AzureAccountWrapper';
 import * as path from 'path';
-import { KuduClient, webJob } from '../kuduClient';
+import { KuduClient, webJob } from '../KuduClient';
 import * as util from '../util';
 import WebSiteManagementClient = require('azure-arm-website');
 

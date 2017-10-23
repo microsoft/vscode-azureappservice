@@ -5,13 +5,13 @@
 
 import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models';
 import * as path from 'path';
-import { NodeBase } from './nodeBase';
-import { SiteNodeBase } from './siteNodeBase';
-import { AppSettingsNode } from './appSettingsNodes';
+import { NodeBase } from './NodeBase';
+import { SiteNodeBase } from './SiteNodeBase';
+import { AppSettingsNode } from './AppSettingsNodes';
 import { AppServiceDataProvider } from './appServiceExplorer';
 import { SubscriptionModels } from 'azure-arm-resource';
 import { TreeItem, TreeItemCollapsibleState, OutputChannel } from 'vscode';
-import { DeploymentSlotSwapper } from '../deploymentSlotActions';
+import { DeploymentSlotSwapper } from '../DeploymentSlotSwapper';
 
 export class DeploymentSlotNode extends SiteNodeBase {
     constructor(label: string,
