@@ -214,7 +214,13 @@ function initAsyncCommand(context: vscode.ExtensionContext, commandId: string, c
             } else {
                 properties.result = 'Failed';
                 errorData = new ErrorData(err);
-                vscode.window.showErrorMessage(errorData.message);
+                if (errorData.message.includes('\n')) {
+                    util.getOutputChannel().appendLine(errorData.message)
+                    vscode.window.showErrorMessage('An error has occured. Check output log for more details.');
+                } else {
+                    vscode.window.showErrorMessage(errorData.message);
+                }
+
             }
         } finally {
             if (errorData) {
