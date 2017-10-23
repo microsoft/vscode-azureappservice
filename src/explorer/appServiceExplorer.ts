@@ -4,9 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { TreeDataProvider, TreeItemCollapsibleState, TreeItem, EventEmitter, Event } from 'vscode';
-import { AzureAccountWrapper } from '../azureAccountWrapper';
-import { SubscriptionNode } from './subscriptionNode';
-import { NodeBase } from './nodeBase';
+import { AzureAccountWrapper } from '../AzureAccountWrapper';
+import { SubscriptionNode } from './SubscriptionNode';
+import { NodeBase } from './NodeBase';
 import * as util from '../util';
 
 export class AppServiceDataProvider implements TreeDataProvider<NodeBase> {

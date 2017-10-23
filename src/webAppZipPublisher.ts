@@ -4,9 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import { AzureAccountWrapper } from './azureAccountWrapper';
-import { WizardBase, WizardStep, SubscriptionStepBase, QuickPickItemWithData } from './wizard';
-import { WebAppCreator } from './webAppCreator2';
+import { AzureAccountWrapper } from './AzureAccountWrapper';
+import { WizardBase, WizardStep, SubscriptionStepBase, IQuickPickItemWithData } from './wizard';
+import { WebAppCreator } from './WebAppCreator2';
 import { SubscriptionModels } from 'azure-arm-resource';
 import WebSiteManagementClient = require('azure-arm-website');
 import * as WebSiteModels from '../node_modules/azure-arm-website/lib/models';
@@ -48,7 +48,7 @@ class ZipFileStep extends WizardStep {
 
             const folderQuickPickItems = vscode.workspace.workspaceFolders.map((value) => {
                 {
-                    return <QuickPickItemWithData<vscode.WorkspaceFolder>>{
+                    return <IQuickPickItemWithData<vscode.WorkspaceFolder>>{
                         label: value.name,
                         description: '',
                         data: value
@@ -106,7 +106,7 @@ class WebAppStep extends WizardStep {
         const subscription = this.getSelectedSubscription();
         const websiteClient = new WebSiteManagementClient(this.azureAccount.getCredentialByTenantId(subscription.tenantId), subscription.subscriptionId);
         const webAppsTask = util.listAll(websiteClient.webApps, websiteClient.webApps.list()).then(webApps => {
-            const quickPickItems: QuickPickItemWithData<WebSiteModels.Site>[] = [];
+            const quickPickItems: IQuickPickItemWithData<WebSiteModels.Site>[] = [];
             quickPickItems.push({
                 persistenceId: "$new",
                 label: '$(plus) Create new Web App',

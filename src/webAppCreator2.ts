@@ -6,8 +6,8 @@
 // TODO: Will rename this file to WebAppCreator after this PR, to make changes easier to understand
 
 import * as vscode from 'vscode';
-import { AzureAccountWrapper } from './azureAccountWrapper';
-import { AppServicePlanStep, AppKind, ResourceGroupStep, SubscriptionStep, WebsiteCreatorBase, WebsiteOS, WebsiteNameStep, WebsiteStep } from "./webAppCreator";
+import { AzureAccountWrapper } from './AzureAccountWrapper';
+import { AppServicePlanStep, AppKind, ResourceGroupStep, SubscriptionStep, WebsiteCreatorBase, WebsiteOS, WebsiteNameStep, WebsiteStep } from "./WebAppCreator";
 import { SubscriptionModels } from 'azure-arm-resource';
 import { WizardStep } from "./wizard";
 
