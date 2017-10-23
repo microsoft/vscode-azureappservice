@@ -16,7 +16,7 @@ import * as util from './util';
 export type WebsiteOS = "linux" | "windows";
 export type AppKind = "app" | "functionapp";
 
-export abstract class BaseWebsiteCreator extends WizardBase {
+export abstract class WebsiteCreatorBase extends WizardBase {
     constructor(output: vscode.OutputChannel, protected readonly azureAccount: AzureAccountWrapper, protected readonly subscription: SubscriptionModels.Subscription, protected readonly persistence?: vscode.Memento) {
         super(output);
     }
@@ -59,8 +59,8 @@ export class WebsiteCreatorStepBase extends WizardStep {
         super(wizard, stepTitle, persistence);
     }
 
-    protected suggestRelatedName(): Promise<string> {
-        var promise = this.wizard.findStepOfType(WebsiteNameStep).suggestRelatedName();
+    protected computeRelatedName(): Promise<string> {
+        var promise = this.wizard.findStepOfType(WebsiteNameStep).computeRelatedName();
         if (!promise) {
             throw new Error('A website name must be entered first.');
         }
@@ -180,7 +180,7 @@ export class ResourceGroupStep extends WebsiteCreatorStepBase {
         }
 
         this._createNew = true;
-        var suggestedName = await this.suggestRelatedName();
+        var suggestedName = await this.computeRelatedName();
         newRgName = await this.showInputBox({
             value: suggestedName,
             prompt: 'Enter the name of the new resource group.',
@@ -251,7 +251,7 @@ export class AppServicePlanStep extends WebsiteCreatorStepBase {
     async prompt(): Promise<void> {
         const createNewItem: QuickPickItemWithData<WebSiteModels.AppServicePlan> = {
             persistenceId: "$new",
-            label: '$(plus) Create New App Service',
+            label: '$(plus) Create New App Service Plan',
             description: '',
             data: this._plan
         };
@@ -297,7 +297,7 @@ export class AppServicePlanStep extends WebsiteCreatorStepBase {
         }
 
         // Prompt for new plan information.
-        const suggestedName = await this.suggestRelatedName();
+        const suggestedName = await this.computeRelatedName();
         newPlanName = await this.showInputBox({
             value: suggestedName,
             prompt: 'Enter the name of the new App Service Plan.',
@@ -538,7 +538,7 @@ export class WebsiteStep extends WebsiteCreatorStepBase {
 
 export class WebsiteNameStep extends WebsiteCreatorStepBase {
     private _websiteName: string;
-    private _suggestedRelatedNamePromise: Promise<string>
+    private _computeRelatedNamePromise: Promise<string>
 
     constructor(wizard: WizardBase, azureAccount: AzureAccountWrapper, private _resources: { prompt: string }, persistence?: vscode.Memento) {
         super(wizard, 'Get Website name', azureAccount, persistence);
@@ -575,7 +575,7 @@ export class WebsiteNameStep extends WebsiteCreatorStepBase {
         }
 
         this._websiteName = siteName;
-        this._suggestedRelatedNamePromise = this.generateRelatedName(siteName);
+        this._computeRelatedNamePromise = this.generateRelatedName(siteName);
     }
 
     protected async isNameAvailable(name: string, resourceGroups: ResourceModels.ResourceGroup[], appServicePlans: WebSiteModels.AppServicePlan[]): Promise<boolean> {
@@ -647,8 +647,8 @@ export class WebsiteNameStep extends WebsiteCreatorStepBase {
         return this._websiteName;
     }
 
-    public suggestRelatedName(): Promise<string> {
-        return this._suggestedRelatedNamePromise;
+    public computeRelatedName(): Promise<string> {
+        return this._computeRelatedNamePromise;
     }
 }
 

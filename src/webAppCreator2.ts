@@ -7,12 +7,11 @@
 
 import * as vscode from 'vscode';
 import { AzureAccountWrapper } from './azureAccountWrapper';
-import { AppServicePlanStep, AppKind, ResourceGroupStep, SubscriptionStep, BaseWebsiteCreator, WebsiteOS, WebsiteNameStep, WebsiteStep } from "./webAppCreator";
+import { AppServicePlanStep, AppKind, ResourceGroupStep, SubscriptionStep, WebsiteCreatorBase, WebsiteOS, WebsiteNameStep, WebsiteStep } from "./webAppCreator";
 import { SubscriptionModels } from 'azure-arm-resource';
-import { UserCancelledError } from './errors';
 import { WizardStep } from "./wizard";
 
-export class WebAppCreator extends BaseWebsiteCreator {
+export class WebAppCreator extends WebsiteCreatorBase {
     constructor(output: vscode.OutputChannel, readonly azureAccount: AzureAccountWrapper, subscription: SubscriptionModels.Subscription, persistence?: vscode.Memento) {
         super(output, azureAccount, subscription, persistence);
     }
@@ -45,13 +44,5 @@ export class WebAppCreator extends BaseWebsiteCreator {
         if (stepIndex == 0) {
             this.writeline('Creating new Web App...');
         }
-    }
-
-    protected onExecuteError(error: Error) {
-        if (error instanceof UserCancelledError) {
-            return;
-        }
-        this.writeline(`Failed to create new Web App: ${error.message}`);
-        this.writeline('');
     }
 }
