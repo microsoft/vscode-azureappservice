@@ -25,19 +25,10 @@ export class WebAppCreator extends WebsiteCreatorBase {
                 prompt: "Select the subscription to create the new Web App in."
             },
             this.subscription, this.persistence));
-        this.steps.push(new WebsiteNameStep(this, this.azureAccount,
-            {
-                prompt: "Enter a globally unique name for the new Web App."
-            },
-            this.persistence));
+        this.steps.push(new WebsiteNameStep(this, this.azureAccount, this.appKind, this.persistence));
         this.steps.push(new ResourceGroupStep(this, this.azureAccount, this.persistence));
         this.steps.push(new AppServicePlanStep(this, this.azureAccount, this.appKind, this.websiteOS, this.persistence));
-        this.steps.push(new WebsiteStep(this, this.azureAccount, this.appKind, this.websiteOS, {
-            title: "Create Web App",
-            creating: "Creating new Web App:",
-            created: "Created new Web App:"
-        },
-            this.persistence));
+        this.steps.push(new WebsiteStep(this, this.azureAccount, this.appKind, this.websiteOS, this.persistence));
     }
 
     protected beforeExecute(_step: WizardStep, stepIndex: number) {

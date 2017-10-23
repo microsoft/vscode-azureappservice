@@ -101,7 +101,7 @@ export abstract class WizardBase {
 
         this.writeline(`Error: ${err.message}`);
         this.writeline('');
-        throw new WizardFailedError(err, step.stepTitle, step.stepIndex);
+        throw new WizardFailedError(err, step.telemetryStepTitle, step.stepIndex);
     }
 
     protected abstract beforeExecute(step?: WizardStep, stepIndex?: number);
@@ -118,7 +118,7 @@ export interface WizardStatePersistence {
 }
 
 export class WizardStep {
-    protected constructor(readonly wizard: WizardBase, readonly stepTitle: string, private persistenceState?: vscode.Memento) { }
+    protected constructor(readonly wizard: WizardBase, readonly telemetryStepTitle: string, private persistenceState?: vscode.Memento) { }
 
     async prompt(): Promise<void> { }
     async execute(): Promise<void> { }

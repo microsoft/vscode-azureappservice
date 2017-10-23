@@ -55,8 +55,8 @@ export abstract class WebsiteCreatorBase extends WizardBase {
 }
 
 export class WebsiteCreatorStepBase extends WizardStep {
-    protected constructor(wizard: WizardBase, stepTitle: string, readonly azureAccount: AzureAccountWrapper, persistence: vscode.Memento) {
-        super(wizard, stepTitle, persistence);
+    protected constructor(wizard: WizardBase, telemetryStepTitle: string, readonly azureAccount: AzureAccountWrapper, persistence: vscode.Memento) {
+        super(wizard, telemetryStepTitle, persistence);
     }
 
     protected computeRelatedName(): Promise<string> {
@@ -110,7 +110,7 @@ export class WebsiteCreatorStepBase extends WizardStep {
 
 export class SubscriptionStep extends SubscriptionStepBase {
     constructor(wizard: WizardBase, azureAccount: AzureAccountWrapper, private _resources: { prompt: string }, subscription?: SubscriptionModels.Subscription, persistence?: vscode.Memento) {
-        super(wizard, 'Select subscription', azureAccount, subscription, persistence);
+        super(wizard, 'SelectSubscription', azureAccount, subscription, persistence);
     }
 
     async prompt(): Promise<void> {
@@ -134,7 +134,7 @@ export class ResourceGroupStep extends WebsiteCreatorStepBase {
     private _rg: ResourceModels.ResourceGroup;
 
     constructor(wizard: WizardBase, azureAccount: AzureAccountWrapper, persistence?: vscode.Memento) {
-        super(wizard, 'Select or create a resource group', azureAccount, persistence);
+        super(wizard, 'SelectOrCreateResourceGroup', azureAccount, persistence);
     }
 
     async prompt(): Promise<void> {
@@ -245,7 +245,7 @@ export class AppServicePlanStep extends WebsiteCreatorStepBase {
     private _plan: WebSiteModels.AppServicePlan;
 
     constructor(wizard: WizardBase, azureAccount: AzureAccountWrapper, private _appKind: AppKind, private _websiteOS: WebsiteOS, persistence: vscode.Memento) {
-        super(wizard, 'Select or create an App Service Plan', azureAccount, persistence);
+        super(wizard, 'SelectOrCreateAppServicePlan', azureAccount, persistence);
     }
 
     async prompt(): Promise<void> {
@@ -335,7 +335,7 @@ export class AppServicePlanStep extends WebsiteCreatorStepBase {
 
         this._plan = {
             appServicePlanName: newPlanName.trim(),
-            kind: GetHostingPlanKind(this._appKind, this._websiteOS),
+            kind: GetAppServicePlanModelKind(this._appKind, this._websiteOS),
             sku: newPlanSku,
             location: rg.location,
             reserved: this._websiteOS === "linux"  // The secret property - must be set to true to make it a Linux plan. Confirmed by the team who owns this API.
@@ -412,17 +412,11 @@ export class AppServicePlanStep extends WebsiteCreatorStepBase {
     }
 }
 
-interface WebsiteStepResources {
-    title: string;    // like "Create Web App"
-    creating: string; // like "Creating new Web App:"
-    created: string;  // like "Created new Web App:"
-}
-
 export class WebsiteStep extends WebsiteCreatorStepBase {
     private _website: WebSiteModels.Site;
 
-    constructor(wizard: WizardBase, azureAccount: AzureAccountWrapper, private _appKind: AppKind, private _websiteOS: WebsiteOS, private _resources: WebsiteStepResources, persistence?: vscode.Memento) {
-        super(wizard, _resources.title, azureAccount, persistence);
+    constructor(wizard: WizardBase, azureAccount: AzureAccountWrapper, private _appKind: AppKind, private _websiteOS: WebsiteOS, persistence?: vscode.Memento) {
+        super(wizard, "Create" + _appKind, azureAccount, persistence);
     }
 
     public async getSiteConfig(linuxFxVersion: string): Promise<WebSiteModels.SiteConfig> {
@@ -459,7 +453,7 @@ export class WebsiteStep extends WebsiteCreatorStepBase {
 
         this._website = {
             name: siteName,
-            kind: GetWebsiteKind(this._appKind, this._websiteOS),
+            kind: GetSiteModelKind(this._appKind, this._websiteOS),
             location: rg.location,
             serverFarmId: optionalPlan && optionalPlan.id,
             siteConfig: {
@@ -470,7 +464,7 @@ export class WebsiteStep extends WebsiteCreatorStepBase {
     }
 
     async execute(): Promise<void> {
-        this.wizard.writeline(`${this._resources.creating} ${this._website.name}...`);
+        this.wizard.writeline(`Creating new ${GetAppKindDisplayName(this._appKind)}: ${this._website.name}...`);
         const subscription = this.getSelectedSubscription();
         const rg = this.getSelectedResourceGroup();
         const websiteClient = new WebSiteManagementClient(this.azureAccount.getCredentialByTenantId(subscription.tenantId), subscription.subscriptionId);
@@ -486,7 +480,7 @@ export class WebsiteStep extends WebsiteCreatorStepBase {
         this._website = await websiteClient.webApps.createOrUpdate(rg.name, this._website.name, this._website);
         this._website.siteConfig = await websiteClient.webApps.getConfiguration(rg.name, this._website.name);
 
-        this.wizard.writeline(`${this._resources.created} https://${this._website.defaultHostName}`);
+        this.wizard.writeline(`Created new ${GetAppKindDisplayName(this._appKind)} https://${this._website.defaultHostName}`);
         this.wizard.writeline('');
     }
 
@@ -540,8 +534,8 @@ export class WebsiteNameStep extends WebsiteCreatorStepBase {
     private _websiteName: string;
     private _computeRelatedNamePromise: Promise<string>
 
-    constructor(wizard: WizardBase, azureAccount: AzureAccountWrapper, private _resources: { prompt: string }, persistence?: vscode.Memento) {
-        super(wizard, 'Get Website name', azureAccount, persistence);
+    constructor(wizard: WizardBase, azureAccount: AzureAccountWrapper, private _appKind: AppKind, persistence?: vscode.Memento) {
+        super(wizard, 'GetWebsiteName', azureAccount, persistence);
     }
 
     async prompt(): Promise<void> {
@@ -552,7 +546,7 @@ export class WebsiteNameStep extends WebsiteCreatorStepBase {
 
         while (!siteNameOkay) {
             siteName = await this.showInputBox({
-                prompt: `${this._resources.prompt} (${this.stepProgressText})`,
+                prompt: `Enter a globally unique name for the new ${GetAppKindDisplayName(this._appKind)}. (${this.stepProgressText})`,
                 validateInput: (value: string) => {
                     value = value ? value.trim() : '';
 
@@ -657,7 +651,10 @@ interface LinuxRuntimeStack {
     displayName: string;
 }
 
-function GetWebsiteKind(kind: AppKind, os: WebsiteOS) {
+/**
+ * Retrieves a valid "kind" for WebSiteModels.Site
+ */
+function GetSiteModelKind(kind: AppKind, os: WebsiteOS): string {
     var planKind: string;
 
     if (os === "linux") {
@@ -671,7 +668,10 @@ function GetWebsiteKind(kind: AppKind, os: WebsiteOS) {
     return planKind
 }
 
-function GetHostingPlanKind(_kind: AppKind, os: WebsiteOS) {
+/**
+ * Retrieves a valid "kind" for WebSiteModels.AppServicePlan
+ */
+function GetAppServicePlanModelKind(_kind: AppKind, os: WebsiteOS): string {
     // Always create app plans, no matter what the website kind
     if (os === "linux") {
         return "linux";
@@ -680,3 +680,13 @@ function GetHostingPlanKind(_kind: AppKind, os: WebsiteOS) {
     }
 }
 
+function GetAppKindDisplayName(kind: AppKind): string {
+    switch (kind) {
+        case "app":
+            return "Web App";
+        case "functionapp":
+            return "Function App";
+        default:
+            throw new RangeError();
+    }
+}
