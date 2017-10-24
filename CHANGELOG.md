@@ -4,7 +4,7 @@ All notable changes to the "azure-appservice" extension will be documented in th
 ## 0.3.0 - 2017-10-18
 ### Added
 - Local Git deployment
-- "Create New Web App" remembers user selection
+- "Create New Web App" remembers user selections
 - A setting to show/hide the App Service Explorer
 - Swap deployment slots with production site
 - "Open In Portal" context menu command for Application Settings
