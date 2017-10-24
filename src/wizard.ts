@@ -21,6 +21,14 @@ export abstract class WizardBase {
         this.output = output;
     }
 
+    public write(text: string): void {
+        this.output.append(text);
+    }
+
+    public writeline(text: string): void {
+        this.output.appendLine(text);
+    }
+
     protected abstract initSteps(): void;
 
     protected async run(promptOnly: boolean = false): Promise<IWizardResult> {
@@ -89,14 +97,6 @@ export abstract class WizardBase {
         return step;
     }
 
-    protected write(text: string): void {
-        this.output.append(text);
-    }
-
-    protected writeline(text: string): void {
-        this.output.appendLine(text);
-    }
-
     protected onError(err: Error, step: WizardStep): void {
         if (err instanceof UserCancelledError) {
             throw err;
@@ -107,7 +107,9 @@ export abstract class WizardBase {
         throw new WizardFailedError(err, step.telemetryStepTitle, step.stepIndex);
     }
 
-    protected abstract beforeExecute(step?: WizardStep, stepIndex?: number): void;
+    protected beforeExecute(step: WizardStep, stepIndex: number): void {
+        return;
+    }
 }
 
 export interface IWizardResult {
@@ -116,9 +118,9 @@ export interface IWizardResult {
     error: Error | null;
 }
 
-export abstract class WizardStep {
+export class WizardStep {
+    public readonly telemetryStepTitle: string;
     protected readonly wizard: WizardBase;
-    protected readonly telemetryStepTitle: string;
     private persistenceState?: vscode.Memento;
     protected constructor(wizard: WizardBase, telemetryStepTitle: string, persistenceState?: vscode.Memento) {
         this.wizard = wizard;
@@ -126,8 +128,12 @@ export abstract class WizardStep {
         this.persistenceState = persistenceState;
     }
 
-    public abstract async prompt(): Promise<void>;
-    public abstract async execute(): Promise<void>;
+    public async prompt(): Promise<void> {
+        return;
+    }
+    public async execute(): Promise<void> {
+        return;
+    }
 
     get stepIndex(): number {
         return this.wizard.steps.findIndex(step => step === this);
