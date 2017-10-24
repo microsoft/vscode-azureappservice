@@ -4,9 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { SubscriptionModels } from 'azure-arm-resource';
-import { Subscription } from 'azure-arm-resource/lib/subscription/models';
 import * as vscode from 'vscode';
-import { AzureAccount } from './azure-account.api';
 import { AzureAccountWrapper } from './AzureAccountWrapper';
 import { UserCancelledError, WizardFailedError } from './errors';
 
@@ -107,7 +105,7 @@ export abstract class WizardBase {
         throw new WizardFailedError(err, step.telemetryStepTitle, step.stepIndex);
     }
 
-    protected beforeExecute(step: WizardStep, stepIndex: number): void {
+    protected beforeExecute(_step: WizardStep, _stepIndex: number): void {
         return;
     }
 }

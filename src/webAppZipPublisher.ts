@@ -82,7 +82,7 @@ class SubscriptionStep extends SubscriptionStepBase {
         const quickPickItemsTask = this.getSubscriptionsAsQuickPickItems();
         const quickPickOptions = { placeHolder: `Select the subscription where target Web App is. (${this.stepProgressText})` };
         const result = await this.showQuickPick(quickPickItemsTask, quickPickOptions);
-        this._subscription = result.data;
+        this.subscription = result.data;
     }
 }
 

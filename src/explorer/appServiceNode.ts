@@ -3,25 +3,25 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { TreeItem, TreeItemCollapsibleState } from 'vscode';
-import { SubscriptionModels, ResourceManagementClient, } from 'azure-arm-resource';
-import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models';
-import { AppServiceDataProvider } from './appServiceExplorer';
-import { NodeBase } from './NodeBase';
-import { SiteNodeBase } from './SiteNodeBase';
-import { DeploymentSlotsNode } from './DeploymentSlotsNode';
-import { WebJobsNode } from './WebJobsNode';
-import { AppSettingsNode } from './AppSettingsNodes';
+import { ResourceManagementClient, SubscriptionModels } from 'azure-arm-resource';
 import * as fs from 'fs';
 import * as path from 'path';
+import { TreeItem, TreeItemCollapsibleState } from 'vscode';
 import * as vscode from 'vscode';
+import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models';
+import { AppServiceDataProvider } from './appServiceExplorer';
+import { AppSettingsNode } from './AppSettingsNodes';
+import { DeploymentSlotsNode } from './DeploymentSlotsNode';
+import { NodeBase } from './NodeBase';
+import { SiteNodeBase } from './SiteNodeBase';
+import { WebJobsNode } from './WebJobsNode';
 
 export class AppServiceNode extends SiteNodeBase {
     constructor(site: WebSiteModels.Site, subscription: SubscriptionModels.Subscription, treeDataProvider: AppServiceDataProvider, parentNode: NodeBase) {
         super(site.name, site, subscription, treeDataProvider, parentNode);
     }
 
-    getTreeItem(): TreeItem {
+    public getTreeItem(): TreeItem {
         const iconName = 'AzureWebsite_16x_vscode.svg';
         return {
             label: `${this.label} (${this.site.resourceGroup})`,
@@ -31,10 +31,10 @@ export class AppServiceNode extends SiteNodeBase {
                 light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', iconName),
                 dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', iconName)
             }
-        }
+        };
     }
 
-    async getChildren(): Promise<NodeBase[]> {
+    public async getChildren(): Promise<NodeBase[]> {
         if (this.azureAccount.signInStatus !== 'LoggedIn') {
             return [];
         }
@@ -51,7 +51,7 @@ export class AppServiceNode extends SiteNodeBase {
         ];
     }
 
-    async generateDeploymentScript(): Promise<void> {
+    public async generateDeploymentScript(): Promise<void> {
         const resourceClient = new ResourceManagementClient(this.azureAccount.getCredentialByTenantId(this.subscription.tenantId), this.subscription.subscriptionId);
         const subscription = this.subscription;
         const site = this.site;
