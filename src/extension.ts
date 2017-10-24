@@ -184,12 +184,12 @@ export function activate(context: vscode.ExtensionContext): void {
 export function deactivate() {
 }
 
-function initCommand(context: vscode.ExtensionContext, commandId: string, callback: (...args: {}[]) => {}) {
-    initAsyncCommand(context, commandId, (...args: {}[]) => Promise.resolve(callback(...args)));
+function initCommand(context: vscode.ExtensionContext, commandId: string, callback: (...args: any[]) => any) {
+    initAsyncCommand(context, commandId, (...args: any[]) => Promise.resolve(callback(...args)));
 }
 
-function initAsyncCommand(context: vscode.ExtensionContext, commandId: string, callback: (...args: {}[]) => Promise<{}>) {
-    context.subscriptions.push(vscode.commands.registerCommand(commandId, async (...args: {}[]) => {
+function initAsyncCommand(context: vscode.ExtensionContext, commandId: string, callback: (...args: any[]) => Promise<any>) {
+    context.subscriptions.push(vscode.commands.registerCommand(commandId, async (...args: any[]) => {
         const start = Date.now();
         const properties: { [key: string]: string; } = {};
         const output = util.getOutputChannel();

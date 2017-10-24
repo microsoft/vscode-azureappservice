@@ -11,7 +11,7 @@ import { UserCancelledError, WizardFailedError } from './errors';
 export type WizardStatus = 'PromptCompleted' | 'Completed' | 'Faulted' | 'Cancelled';
 
 export abstract class WizardBase {
-    protected readonly output: vscode.OutputChannel;
+    public readonly output: vscode.OutputChannel;
     private readonly _steps: WizardStep[] = [];
     private _result: IWizardResult;
 
@@ -29,7 +29,7 @@ export abstract class WizardBase {
 
     protected abstract initSteps(): void;
 
-    protected async run(promptOnly: boolean = false): Promise<IWizardResult> {
+    public async run(promptOnly: boolean = false): Promise<IWizardResult> {
         this.initSteps();
 
         // Go through the prompts...
@@ -52,7 +52,7 @@ export abstract class WizardBase {
         return this.execute();
     }
 
-    protected async execute(): Promise<IWizardResult> {
+    public async execute(): Promise<IWizardResult> {
         // Execute each step...
         this.output.show(true);
         for (let i = 0; i < this.steps.length; i++) {
@@ -79,7 +79,7 @@ export abstract class WizardBase {
         return this._steps;
     }
 
-    protected findStepOfType<T extends WizardStep>(stepTypeConstructor: { new(...args: {}[]): T }, isOptional?: boolean): T {
+    public findStepOfType<T extends WizardStep>(stepTypeConstructor: { new(...args: {}[]): T }, isOptional?: boolean): T {
         return <T>this.findStep(
             step => step instanceof stepTypeConstructor,
             isOptional ? null : `The Wizard should have had a ${stepTypeConstructor.name} step`);
