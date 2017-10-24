@@ -9,7 +9,7 @@ import * as path from 'path';
 import { TreeItem, TreeItemCollapsibleState } from 'vscode';
 import * as vscode from 'vscode';
 import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models';
-import { AppServiceDataProvider } from './appServiceExplorer';
+import { AppServiceDataProvider } from './AppServiceExplorer';
 import { AppSettingsNode } from './AppSettingsNodes';
 import { DeploymentSlotsNode } from './DeploymentSlotsNode';
 import { NodeBase } from './NodeBase';

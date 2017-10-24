@@ -8,7 +8,7 @@ import * as opn from 'opn';
 import * as util from '../util';
 import WebSiteManagementClient = require('azure-arm-website');
 import { NodeBase } from './NodeBase';
-import { AppServiceDataProvider } from './appServiceExplorer';
+import { AppServiceDataProvider } from './AppServiceExplorer';
 import { SubscriptionModels } from 'azure-arm-resource';
 import { ExtensionContext, OutputChannel, window, workspace } from 'vscode';
 import { AzureAccountWrapper } from '../AzureAccountWrapper';

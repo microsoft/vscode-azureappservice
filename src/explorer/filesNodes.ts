@@ -5,7 +5,7 @@
 
 import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models';
 import { NodeBase } from './NodeBase';
-import { AppServiceDataProvider } from './appServiceExplorer';
+import { AppServiceDataProvider } from './AppServiceExplorer';
 import { SubscriptionModels } from 'azure-arm-resource';
 import { TreeItem, TreeItemCollapsibleState } from 'vscode';
 import { AzureAccountWrapper } from '../AzureAccountWrapper';

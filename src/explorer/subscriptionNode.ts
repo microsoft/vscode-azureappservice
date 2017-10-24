@@ -6,7 +6,7 @@
 import { TreeItem, TreeItemCollapsibleState } from 'vscode';
 import { AzureAccountWrapper } from '../AzureAccountWrapper';
 import { SubscriptionModels } from 'azure-arm-resource';
-import { AppServiceDataProvider } from './appServiceExplorer';
+import { AppServiceDataProvider } from './AppServiceExplorer';
 import { NodeBase } from './NodeBase';
 import { AppServiceNode } from './AppServiceNode';
 import WebSiteManagementClient = require('azure-arm-website');

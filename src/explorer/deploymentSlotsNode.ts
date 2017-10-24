@@ -8,7 +8,7 @@ import * as opn from 'opn';
 import * as path from 'path';
 import * as util from '../util';
 import { NodeBase } from './NodeBase';
-import { AppServiceDataProvider } from './appServiceExplorer';
+import { AppServiceDataProvider } from './AppServiceExplorer';
 import { SubscriptionModels } from 'azure-arm-resource';
 import WebSiteManagementClient = require('azure-arm-website');
 import { TreeItem, TreeItemCollapsibleState } from 'vscode';

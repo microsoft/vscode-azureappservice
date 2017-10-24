@@ -8,7 +8,7 @@ import * as path from 'path';
 import { NodeBase } from './NodeBase';
 import { SiteNodeBase } from './SiteNodeBase';
 import { AppSettingsNode } from './AppSettingsNodes';
-import { AppServiceDataProvider } from './appServiceExplorer';
+import { AppServiceDataProvider } from './AppServiceExplorer';
 import { SubscriptionModels } from 'azure-arm-resource';
 import { TreeItem, TreeItemCollapsibleState, OutputChannel } from 'vscode';
 import { DeploymentSlotSwapper } from '../DeploymentSlotSwapper';
