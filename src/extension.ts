@@ -6,22 +6,23 @@
 'use strict';
 
 import * as vscode from 'vscode';
-import * as util from "./util";
+import { AzureAccountWrapper } from './AzureAccountWrapper';
+import { ErrorData } from './ErrorData';
+import { GitNotInstalledError, LocalGitDeployError, UserCancelledError, WizardFailedError } from './errors';
 import { AppServiceDataProvider } from './explorer/appServiceExplorer';
+import { AppServiceNode } from './explorer/appServiceNode';
+import { AppSettingNode, AppSettingsNode } from './explorer/appSettingsNodes';
+import { DeploymentSlotNode } from './explorer/DeploymentSlotNode';
 import { NodeBase } from './explorer/NodeBase';
 import { SiteNodeBase } from './explorer/SiteNodeBase';
-import { AppServiceNode } from './explorer/appServiceNode';
-import { AppSettingsNode, AppSettingNode } from './explorer/appSettingsNodes';
-import { DeploymentSlotNode } from './explorer/DeploymentSlotNode';
 import { SubscriptionNode } from './explorer/SubscriptionNode';
-import { AzureAccountWrapper } from './AzureAccountWrapper';
+import { Reporter } from './telemetry/reporter';
+import * as util from "./util";
 import { WebAppCreator } from './WebAppCreator2';
 import { WebAppZipPublisher } from './webAppZipPublisher';
-import { Reporter } from './telemetry/reporter';
-import { UserCancelledError, GitNotInstalledError, LocalGitDeployError, WizardFailedError } from './errors';
-import { ErrorData } from './ErrorData';
 
-export function activate(context: vscode.ExtensionContext) {
+// tslint:disable-next-line:max-func-body-length
+export function activate(context: vscode.ExtensionContext): void {
     console.log('Extension "Azure App Service Tools" is now active.');
 
     context.subscriptions.push(new Reporter(context));
@@ -98,7 +99,7 @@ export function activate(context: vscode.ExtensionContext) {
             vscode.commands.executeCommand('appService.Refresh', node);
         }
     });
-    initAsyncCommand(context, 'appService.DeployZipPackage', async (context: any) => {
+    initAsyncCommand(context, 'appService.DeployZipPackage', async (context: {}) => {
         if (context instanceof SiteNodeBase) {
             const wizard = new WebAppZipPublisher(outputChannel, azureAccount, context.subscription, context.site);
             await wizard.run();
@@ -107,7 +108,7 @@ export function activate(context: vscode.ExtensionContext) {
             await wizard.run();
         }
     });
-    initAsyncCommand(context, 'appService.ZipAndDeploy', async (context: any) => {
+    initAsyncCommand(context, 'appService.ZipAndDeploy', async (context: {}) => {
         if (context instanceof vscode.Uri) {
             const folderPath = context.fsPath;
             const wizard = new WebAppZipPublisher(outputChannel, azureAccount, undefined, undefined, folderPath);
@@ -183,12 +184,12 @@ export function activate(context: vscode.ExtensionContext) {
 export function deactivate() {
 }
 
-function initCommand(context: vscode.ExtensionContext, commandId: string, callback: (...args: any[]) => any) {
-    initAsyncCommand(context, commandId, (...args: any[]) => Promise.resolve(callback(...args)));
+function initCommand(context: vscode.ExtensionContext, commandId: string, callback: (...args: {}[]) => {}) {
+    initAsyncCommand(context, commandId, (...args: {}[]) => Promise.resolve(callback(...args)));
 }
 
-function initAsyncCommand(context: vscode.ExtensionContext, commandId: string, callback: (...args: any[]) => Promise<any>) {
-    context.subscriptions.push(vscode.commands.registerCommand(commandId, async (...args: any[]) => {
+function initAsyncCommand(context: vscode.ExtensionContext, commandId: string, callback: (...args: {}[]) => Promise<{}>) {
+    context.subscriptions.push(vscode.commands.registerCommand(commandId, async (...args: {}[]) => {
         const start = Date.now();
         const properties: { [key: string]: string; } = {};
         properties.result = 'Succeeded';
