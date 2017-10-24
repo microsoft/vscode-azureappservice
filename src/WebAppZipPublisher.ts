@@ -4,9 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import { AzureAccountWrapper } from './azureAccountWrapper';
-import { WizardBase, WizardStep, SubscriptionStepBase, QuickPickItemWithData } from './wizard';
-import { WebAppCreator } from './webAppCreator';
+import { AzureAccountWrapper } from './AzureAccountWrapper';
+import { WizardBase, WizardStep, SubscriptionStepBase, IQuickPickItemWithData } from './wizard';
+import { WebAppCreator } from './WebAppCreator2';
 import { SubscriptionModels } from 'azure-arm-resource';
 import WebSiteManagementClient = require('azure-arm-website');
 import * as WebSiteModels from '../node_modules/azure-arm-website/lib/models';
@@ -20,10 +20,13 @@ export class WebAppZipPublisher extends WizardBase {
         readonly site?: WebSiteModels.Site,
         readonly fsPath?: string) {
         super(output);
-        this.steps.push(new ZipFileStep(this, fsPath));
-        this.steps.push(new SubscriptionStep(this, azureAccount, subscription));
-        this.steps.push(new WebAppStep(this, azureAccount, site));
-        this.steps.push(new DeployStep(this, azureAccount));
+    }
+
+    protected initSteps() {
+        this.steps.push(new ZipFileStep(this, this.fsPath));
+        this.steps.push(new SubscriptionStep(this, this.azureAccount, this.subscription));
+        this.steps.push(new WebAppStep(this, this.azureAccount, this.site));
+        this.steps.push(new DeployStep(this, this.azureAccount));
     }
 
     protected beforeExecute() { }
@@ -45,7 +48,7 @@ class ZipFileStep extends WizardStep {
 
             const folderQuickPickItems = vscode.workspace.workspaceFolders.map((value) => {
                 {
-                    return <QuickPickItemWithData<vscode.WorkspaceFolder>>{
+                    return <IQuickPickItemWithData<vscode.WorkspaceFolder>>{
                         label: value.name,
                         description: '',
                         data: value
@@ -79,7 +82,7 @@ class SubscriptionStep extends SubscriptionStepBase {
         const quickPickItemsTask = this.getSubscriptionsAsQuickPickItems();
         const quickPickOptions = { placeHolder: `Select the subscription where target Web App is. (${this.stepProgressText})` };
         const result = await this.showQuickPick(quickPickItemsTask, quickPickOptions);
-        this._subscription = result.data;
+        this.subscription = result.data;
     }
 }
 
@@ -103,7 +106,7 @@ class WebAppStep extends WizardStep {
         const subscription = this.getSelectedSubscription();
         const websiteClient = new WebSiteManagementClient(this.azureAccount.getCredentialByTenantId(subscription.tenantId), subscription.subscriptionId);
         const webAppsTask = util.listAll(websiteClient.webApps, websiteClient.webApps.list()).then(webApps => {
-            const quickPickItems: QuickPickItemWithData<WebSiteModels.Site>[] = [];
+            const quickPickItems: IQuickPickItemWithData<WebSiteModels.Site>[] = [];
             quickPickItems.push({
                 persistenceId: "$new",
                 label: '$(plus) Create new Web App',

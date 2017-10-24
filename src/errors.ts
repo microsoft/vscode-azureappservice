@@ -26,6 +26,7 @@ export class LocalGitDeployError extends Error {
     }
 }
 
+// tslint:disable-next-line:max-classes-per-file
 export class WizardFailedError extends Error {
     public readonly stepTitle: string;
     public readonly stepIndex: number;

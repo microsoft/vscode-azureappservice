@@ -7,6 +7,6 @@
         "out": true,
         "**/node_modules": true
     },
-    "tslint.autoFixOnSave": true,
+    "tslint.autoFixOnSave": false,
     "tslint.ignoreDefinitionFiles": true
-}
+}   

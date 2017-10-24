@@ -6,22 +6,23 @@
 'use strict';
 
 import * as vscode from 'vscode';
-import * as util from "./util";
-import { AppServiceDataProvider } from './explorer/appServiceExplorer';
-import { NodeBase } from './explorer/nodeBase';
-import { SiteNodeBase } from './explorer/siteNodeBase';
-import { AppServiceNode } from './explorer/appServiceNode';
-import { AppSettingsNode, AppSettingNode } from './explorer/appSettingsNodes';
-import { DeploymentSlotNode } from './explorer/deploymentSlotNode';
-import { SubscriptionNode } from './explorer/subscriptionNode';
-import { AzureAccountWrapper } from './azureAccountWrapper';
-import { WebAppCreator } from './webAppCreator';
-import { WebAppZipPublisher } from './webAppZipPublisher';
-import { Reporter } from './telemetry/reporter';
-import { UserCancelledError, GitNotInstalledError, LocalGitDeployError, WizardFailedError } from './errors';
+import { AzureAccountWrapper } from './AzureAccountWrapper';
 import { ErrorData } from './ErrorData';
+import { GitNotInstalledError, LocalGitDeployError, UserCancelledError, WizardFailedError } from './errors';
+import { AppServiceDataProvider } from './explorer/appServiceExplorer';
+import { AppServiceNode } from './explorer/appServiceNode';
+import { AppSettingNode, AppSettingsNode } from './explorer/appSettingsNodes';
+import { DeploymentSlotNode } from './explorer/DeploymentSlotNode';
+import { NodeBase } from './explorer/NodeBase';
+import { SiteNodeBase } from './explorer/SiteNodeBase';
+import { SubscriptionNode } from './explorer/SubscriptionNode';
+import { Reporter } from './telemetry/reporter';
+import * as util from "./util";
+import { WebAppCreator } from './WebAppCreator2';
+import { WebAppZipPublisher } from './webAppZipPublisher';
 
-export function activate(context: vscode.ExtensionContext) {
+// tslint:disable-next-line:max-func-body-length
+export function activate(context: vscode.ExtensionContext): void {
     console.log('Extension "Azure App Service Tools" is now active.');
 
     context.subscriptions.push(new Reporter(context));
@@ -98,7 +99,7 @@ export function activate(context: vscode.ExtensionContext) {
             vscode.commands.executeCommand('appService.Refresh', node);
         }
     });
-    initAsyncCommand(context, 'appService.DeployZipPackage', async (context: any) => {
+    initAsyncCommand(context, 'appService.DeployZipPackage', async (context: {}) => {
         if (context instanceof SiteNodeBase) {
             const wizard = new WebAppZipPublisher(outputChannel, azureAccount, context.subscription, context.site);
             await wizard.run();
@@ -107,7 +108,7 @@ export function activate(context: vscode.ExtensionContext) {
             await wizard.run();
         }
     });
-    initAsyncCommand(context, 'appService.ZipAndDeploy', async (context: any) => {
+    initAsyncCommand(context, 'appService.ZipAndDeploy', async (context: {}) => {
         if (context instanceof vscode.Uri) {
             const folderPath = context.fsPath;
             const wizard = new WebAppZipPublisher(outputChannel, azureAccount, undefined, undefined, folderPath);

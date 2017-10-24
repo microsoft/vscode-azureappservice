@@ -7,12 +7,12 @@ import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models'
 import * as opn from 'opn';
 import * as util from '../util';
 import WebSiteManagementClient = require('azure-arm-website');
-import { NodeBase } from './nodeBase';
+import { NodeBase } from './NodeBase';
 import { AppServiceDataProvider } from './appServiceExplorer';
 import { SubscriptionModels } from 'azure-arm-resource';
 import { ExtensionContext, OutputChannel, window, workspace } from 'vscode';
-import { AzureAccountWrapper } from '../azureAccountWrapper';
-import { KuduClient } from '../kuduClient';
+import { AzureAccountWrapper } from '../AzureAccountWrapper';
+import { KuduClient } from '../KuduClient';
 import { Request } from 'request';
 import { UserCancelledError, GitNotInstalledError, LocalGitDeployError } from '../errors';
 import { SiteWrapper } from 'vscode-azureappservice';
@@ -79,7 +79,7 @@ export class SiteNodeBase extends NodeBase {
         }
 
         if (!util.isSiteDeploymentSlot(this.site) && servicePlan.numberOfSites < 2) {
-            let input = await window.showWarningMessage(`This is the last app in the App Service plan, "${servicePlan.name}". Do you want to delete this App Service plan to prevent unexpected charges?`, 'Yes', 'No');
+            let input = await window.showWarningMessage(`This is the last app in the App Service plan "${servicePlan.name}". Do you want to delete this App Service plan to prevent unexpected charges?`, 'Yes', 'No');
             if (input) {
                 deleteServicePlan = input === 'Yes';
             } else {

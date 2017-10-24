@@ -3,26 +3,39 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as vscode from 'vscode';
-import { AzureAccountWrapper } from './azureAccountWrapper';
 import { SubscriptionModels } from 'azure-arm-resource';
+import * as vscode from 'vscode';
+import { AzureAccountWrapper } from './AzureAccountWrapper';
 import { UserCancelledError, WizardFailedError } from './errors';
 
 export type WizardStatus = 'PromptCompleted' | 'Completed' | 'Faulted' | 'Cancelled';
 
 export abstract class WizardBase {
+    public readonly output: vscode.OutputChannel;
     private readonly _steps: WizardStep[] = [];
-    private _result: WizardResult;
+    private _result: IWizardResult;
 
-    protected constructor(readonly output: vscode.OutputChannel) { }
+    protected constructor(output: vscode.OutputChannel) {
+        this.output = output;
+    }
 
-    async run(promptOnly = false): Promise<WizardResult> {
+    public write(text: string): void {
+        this.output.append(text);
+    }
+
+    public writeline(text: string): void {
+        this.output.appendLine(text);
+    }
+
+    protected abstract initSteps(): void;
+
+    public async run(promptOnly: boolean = false): Promise<IWizardResult> {
+        this.initSteps();
+
         // Go through the prompts...
-        for (var i = 0; i < this.steps.length; i++) {
-            const step = this.steps[i];
-
+        for (const step of this.steps) {
             try {
-                await this.steps[i].prompt();
+                await step.prompt();
             } catch (err) {
                 this.onError(err, step);
             }
@@ -39,10 +52,10 @@ export abstract class WizardBase {
         return this.execute();
     }
 
-    async execute(): Promise<WizardResult> {
+    public async execute(): Promise<IWizardResult> {
         // Execute each step...
         this.output.show(true);
-        for (var i = 0; i < this.steps.length; i++) {
+        for (let i = 0; i < this.steps.length; i++) {
             const step = this.steps[i];
 
             try {
@@ -66,56 +79,59 @@ export abstract class WizardBase {
         return this._steps;
     }
 
-    findStepOfType<T extends WizardStep>(stepTypeConstructor: { new(...args: any[]): T }): T {
-        return <T>this.findStep(step => step instanceof stepTypeConstructor, `The Wizard should have had a ${stepTypeConstructor.name} step`);
+    public findStepOfType<T extends WizardStep>(stepTypeConstructor: { new(...args: {}[]): T }, isOptional?: boolean): T {
+        return <T>this.findStep(
+            step => step instanceof stepTypeConstructor,
+            isOptional ? null : `The Wizard should have had a ${stepTypeConstructor.name} step`);
     }
 
-    findStep(predicate: (step: WizardStep) => boolean, errorMessage: string): WizardStep {
+    protected findStep(predicate: (step: WizardStep) => boolean, errorMessage?: string): WizardStep {
         const step = this.steps.find(predicate);
 
-        if (!step) {
+        if (!step && errorMessage) {
             throw new Error(errorMessage);
         }
 
         return step;
     }
 
-    write(text: string) {
-        this.output.append(text);
-    }
-
-    writeline(text: string) {
-        this.output.appendLine(text);
-    }
-
-    private onError(err: Error, step: WizardStep) {
+    protected onError(err: Error, step: WizardStep): void {
         if (err instanceof UserCancelledError) {
             throw err;
         }
 
         this.writeline(`Error: ${err.message}`);
         this.writeline('');
-        throw new WizardFailedError(err, step.stepTitle, step.stepIndex);
+        throw new WizardFailedError(err, step.telemetryStepTitle, step.stepIndex);
     }
 
-    protected abstract beforeExecute(step?: WizardStep, stepIndex?: number);
+    protected beforeExecute(_step: WizardStep, _stepIndex: number): void {
+        return;
+    }
 }
 
-export interface WizardResult {
+export interface IWizardResult {
     status: WizardStatus;
     step: WizardStep;
     error: Error | null;
 }
 
-export interface WizardStatePersistence {
-
-}
-
 export class WizardStep {
-    protected constructor(readonly wizard: WizardBase, readonly stepTitle: string, private persistenceState?: vscode.Memento) { }
+    public readonly telemetryStepTitle: string;
+    protected readonly wizard: WizardBase;
+    private persistenceState?: vscode.Memento;
+    protected constructor(wizard: WizardBase, telemetryStepTitle: string, persistenceState?: vscode.Memento) {
+        this.wizard = wizard;
+        this.telemetryStepTitle = telemetryStepTitle;
+        this.persistenceState = persistenceState;
+    }
 
-    async prompt(): Promise<void> { }
-    async execute(): Promise<void> { }
+    public async prompt(): Promise<void> {
+        return;
+    }
+    public async execute(): Promise<void> {
+        return;
+    }
 
     get stepIndex(): number {
         return this.wizard.steps.findIndex(step => step === this);
@@ -125,13 +141,13 @@ export class WizardStep {
         return `Step ${this.stepIndex + 1}/${this.wizard.steps.length}`;
     }
 
-    async showQuickPick<T>(items: QuickPickItemWithData<T>[] | Thenable<QuickPickItemWithData<T>[]>, options: vscode.QuickPickOptions, persistenceKey?: string, token?: vscode.CancellationToken): Promise<QuickPickItemWithData<T>> {
+    public async showQuickPick<T>(items: IQuickPickItemWithData<T>[] | Thenable<IQuickPickItemWithData<T>[]>, options: vscode.QuickPickOptions, persistenceKey?: string, token?: vscode.CancellationToken): Promise<IQuickPickItemWithData<T>> {
         options.ignoreFocusOut = true;
-        var resolvedItems = await items;
+        let resolvedItems = await items;
         if (this.persistenceState && persistenceKey) {
             // See if the previous value selected by the user is in this list, and move it to the top as default
-            var previousId = this.persistenceState.get(persistenceKey);
-            var previousItem = previousId && resolvedItems.find(item => item.persistenceId === previousId);
+            const previousId = this.persistenceState.get(persistenceKey);
+            const previousItem = previousId && resolvedItems.find(item => item.persistenceId === previousId);
             if (previousItem) {
                 resolvedItems = ([previousItem]).concat(resolvedItems.filter(item => item !== previousItem));
             }
@@ -149,7 +165,7 @@ export class WizardStep {
         return result;
     }
 
-    async showInputBox(options?: vscode.InputBoxOptions, token?: vscode.CancellationToken): Promise<string> {
+    public async showInputBox(options?: vscode.InputBoxOptions, token?: vscode.CancellationToken): Promise<string> {
         options.ignoreFocusOut = true;
         const result = await vscode.window.showInputBox(options, token);
 
@@ -162,11 +178,15 @@ export class WizardStep {
 }
 
 export class SubscriptionStepBase extends WizardStep {
-    constructor(wizard: WizardBase, title: string, readonly azureAccount: AzureAccountWrapper, protected _subscription?: SubscriptionModels.Subscription, persistence?: vscode.Memento) {
+    private readonly azureAccount: AzureAccountWrapper;
+
+    constructor(wizard: WizardBase, title: string, azureAccount: AzureAccountWrapper, subscription?: SubscriptionModels.Subscription, persistence?: vscode.Memento) {
         super(wizard, title, persistence);
+        this.azureAccount = azureAccount;
+        this.subscription = subscription;
     }
 
-    protected getSubscriptionsAsQuickPickItems(): Promise<QuickPickItemWithData<SubscriptionModels.Subscription>[]> {
+    protected getSubscriptionsAsQuickPickItems(): Promise<IQuickPickItemWithData<SubscriptionModels.Subscription>[]> {
         return Promise.resolve(
             this.azureAccount.getFilteredSubscriptions().map(s => {
                 return {
@@ -181,11 +201,15 @@ export class SubscriptionStepBase extends WizardStep {
     }
 
     get subscription(): SubscriptionModels.Subscription {
-        return this._subscription;
+        return this.subscription;
+    }
+
+    set subscription(subscription: SubscriptionModels.Subscription) {
+        this.subscription = subscription;
     }
 }
 
-export interface QuickPickItemWithData<T> extends vscode.QuickPickItem {
+export interface IQuickPickItemWithData<T> extends vscode.QuickPickItem {
     persistenceId?: string; // A unique key to identify this item items across sessions, used in persisting previous selections
     data?: T;
 }
