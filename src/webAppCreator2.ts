@@ -32,7 +32,7 @@ export class WebAppCreator extends WebsiteCreatorBase {
     }
 
     protected beforeExecute(_step: WizardStep, stepIndex: number) {
-        if (stepIndex == 0) {
+        if (stepIndex === 0) {
             this.writeline('Creating new Web App...');
         }
     }
