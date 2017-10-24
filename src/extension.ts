@@ -191,6 +191,7 @@ function initAsyncCommand(context: vscode.ExtensionContext, commandId: string, c
     context.subscriptions.push(vscode.commands.registerCommand(commandId, async (...args: any[]) => {
         const start = Date.now();
         const properties: { [key: string]: string; } = {};
+        const output = util.getOutputChannel();
         properties.result = 'Succeeded';
         let errorData: ErrorData | undefined;
 
@@ -214,9 +215,10 @@ function initAsyncCommand(context: vscode.ExtensionContext, commandId: string, c
             } else {
                 properties.result = 'Failed';
                 errorData = new ErrorData(err);
+                output.appendLine(errorData.message);
                 if (errorData.message.includes('\n')) {
-                    util.getOutputChannel().appendLine(errorData.message)
-                    vscode.window.showErrorMessage('An error has occured. Check output log for more details.');
+                    output.show();
+                    vscode.window.showErrorMessage('An error has occured. Check output window for more details.');
                 } else {
                     vscode.window.showErrorMessage(errorData.message);
                 }
