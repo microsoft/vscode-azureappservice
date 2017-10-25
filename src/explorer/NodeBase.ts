@@ -7,29 +7,33 @@ import { TreeDataProvider, TreeItem, TreeItemCollapsibleState } from 'vscode';
 
 export class NodeBase {
     public label: string;
+    private readonly treeDataProvider: TreeDataProvider<NodeBase>;
+    private readonly parentNode?: NodeBase;
 
-    protected constructor(label: string, private readonly treeDataProvider: TreeDataProvider<NodeBase>, private readonly parentNode?: NodeBase) {
+    protected constructor(label: string, treeDataProvider: TreeDataProvider<NodeBase>, parentNode?: NodeBase) {
         this.label = label;
+        this.treeDataProvider = treeDataProvider;
+        this.parentNode = parentNode;
     }
 
-    getTreeItem(): TreeItem {
+    public getTreeItem(): TreeItem {
         return {
             label: this.label,
             collapsibleState: TreeItemCollapsibleState.None
         };
     }
 
-    getTreeDataProvider<T extends TreeDataProvider<NodeBase>>(): T {
+    public getTreeDataProvider<T extends TreeDataProvider<NodeBase>>(): T {
         return <T>this.treeDataProvider;
     }
 
-    getParentNode<T extends NodeBase>(): T {
+    public getParentNode<T extends NodeBase>(): T {
         return <T>this.parentNode;
     }
 
-    async getChildren(): Promise<NodeBase[]> {
+    public async getChildren(): Promise<NodeBase[]> {
         return [];
     }
 
-    openInPortal?(): void
+    public openInPortal?(): void;
 }
