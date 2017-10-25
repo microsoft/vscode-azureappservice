@@ -15,6 +15,7 @@ import { AppSettingsNode } from './appSettingsNodes';
 import * as fs from 'fs';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import * as util from '../util';
 
 export class AppServiceNode extends SiteNodeBase {
     constructor(site: WebSiteModels.Site, subscription: SubscriptionModels.Subscription, treeDataProvider: AppServiceDataProvider, parentNode: NodeBase) {
@@ -72,12 +73,14 @@ export class AppServiceNode extends SiteNodeBase {
             .replace('%RUNTIME%', siteConfig.linuxFxVersion);
 
         let uri: vscode.Uri;
-        if (vscode.workspace.rootPath) {
+
+        if (vscode.workspace.workspaceFolders) {
+            const fsWorkspaceFolder = await util.showWorkspaceFoldersQuickPick();
             let count = 0;
             const maxCount = 1024;
 
             while (count < maxCount) {
-                uri = vscode.Uri.file(path.join(vscode.workspace.rootPath, `deploy-${site.name}${count === 0 ? '' : count.toString()}.sh`));
+                uri = vscode.Uri.file(path.join(fsWorkspaceFolder.uri.path, `deploy-${site.name}${count === 0 ? '' : count.toString()}.sh`));
                 if (!vscode.workspace.textDocuments.find(doc => doc.uri.fsPath === uri.fsPath) && !fs.existsSync(uri.fsPath)) {
                     uri = uri.with({ scheme: 'untitled' });
                     break;

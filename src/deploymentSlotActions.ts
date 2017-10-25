@@ -5,7 +5,8 @@
 
 import * as vscode from 'vscode';
 import { AzureAccountWrapper } from './azureAccountWrapper';
-import { WizardBase, WizardStep, QuickPickItemWithData } from './wizard';
+import { WizardBase, WizardStep } from './wizard';
+import { QuickPickItemWithData } from './util'
 import { SubscriptionModels } from 'azure-arm-resource';
 import WebSiteManagementClient = require('azure-arm-website');
 import { DeploymentSlotNode } from './explorer/deploymentSlotNode';

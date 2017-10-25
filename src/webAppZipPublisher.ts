@@ -5,7 +5,7 @@
 
 import * as vscode from 'vscode';
 import { AzureAccountWrapper } from './azureAccountWrapper';
-import { WizardBase, WizardStep, SubscriptionStepBase, QuickPickItemWithData } from './wizard';
+import { WizardBase, WizardStep, SubscriptionStepBase } from './wizard';
 import { WebAppCreator } from './webAppCreator';
 import { SubscriptionModels } from 'azure-arm-resource';
 import WebSiteManagementClient = require('azure-arm-website');
@@ -43,19 +43,8 @@ class ZipFileStep extends WizardStep {
                 throw new Error('There is no open folder to deploy.');
             }
 
-            const folderQuickPickItems = vscode.workspace.workspaceFolders.map((value) => {
-                {
-                    return <QuickPickItemWithData<vscode.WorkspaceFolder>>{
-                        label: value.name,
-                        description: '',
-                        data: value
-                    }
-                }
-            });
-            const folderQuickPickOption = { placeHolder: `Select the folder to Zip and deploy. (${this.stepProgressText})` };
-            const pickedItem = folderQuickPickItems.length == 1 ?
-                folderQuickPickItems[0] : await this.showQuickPick(folderQuickPickItems, folderQuickPickOption);
-            this._fsPath = pickedItem.data.uri.fsPath;
+            const fsWorkspaceFolder = await util.showWorkspaceFoldersQuickPick();
+            this._fsPath = fsWorkspaceFolder.uri.path;
         }
     }
 
@@ -103,7 +92,7 @@ class WebAppStep extends WizardStep {
         const subscription = this.getSelectedSubscription();
         const websiteClient = new WebSiteManagementClient(this.azureAccount.getCredentialByTenantId(subscription.tenantId), subscription.subscriptionId);
         const webAppsTask = util.listAll(websiteClient.webApps, websiteClient.webApps.list()).then(webApps => {
-            const quickPickItems: QuickPickItemWithData<WebSiteModels.Site>[] = [];
+            const quickPickItems: util.QuickPickItemWithData<WebSiteModels.Site>[] = [];
             quickPickItems.push({
                 persistenceId: "$new",
                 label: '$(plus) Create new Web App',
