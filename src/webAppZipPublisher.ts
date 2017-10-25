@@ -6,7 +6,7 @@
 import * as vscode from 'vscode';
 import { AzureAccountWrapper } from './azureAccountWrapper';
 import { WizardBase, WizardStep, SubscriptionStepBase, QuickPickItemWithData } from './wizard';
-import { WebAppCreator } from './webAppCreator2';
+import { WebAppCreator } from './webAppCreator';
 import { SubscriptionModels } from 'azure-arm-resource';
 import WebSiteManagementClient = require('azure-arm-website');
 import * as WebSiteModels from '../node_modules/azure-arm-website/lib/models';

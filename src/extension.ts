@@ -15,7 +15,7 @@ import { AppSettingsNode, AppSettingNode } from './explorer/appSettingsNodes';
 import { DeploymentSlotNode } from './explorer/deploymentSlotNode';
 import { SubscriptionNode } from './explorer/subscriptionNode';
 import { AzureAccountWrapper } from './azureAccountWrapper';
-import { WebAppCreator } from './webAppCreator2';
+import { WebAppCreator } from './webAppCreator';
 import { WebAppZipPublisher } from './webAppZipPublisher';
 import { Reporter } from './telemetry/reporter';
 import { UserCancelledError, GitNotInstalledError, LocalGitDeployError, WizardFailedError } from './errors';
