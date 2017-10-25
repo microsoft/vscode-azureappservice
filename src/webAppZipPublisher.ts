@@ -6,7 +6,7 @@
 import * as vscode from 'vscode';
 import { AzureAccountWrapper } from './azureAccountWrapper';
 import { WizardBase, WizardStep, SubscriptionStepBase, QuickPickItemWithData } from './wizard';
-import { WebAppCreator } from './webAppCreator';
+import { WebAppCreator } from './webAppCreator2';
 import { SubscriptionModels } from 'azure-arm-resource';
 import WebSiteManagementClient = require('azure-arm-website');
 import * as WebSiteModels from '../node_modules/azure-arm-website/lib/models';
@@ -20,10 +20,13 @@ export class WebAppZipPublisher extends WizardBase {
         readonly site?: WebSiteModels.Site,
         readonly fsPath?: string) {
         super(output);
-        this.steps.push(new ZipFileStep(this, fsPath));
-        this.steps.push(new SubscriptionStep(this, azureAccount, subscription));
-        this.steps.push(new WebAppStep(this, azureAccount, site));
-        this.steps.push(new DeployStep(this, azureAccount));
+    }
+
+    protected initSteps() {
+        this.steps.push(new ZipFileStep(this, this.fsPath));
+        this.steps.push(new SubscriptionStep(this, this.azureAccount, this.subscription));
+        this.steps.push(new WebAppStep(this, this.azureAccount, this.site));
+        this.steps.push(new DeployStep(this, this.azureAccount));
     }
 
     protected beforeExecute() { }

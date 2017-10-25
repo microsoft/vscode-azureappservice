@@ -16,7 +16,11 @@ export abstract class WizardBase {
 
     protected constructor(readonly output: vscode.OutputChannel) { }
 
+    protected abstract initSteps();
+
     async run(promptOnly = false): Promise<WizardResult> {
+        this.initSteps();
+
         // Go through the prompts...
         for (var i = 0; i < this.steps.length; i++) {
             const step = this.steps[i];
@@ -66,14 +70,16 @@ export abstract class WizardBase {
         return this._steps;
     }
 
-    findStepOfType<T extends WizardStep>(stepTypeConstructor: { new(...args: any[]): T }): T {
-        return <T>this.findStep(step => step instanceof stepTypeConstructor, `The Wizard should have had a ${stepTypeConstructor.name} step`);
+    findStepOfType<T extends WizardStep>(stepTypeConstructor: { new(...args: any[]): T }, isOptional?: boolean): T {
+        return <T>this.findStep(
+            step => step instanceof stepTypeConstructor,
+            isOptional ? null : `The Wizard should have had a ${stepTypeConstructor.name} step`);
     }
 
-    findStep(predicate: (step: WizardStep) => boolean, errorMessage: string): WizardStep {
+    findStep(predicate: (step: WizardStep) => boolean, errorMessage?: string): WizardStep {
         const step = this.steps.find(predicate);
 
-        if (!step) {
+        if (!step && errorMessage) {
             throw new Error(errorMessage);
         }
 
@@ -95,7 +101,7 @@ export abstract class WizardBase {
 
         this.writeline(`Error: ${err.message}`);
         this.writeline('');
-        throw new WizardFailedError(err, step.stepTitle, step.stepIndex);
+        throw new WizardFailedError(err, step.telemetryStepTitle, step.stepIndex);
     }
 
     protected abstract beforeExecute(step?: WizardStep, stepIndex?: number);
@@ -112,7 +118,7 @@ export interface WizardStatePersistence {
 }
 
 export class WizardStep {
-    protected constructor(readonly wizard: WizardBase, readonly stepTitle: string, private persistenceState?: vscode.Memento) { }
+    protected constructor(readonly wizard: WizardBase, readonly telemetryStepTitle: string, private persistenceState?: vscode.Memento) { }
 
     async prompt(): Promise<void> { }
     async execute(): Promise<void> { }

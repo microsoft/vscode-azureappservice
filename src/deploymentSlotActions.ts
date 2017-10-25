@@ -15,8 +15,12 @@ import { UserCancelledError } from './errors';
 export class DeploymentSlotSwapper extends WizardBase {
     constructor(output: vscode.OutputChannel, readonly azureAccount: AzureAccountWrapper, readonly slot: DeploymentSlotNode) {
         super(output);
-        this.steps.push(new SwapStep(this, azureAccount, slot));
     }
+
+    protected initSteps() {
+        this.steps.push(new SwapStep(this, this.azureAccount, this.slot));
+    }
+
     protected beforeExecute() { }
 }
 

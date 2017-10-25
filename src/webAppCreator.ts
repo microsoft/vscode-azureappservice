@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+// TODO: Will rename this file to BaseWebsiteCreator after this PR, to make changes easier to understand
+
 import * as vscode from 'vscode';
 import { AzureAccountWrapper } from './azureAccountWrapper';
 import { WizardBase, WizardResult, WizardStep, SubscriptionStepBase, QuickPickItemWithData } from './wizard';
@@ -11,15 +13,18 @@ import WebSiteManagementClient = require('azure-arm-website');
 import * as WebSiteModels from '../node_modules/azure-arm-website/lib/models';
 import * as util from './util';
 
-export class WebAppCreator extends WizardBase {
-    constructor(output: vscode.OutputChannel, readonly azureAccount: AzureAccountWrapper, subscription: SubscriptionModels.Subscription, persistence?: vscode.Memento) {
+export type WebsiteOS = "linux" | "windows";
+export type AppKind = "app" | "functionapp";
+
+export abstract class WebsiteCreatorBase extends WizardBase {
+    constructor(output: vscode.OutputChannel, protected readonly azureAccount: AzureAccountWrapper, protected readonly subscription: SubscriptionModels.Subscription, protected readonly persistence?: vscode.Memento) {
         super(output);
-        this.steps.push(new SubscriptionStep(this, azureAccount, subscription, persistence));
-        this.steps.push(new WebsiteNameStep(this, azureAccount, persistence));
-        this.steps.push(new ResourceGroupStep(this, azureAccount, persistence));
-        this.steps.push(new AppServicePlanStep(this, azureAccount, persistence));
-        this.steps.push(new WebsiteStep(this, azureAccount, persistence));
     }
+
+    protected abstract appKind: AppKind;
+    protected abstract websiteOS: WebsiteOS;
+
+    protected abstract initSteps(): void;
 
     async run(promptOnly = false): Promise<WizardResult> {
         // If not signed in, execute the sign in command and wait for it...
@@ -49,18 +54,18 @@ export class WebAppCreator extends WizardBase {
     }
 }
 
-class WebAppCreatorStepBase extends WizardStep {
-    protected constructor(wizard: WizardBase, stepTitle: string, readonly azureAccount: AzureAccountWrapper, persistence: vscode.Memento) {
-        super(wizard, stepTitle, persistence);
+export class WebsiteCreatorStepBase extends WizardStep {
+    protected constructor(wizard: WizardBase, telemetryStepTitle: string, readonly azureAccount: AzureAccountWrapper, persistence: vscode.Memento) {
+        super(wizard, telemetryStepTitle, persistence);
     }
 
-    protected getSuggestedRGAndPlanName(): string {
-        var suggestedRGAndPlanName = this.wizard.findStepOfType(WebsiteNameStep).suggestedRGAndPlanName;
-        if (!suggestedRGAndPlanName) {
+    protected computeRelatedName(): Promise<string> {
+        var promise = this.wizard.findStepOfType(WebsiteNameStep).computeRelatedName();
+        if (!promise) {
             throw new Error('A website name must be entered first.');
         }
 
-        return suggestedRGAndPlanName;
+        return promise;
     }
 
     protected getSelectedSubscription(): SubscriptionModels.Subscription {
@@ -83,14 +88,14 @@ class WebAppCreatorStepBase extends WizardStep {
         return resourceGroupStep.resourceGroup;
     }
 
-    protected getSelectedAppServicePlan(): WebSiteModels.AppServicePlan {
-        const appServicePlanStep = this.wizard.findStepOfType(AppServicePlanStep);
+    protected getSelectedAppServicePlanOptional(): WebSiteModels.AppServicePlan | undefined {
+        const appServicePlanStep = this.wizard.findStepOfType(AppServicePlanStep, true/*isOptional*/);
 
-        if (!appServicePlanStep.servicePlan) {
+        if (appServicePlanStep && !appServicePlanStep.servicePlan) {
             throw new Error('An App Service Plan must be selected first.');
         }
 
-        return appServicePlanStep.servicePlan;
+        return appServicePlanStep && appServicePlanStep.servicePlan;
     }
 
     protected getWebsiteName(): string {
@@ -103,9 +108,9 @@ class WebAppCreatorStepBase extends WizardStep {
     }
 }
 
-class SubscriptionStep extends SubscriptionStepBase {
-    constructor(wizard: WizardBase, azureAccount: AzureAccountWrapper, subscription?: SubscriptionModels.Subscription, persistence?: vscode.Memento) {
-        super(wizard, 'Select subscription', azureAccount, subscription, persistence);
+export class SubscriptionStep extends SubscriptionStepBase {
+    constructor(wizard: WizardBase, azureAccount: AzureAccountWrapper, private _resources: { prompt: string }, subscription?: SubscriptionModels.Subscription, persistence?: vscode.Memento) {
+        super(wizard, 'SelectSubscription', azureAccount, subscription, persistence);
     }
 
     async prompt(): Promise<void> {
@@ -114,22 +119,22 @@ class SubscriptionStep extends SubscriptionStepBase {
         }
 
         const quickPickItems = this.getSubscriptionsAsQuickPickItems();
-        const quickPickOptions = { placeHolder: `Select the subscription to create the new Web App in. (${this.stepProgressText})` };
+        const quickPickOptions = { placeHolder: `${this._resources.prompt} (${this.stepProgressText})` };
         const result = await this.showQuickPick(quickPickItems, quickPickOptions, "NewWebApp.Subscription");
         this._subscription = result.data;
     }
 
     async execute(): Promise<void> {
-        this.wizard.writeline(`The new Web App will be created in subscription "${this.subscription.displayName}" (${this.subscription.subscriptionId}).`);
+        this.wizard.writeline(`The app will be created in subscription "${this.subscription.displayName}" (${this.subscription.subscriptionId}).`);
     }
 }
 
-class ResourceGroupStep extends WebAppCreatorStepBase {
+export class ResourceGroupStep extends WebsiteCreatorStepBase {
     private _createNew: boolean;
     private _rg: ResourceModels.ResourceGroup;
 
     constructor(wizard: WizardBase, azureAccount: AzureAccountWrapper, persistence?: vscode.Memento) {
-        super(wizard, 'Select or create resource group', azureAccount, persistence);
+        super(wizard, 'SelectOrCreateResourceGroup', azureAccount, persistence);
     }
 
     async prompt(): Promise<void> {
@@ -139,7 +144,7 @@ class ResourceGroupStep extends WebAppCreatorStepBase {
             description: null,
             data: null
         };
-        const quickPickOptions = { placeHolder: `Select the resource group to create the new Web App in. (${this.stepProgressText})` };
+        const quickPickOptions = { placeHolder: `Select a resource group. (${this.stepProgressText})` };
         const subscription = this.getSelectedSubscription();
         const resourceClient = new ResourceManagementClient(this.azureAccount.getCredentialByTenantId(subscription.tenantId), subscription.subscriptionId);
         var resourceGroups: ResourceModels.ResourceGroup[];
@@ -147,7 +152,6 @@ class ResourceGroupStep extends WebAppCreatorStepBase {
         var locationsTask = this.azureAccount.getLocationsBySubscription(this.getSelectedSubscription());
         var locations: SubscriptionModels.Location[];
         var newRgName: string;
-        var suggestedName = this.getSuggestedRGAndPlanName();
 
         const quickPickItemsTask = Promise.all([resourceGroupsTask, locationsTask]).then(results => {
             const quickPickItems: QuickPickItemWithData<ResourceModels.ResourceGroup>[] = [createNewItem];
@@ -176,6 +180,7 @@ class ResourceGroupStep extends WebAppCreatorStepBase {
         }
 
         this._createNew = true;
+        var suggestedName = await this.computeRelatedName();
         newRgName = await this.showInputBox({
             value: suggestedName,
             prompt: 'Enter the name of the new resource group.',
@@ -204,7 +209,7 @@ class ResourceGroupStep extends WebAppCreatorStepBase {
                 data: location
             };
         });
-        const locationPickOptions = { placeHolder: 'Select the location of the new resource group.' };
+        const locationPickOptions = { placeHolder: 'Select the location for the new resource group.' };
         const pickedLocation = await this.showQuickPick(locationPickItems, locationPickOptions, "NewWebApp.Location");
 
         this._rg = {
@@ -235,12 +240,12 @@ class ResourceGroupStep extends WebAppCreatorStepBase {
     }
 }
 
-class AppServicePlanStep extends WebAppCreatorStepBase {
+export class AppServicePlanStep extends WebsiteCreatorStepBase {
     private _createNew: boolean;
     private _plan: WebSiteModels.AppServicePlan;
 
-    constructor(wizard: WizardBase, azureAccount: AzureAccountWrapper, persistence: vscode.Memento) {
-        super(wizard, 'Select or create App Service Plan', azureAccount, persistence);
+    constructor(wizard: WizardBase, azureAccount: AzureAccountWrapper, private _appKind: AppKind, private _websiteOS: WebsiteOS, persistence: vscode.Memento) {
+        super(wizard, 'SelectOrCreateAppServicePlan', azureAccount, persistence);
     }
 
     async prompt(): Promise<void> {
@@ -250,7 +255,7 @@ class AppServicePlanStep extends WebAppCreatorStepBase {
             description: '',
             data: this._plan
         };
-        const quickPickOptions = { placeHolder: `Select the App Service Plan for the new Web App. (${this.stepProgressText}) ` };
+        const quickPickOptions = { placeHolder: `Select an App Service. (${this.stepProgressText}) ` };
         const subscription = this.getSelectedSubscription();
         const client = new WebSiteManagementClient(this.azureAccount.getCredentialByTenantId(subscription.tenantId), subscription.subscriptionId);
         // You can create a web app and associate it with a plan from another resource group.
@@ -261,8 +266,11 @@ class AppServicePlanStep extends WebAppCreatorStepBase {
             const quickPickItems = [createNewItem];
             plans = result;
             plans.forEach(plan => {
-                // Currently we only support Linux web apps.
-                if (plan.kind.toLowerCase() === 'linux') {
+                // Plan kinds can look like "app,linux", etc. for Linux
+                var isLinux = plan.kind.toLowerCase().split(",").find(value => value === 'linux') !== null;
+                var isCompatible = (this._websiteOS === "linux") === isLinux;
+
+                if (isCompatible) {
                     quickPickItems.push({
                         persistenceId: plan.id,
                         label: plan.appServicePlanName,
@@ -277,11 +285,10 @@ class AppServicePlanStep extends WebAppCreatorStepBase {
         });
 
         const rg = this.getSelectedResourceGroup();
-        const suggestedName = this.getSuggestedRGAndPlanName();
         var newPlanName: string;
 
         // Cache hosting plan separately per subscription
-        const pickedItem = await this.showQuickPick(plansTask, quickPickOptions, `NewWebApp.HostingPlan/${subscription.id}`);
+        const pickedItem = await this.showQuickPick(plansTask, quickPickOptions, `NewWebApp.AppHostingPlan/${subscription.id}`);
 
         if (pickedItem !== createNewItem) {
             this._createNew = false;
@@ -290,6 +297,7 @@ class AppServicePlanStep extends WebAppCreatorStepBase {
         }
 
         // Prompt for new plan information.
+        const suggestedName = await this.computeRelatedName();
         newPlanName = await this.showInputBox({
             value: suggestedName,
             prompt: 'Enter the name of the new App Service Plan.',
@@ -297,11 +305,11 @@ class AppServicePlanStep extends WebAppCreatorStepBase {
                 value = value ? value.trim() : '';
 
                 if (plans.findIndex(plan => plan.resourceGroup.toLowerCase() === rg.name && value.localeCompare(plan.name) === 0) >= 0) {
-                    return `App Service Plan name "${value}" already exists in resource group "${rg.name}".`;
+                    return `App Service name "${value}" already exists in resource group "${rg.name}".`;
                 }
 
                 if (!value.match(/^[a-z0-9\-]{1,40}$/ig)) {
-                    return 'App Service Plan name should be 1-40 characters long and can only include alphanumeric characters and hyphens.';
+                    return 'App Service name should be 1-40 characters long and can only include alphanumeric characters and hyphens.';
                 }
 
                 return null;
@@ -323,12 +331,14 @@ class AppServicePlanStep extends WebAppCreatorStepBase {
         const pickedSkuItem = await this.showQuickPick(pricingTiers, { placeHolder: 'Choose your pricing tier.' }, "NewWebApp.PricingTier");
         const newPlanSku = pickedSkuItem.data;
         this._createNew = true;
+
+
         this._plan = {
             appServicePlanName: newPlanName.trim(),
-            kind: 'linux',  // Currently we only support Linux web apps.
+            kind: GetAppServicePlanModelKind(this._appKind, this._websiteOS),
             sku: newPlanSku,
             location: rg.location,
-            reserved: true  // The secret property - must be set to true to make it a Linux plan. Confirmed by the team who owns this API.
+            reserved: this._websiteOS === "linux"  // The secret property - must be set to true to make it a Linux plan. Confirmed by the team who owns this API.
         };
     }
 
@@ -402,11 +412,17 @@ class AppServicePlanStep extends WebAppCreatorStepBase {
     }
 }
 
-class WebsiteStep extends WebAppCreatorStepBase {
+export class WebsiteStep extends WebsiteCreatorStepBase {
     private _website: WebSiteModels.Site;
 
-    constructor(wizard: WizardBase, azureAccount: AzureAccountWrapper, persistence?: vscode.Memento) {
-        super(wizard, 'Create Web App', azureAccount, persistence);
+    constructor(wizard: WizardBase, azureAccount: AzureAccountWrapper, private _appKind: AppKind, private _websiteOS: WebsiteOS, persistence?: vscode.Memento) {
+        super(wizard, "Create" + _appKind, azureAccount, persistence);
+    }
+
+    public async getSiteConfig(linuxFxVersion: string): Promise<WebSiteModels.SiteConfig> {
+        return Promise.resolve({
+            linuxFxVersion: linuxFxVersion
+        });
     }
 
     async prompt(): Promise<void> {
@@ -425,38 +441,46 @@ class WebsiteStep extends WebAppCreatorStepBase {
             });
         });
 
-        const pickedItem = await this.showQuickPick(runtimeItems, { placeHolder: 'Select runtime stack.' }, "NewWebApp.RuntimeStack");
-        runtimeStack = pickedItem.data.name;
+        if (this._websiteOS === "linux") {
+            const pickedItem = await this.showQuickPick(runtimeItems, { placeHolder: 'Select Linux runtime stack.' }, "NewWebApp.RuntimeStack");
+            runtimeStack = pickedItem.data.name;
+        } else {
+            runtimeStack = undefined;
+        }
 
         const rg = this.getSelectedResourceGroup();
-        const plan = this.getSelectedAppServicePlan();
+        const optionalPlan = this.getSelectedAppServicePlanOptional();
 
         this._website = {
             name: siteName,
-            kind: 'app,linux',
+            kind: GetSiteModelKind(this._appKind, this._websiteOS),
             location: rg.location,
-            serverFarmId: plan.id,
+            serverFarmId: optionalPlan && optionalPlan.id,
             siteConfig: {
                 linuxFxVersion: runtimeStack
+                // The rest will be filled in during execute
             }
-        }
+        };
     }
 
     async execute(): Promise<void> {
-        this.wizard.writeline(`Creating new Web App "${this._website.name}"...`);
+        this.wizard.writeline(`Creating new ${GetAppKindDisplayName(this._appKind)}: ${this._website.name}...`);
         const subscription = this.getSelectedSubscription();
         const rg = this.getSelectedResourceGroup();
         const websiteClient = new WebSiteManagementClient(this.azureAccount.getCredentialByTenantId(subscription.tenantId), subscription.subscriptionId);
 
         // If the plan is also newly created, its resource ID won't be available at this step's prompt stage, but should be available now.
         if (!this._website.serverFarmId) {
-            this._website.serverFarmId = this.getSelectedAppServicePlan().id;
+            this._website.serverFarmId = this.getSelectedAppServicePlanOptional() && this.getSelectedAppServicePlanOptional().id;
         }
+
+        // Finish putting together the site configuration
+        this._website.siteConfig = await this.getSiteConfig(this._website.siteConfig.linuxFxVersion);
 
         this._website = await websiteClient.webApps.createOrUpdate(rg.name, this._website.name, this._website);
         this._website.siteConfig = await websiteClient.webApps.getConfiguration(rg.name, this._website.name);
 
-        this.wizard.writeline(`Web App "${this._website.name}" created: https://${this._website.defaultHostName}`);
+        this.wizard.writeline(`Created new ${GetAppKindDisplayName(this._appKind)} https://${this._website.defaultHostName}`);
         this.wizard.writeline('');
     }
 
@@ -492,7 +516,7 @@ class WebsiteStep extends WebAppCreatorStepBase {
             },
             {
                 name: 'node|6.11',
-                displayName: 'Node.js 6.11 (LTS - Recommended for new Web Apps)'
+                displayName: 'Node.js 6.11 (LTS - Recommended for new apps)'
             },
             {
                 name: 'node|8.0',
@@ -506,12 +530,12 @@ class WebsiteStep extends WebAppCreatorStepBase {
     }
 }
 
-class WebsiteNameStep extends WebAppCreatorStepBase {
+export class WebsiteNameStep extends WebsiteCreatorStepBase {
     private _websiteName: string;
-    private _suggestedRGAndPlanName: string;
+    private _computeRelatedNamePromise: Promise<string>
 
-    constructor(wizard: WizardBase, azureAccount: AzureAccountWrapper, persistence?: vscode.Memento) {
-        super(wizard, 'Create Web App', azureAccount, persistence);
+    constructor(wizard: WizardBase, azureAccount: AzureAccountWrapper, private _appKind: AppKind, persistence?: vscode.Memento) {
+        super(wizard, 'GetWebsiteName', azureAccount, persistence);
     }
 
     async prompt(): Promise<void> {
@@ -522,12 +546,12 @@ class WebsiteNameStep extends WebAppCreatorStepBase {
 
         while (!siteNameOkay) {
             siteName = await this.showInputBox({
-                prompt: `Enter a globally unique name for the new Web App. (${this.stepProgressText})`,
+                prompt: `Enter a globally unique name for the new ${GetAppKindDisplayName(this._appKind)}. (${this.stepProgressText})`,
                 validateInput: (value: string) => {
                     value = value ? value.trim() : '';
 
                     if (!value.match(/^[a-z0-9\-]{1,60}$/ig)) {
-                        return 'App name should be 1-60 characters long and can only include alphanumeric characters and hyphens.';
+                        return 'Name should be 1-60 characters long and can only include alphanumeric characters and hyphens.';
                     }
 
                     return null;
@@ -545,10 +569,25 @@ class WebsiteNameStep extends WebAppCreatorStepBase {
         }
 
         this._websiteName = siteName;
-        this._suggestedRGAndPlanName = await this.suggestRGAndPlanPName(siteName);
+        this._computeRelatedNamePromise = this.generateRelatedName(siteName);
     }
 
-    private async suggestRGAndPlanPName(siteName: string): Promise<string> {
+    protected async isNameAvailable(name: string, resourceGroups: ResourceModels.ResourceGroup[], appServicePlans: WebSiteModels.AppServicePlan[]): Promise<boolean> {
+        if (resourceGroups.findIndex(rg => rg.name.toLowerCase() === name.toLowerCase()) >= 0) {
+            return false;
+        }
+        if (appServicePlans.findIndex(hp => hp.name.toLowerCase() === name.toLowerCase()) >= 0) {
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Get a suggested base name for resources related to a given site name
+     * @param siteName Site name
+     */
+    private async generateRelatedName(siteName: string): Promise<string> {
         const subscription = this.getSelectedSubscription();
         const resourceClient = new ResourceManagementClient(this.azureAccount.getCredentialByTenantId(subscription.tenantId), subscription.subscriptionId);
         const webSiteClient = new WebSiteManagementClient(this.azureAccount.getCredentialByTenantId(subscription.tenantId), subscription.subscriptionId);
@@ -563,30 +602,32 @@ class WebsiteNameStep extends WebAppCreatorStepBase {
         groups = results[0];
         plans = results[1];
 
-        const nameTaken = (name: string) => {
-            if (groups.findIndex(rg => rg.name.toLowerCase() === name.toLowerCase()) >= 0) {
-                return true;
-            }
-            if (plans.findIndex(hp => hp.name.toLowerCase() === name.toLowerCase()) >= 0) {
-                return true;
-            }
+        // Website names are limited to 60 characters, resource group names to 90, storage accounts to 24
+        // Storage accounts cannot have uppercase letters or hyphens and at least 3 characters.
+        // So restrict everything to: 3-24 charcters, lowercase and digits only.
+        const minLength = 3;
+        const maxLength = 24;
 
-            return false;
-        };
+        var preferredName = siteName.toLowerCase().replace(/[^0-9a-z]/g, "");
 
-        if (!nameTaken(siteName)) {
-            return siteName;
+        function generateSuffixedName(i: number): string {
+            let suffix = `${i}`;
+            let minUnsuffixedLength = minLength - suffix.length;
+            let maxUnsuffixedLength = maxLength - suffix.length;
+            let unsuffixedName = preferredName.slice(0, maxUnsuffixedLength) + "zzz".slice(0, Math.max(0, minUnsuffixedLength - preferredName.length));
+            return unsuffixedName + suffix;
+        }
+
+        if (await this.isNameAvailable(preferredName, groups, plans)) {
+            return preferredName;
         }
 
         var i = 2;
         while (true) {
-            // Website names are limited to 60 characters, resource group names to 90
-            const maxNameLength = 60;
-
-            var suffix = `-${i}`;
-            var suffixedName = siteName.slice(0, maxNameLength - suffix.length) + suffix;
-            if (!nameTaken(suffixedName)) {
-                return suffixedName;
+            let newName = generateSuffixedName(i);
+            let isAvailable = await this.isNameAvailable(newName, groups, plans);
+            if (isAvailable) {
+                return newName;
             }
 
             ++i;
@@ -600,12 +641,52 @@ class WebsiteNameStep extends WebAppCreatorStepBase {
         return this._websiteName;
     }
 
-    get suggestedRGAndPlanName(): string {
-        return this._suggestedRGAndPlanName;
+    public computeRelatedName(): Promise<string> {
+        return this._computeRelatedNamePromise;
     }
 }
 
 interface LinuxRuntimeStack {
     name: string;
     displayName: string;
+}
+
+/**
+ * Retrieves a valid "kind" for WebSiteModels.Site
+ */
+function GetSiteModelKind(kind: AppKind, os: WebsiteOS): string {
+    var planKind: string;
+
+    if (os === "linux") {
+        // Linux does not appear to be supported for function apps at the moment
+        return "linux";
+    } else {
+        // "app" or "functionapp"
+        planKind = kind;
+    }
+
+    return planKind
+}
+
+/**
+ * Retrieves a valid "kind" for WebSiteModels.AppServicePlan
+ */
+function GetAppServicePlanModelKind(_kind: AppKind, os: WebsiteOS): string {
+    // Always create app plans, no matter what the website kind
+    if (os === "linux") {
+        return "linux";
+    } else {
+        return "app";
+    }
+}
+
+function GetAppKindDisplayName(kind: AppKind): string {
+    switch (kind) {
+        case "app":
+            return "Web App";
+        case "functionapp":
+            return "Function App";
+        default:
+            throw new RangeError();
+    }
 }
