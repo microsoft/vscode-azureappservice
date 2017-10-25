@@ -22,7 +22,7 @@ export class AppServiceNode extends SiteNodeBase {
     }
 
     public getTreeItem(): TreeItem {
-        const iconName = 'AzureWebsite_16x_vscode.svg';
+        const iconName = 'WebApp_color.svg';
         return {
             label: `${this.label} (${this.site.resourceGroup})`,
             collapsibleState: TreeItemCollapsibleState.Collapsed,

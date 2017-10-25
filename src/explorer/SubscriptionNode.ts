@@ -24,8 +24,8 @@ export class SubscriptionNode extends NodeBase {
             collapsibleState: TreeItemCollapsibleState.Collapsed,
             contextValue: 'subscription',
             iconPath: {
-                light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'AzureSubscription_16x.svg'),
-                dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'AzureSubscription_16x.svg')
+                light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'Subscription_color.svg'),
+                dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'Subscription_color.svg')
             }
         }
     }
