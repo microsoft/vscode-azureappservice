@@ -3,28 +3,35 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models';
-import { NodeBase } from './NodeBase';
-import { AppServiceDataProvider } from './AppServiceExplorer';
 import { SubscriptionModels } from 'azure-arm-resource';
-import { TreeItem, TreeItemCollapsibleState } from 'vscode';
-import { AzureAccountWrapper } from '../AzureAccountWrapper';
+import WebSiteManagementClient = require('azure-arm-website');
 import * as path from 'path';
+import { TreeItem, TreeItemCollapsibleState } from 'vscode';
+import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models';
+import { AzureAccountWrapper } from '../AzureAccountWrapper';
 import { KuduClient, kuduFile } from '../KuduClient';
 import * as util from '../util';
-import WebSiteManagementClient = require('azure-arm-website');
+import { AppServiceDataProvider } from './AppServiceExplorer';
+import { NodeBase } from './NodeBase';
 
 export class FilesNode extends NodeBase {
-    constructor(readonly label: string,
-        readonly path: string,
-        readonly site: WebSiteModels.Site,
-        readonly subscription: SubscriptionModels.Subscription,
+    private readonly site: WebSiteModels.Site;
+    private readonly subscription: SubscriptionModels.Subscription;
+    private readonly fsPath: string;
+    constructor(
+        label: string,
+        fsPath: string,
+        site: WebSiteModels.Site,
+        subscription: SubscriptionModels.Subscription,
         treeDataProvider: AppServiceDataProvider,
         parentNode: NodeBase) {
         super(label, treeDataProvider, parentNode);
+        this.fsPath = fsPath;
+        this.site = site;
+        this.subscription = subscription;
     }
 
-    getTreeItem(): TreeItem {
+    public getTreeItem(): TreeItem {
         return {
             label: this.label,
             collapsibleState: TreeItemCollapsibleState.Collapsed,
@@ -32,28 +39,28 @@ export class FilesNode extends NodeBase {
                 light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'Folder_16x_vscode.svg'),
                 dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'Folder_16x_vscode.svg')
             }
-        }
+        };
     }
 
-    async getChildren(): Promise<NodeBase[]> {
+    public async getChildren(): Promise<NodeBase[]> {
         const nodes: NodeBase[] = [];
         const webAppClient = new WebSiteManagementClient(this.azureAccount.getCredentialByTenantId(this.subscription.tenantId), this.subscription.subscriptionId);
         const user = await util.getWebAppPublishCredential(webAppClient, this.site);
         const kuduClient = new KuduClient(this.site.name, user.publishingUserName, user.publishingPassword);
 
-        const files: kuduFile[] = await kuduClient.listFiles(this.path);
+        const files: kuduFile[] = await kuduClient.listFiles(this.fsPath);
 
-        for (let file of files) {
-            let path = file.path.substring('/home/'.length);
+        for (const file of files) {
+            let fsPath = file.path.substring('/home/'.length);
             if (file.path.includes('D:')) {
                 // issue where Standard tier paths include D: and Basic does not
-                path = path.substring('D:'.length);
+                fsPath = fsPath.substring('D:'.length);
             }
             // vfs.listFiles searches for a relative path file
 
             const treeDataProvider = this.getTreeDataProvider<AppServiceDataProvider>();
-            let node = file.mime === "inode/directory" ?
-                new FilesNode(file.name, path, this.site, this.subscription, treeDataProvider, this) :
+            const node = file.mime === `inode/directory` ?
+                new FilesNode(file.name, fsPath, this.site, this.subscription, treeDataProvider, this) :
                 new NodeBase(file.name, treeDataProvider, this);
             nodes.push(node);
         }

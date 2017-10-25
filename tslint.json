@@ -11,7 +11,7 @@
         "no-exec-script": true,
         "no-function-constructor-with-string-args": true,
         "no-http-string": [
-            true,
+            false, // changed
             "http://www.example.com/?.*",
             "http://www.examples.com/?.*"
         ],
@@ -58,7 +58,7 @@
         "no-duplicate-variable": true,
         "no-empty": true,
         "no-floating-promises": true,
-        "no-for-in-array": true,
+        "no-for-in-array": false, // changed
         "no-import-side-effect": true,
         "no-increment-decrement": false, // changed
         "no-invalid-regexp": true,
@@ -151,14 +151,14 @@
         "no-construct": true,
         "no-default-export": true,
         "no-empty-interface": true,
-        "no-for-in": true,
+        "no-for-in": false, // changed
         "no-function-expression": true,
         "no-inferrable-types": false,
         "no-multiline-string": false, // changed
         "no-null-keyword": false,
         "no-parameter-properties": true,
         "no-relative-imports": false, // changed
-        "no-require-imports": true,
+        "no-require-imports": false, // changed
         "no-shadowed-variable": true,
         "no-suspicious-comment": true,
         "no-typeof-undefined": true,
@@ -229,7 +229,7 @@
             "spaces"
         ],
         "linebreak-style": false, //changed
-        "newline-before-return": true,
+        "newline-before-return": false, // changed
         "no-consecutive-blank-lines": true,
         "no-empty-line-after-opening-brace": false,
         "no-single-line-block-comment": true,

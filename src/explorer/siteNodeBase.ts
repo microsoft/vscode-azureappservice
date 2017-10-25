@@ -3,21 +3,23 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models';
-import * as opn from 'opn';
-import * as util from '../util';
-import WebSiteManagementClient = require('azure-arm-website');
-import { NodeBase } from './NodeBase';
-import { AppServiceDataProvider } from './AppServiceExplorer';
 import { SubscriptionModels } from 'azure-arm-resource';
-import { ExtensionContext, OutputChannel, window, workspace } from 'vscode';
-import { AzureAccountWrapper } from '../AzureAccountWrapper';
-import { KuduClient } from '../KuduClient';
+import WebSiteManagementClient = require('azure-arm-website');
+import * as opn from 'opn';
 import { Request } from 'request';
-import { UserCancelledError, GitNotInstalledError, LocalGitDeployError } from '../errors';
+import { ExtensionContext, OutputChannel, window, workspace } from 'vscode';
 import { SiteWrapper } from 'vscode-azureappservice';
+import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models';
+import { AzureAccountWrapper } from '../AzureAccountWrapper';
+import { GitNotInstalledError, LocalGitDeployError, UserCancelledError } from '../errors';
+import { KuduClient } from '../KuduClient';
+import * as util from '../util';
+import { AppServiceDataProvider } from './AppServiceExplorer';
+import { NodeBase } from './NodeBase';
 
 export class SiteNodeBase extends NodeBase {
+    public readonly site: WebSiteModels.Site;
+    public readonly subscription: SubscriptionModels.Subscription;
     private _logStreamOutputChannel: OutputChannel | undefined;
     private _logStream: Request | undefined;
     private readonly _siteName: string;
@@ -25,13 +27,16 @@ export class SiteNodeBase extends NodeBase {
     private readonly _slotName: string;
     private readonly _siteWrapper: SiteWrapper;
 
-    constructor(readonly label: string,
-        readonly site: WebSiteModels.Site,
-        readonly subscription: SubscriptionModels.Subscription,
+    constructor(
+        label: string,
+        site: WebSiteModels.Site,
+        subscription: SubscriptionModels.Subscription,
         treeDataProvider: AppServiceDataProvider,
         parentNode: NodeBase) {
         super(label, treeDataProvider, parentNode);
 
+        this.site = site;
+        this.subscription = subscription;
         this._siteName = util.extractSiteName(site);
         this._isSlot = util.isSiteDeploymentSlot(site);
         this._slotName = util.extractDeploymentSlotName(site);
@@ -42,34 +47,36 @@ export class SiteNodeBase extends NodeBase {
         return this.getTreeDataProvider<AppServiceDataProvider>().azureAccount;
     }
 
-    browse(): void {
+    public browse(): void {
         const defaultHostName = this.site.defaultHostName;
         const isSsl = this.site.hostNameSslStates.findIndex(value =>
-            value.name === defaultHostName && value.sslState === "Enabled");
+            value.name === defaultHostName && value.sslState === `Enabled`);
+        // tslint:disable-next-line:no-http-string
         const uri = `${isSsl ? 'https://' : 'http://'}${defaultHostName}`;
         opn(uri);
     }
 
-    openInPortal(): void {
+    public openInPortal(): void {
         const portalEndpoint = 'https://portal.azure.com';
         const deepLink = `${portalEndpoint}/${this.subscription.tenantId}/#resource${this.site.id}`;
         opn(deepLink);
     }
 
-    async start(): Promise<void> {
+    public async start(): Promise<void> {
         await this._siteWrapper.start(this.webSiteClient);
     }
 
-    async stop(): Promise<void> {
+    public async stop(): Promise<void> {
         await this._siteWrapper.stop(this.webSiteClient);
     }
 
-    async restart(): Promise<void> {
+    public async restart(): Promise<void> {
         await this.stop();
         await this.start();
     }
 
-    async delete(): Promise<void> {
+    // tslint:disable-next-line:no-reserved-keywords
+    public async delete(): Promise<void> {
         let deleteServicePlan = false;
         let servicePlan;
 
@@ -79,7 +86,7 @@ export class SiteNodeBase extends NodeBase {
         }
 
         if (!util.isSiteDeploymentSlot(this.site) && servicePlan.numberOfSites < 2) {
-            let input = await window.showWarningMessage(`This is the last app in the App Service plan "${servicePlan.name}". Do you want to delete this App Service plan to prevent unexpected charges?`, 'Yes', 'No');
+            const input = await window.showWarningMessage(`This is the last app in the App Service plan "${servicePlan.name}". Do you want to delete this App Service plan to prevent unexpected charges?`, 'Yes', 'No');
             if (input) {
                 deleteServicePlan = input === 'Yes';
             } else {
@@ -94,13 +101,13 @@ export class SiteNodeBase extends NodeBase {
         }
     }
 
-    async isHttpLogsEnabled(): Promise<boolean> {
+    public async isHttpLogsEnabled(): Promise<boolean> {
         const logsConfig = this._isSlot ? await this.webSiteClient.webApps.getDiagnosticLogsConfigurationSlot(this.site.resourceGroup, this._siteName, this._slotName) :
             await this.webSiteClient.webApps.getDiagnosticLogsConfiguration(this.site.resourceGroup, this._siteName);
         return logsConfig.httpLogs && logsConfig.httpLogs.fileSystem && logsConfig.httpLogs.fileSystem.enabled;
     }
 
-    async enableHttpLogs(): Promise<void> {
+    public async enableHttpLogs(): Promise<void> {
         const logsConfig: WebSiteModels.SiteLogsConfig = {
             location: this.site.location,
             httpLogs: {
@@ -119,9 +126,9 @@ export class SiteNodeBase extends NodeBase {
         }
     }
 
-    async connectToLogStream(extensionContext: ExtensionContext): Promise<void> {
+    public async connectToLogStream(extensionContext: ExtensionContext): Promise<void> {
         const siteName = this._isSlot ? `${this._siteName}-${this._slotName}` : this._siteName;
-        const user = await util.getWebAppPublishCredential(this.webSiteClient, this.site)
+        const user = await util.getWebAppPublishCredential(this.webSiteClient, this.site);
         const kuduClient = new KuduClient(siteName, user.publishingUserName, user.publishingPassword);
 
         if (!this._logStreamOutputChannel) {
@@ -130,7 +137,7 @@ export class SiteNodeBase extends NodeBase {
         }
 
         this.stopLogStream();
-        this._logStreamOutputChannel.appendLine('Connecting to log-streaming service...')
+        this._logStreamOutputChannel.appendLine('Connecting to log-streaming service...');
         this._logStreamOutputChannel.show();
 
         this._logStream = kuduClient.getLogStream().on('data', chunk => {
@@ -144,7 +151,7 @@ export class SiteNodeBase extends NodeBase {
         });
     }
 
-    stopLogStream(): void {
+    public stopLogStream(): void {
         if (this._logStream) {
             this._logStream.removeAllListeners();
             this._logStream.destroy();
@@ -234,7 +241,7 @@ export class SiteNodeBase extends NodeBase {
                 await this.webSiteClient.webApps.updateConfiguration(node.site.resourceGroup, node._siteName, updateConfig) :
                 await this.webSiteClient.webApps.updateConfigurationSlot(node.site.resourceGroup, node._siteName, updateConfig, util.extractDeploymentSlotName(node.site));
         } else {
-            throw new UserCancelledError;
+            throw new UserCancelledError();
         }
     }
 
