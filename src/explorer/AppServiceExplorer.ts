@@ -3,16 +3,16 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { TreeDataProvider, TreeItemCollapsibleState, TreeItem, EventEmitter, Event } from 'vscode';
-import { AzureAccountWrapper } from '../azureAccountWrapper';
-import { SubscriptionNode } from './subscriptionNode';
-import { NodeBase } from './nodeBase';
+import { Event, EventEmitter, TreeDataProvider, TreeItem, TreeItemCollapsibleState } from 'vscode';
+import { AzureAccountWrapper } from '../AzureAccountWrapper';
 import * as util from '../util';
+import { NodeBase } from './NodeBase';
+import { SubscriptionNode } from './SubscriptionNode';
 
 export class AppServiceDataProvider implements TreeDataProvider<NodeBase> {
     private readonly _azureAccount;
     private _onDidChangeTreeData: EventEmitter<NodeBase> = new EventEmitter<NodeBase>();
-    readonly onDidChangeTreeData: Event<NodeBase> = this._onDidChangeTreeData.event;
+    public readonly onDidChangeTreeData: Event<NodeBase> = this._onDidChangeTreeData.event;
 
     constructor(azureAccount: AzureAccountWrapper) {
         this._azureAccount = azureAccount;
@@ -21,15 +21,15 @@ export class AppServiceDataProvider implements TreeDataProvider<NodeBase> {
 
     }
 
-    refresh(element?: NodeBase): void {
+    public refresh(element?: NodeBase): void {
         this._onDidChangeTreeData.fire(element);
     }
 
-    getTreeItem(element: NodeBase): TreeItem {
+    public getTreeItem(element: NodeBase): TreeItem {
         return element.getTreeItem();
     }
 
-    getChildren(element?: NodeBase): NodeBase[] | Thenable<NodeBase[]> {
+    public getChildren(element?: NodeBase): NodeBase[] | Thenable<NodeBase[]> {
         if (this.azureAccount.signInStatus === 'Initializing' || this.azureAccount.signInStatus === 'LoggingIn') {
             return [new LoadingNode(this)];
         }
@@ -73,7 +73,7 @@ export class NotSignedInNode extends NodeBase {
         super('Sign in to Azure...', treeDataProvider, parentNode);
     }
 
-    getTreeItem(): TreeItem {
+    public getTreeItem(): TreeItem {
         return {
             label: this.label,
             command: {
@@ -81,7 +81,7 @@ export class NotSignedInNode extends NodeBase {
                 command: util.getSignInCommandString()
             },
             collapsibleState: TreeItemCollapsibleState.None
-        }
+        };
     }
 }
 
@@ -90,11 +90,11 @@ export class LoadingNode extends NodeBase {
         super('Loading...', treeDataProvider, parentNode);
     }
 
-    getTreeItem(): TreeItem {
+    public getTreeItem(): TreeItem {
         return {
             label: this.label,
             collapsibleState: TreeItemCollapsibleState.None
-        }
+        };
     }
 }
 
@@ -103,7 +103,7 @@ export class SelectSubscriptionsNode extends NodeBase {
         super('Select Subscriptions...', treeDataProvider, parentNode);
     }
 
-    getTreeItem(): TreeItem {
+    public getTreeItem(): TreeItem {
         return {
             label: this.label,
             command: {
@@ -111,6 +111,6 @@ export class SelectSubscriptionsNode extends NodeBase {
                 command: 'azure-account.selectSubscriptions'
             },
             collapsibleState: TreeItemCollapsibleState.None
-        }
+        };
     }
 }

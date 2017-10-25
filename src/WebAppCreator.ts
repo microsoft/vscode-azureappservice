@@ -6,8 +6,8 @@
 // TODO: Will rename this file to BaseWebsiteCreator after this PR, to make changes easier to understand
 
 import * as vscode from 'vscode';
-import { AzureAccountWrapper } from './azureAccountWrapper';
-import { WizardBase, WizardResult, WizardStep, SubscriptionStepBase, QuickPickItemWithData } from './wizard';
+import { AzureAccountWrapper } from './AzureAccountWrapper';
+import { WizardBase, IWizardResult, WizardStep, SubscriptionStepBase, IQuickPickItemWithData } from './wizard';
 import { SubscriptionModels, ResourceManagementClient, ResourceModels } from 'azure-arm-resource';
 import WebSiteManagementClient = require('azure-arm-website');
 import * as WebSiteModels from '../node_modules/azure-arm-website/lib/models';
@@ -26,7 +26,7 @@ export abstract class WebsiteCreatorBase extends WizardBase {
 
     protected abstract initSteps(): void;
 
-    async run(promptOnly = false): Promise<WizardResult> {
+    public async run(promptOnly = false): Promise<IWizardResult> {
         // If not signed in, execute the sign in command and wait for it...
         if (this.azureAccount.signInStatus !== 'LoggedIn') {
             await vscode.commands.executeCommand(util.getSignInCommandString());
@@ -121,7 +121,7 @@ export class SubscriptionStep extends SubscriptionStepBase {
         const quickPickItems = this.getSubscriptionsAsQuickPickItems();
         const quickPickOptions = { placeHolder: `${this._resources.prompt} (${this.stepProgressText})` };
         const result = await this.showQuickPick(quickPickItems, quickPickOptions, "NewWebApp.Subscription");
-        this._subscription = result.data;
+        this.subscription = result.data;
     }
 
     async execute(): Promise<void> {
@@ -138,7 +138,7 @@ export class ResourceGroupStep extends WebsiteCreatorStepBase {
     }
 
     async prompt(): Promise<void> {
-        const createNewItem: QuickPickItemWithData<ResourceModels.ResourceGroup> = {
+        const createNewItem: IQuickPickItemWithData<ResourceModels.ResourceGroup> = {
             persistenceId: "",
             label: '$(plus) Create New Resource Group',
             description: null,
@@ -154,7 +154,7 @@ export class ResourceGroupStep extends WebsiteCreatorStepBase {
         var newRgName: string;
 
         const quickPickItemsTask = Promise.all([resourceGroupsTask, locationsTask]).then(results => {
-            const quickPickItems: QuickPickItemWithData<ResourceModels.ResourceGroup>[] = [createNewItem];
+            const quickPickItems: IQuickPickItemWithData<ResourceModels.ResourceGroup>[] = [createNewItem];
             resourceGroups = results[0];
             locations = results[1];
             resourceGroups.forEach(rg => {
@@ -200,7 +200,7 @@ export class ResourceGroupStep extends WebsiteCreatorStepBase {
             }
         });
 
-        const locationPickItems = locations.map<QuickPickItemWithData<SubscriptionModels.Location>>(location => {
+        const locationPickItems = locations.map<IQuickPickItemWithData<SubscriptionModels.Location>>(location => {
             return {
                 label: location.displayName,
                 description: `(${location.name})`,
@@ -249,7 +249,7 @@ export class AppServicePlanStep extends WebsiteCreatorStepBase {
     }
 
     async prompt(): Promise<void> {
-        const createNewItem: QuickPickItemWithData<WebSiteModels.AppServicePlan> = {
+        const createNewItem: IQuickPickItemWithData<WebSiteModels.AppServicePlan> = {
             persistenceId: "$new",
             label: '$(plus) Create New App Service Plan',
             description: '',
@@ -268,7 +268,7 @@ export class AppServicePlanStep extends WebsiteCreatorStepBase {
             plans.forEach(plan => {
                 // Plan kinds can look like "app,linux", etc. for Linux
                 var isLinux = plan.kind.toLowerCase().split(",").find(value => value === 'linux') !== null;
-                var isCompatible = (this._websiteOS === "linux") === isLinux;
+                let isCompatible = (this._websiteOS === "linux") === isLinux;
 
                 if (isCompatible) {
                     quickPickItems.push({
@@ -317,7 +317,7 @@ export class AppServicePlanStep extends WebsiteCreatorStepBase {
         });
 
         // Prompt for Pricing tier
-        const pricingTiers: QuickPickItemWithData<WebSiteModels.SkuDescription>[] = [];
+        const pricingTiers: IQuickPickItemWithData<WebSiteModels.SkuDescription>[] = [];
         const availableSkus = this.getPlanSkus();
         availableSkus.forEach(sku => {
             pricingTiers.push({
@@ -342,7 +342,7 @@ export class AppServicePlanStep extends WebsiteCreatorStepBase {
         };
     }
 
-    async execute(): Promise<void> {
+    public async execute(): Promise<void> {
         if (!this._createNew) {
             this.wizard.writeline(`Existing App Service Plan "${this._plan.appServicePlanName} (${this._plan.sku.name})" will be used.`);
             return;
@@ -425,11 +425,11 @@ export class WebsiteStep extends WebsiteCreatorStepBase {
         });
     }
 
-    async prompt(): Promise<void> {
+    public async prompt(): Promise<void> {
         const siteName = this.getWebsiteName();
 
         var runtimeStack: string;
-        const runtimeItems: QuickPickItemWithData<LinuxRuntimeStack>[] = [];
+        const runtimeItems: IQuickPickItemWithData<LinuxRuntimeStack>[] = [];
         const linuxRuntimeStacks = this.getLinuxRuntimeStack();
 
         linuxRuntimeStacks.forEach(rt => {
@@ -463,7 +463,7 @@ export class WebsiteStep extends WebsiteCreatorStepBase {
         };
     }
 
-    async execute(): Promise<void> {
+    public async execute(): Promise<void> {
         this.wizard.writeline(`Creating new ${GetAppKindDisplayName(this._appKind)}: ${this._website.name}...`);
         const subscription = this.getSelectedSubscription();
         const rg = this.getSelectedResourceGroup();
@@ -538,7 +538,7 @@ export class WebsiteNameStep extends WebsiteCreatorStepBase {
         super(wizard, 'GetWebsiteName', azureAccount, persistence);
     }
 
-    async prompt(): Promise<void> {
+    public async prompt(): Promise<void> {
         const subscription = this.getSelectedSubscription();
         const client = new WebSiteManagementClient(this.azureAccount.getCredentialByTenantId(subscription.tenantId), subscription.subscriptionId);
         let siteName: string;
@@ -634,7 +634,7 @@ export class WebsiteNameStep extends WebsiteCreatorStepBase {
         }
     }
 
-    async execute(): Promise<void> {
+    public async execute(): Promise<void> {
     }
 
     get websiteName(): string {
@@ -655,7 +655,7 @@ interface LinuxRuntimeStack {
  * Retrieves a valid "kind" for WebSiteModels.Site
  */
 function GetSiteModelKind(kind: AppKind, os: WebsiteOS): string {
-    var planKind: string;
+    let planKind: string;
 
     if (os === "linux") {
         // Linux does not appear to be supported for function apps at the moment
@@ -665,7 +665,7 @@ function GetSiteModelKind(kind: AppKind, os: WebsiteOS): string {
         planKind = kind;
     }
 
-    return planKind
+    return planKind;
 }
 
 /**

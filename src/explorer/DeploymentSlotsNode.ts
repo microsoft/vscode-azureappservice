@@ -7,13 +7,13 @@ import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models'
 import * as opn from 'opn';
 import * as path from 'path';
 import * as util from '../util';
-import { NodeBase } from './nodeBase';
-import { AppServiceDataProvider } from './appServiceExplorer';
+import { NodeBase } from './NodeBase';
+import { AppServiceDataProvider } from './AppServiceExplorer';
 import { SubscriptionModels } from 'azure-arm-resource';
 import WebSiteManagementClient = require('azure-arm-website');
 import { TreeItem, TreeItemCollapsibleState } from 'vscode';
-import { DeploymentSlotNode } from './deploymentSlotNode';
-import { AzureAccountWrapper } from '../azureAccountWrapper';
+import { DeploymentSlotNode } from './DeploymentSlotNode';
+import { AzureAccountWrapper } from '../AzureAccountWrapper';
 
 
 

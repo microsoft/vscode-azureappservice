@@ -4,33 +4,33 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models';
-import * as opn from 'opn';
-import { NodeBase } from './nodeBase';
-import { AppServiceDataProvider } from './appServiceExplorer';
+import { NodeBase } from './NodeBase';
+import { AppServiceDataProvider } from './AppServiceExplorer';
 import { SubscriptionModels } from 'azure-arm-resource';
 import { TreeItem, TreeItemCollapsibleState } from 'vscode';
-import { AzureAccountWrapper } from '../azureAccountWrapper';
+import { AzureAccountWrapper } from '../AzureAccountWrapper';
 import * as path from 'path';
-import { KuduClient, webJob } from '../kuduClient';
+import { KuduClient, kuduFile } from '../KuduClient';
 import * as util from '../util';
 import WebSiteManagementClient = require('azure-arm-website');
 
-export class WebJobsNode extends NodeBase {
-    constructor(readonly site: WebSiteModels.Site,
+export class FilesNode extends NodeBase {
+    constructor(readonly label: string,
+        readonly path: string,
+        readonly site: WebSiteModels.Site,
         readonly subscription: SubscriptionModels.Subscription,
         treeDataProvider: AppServiceDataProvider,
         parentNode: NodeBase) {
-        super('WebJobs', treeDataProvider, parentNode);
+        super(label, treeDataProvider, parentNode);
     }
 
     getTreeItem(): TreeItem {
         return {
             label: this.label,
             collapsibleState: TreeItemCollapsibleState.Collapsed,
-            contextValue: "webJobs",
             iconPath: {
-                light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'AzureWebJobs_16x_vscode.svg'),
-                dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'AzureWebJobs_16x_vscode.svg')
+                light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'Folder_16x_vscode.svg'),
+                dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'Folder_16x_vscode.svg')
             }
         }
     }
@@ -41,18 +41,24 @@ export class WebJobsNode extends NodeBase {
         const user = await util.getWebAppPublishCredential(webAppClient, this.site);
         const kuduClient = new KuduClient(this.site.name, user.publishingUserName, user.publishingPassword);
 
-        const jobList: webJob[] = await kuduClient.listAllWebJobs();
+        const files: kuduFile[] = await kuduClient.listFiles(this.path);
 
-        for (let job of jobList) {
-            nodes.push(new NodeBase(job.name, this.getTreeDataProvider(), this));
+        for (let file of files) {
+            let path = file.path.substring('/home/'.length);
+            if (file.path.includes('D:')) {
+                // issue where Standard tier paths include D: and Basic does not
+                path = path.substring('D:'.length);
+            }
+            // vfs.listFiles searches for a relative path file
+
+            const treeDataProvider = this.getTreeDataProvider<AppServiceDataProvider>();
+            let node = file.mime === "inode/directory" ?
+                new FilesNode(file.name, path, this.site, this.subscription, treeDataProvider, this) :
+                new NodeBase(file.name, treeDataProvider, this);
+            nodes.push(node);
         }
-        return nodes;
-    }
 
-    openInPortal(): void {
-        const portalEndpoint = 'https://portal.azure.com';
-        const deepLink = `${portalEndpoint}/${this.subscription.tenantId}/#resource${this.site.id}/webJobs`;
-        opn(deepLink);
+        return nodes;
     }
 
     private get azureAccount(): AzureAccountWrapper {

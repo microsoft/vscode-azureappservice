@@ -4,11 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { TreeItem, TreeItemCollapsibleState } from 'vscode';
-import { AzureAccountWrapper } from '../azureAccountWrapper';
+import { AzureAccountWrapper } from '../AzureAccountWrapper';
 import { SubscriptionModels } from 'azure-arm-resource';
-import { AppServiceDataProvider } from './appServiceExplorer';
-import { NodeBase } from './nodeBase';
-import { AppServiceNode } from './appServiceNode';
+import { AppServiceDataProvider } from './AppServiceExplorer';
+import { NodeBase } from './NodeBase';
+import { AppServiceNode } from './AppServiceNode';
 import WebSiteManagementClient = require('azure-arm-website');
 import * as path from 'path';
 

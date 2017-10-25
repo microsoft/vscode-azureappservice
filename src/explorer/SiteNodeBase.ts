@@ -7,12 +7,12 @@ import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models'
 import * as opn from 'opn';
 import * as util from '../util';
 import WebSiteManagementClient = require('azure-arm-website');
-import { NodeBase } from './nodeBase';
-import { AppServiceDataProvider } from './appServiceExplorer';
+import { NodeBase } from './NodeBase';
+import { AppServiceDataProvider } from './AppServiceExplorer';
 import { SubscriptionModels } from 'azure-arm-resource';
 import { ExtensionContext, OutputChannel, window, workspace } from 'vscode';
-import { AzureAccountWrapper } from '../azureAccountWrapper';
-import { KuduClient } from '../kuduClient';
+import { AzureAccountWrapper } from '../AzureAccountWrapper';
+import { KuduClient } from '../KuduClient';
 import { Request } from 'request';
 import { UserCancelledError, GitNotInstalledError, LocalGitDeployError } from '../errors';
 import { SiteWrapper } from 'vscode-azureappservice';

@@ -291,3 +291,5 @@ node_modules
 out
 *.vsix
 package-lock.json
+# temporarily ignore for incremental tslinting
+tslint.json
