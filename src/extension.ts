@@ -19,7 +19,7 @@ import { SubscriptionNode } from './explorer/SubscriptionNode';
 import { Reporter } from './telemetry/reporter';
 import * as util from "./util";
 import { WebAppCreator } from './WebAppCreator2';
-import { WebAppZipPublisher } from './webAppZipPublisher';
+import { WebAppZipPublisher } from './WebAppZipPublisher';
 
 // tslint:disable-next-line:max-func-body-length
 export function activate(context: vscode.ExtensionContext): void {
