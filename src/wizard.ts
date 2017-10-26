@@ -201,11 +201,11 @@ export class SubscriptionStepBase extends WizardStep {
         );
     }
 
-    protected get subscription(): SubscriptionModels.Subscription {
+    public get subscription(): SubscriptionModels.Subscription {
         return this._subscription;
     }
 
-    protected set subscription(subscription: SubscriptionModels.Subscription) {
+    public set subscription(subscription: SubscriptionModels.Subscription) {
         this._subscription = subscription;
     }
 }
