@@ -66,11 +66,11 @@ export class AzureAccountWrapper {
         return <SubscriptionModels.Location[]>(await client.subscriptions.listLocations(subscription.subscriptionId));
     }
 
-    public registerStatusChangedListener(listener: (e: AzureLoginStatus) => {}, thisArg: any): Disposable {
+    public registerStatusChangedListener(listener: (e: AzureLoginStatus) => void, thisArg: {}): Disposable {
         return this.accountApi.onStatusChanged(listener, thisArg, this.extensionContext.subscriptions);
     }
 
-    public registerFiltersChangedListener(listener: (e: void) => {}, thisArg: any): Disposable {
+    public registerFiltersChangedListener(listener: (e: void) => void, thisArg: {}): Disposable {
         return this.accountApi.onFiltersChanged(listener, thisArg, this.extensionContext.subscriptions);
     }
 }

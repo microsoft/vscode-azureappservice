@@ -58,7 +58,7 @@
         "no-duplicate-variable": true,
         "no-empty": true,
         "no-floating-promises": true,
-        "no-for-in-array": false, // changed
+        "no-for-in-array": true,
         "no-import-side-effect": true,
         "no-increment-decrement": false, // changed
         "no-invalid-regexp": true,
