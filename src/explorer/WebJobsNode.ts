@@ -29,8 +29,8 @@ export class WebJobsNode extends NodeBase {
             collapsibleState: TreeItemCollapsibleState.Collapsed,
             contextValue: "webJobs",
             iconPath: {
-                light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'AzureWebJobs_16x_vscode.svg'),
-                dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'AzureWebJobs_16x_vscode.svg')
+                light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'WebJobs_color.svg'),
+                dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'WebJobs_color.svg')
             }
         }
     }

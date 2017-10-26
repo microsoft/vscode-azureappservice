@@ -28,8 +28,8 @@ export class DeploymentSlotNode extends SiteNodeBase {
             collapsibleState: TreeItemCollapsibleState.Collapsed,
             contextValue: 'deploymentSlot',
             iconPath: {
-                light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'DeploymentSlots_16x_vscode.svg'),
-                dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'DeploymentSlots_16x_vscode.svg')
+                light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'DeploymentSlot_color.svg'),
+                dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'DeploymentSlot_color.svg')
             }
         }
     }
