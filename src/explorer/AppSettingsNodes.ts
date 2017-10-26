@@ -174,7 +174,7 @@ export class AppSettingNode extends NodeBase {
         return {
             label: this.label,
             collapsibleState: TreeItemCollapsibleState.None,
-            contextValue: `applicationSettingItem`,
+            contextValue: 'applicationSettingItem',
             iconPath: {
                 light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'Item_16x_vscode.svg'),
                 dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'Item_16x_vscode.svg')
