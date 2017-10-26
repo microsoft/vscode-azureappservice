@@ -221,7 +221,7 @@ function initAsyncCommand(context: vscode.ExtensionContext, commandId: string, c
                     output.show();
                     vscode.window.showErrorMessage('An error has occured. Check output window for more details.');
                 } else {
-                    vscode.window.showErrorMessage(errorData.message);
+                    vscode.window.showErrorMessage(`Error: ${errorData.message}`);
                 }
 
             }

@@ -100,8 +100,6 @@ export abstract class WizardBase {
             throw err;
         }
 
-        this.writeline(`Error: ${err.message}`);
-        this.writeline('');
         throw new WizardFailedError(err, step.telemetryStepTitle, step.stepIndex);
     }
 
