@@ -179,7 +179,7 @@ export class WizardStep {
 
 export class SubscriptionStepBase extends WizardStep {
     private readonly azureAccount: AzureAccountWrapper;
-    private _subscription?: SubscriptionModels.SubscriptionClient;
+    private _subscription?: SubscriptionModels.Subscription;
 
     constructor(wizard: WizardBase, title: string, azureAccount: AzureAccountWrapper, subscription?: SubscriptionModels.Subscription, persistence?: vscode.Memento) {
         super(wizard, title, persistence);
