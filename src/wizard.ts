@@ -179,6 +179,7 @@ export class WizardStep {
 
 export class SubscriptionStepBase extends WizardStep {
     private readonly azureAccount: AzureAccountWrapper;
+    private _subscription?: SubscriptionModels.Subscription;
 
     constructor(wizard: WizardBase, title: string, azureAccount: AzureAccountWrapper, subscription?: SubscriptionModels.Subscription, persistence?: vscode.Memento) {
         super(wizard, title, persistence);
@@ -200,12 +201,12 @@ export class SubscriptionStepBase extends WizardStep {
         );
     }
 
-    get subscription(): SubscriptionModels.Subscription {
-        return this.subscription;
+    public get subscription(): SubscriptionModels.Subscription {
+        return this._subscription;
     }
 
-    set subscription(subscription: SubscriptionModels.Subscription) {
-        this.subscription = subscription;
+    public set subscription(subscription: SubscriptionModels.Subscription) {
+        this._subscription = subscription;
     }
 }
 
