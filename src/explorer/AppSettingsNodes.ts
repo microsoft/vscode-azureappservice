@@ -59,16 +59,14 @@ export class AppSettingsNode extends NodeBase {
             await webApps.listApplicationSettings(this.site.resourceGroup, this._siteName);
 
         if (this._settings.properties) {
-            // tslint:disable-next-line:forin
-            for (const key in this._settings.properties) {
-                const value = this._settings.properties[key] ? this._settings.properties[key] : '';
+            Object.keys(this._settings.properties).forEach((key: string) => {
                 children.push(new AppSettingNode(
                     key,
-                    value,
+                    this._settings.properties[key],
                     this.getTreeDataProvider(),
                     this
                 ));
-            }
+            });
         }
 
         return children.sort((a, b) => a.label.localeCompare(b.label));

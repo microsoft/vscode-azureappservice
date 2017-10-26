@@ -30,7 +30,7 @@
             true,
             "Thenable" // changed
         ],
-        "forin": false, // changed
+        "forin": true,
         "jquery-deferred-must-complete": true,
         "label-position": true,
         "match-default-export-name": true,
@@ -151,7 +151,7 @@
         "no-construct": true,
         "no-default-export": true,
         "no-empty-interface": true,
-        "no-for-in": false, // changed
+        "no-for-in": true,
         "no-function-expression": true,
         "no-inferrable-types": false,
         "no-multiline-string": false, // changed
