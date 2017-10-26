@@ -32,7 +32,7 @@ export class DeploymentSlotsNode extends NodeBase {
         return {
             label: this.label,
             collapsibleState: TreeItemCollapsibleState.Collapsed,
-            contextValue: `deploymentSlots`,
+            contextValue: 'deploymentSlots',
             iconPath: {
                 light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'AzureDeploymentSlots_16x_vscode.svg'),
                 dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'AzureDeploymentSlots_16x_vscode.svg')

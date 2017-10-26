@@ -59,7 +59,7 @@ export class FilesNode extends NodeBase {
             // vfs.listFiles searches for a relative path file
 
             const treeDataProvider = this.getTreeDataProvider<AppServiceDataProvider>();
-            const node = file.mime === `inode/directory` ?
+            const node = file.mime === 'inode/directory' ?
                 new FilesNode(file.name, fsPath, this.site, this.subscription, treeDataProvider, this) :
                 new NodeBase(file.name, treeDataProvider, this);
             nodes.push(node);

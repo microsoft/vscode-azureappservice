@@ -11,7 +11,7 @@
         "no-exec-script": true,
         "no-function-constructor-with-string-args": true,
         "no-http-string": [
-            false, // changed
+            true,
             "http://www.example.com/?.*",
             "http://www.examples.com/?.*"
         ],
@@ -30,7 +30,7 @@
             true,
             "Thenable" // changed
         ],
-        "forin": true,
+        "forin": false, // changed
         "jquery-deferred-must-complete": true,
         "label-position": true,
         "match-default-export-name": true,
@@ -284,8 +284,8 @@
         "no-mergeable-namespace": false,
         "no-namespace": false,
         "no-reference": true,
-        "no-unexternalized-strings": [ // changed
-            true,
+        "no-unexternalized-strings": [
+            false,
             {
                 "signatures": [
                     "localize",

@@ -44,7 +44,7 @@ export class AppSettingsNode extends NodeBase {
         return {
             label: this.label,
             collapsibleState: TreeItemCollapsibleState.Collapsed,
-            contextValue: `applicationSettings`,
+            contextValue: 'applicationSettings',
             iconPath: {
                 light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'Settings_16x_vscode.svg'),
                 dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'Settings_16x_vscode.svg')
@@ -59,15 +59,15 @@ export class AppSettingsNode extends NodeBase {
             await webApps.listApplicationSettings(this.site.resourceGroup, this._siteName);
 
         if (this._settings.properties) {
+            // tslint:disable-next-line:forin
             for (const key in this._settings.properties) {
-                if (this._settings.properties[key]) {
-                    children.push(new AppSettingNode(
-                        key,
-                        this._settings.properties[key],
-                        this.getTreeDataProvider(),
-                        this
-                    ));
-                }
+                const value = this._settings.properties[key] ? this._settings.properties[key] : '';
+                children.push(new AppSettingNode(
+                    key,
+                    value,
+                    this.getTreeDataProvider(),
+                    this
+                ));
             }
         }
 
@@ -218,7 +218,7 @@ export class AppSettingNode extends NodeBase {
 
     // tslint:disable-next-line:no-reserved-keywords
     public async delete(): Promise<void> {
-        const okayAction = `Delete`;
+        const okayAction = 'Delete';
         const result = await vscode.window.showWarningMessage(`Are you sure you want to delete setting "${this.key}"?`, okayAction);
 
         if (result === okayAction) {
