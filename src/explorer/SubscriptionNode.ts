@@ -19,6 +19,10 @@ export class SubscriptionNode extends NodeBase {
         this._subscription = subscription;
     }
 
+    public get subscription(): SubscriptionModels.Subscription {
+        return this._subscription;
+    }
+
     public getTreeItem(): TreeItem {
         return {
             label: this.label,
