@@ -18,8 +18,8 @@ import { AppServiceDataProvider } from './AppServiceExplorer';
 import { NodeBase } from './NodeBase';
 
 export class SiteNodeBase extends NodeBase {
-    public readonly site: WebSiteModels.Site;
-    public readonly subscription: SubscriptionModels.Subscription;
+    private readonly _site: WebSiteModels.Site;
+    private readonly _subscription: SubscriptionModels.Subscription;
     private _logStreamOutputChannel: OutputChannel | undefined;
     private _logStream: Request | undefined;
     private readonly _siteName: string;
@@ -27,6 +27,13 @@ export class SiteNodeBase extends NodeBase {
     private readonly _slotName: string;
     private readonly _siteWrapper: SiteWrapper;
 
+    public get site(): WebSiteModels.Site {
+        return this._site;
+    }
+
+    public get subscription(): SubscriptionModels.Subscription {
+        return this._subscription;
+    }
     constructor(
         label: string,
         site: WebSiteModels.Site,
@@ -35,8 +42,8 @@ export class SiteNodeBase extends NodeBase {
         parentNode: NodeBase) {
         super(label, treeDataProvider, parentNode);
 
-        this.site = site;
-        this.subscription = subscription;
+        this._site = site;
+        this._subscription = subscription;
         this._siteName = util.extractSiteName(site);
         this._isSlot = util.isSiteDeploymentSlot(site);
         this._slotName = util.extractDeploymentSlotName(site);

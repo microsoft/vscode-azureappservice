@@ -16,13 +16,21 @@ import { AppServiceDataProvider } from './AppServiceExplorer';
 import { NodeBase } from './NodeBase';
 
 export class AppSettingsNode extends NodeBase {
-    public readonly site: WebSiteModels.Site;
-    public readonly subscription: SubscriptionModels.Subscription;
-    public readonly _isSlot: boolean;
-    public readonly _siteName: string;
-    public readonly _slotName: string;
-    public readonly _websiteClient: WebSiteManagementClient;
+    private readonly _site: WebSiteModels.Site;
+    private readonly _subscription: SubscriptionModels.Subscription;
+    private readonly _isSlot: boolean;
+    private readonly _siteName: string;
+    private readonly _slotName: string;
+    private readonly _websiteClient: WebSiteManagementClient;
     private _settings: WebSiteModels.StringDictionary;
+
+    public get site(): WebSiteModels.Site {
+        return this._site;
+    }
+
+    public get subscription(): SubscriptionModels.Subscription {
+        return this._subscription;
+    }
 
     constructor(
         site: WebSiteModels.Site,
@@ -30,8 +38,8 @@ export class AppSettingsNode extends NodeBase {
         treeDataProvider: AppServiceDataProvider,
         parentNode: NodeBase) {
         super('Application Settings', treeDataProvider, parentNode);
-        this.site = site;
-        this.subscription = subscription;
+        this._site = site;
+        this._subscription = subscription;
         this._isSlot = util.isSiteDeploymentSlot(site);
         this._siteName = util.extractSiteName(site);
         this._slotName = util.extractDeploymentSlotName(site);

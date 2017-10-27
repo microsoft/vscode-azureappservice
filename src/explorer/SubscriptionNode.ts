@@ -13,9 +13,10 @@ import { AppServiceNode } from './AppServiceNode';
 import { NodeBase } from './NodeBase';
 
 export class SubscriptionNode extends NodeBase {
-    public readonly subscription: SubscriptionModels.Subscription;
+    private readonly _subscription: SubscriptionModels.Subscription;
     constructor(subscription: SubscriptionModels.Subscription, treeDataProvider: AppServiceDataProvider, parentNode: NodeBase | undefined) {
         super(subscription.displayName, treeDataProvider, parentNode);
+        this._subscription = subscription;
     }
 
     public getTreeItem(): TreeItem {
@@ -35,8 +36,8 @@ export class SubscriptionNode extends NodeBase {
             return [];
         }
 
-        const credential = this.azureAccount.getCredentialByTenantId(this.subscription.tenantId);
-        const client = new WebSiteManagementClient(credential, this.subscription.subscriptionId);
+        const credential = this.azureAccount.getCredentialByTenantId(this._subscription.tenantId);
+        const client = new WebSiteManagementClient(credential, this._subscription.subscriptionId);
         const webApps = await client.webApps.list();
 
         // logic to retrieve nodes from resourceGroup and filter out function apps
@@ -49,7 +50,7 @@ export class SubscriptionNode extends NodeBase {
             return a.name.localeCompare(b.name);
         }).map<AppServiceNode>(site => {
             if (!site.kind.startsWith('functionapp')) {
-                return new AppServiceNode(site, this.subscription, this.getTreeDataProvider(), this);
+                return new AppServiceNode(site, this._subscription, this.getTreeDataProvider(), this);
             }
             return undefined;
         });
