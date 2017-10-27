@@ -15,6 +15,7 @@ import { DeploymentSlotsNode } from './DeploymentSlotsNode';
 import { NodeBase } from './NodeBase';
 import { SiteNodeBase } from './SiteNodeBase';
 import { WebJobsNode } from './WebJobsNode';
+import { UserCancelledError } from '../errors';
 
 export class AppServiceNode extends SiteNodeBase {
     constructor(site: WebSiteModels.Site, subscription: SubscriptionModels.Subscription, treeDataProvider: AppServiceDataProvider, parentNode: NodeBase) {
@@ -55,11 +56,20 @@ export class AppServiceNode extends SiteNodeBase {
         const resourceClient = new ResourceManagementClient(this.azureAccount.getCredentialByTenantId(this.subscription.tenantId), this.subscription.subscriptionId);
         const subscription = this.subscription;
         const site = this.site;
-        const taskResults = await Promise.all([
+        const tasks = Promise.all([
             resourceClient.resourceGroups.get(this.site.resourceGroup),
             this.getAppServicePlan(),
             this.webSiteClient.webApps.getConfiguration(this.site.resourceGroup, this.site.name)
         ]);
+
+        let uri: vscode.Uri;
+        uri = await vscode.window.showSaveDialog({ filters: { 'Shell Script (Bash)': ['sh'] } });
+
+        if (!uri) {
+            throw new UserCancelledError();
+        }
+
+        const taskResults = await tasks;
         const rg = taskResults[0];
         const plan = taskResults[1];
         const siteConfig = taskResults[2];
@@ -70,32 +80,17 @@ export class AppServiceNode extends SiteNodeBase {
             .replace('%PLAN_SKU%', plan.sku.name)
             .replace('%SITE_NAME%', site.name)
             .replace('%RUNTIME%', siteConfig.linuxFxVersion);
-
-        let uri: vscode.Uri;
-        if (vscode.workspace.rootPath) {
-            let count = 0;
-            const maxCount = 1024;
-
-            while (count < maxCount) {
-                uri = vscode.Uri.file(path.join(vscode.workspace.rootPath, `deploy-${site.name}${count === 0 ? '' : count.toString()}.sh`));
-                if (!vscode.workspace.textDocuments.find(doc => doc.uri.fsPath === uri.fsPath) && !fs.existsSync(uri.fsPath)) {
-                    uri = uri.with({ scheme: 'untitled' });
-                    break;
+        await new Promise<void>((resolve, reject) => {
+            fs.writeFile(uri.fsPath, script, err => {
+                if (err) {
+                    reject(err)
                 } else {
-                    uri = null;
+                    resolve();
                 }
-                count++;
-            }
-        }
-
-        if (uri) {
-            const doc = await vscode.workspace.openTextDocument(uri);
-            const editor = await vscode.window.showTextDocument(doc);
-            await editor.edit(editorBuilder => editorBuilder.insert(new vscode.Position(0, 0), script));
-        } else {
-            const doc = await vscode.workspace.openTextDocument({ content: script, language: 'shellscript' });
-            await vscode.window.showTextDocument(doc);
-        }
+            });
+        });
+        const doc = await vscode.workspace.openTextDocument(uri);
+        await vscode.window.showTextDocument(doc);
     }
 }
 
