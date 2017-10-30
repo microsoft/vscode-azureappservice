@@ -43,6 +43,7 @@
         "onCommand:appSettings.Delete",
         "onCommand:diagnostics.OpenLogStream",
         "onCommand:diagnostics.StopLogStream",
+        "onCommand:deploymentSlots.CreateSlot",
         "onView:azureAppService"
     ],
     "main": "./out/src/extension",
@@ -154,6 +155,11 @@
             {
                 "command": "diagnostics.StopLogStream",
                 "title": "Stop Streaming Logs",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "deploymentSlots.CreateSlot",
+                "title": "Create New Deployment Slot",
                 "category": "Azure App Service"
             }
         ],
@@ -329,14 +335,19 @@
                     "group": "6_appServiceMiscCommands@1"
                 },
                 {
-                    "command": "appService.OpenInPortal",
+                    "command": "deploymentSlots.CreateSlot",
                     "when": "view == azureAppService && viewItem == deploymentSlots",
                     "group": "1_deploymentSlotsGeneralCommands@1"
                 },
                 {
-                    "command": "appService.Refresh",
+                    "command": "appService.OpenInPortal",
                     "when": "view == azureAppService && viewItem == deploymentSlots",
                     "group": "1_deploymentSlotsGeneralCommands@2"
+                },
+                {
+                    "command": "appService.Refresh",
+                    "when": "view == azureAppService && viewItem == deploymentSlots",
+                    "group": "1_deploymentSlotsGeneralCommands@3"
                 },
                 {
                     "command": "appService.OpenInPortal",

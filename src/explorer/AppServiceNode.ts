@@ -10,13 +10,13 @@ import * as path from 'path';
 import { TreeItem, TreeItemCollapsibleState } from 'vscode';
 import * as vscode from 'vscode';
 import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models';
+import { UserCancelledError } from '../errors';
 import { AppServiceDataProvider } from './AppServiceExplorer';
 import { AppSettingsNode } from './AppSettingsNodes';
 import { DeploymentSlotsNode } from './DeploymentSlotsNode';
 import { NodeBase } from './NodeBase';
 import { SiteNodeBase } from './SiteNodeBase';
 import { WebJobsNode } from './WebJobsNode';
-import { UserCancelledError } from '../errors';
 
 export class AppServiceNode extends SiteNodeBase {
     constructor(site: WebSiteModels.Site, subscription: SubscriptionModels.Subscription, treeDataProvider: AppServiceDataProvider, parentNode: NodeBase) {
@@ -42,15 +42,19 @@ export class AppServiceNode extends SiteNodeBase {
         }
 
         const treeDataProvider = this.getTreeDataProvider<AppServiceDataProvider>();
-
+        const nodes = [];
+        const appServicePlan = await this.getAppServicePlan();
+        if (appServicePlan.sku.tier !== 'Basic') {
+            // Basic Service Plans do not support deployment slots
+            nodes.push(new DeploymentSlotsNode(this.site, this.subscription, treeDataProvider, this));
+        }
         // https://github.com/Microsoft/vscode-azureappservice/issues/45
-        return [
-            new DeploymentSlotsNode(this.site, this.subscription, treeDataProvider, this),
-            // new FilesNode('Files', '/site/wwwroot', this.site, this.subscription, treeDataProvider, this),
-            // new FilesNode('Log Files', '/LogFiles', this.site, this.subscription),
-            new WebJobsNode(this.site, this.subscription, treeDataProvider, this),
-            new AppSettingsNode(this.site, this.subscription, treeDataProvider, this)
-        ];
+        // nodes.push(new FilesNode('Files', '/site/wwwroot', this.site, this.subscription, treeDataProvider, this));
+        // nodes.push(new FilesNode('Log Files', '/LogFiles', this.site, this.subscription));
+        nodes.push(new WebJobsNode(this.site, this.subscription, treeDataProvider, this));
+        nodes.push(new AppSettingsNode(this.site, this.subscription, treeDataProvider, this));
+
+        return nodes;
     }
 
     public openCdInPortal(): void {
@@ -90,7 +94,7 @@ export class AppServiceNode extends SiteNodeBase {
         await new Promise<void>((resolve, reject) => {
             fs.writeFile(uri.fsPath, script, err => {
                 if (err) {
-                    reject(err)
+                    reject(err);
                 } else {
                     resolve();
                 }

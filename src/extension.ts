@@ -20,6 +20,7 @@ import { Reporter } from './telemetry/reporter';
 import * as util from "./util";
 import { WebAppCreator } from './WebAppCreator2';
 import { WebAppZipPublisher } from './WebAppZipPublisher';
+import { DeploymentSlotsNode } from './explorer/DeploymentSlotsNode';
 
 // tslint:disable-next-line:max-func-body-length
 export function activate(context: vscode.ExtensionContext): void {
@@ -131,6 +132,14 @@ export function activate(context: vscode.ExtensionContext): void {
                 p.report({ message: 'Generating script...' });
                 return node.generateDeploymentScript();
             });
+        }
+    });
+    initAsyncCommand(context, 'deploymentSlots.CreateSlot', async (node: DeploymentSlotsNode) => {
+        if (node) {
+            await node.createNewDeploymentSlot();
+            vscode.commands.executeCommand('appService.Refresh', node);
+            outputChannel.appendLine('Created new deployment slot.');
+
         }
     });
     initAsyncCommand(context, 'deploymentSlot.SwapSlots', async (node: DeploymentSlotNode) => {
