@@ -23,8 +23,6 @@ import { WebAppZipPublisher } from './WebAppZipPublisher';
 
 // tslint:disable-next-line:max-func-body-length
 export function activate(context: vscode.ExtensionContext): void {
-    console.log('Extension "Azure App Service Tools" is now active.');
-
     context.subscriptions.push(new Reporter(context));
 
     const outputChannel = util.getOutputChannel();
@@ -99,23 +97,23 @@ export function activate(context: vscode.ExtensionContext): void {
             vscode.commands.executeCommand('appService.Refresh', node);
         }
     });
-    initAsyncCommand(context, 'appService.DeployZipPackage', async (context: {}) => {
-        if (context instanceof SiteNodeBase) {
-            const wizard = new WebAppZipPublisher(outputChannel, azureAccount, context.subscription, context.site);
+    initAsyncCommand(context, 'appService.DeployZipPackage', async (target?: {}) => {
+        if (target instanceof SiteNodeBase) {
+            const wizard = new WebAppZipPublisher(outputChannel, azureAccount, target.subscription, target.site);
             await wizard.run();
-        } else if (context instanceof vscode.Uri) {
-            const wizard = new WebAppZipPublisher(outputChannel, azureAccount, undefined, undefined, context.fsPath);
+        } else if (target instanceof vscode.Uri) {
+            const wizard = new WebAppZipPublisher(outputChannel, azureAccount, undefined, undefined, target.fsPath);
             await wizard.run();
         }
     });
-    initAsyncCommand(context, 'appService.ZipAndDeploy', async (context: {}) => {
-        if (context instanceof vscode.Uri) {
-            const folderPath = context.fsPath;
+    initAsyncCommand(context, 'appService.ZipAndDeploy', async (uri?: {}) => {
+        if (uri instanceof vscode.Uri) {
+            const folderPath = uri.fsPath;
             const wizard = new WebAppZipPublisher(outputChannel, azureAccount, undefined, undefined, folderPath);
             await wizard.run();
         }
     });
-    initAsyncCommand(context, 'appService.LocalGitDeploy', async (node: SiteNodeBase) => {
+    initAsyncCommand(context, 'appService.LocalGitDeploy', async (node?: SiteNodeBase) => {
         if (node) {
             outputChannel.appendLine(`Deploying Local Git repository to "${node.site.name}"...`);
             await node.localGitDeploy();
@@ -184,12 +182,12 @@ export function activate(context: vscode.ExtensionContext): void {
 export function deactivate() {
 }
 
-function initCommand(context: vscode.ExtensionContext, commandId: string, callback: (...args: any[]) => any) {
-    initAsyncCommand(context, commandId, (...args: any[]) => Promise.resolve(callback(...args)));
+function initCommand<T>(extensionContext: vscode.ExtensionContext, commandId: string, callback: (context?: T) => void): void {
+    initAsyncCommand(extensionContext, commandId, async (context?: T) => callback(context));
 }
 
-function initAsyncCommand(context: vscode.ExtensionContext, commandId: string, callback: (...args: any[]) => Promise<any>) {
-    context.subscriptions.push(vscode.commands.registerCommand(commandId, async (...args: any[]) => {
+function initAsyncCommand<T>(extensionContext: vscode.ExtensionContext, commandId: string, callback: (context?: T) => Promise<void>): void {
+    extensionContext.subscriptions.push(vscode.commands.registerCommand(commandId, async (...args: {}[]) => {
         const start = Date.now();
         const properties: { [key: string]: string; } = {};
         const output = util.getOutputChannel();
@@ -197,7 +195,11 @@ function initAsyncCommand(context: vscode.ExtensionContext, commandId: string, c
         let errorData: ErrorData | undefined;
 
         try {
-            await callback(...args);
+            if (args.length === 0) {
+                await callback();
+            } else {
+                await callback(<T>args[0]);
+            }
         } catch (err) {
             if (err instanceof LocalGitDeployError) {
                 properties.servicePlan = err.servicePlanSize;

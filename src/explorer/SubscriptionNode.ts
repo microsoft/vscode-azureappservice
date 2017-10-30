@@ -3,22 +3,27 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { TreeItem, TreeItemCollapsibleState } from 'vscode';
-import { AzureAccountWrapper } from '../AzureAccountWrapper';
 import { SubscriptionModels } from 'azure-arm-resource';
-import { AppServiceDataProvider } from './AppServiceExplorer';
-import { NodeBase } from './NodeBase';
-import { AppServiceNode } from './AppServiceNode';
 import WebSiteManagementClient = require('azure-arm-website');
 import * as path from 'path';
-
+import { TreeItem, TreeItemCollapsibleState } from 'vscode';
+import { AzureAccountWrapper } from '../AzureAccountWrapper';
+import { AppServiceDataProvider } from './AppServiceExplorer';
+import { AppServiceNode } from './AppServiceNode';
+import { NodeBase } from './NodeBase';
 
 export class SubscriptionNode extends NodeBase {
-    constructor(readonly subscription: SubscriptionModels.Subscription, treeDataProvider: AppServiceDataProvider, parentNode: NodeBase | undefined) {
+    private readonly _subscription: SubscriptionModels.Subscription;
+    constructor(subscription: SubscriptionModels.Subscription, treeDataProvider: AppServiceDataProvider, parentNode: NodeBase | undefined) {
         super(subscription.displayName, treeDataProvider, parentNode);
+        this._subscription = subscription;
     }
 
-    getTreeItem(): TreeItem {
+    public get subscription(): SubscriptionModels.Subscription {
+        return this._subscription;
+    }
+
+    public getTreeItem(): TreeItem {
         return {
             label: this.label,
             collapsibleState: TreeItemCollapsibleState.Collapsed,
@@ -27,19 +32,21 @@ export class SubscriptionNode extends NodeBase {
                 light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'Subscription_color.svg'),
                 dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'Subscription_color.svg')
             }
-        }
+        };
     }
 
-    async getChildren(): Promise<NodeBase[]> {
+    public async getChildren(): Promise<NodeBase[]> {
         if (this.azureAccount.signInStatus !== 'LoggedIn') {
             return [];
         }
 
-        const credential = this.azureAccount.getCredentialByTenantId(this.subscription.tenantId);
-        const client = new WebSiteManagementClient(credential, this.subscription.subscriptionId);
+        const credential = this.azureAccount.getCredentialByTenantId(this._subscription.tenantId);
+        const client = new WebSiteManagementClient(credential, this._subscription.subscriptionId);
         const webApps = await client.webApps.list();
-        const nodes = webApps.sort((a, b) => {
-            let n = a.resourceGroup.localeCompare(b.resourceGroup);
+
+        // logic to retrieve nodes from resourceGroup and filter out function apps
+        return webApps.sort((a, b) => {
+            const n = a.resourceGroup.localeCompare(b.resourceGroup);
             if (n !== 0) {
                 return n;
             }
@@ -47,15 +54,30 @@ export class SubscriptionNode extends NodeBase {
             return a.name.localeCompare(b.name);
         }).map<AppServiceNode>(site => {
             if (!site.kind.startsWith('functionapp')) {
-                return new AppServiceNode(site, this.subscription, this.getTreeDataProvider(), this);
+                return new AppServiceNode(site, this._subscription, this.getTreeDataProvider(), this);
             }
             return undefined;
         });
-
-        return nodes;
     }
 
     private get azureAccount(): AzureAccountWrapper {
         return this.getTreeDataProvider<AppServiceDataProvider>().azureAccount;
+    }
+}
+
+export class SelectSubscriptionsNode extends NodeBase {
+    constructor(treeDataProvider: AppServiceDataProvider, parentNode?: NodeBase) {
+        super('Select Subscriptions...', treeDataProvider, parentNode);
+    }
+
+    public getTreeItem(): TreeItem {
+        return {
+            label: this.label,
+            command: {
+                title: this.label,
+                command: 'azure-account.selectSubscriptions'
+            },
+            collapsibleState: TreeItemCollapsibleState.None
+        };
     }
 }

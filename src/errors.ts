@@ -9,10 +9,10 @@ export class GitNotInstalledError extends Error {
     }
 
     public async showInstallPrompt(): Promise<void> {
-        const installString = `Install`;
-        const input = await window.showErrorMessage(`Git must be installed to use Local Git Deploy.`, installString);
+        const installString = 'Install';
+        const input = await window.showErrorMessage('Git must be installed to use Local Git Deploy.', installString);
         if (input === 'Install') {
-            opn(`https://git-scm.com/downloads`);
+            opn('https://git-scm.com/downloads');
         }
     }
 }
