@@ -66,59 +66,49 @@ export class DeploymentSlotsNode extends NodeBase {
         return this.getTreeDataProvider<AppServiceDataProvider>().azureAccount;
     }
 
-    public async createNewDeploymentSlot(): Promise<void> {
-        let slotName = '';
-        let slotNameOkay = false;
-
-        // a webapp cannot have more than 4 slots (excluding production)
+    public async createNewDeploymentSlot(): Promise<string> {
+        let slotName;
         const slotNodes = await this.getChildren();
         const slotLabels = slotNodes.map(node => {
             return node.label;
         });
 
-        while (!slotNameOkay) {
-            slotName = await window.showInputBox({
-                prompt: 'Enter a unique name for the new deployment slot',
-                validateInput: (value: string) => {
-                    value = value ? value.trim() : '';
-                    if (!value.match(/^[a-z0-9\-]{1,60}$/ig)) {
-                        return 'Name should be 1-60 characters long and can only include alphanumeric characters and hyphens.';
-                    }
-
-                    // Can not have identical slot names OR production
-                    if (!this.checkSlotNameAvailability(value, slotLabels)) {
-                        return `The slot name "${value}" is not available`;
-                    }
-
-                    return null;
-                }
-            });
-
-            if (!slotName) {
-                throw new UserCancelledError();
-            }
-            slotName = slotName.trim();
+        slotName = await this.promptForSlotName(slotLabels);
+        if (!slotName) {
+            throw new UserCancelledError();
         }
-
+        slotName = slotName.trim();
         const newDeploymentSlot = {
             name: slotName,
             kind: this.site.kind,
             location: this.site.location,
             serverFarmId: this.site.serverFarmId
         };
-
+        // if user has more slots than the service plan allows, Azure will respond with an error
         await this.webSiteClient.webApps.createOrUpdateSlot(this.site.resourceGroup, util.extractSiteName(this.site), newDeploymentSlot, slotName);
-    }
-
-    private checkSlotNameAvailability(slotName: string, slotLabels: string[]): boolean {
-        if (slotName !== 'production' && slotLabels.indexOf(slotName) === -1) {
-            return true;
-        } else {
-            return false;
-        }
+        return slotName;
     }
 
     protected get webSiteClient(): WebSiteManagementClient {
         return new WebSiteManagementClient(this.azureAccount.getCredentialByTenantId(this.subscription.tenantId), this.subscription.subscriptionId);
+    }
+
+    protected async promptForSlotName(slotLabels: string[]): Promise<string | undefined> {
+        return await window.showInputBox({
+            prompt: 'Enter a unique name for the new deployment slot',
+            validateInput: (value: string) => {
+                value = value ? value.trim() : '';
+                if (!value.match(/^[a-z0-9\-]{1,60}$/ig)) {
+                    return 'Name should be 1-60 characters long and can only include alphanumeric characters and hyphens.';
+                }
+
+                // Can not have identical slot names OR production
+                if (value === 'production' || slotLabels.indexOf(value) !== -1) {
+                    return `The slot name "${value}" is not available`;
+                }
+
+                return null;
+            }
+        });
     }
 }

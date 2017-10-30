@@ -136,9 +136,9 @@ export function activate(context: vscode.ExtensionContext): void {
     });
     initAsyncCommand(context, 'deploymentSlots.CreateSlot', async (node: DeploymentSlotsNode) => {
         if (node) {
-            await node.createNewDeploymentSlot();
+            const newSlot = await node.createNewDeploymentSlot();
             vscode.commands.executeCommand('appService.Refresh', node);
-            outputChannel.appendLine('Created new deployment slot.');
+            outputChannel.appendLine(`Successfully created deployment slot "${newSlot}" for web app "${node.getParentNode().label}".`);
 
         }
     });

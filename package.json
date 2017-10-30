@@ -249,6 +249,10 @@
                 {
                     "command": "diagnostics.StopLogStream",
                     "when": "never"
+                },
+                {
+                    "command": "deploymentSlots.CreateSlot",
+                    "when": "never"
                 }
             ],
             "view/title": [
