@@ -85,6 +85,7 @@ export class DeploymentSlotsNode extends NodeBase {
                         return 'Name should be 1-60 characters long and can only include alphanumeric characters and hyphens.';
                     }
 
+                    // Can not have identical slot names OR production
                     if (!this.checkSlotNameAvailability(value, slotLabels)) {
                         return `The slot name "${value}" is not available`;
                     }
@@ -96,13 +97,7 @@ export class DeploymentSlotsNode extends NodeBase {
             if (!slotName) {
                 throw new UserCancelledError();
             }
-
             slotName = slotName.trim();
-            // Can not have identical slot names OR production
-            slotNameOkay = this.checkSlotNameAvailability(slotName, slotLabels);
-            if (!slotNameOkay) {
-                await window.showWarningMessage(`The slot name "${slotName}" is not available`);
-            }
         }
 
         const newDeploymentSlot = {
