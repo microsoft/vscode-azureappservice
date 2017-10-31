@@ -7,7 +7,7 @@
 
 import * as vscode from 'vscode';
 import { AzureAccountWrapper } from './AzureAccountWrapper';
-import { WizardBase, IWizardResult, WizardStep, SubscriptionStepBase, IQuickPickItemWithData } from './wizard';
+import { WizardBase, IWizardResult, WizardStep, SubscriptionStepBase } from './wizard';
 import { SubscriptionModels, ResourceManagementClient, ResourceModels } from 'azure-arm-resource';
 import WebSiteManagementClient = require('azure-arm-website');
 import * as WebSiteModels from '../node_modules/azure-arm-website/lib/models';
@@ -109,7 +109,11 @@ export class WebsiteCreatorStepBase extends WizardStep {
 }
 
 export class SubscriptionStep extends SubscriptionStepBase {
-    constructor(wizard: WizardBase, azureAccount: AzureAccountWrapper, private _resources: { prompt: string }, subscription?: SubscriptionModels.Subscription, persistence?: vscode.Memento) {
+    constructor(wizard: WizardBase,
+        azureAccount: AzureAccountWrapper,
+        private _resources: { prompt: string },
+        subscription?: SubscriptionModels.Subscription,
+        persistence?: vscode.Memento) {
         super(wizard, 'SelectSubscription', azureAccount, subscription, persistence);
     }
 
@@ -138,7 +142,7 @@ export class ResourceGroupStep extends WebsiteCreatorStepBase {
     }
 
     async prompt(): Promise<void> {
-        const createNewItem: IQuickPickItemWithData<ResourceModels.ResourceGroup> = {
+        const createNewItem: util.IQuickPickItemWithData<ResourceModels.ResourceGroup> = {
             persistenceId: "",
             label: '$(plus) Create New Resource Group',
             description: null,
@@ -154,7 +158,7 @@ export class ResourceGroupStep extends WebsiteCreatorStepBase {
         var newRgName: string;
 
         const quickPickItemsTask = Promise.all([resourceGroupsTask, locationsTask]).then(results => {
-            const quickPickItems: IQuickPickItemWithData<ResourceModels.ResourceGroup>[] = [createNewItem];
+            const quickPickItems: util.IQuickPickItemWithData<ResourceModels.ResourceGroup>[] = [createNewItem];
             resourceGroups = results[0];
             locations = results[1];
             resourceGroups.forEach(rg => {
@@ -200,7 +204,7 @@ export class ResourceGroupStep extends WebsiteCreatorStepBase {
             }
         });
 
-        const locationPickItems = locations.map<IQuickPickItemWithData<SubscriptionModels.Location>>(location => {
+        const locationPickItems = locations.map<util.IQuickPickItemWithData<SubscriptionModels.Location>>(location => {
             return {
                 label: location.displayName,
                 description: `(${location.name})`,
@@ -249,7 +253,7 @@ export class AppServicePlanStep extends WebsiteCreatorStepBase {
     }
 
     async prompt(): Promise<void> {
-        const createNewItem: IQuickPickItemWithData<WebSiteModels.AppServicePlan> = {
+        const createNewItem: util.IQuickPickItemWithData<WebSiteModels.AppServicePlan> = {
             persistenceId: "$new",
             label: '$(plus) Create New App Service Plan',
             description: '',
@@ -317,7 +321,7 @@ export class AppServicePlanStep extends WebsiteCreatorStepBase {
         });
 
         // Prompt for Pricing tier
-        const pricingTiers: IQuickPickItemWithData<WebSiteModels.SkuDescription>[] = [];
+        const pricingTiers: util.IQuickPickItemWithData<WebSiteModels.SkuDescription>[] = [];
         const availableSkus = this.getPlanSkus();
         availableSkus.forEach(sku => {
             pricingTiers.push({
@@ -429,7 +433,7 @@ export class WebsiteStep extends WebsiteCreatorStepBase {
         const siteName = this.getWebsiteName();
 
         var runtimeStack: string;
-        const runtimeItems: IQuickPickItemWithData<LinuxRuntimeStack>[] = [];
+        const runtimeItems: util.IQuickPickItemWithData<LinuxRuntimeStack>[] = [];
         const linuxRuntimeStacks = this.getLinuxRuntimeStack();
 
         linuxRuntimeStacks.forEach(rt => {
