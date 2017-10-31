@@ -1,4 +1,5 @@
 var req = require("request");
+import * as child_process from 'child_process';
 import * as vscode from 'vscode';
 import * as util from './util';
 import { UserCancelledError } from './errors';
@@ -9,99 +10,170 @@ import { WizardBase, WizardStep, QuickPickItemWithData } from './wizard';
 
 import WebSiteManagementClient = require('azure-arm-website');
 
-let shouldUseMockupKuduCall = false;
+let shouldUseMockKuduCall = true;
 
-async function makeKuduCall(site: WebSiteModels.Site, affinityValue: string, publishCredential: WebSiteModels.User, request: KuduRequestBase): Promise<CommandRunResult> {
-    let promise: Promise<CommandRunResult>;
-    if (shouldUseMockupKuduCall) {
-        promise = mockupKuduCall(site, affinityValue, publishCredential, request);
-    } else {
-        promise = realKuduCall(site, affinityValue, publishCredential, request);
+interface LogPointsDebuggerClient {
+    call<ResponseType>(site: WebSiteModels.Site, affinityValue: string, publishCredential: WebSiteModels.User, command: string): Promise<CommandRunResult<ResponseType>>;
+
+    startSession(site: WebSiteModels.Site, affinityValue: string, publishCredential: WebSiteModels.User): Promise<CommandRunResult<StartSessionResponse>>;
+
+    enumerateProcesses(site: WebSiteModels.Site, affinityValue: string, publishCredential: WebSiteModels.User): Promise<CommandRunResult<EnumerateProcessResponse>>;
+
+    attachProcess(site: WebSiteModels.Site, affinityValue: string, publishCredential: WebSiteModels.User, data: AttachProcessRequest): Promise<CommandRunResult<AttachProcessResponse>>;
+}
+
+abstract class LogPointsDebuggerClientBase {
+    abstract call<ResponseType>(site: WebSiteModels.Site, affinityValue: string, publishCredential: WebSiteModels.User, command: string): Promise<CommandRunResult<ResponseType>>;
+
+    protected makeCallAndLogException<ResponseType>(site: WebSiteModels.Site, affinityValue: string,
+        publishCredential: WebSiteModels.User, command: string): Promise<CommandRunResult<ResponseType>> {
+        return this.call<ResponseType>(site, affinityValue, publishCredential, command)
+            .catch<CommandRunResult<ResponseType>>((err) => {
+                util.getOutputChannel().appendLine(`API call error ${err.toString()}`);
+                throw err;
+            });;
+    }
+}
+
+class KuduLogPointsDebuggerClient extends LogPointsDebuggerClientBase implements LogPointsDebuggerClient {
+    startSession(site: WebSiteModels.Site, affinityValue: string, publishCredential: WebSiteModels.User)
+        : Promise<CommandRunResult<StartSessionResponse>> {
+        // TODO: The actual command is TBD
+        return this.makeCallAndLogException<StartSessionResponse>(site, affinityValue, publishCredential, "node -v");
     }
 
-    return promise.catch<CommandRunResult>((err) => {
-        util.getOutputChannel().appendLine(`API call error ${err.toString()}`);
-        throw err;
-    });
-}
+    enumerateProcesses(site: WebSiteModels.Site, affinityValue: string, publishCredential: WebSiteModels.User): Promise<CommandRunResult<EnumerateProcessResponse>> {
+        // TODO: The actual command is TBD
+        return this.makeCallAndLogException<EnumerateProcessResponse>(site, affinityValue, publishCredential, "node -v");
+    }
 
-interface CommandRunResult {
-    Error: any
-    ExitCode: number
-    Output: string
-}
+    attachProcess(site: WebSiteModels.Site, affinityValue: string, publishCredential: WebSiteModels.User): Promise<CommandRunResult<AttachProcessResponse>> {
+        // TODO: The actual command is TBD
+        return this.makeCallAndLogException<AttachProcessResponse>(site, affinityValue, publishCredential, "node -v");
+    }
 
-async function realKuduCall(site: WebSiteModels.Site, affinityValue: string, publishCredential: WebSiteModels.User, request: KuduRequestBase): Promise<CommandRunResult> {
-    const siteName = util.extractSiteName(site) + (util.isSiteDeploymentSlot(site) ? '-' + util.extractDeploymentSlotName(site) : '');
+    call<ResponseType>(site: WebSiteModels.Site, affinityValue: string, publishCredential: WebSiteModels.User, command: string)
+        : Promise<CommandRunResult<ResponseType>> {
+        const siteName = util.extractSiteName(site) + (util.isSiteDeploymentSlot(site) ? '-' + util.extractDeploymentSlotName(site) : '');
 
-    let headers = {
-        "Authorization": "Basic " +
-        new Buffer(publishCredential.publishingUserName + ":" + publishCredential.publishingPassword)
-            .toString("base64")
-    };
+        let headers = {
+            "Authorization": "Basic " +
+            new Buffer(publishCredential.publishingUserName + ":" + publishCredential.publishingPassword)
+                .toString("base64")
+        };
 
-    var r = req.defaults({
-        baseUrl: "https://" + siteName + ".scm.azurewebsites.net/",
-        headers: headers,
-    });
-
-    r.cookie(`ARRAffinity=${affinityValue}`);
-    let cb: (err, body?, response?) => void;
-    let promise = new Promise<CommandRunResult>((resolve, reject) => {
-        cb = (err, body?, response?) => {
-            if (err) {
-                reject(err);
-                return;
-            }
-
-            if (response.statusCode !== 200) {
-                reject(new Error(`${response.statusCode}: ${body}`));
-                return;
-            }
-
-            resolve({
-                Error: body.Error,
-                ExitCode: body.ExitCode,
-                Output: body.Output
-            });
-        }
-    });
-
-    r.post({
-        uri: "/api/command",
-        json: {
-            command: request.command,
-            dir: '/'
-        }
-    }, function execCallback(err, response, body) {
-        if (err) {
-            return cb(err);
-        }
-
-        cb(null, body, response);
-    });
-
-    return promise;
-}
-
-async function mockupKuduCall(site: WebSiteModels.Site, affinityValue: string, publishCredential: WebSiteModels.User, request: KuduRequestBase): Promise<CommandRunResult> {
-    site && affinityValue && publishCredential && request;
-
-    return new Promise<CommandRunResult>((resolve) => {
-        resolve({
-            Error: null,
-            ExitCode: 0,
-            Output: ''
+        var r = req.defaults({
+            baseUrl: "https://" + siteName + ".scm.azurewebsites.net/",
+            headers: headers,
         });
-    })
+
+        r.cookie(`ARRAffinity=${affinityValue}`);
+        let cb: (err, body?, response?) => void;
+        let promise = new Promise<CommandRunResult<ResponseType>>((resolve, reject) => {
+            cb = (err, body?, response?) => {
+                if (err) {
+                    reject(err);
+                    return;
+                }
+
+                if (response.statusCode !== 200) {
+                    reject(new Error(`${response.statusCode}: ${body}`));
+                    return;
+                }
+
+                resolve(new CommandRunResult<ResponseType>(body.Error, body.ExitCode, body.Output));
+            }
+        });
+
+        r.post({
+            uri: "/api/command",
+            json: {
+                command: command,
+                dir: '/'
+            }
+        }, function execCallback(err, response, body) {
+            if (err) {
+                return cb(err);
+            }
+
+            cb(null, body, response);
+        });
+
+        return promise;
+    }
+}
+
+class MockLogpointsDebuggerClient extends LogPointsDebuggerClientBase implements LogPointsDebuggerClient {
+    startSession(site: WebSiteModels.Site, affinityValue: string, publishCredential: WebSiteModels.User): Promise<CommandRunResult<StartSessionResponse>> {
+        return this.makeCallAndLogException<StartSessionResponse>(site, affinityValue, publishCredential, "curl -X POST http://localhost:32923/debugger/session");
+    }
+
+    enumerateProcesses(site: WebSiteModels.Site, affinityValue: string, publishCredential: WebSiteModels.User): Promise<CommandRunResult<EnumerateProcessResponse>> {
+        return this.makeCallAndLogException<EnumerateProcessResponse>(site, affinityValue, publishCredential, "curl -X GET http://localhost:32923/os/processes?applicationType=Node.js");
+    }
+
+    attachProcess(site: WebSiteModels.Site, affinityValue: string, publishCredential: WebSiteModels.User, data: AttachProcessRequest): Promise<CommandRunResult<AttachProcessResponse>> {
+        return this.makeCallAndLogException<AttachProcessResponse>(site, affinityValue, publishCredential,
+            `curl -X POST -H "Content-Type: application/json" -d '{"processId":"${data.processId}","codeType":"javascript"}' http://localhost:32923/debugger/session/${data.processId}/debugee`);
+    }
+
+    call<ResponseType>(site: WebSiteModels.Site, affinityValue: string, publishCredential: WebSiteModels.User, command: string): Promise<CommandRunResult<ResponseType>> {
+        site && affinityValue && publishCredential;
+
+        return new Promise<CommandRunResult<ResponseType>>((resolve) => {
+            child_process.exec(command, (error: any, stdout: string, stderr: string) => {
+                if (error) {
+                    resolve(new CommandRunResult<ResponseType>(error, error.code, stderr));
+                    return;
+                }
+
+                resolve(new CommandRunResult<ResponseType>(null, 0, stdout));
+            });
+        });
+    }
+}
+
+let logPointsDebuggerClient: LogPointsDebuggerClient;
+
+if (shouldUseMockKuduCall) {
+    logPointsDebuggerClient = new MockLogpointsDebuggerClient();
+} else {
+    logPointsDebuggerClient = new KuduLogPointsDebuggerClient();
+}
+
+class CommandRunResult<ResponseType extends { error?: any, data?: any }> {
+    private _json: ResponseType;
+    constructor(public error: any, public exitCode: number, public output: string) {
+        this._json = undefined;
+    }
+
+    isSuccessful() {
+        return this.exitCode === 0 && this.json && !this.json.error;
+    }
+
+    get json(): ResponseType {
+        if (this._json === undefined) {
+            try {
+                this._json = JSON.parse(this.output);
+            } catch (err) {
+                util.getOutputChannel().appendLine(`API call error ${err.toString()}`);
+                this._json == null;
+            }
+        }
+
+        return this._json;
+    };
 }
 
 export class LogPointsSessionAttach extends WizardBase {
     private _cachedPublishCredential: WebSiteModels.User
 
     readonly hasSlot: boolean;
-    selectedDeploymentSlot: WebSiteModels.Site
-    selectedInstance: WebSiteModels.SiteInstance
+    selectedDeploymentSlot: WebSiteModels.Site;
+    selectedInstance: WebSiteModels.SiteInstance;
+    sessionId: string;
+    processId: string;
+    debuggerId: string;
 
     constructor(output: vscode.OutputChannel,
         readonly azureAccount: AzureAccountWrapper,
@@ -133,6 +205,14 @@ export class LogPointsSessionAttach extends WizardBase {
         const user = await util.getWebAppPublishCredential(siteClient, site);
         this._cachedPublishCredential = user;
         return user;
+    }
+
+    async getCachedCredentialOrRefetch(site: WebSiteModels.Site): Promise<WebSiteModels.User> {
+        if (this.lastUsedPublishCredential) {
+            return Promise.resolve(this.lastUsedPublishCredential);
+        }
+
+        return this.fetchPublishCrentential(site);
     }
 
     protected beforeExecute() { }
@@ -188,14 +268,14 @@ class PromptSlotSelection extends WizardStep {
 
 class GetUnoccupiedInstance extends WizardStep {
     constructor(private _wizard: LogPointsSessionAttach) {
-        super(_wizard, 'Choose a deployment slot.');
+        super(_wizard, 'Find the first available unoccupied instance.');
     }
 
     async execute(): Promise<void> {
         let selectedSlot = (<LogPointsSessionAttach>this.wizard).selectedDeploymentSlot;
         vscode.window.showInformationMessage("The deployment slot you selected is: " + selectedSlot.name);
 
-        let publishCredential = this._wizard.lastUsedPublishCredential || await this._wizard.fetchPublishCrentential(selectedSlot);
+        let publishCredential = await this._wizard.getCachedCredentialOrRefetch(selectedSlot);
 
         let instances: WebSiteModels.WebAppInstanceCollection;
         const client = this._wizard.webManagementClient;
@@ -210,23 +290,23 @@ class GetUnoccupiedInstance extends WizardStep {
         });
 
         for (let instance of instances) {
-            let result: CommandRunResult;
-            let request = new StartSessionRequest();
+            let result: CommandRunResult<StartSessionResponse>;
 
             await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async p => {
                 p.report({ message: `Trying to start a session from instance ${instance.name}...` });
-                await makeKuduCall(selectedSlot, instance.name, publishCredential, request).then((r: CommandRunResult) => {
-                    result = r;
-                }, () => {
-                    // If there is an error, mark the request failed by resetting `result`.
-                    result = null;
-                });
+                await logPointsDebuggerClient.startSession(selectedSlot, instance.name, publishCredential)
+                    .then((r: CommandRunResult<StartSessionResponse>) => {
+                        result = r;
+                    }, () => {
+                        // If there is an error, mark the request failed by resetting `result`.
+                        result = null;
+                    });
             });
 
-            // TODO: JSON-parse result.output and see what it really means.
-            if (result && result.ExitCode == 0) {
-                vscode.window.showInformationMessage(`The command ${request.command} ran, and the result is ${result.Output}`);
+            if (result && result.isSuccessful()) {
+                vscode.window.showInformationMessage(`The start session command ran, and the result is ${result.output}`);
                 this._wizard.selectedInstance = instance;
+                this._wizard.sessionId = result.json.data._id;
                 break;
             }
         }
@@ -240,40 +320,101 @@ class GetUnoccupiedInstance extends WizardStep {
 }
 
 class PickProcessStep extends WizardStep {
-    constructor(wizard: WizardBase) {
-        super(wizard, 'Start.');
+    constructor(private _wizard: LogPointsSessionAttach) {
+        super(_wizard, 'Enumerate node processes.');
     }
 
     async execute(): Promise<void> {
+        let selectedSlot = (<LogPointsSessionAttach>this.wizard).selectedDeploymentSlot;
+        let instance = this._wizard.selectedInstance;
+        let publishCredential = await this._wizard.getCachedCredentialOrRefetch(selectedSlot);
 
-        // TODO issue command to get a list of processes.
+        let result: CommandRunResult<EnumerateProcessResponse>;
+
+        await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async p => {
+            p.report({ message: `Enumerate node processes from instance ${instance.name}...` });
+            result = await logPointsDebuggerClient.enumerateProcesses(selectedSlot, instance.name, publishCredential);
+        });
+
+        if (!result.isSuccessful() || result.json.data.length == 0) {
+            throw new Error('Enumerating processes failed.');
+        }
+
+        // If there is only 1 process returned, just use that process. Do not show pickup list.
+        if (result.json.data.length == 1) {
+            this._wizard.processId = result.json.data[0].pid;
+            vscode.window.showInformationMessage(`Found 1 process ${this._wizard.processId}, use process ${this._wizard.processId}`);
+            return;
+        }
+
+        // Otherwise, show a quick pick list
+        let quickPickItems: QuickPickItemWithData<string>[] = result.json.data.map((process) => {
+            return <QuickPickItemWithData<string>>{
+                label: `${process.pid}`,
+                description: ` ${process.command} `
+                + ` ${typeof process.arguments == 'string' ? process.arguments : process.arguments.join(' ')}`,
+                data: process.pid
+            };
+        });
+
+        const quickPickOption = { placeHolder: `Please select a Node.js process to attach to: (${this.stepProgressText})` };
+
+        let pickedProcess = await this.showQuickPick(quickPickItems, quickPickOption);
+        this._wizard.processId = pickedProcess.data;
+
+        vscode.window.showInformationMessage(`Selected process ${this._wizard.processId}. "${pickedProcess.description}"`);
     }
 }
 
 class SessionAttachStep extends WizardStep {
-    constructor(wizard: WizardBase) {
-        super(wizard, 'Start.');
+    constructor(private _wizard: LogPointsSessionAttach) {
+        super(_wizard, 'Attach to node process.');
     }
 
     async execute(): Promise<void> {
-        // TODO: Call Agent API to open debugging port
+        let selectedSlot = (<LogPointsSessionAttach>this.wizard).selectedDeploymentSlot;
+        let instance = this._wizard.selectedInstance;
+        let publishCredential = await this._wizard.getCachedCredentialOrRefetch(selectedSlot);
+
+        let result: CommandRunResult<AttachProcessResponse>;
+        let requestData = new AttachProcessRequest(this._wizard.sessionId, this._wizard.processId);
+
+        await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async p => {
+            p.report({ message: `Attach debugging to session ${this._wizard.sessionId}...` });
+            result = await logPointsDebuggerClient.attachProcess(selectedSlot, instance.name, publishCredential, requestData);
+        });
+
+        if (result.isSuccessful()) {
+            this._wizard.debuggerId = result.json.data;
+            vscode.window.showInformationMessage(`Attached to process ${this._wizard.processId}, got debugId ${this._wizard.debuggerId}`);
+        } else {
+            throw new Error('Attaching process failed.');
+        }
     }
 }
 
-class KuduRequestBase {
-    get command(): string {
-        throw Error('unimplemented');
-    }
-    constructor(public name: string, public parameters: any) {
+
+class AttachProcessRequest {
+    constructor(public sessionId: string, public processId: string) {
     }
 }
 
-class StartSessionRequest extends KuduRequestBase {
-    constructor() {
-        super('startSession', {});
+interface StartSessionResponse {
+    data: {
+        _debugIds: any[];
+        _id: string;
+        _user: any;
     }
+}
 
-    get command() {
-        return 'node -v';
-    }
+interface EnumerateProcessResponse {
+    data: {
+        pid: string;
+        command: string;
+        arguments: string[];
+    }[]
+}
+
+interface AttachProcessResponse {
+    data: string
 }
