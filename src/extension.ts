@@ -218,7 +218,7 @@ function initAsyncCommand<T>(extensionContext: vscode.ExtensionContext, commandI
             } else {
                 properties.result = 'Failed';
                 errorData = new ErrorData(err);
-                output.appendLine(errorData.message);
+                output.appendLine(`Error: ${errorData.message}`);
                 if (errorData.message.includes('\n')) {
                     output.show();
                     vscode.window.showErrorMessage('An error has occured. Check output window for more details.');
