@@ -394,8 +394,11 @@ class SessionAttachStep extends WizardStep {
 }
 
 
-class AttachProcessRequest {
-    constructor(public sessionId: string, public processId: string) {
+    getMockCommand(): string {
+        throw new Error("Method not implemented.");
+    }
+    getMockResponse(): string {
+        throw new Error("Method not implemented.");
     }
 }
 
