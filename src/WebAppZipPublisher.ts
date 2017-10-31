@@ -5,7 +5,7 @@
 
 import * as vscode from 'vscode';
 import { AzureAccountWrapper } from './AzureAccountWrapper';
-import { WizardBase, WizardStep, SubscriptionStepBase, IQuickPickItemWithData } from './wizard';
+import { WizardBase, WizardStep, SubscriptionStepBase } from './wizard';
 import { WebAppCreator } from './WebAppCreator2';
 import { SubscriptionModels } from 'azure-arm-resource';
 import WebSiteManagementClient = require('azure-arm-website');
@@ -42,23 +42,8 @@ class ZipFileStep extends WizardStep {
 
     async prompt(): Promise<void> {
         if (!this._fsPath) {
-            if (!vscode.workspace.workspaceFolders) {
-                throw new Error('There is no open folder to deploy.');
-            }
-
-            const folderQuickPickItems = vscode.workspace.workspaceFolders.map((value) => {
-                {
-                    return <IQuickPickItemWithData<vscode.WorkspaceFolder>>{
-                        label: value.name,
-                        description: '',
-                        data: value
-                    }
-                }
-            });
-            const folderQuickPickOption = { placeHolder: `Select the folder to Zip and deploy. (${this.stepProgressText})` };
-            const pickedItem = folderQuickPickItems.length == 1 ?
-                folderQuickPickItems[0] : await this.showQuickPick(folderQuickPickItems, folderQuickPickOption);
-            this._fsPath = pickedItem.data.uri.fsPath;
+            const fsWorkspaceFolder = await util.showWorkspaceFoldersQuickPick(`Select the folder to Zip and deploy. (${this.stepProgressText})`);
+            this._fsPath = fsWorkspaceFolder.uri.fsPath;
         }
     }
 
@@ -106,7 +91,7 @@ class WebAppStep extends WizardStep {
         const subscription = this.getSelectedSubscription();
         const websiteClient = new WebSiteManagementClient(this.azureAccount.getCredentialByTenantId(subscription.tenantId), subscription.subscriptionId);
         const webAppsTask = util.listAll(websiteClient.webApps, websiteClient.webApps.list()).then(webApps => {
-            const quickPickItems: IQuickPickItemWithData<WebSiteModels.Site>[] = [];
+            const quickPickItems: util.IQuickPickItemWithData<WebSiteModels.Site>[] = [];
             quickPickItems.push({
                 persistenceId: "$new",
                 label: '$(plus) Create new Web App',

@@ -5,6 +5,7 @@
 
 import { SubscriptionModels } from 'azure-arm-resource';
 import * as vscode from 'vscode';
+import * as util from './util';
 import { AzureAccountWrapper } from './AzureAccountWrapper';
 import { UserCancelledError, WizardFailedError } from './errors';
 
@@ -141,7 +142,10 @@ export class WizardStep {
         return `Step ${this.stepIndex + 1}/${this.wizard.steps.length}`;
     }
 
-    public async showQuickPick<T>(items: IQuickPickItemWithData<T>[] | Thenable<IQuickPickItemWithData<T>[]>, options: vscode.QuickPickOptions, persistenceKey?: string, token?: vscode.CancellationToken): Promise<IQuickPickItemWithData<T>> {
+    public async showQuickPick<T>(items: util.IQuickPickItemWithData<T>[] | Thenable<util.IQuickPickItemWithData<T>[]>,
+        options: vscode.QuickPickOptions,
+        persistenceKey?: string,
+        token?: vscode.CancellationToken): Promise<util.IQuickPickItemWithData<T>> {
         options.ignoreFocusOut = true;
         let resolvedItems = await items;
         if (this.persistenceState && persistenceKey) {
@@ -187,7 +191,7 @@ export class SubscriptionStepBase extends WizardStep {
         this.subscription = subscription;
     }
 
-    protected getSubscriptionsAsQuickPickItems(): Promise<IQuickPickItemWithData<SubscriptionModels.Subscription>[]> {
+    protected getSubscriptionsAsQuickPickItems(): Promise<util.IQuickPickItemWithData<SubscriptionModels.Subscription>[]> {
         return Promise.resolve(
             this.azureAccount.getFilteredSubscriptions().map(s => {
                 return {

@@ -12,7 +12,8 @@ import { AzureAccountWrapper } from './AzureAccountWrapper';
 import { UserCancelledError } from './errors';
 import { DeploymentSlotNode } from './explorer/DeploymentSlotNode';
 import { DeploymentSlotsNode } from './explorer/DeploymentSlotsNode';
-import { IQuickPickItemWithData, WizardBase, WizardStep } from './wizard';
+import { WizardBase, WizardStep } from './wizard';
+import { IQuickPickItemWithData } from './util';
 
 export class DeploymentSlotSwapper extends WizardBase {
     private readonly azureAccount: AzureAccountWrapper;
