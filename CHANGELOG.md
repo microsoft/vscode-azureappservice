@@ -1,6 +1,11 @@
 # Change Log
 All notable changes to the "azure-appservice" extension will be documented in this file.
 
+## 0.3.1 - 2017-11-01
+### Fixed
+- Show warning message that zip deploy is a destructive action
+- Leverage [new app service zipdeploy](https://github.com/projectkudu/kudu/wiki/Deploying-from-a-zip-file)
+
 ## 0.3.0 - 2017-10-18
 ### Added
 - Local Git deployment
