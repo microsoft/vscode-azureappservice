@@ -20,6 +20,7 @@ import { WebAppZipPublisher } from './webAppZipPublisher';
 import { LogPointsSessionAttach } from './logPointsManager';
 import { Reporter } from './telemetry/reporter';
 import { UserCancelledError } from './errors';
+import { LoadedScriptsProvider } from './explorer/loadedScriptsExplorer';
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Extension "Azure App Service Tools" is now active.');
@@ -33,6 +34,10 @@ export function activate(context: vscode.ExtensionContext) {
     const appServiceDataProvider = new AppServiceDataProvider(azureAccount);
 
     context.subscriptions.push(vscode.window.registerTreeDataProvider('azureAppService', appServiceDataProvider));
+
+    // loaded scripts
+    const provider = new LoadedScriptsProvider(context);
+    vscode.window.registerTreeDataProvider('appservice.loadedScriptsExplorer.jsLogpoints', provider);
 
     initCommand(context, 'appService.Refresh', (node?: NodeBase) => appServiceDataProvider.refresh(node));
     initCommand(context, 'appService.Browse', (node: SiteNodeBase) => {
@@ -213,12 +218,16 @@ export function activate(context: vscode.ExtensionContext) {
             node.stopLogStream();
         }
     });
-    initAsyncCommand(context, 'diagnostics.SetLogPoints', async (node: SiteNodeBase) => {
+    initAsyncCommand(context, 'diagnostics.StartLogPointsSession', async (node: SiteNodeBase) => {
         if (node) {
             const wizard = new LogPointsSessionAttach(outputChannel, azureAccount, node.site, node.subscription);
             await wizard.run();
-
         }
+    });
+
+    initCommand(context, 'diagnostics.LogPoints.OpenScript', () => {
+        // TODO: Implementation
+        vscode.window.showInformationMessage("Not implemented");
     });
 }
 

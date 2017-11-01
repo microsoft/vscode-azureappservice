@@ -1,5 +1,3 @@
-var req = require("request");
-import * as child_process from 'child_process';
 import * as vscode from 'vscode';
 import * as util from './util';
 import { UserCancelledError } from './errors';
@@ -7,131 +5,14 @@ import { AzureAccountWrapper } from './azureAccountWrapper';
 import { SubscriptionModels } from 'azure-arm-resource';
 import * as WebSiteModels from '../node_modules/azure-arm-website/lib/models';
 import { WizardBase, WizardStep, QuickPickItemWithData } from './wizard';
+import {
+    LogPointsDebuggerClient, KuduLogPointsDebuggerClient, MockLogpointsDebuggerClient, AttachProcessRequest,
+    CommandRunResult, StartSessionResponse, EnumerateProcessResponse, AttachProcessResponse
+} from './logPointsClient';
 
 import WebSiteManagementClient = require('azure-arm-website');
 
 let shouldUseMockKuduCall = true;
-
-interface LogPointsDebuggerClient {
-    call<ResponseType>(site: WebSiteModels.Site, affinityValue: string, publishCredential: WebSiteModels.User, command: string): Promise<CommandRunResult<ResponseType>>;
-
-    startSession(site: WebSiteModels.Site, affinityValue: string, publishCredential: WebSiteModels.User): Promise<CommandRunResult<StartSessionResponse>>;
-
-    enumerateProcesses(site: WebSiteModels.Site, affinityValue: string, publishCredential: WebSiteModels.User): Promise<CommandRunResult<EnumerateProcessResponse>>;
-
-    attachProcess(site: WebSiteModels.Site, affinityValue: string, publishCredential: WebSiteModels.User, data: AttachProcessRequest): Promise<CommandRunResult<AttachProcessResponse>>;
-}
-
-abstract class LogPointsDebuggerClientBase {
-    abstract call<ResponseType>(site: WebSiteModels.Site, affinityValue: string, publishCredential: WebSiteModels.User, command: string): Promise<CommandRunResult<ResponseType>>;
-
-    protected makeCallAndLogException<ResponseType>(site: WebSiteModels.Site, affinityValue: string,
-        publishCredential: WebSiteModels.User, command: string): Promise<CommandRunResult<ResponseType>> {
-        return this.call<ResponseType>(site, affinityValue, publishCredential, command)
-            .catch<CommandRunResult<ResponseType>>((err) => {
-                util.getOutputChannel().appendLine(`API call error ${err.toString()}`);
-                throw err;
-            });;
-    }
-}
-
-class KuduLogPointsDebuggerClient extends LogPointsDebuggerClientBase implements LogPointsDebuggerClient {
-    startSession(site: WebSiteModels.Site, affinityValue: string, publishCredential: WebSiteModels.User)
-        : Promise<CommandRunResult<StartSessionResponse>> {
-        // TODO: The actual command is TBD
-        return this.makeCallAndLogException<StartSessionResponse>(site, affinityValue, publishCredential, "node -v");
-    }
-
-    enumerateProcesses(site: WebSiteModels.Site, affinityValue: string, publishCredential: WebSiteModels.User): Promise<CommandRunResult<EnumerateProcessResponse>> {
-        // TODO: The actual command is TBD
-        return this.makeCallAndLogException<EnumerateProcessResponse>(site, affinityValue, publishCredential, "node -v");
-    }
-
-    attachProcess(site: WebSiteModels.Site, affinityValue: string, publishCredential: WebSiteModels.User): Promise<CommandRunResult<AttachProcessResponse>> {
-        // TODO: The actual command is TBD
-        return this.makeCallAndLogException<AttachProcessResponse>(site, affinityValue, publishCredential, "node -v");
-    }
-
-    call<ResponseType>(site: WebSiteModels.Site, affinityValue: string, publishCredential: WebSiteModels.User, command: string)
-        : Promise<CommandRunResult<ResponseType>> {
-        const siteName = util.extractSiteName(site) + (util.isSiteDeploymentSlot(site) ? '-' + util.extractDeploymentSlotName(site) : '');
-
-        let headers = {
-            "Authorization": "Basic " +
-            new Buffer(publishCredential.publishingUserName + ":" + publishCredential.publishingPassword)
-                .toString("base64")
-        };
-
-        var r = req.defaults({
-            baseUrl: "https://" + siteName + ".scm.azurewebsites.net/",
-            headers: headers,
-        });
-
-        r.cookie(`ARRAffinity=${affinityValue}`);
-        let cb: (err, body?, response?) => void;
-        let promise = new Promise<CommandRunResult<ResponseType>>((resolve, reject) => {
-            cb = (err, body?, response?) => {
-                if (err) {
-                    reject(err);
-                    return;
-                }
-
-                if (response.statusCode !== 200) {
-                    reject(new Error(`${response.statusCode}: ${body}`));
-                    return;
-                }
-
-                resolve(new CommandRunResult<ResponseType>(body.Error, body.ExitCode, body.Output));
-            }
-        });
-
-        r.post({
-            uri: "/api/command",
-            json: {
-                command: command,
-                dir: '/'
-            }
-        }, function execCallback(err, response, body) {
-            if (err) {
-                return cb(err);
-            }
-
-            cb(null, body, response);
-        });
-
-        return promise;
-    }
-}
-
-class MockLogpointsDebuggerClient extends LogPointsDebuggerClientBase implements LogPointsDebuggerClient {
-    startSession(site: WebSiteModels.Site, affinityValue: string, publishCredential: WebSiteModels.User): Promise<CommandRunResult<StartSessionResponse>> {
-        return this.makeCallAndLogException<StartSessionResponse>(site, affinityValue, publishCredential, "curl -X POST http://localhost:32923/debugger/session");
-    }
-
-    enumerateProcesses(site: WebSiteModels.Site, affinityValue: string, publishCredential: WebSiteModels.User): Promise<CommandRunResult<EnumerateProcessResponse>> {
-        return this.makeCallAndLogException<EnumerateProcessResponse>(site, affinityValue, publishCredential, "curl -X GET http://localhost:32923/os/processes?applicationType=Node.js");
-    }
-
-    attachProcess(site: WebSiteModels.Site, affinityValue: string, publishCredential: WebSiteModels.User, data: AttachProcessRequest): Promise<CommandRunResult<AttachProcessResponse>> {
-        return this.makeCallAndLogException<AttachProcessResponse>(site, affinityValue, publishCredential,
-            `curl -X POST -H "Content-Type: application/json" -d '{"processId":"${data.processId}","codeType":"javascript"}' http://localhost:32923/debugger/session/${data.processId}/debugee`);
-    }
-
-    call<ResponseType>(site: WebSiteModels.Site, affinityValue: string, publishCredential: WebSiteModels.User, command: string): Promise<CommandRunResult<ResponseType>> {
-        site && affinityValue && publishCredential;
-
-        return new Promise<CommandRunResult<ResponseType>>((resolve) => {
-            child_process.exec(command, (error: any, stdout: string, stderr: string) => {
-                if (error) {
-                    resolve(new CommandRunResult<ResponseType>(error, error.code, stderr));
-                    return;
-                }
-
-                resolve(new CommandRunResult<ResponseType>(null, 0, stdout));
-            });
-        });
-    }
-}
 
 let logPointsDebuggerClient: LogPointsDebuggerClient;
 
@@ -139,30 +20,6 @@ if (shouldUseMockKuduCall) {
     logPointsDebuggerClient = new MockLogpointsDebuggerClient();
 } else {
     logPointsDebuggerClient = new KuduLogPointsDebuggerClient();
-}
-
-class CommandRunResult<ResponseType extends { error?: any, data?: any }> {
-    private _json: ResponseType;
-    constructor(public error: any, public exitCode: number, public output: string) {
-        this._json = undefined;
-    }
-
-    isSuccessful() {
-        return this.exitCode === 0 && this.json && !this.json.error;
-    }
-
-    get json(): ResponseType {
-        if (this._json === undefined) {
-            try {
-                this._json = JSON.parse(this.output);
-            } catch (err) {
-                util.getOutputChannel().appendLine(`API call error ${err.toString()}`);
-                this._json == null;
-            }
-        }
-
-        return this._json;
-    };
 }
 
 export class LogPointsSessionAttach extends WizardBase {
@@ -190,6 +47,7 @@ export class LogPointsSessionAttach extends WizardBase {
         this.steps.push(new GetUnoccupiedInstance(this));
         this.steps.push(new PickProcessStep(this));
         this.steps.push(new SessionAttachStep(this));
+        this.steps.push(new StartDebugAdapterStep(this));
     }
 
     get lastUsedPublishCredential(): WebSiteModels.User {
@@ -289,12 +147,14 @@ class GetUnoccupiedInstance extends WizardStep {
             return a.name.localeCompare(b.name);
         });
 
+        const siteName = util.extractSiteName(selectedSlot) + (util.isSiteDeploymentSlot(selectedSlot) ? '-' + util.extractDeploymentSlotName(selectedSlot) : '');
+
         for (let instance of instances) {
             let result: CommandRunResult<StartSessionResponse>;
 
             await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async p => {
                 p.report({ message: `Trying to start a session from instance ${instance.name}...` });
-                await logPointsDebuggerClient.startSession(selectedSlot, instance.name, publishCredential)
+                await logPointsDebuggerClient.startSession(siteName, instance.name, publishCredential)
                     .then((r: CommandRunResult<StartSessionResponse>) => {
                         result = r;
                     }, () => {
@@ -306,7 +166,7 @@ class GetUnoccupiedInstance extends WizardStep {
             if (result && result.isSuccessful()) {
                 vscode.window.showInformationMessage(`The start session command ran, and the result is ${result.output}`);
                 this._wizard.selectedInstance = instance;
-                this._wizard.sessionId = result.json.data._id;
+                this._wizard.sessionId = result.json.data.debuggingSessionId;
                 break;
             }
         }
@@ -333,7 +193,8 @@ class PickProcessStep extends WizardStep {
 
         await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async p => {
             p.report({ message: `Enumerate node processes from instance ${instance.name}...` });
-            result = await logPointsDebuggerClient.enumerateProcesses(selectedSlot, instance.name, publishCredential);
+            const siteName = util.extractSiteName(selectedSlot) + (util.isSiteDeploymentSlot(selectedSlot) ? '-' + util.extractDeploymentSlotName(selectedSlot) : '');
+            result = await logPointsDebuggerClient.enumerateProcesses(siteName, instance.name, publishCredential);
         });
 
         if (!result.isSuccessful() || result.json.data.length == 0) {
@@ -379,13 +240,15 @@ class SessionAttachStep extends WizardStep {
         let result: CommandRunResult<AttachProcessResponse>;
         let requestData = new AttachProcessRequest(this._wizard.sessionId, this._wizard.processId);
 
+        const siteName = util.extractSiteName(selectedSlot) + (util.isSiteDeploymentSlot(selectedSlot) ? '-' + util.extractDeploymentSlotName(selectedSlot) : '');
+
         await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async p => {
             p.report({ message: `Attach debugging to session ${this._wizard.sessionId}...` });
-            result = await logPointsDebuggerClient.attachProcess(selectedSlot, instance.name, publishCredential, requestData);
+            result = await logPointsDebuggerClient.attachProcess(siteName, instance.name, publishCredential, requestData);
         });
 
         if (result.isSuccessful()) {
-            this._wizard.debuggerId = result.json.data;
+            this._wizard.debuggerId = result.json.data.debugeeId;
             vscode.window.showInformationMessage(`Attached to process ${this._wizard.processId}, got debugId ${this._wizard.debuggerId}`);
         } else {
             throw new Error('Attaching process failed.');
@@ -393,31 +256,25 @@ class SessionAttachStep extends WizardStep {
     }
 }
 
-
-    getMockCommand(): string {
-        throw new Error("Method not implemented.");
+class StartDebugAdapterStep extends WizardStep {
+    constructor(private _wizard: LogPointsSessionAttach) {
+        super(_wizard, 'Start debug adapater.');
     }
-    getMockResponse(): string {
-        throw new Error("Method not implemented.");
+
+    async execute(): Promise<void> {
+        let site = this._wizard.selectedDeploymentSlot;
+        let siteName = util.extractSiteName(site) + (util.isSiteDeploymentSlot(site) ? '-' + util.extractDeploymentSlotName(site) : '');
+        await vscode.debug.startDebugging(vscode.workspace.workspaceFolders[0], {
+            type: "jsLogpoints",
+            name: "Azure App Service LogPoints",
+            request: "attach",
+            "trace": true,
+            "siteName": siteName,
+            "publishCredentialName": "",
+            "publishCredentialPassword": "",
+            "instanceId": this._wizard.selectedInstance.id,
+            "sessionId": this._wizard.sessionId,
+            "debugId": this._wizard.debuggerId
+        });
     }
-}
-
-interface StartSessionResponse {
-    data: {
-        _debugIds: any[];
-        _id: string;
-        _user: any;
-    }
-}
-
-interface EnumerateProcessResponse {
-    data: {
-        pid: string;
-        command: string;
-        arguments: string[];
-    }[]
-}
-
-interface AttachProcessResponse {
-    data: string
 }
