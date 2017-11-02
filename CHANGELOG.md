@@ -6,6 +6,13 @@ All notable changes to the "azure-appservice" extension will be documented in th
 ### Fixed
 - [Bugs fixed](https://github.com/Microsoft/vscode-azureappservice/issues?q=is%3Aissue+milestone%3A%22Version+0.4.0%22+label%3Abug+is%3Aclosed)
 
+## 0.3.1 - 2017-11-01
+### Fixed
+- Show warning message that zip deploy is a destructive action
+- Leverage [new app service zipdeploy](https://github.com/projectkudu/kudu/wiki/Deploying-from-a-zip-file)
+### Removed
+- Zip Deploy no longer runs 'npm install'. It expects a ready-to-run app
+
 ## 0.3.0 - 2017-10-18
 ### Added
 - Local Git deployment
