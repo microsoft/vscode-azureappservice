@@ -5,6 +5,7 @@
 
 import { ResourceManagementClient, SubscriptionModels } from 'azure-arm-resource';
 import * as fs from 'fs';
+import * as opn from 'opn';
 import * as path from 'path';
 import { TreeItem, TreeItemCollapsibleState } from 'vscode';
 import * as vscode from 'vscode';
@@ -50,6 +51,12 @@ export class AppServiceNode extends SiteNodeBase {
             new WebJobsNode(this.site, this.subscription, treeDataProvider, this),
             new AppSettingsNode(this.site, this.subscription, treeDataProvider, this)
         ];
+    }
+
+    public openCdInPortal(): void {
+        const portalEndpoint = 'https://portal.azure.com';
+        const deepLink = `${portalEndpoint}/${this.subscription.tenantId}/#resource${this.site.id}/vstscd`;
+        opn(deepLink);
     }
 
     public async generateDeploymentScript(): Promise<void> {

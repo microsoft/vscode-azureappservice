@@ -35,6 +35,7 @@
         "onCommand:appService.DeploymentScript",
         "onCommand:appService.DeployZipPackage",
         "onCommand:appService.ZipAndDeploy",
+        "onCommand:appService.OpenVSTSCD",
         "onCommand:deploymentSlot.SwapSlots",
         "onCommand:appSettings.Add",
         "onCommand:appSettings.Edit",
@@ -113,6 +114,11 @@
             {
                 "command": "appService.LocalGitDeploy",
                 "title": "Local Git Deploy to Web App",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.OpenVSTSCD",
+                "title": "Continuous Delivery (Preview)",
                 "category": "Azure App Service"
             },
             {
@@ -204,6 +210,10 @@
                 },
                 {
                     "command": "appService.LocalGitDeploy",
+                    "when": "never"
+                },
+                {
+                    "command": "appService.OpenVSTSCD",
                     "when": "never"
                 },
                 {
@@ -299,19 +309,24 @@
                     "group": "3_appServiceDeployCommands@2"
                 },
                 {
+                    "command": "appService.OpenVSTSCD",
+                    "when": "view == azureAppService && viewItem == appService",
+                    "group": "4_appServiceCicdCommands@1"
+                },
+                {
                     "command": "diagnostics.OpenLogStream",
                     "when": "view == azureAppService && viewItem == appService",
-                    "group": "4_appServiceDiagnosticsCommands@1"
+                    "group": "5_appServiceDiagnosticsCommands@1"
                 },
                 {
                     "command": "diagnostics.StopLogStream",
                     "when": "view == azureAppService && viewItem == appService",
-                    "group": "4_appServiceDiagnosticsCommands@2"
+                    "group": "5_appServiceDiagnosticsCommands@2"
                 },
                 {
                     "command": "appService.DeploymentScript",
                     "when": "view == azureAppService && viewItem == appService",
-                    "group": "5_appServiceMiscCommands@1"
+                    "group": "6_appServiceMiscCommands@1"
                 },
                 {
                     "command": "appService.OpenInPortal",

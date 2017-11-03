@@ -120,6 +120,11 @@ export function activate(context: vscode.ExtensionContext): void {
             outputChannel.appendLine(`Local repository has been deployed to "${node.site.name}".`);
         }
     });
+    initAsyncCommand(context, 'appService.OpenVSTSCD', async (node?: AppServiceNode) => {
+        if (node) {
+            node.openCdInPortal();
+        }
+    });
     initAsyncCommand(context, 'appService.DeploymentScript', async (node: AppServiceNode) => {
         if (node) {
             await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, p => {
