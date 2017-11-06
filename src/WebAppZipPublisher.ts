@@ -3,18 +3,19 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as vscode from 'vscode';
-import { AzureAccountWrapper } from './AzureAccountWrapper';
-import { WizardBase, WizardStep, SubscriptionStepBase } from './wizard';
-import { WebAppCreator } from './WebAppCreator2';
 import { SubscriptionModels } from 'azure-arm-resource';
 import WebSiteManagementClient = require('azure-arm-website');
-import * as WebSiteModels from '../node_modules/azure-arm-website/lib/models';
-import * as util from './util';
+import * as vscode from 'vscode';
 import { SiteWrapper } from 'vscode-azureappservice';
+import * as WebSiteModels from '../node_modules/azure-arm-website/lib/models';
+import { AzureAccountWrapper } from './AzureAccountWrapper';
+import * as util from './util';
+import { WebAppCreator } from './WebAppCreator2';
+import { SubscriptionStepBase, WizardBase, WizardStep } from './wizard';
 
 export class WebAppZipPublisher extends WizardBase {
-    constructor(output: vscode.OutputChannel,
+    constructor(
+        output: vscode.OutputChannel,
         readonly azureAccount: AzureAccountWrapper,
         readonly subscription?: SubscriptionModels.Subscription,
         readonly site?: WebSiteModels.Site,
@@ -22,14 +23,14 @@ export class WebAppZipPublisher extends WizardBase {
         super(output);
     }
 
-    protected initSteps() {
+    protected initSteps(): void {
         this.steps.push(new ZipFileStep(this, this.fsPath));
         this.steps.push(new SubscriptionStep(this, this.azureAccount, this.subscription));
         this.steps.push(new WebAppStep(this, this.azureAccount, this.site));
         this.steps.push(new DeployStep(this, this.azureAccount));
     }
 
-    protected beforeExecute() { }
+    protected beforeExecute(): void { }
 }
 
 class ZipFileStep extends WizardStep {
@@ -40,7 +41,7 @@ class ZipFileStep extends WizardStep {
         this._fsPath = fsPath;
     }
 
-    async prompt(): Promise<void> {
+    public async prompt(): Promise<void> {
         if (!this._fsPath) {
             const fsWorkspaceFolder = await util.showWorkspaceFoldersQuickPick(`Select the folder to Zip and deploy. (${this.stepProgressText})`);
             this._fsPath = fsWorkspaceFolder.uri.fsPath;
@@ -53,13 +54,14 @@ class ZipFileStep extends WizardStep {
 }
 
 class SubscriptionStep extends SubscriptionStepBase {
-    constructor(wizard: WizardBase,
+    constructor(
+        wizard: WizardBase,
         azureAccount: AzureAccountWrapper,
         subscription?: SubscriptionModels.Subscription) {
         super(wizard, 'Select target Subscription', azureAccount, subscription);
     }
 
-    async prompt(): Promise<void> {
+    public async prompt(): Promise<void> {
         if (!!this.subscription) {
             return;
         }
@@ -83,7 +85,7 @@ class WebAppStep extends WizardStep {
         this._site = site;
     }
 
-    async prompt(): Promise<void> {
+    public async prompt(): Promise<void> {
         if (!!this.site) {
             return;
         }
@@ -129,7 +131,7 @@ class WebAppStep extends WizardStep {
         }
     }
 
-    async execute(): Promise<void> {
+    public async execute(): Promise<void> {
         if (this._newSite) {
             const result = await this._createWebAppWizard.execute();
 
@@ -163,7 +165,7 @@ class DeployStep extends WizardStep {
         super(wizard, 'Deploy to Web App');
     }
 
-    async execute(): Promise<void> {
+    public async execute(): Promise<void> {
         const subscription = this.getSelectedSubscription();
         const fsPath = this.getFsPath();
         const siteClient = new WebSiteManagementClient(this.azureAccount.getCredentialByTenantId(subscription.tenantId), subscription.subscriptionId);

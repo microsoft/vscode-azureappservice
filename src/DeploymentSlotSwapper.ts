@@ -12,8 +12,8 @@ import { AzureAccountWrapper } from './AzureAccountWrapper';
 import { UserCancelledError } from './errors';
 import { DeploymentSlotNode } from './explorer/DeploymentSlotNode';
 import { DeploymentSlotsNode } from './explorer/DeploymentSlotsNode';
-import { WizardBase, WizardStep } from './wizard';
 import { IQuickPickItemWithData } from './util';
+import { WizardBase, WizardStep } from './wizard';
 
 export class DeploymentSlotSwapper extends WizardBase {
     private readonly azureAccount: AzureAccountWrapper;
@@ -29,7 +29,9 @@ export class DeploymentSlotSwapper extends WizardBase {
         this.steps.push(new SwapStep(this, this.azureAccount, this.slot));
     }
 
-    protected beforeExecute(): void { }
+    protected beforeExecute(): void {
+        this.writeline('Initializing deployment swap...');
+    }
 }
 
 class SwapStep extends WizardStep {

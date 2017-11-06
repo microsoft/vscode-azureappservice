@@ -129,9 +129,8 @@ export class AppSettingsNode extends NodeBase {
         if (newKey.length === 0) {
             return 'Key must have at least one non-whitespace character.';
         }
-
         if (this._settings.properties && newKey.toLowerCase() !== oldKey) {
-            for (const key in this._settings.properties) {
+            for (const key of Object.keys(this._settings.properties)) {
                 if (key.toLowerCase() === newKey.toLowerCase()) {
                     return `Setting "${newKey}" already exists.`;
                 }

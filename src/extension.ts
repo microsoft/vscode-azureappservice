@@ -13,6 +13,7 @@ import { AppServiceDataProvider } from './explorer/AppServiceExplorer';
 import { AppServiceNode } from './explorer/AppServiceNode';
 import { AppSettingNode, AppSettingsNode } from './explorer/AppSettingsNodes';
 import { DeploymentSlotNode } from './explorer/DeploymentSlotNode';
+import { DeploymentSlotsNode } from './explorer/DeploymentSlotsNode';
 import { NodeBase } from './explorer/NodeBase';
 import { SiteNodeBase } from './explorer/SiteNodeBase';
 import { SubscriptionNode } from './explorer/SubscriptionNode';
@@ -20,7 +21,6 @@ import { Reporter } from './telemetry/reporter';
 import * as util from "./util";
 import { WebAppCreator } from './WebAppCreator2';
 import { WebAppZipPublisher } from './WebAppZipPublisher';
-import { DeploymentSlotsNode } from './explorer/DeploymentSlotsNode';
 
 // tslint:disable-next-line:max-func-body-length
 export function activate(context: vscode.ExtensionContext): void {
@@ -144,7 +144,6 @@ export function activate(context: vscode.ExtensionContext): void {
     });
     initAsyncCommand(context, 'deploymentSlot.SwapSlots', async (node: DeploymentSlotNode) => {
         if (node) {
-            outputChannel.appendLine('Initializing deployment slot swap...');
             await node.swapDeploymentSlots(outputChannel);
         }
     });
@@ -193,7 +192,8 @@ export function activate(context: vscode.ExtensionContext): void {
     });
 }
 
-export function deactivate() {
+// tslint:disable-next-line:no-empty
+export function deactivate(): void {
 }
 
 function initCommand<T>(extensionContext: vscode.ExtensionContext, commandId: string, callback: (context?: T) => void): void {
