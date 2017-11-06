@@ -7,9 +7,10 @@ import { SubscriptionModels } from 'azure-arm-resource';
 import WebSiteManagementClient = require('azure-arm-website');
 import * as opn from 'opn';
 import * as path from 'path';
-import { TreeItem, TreeItemCollapsibleState } from 'vscode';
+import { TreeItem, TreeItemCollapsibleState, window } from 'vscode';
 import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models';
 import { AzureAccountWrapper } from '../AzureAccountWrapper';
+import { UserCancelledError } from '../errors';
 import * as util from '../util';
 import { AppServiceDataProvider } from './AppServiceExplorer';
 import { DeploymentSlotNode } from './DeploymentSlotNode';
@@ -63,5 +64,73 @@ export class DeploymentSlotsNode extends NodeBase {
 
     private get azureAccount(): AzureAccountWrapper {
         return this.getTreeDataProvider<AppServiceDataProvider>().azureAccount;
+    }
+
+    public async createNewDeploymentSlot(): Promise<string> {
+        let slotName;
+        const slotNodes = await this.getChildren();
+        const slotLabels = slotNodes.map(node => {
+            return node.label;
+        });
+
+        slotName = await this.promptForSlotName(slotLabels);
+        if (!slotName) {
+            throw new UserCancelledError();
+        }
+        slotName = slotName.trim();
+        const newDeploymentSlot = {
+            name: slotName,
+            kind: this.site.kind,
+            location: this.site.location,
+            serverFarmId: this.site.serverFarmId
+        };
+        // if user has more slots than the service plan allows, Azure will respond with an error
+        await this.webSiteClient.webApps.createOrUpdateSlot(this.site.resourceGroup, util.extractSiteName(this.site), newDeploymentSlot, slotName);
+        return slotName;
+    }
+
+    protected get webSiteClient(): WebSiteManagementClient {
+        return new WebSiteManagementClient(this.azureAccount.getCredentialByTenantId(this.subscription.tenantId), this.subscription.subscriptionId);
+    }
+
+    protected async promptForSlotName(slotLabels: string[]): Promise<string | undefined> {
+        return await window.showInputBox({
+            prompt: 'Enter a unique name for the new deployment slot',
+            validateInput: (value: string) => {
+                value = value ? value.trim() : '';
+                if (!value.match(/^[a-z0-9\-]{1,60}$/ig)) {
+                    return 'Name should be 1-60 characters long and can only include alphanumeric characters and hyphens.';
+                }
+
+                // Can not have identical slot names OR production
+                if (value === 'production' || slotLabels.indexOf(value) !== -1) {
+                    return `The slot name "${value}" is not available`;
+                }
+
+                return null;
+            }
+        });
+    }
+}
+
+export class DeploymentSlotsNANode extends NodeBase {
+    constructor(treeDataProvider: AppServiceDataProvider, parentNode: NodeBase) {
+        super('Deployment Slots (N/A for Basic Service Plan)', treeDataProvider, parentNode);
+    }
+
+    public getTreeItem(): TreeItem {
+        return {
+            label: this.label,
+            collapsibleState: TreeItemCollapsibleState.Collapsed,
+            contextValue: "deploymentNASlots",
+            iconPath: {
+                light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'DeploymentSlots_grayscale.svg'),
+                dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'DeploymentSlots_grayscale.svg')
+            }
+        };
+    }
+
+    public async getChildren(): Promise<NodeBase[]> {
+        return [new NodeBase(`Make sure you're running with a Standard or Premium plan before adding a slot`, this.getTreeDataProvider(), this)];
     }
 }
