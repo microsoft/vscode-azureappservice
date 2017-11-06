@@ -13,7 +13,7 @@ import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models'
 import { UserCancelledError } from '../errors';
 import { AppServiceDataProvider } from './AppServiceExplorer';
 import { AppSettingsNode } from './AppSettingsNodes';
-import { DeploymentSlotsNode } from './DeploymentSlotsNode';
+import { DeploymentSlotsNANode, DeploymentSlotsNode } from './DeploymentSlotsNode';
 import { NodeBase } from './NodeBase';
 import { SiteNodeBase } from './SiteNodeBase';
 import { WebJobsNode } from './WebJobsNode';
@@ -44,10 +44,9 @@ export class AppServiceNode extends SiteNodeBase {
         const treeDataProvider = this.getTreeDataProvider<AppServiceDataProvider>();
         const nodes = [];
         const appServicePlan = await this.getAppServicePlan();
-        if (appServicePlan.sku.tier !== 'Basic') {
-            // Basic Service Plans do not support deployment slots
+        appServicePlan.sku.tier === 'Basic' ?
+            nodes.push(new DeploymentSlotsNANode(treeDataProvider, this)) :
             nodes.push(new DeploymentSlotsNode(this.site, this.subscription, treeDataProvider, this));
-        }
         // https://github.com/Microsoft/vscode-azureappservice/issues/45
         // nodes.push(new FilesNode('Files', '/site/wwwroot', this.site, this.subscription, treeDataProvider, this));
         // nodes.push(new FilesNode('Log Files', '/LogFiles', this.site, this.subscription));

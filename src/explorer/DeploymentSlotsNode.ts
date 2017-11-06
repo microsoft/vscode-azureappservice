@@ -112,3 +112,25 @@ export class DeploymentSlotsNode extends NodeBase {
         });
     }
 }
+
+export class DeploymentSlotsNANode extends NodeBase {
+    constructor(treeDataProvider: AppServiceDataProvider, parentNode: NodeBase) {
+        super('Deployment Slots (N/A for Basic Service Plan)', treeDataProvider, parentNode);
+    }
+
+    public getTreeItem(): TreeItem {
+        return {
+            label: this.label,
+            collapsibleState: TreeItemCollapsibleState.Collapsed,
+            contextValue: "deploymentNASlots",
+            iconPath: {
+                light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'DeploymentSlots_grayscale.svg'),
+                dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'DeploymentSlots_grayscale.svg')
+            }
+        };
+    }
+
+    public async getChildren(): Promise<NodeBase[]> {
+        return [new NodeBase(`Make sure you're running with a Standard or Premium plan before adding a slot`, this.getTreeDataProvider(), this)];
+    }
+}
