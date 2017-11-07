@@ -17,6 +17,7 @@ import { SubscriptionNode } from './explorer/subscriptionNode';
 import { AzureAccountWrapper } from './azureAccountWrapper';
 import { WebAppCreator } from './webAppCreator';
 import { WebAppZipPublisher } from './webAppZipPublisher';
+import { LogPointsSessionAttach } from './logPointsManager';
 import { Reporter } from './telemetry/reporter';
 import { UserCancelledError } from './errors';
 
@@ -210,6 +211,13 @@ export function activate(context: vscode.ExtensionContext) {
     initCommand(context, 'diagnostics.StopLogStream', (node: SiteNodeBase) => {
         if (node) {
             node.stopLogStream();
+        }
+    });
+    initAsyncCommand(context, 'diagnostics.SetLogPoints', async (node: SiteNodeBase) => {
+        if (node) {
+            const wizard = new LogPointsSessionAttach(outputChannel, azureAccount, node.site, node.subscription);
+            await wizard.run();
+
         }
     });
 }

@@ -144,6 +144,11 @@
                 "command": "diagnostics.StopLogStream",
                 "title": "Stop Streaming Logs",
                 "category": "Azure App Service"
+            },
+            {
+                "command": "diagnostics.SetLogPoints",
+                "title": "Launch logpoints debug session",
+                "category": "Azure App Service"
             }
         ],
         "views": {
@@ -224,6 +229,10 @@
                 {
                     "command": "diagnostics.StopLogStream",
                     "when": "never"
+                },
+                {
+                    "command": "diagnostics.SetLogPoints",
+                    "when": "never"
                 }
             ],
             "view/title": [
@@ -300,6 +309,11 @@
                     "group": "5_appServiceMiscCommands@1"
                 },
                 {
+                    "command": "diagnostics.SetLogPoints",
+                    "when": "view == azureAppService && viewItem == appService",
+                    "group": "4_appServiceDiagnosticsCommands@3"
+                },
+                {
                     "command": "appService.OpenInPortal",
                     "when": "view == azureAppService && viewItem == deploymentSlots",
                     "group": "1_deploymentSlotsGeneralCommands@1"
@@ -358,6 +372,11 @@
                     "command": "diagnostics.StopLogStream",
                     "when": "view == azureAppService && viewItem == deploymentSlot",
                     "group": "4_deploymentSlotDiagnosticsCommands@2"
+                },
+                {
+                    "command": "diagnostics.SetLogPoints",
+                    "when": "view == azureAppService && viewItem == deploymentSlot",
+                    "group": "4_deploymentSlotDiagnosticsCommands@3"
                 },
                 {
                     "command": "appService.OpenInPortal",
