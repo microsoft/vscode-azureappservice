@@ -109,7 +109,7 @@
             },
             {
                 "command": "appService.DeployZipPackage",
-                "title": "Zip Deploy to Web App",
+                "title": "Deploy to Web App",
                 "category": "Azure App Service"
             },
             {
@@ -314,12 +314,12 @@
                     "group": "2_appServiceControlCommands@4"
                 },
                 {
-                    "command": "appService.LocalGitDeploy",
+                    "command": "appService.DeployZipPackage",
                     "when": "view == azureAppService && viewItem == appService",
                     "group": "3_appServiceDeployCommands@1"
                 },
                 {
-                    "command": "appService.DeployZipPackage",
+                    "command": "appService.LocalGitDeploy",
                     "when": "view == azureAppService && viewItem == appService",
                     "group": "3_appServiceDeployCommands@2"
                 },

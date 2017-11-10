@@ -21,7 +21,6 @@ The Azure App Services extension for VS Code lets you quickly browse, create, ma
 
 ## Known Issues
 
-* Zip deployment may fail if the project you try to publish is too big
 * Local Git deployment may fail with large commits
 
 ## Requirements
