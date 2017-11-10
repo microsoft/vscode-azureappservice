@@ -109,7 +109,7 @@
             },
             {
                 "command": "appService.DeployZipPackage",
-                "title": "Zip Deploy to Web App",
+                "title": "Deploy to Web App",
                 "category": "Azure App Service"
             },
             {
