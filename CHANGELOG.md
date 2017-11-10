@@ -1,8 +1,10 @@
 # Change Log
 All notable changes to the "azure-appservice" extension will be documented in this file.
 
-## [Unreleased]
+## 0.4.0 - 2017-11-10
 ### Added
+- Create Deployment Slot
+- Icons now match the Azure portal
 ### Fixed
 - [Bugs fixed](https://github.com/Microsoft/vscode-azureappservice/issues?q=is%3Aissue+milestone%3A%22Version+0.4.0%22+label%3Abug+is%3Aclosed)
 
