@@ -12,7 +12,7 @@ import * as util from '../util';
 export class AppServiceDataProvider implements TreeDataProvider<NodeBase> {
     private readonly _azureAccount;
     private _onDidChangeTreeData: EventEmitter<NodeBase> = new EventEmitter<NodeBase>();
-    readonly onDidChangeTreeData: Event<NodeBase> = this._onDidChangeTreeData.event;
+    public readonly onDidChangeTreeData: Event<NodeBase> = this._onDidChangeTreeData.event;
 
     constructor(azureAccount: AzureAccountWrapper) {
         this._azureAccount = azureAccount;
@@ -21,15 +21,15 @@ export class AppServiceDataProvider implements TreeDataProvider<NodeBase> {
 
     }
 
-    refresh(element?: NodeBase): void {
+    public refresh(element?: NodeBase): void {
         this._onDidChangeTreeData.fire(element);
     }
 
-    getTreeItem(element: NodeBase): TreeItem {
+    public getTreeItem(element: NodeBase): TreeItem {
         return element.getTreeItem();
     }
 
-    getChildren(element?: NodeBase): NodeBase[] | Thenable<NodeBase[]> {
+    public getChildren(element?: NodeBase): NodeBase[] | Thenable<NodeBase[]> {
         if (this.azureAccount.signInStatus === 'Initializing' || this.azureAccount.signInStatus === 'LoggingIn') {
             return [new LoadingNode(this)];
         }
@@ -45,7 +45,7 @@ export class AppServiceDataProvider implements TreeDataProvider<NodeBase> {
         return element.getChildren();
     }
 
-    get azureAccount(): AzureAccountWrapper {
+    public get azureAccount(): AzureAccountWrapper {
         return this._azureAccount;
     }
 
@@ -73,7 +73,7 @@ export class NotSignedInNode extends NodeBase {
         super('Sign in to Azure...', treeDataProvider, parentNode);
     }
 
-    getTreeItem(): TreeItem {
+    public getTreeItem(): TreeItem {
         return {
             label: this.label,
             command: {
@@ -90,7 +90,7 @@ export class LoadingNode extends NodeBase {
         super('Loading...', treeDataProvider, parentNode);
     }
 
-    getTreeItem(): TreeItem {
+    public getTreeItem(): TreeItem {
         return {
             label: this.label,
             collapsibleState: TreeItemCollapsibleState.None
@@ -103,7 +103,7 @@ export class SelectSubscriptionsNode extends NodeBase {
         super('Select Subscriptions...', treeDataProvider, parentNode);
     }
 
-    getTreeItem(): TreeItem {
+    public getTreeItem(): TreeItem {
         return {
             label: this.label,
             command: {

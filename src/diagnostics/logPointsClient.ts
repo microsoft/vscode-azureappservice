@@ -1,6 +1,6 @@
 import * as req from "request";
 
-import * as WebSiteModels from '../node_modules/azure-arm-website/lib/models';
+import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models';
 import * as child_process from 'child_process';
 
 
@@ -14,6 +14,9 @@ export interface LogPointsDebuggerClient {
     attachProcess(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: AttachProcessRequest): Promise<CommandRunResult<AttachProcessResponse>>;
 
     loadedScripts(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: DebugSessionMetadata): Promise<CommandRunResult<LoadedScriptsResponse>>
+
+    loadSource(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: LoadSourceRequest): Promise<CommandRunResult<LoadSourceResponse>>
+
 }
 
 abstract class LogPointsDebuggerClientBase {
@@ -31,28 +34,34 @@ abstract class LogPointsDebuggerClientBase {
 }
 
 export class KuduLogPointsDebuggerClient extends LogPointsDebuggerClientBase implements LogPointsDebuggerClient {
-    startSession(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User)
+    public startSession(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User)
         : Promise<CommandRunResult<StartSessionResponse>> {
         // TODO: The actual command is TBD
         return this.makeCallAndLogException<StartSessionResponse>(siteName, affinityValue, publishCredential, "node -v");
     }
 
-    enumerateProcesses(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User): Promise<CommandRunResult<EnumerateProcessResponse>> {
+    public enumerateProcesses(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User): Promise<CommandRunResult<EnumerateProcessResponse>> {
         // TODO: The actual command is TBD
         return this.makeCallAndLogException<EnumerateProcessResponse>(siteName, affinityValue, publishCredential, "node -v");
     }
 
-    attachProcess(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User): Promise<CommandRunResult<AttachProcessResponse>> {
+    public attachProcess(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User): Promise<CommandRunResult<AttachProcessResponse>> {
         // TODO: The actual command is TBD
         return this.makeCallAndLogException<AttachProcessResponse>(siteName, affinityValue, publishCredential, "node -v");
     }
 
-    loadedScripts(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: DebugSessionMetadata): Promise<CommandRunResult<LoadedScriptsResponse>> {
+    public loadedScripts(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: DebugSessionMetadata): Promise<CommandRunResult<LoadedScriptsResponse>> {
         siteName && affinityValue && publishCredential && data;
         throw new Error("Method not implemented.");
     }
 
-    call<ResponseType>(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, command: string)
+    public loadSource(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: LoadSourceRequest): Promise<CommandRunResult<LoadSourceResponse>> {
+        siteName && affinityValue && publishCredential && data;
+        throw new Error("Method not implemented.");
+    }
+
+
+    public call<ResponseType>(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, command: string)
         : Promise<CommandRunResult<ResponseType>> {
 
         let headers = {
@@ -103,25 +112,30 @@ export class KuduLogPointsDebuggerClient extends LogPointsDebuggerClientBase imp
 }
 
 export class MockLogpointsDebuggerClient extends LogPointsDebuggerClientBase implements LogPointsDebuggerClient {
-    startSession(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User): Promise<CommandRunResult<StartSessionResponse>> {
+    public startSession(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User): Promise<CommandRunResult<StartSessionResponse>> {
         return this.makeCallAndLogException<StartSessionResponse>(siteName, affinityValue, publishCredential, "curl -X POST http://localhost:32923/debugger/session");
     }
 
-    enumerateProcesses(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User): Promise<CommandRunResult<EnumerateProcessResponse>> {
+    public enumerateProcesses(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User): Promise<CommandRunResult<EnumerateProcessResponse>> {
         return this.makeCallAndLogException<EnumerateProcessResponse>(siteName, affinityValue, publishCredential, "curl -X GET http://localhost:32923/os/processes?applicationType=Node.js");
     }
 
-    attachProcess(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: AttachProcessRequest): Promise<CommandRunResult<AttachProcessResponse>> {
+    public attachProcess(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: AttachProcessRequest): Promise<CommandRunResult<AttachProcessResponse>> {
         return this.makeCallAndLogException<AttachProcessResponse>(siteName, affinityValue, publishCredential,
             `curl -X POST -H "Content-Type: application/json" -d '{"processId":"${data.processId}","codeType":"javascript"}' http://localhost:32923/debugger/session/${data.sessionId}/debugee`);
     }
 
-    loadedScripts(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: DebugSessionMetadata): Promise<CommandRunResult<LoadedScriptsResponse>> {
+    public loadedScripts(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: DebugSessionMetadata): Promise<CommandRunResult<LoadedScriptsResponse>> {
         return this.makeCallAndLogException<LoadedScriptsResponse>(siteName, affinityValue, publishCredential,
             `curl -X GET -H "Content-Type: application/json" http://localhost:32923/debugger/session/${data.sessionId}/debugee/${data.debugId}/sources`);
     }
 
-    call<ResponseType>(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, command: string): Promise<CommandRunResult<ResponseType>> {
+    public loadSource(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: LoadSourceRequest): Promise<CommandRunResult<LoadSourceResponse>> {
+        return this.makeCallAndLogException<LoadSourceResponse>(siteName, affinityValue, publishCredential,
+            `curl -X GET -H "Content-Type: application/json" http://localhost:32923/debugger/session/${data.sessionId}/debugee/${data.debugId}/source/${data.sourceId}`);
+    }
+
+    public call<ResponseType>(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, command: string): Promise<CommandRunResult<ResponseType>> {
         siteName && affinityValue && publishCredential;
 
         return new Promise<CommandRunResult<ResponseType>>((resolve) => {
@@ -143,11 +157,11 @@ export class CommandRunResult<ResponseType extends { error?: any, data?: any }> 
         this._json = undefined;
     }
 
-    isSuccessful() {
+    public isSuccessful() {
         return this.exitCode === 0 && this.json && !this.json.error;
     }
 
-    get json(): ResponseType {
+    public get json(): ResponseType {
         if (this._json === undefined) {
             try {
                 this._json = JSON.parse(this.output);
@@ -171,6 +185,11 @@ export class AttachProcessRequest {
 
 export class DebugSessionMetadata {
     constructor(public sessionId: string, public debugId: string) {
+    }
+}
+
+export class LoadSourceRequest {
+    constructor(public sessionId: string, public debugId: string, public sourceId: string) {
     }
 }
 
@@ -200,5 +219,9 @@ export interface LoadedScriptsResponse {
         path: string;
         sourceId: string;
     }[]
+}
+
+export interface LoadSourceResponse {
+    data: string
 }
 

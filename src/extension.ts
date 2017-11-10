@@ -17,10 +17,11 @@ import { SubscriptionNode } from './explorer/subscriptionNode';
 import { AzureAccountWrapper } from './azureAccountWrapper';
 import { WebAppCreator } from './webAppCreator';
 import { WebAppZipPublisher } from './webAppZipPublisher';
-import { LogPointsSessionAttach } from './logPointsManager';
+import { LogPointsSessionAttach } from './diagnostics/logPointsManager';
 import { Reporter } from './telemetry/reporter';
 import { UserCancelledError } from './errors';
-import { LoadedScriptsProvider } from './explorer/loadedScriptsExplorer';
+import { LoadedScriptsProvider, openScript } from './explorer/loadedScriptsExplorer';
+import { RemoteScriptDocumentProvider, RemoteScriptSchema } from './diagnostics/remoteScriptDocumentProvider';
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Extension "Azure App Service Tools" is now active.');
@@ -37,7 +38,10 @@ export function activate(context: vscode.ExtensionContext) {
 
     // loaded scripts
     const provider = new LoadedScriptsProvider(context);
-    vscode.window.registerTreeDataProvider('appservice.loadedScriptsExplorer.jsLogpoints', provider);
+    context.subscriptions.push(vscode.window.registerTreeDataProvider('appservice.loadedScriptsExplorer.jsLogpoints', provider));
+
+    const documentProvider = new RemoteScriptDocumentProvider();
+    context.subscriptions.push(vscode.workspace.registerTextDocumentContentProvider(RemoteScriptSchema.schema, documentProvider));
 
     initCommand(context, 'appService.Refresh', (node?: NodeBase) => appServiceDataProvider.refresh(node));
     initCommand(context, 'appService.Browse', (node: SiteNodeBase) => {
@@ -225,10 +229,7 @@ export function activate(context: vscode.ExtensionContext) {
         }
     });
 
-    initCommand(context, 'diagnostics.LogPoints.OpenScript', () => {
-        // TODO: Implementation
-        vscode.window.showInformationMessage("Not implemented");
-    });
+    initCommand(context, 'diagnostics.LogPoints.OpenScript', openScript);
 }
 
 export function deactivate() {

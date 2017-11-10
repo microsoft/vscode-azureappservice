@@ -147,12 +147,12 @@
             },
             {
                 "command": "diagnostics.StartLogPointsSession",
-                "title": "Launch logpoints debug session",
+                "title": "Launch Logpoints Debug Session",
                 "category": "Azure App Service"
             },
             {
                 "command": "diagnostics.LogPoints.OpenScript",
-                "title": "Open and see the content of a script",
+                "title": "Open and See the Content of a Script",
                 "category": "Azure App Service"
             }
         ],
@@ -245,6 +245,10 @@
                 {
                     "command": "diagnostics.StartLogPointsSession",
                     "when": "never"
+                },
+                {
+                    "command": "diagnostics.LogPoints.OpenScript",
+                    "when": "never"
                 }
             ],
             "view/title": [
@@ -316,14 +320,14 @@
                     "group": "4_appServiceDiagnosticsCommands@2"
                 },
                 {
-                    "command": "appService.DeploymentScript",
-                    "when": "view == azureAppService && viewItem == appService",
-                    "group": "5_appServiceMiscCommands@1"
-                },
-                {
                     "command": "diagnostics.StartLogPointsSession",
                     "when": "view == azureAppService && viewItem == appService",
                     "group": "4_appServiceDiagnosticsCommands@3"
+                },
+                {
+                    "command": "appService.DeploymentScript",
+                    "when": "view == azureAppService && viewItem == appService",
+                    "group": "5_appServiceMiscCommands@1"
                 },
                 {
                     "command": "appService.OpenInPortal",
@@ -463,7 +467,7 @@
             {
                 "type": "jsLogpoints",
                 "label": "Azure App Service LogPoints",
-                "program": "./out/src/logPointsDebugAdapter.js",
+                "program": "./out/src/diagnostics/logPointsDebugAdapter.js",
                 "runtime": "node",
                 "configurationAttributes": {
                     "launch": {

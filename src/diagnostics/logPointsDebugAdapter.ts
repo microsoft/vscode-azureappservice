@@ -1,5 +1,3 @@
-import * as util from 'util';
-
 import {
     Logger, logger, LoggingDebugSession, InitializedEvent, DebugSession,
     Source, Event,
@@ -7,7 +5,7 @@ import {
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 
-import { MockLogpointsDebuggerClient, DebugSessionMetadata, LoadedScriptsResponse, CommandRunResult } from './logPointsClient';
+import { MockLogpointsDebuggerClient, DebugSessionMetadata, LoadSourceRequest, LoadedScriptsResponse, CommandRunResult } from './logPointsClient';
 
 interface AttachRequestArguments extends DebugProtocol.AttachRequestArguments {
     trace?: boolean;
@@ -47,8 +45,6 @@ export class NodeDebugSession extends LoggingDebugSession {
         response.body = response.body || {};
         response.body.supportsConfigurationDoneRequest = false;
 
-        logger.log("attachRequest" + util.inspect(args));
-
         this.sendResponse(response);
     }
 
@@ -72,6 +68,26 @@ export class NodeDebugSession extends LoggingDebugSession {
         this.getLoadedScripts();
     }
 
+    protected customRequest(command: string, response: DebugProtocol.Response, args: any): void {
+        if (command == 'loadSource') {
+            let sourceId: string = args;
+
+            logPointsDebuggerClient.loadSource(null, null, null, new LoadSourceRequest(this._sessionId, this._debugId, sourceId)).then(
+                (result) => {
+                    if (result.isSuccessful()) {
+                        response.body = {
+                            content: result.json.data,
+                        };
+                    } else {
+                        response.body = {
+                            error: result.error
+                        };
+                    }
+                    this.sendResponse(response);
+                });
+        }
+    }
+
     private async getLoadedScripts() {
         let response: CommandRunResult<LoadedScriptsResponse> = await logPointsDebuggerClient.loadedScripts(null, null, null, new DebugSessionMetadata(this._sessionId, this._debugId));
 
@@ -85,7 +101,6 @@ export class NodeDebugSession extends LoggingDebugSession {
                 }
 
                 this.sendEvent(new Event('loadedSource', source));
-                logger.log("Sent source info, " + util.inspect(source));
             })
         }
 

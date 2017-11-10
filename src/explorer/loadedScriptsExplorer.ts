@@ -2,6 +2,7 @@ import * as vscode from 'vscode';
 
 import { TreeDataProvider, TreeItem, EventEmitter, Event, ProviderResult } from 'vscode';
 import { Source } from 'vscode-debugadapter';
+import { RemoteScriptSchema } from '../diagnostics/remoteScriptDocumentProvider';
 
 const AZURE_JS_DEBUG_TYPE = 'jsLogpoints';
 
@@ -9,7 +10,7 @@ export class LoadedScriptsProvider implements TreeDataProvider<BaseTreeItem> {
     private _root: RootTreeItem;
 
     private _onDidChangeTreeData: EventEmitter<BaseTreeItem> = new EventEmitter<BaseTreeItem>();
-    readonly onDidChangeTreeData: Event<BaseTreeItem> = this._onDidChangeTreeData.event;
+    public readonly onDidChangeTreeData: Event<BaseTreeItem> = this._onDidChangeTreeData.event;
 
     constructor(context: vscode.ExtensionContext) {
 
@@ -48,11 +49,11 @@ export class LoadedScriptsProvider implements TreeDataProvider<BaseTreeItem> {
         }));
     }
 
-    getChildren(node?: BaseTreeItem): ProviderResult<BaseTreeItem[]> {
+    public getChildren(node?: BaseTreeItem): ProviderResult<BaseTreeItem[]> {
         return (node || this._root).getChildren();
     }
 
-    getTreeItem(node: BaseTreeItem): TreeItem {
+    public getTreeItem(node: BaseTreeItem): TreeItem {
         return node;
     }
 }
@@ -66,7 +67,7 @@ class BaseTreeItem extends TreeItem {
         this._children = {};
     }
 
-    setSource(session: vscode.DebugSession, source: Source): void {
+    public setSource(session: vscode.DebugSession, source: Source): void {
         this.command = {
             command: 'diagnostics.LogPoints.OpenScript',
             arguments: [session, source],
@@ -74,13 +75,13 @@ class BaseTreeItem extends TreeItem {
         };
     }
 
-    getChildren(): ProviderResult<BaseTreeItem[]> {
+    public getChildren(): ProviderResult<BaseTreeItem[]> {
         this.collapsibleState = vscode.TreeItemCollapsibleState.Expanded;
         const array = Object.keys(this._children).map(key => this._children[key]);
         return array.sort((a, b) => this.compare(a, b));
     }
 
-    createIfNeeded<T extends BaseTreeItem>(key: string, factory: (label: string) => T): T {
+    public createIfNeeded<T extends BaseTreeItem>(key: string, factory: (label: string) => T): T {
         let child = <T>this._children[key];
         if (!child) {
             child = factory(key);
@@ -89,7 +90,7 @@ class BaseTreeItem extends TreeItem {
         return child;
     }
 
-    remove(key: string): void {
+    public remove(key: string): void {
         delete this._children[key];
     }
 
@@ -107,7 +108,7 @@ class RootTreeItem extends BaseTreeItem {
         this._showedMoreThanOne = false;
     }
 
-    getChildren(): ProviderResult<BaseTreeItem[]> {
+    public getChildren(): ProviderResult<BaseTreeItem[]> {
 
         // skip sessions if there is only one
         const children = super.getChildren();
@@ -121,12 +122,10 @@ class RootTreeItem extends BaseTreeItem {
         return children;
     }
 
-    add(session: vscode.DebugSession): SessionTreeItem {
+    public add(session: vscode.DebugSession): SessionTreeItem {
         return this.createIfNeeded(session.id, () => new SessionTreeItem(session));
     }
 }
-
-const URL_REGEXP = /^(https?:\/\/[^/]+)(\/.*)$/;
 
 class SessionTreeItem extends BaseTreeItem {
 
@@ -139,7 +138,7 @@ class SessionTreeItem extends BaseTreeItem {
         this._session = session;
     }
 
-    getChildren(): ProviderResult<BaseTreeItem[]> {
+    public getChildren(): ProviderResult<BaseTreeItem[]> {
 
         if (!this._initialized) {
             this._initialized = true;
@@ -169,11 +168,6 @@ class SessionTreeItem extends BaseTreeItem {
      */
     private category(item: BaseTreeItem): number {
 
-        // workspace scripts come at the beginning in "folder" order
-        if (item instanceof FolderTreeItem) {
-            return item.folder.index;
-        }
-
         // <...> come at the very end
         if (/^<.+>$/.test(item.label)) {
             return 1000;
@@ -183,35 +177,20 @@ class SessionTreeItem extends BaseTreeItem {
         return 999;
     }
 
-    addPath(source: Source): void {
+    public addPath(source: Source): void {
 
         let folder: vscode.WorkspaceFolder | undefined;
-        let url: string;
-        let p: string;
-
         let path = source.path;
 
-        const match = URL_REGEXP.exec(path);
-        if (match && match.length === 3) {
-            url = match[1];
-            p = decodeURI(match[2]);
-        } else {
-            folder = vscode.workspace.getWorkspaceFolder(vscode.Uri.file(path));
-            p = trim(path);
-        }
+        folder = vscode.workspace.getWorkspaceFolder(vscode.Uri.file(path));
 
         let x: BaseTreeItem = this;
-        p.split(/[\/\\]/).forEach((segment, i) => {
+        path.split(/[\/\\]/).forEach((segment) => {
             if (segment.length === 0) {	// macOS or unix path
                 segment = '/';
             }
-            if (i === 0 && folder) {
-                x = x.createIfNeeded(folder.name, () => new FolderTreeItem(<vscode.WorkspaceFolder>folder));
-            } else if (i === 0 && url) {
-                x = x.createIfNeeded(url, () => new BaseTreeItem(url));
-            } else {
-                x = x.createIfNeeded(segment, () => new BaseTreeItem(segment));
-            }
+
+            x = x.createIfNeeded(segment, () => new BaseTreeItem(segment));
         });
 
         x.collapsibleState = vscode.TreeItemCollapsibleState.None;
@@ -219,39 +198,11 @@ class SessionTreeItem extends BaseTreeItem {
     }
 }
 
-class FolderTreeItem extends BaseTreeItem {
-
-    folder: vscode.WorkspaceFolder;
-
-    constructor(folder: vscode.WorkspaceFolder) {
-        super(folder.name, vscode.TreeItemCollapsibleState.Collapsed);
-        this.folder = folder;
+export function openScript(session: vscode.DebugSession | undefined, source: Source) {
+    if (!session) {
+        vscode.window.showErrorMessage("Cannot find the debug session");
+        return;
     }
-}
-
-let USERHOME: string;
-
-
-function getUserHome(): string {
-
-    if (!USERHOME) {
-        USERHOME = require('os').homedir();
-        if (USERHOME && USERHOME[USERHOME.length - 1] !== '/') {
-            USERHOME += '/';
-        }
-    }
-
-    return USERHOME;
-}
-
-function trim(path: string): string {
-    path = vscode.workspace.asRelativePath(path, true);
-
-    if (path.indexOf('/') === 0) {
-
-        path = path.replace(getUserHome(), '~/');
-
-    }
-
-    return path;
+    let uri = RemoteScriptSchema.create(session, source);
+    vscode.workspace.openTextDocument(uri).then(doc => vscode.window.showTextDocument(doc));
 }

@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
-import * as util from './util';
-import { UserCancelledError } from './errors';
-import { AzureAccountWrapper } from './azureAccountWrapper';
+import * as util from '../util';
+import { UserCancelledError } from '../errors';
+import { AzureAccountWrapper } from '../azureAccountWrapper';
 import { SubscriptionModels } from 'azure-arm-resource';
-import * as WebSiteModels from '../node_modules/azure-arm-website/lib/models';
-import { WizardBase, WizardStep, QuickPickItemWithData } from './wizard';
+import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models';
+import { WizardBase, WizardStep, QuickPickItemWithData } from '../wizard';
 import {
     LogPointsDebuggerClient, KuduLogPointsDebuggerClient, MockLogpointsDebuggerClient, AttachProcessRequest,
     CommandRunResult, StartSessionResponse, EnumerateProcessResponse, AttachProcessResponse
@@ -25,12 +25,12 @@ if (shouldUseMockKuduCall) {
 export class LogPointsSessionAttach extends WizardBase {
     private _cachedPublishCredential: WebSiteModels.User
 
-    readonly hasSlot: boolean;
-    selectedDeploymentSlot: WebSiteModels.Site;
-    selectedInstance: WebSiteModels.SiteInstance;
-    sessionId: string;
-    processId: string;
-    debuggerId: string;
+    public readonly hasSlot: boolean;
+    public selectedDeploymentSlot: WebSiteModels.Site;
+    public selectedInstance: WebSiteModels.SiteInstance;
+    public sessionId: string;
+    public processId: string;
+    public debuggerId: string;
 
     constructor(output: vscode.OutputChannel,
         readonly azureAccount: AzureAccountWrapper,
@@ -50,22 +50,22 @@ export class LogPointsSessionAttach extends WizardBase {
         this.steps.push(new StartDebugAdapterStep(this));
     }
 
-    get lastUsedPublishCredential(): WebSiteModels.User {
+    public get lastUsedPublishCredential(): WebSiteModels.User {
         return this._cachedPublishCredential;
     }
 
-    get webManagementClient() {
+    public get webManagementClient() {
         return new WebSiteManagementClient(this.azureAccount.getCredentialByTenantId(this.subscription.tenantId), this.subscription.subscriptionId);
     }
 
-    async fetchPublishCrentential(site: WebSiteModels.Site): Promise<WebSiteModels.User> {
+    public async fetchPublishCrentential(site: WebSiteModels.Site): Promise<WebSiteModels.User> {
         const siteClient = new WebSiteManagementClient(this.azureAccount.getCredentialByTenantId(this.subscription.tenantId), this.subscription.subscriptionId);
         const user = await util.getWebAppPublishCredential(siteClient, site);
         this._cachedPublishCredential = user;
         return user;
     }
 
-    async getCachedCredentialOrRefetch(site: WebSiteModels.Site): Promise<WebSiteModels.User> {
+    public async getCachedCredentialOrRefetch(site: WebSiteModels.Site): Promise<WebSiteModels.User> {
         if (this.lastUsedPublishCredential) {
             return Promise.resolve(this.lastUsedPublishCredential);
         }
@@ -79,7 +79,7 @@ export class LogPointsSessionAttach extends WizardBase {
         if (error instanceof UserCancelledError) {
             return;
         }
-        this.writeline(`Deployment failed - ${error.message}`);
+        this.writeline(`Starting Log Points Session failed - ${error.message}`);
         this.writeline('');
     }
 }
@@ -89,20 +89,26 @@ class PromptSlotSelection extends WizardStep {
         super(_wizard, 'Choose a deployment slot.');
     }
 
-    async execute(): Promise<void> {
-        let deploymentSlots: WebSiteModels.WebAppCollection;
+    public async prompt(): Promise<void> {
+        let deploymentSlots: WebSiteModels.Site[];
 
         // Decide if this AppService uses deployment slots
         await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async p => {
-            p.report({ message: 'Enumerating deployment slots for the App Service...' });
+            let message = 'Enumerating deployment slots for the App Service...';
+            p.report({ message: message });
+            this._wizard.writeline(message);
             deploymentSlots = await this.getDeploymentSlots();
         });
+
+        this._wizard.writeline(`Got ${deploymentSlots.length} deployment slot(s)`);
 
         // if there is only one slot, just use that one and don't prompt for user selection.
         if (deploymentSlots.length == 1) {
             this._wizard.selectedDeploymentSlot = deploymentSlots[0];
+            this._wizard.writeline(`Automatically selected deployment solt ${this._wizard.selectedDeploymentSlot.name}.`);
             return;
         }
+
 
         const deploymentQuickPickItems = deploymentSlots.map((deploymentSlot: WebSiteModels.Site) => {
             return <QuickPickItemWithData<WebSiteModels.Site>>{
@@ -113,14 +119,28 @@ class PromptSlotSelection extends WizardStep {
         });
 
         const quickPickOption = { placeHolder: `Please select a deployment slot: (${this.stepProgressText})` };
-        const pickedItem = await this.showQuickPick(deploymentQuickPickItems, quickPickOption);
+        let pickedItem;
+        try {
+            pickedItem = await this.showQuickPick(deploymentQuickPickItems, quickPickOption);
+        } catch (e) {
+            if (e instanceof UserCancelledError) {
+                vscode.window.showInformationMessage('Please select a deployment slot.');
+            }
+            throw e;
+        }
 
-        (<LogPointsSessionAttach>this.wizard).selectedDeploymentSlot = pickedItem.data;
+        this._wizard.selectedDeploymentSlot = pickedItem.data;
+        this._wizard.writeline(`The deployment slot you selected is: ${this._wizard.selectedDeploymentSlot.name}`);
     }
-
-    private async getDeploymentSlots(): Promise<WebSiteModels.WebAppCollection> {
+    /**
+     * Returns all the deployment slots and the production slot.
+     */
+    private async getDeploymentSlots(): Promise<WebSiteModels.Site[]> {
         const client = this._wizard.webManagementClient;
-        return client.webApps.listByResourceGroup(this.site.resourceGroup, { includeSlots: true });
+        let allDeploymentSlots = await client.webApps.listByResourceGroup(this.site.resourceGroup, { includeSlots: true });
+        return allDeploymentSlots.filter((slot) => {
+            return slot.repositorySiteName === this.site.name;
+        });
     }
 }
 
@@ -129,9 +149,8 @@ class GetUnoccupiedInstance extends WizardStep {
         super(_wizard, 'Find the first available unoccupied instance.');
     }
 
-    async execute(): Promise<void> {
+    public async prompt(): Promise<void> {
         let selectedSlot = (<LogPointsSessionAttach>this.wizard).selectedDeploymentSlot;
-        vscode.window.showInformationMessage("The deployment slot you selected is: " + selectedSlot.name);
 
         let publishCredential = await this._wizard.getCachedCredentialOrRefetch(selectedSlot);
 
@@ -139,8 +158,12 @@ class GetUnoccupiedInstance extends WizardStep {
         const client = this._wizard.webManagementClient;
 
         await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async p => {
-            p.report({ message: `Enumerating instances of ${selectedSlot.name}...` });
-            instances = await client.webApps.listInstanceIdentifiers(selectedSlot.resourceGroup, selectedSlot.name);
+            let message = `Enumerating instances of ${selectedSlot.name}...`;
+            p.report({ message: message });
+            this._wizard.writeline(message);
+            instances = await client.webApps.listInstanceIdentifiers(selectedSlot.resourceGroup, selectedSlot.repositorySiteName);
+
+            this._wizard.writeline(`Got ${instances.length} instances.`);
         });
 
         instances = instances.sort((a, b) => {
@@ -153,7 +176,9 @@ class GetUnoccupiedInstance extends WizardStep {
             let result: CommandRunResult<StartSessionResponse>;
 
             await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async p => {
-                p.report({ message: `Trying to start a session from instance ${instance.name}...` });
+                let message = `Trying to start a session from instance ${instance.name}...`;
+                p.report({ message: message });
+                this._wizard.writeline(message);
                 await logPointsDebuggerClient.startSession(siteName, instance.name, publishCredential)
                     .then((r: CommandRunResult<StartSessionResponse>) => {
                         result = r;
@@ -164,9 +189,11 @@ class GetUnoccupiedInstance extends WizardStep {
             });
 
             if (result && result.isSuccessful()) {
-                vscode.window.showInformationMessage(`The start session command ran, and the result is ${result.output}`);
                 this._wizard.selectedInstance = instance;
                 this._wizard.sessionId = result.json.data.debuggingSessionId;
+
+                this._wizard.writeline(`Selected instance ${instance.name}`);
+
                 break;
             }
         }
@@ -184,7 +211,7 @@ class PickProcessStep extends WizardStep {
         super(_wizard, 'Enumerate node processes.');
     }
 
-    async execute(): Promise<void> {
+    public async prompt(): Promise<void> {
         let selectedSlot = (<LogPointsSessionAttach>this.wizard).selectedDeploymentSlot;
         let instance = this._wizard.selectedInstance;
         let publishCredential = await this._wizard.getCachedCredentialOrRefetch(selectedSlot);
@@ -192,7 +219,9 @@ class PickProcessStep extends WizardStep {
         let result: CommandRunResult<EnumerateProcessResponse>;
 
         await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async p => {
-            p.report({ message: `Enumerate node processes from instance ${instance.name}...` });
+            let message = `Enumerate node processes from instance ${instance.name}...`;
+            p.report({ message: message });
+            this._wizard.writeline(message);
             const siteName = util.extractSiteName(selectedSlot) + (util.isSiteDeploymentSlot(selectedSlot) ? '-' + util.extractDeploymentSlotName(selectedSlot) : '');
             result = await logPointsDebuggerClient.enumerateProcesses(siteName, instance.name, publishCredential);
         });
@@ -201,14 +230,7 @@ class PickProcessStep extends WizardStep {
             throw new Error('Enumerating processes failed.');
         }
 
-        // If there is only 1 process returned, just use that process. Do not show pickup list.
-        if (result.json.data.length == 1) {
-            this._wizard.processId = result.json.data[0].pid;
-            vscode.window.showInformationMessage(`Found 1 process ${this._wizard.processId}, use process ${this._wizard.processId}`);
-            return;
-        }
-
-        // Otherwise, show a quick pick list
+        // Show a quick pick list (even if there is only 1 process)
         let quickPickItems: QuickPickItemWithData<string>[] = result.json.data.map((process) => {
             return <QuickPickItemWithData<string>>{
                 label: `${process.pid}`,
@@ -220,10 +242,19 @@ class PickProcessStep extends WizardStep {
 
         const quickPickOption = { placeHolder: `Please select a Node.js process to attach to: (${this.stepProgressText})` };
 
-        let pickedProcess = await this.showQuickPick(quickPickItems, quickPickOption);
+        let pickedProcess;
+        try {
+            pickedProcess = await this.showQuickPick(quickPickItems, quickPickOption);
+        } catch (e) {
+            if (e instanceof UserCancelledError) {
+                vscode.window.showInformationMessage('Please select a node process to debug.');
+            }
+            throw e;
+        }
+
         this._wizard.processId = pickedProcess.data;
 
-        vscode.window.showInformationMessage(`Selected process ${this._wizard.processId}. "${pickedProcess.description}"`);
+        this._wizard.writeline(`Selected process ${this._wizard.processId}. "${pickedProcess.description}"`);
     }
 }
 
@@ -232,7 +263,7 @@ class SessionAttachStep extends WizardStep {
         super(_wizard, 'Attach to node process.');
     }
 
-    async execute(): Promise<void> {
+    public async execute(): Promise<void> {
         let selectedSlot = (<LogPointsSessionAttach>this.wizard).selectedDeploymentSlot;
         let instance = this._wizard.selectedInstance;
         let publishCredential = await this._wizard.getCachedCredentialOrRefetch(selectedSlot);
@@ -243,13 +274,15 @@ class SessionAttachStep extends WizardStep {
         const siteName = util.extractSiteName(selectedSlot) + (util.isSiteDeploymentSlot(selectedSlot) ? '-' + util.extractDeploymentSlotName(selectedSlot) : '');
 
         await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async p => {
-            p.report({ message: `Attach debugging to session ${this._wizard.sessionId}...` });
+            let message = `Attach debugging to session ${this._wizard.sessionId}...`;
+            p.report({ message: message });
+            this._wizard.writeline(message);
             result = await logPointsDebuggerClient.attachProcess(siteName, instance.name, publishCredential, requestData);
         });
 
         if (result.isSuccessful()) {
             this._wizard.debuggerId = result.json.data.debugeeId;
-            vscode.window.showInformationMessage(`Attached to process ${this._wizard.processId}, got debugId ${this._wizard.debuggerId}`);
+            this._wizard.writeline(`Attached to process ${this._wizard.processId}, got debugId ${this._wizard.debuggerId}`);
         } else {
             throw new Error('Attaching process failed.');
         }
@@ -261,7 +294,7 @@ class StartDebugAdapterStep extends WizardStep {
         super(_wizard, 'Start debug adapater.');
     }
 
-    async execute(): Promise<void> {
+    public async execute(): Promise<void> {
         let site = this._wizard.selectedDeploymentSlot;
         let siteName = util.extractSiteName(site) + (util.isSiteDeploymentSlot(site) ? '-' + util.extractDeploymentSlotName(site) : '');
         await vscode.debug.startDebugging(vscode.workspace.workspaceFolders[0], {
@@ -276,5 +309,7 @@ class StartDebugAdapterStep extends WizardStep {
             "sessionId": this._wizard.sessionId,
             "debugId": this._wizard.debuggerId
         });
+
+        this._wizard.writeline("Debug session started.");
     }
 }
