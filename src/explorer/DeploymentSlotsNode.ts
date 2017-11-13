@@ -96,6 +96,7 @@ export class DeploymentSlotsNode extends NodeBase {
     protected async promptForSlotName(slotLabels: string[]): Promise<string | undefined> {
         return await window.showInputBox({
             prompt: 'Enter a unique name for the new deployment slot',
+            ignoreFocusOut: true,
             validateInput: (value: string) => {
                 value = value ? value.trim() : '';
                 if (!value.match(/^[a-z0-9\-]{1,60}$/ig)) {
