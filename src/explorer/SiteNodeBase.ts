@@ -11,9 +11,10 @@ import { ExtensionContext, OutputChannel, window } from 'vscode';
 import { SiteWrapper } from 'vscode-azureappservice';
 import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models';
 import { AzureAccountWrapper } from '../AzureAccountWrapper';
-import { GitNotInstalledError, LocalGitDeployError, UserCancelledError } from '../errors';
+import { SiteActionError, UserCancelledError } from '../errors';
 import { KuduClient } from '../KuduClient';
 import * as util from '../util';
+import { getOutputChannel } from '../util';
 import { AppServiceDataProvider } from './AppServiceExplorer';
 import { NodeBase } from './NodeBase';
 
@@ -172,58 +173,15 @@ export class SiteNodeBase extends NodeBase {
 
     public async localGitDeploy(): Promise<void> {
         const fsWorkspaceFolder = await util.showWorkspaceFoldersQuickPick('Select the folder to Local Git deploy.');
-        let taskResults: [WebSiteModels.User, WebSiteModels.SiteConfigResource, WebSiteModels.DeploymentCollection];
-        if (!this._isSlot) {
-            taskResults = await Promise.all([
-                this.webSiteClient.webApps.listPublishingCredentials(this.site.resourceGroup, this._siteName),
-                this.webSiteClient.webApps.getConfiguration(this.site.resourceGroup, this._siteName),
-                this.webSiteClient.webApps.listDeployments(this.site.resourceGroup, this._siteName)
-            ]);
-        } else {
-            taskResults = await Promise.all([
-                this.webSiteClient.webApps.listPublishingCredentialsSlot(this.site.resourceGroup, this._siteName, util.extractDeploymentSlotName(this.site)),
-                this.webSiteClient.webApps.getConfigurationSlot(this.site.resourceGroup, this._siteName, util.extractDeploymentSlotName(this.site)),
-                this.webSiteClient.webApps.listDeploymentsSlot(this.site.resourceGroup, this._siteName, util.extractDeploymentSlotName(this.site))
-            ]);
-        }
-
-        const publishCredentials = taskResults[0];
-        const config = taskResults[1];
-        const oldDeployment = taskResults[2];
-
-        if (config.scmType !== 'LocalGit') {
-            await this.updateScmType(this, config);
-        }
-        const username = publishCredentials.publishingUserName;
-        const password = publishCredentials.publishingPassword;
-        const repo = `${this.site.enabledHostNames[1]}:443/${this.site.repositorySiteName}.git`;
-        // the scm url lives in the 1 index of enabledHostNames, not 0
-        const remote = `https://${username}:${password}@${repo}`;
-        const git = require('simple-git/promise')(fsWorkspaceFolder.uri.fsPath);
         try {
-
-            const status = await git.status();
-            if (status.files.length > 0) {
-                window.showWarningMessage(`${status.files.length} uncommitted change(s) in local repo "${fsWorkspaceFolder.uri.path}"`);
+            // if it returns undefined, then the user canceled the deployment
+            if (!await this._siteWrapper.localGitDeploy(fsWorkspaceFolder.uri.fsPath, this.webSiteClient, getOutputChannel())) {
+                throw new UserCancelledError();
             }
-            await git.push(remote, 'HEAD:master');
         } catch (err) {
-            if (err.message.indexOf('spawn git ENOENT') >= 0) {
-                throw new GitNotInstalledError();
-            } else if (err.message.indexOf('error: failed to push') >= 0) {
-                const input = await window.showErrorMessage(`Push rejected due to Git history diverging. Force push?`, `Yes`);
-                if (input === 'Yes') {
-                    await git.push(['-f', remote, 'HEAD:master']);
-                } else {
-                    throw new UserCancelledError();
-                }
-            } else {
-                const servicePlan = await this.getAppServicePlan();
-                throw new LocalGitDeployError(err, servicePlan.sku.size);
-            }
+            const appServicePlan = await this.getAppServicePlan();
+            throw new SiteActionError(err, appServicePlan.sku.size);
         }
-
-        await this.validateNewDeployment(oldDeployment, repo);
     }
 
     protected get webSiteClient(): WebSiteManagementClient {
@@ -233,31 +191,5 @@ export class SiteNodeBase extends NodeBase {
     protected async getAppServicePlan(): Promise<WebSiteModels.AppServicePlan> {
         const serverFarmId = util.parseAzureResourceId(this.site.serverFarmId.toLowerCase());
         return await this.webSiteClient.appServicePlans.get(serverFarmId.resourcegroups, serverFarmId.serverfarms);
-    }
-
-    private async updateScmType(node: SiteNodeBase, config: WebSiteModels.SiteConfigResource): Promise<void> {
-        let input;
-        const oldScmType = config.scmType;
-        const updateConfig = config;
-        updateConfig.scmType = 'LocalGit';
-        input = await window.showWarningMessage(`Deployment source for "${node._siteName}" is set as "${oldScmType}".  Change to "LocalGit"?`, 'Yes');
-        if (input === 'Yes') {
-            !node._isSlot ?
-                await this.webSiteClient.webApps.updateConfiguration(node.site.resourceGroup, node._siteName, updateConfig) :
-                await this.webSiteClient.webApps.updateConfigurationSlot(node.site.resourceGroup, node._siteName, updateConfig, util.extractDeploymentSlotName(node.site));
-        } else {
-            throw new UserCancelledError();
-        }
-    }
-
-    private async validateNewDeployment(oldDeployment: WebSiteModels.DeploymentCollection, repo: string): Promise<void> {
-        const newDeployment = !this._isSlot ?
-            await this.webSiteClient.webApps.listDeployments(this.site.resourceGroup, this._siteName) :
-            await this.webSiteClient.webApps.listDeploymentsSlot(this.site.resourceGroup, this._siteName, util.extractDeploymentSlotName(this.site));
-        // if the oldDeployment has a length of 0, then there has never been a deployment
-        if (newDeployment.length && oldDeployment.length &&
-            newDeployment[0].deploymentId === oldDeployment[0].deploymentId) {
-            throw new Error(`Azure Remote Repo is current with ${repo}`);
-        }
     }
 }

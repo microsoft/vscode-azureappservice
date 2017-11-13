@@ -8,7 +8,7 @@
 import * as vscode from 'vscode';
 import { AzureAccountWrapper } from './AzureAccountWrapper';
 import { ErrorData } from './ErrorData';
-import { GitNotInstalledError, LocalGitDeployError, UserCancelledError, WizardFailedError } from './errors';
+import { SiteActionError, UserCancelledError, WizardFailedError } from './errors';
 import { AppServiceDataProvider } from './explorer/AppServiceExplorer';
 import { AppServiceNode } from './explorer/AppServiceNode';
 import { AppSettingNode, AppSettingsNode } from './explorer/AppSettingsNodes';
@@ -215,7 +215,7 @@ function initAsyncCommand<T>(extensionContext: vscode.ExtensionContext, commandI
                 await callback(<T>args[0]);
             }
         } catch (err) {
-            if (err instanceof LocalGitDeployError) {
+            if (err instanceof SiteActionError) {
                 properties.servicePlan = err.servicePlanSize;
             }
 
@@ -226,9 +226,6 @@ function initAsyncCommand<T>(extensionContext: vscode.ExtensionContext, commandI
 
             if (err instanceof UserCancelledError) {
                 properties.result = 'Canceled';
-            } else if (err instanceof GitNotInstalledError) {
-                properties.result = 'Failed';
-                errorData = new ErrorData(err);
             } else {
                 properties.result = 'Failed';
                 errorData = new ErrorData(err);
