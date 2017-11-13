@@ -83,30 +83,8 @@ export class SiteNodeBase extends NodeBase {
         await this.start();
     }
 
-    // tslint:disable-next-line:no-reserved-keywords
-    public async delete(): Promise<void> {
-        let deleteServicePlan = false;
-        let servicePlan;
-
-        if (!this._isSlot) {
-            // API calls not necessary for deployment slots
-            servicePlan = await this.getAppServicePlan();
-        }
-
-        if (!util.isSiteDeploymentSlot(this.site) && servicePlan.numberOfSites < 2) {
-            const input = await window.showWarningMessage(`This is the last app in the App Service plan "${servicePlan.name}". Do you want to delete this App Service plan to prevent unexpected charges?`, 'Yes', 'No');
-            if (input) {
-                deleteServicePlan = input === 'Yes';
-            } else {
-                throw new UserCancelledError();
-            }
-        }
-
-        if (!this._isSlot) {
-            await this.webSiteClient.webApps.deleteMethod(this.site.resourceGroup, this._siteName, { deleteEmptyServerFarm: deleteServicePlan });
-        } else {
-            await this.webSiteClient.webApps.deleteSlot(this.site.resourceGroup, this._siteName, this._slotName);
-        }
+    public async deleteSite(outputChannel: OutputChannel): Promise<void> {
+        await this._siteWrapper.deleteSite(this.webSiteClient, outputChannel);
     }
 
     public async isHttpLogsEnabled(): Promise<boolean> {
