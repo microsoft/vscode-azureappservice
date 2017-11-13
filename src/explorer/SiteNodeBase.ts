@@ -174,6 +174,7 @@ export class SiteNodeBase extends NodeBase {
     public async localGitDeploy(): Promise<void> {
         const fsWorkspaceFolder = await util.showWorkspaceFoldersQuickPick('Select the folder to Local Git deploy.');
         try {
+            // if it returns undefined, then the user canceled the deployment
             if (!await this._siteWrapper.localGitDeploy(fsWorkspaceFolder.uri.fsPath, this.webSiteClient, getOutputChannel())) {
                 throw new UserCancelledError();
             }

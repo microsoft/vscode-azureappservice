@@ -3,30 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as opn from 'opn';
-import { window } from 'vscode';
-
 export class UserCancelledError extends Error { }
-export class GitNotInstalledError extends Error {
-    constructor() {
-        super();
-        this.showInstallPrompt();
-    }
-
-    public async showInstallPrompt(): Promise<void> {
-        const installString = 'Install';
-        const input = await window.showErrorMessage('Git must be installed to use Local Git Deploy.', installString);
-        if (input === 'Install') {
-            opn('https://git-scm.com/downloads');
-        }
-    }
-}
-
 export class SiteActionError extends Error {
     public readonly servicePlanSize: string;
-    constructor(error: string | Error, servicePlanSize: string) {
+    constructor(error: Error, servicePlanSize: string) {
         super();
-        this.message = error.message || error;
+        this.message = error.message ? error.message : error.toString();
         this.servicePlanSize = servicePlanSize;
     }
 }
@@ -37,7 +19,7 @@ export class WizardFailedError extends Error {
     public readonly stepIndex: number;
     constructor(error: Error, stepTitle: string, stepIndex: number) {
         super();
-        this.message = error.message;
+        this.message = error.message ? error.message : error.toString();
         this.stepTitle = stepTitle;
         this.stepIndex = stepIndex;
     }
