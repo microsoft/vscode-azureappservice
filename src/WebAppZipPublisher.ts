@@ -6,17 +6,18 @@
 import { SubscriptionModels } from 'azure-arm-resource';
 import WebSiteManagementClient = require('azure-arm-website');
 import * as vscode from 'vscode';
-import { SiteWrapper } from 'vscode-azureappservice';
+import { createWebApp, SiteWrapper } from 'vscode-azureappservice';
 import * as WebSiteModels from '../node_modules/azure-arm-website/lib/models';
 import { AzureAccountWrapper } from './AzureAccountWrapper';
+import { UserCancelledError } from './errors';
 import * as util from './util';
-import { WebAppCreator } from './WebAppCreator2';
 import { SubscriptionStepBase, WizardBase, WizardStep } from './wizard';
 
 export class WebAppZipPublisher extends WizardBase {
     constructor(
         output: vscode.OutputChannel,
         readonly azureAccount: AzureAccountWrapper,
+        readonly globalState: vscode.Memento,
         readonly subscription?: SubscriptionModels.Subscription,
         readonly site?: WebSiteModels.Site,
         readonly fsPath?: string) {
@@ -26,7 +27,7 @@ export class WebAppZipPublisher extends WizardBase {
     protected initSteps(): void {
         this.steps.push(new ZipFileStep(this, this.fsPath));
         this.steps.push(new SubscriptionStep(this, this.azureAccount, this.subscription));
-        this.steps.push(new WebAppStep(this, this.azureAccount, this.site));
+        this.steps.push(new WebAppStep(this, this.azureAccount, this.globalState, this.site));
         this.steps.push(new DeployStep(this, this.azureAccount));
     }
 
@@ -76,11 +77,11 @@ class SubscriptionStep extends SubscriptionStepBase {
 class WebAppStep extends WizardStep {
     private _site: WebSiteModels.Site;
     private _newSite = false;
-    private _createWebAppWizard: WebAppCreator;
 
     constructor(wizard: WizardBase,
-        readonly azureAccount: AzureAccountWrapper,
-        site?: WebSiteModels.Site) {
+                readonly azureAccount: AzureAccountWrapper,
+                readonly globalState: vscode.Memento,
+                site?: WebSiteModels.Site) {
         super(wizard, 'Select or create Web App');
         this._site = site;
     }
@@ -123,23 +124,18 @@ class WebAppStep extends WizardStep {
         }
 
         this._newSite = true;
-        this._createWebAppWizard = new WebAppCreator(util.getOutputChannel(), this.azureAccount, subscription);
-        const wizardResult = await this._createWebAppWizard.run(true);
-
-        if (wizardResult.status !== 'PromptCompleted') {
-            throw wizardResult.error;
-        }
     }
 
     public async execute(): Promise<void> {
         if (this._newSite) {
-            const result = await this._createWebAppWizard.execute();
-
-            if (result.status !== 'Completed') {
-                throw result.error;
+            const subscription = this.getSelectedSubscription();
+            const credentials = this.azureAccount.getCredentialByTenantId(subscription.tenantId);
+            const newSite: WebSiteModels.Site | undefined = await createWebApp(util.getOutputChannel(), this.globalState, credentials, subscription);
+            if (newSite === undefined) {
+                throw new UserCancelledError();
+            } else {
+                this._site = newSite;
             }
-
-            this._site = this._createWebAppWizard.createdWebSite;
         }
 
         return;

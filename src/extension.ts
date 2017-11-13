@@ -5,7 +5,11 @@
 
 'use strict';
 
+import { Subscription } from 'azure-arm-resource/lib/subscription/models';
+import { Site } from 'azure-arm-website/lib/models';
+import { ServiceClientCredentials } from 'ms-rest';
 import * as vscode from 'vscode';
+import { createWebApp } from 'vscode-azureappservice';
 import { AzureAccountWrapper } from './AzureAccountWrapper';
 import { ErrorData } from './ErrorData';
 import { SiteActionError, UserCancelledError, WizardFailedError } from './errors';
@@ -19,7 +23,6 @@ import { SiteNodeBase } from './explorer/SiteNodeBase';
 import { SubscriptionNode } from './explorer/SubscriptionNode';
 import { Reporter } from './telemetry/reporter';
 import * as util from "./util";
-import { WebAppCreator } from './WebAppCreator2';
 import { WebAppZipPublisher } from './WebAppZipPublisher';
 
 // tslint:disable-next-line:max-func-body-length
@@ -75,42 +78,39 @@ export function activate(context: vscode.ExtensionContext): void {
         }
     });
     initAsyncCommand(context, 'appService.Delete', async (node: SiteNodeBase) => {
-        const yes = 'Yes';
         if (node) {
-            if (await vscode.window.showWarningMessage(`Are you sure you want to delete "${node.site.name}"?`, yes) === yes) {
-                outputChannel.appendLine(`Deleting app "${node.site.name}"...`);
-                await node.delete();
-                outputChannel.appendLine(`App "${node.site.name}" has been deleted.`);
-                vscode.commands.executeCommand('appService.Refresh', node.getParentNode());
-            } else {
-                throw new UserCancelledError();
-            }
+            await node.deleteSite(outputChannel);
+            vscode.commands.executeCommand('appService.Refresh', node.getParentNode());
         }
     });
     initAsyncCommand(context, 'appService.CreateWebApp', async (node?: SubscriptionNode) => {
-        let subscription;
+        let subscription: Subscription | undefined;
+        let credentials: ServiceClientCredentials | undefined;
         if (node) {
             subscription = node.subscription;
+            credentials = azureAccount.getCredentialByTenantId(subscription.tenantId);
         }
-        const wizard = new WebAppCreator(outputChannel, azureAccount, subscription, context.globalState);
-        const result = await wizard.run();
-        if (result.status === 'Completed') {
+
+        const newSite: Site | undefined = await createWebApp(outputChannel, context.globalState, credentials, subscription);
+        if (newSite === undefined) {
+            throw new UserCancelledError();
+        } else {
             vscode.commands.executeCommand('appService.Refresh', node);
         }
     });
     initAsyncCommand(context, 'appService.DeployZipPackage', async (target?: {}) => {
         if (target instanceof SiteNodeBase) {
-            const wizard = new WebAppZipPublisher(outputChannel, azureAccount, target.subscription, target.site);
+            const wizard = new WebAppZipPublisher(outputChannel, azureAccount, context.globalState, target.subscription, target.site);
             await wizard.run();
         } else if (target instanceof vscode.Uri) {
-            const wizard = new WebAppZipPublisher(outputChannel, azureAccount, undefined, undefined, target.fsPath);
+            const wizard = new WebAppZipPublisher(outputChannel, azureAccount, context.globalState, undefined, undefined, target.fsPath);
             await wizard.run();
         }
     });
     initAsyncCommand(context, 'appService.ZipAndDeploy', async (uri?: {}) => {
         if (uri instanceof vscode.Uri) {
             const folderPath = uri.fsPath;
-            const wizard = new WebAppZipPublisher(outputChannel, azureAccount, undefined, undefined, folderPath);
+            const wizard = new WebAppZipPublisher(outputChannel, azureAccount, context.globalState, undefined, undefined, folderPath);
             await wizard.run();
         }
     });
