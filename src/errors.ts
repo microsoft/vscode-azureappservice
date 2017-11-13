@@ -22,11 +22,11 @@ export class GitNotInstalledError extends Error {
     }
 }
 
-export class LocalGitDeployError extends Error {
+export class SiteActionError extends Error {
     public readonly servicePlanSize: string;
-    constructor(error: Error, servicePlanSize: string) {
+    constructor(error: string | Error, servicePlanSize: string) {
         super();
-        this.message = error.message;
+        this.message = error.message || error;
         this.servicePlanSize = servicePlanSize;
     }
 }

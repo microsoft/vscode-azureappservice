@@ -488,7 +488,7 @@
     "devDependencies": {
         "@types/archiver": "^2.0.0",
         "@types/mocha": "^2.2.32",
-        "@types/node": "^8.0.28",
+        "@types/node": "^8.0.51",
         "@types/request": "^2.0.3",
         "mocha": "^2.3.3",
         "tslint": "^5.7.0",
@@ -507,7 +507,7 @@
         "request": "^2.83.0",
         "simple-git": "^1.77.0",
         "vscode-extension-telemetry": "^0.0.6",
-        "vscode-azureappservice": "^0.2.0"
+        "vscode-azureappservice": "^0.4.0"
     },
     "extensionDependencies": [
         "ms-vscode.azure-account"
