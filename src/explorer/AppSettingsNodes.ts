@@ -3,30 +3,43 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models';
+import { SubscriptionModels } from 'azure-arm-resource';
+import WebSiteManagementClient = require('azure-arm-website');
+import * as opn from 'opn';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import * as util from '../util';
-import * as opn from 'opn';
-import { AzureAccountWrapper } from '../azureAccountWrapper';
-import { NodeBase } from './nodeBase';
-import { AppServiceDataProvider } from './appServiceExplorer';
-import { SubscriptionModels } from 'azure-arm-resource';
 import { TreeItem, TreeItemCollapsibleState } from 'vscode';
-import WebSiteManagementClient = require('azure-arm-website');
+import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models';
+import { AzureAccountWrapper } from '../AzureAccountWrapper';
+import * as util from '../util';
+import { AppServiceDataProvider } from './AppServiceExplorer';
+import { NodeBase } from './NodeBase';
 
 export class AppSettingsNode extends NodeBase {
+    private readonly _site: WebSiteModels.Site;
+    private readonly _subscription: SubscriptionModels.Subscription;
+    private readonly _isSlot: boolean;
+    private readonly _siteName: string;
+    private readonly _slotName: string;
+    private readonly _websiteClient: WebSiteManagementClient;
     private _settings: WebSiteModels.StringDictionary;
-    readonly _isSlot: boolean;
-    readonly _siteName: string;
-    readonly _slotName: string;
-    readonly _websiteClient: WebSiteManagementClient;
 
-    constructor(readonly site: WebSiteModels.Site,
-        readonly subscription: SubscriptionModels.Subscription,
+    public get site(): WebSiteModels.Site {
+        return this._site;
+    }
+
+    public get subscription(): SubscriptionModels.Subscription {
+        return this._subscription;
+    }
+
+    constructor(
+        site: WebSiteModels.Site,
+        subscription: SubscriptionModels.Subscription,
         treeDataProvider: AppServiceDataProvider,
         parentNode: NodeBase) {
         super('Application Settings', treeDataProvider, parentNode);
+        this._site = site;
+        this._subscription = subscription;
         this._isSlot = util.isSiteDeploymentSlot(site);
         this._siteName = util.extractSiteName(site);
         this._slotName = util.extractDeploymentSlotName(site);
@@ -35,39 +48,39 @@ export class AppSettingsNode extends NodeBase {
             this.subscription.subscriptionId);
     }
 
-    getTreeItem(): TreeItem {
+    public getTreeItem(): TreeItem {
         return {
             label: this.label,
             collapsibleState: TreeItemCollapsibleState.Collapsed,
-            contextValue: "applicationSettings",
+            contextValue: 'applicationSettings',
             iconPath: {
-                light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'Settings_16x_vscode.svg'),
-                dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'Settings_16x_vscode.svg')
+                light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'AppSettings_color.svg'),
+                dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'AppSettings_color.svg')
             }
-        }
+        };
     }
 
-    async getChildren(): Promise<NodeBase[]> {
+    public async getChildren(): Promise<NodeBase[]> {
         const webApps = this.WebSiteManagementClient.webApps;
         const children: AppSettingNode[] = [];
         this._settings = this._isSlot ? await webApps.listApplicationSettingsSlot(this.site.resourceGroup, this._siteName, this._slotName) :
             await webApps.listApplicationSettings(this.site.resourceGroup, this._siteName);
 
         if (this._settings.properties) {
-            for (let key in this._settings.properties) {
+            Object.keys(this._settings.properties).forEach((key: string) => {
                 children.push(new AppSettingNode(
                     key,
                     this._settings.properties[key],
                     this.getTreeDataProvider(),
                     this
                 ));
-            }
+            });
         }
 
         return children.sort((a, b) => a.label.localeCompare(b.label));
     }
 
-    async editSettingItem(oldKey: string, newKey: string, value: string): Promise<void> {
+    public async editSettingItem(oldKey: string, newKey: string, value: string): Promise<void> {
         if (this._settings.properties) {
             if (oldKey !== newKey) {
                 delete this._settings.properties[oldKey];
@@ -77,14 +90,14 @@ export class AppSettingsNode extends NodeBase {
         await this.applySettings();
     }
 
-    async deleteSettingItem(key: string): Promise<void> {
+    public async deleteSettingItem(key: string): Promise<void> {
         if (this._settings.properties) {
             delete this._settings.properties[key];
         }
         await this.applySettings();
     }
 
-    async addSettingItem(): Promise<void> {
+    public async addSettingItem(): Promise<void> {
         const newKey = await vscode.window.showInputBox({
             ignoreFocusOut: true,
             prompt: 'Enter new setting key',
@@ -97,7 +110,7 @@ export class AppSettingsNode extends NodeBase {
 
         const newValue = await vscode.window.showInputBox({
             ignoreFocusOut: true,
-            prompt: `Enter setting value for "${newKey}"`,
+            prompt: `Enter setting value for "${newKey}"`
         }) || '';
 
         if (!this._settings.properties) {
@@ -110,15 +123,14 @@ export class AppSettingsNode extends NodeBase {
         this.getTreeDataProvider<AppServiceDataProvider>().refresh(this);
     }
 
-    validateNewKeyInput(newKey: string, oldKey?: string): string | undefined {
+    public validateNewKeyInput(newKey: string, oldKey?: string): string | undefined {
         newKey = newKey ? newKey.trim() : '';
         oldKey = oldKey ? oldKey.trim().toLowerCase() : oldKey;
         if (newKey.length === 0) {
             return 'Key must have at least one non-whitespace character.';
         }
-
         if (this._settings.properties && newKey.toLowerCase() !== oldKey) {
-            for (let key in this._settings.properties) {
+            for (const key of Object.keys(this._settings.properties)) {
                 if (key.toLowerCase() === newKey.toLowerCase()) {
                     return `Setting "${newKey}" already exists.`;
                 }
@@ -126,6 +138,12 @@ export class AppSettingsNode extends NodeBase {
         }
 
         return undefined;
+    }
+
+    public openInPortal(): void {
+        const portalEndpoint = 'https://portal.azure.com';
+        const deepLink = `${portalEndpoint}/${this.subscription.tenantId}/#resource${this.site.id}/application`;
+        opn(deepLink);
     }
 
     protected get WebSiteManagementClient(): WebSiteManagementClient {
@@ -138,39 +156,38 @@ export class AppSettingsNode extends NodeBase {
 
     private applySettings(): Promise<WebSiteModels.StringDictionary> {
         const webApps = this.WebSiteManagementClient.webApps;
-        const updateTask = this._isSlot ? webApps.updateApplicationSettingsSlot(this.site.resourceGroup, this._siteName, this._settings, this._slotName) :
+        return this._isSlot ? webApps.updateApplicationSettingsSlot(this.site.resourceGroup, this._siteName, this._settings, this._slotName) :
             webApps.updateApplicationSettings(this.site.resourceGroup, this._siteName, this._settings);
-        return updateTask;
-    }
-
-    openInPortal(): void {
-        const portalEndpoint = 'https://portal.azure.com';
-        const deepLink = `${portalEndpoint}/${this.subscription.tenantId}/#resource${this.site.id}/application`;
-        opn(deepLink);
     }
 }
 
 export class AppSettingNode extends NodeBase {
-    constructor(private key: string,
-        private value: string,
+    private key: string;
+    private value: string;
+
+    constructor(
+        key: string,
+        value: string,
         treeDataProvider: AppServiceDataProvider,
         parentNode: NodeBase) {
         super(`${key}=${value}`, treeDataProvider, parentNode);
+        this.key = key;
+        this.value = value;
     }
 
-    getTreeItem(): TreeItem {
+    public getTreeItem(): TreeItem {
         return {
             label: this.label,
             collapsibleState: TreeItemCollapsibleState.None,
-            contextValue: "applicationSettingItem",
+            contextValue: 'applicationSettingItem',
             iconPath: {
                 light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'Item_16x_vscode.svg'),
                 dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'Item_16x_vscode.svg')
             }
-        }
+        };
     }
 
-    async edit(): Promise<void> {
+    public async edit(): Promise<void> {
         const newValue = await vscode.window.showInputBox({
             ignoreFocusOut: true,
             prompt: `Enter setting value for "${this.key}"`,
@@ -186,7 +203,7 @@ export class AppSettingNode extends NodeBase {
         this.refresh();
     }
 
-    async rename(): Promise<void> {
+    public async rename(): Promise<void> {
         const oldKey = this.key;
         const newKey = await vscode.window.showInputBox({
             ignoreFocusOut: true,
@@ -204,8 +221,9 @@ export class AppSettingNode extends NodeBase {
         this.refresh();
     }
 
-    async delete(): Promise<void> {
-        const okayAction = "Delete";
+    // tslint:disable-next-line:no-reserved-keywords
+    public async delete(): Promise<void> {
+        const okayAction = 'Delete';
         const result = await vscode.window.showWarningMessage(`Are you sure you want to delete setting "${this.key}"?`, okayAction);
 
         if (result === okayAction) {
@@ -214,7 +232,7 @@ export class AppSettingNode extends NodeBase {
         }
     }
 
-    refresh(): void {
+    public refresh(): void {
         this.label = `${this.key}=${this.value}`;
         // Ideally we only need to refresh the current item, but because of this https://github.com/Microsoft/vscode/issues/34789,
         // have to use workaround for now.

@@ -2,7 +2,7 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "taskName": "npm",
+            "label": "npm",
             "type": "shell",
             "command": "npm",
             "group": {
@@ -20,6 +20,14 @@
                 "reveal": "silent"
             },
             "problemMatcher": "$tsc-watch"
+        },
+        {
+            "type": "npm",
+            "script": "lint",
+            "problemMatcher": {
+                "base": "$tslint5",
+                "fileLocation": "absolute"
+            }
         }
     ]
 }

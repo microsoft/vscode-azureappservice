@@ -290,3 +290,4 @@ __pycache__/
 node_modules
 out
 *.vsix
+package-lock.json

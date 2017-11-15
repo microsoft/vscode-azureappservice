@@ -3,19 +3,20 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { TreeDataProvider, TreeItemCollapsibleState, TreeItem, EventEmitter, Event } from 'vscode';
-import { AzureAccountWrapper } from '../azureAccountWrapper';
-import { SubscriptionNode } from './subscriptionNode';
-import { NodeBase } from './nodeBase';
+import { Event, EventEmitter, TreeDataProvider, TreeItem, TreeItemCollapsibleState } from 'vscode';
+import { AzureAccountWrapper } from '../AzureAccountWrapper';
 import * as util from '../util';
+import { NodeBase } from './NodeBase';
+import { SelectSubscriptionsNode, SubscriptionNode } from './SubscriptionNode';
 
 export class AppServiceDataProvider implements TreeDataProvider<NodeBase> {
-    private readonly _azureAccount;
+    public readonly onDidChangeTreeData: Event<NodeBase>;
     private _onDidChangeTreeData: EventEmitter<NodeBase> = new EventEmitter<NodeBase>();
-    public readonly onDidChangeTreeData: Event<NodeBase> = this._onDidChangeTreeData.event;
+    private readonly _azureAccount: AzureAccountWrapper;
 
     constructor(azureAccount: AzureAccountWrapper) {
         this._azureAccount = azureAccount;
+        this.onDidChangeTreeData = this._onDidChangeTreeData.event;
         this._azureAccount.registerStatusChangedListener(this.onSubscriptionChanged, this);
         this._azureAccount.registerFiltersChangedListener(this.onSubscriptionChanged, this);
 
@@ -53,17 +54,15 @@ export class AppServiceDataProvider implements TreeDataProvider<NodeBase> {
         const subscriptions = await this.azureAccount.getFilteredSubscriptions();
 
         if (subscriptions.length > 0) {
-            const nodes = subscriptions.map<SubscriptionNode>(subscription => {
+            return subscriptions.map<SubscriptionNode>(subscription => {
                 return new SubscriptionNode(subscription, this, null);
             });
-
-            return nodes;
         }
 
         return [new SelectSubscriptionsNode(this, null)];
     }
 
-    private onSubscriptionChanged() {
+    private onSubscriptionChanged(): void {
         this.refresh();
     }
 }
@@ -81,7 +80,7 @@ export class NotSignedInNode extends NodeBase {
                 command: util.getSignInCommandString()
             },
             collapsibleState: TreeItemCollapsibleState.None
-        }
+        };
     }
 }
 
@@ -94,23 +93,6 @@ export class LoadingNode extends NodeBase {
         return {
             label: this.label,
             collapsibleState: TreeItemCollapsibleState.None
-        }
-    }
-}
-
-export class SelectSubscriptionsNode extends NodeBase {
-    constructor(treeDataProvider: AppServiceDataProvider, parentNode?: NodeBase) {
-        super('Select Subscriptions...', treeDataProvider, parentNode);
-    }
-
-    public getTreeItem(): TreeItem {
-        return {
-            label: this.label,
-            command: {
-                title: this.label,
-                command: 'azure-account.selectSubscriptions'
-            },
-            collapsibleState: TreeItemCollapsibleState.None
-        }
+        };
     }
 }

@@ -3,17 +3,19 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models';
-import * as opn from 'opn';
-import { NodeBase } from './nodeBase';
-import { AppServiceDataProvider } from './appServiceExplorer';
 import { SubscriptionModels } from 'azure-arm-resource';
-import { TreeItem, TreeItemCollapsibleState } from 'vscode';
-import { AzureAccountWrapper } from '../azureAccountWrapper';
-import * as path from 'path';
-import { KuduClient, webJob } from '../kuduClient';
-import * as util from '../util';
 import WebSiteManagementClient = require('azure-arm-website');
+import * as opn from 'opn';
+import * as path from 'path';
+import { TreeItem, TreeItemCollapsibleState } from 'vscode';
+import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models';
+import * as util from '../util';
+import { AppServiceDataProvider } from './AppServiceExplorer';
+import { AzureAccountWrapper } from '../AzureAccountWrapper';
+import { KuduClient, webJob } from '../KuduClient';
+import { NodeBase } from './NodeBase';
+
+
 
 export class WebJobsNode extends NodeBase {
     constructor(readonly site: WebSiteModels.Site,
@@ -29,8 +31,8 @@ export class WebJobsNode extends NodeBase {
             collapsibleState: TreeItemCollapsibleState.Collapsed,
             contextValue: "webJobs",
             iconPath: {
-                light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'AzureWebJobs_16x_vscode.svg'),
-                dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'AzureWebJobs_16x_vscode.svg')
+                light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'WebJobs_color.svg'),
+                dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'WebJobs_color.svg')
             }
         }
     }

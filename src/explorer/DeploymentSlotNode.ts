@@ -3,18 +3,19 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models';
-import * as path from 'path';
-import { NodeBase } from './nodeBase';
-import { SiteNodeBase } from './siteNodeBase';
-import { AppSettingsNode } from './appSettingsNodes';
-import { AppServiceDataProvider } from './appServiceExplorer';
 import { SubscriptionModels } from 'azure-arm-resource';
-import { TreeItem, TreeItemCollapsibleState, OutputChannel } from 'vscode';
-import { DeploymentSlotSwapper } from '../deploymentSlotActions';
+import * as path from 'path';
+import { OutputChannel, TreeItem, TreeItemCollapsibleState } from 'vscode';
+import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models';
+import { DeploymentSlotSwapper } from '../DeploymentSlotSwapper';
+import { AppServiceDataProvider } from './AppServiceExplorer';
+import { AppSettingsNode } from './AppSettingsNodes';
+import { NodeBase } from './NodeBase';
+import { SiteNodeBase } from './SiteNodeBase';
 
 export class DeploymentSlotNode extends SiteNodeBase {
-    constructor(label: string,
+    constructor(
+        label: string,
         site: WebSiteModels.Site,
         subscription: SubscriptionModels.Subscription,
         treeDataProvider: AppServiceDataProvider,
@@ -22,25 +23,25 @@ export class DeploymentSlotNode extends SiteNodeBase {
         super(label, site, subscription, treeDataProvider, parentNode);
     }
 
-    getTreeItem(): TreeItem {
+    public getTreeItem(): TreeItem {
         return {
             label: this.label,
             collapsibleState: TreeItemCollapsibleState.Collapsed,
             contextValue: 'deploymentSlot',
             iconPath: {
-                light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'DeploymentSlots_16x_vscode.svg'),
-                dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'DeploymentSlots_16x_vscode.svg')
+                light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'DeploymentSlot_color.svg'),
+                dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'DeploymentSlot_color.svg')
             }
-        }
+        };
     }
 
-    async getChildren(): Promise<NodeBase[]> {
+    public async getChildren(): Promise<NodeBase[]> {
         return [
             new AppSettingsNode(this.site, this.subscription, this.getTreeDataProvider<AppServiceDataProvider>(), this)
         ];
     }
 
-    async swapDeploymentSlots(output: OutputChannel): Promise<void> {
+    public async swapDeploymentSlots(output: OutputChannel): Promise<void> {
         const wizard = new DeploymentSlotSwapper(output, this.azureAccount, this);
         await wizard.run();
     }

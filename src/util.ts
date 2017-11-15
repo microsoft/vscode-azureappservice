@@ -7,6 +7,7 @@ import { reporter } from './telemetry/reporter';
 import WebSiteManagementClient = require('azure-arm-website');
 import * as vscode from 'vscode';
 import * as WebSiteModels from '../node_modules/azure-arm-website/lib/models';
+import { UserCancelledError } from './errors';
 
 
 export interface PartialList<T> extends Array<T> {
@@ -92,10 +93,20 @@ export function errToString(error: any): string {
     }
 
     if (error instanceof Error) {
-        return JSON.stringify({
-            'Error': error.constructor.name,
-            'Message': error.message
-        });
+        try {
+            // errors from Azure come as JSON string
+            return JSON.stringify({
+                'Error': JSON.parse(error.message).Code,
+                'Message': JSON.parse(error.message).Message
+            });
+
+        } catch (e) {
+            return JSON.stringify({
+                'Error': error.constructor.name,
+                'Message': error.message
+            });
+        }
+
     }
 
     if (typeof (error) === 'object') {
@@ -134,4 +145,34 @@ export function parseAzureResourceId(resourceId: string): { [key: string]: strin
     }
 
     return result;
+}
+
+export async function showWorkspaceFoldersQuickPick(placeHolderString: string): Promise<vscode.WorkspaceFolder> {
+    const folderQuickPickItems = vscode.workspace.workspaceFolders ?
+        vscode.workspace.workspaceFolders.map((value) => {
+            {
+                return <IQuickPickItemWithData<vscode.WorkspaceFolder>>{
+                    label: value.name,
+                    description: value.uri.fsPath,
+                    data: value
+                }
+            }
+        }) :
+        [];
+    // VS Code will handle [] by alerting user there are no workspaces opened
+
+    const folderQuickPickOption = { placeHolder: placeHolderString };
+    const pickedItem = folderQuickPickItems.length == 1 ?
+        folderQuickPickItems[0] : await vscode.window.showQuickPick(folderQuickPickItems, folderQuickPickOption);
+
+    if (!pickedItem) {
+        throw new UserCancelledError;
+    }
+
+    return pickedItem.data;
+}
+
+export interface IQuickPickItemWithData<T> extends vscode.QuickPickItem {
+    persistenceId?: string; // A unique key to identify this item items across sessions, used in persisting previous selections
+    data?: T;
 }

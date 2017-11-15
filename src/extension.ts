@@ -5,27 +5,31 @@
 
 'use strict';
 
+import { Subscription } from 'azure-arm-resource/lib/subscription/models';
+import { Site } from 'azure-arm-website/lib/models';
+import { ServiceClientCredentials } from 'ms-rest';
 import * as vscode from 'vscode';
-import * as util from "./util";
-import { AppServiceDataProvider } from './explorer/appServiceExplorer';
-import { NodeBase } from './explorer/nodeBase';
-import { SiteNodeBase } from './explorer/siteNodeBase';
-import { AppServiceNode } from './explorer/appServiceNode';
-import { AppSettingsNode, AppSettingNode } from './explorer/appSettingsNodes';
-import { DeploymentSlotNode } from './explorer/deploymentSlotNode';
-import { SubscriptionNode } from './explorer/subscriptionNode';
-import { AzureAccountWrapper } from './azureAccountWrapper';
-import { WebAppCreator } from './webAppCreator';
-import { WebAppZipPublisher } from './webAppZipPublisher';
-import { LogPointsSessionAttach } from './diagnostics/logPointsManager';
+import { createWebApp } from 'vscode-azureappservice';
+import { AzureAccountWrapper } from './AzureAccountWrapper';
+import { ErrorData } from './ErrorData';
+import { SiteActionError, UserCancelledError, WizardFailedError } from './errors';
+import { AppServiceDataProvider } from './explorer/AppServiceExplorer';
+import { AppServiceNode } from './explorer/AppServiceNode';
+import { AppSettingNode, AppSettingsNode } from './explorer/AppSettingsNodes';
+import { DeploymentSlotNode } from './explorer/DeploymentSlotNode';
+import { DeploymentSlotsNode } from './explorer/DeploymentSlotsNode';
+import { NodeBase } from './explorer/NodeBase';
+import { SiteNodeBase } from './explorer/SiteNodeBase';
+import { SubscriptionNode } from './explorer/SubscriptionNode';
 import { Reporter } from './telemetry/reporter';
-import { UserCancelledError } from './errors';
+import { LogPointsSessionAttach } from './diagnostics/logPointsManager';
 import { LoadedScriptsProvider, openScript } from './explorer/loadedScriptsExplorer';
 import { RemoteScriptDocumentProvider, RemoteScriptSchema } from './diagnostics/remoteScriptDocumentProvider';
+import * as util from "./util";
+import { WebAppZipPublisher } from './WebAppZipPublisher';
 
-export function activate(context: vscode.ExtensionContext) {
-    console.log('Extension "Azure App Service Tools" is now active.');
-
+// tslint:disable-next-line:max-func-body-length
+export function activate(context: vscode.ExtensionContext): void {
     context.subscriptions.push(new Reporter(context));
 
     const outputChannel = util.getOutputChannel();
@@ -59,13 +63,8 @@ export function activate(context: vscode.ExtensionContext) {
             const siteType = util.isSiteDeploymentSlot(node.site) ? 'Deployment Slot' : 'Web App';
             outputChannel.show();
             outputChannel.appendLine(`Starting ${siteType} "${node.site.name}"...`);
-            try {
-                await node.start();
-                outputChannel.appendLine(`${siteType} "${node.site.name}" has been started.`);
-            } catch (err) {
-                outputChannel.appendLine(err);
-                throw err;
-            }
+            await node.start();
+            outputChannel.appendLine(`${siteType} "${node.site.name}" has been started.`);
         }
     });
     initAsyncCommand(context, 'appService.Stop', async (node: SiteNodeBase) => {
@@ -73,13 +72,9 @@ export function activate(context: vscode.ExtensionContext) {
             const siteType = util.isSiteDeploymentSlot(node.site) ? 'Deployment Slot' : 'Web App';
             outputChannel.show();
             outputChannel.appendLine(`Stopping ${siteType} "${node.site.name}"...`);
-            try {
-                await node.stop();
-                outputChannel.appendLine(`${siteType} "${node.site.name}" has been stopped. App Service plan charges still apply.`);
-            } catch (err) {
-                outputChannel.appendLine(err);
-                throw err;
-            }
+            await node.stop();
+            outputChannel.appendLine(`${siteType} "${node.site.name}" has been stopped. App Service plan charges still apply.`);
+
         }
     });
     initAsyncCommand(context, 'appService.Restart', async (node: SiteNodeBase) => {
@@ -87,83 +82,58 @@ export function activate(context: vscode.ExtensionContext) {
             const siteType = util.isSiteDeploymentSlot(node.site) ? 'Deployment Slot' : 'Web App';
             outputChannel.show();
             outputChannel.appendLine(`Restarting ${siteType} "${node.site.name}"...`);
-            try {
-                await node.restart();
-                outputChannel.appendLine(`${siteType} "${node.site.name}" has been restarted.`);
-            } catch (err) {
-                outputChannel.appendLine(err);
-                throw err;
-            }
+            await node.restart();
+            outputChannel.appendLine(`${siteType} "${node.site.name}" has been restarted.`);
+
         }
     });
     initAsyncCommand(context, 'appService.Delete', async (node: SiteNodeBase) => {
-        const yes = 'Yes';
-        if (node &&
-            await vscode.window.showWarningMessage(`Are you sure you want to delete "${node.site.name}"?`, yes) === yes) {
-            try {
-                outputChannel.appendLine(`Deleting app "${node.site.name}"...`);
-                await node.delete();
-                outputChannel.appendLine(`App "${node.site.name}" has been deleted.`);
-                vscode.commands.executeCommand('appService.Refresh', node.getParentNode());
-            } catch (err) {
-                if (!(err instanceof UserCancelledError)) {
-                    try {
-                        // Azure REST error messages come as a JSON string with more details
-                        outputChannel.appendLine(JSON.parse(err.message).Message);
-                    } catch {
-                        outputChannel.appendLine(err.message);
-                    }
-                }
-                throw err;
-            }
+        if (node) {
+            await node.deleteSite(outputChannel);
+            vscode.commands.executeCommand('appService.Refresh', node.getParentNode());
         }
     });
     initAsyncCommand(context, 'appService.CreateWebApp', async (node?: SubscriptionNode) => {
-        let subscription;
+        let subscription: Subscription | undefined;
+        let credentials: ServiceClientCredentials | undefined;
         if (node) {
             subscription = node.subscription;
+            credentials = azureAccount.getCredentialByTenantId(subscription.tenantId);
         }
 
-        const wizard = new WebAppCreator(outputChannel, azureAccount, subscription, context.globalState);
-        const result = await wizard.run();
-
-        if (result.status === 'Completed') {
+        const newSite: Site | undefined = await createWebApp(outputChannel, context.globalState, credentials, subscription);
+        if (newSite === undefined) {
+            throw new UserCancelledError();
+        } else {
             vscode.commands.executeCommand('appService.Refresh', node);
         }
     });
-    initAsyncCommand(context, 'appService.DeployZipPackage', async (context: any) => {
-        if (context instanceof SiteNodeBase) {
-            const wizard = new WebAppZipPublisher(outputChannel, azureAccount, context.subscription, context.site);
+    initAsyncCommand(context, 'appService.DeployZipPackage', async (target?: {}) => {
+        if (target instanceof SiteNodeBase) {
+            const wizard = new WebAppZipPublisher(outputChannel, azureAccount, context.globalState, target.subscription, target.site);
             await wizard.run();
-        } else if (context instanceof vscode.Uri) {
-            const wizard = new WebAppZipPublisher(outputChannel, azureAccount, undefined, undefined, context.fsPath, undefined);
-            await wizard.run();
-        }
-    });
-    initAsyncCommand(context, 'appService.ZipAndDeploy', async (context: any) => {
-        if (context instanceof vscode.Uri) {
-            const folderPath = context.fsPath;
-            const wizard = new WebAppZipPublisher(outputChannel, azureAccount, undefined, undefined, undefined, folderPath);
+        } else if (target instanceof vscode.Uri) {
+            const wizard = new WebAppZipPublisher(outputChannel, azureAccount, context.globalState, undefined, undefined, target.fsPath);
             await wizard.run();
         }
     });
-    initAsyncCommand(context, 'appService.LocalGitDeploy', async (node: SiteNodeBase) => {
+    initAsyncCommand(context, 'appService.ZipAndDeploy', async (uri?: {}) => {
+        if (uri instanceof vscode.Uri) {
+            const folderPath = uri.fsPath;
+            const wizard = new WebAppZipPublisher(outputChannel, azureAccount, context.globalState, undefined, undefined, folderPath);
+            await wizard.run();
+        }
+    });
+    initAsyncCommand(context, 'appService.LocalGitDeploy', async (node?: SiteNodeBase) => {
         if (node) {
             outputChannel.appendLine(`Deploying Local Git repository to "${node.site.name}"...`);
-            try {
-                await node.localGitDeploy();
-                outputChannel.appendLine(`Local repository has been deployed to "${node.site.name}".`);
-            } catch (err) {
-                if (!(err instanceof UserCancelledError)) {
-                    try {
-                        // Azure REST error messages come as a JSON string with more details
-                        outputChannel.appendLine(JSON.parse(err.message).Message);
-
-                    } catch {
-                        outputChannel.appendLine(err.message);
-                    }
-                }
-            }
+            await node.localGitDeploy();
+            outputChannel.appendLine(`Local repository has been deployed to "${node.site.name}".`);
+        }
+    });
+    initAsyncCommand(context, 'appService.OpenVSTSCD', async (node?: AppServiceNode) => {
+        if (node) {
+            node.openCdInPortal();
         }
     });
     initAsyncCommand(context, 'appService.DeploymentScript', async (node: AppServiceNode) => {
@@ -172,6 +142,14 @@ export function activate(context: vscode.ExtensionContext) {
                 p.report({ message: 'Generating script...' });
                 return node.generateDeploymentScript();
             });
+        }
+    });
+    initAsyncCommand(context, 'deploymentSlots.CreateSlot', async (node: DeploymentSlotsNode) => {
+        if (node) {
+            const newSlot = await node.createNewDeploymentSlot();
+            vscode.commands.executeCommand('appService.Refresh', node);
+            outputChannel.appendLine(`Successfully created deployment slot "${newSlot}" for web app "${node.getParentNode().label}".`);
+
         }
     });
     initAsyncCommand(context, 'deploymentSlot.SwapSlots', async (node: DeploymentSlotNode) => {
@@ -232,32 +210,59 @@ export function activate(context: vscode.ExtensionContext) {
     initCommand(context, 'diagnostics.LogPoints.OpenScript', openScript);
 }
 
-export function deactivate() {
+// tslint:disable-next-line:no-empty
+export function deactivate(): void {
 }
 
-function initCommand(context: vscode.ExtensionContext, commandId: string, callback: (...args: any[]) => any) {
-    initAsyncCommand(context, commandId, (...args: any[]) => Promise.resolve(callback(...args)));
+function initCommand<T>(extensionContext: vscode.ExtensionContext, commandId: string, callback: (context?: T) => void): void {
+    initAsyncCommand(extensionContext, commandId, async (context?: T) => callback(context));
 }
 
-function initAsyncCommand(context: vscode.ExtensionContext, commandId: string, callback: (...args: any[]) => Promise<any>) {
-    context.subscriptions.push(vscode.commands.registerCommand(commandId, async (...args: any[]) => {
+function initAsyncCommand<T>(extensionContext: vscode.ExtensionContext, commandId: string, callback: (context?: T) => Promise<void>): void {
+    extensionContext.subscriptions.push(vscode.commands.registerCommand(commandId, async (...args: {}[]) => {
         const start = Date.now();
-        let result = 'Succeeded';
-        let errorData: string = '';
+        const properties: { [key: string]: string; } = {};
+        const output = util.getOutputChannel();
+        properties.result = 'Succeeded';
+        let errorData: ErrorData | undefined;
 
         try {
-            await callback(...args);
-        } catch (err) {
-            if (err instanceof UserCancelledError) {
-                result = 'Canceled';
+            if (args.length === 0) {
+                await callback();
             } else {
-                result = 'Failed';
-                errorData = util.errToString(err);
-                throw err;
+                await callback(<T>args[0]);
+            }
+        } catch (err) {
+            if (err instanceof SiteActionError) {
+                properties.servicePlan = err.servicePlanSize;
+            }
+
+            if (err instanceof WizardFailedError) {
+                properties.stepTitle = err.stepTitle;
+                properties.stepIndex = err.stepIndex.toString();
+            }
+
+            if (err instanceof UserCancelledError) {
+                properties.result = 'Canceled';
+            } else {
+                properties.result = 'Failed';
+                errorData = new ErrorData(err);
+                output.appendLine(`Error: ${errorData.message}`);
+                if (errorData.message.includes('\n')) {
+                    output.show();
+                    vscode.window.showErrorMessage('An error has occured. Check output window for more details.');
+                } else {
+                    vscode.window.showErrorMessage(errorData.message);
+                }
+
             }
         } finally {
+            if (errorData) {
+                properties.error = errorData.errorType;
+                properties.errorMessage = errorData.message;
+            }
             const end = Date.now();
-            util.sendTelemetry(commandId, { result: result, error: errorData }, { duration: (end - start) / 1000 });
+            util.sendTelemetry(commandId, properties, { duration: (end - start) / 1000 });
         }
     }));
 }

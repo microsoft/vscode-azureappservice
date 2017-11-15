@@ -5,11 +5,12 @@ The Azure App Services extension for VS Code lets you quickly browse, create, ma
 
 * Browse sites across all of your Azure subscriptions
 * Browse to the Azure Portal for advanced tasks, such as scaling
-* Create new sites (Linux with Node.js only)
+* Create new web apps/deployment slots (Linux with Node.js only)
 * Deploy to your web apps/deployment slots
 
 ![Deploy to Web App](resources/WebApp_Deploy.png)
 * Start, stop, and restart the web app/deployment slot
+* Swap deployment slots
 * View and edit web app settings
 
 ![Add App Settings](resources/ApplicationSettings_Add.png)
@@ -17,6 +18,10 @@ The Azure App Services extension for VS Code lets you quickly browse, create, ma
 * View web app log stream
 
 ![Web App Log Stream](resources/WebApp_LogStream.png)
+
+## Known Issues
+
+* Local Git deployment may fail with large commits
 
 ## Requirements
 
@@ -35,6 +40,9 @@ provided by the bot. You will only need to do this once across all repos using o
 This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/).
 For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or
 contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+
+## Telemetry
+VS Code collects usage data and sends it to Microsoft to help improve our products and services. Read our [privacy statement](https://go.microsoft.com/fwlink/?LinkID=528096&clcid=0x409) to learn more. If you don’t wish to send usage data to Microsoft, you can set the `telemetry.enableTelemetry` setting to `false`. Learn more in our [FAQ](https://code.visualstudio.com/docs/supporting/faq#_how-to-disable-telemetry-reporting).
 
 ## License
 [MIT](LICENSE.md)

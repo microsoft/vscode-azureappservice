@@ -3,26 +3,28 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { TreeItem, TreeItemCollapsibleState } from 'vscode';
-import { SubscriptionModels, ResourceManagementClient, } from 'azure-arm-resource';
-import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models';
-import { AppServiceDataProvider } from './appServiceExplorer';
-import { NodeBase } from './nodeBase';
-import { SiteNodeBase } from './siteNodeBase';
-import { DeploymentSlotsNode } from './deploymentSlotsNode';
-import { WebJobsNode } from './webJobsNode';
-import { AppSettingsNode } from './appSettingsNodes';
+import { ResourceManagementClient, SubscriptionModels } from 'azure-arm-resource';
 import * as fs from 'fs';
+import * as opn from 'opn';
 import * as path from 'path';
+import { TreeItem, TreeItemCollapsibleState } from 'vscode';
 import * as vscode from 'vscode';
+import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models';
+import { UserCancelledError } from '../errors';
+import { AppServiceDataProvider } from './AppServiceExplorer';
+import { AppSettingsNode } from './AppSettingsNodes';
+import { DeploymentSlotsNANode, DeploymentSlotsNode } from './DeploymentSlotsNode';
+import { NodeBase } from './NodeBase';
+import { SiteNodeBase } from './SiteNodeBase';
+import { WebJobsNode } from './WebJobsNode';
 
 export class AppServiceNode extends SiteNodeBase {
     constructor(site: WebSiteModels.Site, subscription: SubscriptionModels.Subscription, treeDataProvider: AppServiceDataProvider, parentNode: NodeBase) {
         super(site.name, site, subscription, treeDataProvider, parentNode);
     }
 
-    getTreeItem(): TreeItem {
-        const iconName = 'AzureWebsite_16x_vscode.svg';
+    public getTreeItem(): TreeItem {
+        const iconName = 'WebApp_color.svg';
         return {
             label: `${this.label} (${this.site.resourceGroup})`,
             collapsibleState: TreeItemCollapsibleState.Collapsed,
@@ -31,35 +33,53 @@ export class AppServiceNode extends SiteNodeBase {
                 light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', iconName),
                 dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', iconName)
             }
-        }
+        };
     }
 
-    async getChildren(): Promise<NodeBase[]> {
+    public async getChildren(): Promise<NodeBase[]> {
         if (this.azureAccount.signInStatus !== 'LoggedIn') {
             return [];
         }
 
         const treeDataProvider = this.getTreeDataProvider<AppServiceDataProvider>();
-
+        const nodes = [];
+        const appServicePlan = await this.getAppServicePlan();
+        appServicePlan.sku.tier === 'Basic' ?
+            nodes.push(new DeploymentSlotsNANode(treeDataProvider, this)) :
+            nodes.push(new DeploymentSlotsNode(this.site, this.subscription, treeDataProvider, this));
         // https://github.com/Microsoft/vscode-azureappservice/issues/45
-        return [
-            new DeploymentSlotsNode(this.site, this.subscription, treeDataProvider, this),
-            // new FilesNode('Files', '/site/wwwroot', this.site, this.subscription, treeDataProvider, this),
-            // new FilesNode('Log Files', '/LogFiles', this.site, this.subscription),
-            new WebJobsNode(this.site, this.subscription, treeDataProvider, this),
-            new AppSettingsNode(this.site, this.subscription, treeDataProvider, this)
-        ];
+        // nodes.push(new FilesNode('Files', '/site/wwwroot', this.site, this.subscription, treeDataProvider, this));
+        // nodes.push(new FilesNode('Log Files', '/LogFiles', this.site, this.subscription));
+        nodes.push(new WebJobsNode(this.site, this.subscription, treeDataProvider, this));
+        nodes.push(new AppSettingsNode(this.site, this.subscription, treeDataProvider, this));
+
+        return nodes;
     }
 
-    async generateDeploymentScript(): Promise<void> {
+    public openCdInPortal(): void {
+        const portalEndpoint = 'https://portal.azure.com';
+        const deepLink = `${portalEndpoint}/${this.subscription.tenantId}/#resource${this.site.id}/vstscd`;
+        opn(deepLink);
+    }
+
+    public async generateDeploymentScript(): Promise<void> {
         const resourceClient = new ResourceManagementClient(this.azureAccount.getCredentialByTenantId(this.subscription.tenantId), this.subscription.subscriptionId);
         const subscription = this.subscription;
         const site = this.site;
-        const taskResults = await Promise.all([
+        const tasks = Promise.all([
             resourceClient.resourceGroups.get(this.site.resourceGroup),
             this.getAppServicePlan(),
             this.webSiteClient.webApps.getConfiguration(this.site.resourceGroup, this.site.name)
         ]);
+
+        let uri: vscode.Uri;
+        uri = await vscode.window.showSaveDialog({ filters: { 'Shell Script (Bash)': ['sh'] } });
+
+        if (!uri) {
+            throw new UserCancelledError();
+        }
+
+        const taskResults = await tasks;
         const rg = taskResults[0];
         const plan = taskResults[1];
         const siteConfig = taskResults[2];
@@ -70,32 +90,17 @@ export class AppServiceNode extends SiteNodeBase {
             .replace('%PLAN_SKU%', plan.sku.name)
             .replace('%SITE_NAME%', site.name)
             .replace('%RUNTIME%', siteConfig.linuxFxVersion);
-
-        let uri: vscode.Uri;
-        if (vscode.workspace.rootPath) {
-            let count = 0;
-            const maxCount = 1024;
-
-            while (count < maxCount) {
-                uri = vscode.Uri.file(path.join(vscode.workspace.rootPath, `deploy-${site.name}${count === 0 ? '' : count.toString()}.sh`));
-                if (!vscode.workspace.textDocuments.find(doc => doc.uri.fsPath === uri.fsPath) && !fs.existsSync(uri.fsPath)) {
-                    uri = uri.with({ scheme: 'untitled' });
-                    break;
+        await new Promise<void>((resolve, reject) => {
+            fs.writeFile(uri.fsPath, script, err => {
+                if (err) {
+                    reject(err);
                 } else {
-                    uri = null;
+                    resolve();
                 }
-                count++;
-            }
-        }
-
-        if (uri) {
-            const doc = await vscode.workspace.openTextDocument(uri);
-            const editor = await vscode.window.showTextDocument(doc);
-            await editor.edit(editorBuilder => editorBuilder.insert(new vscode.Position(0, 0), script));
-        } else {
-            const doc = await vscode.workspace.openTextDocument({ content: script, language: 'shellscript' });
-            await vscode.window.showTextDocument(doc);
-        }
+            });
+        });
+        const doc = await vscode.workspace.openTextDocument(uri);
+        await vscode.window.showTextDocument(doc);
     }
 }
 

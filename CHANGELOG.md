@@ -1,11 +1,30 @@
 # Change Log
 All notable changes to the "azure-appservice" extension will be documented in this file.
 
-Check [Keep a Changelog](http://keepachangelog.com/) for recommendations on how to structure this file.
+## 0.4.0 - 2017-11-10
+### Added
+- Create Deployment Slot
+- Icons now match the Azure portal
+### Fixed
+- [Bugs fixed](https://github.com/Microsoft/vscode-azureappservice/issues?q=is%3Aissue+milestone%3A%22Version+0.4.0%22+label%3Abug+is%3Aclosed)
 
-## [Unreleased]
+## 0.3.1 - 2017-11-01
+### Fixed
+- Show warning message that zip deploy is a destructive action
+- Leverage [new app service zipdeploy](https://github.com/projectkudu/kudu/wiki/Deploying-from-a-zip-file)
+### Removed
+- Zip Deploy no longer runs 'npm install'. It expects a ready-to-run app
+
+## 0.3.0 - 2017-10-18
 ### Added
 - Local Git deployment
+- "Create New Web App" remembers user selections
+- A setting to show/hide the App Service Explorer
+- Swap deployment slots with production site
+- "Open In Portal" context menu command for Application Settings
+- Generate bash script based on existing web app for automated resource provisioning
+### Removed
+- "Create New Web App" no longer show bash script, use "Generate Azure CLI Script" context menu command instead.
 ### Fixed
 - [Bugs fixed](https://github.com/Microsoft/vscode-azureappservice/issues?q=is%3Aissue+milestone%3A%22Version+0.3.0%22+is%3Aclosed+label%3Abug)
 

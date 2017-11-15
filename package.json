@@ -2,12 +2,12 @@
     "name": "vscode-azureappservice",
     "displayName": "Azure App Service Tools",
     "description": "An Azure App Service management extension for Visual Studio Code.",
-    "version": "0.3.0",
+    "version": "0.4.0",
     "publisher": "ms-azuretools",
     "icon": "resources/windows-azure-web-site.png",
     "aiKey": "AIF-d9b70cd4-b9f9-4d70-929b-a071c400b217",
     "engines": {
-        "vscode": "^1.16.0"
+        "vscode": "^1.17.0"
     },
     "repository": {
         "type": "git",
@@ -22,6 +22,11 @@
     "categories": [
         "Azure"
     ],
+    "keywords": [
+        "Azure",
+        "App Service",
+        "multi-root ready"
+    ],
     "preview": true,
     "activationEvents": [
         "onCommand:appService.CreateWebApp",
@@ -35,6 +40,7 @@
         "onCommand:appService.DeploymentScript",
         "onCommand:appService.DeployZipPackage",
         "onCommand:appService.ZipAndDeploy",
+        "onCommand:appService.OpenVSTSCD",
         "onCommand:deploymentSlot.SwapSlots",
         "onCommand:appSettings.Add",
         "onCommand:appSettings.Edit",
@@ -42,6 +48,7 @@
         "onCommand:appSettings.Delete",
         "onCommand:diagnostics.OpenLogStream",
         "onCommand:diagnostics.StopLogStream",
+        "onCommand:deploymentSlots.CreateSlot",
         "onView:azureAppService"
     ],
     "main": "./out/src/extension",
@@ -102,12 +109,22 @@
             },
             {
                 "command": "appService.DeployZipPackage",
-                "title": "Zip Deploy to Web App",
+                "title": "Deploy to Web App",
                 "category": "Azure App Service"
             },
             {
                 "command": "appService.ZipAndDeploy",
                 "title": "Zip & Deploy to Web App",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.LocalGitDeploy",
+                "title": "Local Git Deploy to Web App",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.OpenVSTSCD",
+                "title": "Continuous Delivery (Preview)",
                 "category": "Azure App Service"
             },
             {
@@ -145,6 +162,11 @@
                 "title": "Stop Streaming Logs",
                 "category": "Azure App Service"
             },
+            {
+                "command": "deploymentSlots.CreateSlot",
+                "title": "Create New Deployment Slot",
+				"category": "Azure App Service"
+			},
             {
                 "command": "diagnostics.StartLogPointsSession",
                 "title": "Launch Logpoints Debug Session",
@@ -215,6 +237,14 @@
                     "when": "never"
                 },
                 {
+                    "command": "appService.LocalGitDeploy",
+                    "when": "never"
+                },
+                {
+                    "command": "appService.OpenVSTSCD",
+                    "when": "never"
+                },
+                {
                     "command": "deploymentSlot.SwapSlots",
                     "when": "never"
                 },
@@ -240,6 +270,10 @@
                 },
                 {
                     "command": "diagnostics.StopLogStream",
+                    "when": "never"
+                },
+                {
+                    "command": "deploymentSlots.CreateSlot",
                     "when": "never"
                 },
                 {
@@ -307,17 +341,27 @@
                 {
                     "command": "appService.DeployZipPackage",
                     "when": "view == azureAppService && viewItem == appService",
+                    "group": "3_appServiceDeployCommands@1"
+                },
+                {
+                    "command": "appService.LocalGitDeploy",
+                    "when": "view == azureAppService && viewItem == appService",
                     "group": "3_appServiceDeployCommands@2"
+                },
+                {
+                    "command": "appService.OpenVSTSCD",
+                    "when": "view == azureAppService && viewItem == appService",
+                    "group": "4_appServiceCicdCommands@1"
                 },
                 {
                     "command": "diagnostics.OpenLogStream",
                     "when": "view == azureAppService && viewItem == appService",
-                    "group": "4_appServiceDiagnosticsCommands@1"
+                    "group": "5_appServiceDiagnosticsCommands@1"
                 },
                 {
                     "command": "diagnostics.StopLogStream",
                     "when": "view == azureAppService && viewItem == appService",
-                    "group": "4_appServiceDiagnosticsCommands@2"
+                    "group": "5_appServiceDiagnosticsCommands@2"
                 },
                 {
                     "command": "diagnostics.StartLogPointsSession",
@@ -327,22 +371,22 @@
                 {
                     "command": "appService.DeploymentScript",
                     "when": "view == azureAppService && viewItem == appService",
-                    "group": "5_appServiceMiscCommands@1"
+                    "group": "6_appServiceMiscCommands@1"
                 },
                 {
-                    "command": "diagnostics.SetLogPoints",
-                    "when": "view == azureAppService && viewItem == appService",
-                    "group": "4_appServiceDiagnosticsCommands@3"
+                    "command": "deploymentSlots.CreateSlot",
+					when": "view == azureAppService && viewItem == deploymentSlots",
+                    "group": "1_deploymentSlotsGeneralCommands@1"
                 },
                 {
                     "command": "appService.OpenInPortal",
                     "when": "view == azureAppService && viewItem == deploymentSlots",
-                    "group": "1_deploymentSlotsGeneralCommands@1"
+                    "group": "1_deploymentSlotsGeneralCommands@2"
                 },
                 {
                     "command": "appService.Refresh",
                     "when": "view == azureAppService && viewItem == deploymentSlots",
-                    "group": "1_deploymentSlotsGeneralCommands@2"
+                    "group": "1_deploymentSlotsGeneralCommands@3"
                 },
                 {
                     "command": "appService.OpenInPortal",
@@ -378,6 +422,11 @@
                     "command": "appService.Delete",
                     "when": "view == azureAppService && viewItem == deploymentSlot",
                     "group": "2_deploymentSlotControlCommands@5"
+                },
+                {
+                    "command": "appService.LocalGitDeploy",
+                    "when": "view == azureAppService && viewItem == deploymentSlot",
+                    "group": "3_deploymentSlotDeployCommands@1"
                 },
                 {
                     "command": "appService.DeployZipPackage",
@@ -545,7 +594,7 @@
     "devDependencies": {
         "@types/archiver": "^2.0.0",
         "@types/mocha": "^2.2.32",
-        "@types/node": "^8.0.28",
+        "@types/node": "^8.0.51",
         "@types/request": "^2.0.3",
         "mocha": "^2.3.3",
         "tslint": "^5.7.0",
@@ -564,6 +613,7 @@
         "request": "^2.83.0",
         "simple-git": "^1.77.0",
         "vscode-extension-telemetry": "^0.0.6",
+        "vscode-azureappservice": "^0.4.0"
         "vscode-debugadapter": "^1.24.0",
         "vscode-debugprotocol": "^1.24.0"
     },

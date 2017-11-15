@@ -3,31 +3,35 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ExtensionContext, extensions, Disposable } from 'vscode';
-import { ServiceClientCredentials } from 'ms-rest';
 import { SubscriptionClient, SubscriptionModels } from 'azure-arm-resource';
-import { AzureAccount, AzureSession, AzureLoginStatus } from './azure-account.api';
+import { ServiceClientCredentials } from 'ms-rest';
+import { Disposable, ExtensionContext, extensions } from 'vscode';
+import { AzureAccount, AzureLoginStatus, AzureSession } from './azure-account.api';
 
 export class NotSignedInError extends Error { }
 
 export class CredentialError extends Error { }
 
 export class AzureAccountWrapper {
-    readonly accountApi: AzureAccount;
+    public readonly accountApi: AzureAccount;
+    private readonly extensionContext: ExtensionContext;
 
-    constructor(readonly extensionConext: ExtensionContext) {
+    constructor(extensionContext: ExtensionContext) {
+        // tslint:disable-next-line:no-non-null-assertion
         this.accountApi = extensions.getExtension<AzureAccount>('ms-vscode.azure-account')!.exports;
+        this.extensionContext = extensionContext;
     }
 
-    getAzureSessions(): AzureSession[] {
+    public getAzureSessions(): AzureSession[] {
         const status = this.signInStatus;
         if (status !== 'LoggedIn') {
-            throw new NotSignedInError(status)
+            throw new NotSignedInError(status);
         }
+
         return this.accountApi.sessions;
     }
 
-    getCredentialByTenantId(tenantId: string): ServiceClientCredentials {
+    public getCredentialByTenantId(tenantId: string): ServiceClientCredentials {
         const session = this.getAzureSessions().find(s => s.tenantId.toLowerCase() === tenantId.toLowerCase());
 
         if (session) {
@@ -41,7 +45,7 @@ export class AzureAccountWrapper {
         return this.accountApi.status;
     }
 
-    getFilteredSubscriptions(): SubscriptionModels.Subscription[] {
+    public getFilteredSubscriptions(): SubscriptionModels.Subscription[] {
         return this.accountApi.filters.map<SubscriptionModels.Subscription>(filter => {
             return {
                 id: filter.subscription.id,
@@ -55,18 +59,18 @@ export class AzureAccountWrapper {
         });
     }
 
-    async getLocationsBySubscription(subscription: SubscriptionModels.Subscription): Promise<SubscriptionModels.Location[]> {
+    public async getLocationsBySubscription(subscription: SubscriptionModels.Subscription): Promise<SubscriptionModels.Location[]> {
         const credential = this.getCredentialByTenantId(subscription.tenantId);
         const client = new SubscriptionClient(credential);
-        const locations = <SubscriptionModels.Location[]>(await client.subscriptions.listLocations(subscription.subscriptionId));
-        return locations;
+
+        return <SubscriptionModels.Location[]>(await client.subscriptions.listLocations(subscription.subscriptionId));
     }
 
-    registerStatusChangedListener(listener: (e: AzureLoginStatus) => any, thisArg: any): Disposable {
-        return this.accountApi.onStatusChanged(listener, thisArg, this.extensionConext.subscriptions);
+    public registerStatusChangedListener(listener: (e: AzureLoginStatus) => void, thisArg: {}): Disposable {
+        return this.accountApi.onStatusChanged(listener, thisArg, this.extensionContext.subscriptions);
     }
 
-    registerFiltersChangedListener(listener: (e: void) => any, thisArg: any): Disposable {
-        return this.accountApi.onFiltersChanged(listener, thisArg, this.extensionConext.subscriptions);
+    public registerFiltersChangedListener(listener: (e: void) => void, thisArg: {}): Disposable {
+        return this.accountApi.onFiltersChanged(listener, thisArg, this.extensionContext.subscriptions);
     }
 }
