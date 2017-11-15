@@ -22,7 +22,7 @@ abstract class LogPointsDebuggerClientBase {
     protected abstract call<ResponseType>(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, command: string): Promise<CommandRunResult<ResponseType>>;
 
     protected makeCallAndLogException<ResponseType>(siteName: string, affinityValue: string,
-                                                    publishCredential: WebSiteModels.User, command: string): Promise<CommandRunResult<ResponseType>> {
+        publishCredential: WebSiteModels.User, command: string): Promise<CommandRunResult<ResponseType>> {
         return this.call<ResponseType>(siteName, affinityValue, publishCredential, command)
             .catch<CommandRunResult<ResponseType>>((err) => {
                 // tslint:disable-next-line:no-suspicious-comment
@@ -71,8 +71,8 @@ export class KuduLogPointsDebuggerClient extends LogPointsDebuggerClientBase imp
         const headers = {
             // tslint:disable-next-line:prefer-template
             Authorization: "Basic " +
-            new Buffer(publishCredential.publishingUserName + ":" + publishCredential.publishingPassword)
-                .toString("base64")
+                new Buffer(publishCredential.publishingUserName + ":" + publishCredential.publishingPassword)
+                    .toString("base64")
         };
 
         const r = req.defaults({
@@ -105,7 +105,7 @@ export class KuduLogPointsDebuggerClient extends LogPointsDebuggerClientBase imp
                 command: command,
                 dir: '/'
             }
-        },     (err, response, body) => {
+        }, (err, response, body) => {
             if (err) {
                 return cb(err, null, null);
             }
@@ -128,17 +128,17 @@ export class MockLogpointsDebuggerClient extends LogPointsDebuggerClientBase imp
 
     public attachProcess(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: AttachProcessRequest): Promise<CommandRunResult<IAttachProcessResponse>> {
         return this.makeCallAndLogException<IAttachProcessResponse>(siteName, affinityValue, publishCredential,
-                                                                    `curl - X POST - H "Content-Type: application/json" - d '{"processId":"${data.processId}","codeType":"javascript"}' http://localhost:32923/debugger/session/${data.sessionId}/debugee`);
+            `curl -X POST -H "Content-Type: application/json" -d '{"processId":"${data.processId}","codeType":"javascript"}' http://localhost:32923/debugger/session/${data.sessionId}/debugee`);
     }
 
     public loadedScripts(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: DebugSessionMetadata): Promise<CommandRunResult<ILoadedScriptsResponse>> {
         return this.makeCallAndLogException<ILoadedScriptsResponse>(siteName, affinityValue, publishCredential,
-                                                                    `curl -X GET -H "Content-Type: application/json" http://localhost:32923/debugger/session/${data.sessionId}/debugee/${data.debugId}/sources`);
+            `curl -X GET -H "Content-Type: application/json" http://localhost:32923/debugger/session/${data.sessionId}/debugee/${data.debugId}/sources`);
     }
 
     public loadSource(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: LoadSourceRequest): Promise<CommandRunResult<ILoadSourceResponse>> {
         return this.makeCallAndLogException<ILoadSourceResponse>(siteName, affinityValue, publishCredential,
-                                                                 `curl -X GET -H "Content-Type: application/json" http://localhost:32923/debugger/session/${data.sessionId}/debugee/${data.debugId}/source/${data.sourceId}`);
+            `curl -X GET -H "Content-Type: application/json" http://localhost:32923/debugger/session/${data.sessionId}/debugee/${data.debugId}/source/${data.sourceId}`);
     }
 
     public call<ResponseType>(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, command: string): Promise<CommandRunResult<ResponseType>> {
