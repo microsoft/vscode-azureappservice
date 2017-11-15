@@ -1,10 +1,10 @@
 import * as vscode from 'vscode';
 import * as util from '../util';
 import { UserCancelledError } from '../errors';
-import { AzureAccountWrapper } from '../azureAccountWrapper';
+import { AzureAccountWrapper } from '../AzureAccountWrapper';
 import { SubscriptionModels } from 'azure-arm-resource';
 import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models';
-import { WizardBase, WizardStep, QuickPickItemWithData } from '../wizard';
+import { WizardBase, WizardStep } from '../wizard';
 import {
     LogPointsDebuggerClient, KuduLogPointsDebuggerClient, MockLogpointsDebuggerClient, AttachProcessRequest,
     CommandRunResult, StartSessionResponse, EnumerateProcessResponse, AttachProcessResponse
@@ -23,6 +23,7 @@ if (shouldUseMockKuduCall) {
 }
 
 export class LogPointsSessionAttach extends WizardBase {
+
     private _cachedPublishCredential: WebSiteModels.User
 
     public readonly hasSlot: boolean;
@@ -38,6 +39,9 @@ export class LogPointsSessionAttach extends WizardBase {
         readonly subscription?: SubscriptionModels.Subscription
     ) {
         super(output);
+    }
+
+    protected initSteps(): void {
         if (util.isSiteDeploymentSlot(this.site)) {
             this.selectedDeploymentSlot = this.site;
         } else {
@@ -111,7 +115,7 @@ class PromptSlotSelection extends WizardStep {
 
 
         const deploymentQuickPickItems = deploymentSlots.map((deploymentSlot: WebSiteModels.Site) => {
-            return <QuickPickItemWithData<WebSiteModels.Site>>{
+            return <util.IQuickPickItemWithData<WebSiteModels.Site>>{
                 label: util.extractDeploymentSlotName(deploymentSlot) || deploymentSlot.name,
                 description: '',
                 data: deploymentSlot
@@ -231,8 +235,8 @@ class PickProcessStep extends WizardStep {
         }
 
         // Show a quick pick list (even if there is only 1 process)
-        let quickPickItems: QuickPickItemWithData<string>[] = result.json.data.map((process) => {
-            return <QuickPickItemWithData<string>>{
+        let quickPickItems: util.IQuickPickItemWithData<string>[] = result.json.data.map((process) => {
+            return <util.IQuickPickItemWithData<string>>{
                 label: `${process.pid}`,
                 description: ` ${process.command} `
                 + ` ${typeof process.arguments == 'string' ? process.arguments : process.arguments.join(' ')}`,

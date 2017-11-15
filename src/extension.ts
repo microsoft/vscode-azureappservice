@@ -207,7 +207,7 @@ export function activate(context: vscode.ExtensionContext): void {
         }
     });
 
-    initCommand(context, 'diagnostics.LogPoints.OpenScript', openScript);
+    context.subscriptions.push(vscode.commands.registerCommand('diagnostics.LogPoints.OpenScript', openScript));
 }
 
 // tslint:disable-next-line:no-empty

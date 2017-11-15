@@ -165,8 +165,8 @@
             {
                 "command": "deploymentSlots.CreateSlot",
                 "title": "Create New Deployment Slot",
-				"category": "Azure App Service"
-			},
+                "category": "Azure App Service"
+            },
             {
                 "command": "diagnostics.StartLogPointsSession",
                 "title": "Launch Logpoints Debug Session",
@@ -366,7 +366,7 @@
                 {
                     "command": "diagnostics.StartLogPointsSession",
                     "when": "view == azureAppService && viewItem == appService",
-                    "group": "4_appServiceDiagnosticsCommands@3"
+                    "group": "5_appServiceDiagnosticsCommands@3"
                 },
                 {
                     "command": "appService.DeploymentScript",
@@ -375,7 +375,7 @@
                 },
                 {
                     "command": "deploymentSlots.CreateSlot",
-					when": "view == azureAppService && viewItem == deploymentSlots",
+                    "when": "view == azureAppService && viewItem == deploymentSlots",
                     "group": "1_deploymentSlotsGeneralCommands@1"
                 },
                 {
@@ -613,7 +613,7 @@
         "request": "^2.83.0",
         "simple-git": "^1.77.0",
         "vscode-extension-telemetry": "^0.0.6",
-        "vscode-azureappservice": "^0.4.0"
+        "vscode-azureappservice": "^0.4.0",
         "vscode-debugadapter": "^1.24.0",
         "vscode-debugprotocol": "^1.24.0"
     },
