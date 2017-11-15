@@ -17,8 +17,11 @@ import { SubscriptionNode } from './explorer/subscriptionNode';
 import { AzureAccountWrapper } from './azureAccountWrapper';
 import { WebAppCreator } from './webAppCreator';
 import { WebAppZipPublisher } from './webAppZipPublisher';
+import { LogPointsSessionAttach } from './diagnostics/logPointsManager';
 import { Reporter } from './telemetry/reporter';
 import { UserCancelledError } from './errors';
+import { LoadedScriptsProvider, openScript } from './explorer/loadedScriptsExplorer';
+import { RemoteScriptDocumentProvider, RemoteScriptSchema } from './diagnostics/remoteScriptDocumentProvider';
 
 export function activate(context: vscode.ExtensionContext) {
     console.log('Extension "Azure App Service Tools" is now active.');
@@ -32,6 +35,13 @@ export function activate(context: vscode.ExtensionContext) {
     const appServiceDataProvider = new AppServiceDataProvider(azureAccount);
 
     context.subscriptions.push(vscode.window.registerTreeDataProvider('azureAppService', appServiceDataProvider));
+
+    // loaded scripts
+    const provider = new LoadedScriptsProvider(context);
+    context.subscriptions.push(vscode.window.registerTreeDataProvider('appservice.loadedScriptsExplorer.jsLogpoints', provider));
+
+    const documentProvider = new RemoteScriptDocumentProvider();
+    context.subscriptions.push(vscode.workspace.registerTextDocumentContentProvider(RemoteScriptSchema.schema, documentProvider));
 
     initCommand(context, 'appService.Refresh', (node?: NodeBase) => appServiceDataProvider.refresh(node));
     initCommand(context, 'appService.Browse', (node: SiteNodeBase) => {
@@ -212,6 +222,14 @@ export function activate(context: vscode.ExtensionContext) {
             node.stopLogStream();
         }
     });
+    initAsyncCommand(context, 'diagnostics.StartLogPointsSession', async (node: SiteNodeBase) => {
+        if (node) {
+            const wizard = new LogPointsSessionAttach(outputChannel, azureAccount, node.site, node.subscription);
+            await wizard.run();
+        }
+    });
+
+    initCommand(context, 'diagnostics.LogPoints.OpenScript', openScript);
 }
 
 export function deactivate() {
