@@ -1,6 +1,6 @@
 import * as vscode from 'vscode';
 
-import { TreeDataProvider, TreeItem, EventEmitter, Event, ProviderResult } from 'vscode';
+import { Event, EventEmitter, ProviderResult, TreeDataProvider, TreeItem } from 'vscode';
 import { Source } from 'vscode-debugadapter';
 import { RemoteScriptSchema } from '../diagnostics/remoteScriptDocumentProvider';
 
@@ -10,6 +10,7 @@ export class LoadedScriptsProvider implements TreeDataProvider<BaseTreeItem> {
     private _root: RootTreeItem;
 
     private _onDidChangeTreeData: EventEmitter<BaseTreeItem> = new EventEmitter<BaseTreeItem>();
+    // tslint:disable-next-line:member-ordering
     public readonly onDidChangeTreeData: Event<BaseTreeItem> = this._onDidChangeTreeData.event;
 
     constructor(context: vscode.ExtensionContext) {
@@ -38,7 +39,7 @@ export class LoadedScriptsProvider implements TreeDataProvider<BaseTreeItem> {
                 clearTimeout(timeout);
                 timeout = setTimeout(() => {
                     this._onDidChangeTreeData.fire(undefined);
-                }, 300);
+                },                   300);
             }
 
         }));
@@ -62,7 +63,7 @@ class BaseTreeItem extends TreeItem {
 
     private _children: { [key: string]: BaseTreeItem; };
 
-    constructor(label: string, state = vscode.TreeItemCollapsibleState.Collapsed) {
+    constructor(label: string, state: number = vscode.TreeItemCollapsibleState.Collapsed) {
         super(label, state);
         this._children = {};
     }
@@ -127,6 +128,7 @@ class RootTreeItem extends BaseTreeItem {
     }
 }
 
+// tslint:disable:max-classes-per-file
 class SessionTreeItem extends BaseTreeItem {
 
     private _session: vscode.DebugSession;
@@ -154,6 +156,27 @@ class SessionTreeItem extends BaseTreeItem {
         return super.getChildren();
     }
 
+    public addPath(source: Source): void {
+
+        let folder: vscode.WorkspaceFolder | undefined;
+        const path = source.path;
+
+        folder = vscode.workspace.getWorkspaceFolder(vscode.Uri.file(path));
+
+        // tslint:disable-next-line:no-var-self
+        let x: BaseTreeItem = this;
+        path.split(/[\/\\]/).forEach((segment) => {
+            if (segment.length === 0) {	// macOS or unix path
+                segment = '/';
+            }
+
+            x = x.createIfNeeded(segment, () => new BaseTreeItem(segment));
+        });
+
+        x.collapsibleState = vscode.TreeItemCollapsibleState.None;
+        x.setSource(this._session, source);
+    }
+
     protected compare(a: BaseTreeItem, b: BaseTreeItem): number {
         const acat = this.category(a);
         const bcat = this.category(b);
@@ -176,33 +199,13 @@ class SessionTreeItem extends BaseTreeItem {
         // everything else in between
         return 999;
     }
-
-    public addPath(source: Source): void {
-
-        let folder: vscode.WorkspaceFolder | undefined;
-        let path = source.path;
-
-        folder = vscode.workspace.getWorkspaceFolder(vscode.Uri.file(path));
-
-        let x: BaseTreeItem = this;
-        path.split(/[\/\\]/).forEach((segment) => {
-            if (segment.length === 0) {	// macOS or unix path
-                segment = '/';
-            }
-
-            x = x.createIfNeeded(segment, () => new BaseTreeItem(segment));
-        });
-
-        x.collapsibleState = vscode.TreeItemCollapsibleState.None;
-        x.setSource(this._session, source);
-    }
 }
 
-export function openScript(session: vscode.DebugSession | undefined, source: Source) {
+export function openScript(session: vscode.DebugSession | undefined, source: Source): void {
     if (!session) {
         vscode.window.showErrorMessage("Cannot find the debug session");
         return;
     }
-    let uri = RemoteScriptSchema.create(session, source);
+    const uri = RemoteScriptSchema.create(session, source);
     vscode.workspace.openTextDocument(uri).then(doc => vscode.window.showTextDocument(doc));
 }
