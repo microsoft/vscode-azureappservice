@@ -39,7 +39,7 @@ export class LoadedScriptsProvider implements TreeDataProvider<BaseTreeItem> {
                 clearTimeout(timeout);
                 timeout = setTimeout(() => {
                     this._onDidChangeTreeData.fire(undefined);
-                },                   300);
+                }, 300);
             }
 
         }));
@@ -158,10 +158,7 @@ class SessionTreeItem extends BaseTreeItem {
 
     public addPath(source: Source): void {
 
-        let folder: vscode.WorkspaceFolder | undefined;
         const path = source.path;
-
-        folder = vscode.workspace.getWorkspaceFolder(vscode.Uri.file(path));
 
         // tslint:disable-next-line:no-var-self
         let x: BaseTreeItem = this;
