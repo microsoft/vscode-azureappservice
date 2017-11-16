@@ -5,7 +5,7 @@ import {
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 
-import { CommandRunResult, DebugSessionMetadata, ILoadedScriptsResponse, LoadSourceRequest, MockLogpointsDebuggerClient } from './logPointsClient';
+import { CloseSessionRequest, CommandRunResult, DebugSessionMetadata, ILoadedScriptsResponse, LoadSourceRequest, MockLogpointsDebuggerClient, RemoveLogpointRequest, SetLogpointRequest } from './logPointsClient';
 
 interface IAttachRequestArguments extends DebugProtocol.AttachRequestArguments {
     trace?: boolean;
@@ -88,7 +88,39 @@ export class NodeDebugSession extends LoggingDebugSession {
                     }
                     this.sendResponse(response);
                 });
+        } else if (command === 'setLogpoint') {
+            logPointsDebuggerClient.setLogpoint(null, null, null,
+                                                new SetLogpointRequest(this._sessionId, this._debugId, args.scriptId, args.lineNumber, args.columnNumber, args.expression))
+                .then(result => {
+                    if (result.isSuccessful()) {
+                        response.body = result.json;
+                    } else {
+                        response.body = {
+                            error: result.error
+                        };
+                    }
+
+                    this.sendResponse(response);
+                });
+
+        } else if (command === 'removeLogpoint') {
+            logPointsDebuggerClient.removeLogpoint(null, null, null, new RemoveLogpointRequest(this._sessionId, this._debugId, <string>args))
+                .then(result => {
+                    logger.log(`removeLogpoint received. ${require('util').inspect(result)}`);
+                });
         }
+    }
+
+    protected disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments): void {
+        // There is args.terminateDebuggee, which can be potentially utilized. Ignore for now.
+        // tslint:disable-next-line:no-unused-expression
+        args && 1;
+
+        logPointsDebuggerClient.closeSession(null, null, null, new CloseSessionRequest(this._sessionId))
+            .then(() => {
+                // Since the response is just a acknowledgement, the client will not even look at it, so we call sendResponse() regardlesss of the result.
+                this.sendResponse(response);
+            });
     }
 
     private async getLoadedScripts(): Promise<void> {

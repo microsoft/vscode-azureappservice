@@ -176,6 +176,11 @@
                 "command": "diagnostics.LogPoints.OpenScript",
                 "title": "Open and See the Content of a Script",
                 "category": "Azure App Service"
+            },
+            {
+                "command": "diagnostics.LogPoints.Toggle",
+                "title": "Set or remove a logpoint",
+                "category": "Azure App Service"
             }
         ],
         "views": {
@@ -282,6 +287,10 @@
                 },
                 {
                     "command": "diagnostics.LogPoints.OpenScript",
+                    "when": "never"
+                },
+                {
+                    "command": "diagnostics.LogPoints.Toggle",
                     "when": "never"
                 }
             ],
@@ -499,6 +508,11 @@
                     "command": "appService.ZipAndDeploy",
                     "when": "explorerResourceIsFolder == true",
                     "group": "zzz_@appServiceDeployCommands"
+                }
+            ],
+            "editor/context": [
+                {
+                    "command": "diagnostics.LogPoints.Toggle"
                 }
             ]
         },

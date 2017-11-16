@@ -238,7 +238,7 @@ class PickProcessStep extends WizardStep {
             return <util.IQuickPickItemWithData<string>>{
                 label: `${process.pid}`,
                 description: ` ${process.command} `
-                + ` ${typeof process.arguments === 'string' ? process.arguments : process.arguments.join(' ')}`,
+                    + ` ${typeof process.arguments === 'string' ? process.arguments : process.arguments.join(' ')}`,
                 data: process.pid
             };
         });
