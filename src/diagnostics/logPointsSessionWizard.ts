@@ -76,6 +76,7 @@ export class LogPointsSessionAttach extends WizardBase {
         this.steps.push(new PickProcessStep(this));
         this.steps.push(new SessionAttachStep(this));
         this.steps.push(new StartDebugAdapterStep(this));
+        this.output.show();
     }
 
     protected onExecuteError(error: Error): void {
@@ -302,6 +303,13 @@ class StartDebugAdapterStep extends WizardStep {
     public async execute(): Promise<void> {
         const site = this._wizard.selectedDeploymentSlot;
         const siteName = util.extractSiteName(site) + (util.isSiteDeploymentSlot(site) ? `-${util.extractDeploymentSlotName(site)}` : '');
+
+        // Assume the next started debug sessionw is the one we will launch next.
+        const startEventHandler = vscode.debug.onDidStartDebugSession(() => {
+            startEventHandler.dispose();
+
+            vscode.commands.executeCommand('workbench.view.debug');
+        });
         await vscode.debug.startDebugging(vscode.workspace.workspaceFolders[0], {
             type: "jsLogpoints",
             name: "Azure App Service LogPoints",
