@@ -3,97 +3,79 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { SubscriptionModels } from 'azure-arm-resource';
-import WebSiteManagementClient = require('azure-arm-website');
-import * as opn from 'opn';
+import { Site, WebAppCollection } from 'azure-arm-website/lib/models';
 import * as path from 'path';
-import { TreeItem, TreeItemCollapsibleState, window } from 'vscode';
-import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models';
-import { AzureAccountWrapper } from '../AzureAccountWrapper';
-import { UserCancelledError } from '../errors';
+import { window } from 'vscode';
+import { IAzureNode, IAzureParentNode, IAzureParentTreeItem, IAzureTreeItem, UserCancelledError } from 'vscode-azureextensionui';
 import * as util from '../util';
-import { AppServiceDataProvider } from './AppServiceExplorer';
-import { DeploymentSlotNode } from './DeploymentSlotNode';
-import { NodeBase } from './NodeBase';
+import { nodeUtils } from '../utils/nodeUtils';
+import { DeploymentSlotTreeItem } from './DeploymentSlotNode';
 
-export class DeploymentSlotsNode extends NodeBase {
-    private readonly site: WebSiteModels.Site;
-    private readonly subscription: SubscriptionModels.Subscription;
-    constructor(
-        site: WebSiteModels.Site,
-        subscription: SubscriptionModels.Subscription,
-        treeDataProvider: AppServiceDataProvider,
-        parentNode: NodeBase) {
-        super('Deployment Slots', treeDataProvider, parentNode);
+export class DeploymentSlotsTreeItem implements IAzureParentTreeItem {
+    public static contextValue: string = 'deploymentSlots';
+    public readonly contextValue: string = DeploymentSlotsTreeItem.contextValue;
+    public readonly label: string = 'Deployment Slots';
+    public readonly childTypeLabel: string = 'Deployment Slot';
+    public readonly site: Site;
+
+    private _nextLink: string | undefined;
+
+    constructor(site: Site) {
         this.site = site;
-        this.subscription = subscription;
     }
 
-    public getTreeItem(): TreeItem {
+    public get iconPath(): { light: string, dark: string } {
         return {
-            label: this.label,
-            collapsibleState: TreeItemCollapsibleState.Collapsed,
-            contextValue: 'deploymentSlots',
-            iconPath: {
-                light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'DeploymentSlots_color.svg'),
-                dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'DeploymentSlots_color.svg')
-            }
+            light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'DeploymentSlots_color.svg'),
+            dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'DeploymentSlots_color.svg')
         };
     }
 
-    public async getChildren(): Promise<DeploymentSlotNode[]> {
-        const nodes: DeploymentSlotNode[] = [];
-        const credential = this.azureAccount.getCredentialByTenantId(this.subscription.tenantId);
-        const client = new WebSiteManagementClient(credential, this.subscription.subscriptionId);
-        const deploymentSlots = await client.webApps.listByResourceGroup(this.site.resourceGroup, { includeSlots: true });
-        for (const slot of deploymentSlots) {
-            if (util.isSiteDeploymentSlot(slot) && slot.repositorySiteName === this.site.name) {
-                nodes.push(new DeploymentSlotNode(
-                    util.extractDeploymentSlotName(slot),
-                    slot, this.subscription, this.getTreeDataProvider(), this));
-            }
-        }
-        return nodes;
+    public get id(): string {
+        return `${this.site.id}/deploymentSlots`;
     }
 
-    public openInPortal(): void {
-        const portalEndpoint = 'https://portal.azure.com';
-        const deepLink = `${portalEndpoint}/${this.subscription.tenantId}/#resource${this.site.id}/deploymentSlots`;
-        opn(deepLink);
+    public hasMoreChildren(): boolean {
+        return this._nextLink !== undefined;
     }
 
-    private get azureAccount(): AzureAccountWrapper {
-        return this.getTreeDataProvider<AppServiceDataProvider>().azureAccount;
+    public async loadMoreChildren(node: IAzureNode): Promise<IAzureTreeItem[]> {
+        const deploymentSlotsNode: DeploymentSlotsTreeItem = <DeploymentSlotsTreeItem>node.treeItem;
+
+        const webAppCollection: WebAppCollection = this._nextLink === undefined ?
+            await nodeUtils.getWebSiteClient(node).webApps.listByResourceGroup(deploymentSlotsNode.site.resourceGroup, { includeSlots: true }) :
+            await nodeUtils.getWebSiteClient(node).webApps.listByResourceGroupNext(this._nextLink);
+
+        this._nextLink = webAppCollection.nextLink;
+
+        return webAppCollection
+            .filter((s: Site) => util.isSiteDeploymentSlot(s) && s.repositorySiteName === deploymentSlotsNode.site.name)
+            .map((s: Site) => new DeploymentSlotTreeItem(s));
     }
 
-    public async createNewDeploymentSlot(): Promise<string> {
-        let slotName;
-        const slotNodes = await this.getChildren();
-        const slotLabels = slotNodes.map(node => {
-            return node.label;
-        });
-
-        slotName = await this.promptForSlotName(slotLabels);
+    public async createChild(node: IAzureParentNode<DeploymentSlotsTreeItem>, showCreatingNode: (label: string) => void): Promise<IAzureTreeItem> {
+        const slotNodes: IAzureNode<DeploymentSlotTreeItem>[] = <IAzureNode<DeploymentSlotTreeItem>[]>await node.getCachedChildren();
+        const slotLabels: string[] = slotNodes.map((n: IAzureNode<DeploymentSlotTreeItem>) => n.treeItem.siteWrapper.slotName);
+        let slotName: string = await this.promptForSlotName(slotLabels);
         if (!slotName) {
             throw new UserCancelledError();
         }
         slotName = slotName.trim();
         const newDeploymentSlot = {
             name: slotName,
-            kind: this.site.kind,
-            location: this.site.location,
-            serverFarmId: this.site.serverFarmId
+            kind: node.treeItem.site.kind,
+            location: node.treeItem.site.location,
+            serverFarmId: node.treeItem.site.serverFarmId
         };
+
+        showCreatingNode(slotName);
+
         // if user has more slots than the service plan allows, Azure will respond with an error
-        await this.webSiteClient.webApps.createOrUpdateSlot(this.site.resourceGroup, util.extractSiteName(this.site), newDeploymentSlot, slotName);
-        return slotName;
+        const newSite: Site = await nodeUtils.getWebSiteClient(node).webApps.createOrUpdateSlot(node.treeItem.site.resourceGroup, util.extractSiteName(node.treeItem.site), newDeploymentSlot, slotName);
+        return new DeploymentSlotTreeItem(newSite);
     }
 
-    protected get webSiteClient(): WebSiteManagementClient {
-        return new WebSiteManagementClient(this.azureAccount.getCredentialByTenantId(this.subscription.tenantId), this.subscription.subscriptionId);
-    }
-
-    protected async promptForSlotName(slotLabels: string[]): Promise<string | undefined> {
+    private async promptForSlotName(slotLabels: string[]): Promise<string | undefined> {
         return await window.showInputBox({
             prompt: 'Enter a unique name for the new deployment slot',
             ignoreFocusOut: true,
@@ -114,24 +96,25 @@ export class DeploymentSlotsNode extends NodeBase {
     }
 }
 
-export class DeploymentSlotsNANode extends NodeBase {
-    constructor(treeDataProvider: AppServiceDataProvider, parentNode: NodeBase) {
-        super('Deployment Slots (N/A for Basic Service Plan)', treeDataProvider, parentNode);
-    }
+export class DeploymentSlotsNATreeItem implements IAzureParentTreeItem {
+    public static contextValue: string = "deploymentNASlots";
+    public readonly label: string = 'Deployment Slots (N/A for Basic Service Plan)';
+    public readonly contextValue: string = DeploymentSlotsNATreeItem.contextValue;
+    public readonly id: string = DeploymentSlotsNATreeItem.contextValue;
 
-    public getTreeItem(): TreeItem {
+    public get iconPath(): { light: string, dark: string } {
         return {
-            label: this.label,
-            collapsibleState: TreeItemCollapsibleState.Collapsed,
-            contextValue: "deploymentNASlots",
-            iconPath: {
-                light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'DeploymentSlots_grayscale.svg'),
-                dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'DeploymentSlots_grayscale.svg')
-            }
+            light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'DeploymentSlots_grayscale.svg'),
+            dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'DeploymentSlots_grayscale.svg')
         };
     }
 
-    public async getChildren(): Promise<NodeBase[]> {
-        return [new NodeBase(`Make sure you're running with a Standard or Premium plan before adding a slot`, this.getTreeDataProvider(), this)];
+    public hasMoreChildren(): boolean {
+        return false;
+    }
+
+    public async loadMoreChildren(_node: IAzureNode): Promise<IAzureTreeItem[]> {
+        const id: string = 'NASlotWarning';
+        return [{ id: id, contextValue: id, label: "Make sure you're running with a Standard or Premium plan before adding a slot" }];
     }
 }

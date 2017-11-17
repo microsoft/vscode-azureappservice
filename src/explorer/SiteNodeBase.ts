@@ -3,56 +3,52 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { SubscriptionModels } from 'azure-arm-resource';
 import WebSiteManagementClient = require('azure-arm-website');
+import * as WebSiteModels from 'azure-arm-website/lib/models';
 import * as opn from 'opn';
 import { Request } from 'request';
 import { ExtensionContext, OutputChannel, window } from 'vscode';
 import { SiteWrapper } from 'vscode-azureappservice';
-import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models';
-import { AzureAccountWrapper } from '../AzureAccountWrapper';
-import { SiteActionError, UserCancelledError } from '../errors';
+import { IAzureParentNode, IAzureParentTreeItem, IAzureTreeItem, UserCancelledError } from 'vscode-azureextensionui';
+import { SiteActionError } from '../errors';
 import { KuduClient } from '../KuduClient';
 import * as util from '../util';
 import { getOutputChannel } from '../util';
-import { AppServiceDataProvider } from './AppServiceExplorer';
-import { NodeBase } from './NodeBase';
+import { nodeUtils } from '../utils/nodeUtils';
 
-export class SiteNodeBase extends NodeBase {
+export abstract class SiteTreeItem implements IAzureParentTreeItem {
+    public abstract readonly label: string;
+    public abstract contextValue: string;
+
+    public readonly siteWrapper: SiteWrapper;
+
     private readonly _site: WebSiteModels.Site;
-    private readonly _subscription: SubscriptionModels.Subscription;
     private _logStreamOutputChannel: OutputChannel | undefined;
     private _logStream: Request | undefined;
     private readonly _siteName: string;
     private readonly _isSlot: boolean;
     private readonly _slotName: string;
-    private readonly _siteWrapper: SiteWrapper;
 
     public get site(): WebSiteModels.Site {
         return this._site;
     }
 
-    public get subscription(): SubscriptionModels.Subscription {
-        return this._subscription;
-    }
-    constructor(
-        label: string,
-        site: WebSiteModels.Site,
-        subscription: SubscriptionModels.Subscription,
-        treeDataProvider: AppServiceDataProvider,
-        parentNode: NodeBase) {
-        super(label, treeDataProvider, parentNode);
-
+    constructor(site: WebSiteModels.Site) {
         this._site = site;
-        this._subscription = subscription;
         this._siteName = util.extractSiteName(site);
         this._isSlot = util.isSiteDeploymentSlot(site);
         this._slotName = util.extractDeploymentSlotName(site);
-        this._siteWrapper = new SiteWrapper(site);
+        this.siteWrapper = new SiteWrapper(site);
     }
 
-    protected get azureAccount(): AzureAccountWrapper {
-        return this.getTreeDataProvider<AppServiceDataProvider>().azureAccount;
+    public hasMoreChildren(): boolean {
+        return false;
+    }
+
+    public abstract loadMoreChildren(node: IAzureParentNode): Promise<IAzureTreeItem[]>;
+
+    public get id(): string {
+        return this.site.id;
     }
 
     public browse(): void {
@@ -64,36 +60,18 @@ export class SiteNodeBase extends NodeBase {
         opn(uri);
     }
 
-    public openInPortal(): void {
-        const portalEndpoint = 'https://portal.azure.com';
-        const deepLink = `${portalEndpoint}/${this.subscription.tenantId}/#resource${this.site.id}`;
-        opn(deepLink);
+    public async deleteTreeItem(node: IAzureParentNode): Promise<IAzureTreeItem | undefined> {
+        await this.siteWrapper.deleteSite(nodeUtils.getWebSiteClient(node), util.getOutputChannel());
+        return this;
     }
 
-    public async start(): Promise<void> {
-        await this._siteWrapper.start(this.webSiteClient);
-    }
-
-    public async stop(): Promise<void> {
-        await this._siteWrapper.stop(this.webSiteClient);
-    }
-
-    public async restart(): Promise<void> {
-        await this.stop();
-        await this.start();
-    }
-
-    public async deleteSite(outputChannel: OutputChannel): Promise<void> {
-        await this._siteWrapper.deleteSite(this.webSiteClient, outputChannel);
-    }
-
-    public async isHttpLogsEnabled(): Promise<boolean> {
-        const logsConfig = this._isSlot ? await this.webSiteClient.webApps.getDiagnosticLogsConfigurationSlot(this.site.resourceGroup, this._siteName, this._slotName) :
-            await this.webSiteClient.webApps.getDiagnosticLogsConfiguration(this.site.resourceGroup, this._siteName);
+    public async isHttpLogsEnabled(client: WebSiteManagementClient): Promise<boolean> {
+        const logsConfig = this._isSlot ? await client.webApps.getDiagnosticLogsConfigurationSlot(this.site.resourceGroup, this._siteName, this._slotName) :
+            await client.webApps.getDiagnosticLogsConfiguration(this.site.resourceGroup, this._siteName);
         return logsConfig.httpLogs && logsConfig.httpLogs.fileSystem && logsConfig.httpLogs.fileSystem.enabled;
     }
 
-    public async enableHttpLogs(): Promise<void> {
+    public async enableHttpLogs(client: WebSiteManagementClient): Promise<void> {
         const logsConfig: WebSiteModels.SiteLogsConfig = {
             location: this.site.location,
             httpLogs: {
@@ -106,15 +84,15 @@ export class SiteNodeBase extends NodeBase {
         };
 
         if (this._isSlot) {
-            await this.webSiteClient.webApps.updateDiagnosticLogsConfigSlot(this.site.resourceGroup, this._siteName, logsConfig, this._slotName);
+            await client.webApps.updateDiagnosticLogsConfigSlot(this.site.resourceGroup, this._siteName, logsConfig, this._slotName);
         } else {
-            await this.webSiteClient.webApps.updateDiagnosticLogsConfig(this.site.resourceGroup, this._siteName, logsConfig);
+            await client.webApps.updateDiagnosticLogsConfig(this.site.resourceGroup, this._siteName, logsConfig);
         }
     }
 
-    public async connectToLogStream(extensionContext: ExtensionContext): Promise<void> {
+    public async connectToLogStream(client: WebSiteManagementClient, extensionContext: ExtensionContext): Promise<void> {
         const siteName = this._isSlot ? `${this._siteName}-${this._slotName}` : this._siteName;
-        const user = await util.getWebAppPublishCredential(this.webSiteClient, this.site);
+        const user = await util.getWebAppPublishCredential(client, this.site);
         const kuduClient = new KuduClient(siteName, user.publishingUserName, user.publishingPassword);
 
         if (!this._logStreamOutputChannel) {
@@ -149,25 +127,21 @@ export class SiteNodeBase extends NodeBase {
         }
     }
 
-    public async localGitDeploy(): Promise<void> {
+    public async localGitDeploy(client: WebSiteManagementClient): Promise<void> {
         const fsWorkspaceFolder = await util.showWorkspaceFoldersQuickPick('Select the folder to Local Git deploy.');
         try {
             // if it returns undefined, then the user canceled the deployment
-            if (!await this._siteWrapper.localGitDeploy(fsWorkspaceFolder.uri.fsPath, this.webSiteClient, getOutputChannel())) {
+            if (!await this.siteWrapper.localGitDeploy(fsWorkspaceFolder.uri.fsPath, client, getOutputChannel())) {
                 throw new UserCancelledError();
             }
         } catch (err) {
-            const appServicePlan = await this.getAppServicePlan();
+            const appServicePlan = await getAppServicePlan(this.site, client);
             throw new SiteActionError(err, appServicePlan.sku.size);
         }
     }
+}
 
-    protected get webSiteClient(): WebSiteManagementClient {
-        return new WebSiteManagementClient(this.azureAccount.getCredentialByTenantId(this.subscription.tenantId), this.subscription.subscriptionId);
-    }
-
-    protected async getAppServicePlan(): Promise<WebSiteModels.AppServicePlan> {
-        const serverFarmId = util.parseAzureResourceId(this.site.serverFarmId.toLowerCase());
-        return await this.webSiteClient.appServicePlans.get(serverFarmId.resourcegroups, serverFarmId.serverfarms);
-    }
+export async function getAppServicePlan(site: WebSiteModels.Site, client: WebSiteManagementClient): Promise<WebSiteModels.AppServicePlan> {
+    const serverFarmId = util.parseAzureResourceId(site.serverFarmId.toLowerCase());
+    return await client.appServicePlans.get(serverFarmId.resourcegroups, serverFarmId.serverfarms);
 }
