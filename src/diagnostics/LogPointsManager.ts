@@ -2,7 +2,7 @@ import * as util from 'util';
 import * as vscode from 'vscode';
 import { RemoteScriptSchema } from './remoteScriptDocumentProvider';
 import { ISetLogpointResponse } from './structs/ISetLogpointResponse';
-import { Logpoint } from './structs/Logpoint';
+import { ILogpoint } from './structs/Logpoint';
 import { LogpointsCollection } from './structs/LogpointsCollection';
 
 class DebugSessionManager {
@@ -12,23 +12,23 @@ class DebugSessionManager {
         this._logpointsCollectionMapping = {};
     }
 
-    public toggleLogpoint(): Logpoint {
+    public toggleLogpoint(): ILogpoint {
         return null;
     }
 
-    public registerLogpoint(documentUri: vscode.Uri, logpoint: Logpoint): void {
+    public registerLogpoint(documentUri: vscode.Uri, logpoint: ILogpoint): void {
         const logpointsCollection = this.getLogpointCollectionForDocument(documentUri);
         logpointsCollection.registerLogpoint(logpoint);
         logpointsCollection.updateTextEditorDecroration();
     }
 
-    public unregisterLogpoint(documentUri: vscode.Uri, logpoint: Logpoint): void {
+    public unregisterLogpoint(documentUri: vscode.Uri, logpoint: ILogpoint): void {
         const logpointsCollection = this.getLogpointCollectionForDocument(documentUri);
         logpointsCollection.unregisterLogpoint(logpoint);
         logpointsCollection.updateTextEditorDecroration();
     }
 
-    public getLogpointAtLocation(documentUri: vscode.Uri, lineNumber: number): Logpoint {
+    public getLogpointAtLocation(documentUri: vscode.Uri, lineNumber: number): ILogpoint {
         const uriString = documentUri.toString();
         if (!this._logpointsCollectionMapping[uriString]) {
             return undefined;
@@ -55,7 +55,7 @@ class DebugSessionManager {
         //await this._debugSession.customRequest("loadLogpoints");
     }
 
-    public async addLogpoint(scriptId: string, lineNumber: number, columnNumber: number): Promise<Logpoint> {
+    public async addLogpoint(scriptId: string, lineNumber: number, columnNumber: number): Promise<ILogpoint> {
         const expression = await vscode.window.showInputBox({
             ignoreFocusOut: true,
             placeHolder: "Eg: myVar == true ? 'yes' : otherVar",
@@ -69,11 +69,13 @@ class DebugSessionManager {
 
         const result: ISetLogpointResponse = await this._debugSession.customRequest("setLogpoint", { scriptId, lineNumber, columnNumber, expression });
         const logpoint = result.data.logpoint;
-        return new Logpoint(logpoint.logpointId, logpoint.actualLocation.zeroBasedLineNumber,
-                            logpoint.actualLocation.zeroBasedColumnNumber, logpoint.expressionToLog);
+        return {
+            id: logpoint.logpointId, line: logpoint.actualLocation.zeroBasedLineNumber, column:
+                logpoint.actualLocation.zeroBasedColumnNumber, expression: logpoint.expressionToLog
+        };
     }
 
-    public async removeLogpoint(logpoint: Logpoint): Promise<void> {
+    public async removeLogpoint(logpoint: ILogpoint): Promise<void> {
         await this._debugSession.customRequest("removeLogpoint", logpoint.id);
     }
 

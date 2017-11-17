@@ -1,8 +1,6 @@
-export class Logpoint {
-    /**
-     * @param line 1-based.
-     * @param column
-     * @param expression
-     */
-    public constructor(public id: string, public line: number, public column: number, public expression: string) { }
+export interface ILogpoint {
+    id: string;
+    line: number;
+    column: number;
+    expression: string;
 }

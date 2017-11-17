@@ -1,12 +1,12 @@
 import * as util from 'util';
 import * as vscode from 'vscode';
-import { Logpoint } from './Logpoint';
+import { ILogpoint } from './Logpoint';
 // tslint:disable:align
 
 export class LogpointsCollection {
     public static TextEditorDecorationType: vscode.TextEditorDecorationType;
 
-    private _logpointRegistry: { [line: number]: Logpoint };
+    private _logpointRegistry: { [line: number]: ILogpoint };
 
     public constructor(private _documentUri: vscode.Uri) {
         this._logpointRegistry = {};
@@ -16,18 +16,18 @@ export class LogpointsCollection {
         return this._documentUri;
     }
 
-    public getLogpointForLine(line: number): Logpoint | undefined {
+    public getLogpointForLine(line: number): ILogpoint | undefined {
         return this._logpointRegistry[line];
     }
 
-    public registerLogpoint(tracepoint: Logpoint): void {
+    public registerLogpoint(tracepoint: ILogpoint): void {
         if (this.getLogpointForLine(tracepoint.line)) {
             vscode.window.showInformationMessage(util.format("There is already a tracepoint at line %d, setting a new tracepoint will overwrite that."));
         }
         this._logpointRegistry[tracepoint.line] = tracepoint;
     }
 
-    public unregisterLogpoint(tracepoint: Logpoint): void {
+    public unregisterLogpoint(tracepoint: ILogpoint): void {
         if (this._logpointRegistry[tracepoint.line]) {
             delete this._logpointRegistry[tracepoint.line];
         } else {
@@ -37,7 +37,7 @@ export class LogpointsCollection {
         }
     }
 
-    public getLogpoints(): Logpoint[] {
+    public getLogpoints(): ILogpoint[] {
         // tslint:disable-next-line:no-any
         return (<any>Object).values(this._logpointRegistry);
     }
@@ -61,7 +61,7 @@ export class LogpointsCollection {
 
         const logpoints = this.getLogpoints();
         // Do this even if the `logpoints` is empty, then we clear all the existing decorations
-        (logpoints || []).forEach((logpoint: Logpoint) => {
+        (logpoints || []).forEach((logpoint: ILogpoint) => {
             const line = logpoint.line;
             ranges.push(new vscode.Range(line, 0, line, 0));
         });
