@@ -40,53 +40,41 @@ abstract class LogPointsDebuggerClientBase {
 }
 
 export class KuduLogPointsDebuggerClient extends LogPointsDebuggerClientBase implements ILogPointsDebuggerClient {
-    public startSession(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User)
-        : Promise<CommandRunResult<IStartSessionResponse>> {
-        // tslint:disable-next-line:no-suspicious-comment
-        // TODO: The actual command is TBD
-        return this.makeCallAndLogException<IStartSessionResponse>(siteName, affinityValue, publishCredential, "node -v");
+    public startSession(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User): Promise<CommandRunResult<IStartSessionResponse>> {
+        return this.makeCallAndLogException<IStartSessionResponse>(siteName, affinityValue, publishCredential, "curl -X POST http://localhost:32923/debugger/session");
     }
 
     public closeSession(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: CloseSessionRequest): Promise<CommandRunResult<ICloseSessionResponse>> {
-        // tslint:disable-next-line:no-unused-expression
-        siteName && affinityValue && publishCredential && data;
-        throw new Error("Method not implemented.");
+        return this.makeCallAndLogException<IStartSessionResponse>(siteName, affinityValue, publishCredential, `curl -X DELETE http://localhost:32923/debugger/session/${data.sessionId}`);
     }
 
     public enumerateProcesses(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User): Promise<CommandRunResult<IEnumerateProcessResponse>> {
-        // tslint:disable-next-line:no-suspicious-comment
-        // TODO: The actual command is TBD
-        return this.makeCallAndLogException<IEnumerateProcessResponse>(siteName, affinityValue, publishCredential, "node -v");
+        return this.makeCallAndLogException<IEnumerateProcessResponse>(siteName, affinityValue, publishCredential, "curl -X GET http://localhost:32923/os/processes?applicationType=Node.js");
     }
 
-    public attachProcess(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User): Promise<CommandRunResult<IAttachProcessResponse>> {
-        // tslint:disable-next-line:no-suspicious-comment
-        // TODO: The actual command is TBD
-        return this.makeCallAndLogException<IAttachProcessResponse>(siteName, affinityValue, publishCredential, "node -v");
+    public attachProcess(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: AttachProcessRequest): Promise<CommandRunResult<IAttachProcessResponse>> {
+        return this.makeCallAndLogException<IAttachProcessResponse>(siteName, affinityValue, publishCredential,
+            `curl -X POST -H "Content-Type: application/json" -d '{"processId":"${data.processId}","codeType":"javascript"}' http://localhost:32923/debugger/session/${data.sessionId}/debugee`);
     }
 
     public loadedScripts(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: DebugSessionMetadata): Promise<CommandRunResult<ILoadedScriptsResponse>> {
-        // tslint:disable-next-line:no-unused-expression
-        siteName && affinityValue && publishCredential && data;
-        throw new Error("Method not implemented.");
+        return this.makeCallAndLogException<ILoadedScriptsResponse>(siteName, affinityValue, publishCredential,
+            `curl -X GET -H "Content-Type: application/json" http://localhost:32923/debugger/session/${data.sessionId}/debugee/${data.debugId}/sources`);
     }
 
     public loadSource(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: LoadSourceRequest): Promise<CommandRunResult<ILoadSourceResponse>> {
-        // tslint:disable-next-line:no-unused-expression
-        siteName && affinityValue && publishCredential && data;
-        throw new Error("Method not implemented.");
+        return this.makeCallAndLogException<ILoadSourceResponse>(siteName, affinityValue, publishCredential,
+            `curl -X GET -H "Content-Type: application/json" http://localhost:32923/debugger/session/${data.sessionId}/debugee/${data.debugId}/source/${data.sourceId}`);
     }
 
     public setLogpoint(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: SetLogpointRequest): Promise<CommandRunResult<ISetLogpointResponse>> {
-        // tslint:disable-next-line:no-unused-expression
-        siteName && affinityValue && publishCredential && data;
-        throw new Error("Method not implemented.");
+        return this.makeCallAndLogException<ISetLogpointResponse>(siteName, affinityValue, publishCredential,
+            `curl -X POST -H "Content-Type: application/json" -d '{"sourceId":"${data.sourceId}","zeroBasedColumnNumber":"${data.columNumber}", "zeroBasedLineNumber":"${data.lineNumber}", "expressionToLog":"${data.expression}"}' http://localhost:32923/debugger/session/${data.sessionId}/debugee/${data.debugId}/logpoints`);
     }
 
     public removeLogpoint(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: RemoveLogpointRequest): Promise<CommandRunResult<IRemoveLogpointResponse>> {
-        // tslint:disable-next-line:no-unused-expression
-        siteName && affinityValue && publishCredential && data;
-        throw new Error("Method not implemented.");
+        return this.makeCallAndLogException<IRemoveLogpointResponse>(siteName, affinityValue, publishCredential,
+            `curl -X DELETE -H "Content-Type: application/json" http://localhost:32923/debugger/session/${data.sessionId}/debugee/${data.debugId}/logpoints/${data.logpointId}`);
     }
 
     public call<ResponseType>(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, command: string)
