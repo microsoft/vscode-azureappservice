@@ -1,7 +1,7 @@
 import * as util from 'util';
 import * as vscode from 'vscode';
-import { ISetLogpointResponse } from './logPointsClient';
 import { RemoteScriptSchema } from './remoteScriptDocumentProvider';
+import { ISetLogpointResponse } from './structs/ISetLogpointResponse';
 import { Logpoint } from './structs/Logpoint';
 import { LogpointsCollection } from './structs/LogpointsCollection';
 

@@ -5,7 +5,14 @@ import {
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 
-import { CloseSessionRequest, CommandRunResult, DebugSessionMetadata, ILoadedScriptsResponse, LoadSourceRequest, MockLogpointsDebuggerClient, RemoveLogpointRequest, SetLogpointRequest } from './logPointsClient';
+import { MockLogpointsDebuggerClient } from './logPointsClient';
+import { CommandRunResult } from './structs/CommandRunResult';
+import { ICloseSessionRequest } from './structs/ICloseSessionRequest';
+import { ILoadedScriptsRequest } from './structs/ILoadedScriptsRequest';
+import { ILoadedScriptsResponse } from './structs/ILoadedScriptsResponse';
+import { ILoadSourceRequest } from './structs/ILoadSourceRequest';
+import { IRemoveLogpointRequest } from './structs/IRemoveLogpointRequest';
+import { ISetLogpointRequest } from './structs/ISetLogpointRequest';
 
 interface IAttachRequestArguments extends DebugProtocol.AttachRequestArguments {
     trace?: boolean;
@@ -74,8 +81,8 @@ export class NodeDebugSession extends LoggingDebugSession {
     protected customRequest(command: string, response: DebugProtocol.Response, args: any): void {
         if (command === 'loadSource') {
             const sourceId: string = args;
-
-            logPointsDebuggerClient.loadSource(null, null, null, new LoadSourceRequest(this._sessionId, this._debugId, sourceId)).then(
+            const request: ILoadSourceRequest = { sessionId: this._sessionId, debugId: this._debugId, sourceId };
+            logPointsDebuggerClient.loadSource(null, null, null, request).then(
                 (result) => {
                     if (result.isSuccessful()) {
                         response.body = {
@@ -89,8 +96,11 @@ export class NodeDebugSession extends LoggingDebugSession {
                     this.sendResponse(response);
                 });
         } else if (command === 'setLogpoint') {
-            logPointsDebuggerClient.setLogpoint(null, null, null,
-                                                new SetLogpointRequest(this._sessionId, this._debugId, args.scriptId, args.lineNumber, args.columnNumber, args.expression))
+            const request: ISetLogpointRequest = {
+                sessionId: this._sessionId, debugId: this._debugId, sourceId: args.scriptId,
+                lineNumber: args.lineNumber, columNumber: args.columnNumber, expression: args.expression
+            };
+            logPointsDebuggerClient.setLogpoint(null, null, null, request)
                 .then(result => {
                     if (result.isSuccessful()) {
                         response.body = result.json;
@@ -104,7 +114,8 @@ export class NodeDebugSession extends LoggingDebugSession {
                 });
 
         } else if (command === 'removeLogpoint') {
-            logPointsDebuggerClient.removeLogpoint(null, null, null, new RemoveLogpointRequest(this._sessionId, this._debugId, <string>args))
+            const request: IRemoveLogpointRequest = { sessionId: this._sessionId, debugId: this._debugId, logpointId: <string>args };
+            logPointsDebuggerClient.removeLogpoint(null, null, null, request)
                 .then(result => {
                     logger.log(`removeLogpoint received. ${require('util').inspect(result)}`);
                 });
@@ -115,8 +126,8 @@ export class NodeDebugSession extends LoggingDebugSession {
         // There is args.terminateDebuggee, which can be potentially utilized. Ignore for now.
         // tslint:disable-next-line:no-unused-expression
         args && 1;
-
-        logPointsDebuggerClient.closeSession(null, null, null, new CloseSessionRequest(this._sessionId))
+        const request: ICloseSessionRequest = { sessionId: this._sessionId };
+        logPointsDebuggerClient.closeSession(null, null, null, request)
             .then(() => {
                 // Since the response is just a acknowledgement, the client will not even look at it, so we call sendResponse() regardlesss of the result.
                 this.sendResponse(response);
@@ -124,7 +135,8 @@ export class NodeDebugSession extends LoggingDebugSession {
     }
 
     private async getLoadedScripts(): Promise<void> {
-        const response: CommandRunResult<ILoadedScriptsResponse> = await logPointsDebuggerClient.loadedScripts(null, null, null, new DebugSessionMetadata(this._sessionId, this._debugId));
+        const request: ILoadedScriptsRequest = { sessionId: this._sessionId, debugId: this._debugId };
+        const response: CommandRunResult<ILoadedScriptsResponse> = await logPointsDebuggerClient.loadedScripts(null, null, null, request);
 
         if (response.isSuccessful()) {
             response.json.data.forEach((sourceData) => {
