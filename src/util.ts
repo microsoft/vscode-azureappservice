@@ -2,7 +2,6 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-/* tslint:disable */
 import WebSiteManagementClient = require('azure-arm-website');
 import * as vscode from 'vscode';
 import * as WebSiteModels from '../node_modules/azure-arm-website/lib/models';
@@ -114,7 +113,7 @@ export function errToString(error: {}): string {
         });
     }
 
-    return (<any>error).toString();
+    return (<{}>error).toString();
 }
 
 // Resource ID

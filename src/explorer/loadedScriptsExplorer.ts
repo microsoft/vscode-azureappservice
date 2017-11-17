@@ -39,7 +39,7 @@ export class LoadedScriptsProvider implements TreeDataProvider<BaseTreeItem> {
                 clearTimeout(timeout);
                 timeout = setTimeout(() => {
                     this._onDidChangeTreeData.fire(undefined);
-                }, 300);
+                },                   300);
             }
 
         }));

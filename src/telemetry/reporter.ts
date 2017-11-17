@@ -2,17 +2,16 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-/* tslint:disable */
-import TelemetryReporter from 'vscode-extension-telemetry';
 import * as vscode from 'vscode';
+import TelemetryReporter from 'vscode-extension-telemetry';
 
-export var reporter: TelemetryReporter;
+export let reporter: TelemetryReporter;
 
 export class Reporter extends vscode.Disposable {
     constructor(ctx: vscode.ExtensionContext) {
         super(() => reporter.dispose());
 
-        let packageInfo = getPackageInfo(ctx);
+        const packageInfo = getPackageInfo(ctx);
         if (packageInfo) {
             reporter = new TelemetryReporter(packageInfo.name, packageInfo.version, packageInfo.aiKey);
         }
@@ -26,7 +25,7 @@ interface IPackageInfo {
 }
 
 function getPackageInfo(context: vscode.ExtensionContext): IPackageInfo | undefined {
-    let extensionPackage = require(context.asAbsolutePath('./package.json'));
+    const extensionPackage = require(context.asAbsolutePath('./package.json'));
     if (extensionPackage) {
         return {
             name: extensionPackage.name,

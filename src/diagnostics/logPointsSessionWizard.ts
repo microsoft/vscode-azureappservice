@@ -6,9 +6,14 @@ import { UserCancelledError } from '../errors';
 import * as util from '../util';
 import { WizardBase, WizardStep } from '../wizard';
 import {
-    AttachProcessRequest, CommandRunResult, IAttachProcessResponse, IEnumerateProcessResponse,
-    ILogPointsDebuggerClient, IStartSessionResponse, KuduLogPointsDebuggerClient, MockLogpointsDebuggerClient
+    ILogPointsDebuggerClient, KuduLogPointsDebuggerClient, MockLogpointsDebuggerClient
 } from './logPointsClient';
+
+import { CommandRunResult } from './structs/CommandRunResult';
+import { IAttachProcessRequest } from './structs/IAttachProcessRequest';
+import { IAttachProcessResponse } from './structs/IAttachProcessResponse';
+import { IEnumerateProcessResponse } from './structs/IEnumerateProcessResponse';
+import { IStartSessionResponse } from './structs/IStartSessionResponse';
 
 import WebSiteManagementClient = require('azure-arm-website');
 
@@ -274,7 +279,7 @@ class SessionAttachStep extends WizardStep {
         const publishCredential = await this._wizard.getCachedCredentialOrRefetch(selectedSlot);
 
         let result: CommandRunResult<IAttachProcessResponse>;
-        const requestData = new AttachProcessRequest(this._wizard.sessionId, this._wizard.processId);
+        const requestData: IAttachProcessRequest = { sessionId: this._wizard.sessionId, processId: this._wizard.processId };
 
         const siteName = util.extractSiteName(selectedSlot) + (util.isSiteDeploymentSlot(selectedSlot) ? `-${util.extractDeploymentSlotName(selectedSlot)}` : '');
 
