@@ -25,7 +25,7 @@ export module RemoteScriptSchema {
         if (script.name === script.path) {
             scriptPath = `/native/${script.name}`;
         }
-        return vscode.Uri.parse(`${RemoteScriptSchema.schema}://${scriptPath}?vscodeDebugSessionId=${debugSession.id}&path=${scriptPath}&internalScriptId=${script.sourceReference}`);
+        return vscode.Uri.parse(`${RemoteScriptSchema.schema}://${scriptPath}?vscodeDebugSessionId=${debugSession.id}&path=${script.path}&internalScriptId=${script.sourceReference}`);
     }
 }
 

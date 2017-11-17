@@ -2,20 +2,41 @@ import * as req from "request";
 
 import * as child_process from 'child_process';
 import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models';
+import { CommandRunResult } from './structs/CommandRunResult';
+import { IAttachProcessRequest } from './structs/IAttachProcessRequest';
+import { IAttachProcessResponse } from './structs/IAttachProcessResponse';
+import { ICloseSessionRequest } from './structs/ICloseSessionRequest';
+import { ICloseSessionResponse } from './structs/ICloseSessionResponse';
+import { IEnumerateProcessResponse } from './structs/IEnumerateProcessResponse';
+import { ILoadedScriptsRequest } from './structs/ILoadedScriptsRequest';
+import { ILoadedScriptsResponse } from './structs/ILoadedScriptsResponse';
+import { ILoadSourceRequest } from './structs/ILoadSourceRequest';
+import { ILoadSourceResponse } from './structs/ILoadSourceResponse';
+import { IRemoveLogpointRequest } from './structs/IRemoveLogpointRequest';
+import { IRemoveLogpointResponse } from './structs/IRemoveLogpointResponse';
+import { ISetLogpointRequest } from './structs/ISetLogpointRequest';
+import { ISetLogpointResponse } from './structs/ISetLogpointResponse';
+import { IStartSessionResponse } from './structs/IStartSessionResponse';
 
+// tslint:disable:align
 export interface ILogPointsDebuggerClient {
     call<ResponseType>(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, command: string): Promise<CommandRunResult<ResponseType>>;
 
     startSession(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User): Promise<CommandRunResult<IStartSessionResponse>>;
 
+    closeSession(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: ICloseSessionRequest): Promise<CommandRunResult<ICloseSessionResponse>>;
+
     enumerateProcesses(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User): Promise<CommandRunResult<IEnumerateProcessResponse>>;
 
-    attachProcess(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: AttachProcessRequest): Promise<CommandRunResult<IAttachProcessResponse>>;
+    attachProcess(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: IAttachProcessRequest): Promise<CommandRunResult<IAttachProcessResponse>>;
 
-    loadedScripts(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: DebugSessionMetadata): Promise<CommandRunResult<ILoadedScriptsResponse>>;
+    loadedScripts(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: ILoadedScriptsRequest): Promise<CommandRunResult<ILoadedScriptsResponse>>;
 
-    loadSource(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: LoadSourceRequest): Promise<CommandRunResult<ILoadSourceResponse>>;
+    loadSource(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: ILoadSourceRequest): Promise<CommandRunResult<ILoadSourceResponse>>;
 
+    setLogpoint(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: ISetLogpointRequest): Promise<CommandRunResult<ISetLogpointResponse>>;
+
+    removeLogpoint(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: IRemoveLogpointRequest): Promise<CommandRunResult<IRemoveLogpointResponse>>;
 }
 
 abstract class LogPointsDebuggerClientBase {
@@ -34,35 +55,41 @@ abstract class LogPointsDebuggerClientBase {
 }
 
 export class KuduLogPointsDebuggerClient extends LogPointsDebuggerClientBase implements ILogPointsDebuggerClient {
-    public startSession(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User)
-        : Promise<CommandRunResult<IStartSessionResponse>> {
-        // tslint:disable-next-line:no-suspicious-comment
-        // TODO: The actual command is TBD
-        return this.makeCallAndLogException<IStartSessionResponse>(siteName, affinityValue, publishCredential, "node -v");
+    public startSession(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User): Promise<CommandRunResult<IStartSessionResponse>> {
+        return this.makeCallAndLogException<IStartSessionResponse>(siteName, affinityValue, publishCredential, "curl -X POST http://localhost:32923/debugger/session");
+    }
+
+    public closeSession(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: ICloseSessionRequest): Promise<CommandRunResult<ICloseSessionResponse>> {
+        return this.makeCallAndLogException<IStartSessionResponse>(siteName, affinityValue, publishCredential, `curl -X DELETE http://localhost:32923/debugger/session/${data.sessionId}`);
     }
 
     public enumerateProcesses(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User): Promise<CommandRunResult<IEnumerateProcessResponse>> {
-        // tslint:disable-next-line:no-suspicious-comment
-        // TODO: The actual command is TBD
-        return this.makeCallAndLogException<IEnumerateProcessResponse>(siteName, affinityValue, publishCredential, "node -v");
+        return this.makeCallAndLogException<IEnumerateProcessResponse>(siteName, affinityValue, publishCredential, "curl -X GET http://localhost:32923/os/processes?applicationType=Node.js");
     }
 
-    public attachProcess(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User): Promise<CommandRunResult<IAttachProcessResponse>> {
-        // tslint:disable-next-line:no-suspicious-comment
-        // TODO: The actual command is TBD
-        return this.makeCallAndLogException<IAttachProcessResponse>(siteName, affinityValue, publishCredential, "node -v");
+    public attachProcess(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: IAttachProcessRequest): Promise<CommandRunResult<IAttachProcessResponse>> {
+        return this.makeCallAndLogException<IAttachProcessResponse>(siteName, affinityValue, publishCredential,
+            `curl -X POST -H "Content-Type: application/json" -d '{"processId":"${data.processId}","codeType":"javascript"}' http://localhost:32923/debugger/session/${data.sessionId}/debugee`);
     }
 
-    public loadedScripts(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: DebugSessionMetadata): Promise<CommandRunResult<ILoadedScriptsResponse>> {
-        // tslint:disable-next-line:no-unused-expression
-        siteName && affinityValue && publishCredential && data;
-        throw new Error("Method not implemented.");
+    public loadedScripts(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: ILoadedScriptsRequest): Promise<CommandRunResult<ILoadedScriptsResponse>> {
+        return this.makeCallAndLogException<ILoadedScriptsResponse>(siteName, affinityValue, publishCredential,
+            `curl -X GET -H "Content-Type: application/json" http://localhost:32923/debugger/session/${data.sessionId}/debugee/${data.debugId}/sources`);
     }
 
-    public loadSource(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: LoadSourceRequest): Promise<CommandRunResult<ILoadSourceResponse>> {
-        // tslint:disable-next-line:no-unused-expression
-        siteName && affinityValue && publishCredential && data;
-        throw new Error("Method not implemented.");
+    public loadSource(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: ILoadSourceRequest): Promise<CommandRunResult<ILoadSourceResponse>> {
+        return this.makeCallAndLogException<ILoadSourceResponse>(siteName, affinityValue, publishCredential,
+            `curl -X GET -H "Content-Type: application/json" http://localhost:32923/debugger/session/${data.sessionId}/debugee/${data.debugId}/source/${data.sourceId}`);
+    }
+
+    public setLogpoint(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: ISetLogpointRequest): Promise<CommandRunResult<ISetLogpointResponse>> {
+        return this.makeCallAndLogException<ISetLogpointResponse>(siteName, affinityValue, publishCredential,
+            `curl -X POST -H "Content-Type: application/json" -d '{"sourceId":"${data.sourceId}","zeroBasedColumnNumber":"${data.columNumber}", "zeroBasedLineNumber":"${data.lineNumber}", "expressionToLog":"${data.expression}"}' http://localhost:32923/debugger/session/${data.sessionId}/debugee/${data.debugId}/logpoints`);
+    }
+
+    public removeLogpoint(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: IRemoveLogpointRequest): Promise<CommandRunResult<IRemoveLogpointResponse>> {
+        return this.makeCallAndLogException<IRemoveLogpointResponse>(siteName, affinityValue, publishCredential,
+            `curl -X DELETE -H "Content-Type: application/json" http://localhost:32923/debugger/session/${data.sessionId}/debugee/${data.debugId}/logpoints/${data.logpointId}`);
     }
 
     public call<ResponseType>(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, command: string)
@@ -122,23 +149,37 @@ export class MockLogpointsDebuggerClient extends LogPointsDebuggerClientBase imp
         return this.makeCallAndLogException<IStartSessionResponse>(siteName, affinityValue, publishCredential, "curl -X POST http://localhost:32923/debugger/session");
     }
 
+    public closeSession(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: ICloseSessionRequest): Promise<CommandRunResult<ICloseSessionResponse>> {
+        return this.makeCallAndLogException<IStartSessionResponse>(siteName, affinityValue, publishCredential, `curl -X DELETE http://localhost:32923/debugger/session/${data.sessionId}`);
+    }
+
     public enumerateProcesses(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User): Promise<CommandRunResult<IEnumerateProcessResponse>> {
         return this.makeCallAndLogException<IEnumerateProcessResponse>(siteName, affinityValue, publishCredential, "curl -X GET http://localhost:32923/os/processes?applicationType=Node.js");
     }
 
-    public attachProcess(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: AttachProcessRequest): Promise<CommandRunResult<IAttachProcessResponse>> {
+    public attachProcess(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: IAttachProcessRequest): Promise<CommandRunResult<IAttachProcessResponse>> {
         return this.makeCallAndLogException<IAttachProcessResponse>(siteName, affinityValue, publishCredential,
             `curl -X POST -H "Content-Type: application/json" -d '{"processId":"${data.processId}","codeType":"javascript"}' http://localhost:32923/debugger/session/${data.sessionId}/debugee`);
     }
 
-    public loadedScripts(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: DebugSessionMetadata): Promise<CommandRunResult<ILoadedScriptsResponse>> {
+    public loadedScripts(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: ILoadedScriptsRequest): Promise<CommandRunResult<ILoadedScriptsResponse>> {
         return this.makeCallAndLogException<ILoadedScriptsResponse>(siteName, affinityValue, publishCredential,
             `curl -X GET -H "Content-Type: application/json" http://localhost:32923/debugger/session/${data.sessionId}/debugee/${data.debugId}/sources`);
     }
 
-    public loadSource(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: LoadSourceRequest): Promise<CommandRunResult<ILoadSourceResponse>> {
+    public loadSource(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: ILoadSourceRequest): Promise<CommandRunResult<ILoadSourceResponse>> {
         return this.makeCallAndLogException<ILoadSourceResponse>(siteName, affinityValue, publishCredential,
             `curl -X GET -H "Content-Type: application/json" http://localhost:32923/debugger/session/${data.sessionId}/debugee/${data.debugId}/source/${data.sourceId}`);
+    }
+
+    public setLogpoint(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: ISetLogpointRequest): Promise<CommandRunResult<ISetLogpointResponse>> {
+        return this.makeCallAndLogException<ISetLogpointResponse>(siteName, affinityValue, publishCredential,
+            `curl -X POST -H "Content-Type: application/json" -d '{"sourceId":"${data.sourceId}","zeroBasedColumnNumber":"${data.columNumber}", "zeroBasedLineNumber":"${data.lineNumber}", "expressionToLog":"${data.expression}"}' http://localhost:32923/debugger/session/${data.sessionId}/debugee/${data.debugId}/logpoints`);
+    }
+
+    public removeLogpoint(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: IRemoveLogpointRequest): Promise<CommandRunResult<IRemoveLogpointResponse>> {
+        return this.makeCallAndLogException<IRemoveLogpointResponse>(siteName, affinityValue, publishCredential,
+            `curl -X DELETE -H "Content-Type: application/json" http://localhost:32923/debugger/session/${data.sessionId}/debugee/${data.debugId}/logpoints/${data.logpointId}`);
     }
 
     public call<ResponseType>(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, command: string): Promise<CommandRunResult<ResponseType>> {
@@ -157,81 +198,4 @@ export class MockLogpointsDebuggerClient extends LogPointsDebuggerClientBase imp
             });
         });
     }
-}
-
-// tslint:disable-next-line:max-classes-per-file
-export class CommandRunResult<ResponseType extends { error?: {}, data?: {} }> {
-    private _json: ResponseType;
-    constructor(public error: {}, public exitCode: number, public output: string) {
-    }
-
-    public isSuccessful(): boolean {
-        return this.exitCode === 0 && this.json && !this.json.error;
-    }
-
-    public get json(): ResponseType {
-        if (this._json === undefined) {
-            try {
-                this._json = JSON.parse(this.output);
-            } catch (err) {
-                // tslint:disable-next-line:no-suspicious-comment
-                // TODO: re-enable.
-                // util.getOutputChannel().appendLine(`API call error ${err.toString()}`);
-                this._json = null;
-            }
-        }
-
-        return this._json;
-    }
-}
-
-// tslint:disable-next-line:max-classes-per-file
-export class AttachProcessRequest {
-    constructor(public sessionId: string, public processId: string) {
-    }
-}
-
-// tslint:disable-next-line:max-classes-per-file
-export class DebugSessionMetadata {
-    constructor(public sessionId: string, public debugId: string) {
-    }
-}
-
-// tslint:disable:max-classes-per-file
-export class LoadSourceRequest {
-    constructor(public sessionId: string, public debugId: string, public sourceId: string) {
-    }
-}
-
-export interface IStartSessionResponse {
-    data: {
-        debuggingSessionId: string
-    };
-}
-
-export interface IEnumerateProcessResponse {
-    data: {
-        pid: string;
-        command: string;
-        // tslint:disable-next-line:no-banned-terms
-        arguments: string[];
-    }[];
-}
-
-export interface IAttachProcessResponse {
-    data: {
-        debugeeId: string;
-    };
-}
-
-export interface ILoadedScriptsResponse {
-    data: {
-        name: string;
-        path: string;
-        sourceId: string;
-    }[];
-}
-
-export interface ILoadSourceResponse {
-    data: string;
 }

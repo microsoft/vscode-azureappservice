@@ -11,8 +11,10 @@ import { ServiceClientCredentials } from 'ms-rest';
 import * as vscode from 'vscode';
 import { createWebApp } from 'vscode-azureappservice';
 import { AzureAccountWrapper } from './AzureAccountWrapper';
-import { LogPointsSessionAttach } from './diagnostics/logPointsManager';
+import { LogPointsManager } from './diagnostics/LogPointsManager';
+import { LogPointsSessionAttach } from './diagnostics/logPointsSessionWizard';
 import { RemoteScriptDocumentProvider, RemoteScriptSchema } from './diagnostics/remoteScriptDocumentProvider';
+import { LogpointsCollection } from './diagnostics/structs/LogpointsCollection';
 import { ErrorData } from './ErrorData';
 import { SiteActionError, UserCancelledError, WizardFailedError } from './errors';
 import { AppServiceDataProvider } from './explorer/AppServiceExplorer';
@@ -46,6 +48,19 @@ export function activate(context: vscode.ExtensionContext): void {
 
     const documentProvider = new RemoteScriptDocumentProvider();
     context.subscriptions.push(vscode.workspace.registerTextDocumentContentProvider(RemoteScriptSchema.schema, documentProvider));
+
+    const logPointsManager = new LogPointsManager(outputChannel);
+    context.subscriptions.push(logPointsManager);
+
+    const pathIcon = context.asAbsolutePath('resources/logpoint.svg');
+    const logpointDecorationType = vscode.window.createTextEditorDecorationType({
+        gutterIconPath: pathIcon,
+        overviewRulerLane: vscode.OverviewRulerLane.Full,
+        overviewRulerColor: "rgba(21, 126, 251, 0.7)"
+    });
+    context.subscriptions.push(logpointDecorationType);
+
+    LogpointsCollection.TextEditorDecorationType = logpointDecorationType;
 
     initCommand(context, 'appService.Refresh', (node?: NodeBase) => appServiceDataProvider.refresh(node));
     initCommand(context, 'appService.Browse', (node: SiteNodeBase) => {
@@ -205,6 +220,10 @@ export function activate(context: vscode.ExtensionContext): void {
             const wizard = new LogPointsSessionAttach(outputChannel, azureAccount, node.site, node.subscription);
             await wizard.run();
         }
+    });
+
+    initAsyncCommand(context, 'diagnostics.LogPoints.Toggle', async (uri: vscode.Uri) => {
+        logPointsManager.toggleLogpoint(uri);
     });
 
     context.subscriptions.push(vscode.commands.registerCommand('diagnostics.LogPoints.OpenScript', openScript));

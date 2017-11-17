@@ -6,9 +6,14 @@ import { UserCancelledError } from '../errors';
 import * as util from '../util';
 import { WizardBase, WizardStep } from '../wizard';
 import {
-    AttachProcessRequest, CommandRunResult, IAttachProcessResponse, IEnumerateProcessResponse,
-    ILogPointsDebuggerClient, IStartSessionResponse, KuduLogPointsDebuggerClient, MockLogpointsDebuggerClient
+    ILogPointsDebuggerClient, KuduLogPointsDebuggerClient, MockLogpointsDebuggerClient
 } from './logPointsClient';
+
+import { CommandRunResult } from './structs/CommandRunResult';
+import { IAttachProcessRequest } from './structs/IAttachProcessRequest';
+import { IAttachProcessResponse } from './structs/IAttachProcessResponse';
+import { IEnumerateProcessResponse } from './structs/IEnumerateProcessResponse';
+import { IStartSessionResponse } from './structs/IStartSessionResponse';
 
 import WebSiteManagementClient = require('azure-arm-website');
 
@@ -76,6 +81,7 @@ export class LogPointsSessionAttach extends WizardBase {
         this.steps.push(new PickProcessStep(this));
         this.steps.push(new SessionAttachStep(this));
         this.steps.push(new StartDebugAdapterStep(this));
+        this.output.show();
     }
 
     protected onExecuteError(error: Error): void {
@@ -238,7 +244,7 @@ class PickProcessStep extends WizardStep {
             return <util.IQuickPickItemWithData<string>>{
                 label: `${process.pid}`,
                 description: ` ${process.command} `
-                + ` ${typeof process.arguments === 'string' ? process.arguments : process.arguments.join(' ')}`,
+                    + ` ${typeof process.arguments === 'string' ? process.arguments : process.arguments.join(' ')}`,
                 data: process.pid
             };
         });
@@ -273,7 +279,7 @@ class SessionAttachStep extends WizardStep {
         const publishCredential = await this._wizard.getCachedCredentialOrRefetch(selectedSlot);
 
         let result: CommandRunResult<IAttachProcessResponse>;
-        const requestData = new AttachProcessRequest(this._wizard.sessionId, this._wizard.processId);
+        const requestData: IAttachProcessRequest = { sessionId: this._wizard.sessionId, processId: this._wizard.processId };
 
         const siteName = util.extractSiteName(selectedSlot) + (util.isSiteDeploymentSlot(selectedSlot) ? `-${util.extractDeploymentSlotName(selectedSlot)}` : '');
 
@@ -302,6 +308,13 @@ class StartDebugAdapterStep extends WizardStep {
     public async execute(): Promise<void> {
         const site = this._wizard.selectedDeploymentSlot;
         const siteName = util.extractSiteName(site) + (util.isSiteDeploymentSlot(site) ? `-${util.extractDeploymentSlotName(site)}` : '');
+
+        // Assume the next started debug sessionw is the one we will launch next.
+        const startEventHandler = vscode.debug.onDidStartDebugSession(() => {
+            startEventHandler.dispose();
+
+            vscode.commands.executeCommand('workbench.view.debug');
+        });
         await vscode.debug.startDebugging(vscode.workspace.workspaceFolders[0], {
             type: "jsLogpoints",
             name: "Azure App Service LogPoints",

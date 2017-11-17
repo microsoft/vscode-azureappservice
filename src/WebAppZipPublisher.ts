@@ -102,8 +102,7 @@ class WebAppStep extends WizardStep {
                 data: null
             });
             webApps.forEach(element => {
-                if (element.kind.toLowerCase().indexOf('app') >= 0 &&
-                    element.kind.toLowerCase().indexOf('linux') >= 0) {
+                if (element.kind.toLowerCase().indexOf('app') >= 0) {
                     quickPickItems.push({
                         persistenceId: element.id,
                         label: element.name,

@@ -2,13 +2,11 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-
-import { reporter } from './telemetry/reporter';
 import WebSiteManagementClient = require('azure-arm-website');
 import * as vscode from 'vscode';
 import * as WebSiteModels from '../node_modules/azure-arm-website/lib/models';
 import { UserCancelledError } from './errors';
-
+import { reporter } from './telemetry/reporter';
 
 export interface PartialList<T> extends Array<T> {
     nextLink?: string;
@@ -87,7 +85,7 @@ export function sendTelemetry(eventName: string, properties?: { [key: string]: s
     }
 }
 
-export function errToString(error: any): string {
+export function errToString(error: {}): string {
     if (error === null || error === undefined) {
         return '';
     }
@@ -96,14 +94,14 @@ export function errToString(error: any): string {
         try {
             // errors from Azure come as JSON string
             return JSON.stringify({
-                'Error': JSON.parse(error.message).Code,
-                'Message': JSON.parse(error.message).Message
+                Error: JSON.parse(error.message).Code,
+                Message: JSON.parse(error.message).Message
             });
 
         } catch (e) {
             return JSON.stringify({
-                'Error': error.constructor.name,
-                'Message': error.message
+                Error: error.constructor.name,
+                Message: error.message
             });
         }
 
@@ -111,11 +109,11 @@ export function errToString(error: any): string {
 
     if (typeof (error) === 'object') {
         return JSON.stringify({
-            'object': error.constructor.name
+            object: error.constructor.name
         });
     }
 
-    return error.toString();
+    return (<{}>error).toString();
 }
 
 // Resource ID
@@ -155,14 +153,14 @@ export async function showWorkspaceFoldersQuickPick(placeHolderString: string): 
                     label: value.name,
                     description: value.uri.fsPath,
                     data: value
-                }
+                };
             }
         }) :
         [];
     // VS Code will handle [] by alerting user there are no workspaces opened
 
     const folderQuickPickOption = { placeHolder: placeHolderString };
-    const pickedItem = folderQuickPickItems.length == 1 ?
+    const pickedItem = folderQuickPickItems.length === 1 ?
         folderQuickPickItems[0] : await vscode.window.showQuickPick(folderQuickPickItems, folderQuickPickOption);
 
     if (!pickedItem) {
