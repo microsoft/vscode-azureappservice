@@ -3,101 +3,79 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { SubscriptionModels } from 'azure-arm-resource';
 import WebSiteManagementClient = require('azure-arm-website');
-import * as opn from 'opn';
+import * as WebSiteModels from 'azure-arm-website/lib/models';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { TreeItem, TreeItemCollapsibleState } from 'vscode';
-import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models';
-import { AzureAccountWrapper } from '../AzureAccountWrapper';
-import * as util from '../util';
-import { AppServiceDataProvider } from './AppServiceExplorer';
-import { NodeBase } from './NodeBase';
+import { SiteWrapper } from 'vscode-azureappservice';
+import { IAzureNode, IAzureParentTreeItem, IAzureTreeItem, UserCancelledError } from 'vscode-azureextensionui';
+import { nodeUtils } from '../utils/nodeUtils';
 
-export class AppSettingsNode extends NodeBase {
+export class AppSettingsTreeItem implements IAzureParentTreeItem {
+    public static contextValue: string = 'applicationSettings';
+    public readonly label: string = 'Application Settings';
+    public readonly childTypeLabel: string = 'App Setting';
+    public readonly contextValue: string = AppSettingsTreeItem.contextValue;
+    private readonly _siteWrapper: SiteWrapper;
     private readonly _site: WebSiteModels.Site;
-    private readonly _subscription: SubscriptionModels.Subscription;
-    private readonly _isSlot: boolean;
-    private readonly _siteName: string;
-    private readonly _slotName: string;
-    private readonly _websiteClient: WebSiteManagementClient;
     private _settings: WebSiteModels.StringDictionary;
 
-    public get site(): WebSiteModels.Site {
-        return this._site;
-    }
-
-    public get subscription(): SubscriptionModels.Subscription {
-        return this._subscription;
-    }
-
-    constructor(
-        site: WebSiteModels.Site,
-        subscription: SubscriptionModels.Subscription,
-        treeDataProvider: AppServiceDataProvider,
-        parentNode: NodeBase) {
-        super('Application Settings', treeDataProvider, parentNode);
+    constructor(site: WebSiteModels.Site) {
+        this._siteWrapper = new SiteWrapper(site);
         this._site = site;
-        this._subscription = subscription;
-        this._isSlot = util.isSiteDeploymentSlot(site);
-        this._siteName = util.extractSiteName(site);
-        this._slotName = util.extractDeploymentSlotName(site);
-        this._websiteClient = new WebSiteManagementClient(
-            this.azureAccount.getCredentialByTenantId(this.subscription.tenantId),
-            this.subscription.subscriptionId);
     }
 
-    public getTreeItem(): TreeItem {
+    public get id(): string {
+        return `${this._site.id}/application`;
+    }
+
+    public get iconPath(): { light: string, dark: string } {
         return {
-            label: this.label,
-            collapsibleState: TreeItemCollapsibleState.Collapsed,
-            contextValue: 'applicationSettings',
-            iconPath: {
-                light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'AppSettings_color.svg'),
-                dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'AppSettings_color.svg')
-            }
+            light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'AppSettings_color.svg'),
+            dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'AppSettings_color.svg')
         };
     }
 
-    public async getChildren(): Promise<NodeBase[]> {
-        const webApps = this.WebSiteManagementClient.webApps;
-        const children: AppSettingNode[] = [];
-        this._settings = this._isSlot ? await webApps.listApplicationSettingsSlot(this.site.resourceGroup, this._siteName, this._slotName) :
-            await webApps.listApplicationSettings(this.site.resourceGroup, this._siteName);
-
-        if (this._settings.properties) {
-            Object.keys(this._settings.properties).forEach((key: string) => {
-                children.push(new AppSettingNode(
-                    key,
-                    this._settings.properties[key],
-                    this.getTreeDataProvider(),
-                    this
-                ));
-            });
-        }
-
-        return children.sort((a, b) => a.label.localeCompare(b.label));
+    public hasMoreChildren(): boolean {
+        return false;
     }
 
-    public async editSettingItem(oldKey: string, newKey: string, value: string): Promise<void> {
+    public async loadMoreChildren(node: IAzureNode<AppSettingsTreeItem>): Promise<IAzureTreeItem[]> {
+        const client: WebSiteManagementClient = nodeUtils.getWebSiteClient(node);
+        this._settings = this._siteWrapper.slotName ?
+            await client.webApps.listApplicationSettingsSlot(this._siteWrapper.resourceGroup, this._siteWrapper.name, this._siteWrapper.slotName) :
+            await client.webApps.listApplicationSettings(this._siteWrapper.resourceGroup, this._siteWrapper.name);
+
+        const treeItems: IAzureTreeItem[] = [];
+        Object.keys(this._settings.properties).forEach((key: string) => {
+            treeItems.push(new AppSettingTreeItem(key, this._settings.properties[key]));
+        });
+
+        return treeItems;
+    }
+
+    public async editSettingItem(client: WebSiteManagementClient, oldKey: string, newKey: string, value: string): Promise<void> {
         if (this._settings.properties) {
             if (oldKey !== newKey) {
                 delete this._settings.properties[oldKey];
             }
             this._settings.properties[newKey] = value;
         }
-        await this.applySettings();
+        await this.applySettings(client);
     }
 
-    public async deleteSettingItem(key: string): Promise<void> {
+    public async deleteSettingItem(client: WebSiteManagementClient, key: string): Promise<void> {
         if (this._settings.properties) {
             delete this._settings.properties[key];
         }
-        await this.applySettings();
+        await this.applySettings(client);
     }
 
-    public async addSettingItem(): Promise<void> {
+    public async createChild(node: IAzureNode<AppSettingsTreeItem>, showCreatingNode: (label: string) => void): Promise<IAzureTreeItem> {
+        if (!this._settings) {
+            await this.loadMoreChildren(node);
+        }
+
         const newKey = await vscode.window.showInputBox({
             ignoreFocusOut: true,
             prompt: 'Enter new setting key',
@@ -105,7 +83,7 @@ export class AppSettingsNode extends NodeBase {
         });
 
         if (!newKey) {
-            return;
+            throw new UserCancelledError();
         }
 
         const newValue = await vscode.window.showInputBox({
@@ -117,10 +95,10 @@ export class AppSettingsNode extends NodeBase {
             this._settings.properties = {};
         }
 
+        showCreatingNode(newKey);
         this._settings.properties[newKey] = newValue;
-
-        await this.applySettings();
-        this.getTreeDataProvider<AppServiceDataProvider>().refresh(this);
+        await this.applySettings(nodeUtils.getWebSiteClient(node));
+        return new AppSettingTreeItem(newKey, newValue);
     }
 
     public validateNewKeyInput(newKey: string, oldKey?: string): string | undefined {
@@ -140,54 +118,41 @@ export class AppSettingsNode extends NodeBase {
         return undefined;
     }
 
-    public openInPortal(): void {
-        const portalEndpoint = 'https://portal.azure.com';
-        const deepLink = `${portalEndpoint}/${this.subscription.tenantId}/#resource${this.site.id}/application`;
-        opn(deepLink);
-    }
-
-    protected get WebSiteManagementClient(): WebSiteManagementClient {
-        return this._websiteClient;
-    }
-
-    private get azureAccount(): AzureAccountWrapper {
-        return this.getTreeDataProvider<AppServiceDataProvider>().azureAccount;
-    }
-
-    private applySettings(): Promise<WebSiteModels.StringDictionary> {
-        const webApps = this.WebSiteManagementClient.webApps;
-        return this._isSlot ? webApps.updateApplicationSettingsSlot(this.site.resourceGroup, this._siteName, this._settings, this._slotName) :
-            webApps.updateApplicationSettings(this.site.resourceGroup, this._siteName, this._settings);
+    private async applySettings(client: WebSiteManagementClient): Promise<WebSiteModels.StringDictionary> {
+        return this._siteWrapper.slotName ?
+            await client.webApps.updateApplicationSettingsSlot(this._siteWrapper.resourceGroup, this._siteWrapper.name, this._settings, this._siteWrapper.slotName) :
+            await client.webApps.updateApplicationSettings(this._siteWrapper.resourceGroup, this._siteWrapper.name, this._settings);
     }
 }
 
-export class AppSettingNode extends NodeBase {
+export class AppSettingTreeItem implements IAzureTreeItem {
+    public static contextValue: string = 'applicationSettingItem';
+    public readonly contextValue: string = AppSettingTreeItem.contextValue;
+
     private key: string;
     private value: string;
 
-    constructor(
-        key: string,
-        value: string,
-        treeDataProvider: AppServiceDataProvider,
-        parentNode: NodeBase) {
-        super(`${key}=${value}`, treeDataProvider, parentNode);
+    constructor(key: string, value: string) {
         this.key = key;
         this.value = value;
     }
 
-    public getTreeItem(): TreeItem {
+    public get id(): string {
+        return this.key;
+    }
+
+    public get label(): string {
+        return `${this.key}=${this.value}`;
+    }
+
+    public get iconPath(): { light: string, dark: string } {
         return {
-            label: this.label,
-            collapsibleState: TreeItemCollapsibleState.None,
-            contextValue: 'applicationSettingItem',
-            iconPath: {
-                light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'Item_16x_vscode.svg'),
-                dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'Item_16x_vscode.svg')
-            }
+            light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'Item_16x_vscode.svg'),
+            dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'Item_16x_vscode.svg')
         };
     }
 
-    public async edit(): Promise<void> {
+    public async edit(node: IAzureNode): Promise<void> {
         const newValue = await vscode.window.showInputBox({
             ignoreFocusOut: true,
             prompt: `Enter setting value for "${this.key}"`,
@@ -199,17 +164,17 @@ export class AppSettingNode extends NodeBase {
         }
 
         this.value = newValue;
-        await this.getParentNode<AppSettingsNode>().editSettingItem(this.key, this.key, newValue);
-        this.refresh();
+        await (<AppSettingsTreeItem>node.parent.treeItem).editSettingItem(nodeUtils.getWebSiteClient(node), this.key, this.key, newValue);
+        node.refresh();
     }
 
-    public async rename(): Promise<void> {
+    public async rename(node: IAzureNode): Promise<void> {
         const oldKey = this.key;
         const newKey = await vscode.window.showInputBox({
             ignoreFocusOut: true,
             prompt: `Enter a new name for "${oldKey}"`,
             value: this.key,
-            validateInput: v => this.getParentNode<AppSettingsNode>().validateNewKeyInput(v, oldKey)
+            validateInput: v => (<AppSettingsTreeItem>node.parent.treeItem).validateNewKeyInput(v, oldKey)
         });
 
         if (!newKey) {
@@ -217,26 +182,19 @@ export class AppSettingNode extends NodeBase {
         }
 
         this.key = newKey;
-        await this.getParentNode<AppSettingsNode>().editSettingItem(oldKey, newKey, this.value);
-        this.refresh();
+        await (<AppSettingsTreeItem>node.parent.treeItem).editSettingItem(nodeUtils.getWebSiteClient(node), oldKey, newKey, this.value);
+        node.refresh();
     }
 
-    // tslint:disable-next-line:no-reserved-keywords
-    public async delete(): Promise<void> {
+    public async deleteTreeItem(node: IAzureNode): Promise<IAzureTreeItem> {
         const okayAction = 'Delete';
         const result = await vscode.window.showWarningMessage(`Are you sure you want to delete setting "${this.key}"?`, okayAction);
 
         if (result === okayAction) {
-            await this.getParentNode<AppSettingsNode>().deleteSettingItem(this.key);
-            this.getTreeDataProvider<AppServiceDataProvider>().refresh(this.getParentNode());
+            await (<AppSettingsTreeItem>node.parent.treeItem).deleteSettingItem(nodeUtils.getWebSiteClient(node), this.key);
+            return this;
+        } else {
+            throw new UserCancelledError();
         }
-    }
-
-    public refresh(): void {
-        this.label = `${this.key}=${this.value}`;
-        // Ideally we only need to refresh the current item, but because of this https://github.com/Microsoft/vscode/issues/34789,
-        // have to use workaround for now.
-        // this.getTreeDataProvider<AppServiceDataProvider>().refresh(this);
-        this.getTreeDataProvider<AppServiceDataProvider>().refresh(this.getParentNode());
     }
 }

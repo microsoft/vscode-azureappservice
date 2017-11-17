@@ -3,11 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { SubscriptionModels } from 'azure-arm-resource';
 import * as vscode from 'vscode';
+import { UserCancelledError } from 'vscode-azureextensionui';
+import { WizardFailedError } from './errors';
 import * as util from './util';
-import { AzureAccountWrapper } from './AzureAccountWrapper';
-import { UserCancelledError, WizardFailedError } from './errors';
 
 export type WizardStatus = 'PromptCompleted' | 'Completed' | 'Faulted' | 'Cancelled';
 
@@ -176,39 +175,6 @@ export class WizardStep {
         }
 
         return result;
-    }
-}
-
-export class SubscriptionStepBase extends WizardStep {
-    private readonly azureAccount: AzureAccountWrapper;
-    private _subscription?: SubscriptionModels.Subscription;
-
-    constructor(wizard: WizardBase, title: string, azureAccount: AzureAccountWrapper, subscription?: SubscriptionModels.Subscription, persistence?: vscode.Memento) {
-        super(wizard, title, persistence);
-        this.azureAccount = azureAccount;
-        this.subscription = subscription;
-    }
-
-    protected getSubscriptionsAsQuickPickItems(): Promise<util.IQuickPickItemWithData<SubscriptionModels.Subscription>[]> {
-        return Promise.resolve(
-            this.azureAccount.getFilteredSubscriptions().map(s => {
-                return {
-                    persistenceId: s.subscriptionId,
-                    label: s.displayName,
-                    description: '',
-                    detail: s.subscriptionId,
-                    data: s
-                };
-            })
-        );
-    }
-
-    public get subscription(): SubscriptionModels.Subscription {
-        return this._subscription;
-    }
-
-    public set subscription(subscription: SubscriptionModels.Subscription) {
-        this._subscription = subscription;
     }
 }
 

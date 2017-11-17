@@ -3,73 +3,83 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ResourceManagementClient, SubscriptionModels } from 'azure-arm-resource';
+import { ResourceManagementClient } from 'azure-arm-resource';
+import WebSiteManagementClient = require('azure-arm-website');
+import { AppServicePlan, Site } from 'azure-arm-website/lib/models';
 import * as fs from 'fs';
 import * as opn from 'opn';
 import * as path from 'path';
-import { TreeItem, TreeItemCollapsibleState } from 'vscode';
 import * as vscode from 'vscode';
-import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models';
-import { UserCancelledError } from '../errors';
-import { AppServiceDataProvider } from './AppServiceExplorer';
-import { AppSettingsNode } from './AppSettingsNodes';
-import { DeploymentSlotsNANode, DeploymentSlotsNode } from './DeploymentSlotsNode';
-import { NodeBase } from './NodeBase';
-import { SiteNodeBase } from './SiteNodeBase';
-import { WebJobsNode } from './WebJobsNode';
+import { IAzureNode, IAzureTreeItem, UserCancelledError } from 'vscode-azureextensionui';
+import { nodeUtils } from '../utils/nodeUtils';
+import { AppSettingsTreeItem, AppSettingTreeItem } from './AppSettingsNodes';
+import { DeploymentSlotTreeItem } from './DeploymentSlotNode';
+import { DeploymentSlotsNATreeItem, DeploymentSlotsTreeItem } from './DeploymentSlotsNode';
+import { getAppServicePlan, SiteTreeItem } from './SiteNodeBase';
+import { WebJobsTreeItem } from './WebJobsNode';
 
-export class AppServiceNode extends SiteNodeBase {
-    constructor(site: WebSiteModels.Site, subscription: SubscriptionModels.Subscription, treeDataProvider: AppServiceDataProvider, parentNode: NodeBase) {
-        super(site.name, site, subscription, treeDataProvider, parentNode);
-    }
+export class WebAppTreeItem extends SiteTreeItem {
+    public static contextValue: string = 'appService';
+    public readonly contextValue: string = WebAppTreeItem.contextValue;
+    public readonly deploymentSlotsNode: IAzureTreeItem;
+    public readonly appSettingsNode: IAzureTreeItem;
+    public readonly webJobsNode: IAzureTreeItem;
 
-    public getTreeItem(): TreeItem {
-        const iconName = 'WebApp_color.svg';
-        return {
-            label: `${this.label} (${this.site.resourceGroup})`,
-            collapsibleState: TreeItemCollapsibleState.Collapsed,
-            contextValue: 'appService',
-            iconPath: {
-                light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', iconName),
-                dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', iconName)
-            }
-        };
-    }
-
-    public async getChildren(): Promise<NodeBase[]> {
-        if (this.azureAccount.signInStatus !== 'LoggedIn') {
-            return [];
-        }
-
-        const treeDataProvider = this.getTreeDataProvider<AppServiceDataProvider>();
-        const nodes = [];
-        const appServicePlan = await this.getAppServicePlan();
-        appServicePlan.sku.tier === 'Basic' ?
-            nodes.push(new DeploymentSlotsNANode(treeDataProvider, this)) :
-            nodes.push(new DeploymentSlotsNode(this.site, this.subscription, treeDataProvider, this));
+    constructor(site: Site, appServicePlan: AppServicePlan) {
+        super(site);
+        this.deploymentSlotsNode = appServicePlan.sku.tier === 'Basic' ? new DeploymentSlotsNATreeItem() : new DeploymentSlotsTreeItem(site);
         // https://github.com/Microsoft/vscode-azureappservice/issues/45
         // nodes.push(new FilesNode('Files', '/site/wwwroot', this.site, this.subscription, treeDataProvider, this));
         // nodes.push(new FilesNode('Log Files', '/LogFiles', this.site, this.subscription));
-        nodes.push(new WebJobsNode(this.site, this.subscription, treeDataProvider, this));
-        nodes.push(new AppSettingsNode(this.site, this.subscription, treeDataProvider, this));
-
-        return nodes;
+        this.webJobsNode = new WebJobsTreeItem(site);
+        this.appSettingsNode = new AppSettingsTreeItem(site);
     }
 
-    public openCdInPortal(): void {
-        const portalEndpoint = 'https://portal.azure.com';
-        const deepLink = `${portalEndpoint}/${this.subscription.tenantId}/#resource${this.site.id}/vstscd`;
+    public get label(): string {
+        return `${this.site.name} (${this.site.resourceGroup})`;
+    }
+
+    public get iconPath(): { light: string, dark: string } {
+        const iconName = 'WebApp_color.svg';
+        return {
+            light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', iconName),
+            dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', iconName)
+        };
+    }
+
+    public async loadMoreChildren(_parentNode: IAzureNode): Promise<IAzureTreeItem[]> {
+        return [this.deploymentSlotsNode, this.webJobsNode, this.appSettingsNode];
+    }
+
+    public pickTreeItem(expectedContextValue: string): IAzureTreeItem | undefined {
+        switch (expectedContextValue) {
+            case DeploymentSlotsTreeItem.contextValue:
+            case DeploymentSlotTreeItem.contextValue:
+                return this.deploymentSlotsNode;
+            case AppSettingsTreeItem.contextValue:
+            case AppSettingTreeItem.contextValue:
+                return this.appSettingsNode;
+            case WebJobsTreeItem.contextValue:
+                return this.webJobsNode;
+            default:
+                return undefined;
+        }
+    }
+
+    public openCdInPortal(node: IAzureNode): void {
+        const deepLink = `${node.environment.portalUrl}/${node.tenantId}/#resource${this.site.id}/vstscd`;
         opn(deepLink);
     }
 
-    public async generateDeploymentScript(): Promise<void> {
-        const resourceClient = new ResourceManagementClient(this.azureAccount.getCredentialByTenantId(this.subscription.tenantId), this.subscription.subscriptionId);
-        const subscription = this.subscription;
+    public async generateDeploymentScript(node: IAzureNode): Promise<void> {
+        const resourceClient = new ResourceManagementClient(node.credentials, node.subscription.subscriptionId);
+        const webSiteClient: WebSiteManagementClient = nodeUtils.getWebSiteClient(node);
+        const subscription = node.subscription;
         const site = this.site;
         const tasks = Promise.all([
             resourceClient.resourceGroups.get(this.site.resourceGroup),
-            this.getAppServicePlan(),
-            this.webSiteClient.webApps.getConfiguration(this.site.resourceGroup, this.site.name)
+            getAppServicePlan(this.site, webSiteClient),
+            webSiteClient.webApps.getConfiguration(this.site.resourceGroup, this.site.name)
         ]);
 
         let uri: vscode.Uri;
