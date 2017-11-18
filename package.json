@@ -7,7 +7,7 @@
     "icon": "resources/windows-azure-web-site.png",
     "aiKey": "AIF-d9b70cd4-b9f9-4d70-929b-a071c400b217",
     "engines": {
-        "vscode": "^1.17.0"
+        "vscode": "^1.18.0"
     },
     "repository": {
         "type": "git",
@@ -486,7 +486,6 @@
         "test": "node ./node_modules/vscode/bin/test"
     },
     "devDependencies": {
-        "@types/archiver": "^2.0.0",
         "@types/mocha": "^2.2.32",
         "@types/node": "^8.0.51",
         "@types/request": "^2.0.3",
@@ -497,7 +496,6 @@
         "vscode": "^1.0.0"
     },
     "dependencies": {
-        "archiver": "^2.0.3",
         "azure-arm-resource": "^2.0.0-preview",
         "azure-arm-website": "^1.0.0-preview",
         "kudu-api": "^1.4.1",
@@ -506,7 +504,7 @@
         "opn": "^5.1.0",
         "request": "^2.83.0",
         "simple-git": "^1.77.0",
-        "vscode-extension-telemetry": "^0.0.6",
+        "vscode-extension-telemetry": "^0.0.8",
         "vscode-azureappservice": "^0.4.0"
     },
     "extensionDependencies": [
