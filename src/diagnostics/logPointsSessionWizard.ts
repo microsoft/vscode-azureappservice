@@ -9,15 +9,14 @@ import {
     ILogPointsDebuggerClient, KuduLogPointsDebuggerClient, MockLogpointsDebuggerClient
 } from './logPointsClient';
 
+import WebSiteManagementClient = require('azure-arm-website');
 import { CommandRunResult } from './structs/CommandRunResult';
 import { IAttachProcessRequest } from './structs/IAttachProcessRequest';
 import { IAttachProcessResponse } from './structs/IAttachProcessResponse';
 import { IEnumerateProcessResponse } from './structs/IEnumerateProcessResponse';
 import { IStartSessionResponse } from './structs/IStartSessionResponse';
 
-import WebSiteManagementClient = require('azure-arm-website');
-
-const shouldUseMockKuduCall = true;
+const shouldUseMockKuduCall = false;
 
 let logPointsDebuggerClient: ILogPointsDebuggerClient;
 
@@ -308,6 +307,7 @@ class StartDebugAdapterStep extends WizardStep {
     public async execute(): Promise<void> {
         const site = this._wizard.selectedDeploymentSlot;
         const siteName = util.extractSiteName(site) + (util.isSiteDeploymentSlot(site) ? `-${util.extractDeploymentSlotName(site)}` : '');
+        const publishCredential = await this._wizard.getCachedCredentialOrRefetch(site);
 
         // Assume the next started debug sessionw is the one we will launch next.
         const startEventHandler = vscode.debug.onDidStartDebugSession(() => {
@@ -321,9 +321,9 @@ class StartDebugAdapterStep extends WizardStep {
             request: "attach",
             trace: true,
             siteName: siteName,
-            publishCredentialName: "",
-            publishCredentialPassword: "",
-            instanceId: this._wizard.selectedInstance.id,
+            publishCredentialUsername: publishCredential.publishingUserName,
+            publishCredentialPassword: publishCredential.publishingPassword,
+            instanceId: this._wizard.selectedInstance.name,
             sessionId: this._wizard.sessionId,
             debugId: this._wizard.debuggerId
         });

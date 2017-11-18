@@ -1,6 +1,7 @@
-import * as req from "request";
-
 import * as child_process from 'child_process';
+import * as fs from "fs";
+import * as path from "path";
+import * as req from "request";
 import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models';
 import { CommandRunResult } from './structs/CommandRunResult';
 import { IAttachProcessRequest } from './structs/IAttachProcessRequest';
@@ -55,7 +56,25 @@ abstract class LogPointsDebuggerClientBase {
 }
 
 export class KuduLogPointsDebuggerClient extends LogPointsDebuggerClientBase implements ILogPointsDebuggerClient {
-    public startSession(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User): Promise<CommandRunResult<IStartSessionResponse>> {
+    private static getBaseUri(siteName: string): string {
+        return `https://${siteName}.scm.azurewebsites.net`;
+    }
+
+    private static getAuth(publishCredential: WebSiteModels.User): req.AuthOptions {
+        return {
+            user: publishCredential.publishingUserName,
+            pass: publishCredential.publishingPassword,
+            sendImmediately: true
+        };
+    }
+
+    private static base64Encode(s: string): string {
+        const buf = Buffer.from(s, 'utf8');
+        return buf.toString('base64');
+    }
+
+    public async startSession(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User): Promise<CommandRunResult<IStartSessionResponse>> {
+        await this.uploadSshClient(siteName, affinityValue, publishCredential);
         return this.makeCallAndLogException<IStartSessionResponse>(siteName, affinityValue, publishCredential, "curl -X POST http://localhost:32923/debugger/session");
     }
 
@@ -95,52 +114,68 @@ export class KuduLogPointsDebuggerClient extends LogPointsDebuggerClientBase imp
     public call<ResponseType>(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, command: string)
         : Promise<CommandRunResult<ResponseType>> {
 
-        const headers = {
-            // tslint:disable-next-line:prefer-template
-            Authorization: "Basic " +
-                new Buffer(publishCredential.publishingUserName + ":" + publishCredential.publishingPassword)
-                    .toString("base64")
+        const encodedCommand = KuduLogPointsDebuggerClient.base64Encode(command);
+
+        const opts = {
+            uri: `${KuduLogPointsDebuggerClient.getBaseUri(siteName)}/api/command`,
+            auth: KuduLogPointsDebuggerClient.getAuth(publishCredential),
+            json: true,
+            body: {
+                command: `/usr/bin/node ./ssh-client.js --command ${encodedCommand}`,
+                dir: 'site/wwwroot'
+            }
         };
 
-        const r = req.defaults({
-            baseUrl: `https://${siteName}.scm.azurewebsites.net/`,
-            headers: headers
-        });
+        const request = req.defaults({});
+        request.cookie(`ARRAffinity=${affinityValue}`);
 
-        r.cookie(`ARRAffinity=${affinityValue}`);
-        // tslint:disable-next-line:no-any
-        let cb: (err: any, body: any, response: any) => void;
-        const promise = new Promise<CommandRunResult<ResponseType>>((resolve, reject) => {
-            cb = (err, body?, response?) => {
+        return new Promise<CommandRunResult<ResponseType>>((resolve, reject) => {
+            request.post(opts, (err, httpResponse, body) => {
+                this.log(`sendCommand(): response is ${httpResponse.statusCode}`);
                 if (err) {
+                    this.log(`sendCommand(): received error: ${err}`);
                     reject(err);
-                    return;
+                } else if (httpResponse.statusCode === 200) {
+                    this.log(`sendCommand():  body is ${body}`);
+                    resolve(new CommandRunResult<ResponseType>(body.Error, body.ExitCode, body.Output));
+                } else {
+                    reject(`${httpResponse.statusCode} - ${httpResponse.statusMessage}`);
                 }
+            });
+        });
+    }
 
-                if (response.statusCode !== 200) {
-                    reject(new Error(`${response.statusCode}: ${body}`));
-                    return;
+    private log(message: string): void {
+        // tslint:disable-next-line:no-unused-expression
+        message && 1;
+        // tslint:disable-next-line:no-suspicious-comment
+        // TODO: actually log the messsage to somewhere
+    }
+
+    private async uploadSshClient(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User): Promise<void> {
+        const request = req.defaults({});
+        request.cookie(`ARRAffinity=${affinityValue}`);
+        const opts = {
+            uri: `${KuduLogPointsDebuggerClient.getBaseUri(siteName)}/api/zip/site/wwwroot/`,
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            },
+            auth: KuduLogPointsDebuggerClient.getAuth(publishCredential),
+            body: fs.createReadStream(path.join(__dirname, '../../../resources/ssh-client.zip'))
+        };
+
+        return new Promise<void>((resolve, reject) => {
+            // tslint:disable-next-line:no-single-line-block-comment
+            request.put(opts, (err, httpResponse/*, body */) => {
+                if (err) {
+                    this.log(`placeSshClient(): Error placing ssh-client: ${err}`);
+                    reject(err);
+                } else {
+                    this.log(`placeSshClient(): received ${httpResponse.statusCode}`);
+                    resolve();
                 }
-
-                resolve(new CommandRunResult<ResponseType>(body.Error, body.ExitCode, body.Output));
-            };
+            });
         });
-
-        r.post({
-            uri: "/api/command",
-            json: {
-                command: command,
-                dir: '/'
-            }
-        }, (err, response, body) => {
-            if (err) {
-                return cb(err, null, null);
-            }
-
-            cb(null, body, response);
-        });
-
-        return promise;
     }
 }
 
