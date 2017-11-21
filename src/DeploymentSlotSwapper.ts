@@ -36,6 +36,8 @@ class SwapStep extends WizardStep {
     private _sourceSlotNode: IAzureNode<DeploymentSlotTreeItem>;
     private targetSlot: DeploymentSlotTreeItem | undefined;
 
+    private readonly _productionSlotLabel: string = 'production';
+
     get sourceSlot(): DeploymentSlotTreeItem {
         return this._sourceSlotNode.treeItem;
     }
@@ -48,7 +50,7 @@ class SwapStep extends WizardStep {
     public async prompt(): Promise<void> {
         const deploymentSlots: IAzureNode<DeploymentSlotTreeItem>[] = <IAzureNode<DeploymentSlotTreeItem>[]>await this._sourceSlotNode.parent.getCachedChildren();
         const otherSlots: IQuickPickItemWithData<DeploymentSlotTreeItem | undefined>[] = [{
-            label: 'production',
+            label: this._productionSlotLabel,
             description: 'Swap slot with production',
             detail: '',
             data: undefined
@@ -84,7 +86,8 @@ class SwapStep extends WizardStep {
             await client.webApps.swapSlotWithProduction(this.sourceSlot.site.resourceGroup, this.sourceSlot.site.repositorySiteName, { targetSlot: this.sourceSlot.label, preserveVnet: true }) :
             await client.webApps.swapSlotSlot(this.sourceSlot.site.resourceGroup, this.sourceSlot.site.repositorySiteName, { targetSlot: this.targetSlot.label, preserveVnet: true }, this.sourceSlot.label);
 
-        this.wizard.writeline(`"${this.targetSlot.label}" was swapped with "${this.sourceSlot.label}".`);
+        const targetSlotLabel: string = this.targetSlot ? this.targetSlot.label : this._productionSlotLabel;
+        this.wizard.writeline(`"${targetSlotLabel}" was swapped with "${this.sourceSlot.label}".`);
     }
 
     get subscription(): SubscriptionModels.Subscription {
