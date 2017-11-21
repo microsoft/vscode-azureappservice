@@ -12,11 +12,11 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { IAzureNode, IAzureTreeItem, UserCancelledError } from 'vscode-azureextensionui';
 import { nodeUtils } from '../utils/nodeUtils';
-import { AppSettingsTreeItem, AppSettingTreeItem } from './AppSettingsNodes';
-import { DeploymentSlotTreeItem } from './DeploymentSlotNode';
-import { DeploymentSlotsNATreeItem, DeploymentSlotsTreeItem } from './DeploymentSlotsNode';
-import { getAppServicePlan, SiteTreeItem } from './SiteNodeBase';
-import { WebJobsTreeItem } from './WebJobsNode';
+import { AppSettingsTreeItem, AppSettingTreeItem } from './AppSettingsTreeItem';
+import { DeploymentSlotsNATreeItem, DeploymentSlotsTreeItem } from './DeploymentSlotsTreeItem';
+import { DeploymentSlotTreeItem } from './DeploymentSlotTreeItem';
+import { getAppServicePlan, SiteTreeItem } from './SiteTreeItem';
+import { WebJobsTreeItem } from './WebJobsTreeItem';
 
 export class WebAppTreeItem extends SiteTreeItem {
     public static contextValue: string = 'appService';

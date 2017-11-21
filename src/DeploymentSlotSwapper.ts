@@ -9,7 +9,7 @@ import { SubscriptionModels } from 'azure-arm-resource';
 import WebSiteManagementClient = require('azure-arm-website');
 import * as vscode from 'vscode';
 import { IAzureNode, UserCancelledError } from 'vscode-azureextensionui';
-import { DeploymentSlotTreeItem } from './explorer/DeploymentSlotNode';
+import { DeploymentSlotTreeItem } from './explorer/DeploymentSlotTreeItem';
 import { IQuickPickItemWithData } from './util';
 import { nodeUtils } from './utils/nodeUtils';
 import { WizardBase, WizardStep } from './wizard';

@@ -6,8 +6,8 @@
 import * as WebSiteModels from 'azure-arm-website/lib/models';
 import * as path from 'path';
 import { IAzureParentNode, IAzureTreeItem } from 'vscode-azureextensionui';
-import { AppSettingsTreeItem } from './AppSettingsNodes';
-import { SiteTreeItem } from './SiteNodeBase';
+import { AppSettingsTreeItem } from './AppSettingsTreeItem';
+import { SiteTreeItem } from './SiteTreeItem';
 
 export class DeploymentSlotTreeItem extends SiteTreeItem {
     public static contextValue: string = 'deploymentSlot';
