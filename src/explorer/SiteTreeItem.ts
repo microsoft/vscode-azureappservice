@@ -60,9 +60,8 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
         opn(uri);
     }
 
-    public async deleteTreeItem(node: IAzureParentNode): Promise<IAzureTreeItem | undefined> {
+    public async deleteTreeItem(node: IAzureParentNode): Promise<void> {
         await this.siteWrapper.deleteSite(nodeUtils.getWebSiteClient(node), util.getOutputChannel());
-        return this;
     }
 
     public async isHttpLogsEnabled(client: WebSiteManagementClient): Promise<boolean> {
