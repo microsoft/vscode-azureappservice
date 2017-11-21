@@ -9,8 +9,8 @@ import { createWebApp } from 'vscode-azureappservice';
 import { IAzureNode, IAzureTreeItem, IChildProvider, UserCancelledError } from 'vscode-azureextensionui';
 import * as util from '../util';
 import { nodeUtils } from '../utils/nodeUtils';
-import { WebAppTreeItem } from './AppServiceNode';
-import { getAppServicePlan } from './SiteNodeBase';
+import { getAppServicePlan } from './SiteTreeItem';
+import { WebAppTreeItem } from './WebAppTreeItem';
 
 export class WebAppProvider implements IChildProvider {
     public readonly childTypeLabel: string = 'Web App';

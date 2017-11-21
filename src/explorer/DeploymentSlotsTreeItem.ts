@@ -9,7 +9,7 @@ import { window } from 'vscode';
 import { IAzureNode, IAzureParentNode, IAzureParentTreeItem, IAzureTreeItem, UserCancelledError } from 'vscode-azureextensionui';
 import * as util from '../util';
 import { nodeUtils } from '../utils/nodeUtils';
-import { DeploymentSlotTreeItem } from './DeploymentSlotNode';
+import { DeploymentSlotTreeItem } from './DeploymentSlotTreeItem';
 
 export class DeploymentSlotsTreeItem implements IAzureParentTreeItem {
     public static contextValue: string = 'deploymentSlots';

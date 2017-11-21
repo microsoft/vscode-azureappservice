@@ -11,12 +11,12 @@ import { AzureTreeDataProvider, IAzureNode, IAzureParentNode, UserCancelledError
 import { DeploymentSlotSwapper } from './DeploymentSlotSwapper';
 import { ErrorData } from './ErrorData';
 import { SiteActionError, WizardFailedError } from './errors';
-import { WebAppTreeItem } from './explorer/AppServiceNode';
-import { AppSettingsTreeItem, AppSettingTreeItem } from './explorer/AppSettingsNodes';
-import { DeploymentSlotTreeItem } from './explorer/DeploymentSlotNode';
-import { DeploymentSlotsTreeItem } from './explorer/DeploymentSlotsNode';
-import { SiteTreeItem } from './explorer/SiteNodeBase';
-import { WebAppProvider } from './explorer/SubscriptionNode';
+import { AppSettingsTreeItem, AppSettingTreeItem } from './explorer/AppSettingsTreeItem';
+import { DeploymentSlotsTreeItem } from './explorer/DeploymentSlotsTreeItem';
+import { DeploymentSlotTreeItem } from './explorer/DeploymentSlotTreeItem';
+import { SiteTreeItem } from './explorer/SiteTreeItem';
+import { WebAppProvider } from './explorer/WebAppProvider';
+import { WebAppTreeItem } from './explorer/WebAppTreeItem';
 import { Reporter } from './telemetry/reporter';
 import * as util from "./util";
 import { nodeUtils } from './utils/nodeUtils';
