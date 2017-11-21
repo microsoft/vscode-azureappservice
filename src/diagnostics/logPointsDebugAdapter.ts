@@ -6,9 +6,10 @@ import {
 import { DebugProtocol } from 'vscode-debugprotocol';
 import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models';
 
-import { KuduLogPointsDebuggerClient } from './logPointsClient';
+import { createDefaultClient } from './logPointsClient';
 import { CommandRunResult } from './structs/CommandRunResult';
 import { ICloseSessionRequest } from './structs/ICloseSessionRequest';
+import { IGetLogpointsRequest } from './structs/IGetLogpointsRequest';
 import { ILoadedScriptsRequest } from './structs/ILoadedScriptsRequest';
 import { ILoadedScriptsResponse } from './structs/ILoadedScriptsResponse';
 import { ILoadSourceRequest } from './structs/ILoadSourceRequest';
@@ -25,7 +26,7 @@ interface IAttachRequestArguments extends DebugProtocol.AttachRequestArguments {
     debugId: string;
 }
 
-const logPointsDebuggerClient = new KuduLogPointsDebuggerClient();
+const logPointsDebuggerClient = createDefaultClient();
 
 // tslint:disable-next-line:export-name
 export class NodeDebugSession extends LoggingDebugSession {
@@ -126,12 +127,28 @@ export class NodeDebugSession extends LoggingDebugSession {
             const request: IRemoveLogpointRequest = { sessionId: this._sessionId, debugId: this._debugId, logpointId: <string>args };
             logPointsDebuggerClient.removeLogpoint(this._siteName, this._affinityValue, this.getPublishCrednetial(), request)
                 .then(result => {
-                    logger.log(`removeLogpoint received. ${require('util').inspect(result)}`);
+                    logger.log(`removeLogpoint completed. ${require('util').inspect(result)}`);
                 });
+        } else if (command === 'getLogpoints') {
+            const request: IGetLogpointsRequest = { sessionId: this._sessionId, debugId: this._debugId, sourceId: <string>args };
+
+            logPointsDebuggerClient.getLogpoints(this._siteName, this._affinityValue, this.getPublishCrednetial(), request)
+                .then(result => {
+                    if (result.isSuccessful()) {
+                        response.body = result.json;
+                    } else {
+                        response.body = {
+                            error: result.error
+                        };
+                    }
+                    this.sendResponse(response);
+                });
+
         }
     }
 
     protected disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments): void {
+        this.sendResponse(response);
         // There is args.terminateDebuggee, which can be potentially utilized. Ignore for now.
         // tslint:disable-next-line:no-unused-expression
         args && 1;

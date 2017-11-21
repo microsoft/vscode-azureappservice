@@ -5,9 +5,7 @@ import { AzureAccountWrapper } from '../AzureAccountWrapper';
 import { UserCancelledError } from '../errors';
 import * as util from '../util';
 import { WizardBase, WizardStep } from '../wizard';
-import {
-    ILogPointsDebuggerClient, KuduLogPointsDebuggerClient, MockLogpointsDebuggerClient
-} from './logPointsClient';
+import { createDefaultClient } from './logPointsClient';
 
 import WebSiteManagementClient = require('azure-arm-website');
 import { CommandRunResult } from './structs/CommandRunResult';
@@ -16,15 +14,7 @@ import { IAttachProcessResponse } from './structs/IAttachProcessResponse';
 import { IEnumerateProcessResponse } from './structs/IEnumerateProcessResponse';
 import { IStartSessionResponse } from './structs/IStartSessionResponse';
 
-const shouldUseMockKuduCall = false;
-
-let logPointsDebuggerClient: ILogPointsDebuggerClient;
-
-if (shouldUseMockKuduCall) {
-    logPointsDebuggerClient = new MockLogpointsDebuggerClient();
-} else {
-    logPointsDebuggerClient = new KuduLogPointsDebuggerClient();
-}
+const logPointsDebuggerClient = createDefaultClient();
 
 // tslint:disable-next-line:export-name
 export class LogPointsSessionAttach extends WizardBase {

@@ -9,6 +9,8 @@ import { IAttachProcessResponse } from './structs/IAttachProcessResponse';
 import { ICloseSessionRequest } from './structs/ICloseSessionRequest';
 import { ICloseSessionResponse } from './structs/ICloseSessionResponse';
 import { IEnumerateProcessResponse } from './structs/IEnumerateProcessResponse';
+import { IGetLogpointsRequest } from './structs/IGetLogpointsRequest';
+import { IGetLogpointsResponse } from './structs/IGetLogpointsResponse';
 import { ILoadedScriptsRequest } from './structs/ILoadedScriptsRequest';
 import { ILoadedScriptsResponse } from './structs/ILoadedScriptsResponse';
 import { ILoadSourceRequest } from './structs/ILoadSourceRequest';
@@ -38,6 +40,8 @@ export interface ILogPointsDebuggerClient {
     setLogpoint(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: ISetLogpointRequest): Promise<CommandRunResult<ISetLogpointResponse>>;
 
     removeLogpoint(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: IRemoveLogpointRequest): Promise<CommandRunResult<IRemoveLogpointResponse>>;
+
+    getLogpoints(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: IGetLogpointsRequest): Promise<CommandRunResult<IGetLogpointsResponse>>;
 }
 
 abstract class LogPointsDebuggerClientBase {
@@ -109,6 +113,11 @@ export class KuduLogPointsDebuggerClient extends LogPointsDebuggerClientBase imp
     public removeLogpoint(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: IRemoveLogpointRequest): Promise<CommandRunResult<IRemoveLogpointResponse>> {
         return this.makeCallAndLogException<IRemoveLogpointResponse>(siteName, affinityValue, publishCredential,
             `curl -X DELETE -H "Content-Type: application/json" http://localhost:32923/debugger/session/${data.sessionId}/debugee/${data.debugId}/logpoints/${data.logpointId}`);
+    }
+
+    public getLogpoints(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: IGetLogpointsRequest): Promise<CommandRunResult<IGetLogpointsResponse>> {
+        return this.makeCallAndLogException<IGetLogpointsResponse>(siteName, affinityValue, publishCredential,
+            `curl -X GET -H "Content-Type: application/json" http://localhost:32923/debugger/session/${data.sessionId}/debugee/${data.debugId}/logpoints?sourceId=${data.sourceId}`);
     }
 
     public call<ResponseType>(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, command: string)
@@ -217,6 +226,11 @@ export class MockLogpointsDebuggerClient extends LogPointsDebuggerClientBase imp
             `curl -X DELETE -H "Content-Type: application/json" http://localhost:32923/debugger/session/${data.sessionId}/debugee/${data.debugId}/logpoints/${data.logpointId}`);
     }
 
+    public getLogpoints(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: IGetLogpointsRequest): Promise<CommandRunResult<IGetLogpointsResponse>> {
+        return this.makeCallAndLogException<IGetLogpointsResponse>(siteName, affinityValue, publishCredential,
+            `curl -X GET -H "Content-Type: application/json" http://localhost:32923/debugger/session/${data.sessionId}/debugee/${data.debugId}/logpoints?sourceId=${data.sourceId}`);
+    }
+
     public call<ResponseType>(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, command: string): Promise<CommandRunResult<ResponseType>> {
         // tslint:disable-next-line:no-unused-expression
         siteName && affinityValue && publishCredential;
@@ -229,8 +243,19 @@ export class MockLogpointsDebuggerClient extends LogPointsDebuggerClientBase imp
                     return;
                 }
 
-                resolve(new CommandRunResult<ResponseType>(null, 0, stdout));
+                const output = JSON.stringify({ exitCode: 0, stdout, stderr });
+                resolve(new CommandRunResult<ResponseType>(null, 0, output));
             });
         });
+    }
+}
+
+const shouldUseMockKuduCall = true;
+
+export function createDefaultClient(): ILogPointsDebuggerClient {
+    if (shouldUseMockKuduCall) {
+        return new MockLogpointsDebuggerClient();
+    } else {
+        return new KuduLogPointsDebuggerClient();
     }
 }
