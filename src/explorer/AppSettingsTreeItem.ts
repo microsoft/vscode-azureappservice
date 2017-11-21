@@ -186,14 +186,13 @@ export class AppSettingTreeItem implements IAzureTreeItem {
         node.refresh();
     }
 
-    public async deleteTreeItem(node: IAzureNode): Promise<IAzureTreeItem> {
+    public async deleteTreeItem(node: IAzureNode): Promise<void> {
         const okayAction: vscode.MessageItem = { title: 'Delete' };
         const cancelAction: vscode.MessageItem = { title: 'Cancel', isCloseAffordance: true };
         const result = await vscode.window.showWarningMessage(`Are you sure you want to delete setting "${this.key}"?`, okayAction, cancelAction);
 
         if (result === okayAction) {
             await (<AppSettingsTreeItem>node.parent.treeItem).deleteSettingItem(nodeUtils.getWebSiteClient(node), this.key);
-            return this;
         } else {
             throw new UserCancelledError();
         }
