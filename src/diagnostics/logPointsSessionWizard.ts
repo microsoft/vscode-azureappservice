@@ -1,8 +1,7 @@
 import { SubscriptionModels } from 'azure-arm-resource';
 import * as vscode from 'vscode';
+import { UserCancelledError } from 'vscode-azureextensionui';
 import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models';
-import { AzureAccountWrapper } from '../AzureAccountWrapper';
-import { UserCancelledError } from '../errors';
 import * as util from '../util';
 import { WizardBase, WizardStep } from '../wizard';
 import {
@@ -39,10 +38,11 @@ export class LogPointsSessionAttach extends WizardBase {
 
     private _cachedPublishCredential: WebSiteModels.User;
 
-    constructor(output: vscode.OutputChannel,
-                readonly azureAccount: AzureAccountWrapper,
-                readonly site: WebSiteModels.Site,
-                readonly subscription?: SubscriptionModels.Subscription
+    constructor(
+        output: vscode.OutputChannel,
+        public readonly websiteManagementClient: WebSiteManagementClient,
+        public readonly site: WebSiteModels.Site,
+        public readonly subscription?: SubscriptionModels.Subscription
     ) {
         super(output);
     }
@@ -51,12 +51,8 @@ export class LogPointsSessionAttach extends WizardBase {
         return this._cachedPublishCredential;
     }
 
-    public get webManagementClient(): WebSiteManagementClient {
-        return new WebSiteManagementClient(this.azureAccount.getCredentialByTenantId(this.subscription.tenantId), this.subscription.subscriptionId);
-    }
-
     public async fetchPublishCrentential(site: WebSiteModels.Site): Promise<WebSiteModels.User> {
-        const siteClient = new WebSiteManagementClient(this.azureAccount.getCredentialByTenantId(this.subscription.tenantId), this.subscription.subscriptionId);
+        const siteClient = this.websiteManagementClient;
         const user = await util.getWebAppPublishCredential(siteClient, site);
         this._cachedPublishCredential = user;
         return user;
@@ -144,7 +140,7 @@ class PromptSlotSelection extends WizardStep {
      * Returns all the deployment slots and the production slot.
      */
     private async getDeploymentSlots(): Promise<WebSiteModels.Site[]> {
-        const client = this._wizard.webManagementClient;
+        const client = this._wizard.websiteManagementClient;
         const allDeploymentSlots = await client.webApps.listByResourceGroup(this.site.resourceGroup, { includeSlots: true });
         return allDeploymentSlots.filter((slot) => {
             return slot.repositorySiteName === this.site.name;
@@ -163,7 +159,7 @@ class GetUnoccupiedInstance extends WizardStep {
         const publishCredential = await this._wizard.getCachedCredentialOrRefetch(selectedSlot);
 
         let instances: WebSiteModels.WebAppInstanceCollection;
-        const client = this._wizard.webManagementClient;
+        const client = this._wizard.websiteManagementClient;
 
         await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async p => {
             const message = `Enumerating instances of ${selectedSlot.name}...`;
@@ -188,9 +184,11 @@ class GetUnoccupiedInstance extends WizardStep {
                 p.report({ message: message });
                 this._wizard.writeline(message);
                 await logPointsDebuggerClient.startSession(siteName, instance.name, publishCredential)
-                    .then((r: CommandRunResult<IStartSessionResponse>) => {
+                    .then(
+                    (r: CommandRunResult<IStartSessionResponse>) => {
                         result = r;
-                    },    () => {
+                    },
+                    () => {
                         // If there is an error, mark the request failed by resetting `result`.
                         result = null;
                     });

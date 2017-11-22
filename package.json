@@ -7,7 +7,7 @@
     "icon": "resources/windows-azure-web-site.png",
     "aiKey": "AIF-d9b70cd4-b9f9-4d70-929b-a071c400b217",
     "engines": {
-        "vscode": "^1.17.0"
+        "vscode": "^1.18.0"
     },
     "repository": {
         "type": "git",
@@ -31,6 +31,7 @@
     "activationEvents": [
         "onCommand:appService.CreateWebApp",
         "onCommand:appService.Refresh",
+        "onCommand:appService.LoadMore",
         "onCommand:appService.OpenInPortal",
         "onCommand:appService.Browse",
         "onCommand:appService.Start",
@@ -39,7 +40,6 @@
         "onCommand:appService.Delete",
         "onCommand:appService.DeploymentScript",
         "onCommand:appService.DeployZipPackage",
-        "onCommand:appService.ZipAndDeploy",
         "onCommand:appService.OpenVSTSCD",
         "onCommand:deploymentSlot.SwapSlots",
         "onCommand:appSettings.Add",
@@ -71,6 +71,11 @@
                     "light": "resources/light/refresh.svg",
                     "dark": "resources/dark/refresh.svg"
                 }
+            },
+            {
+                "command": "appService.LoadMore",
+                "title": "Load More",
+                "category": "Azure App Service"
             },
             {
                 "command": "appService.OpenInPortal",
@@ -110,11 +115,6 @@
             {
                 "command": "appService.DeployZipPackage",
                 "title": "Deploy to Web App",
-                "category": "Azure App Service"
-            },
-            {
-                "command": "appService.ZipAndDeploy",
-                "title": "Zip & Deploy to Web App",
                 "category": "Azure App Service"
             },
             {
@@ -206,79 +206,7 @@
                     "when": "never"
                 },
                 {
-                    "command": "appService.OpenInPortal",
-                    "when": "never"
-                },
-                {
-                    "command": "appService.Browse",
-                    "when": "never"
-                },
-                {
-                    "command": "appService.Start",
-                    "when": "never"
-                },
-                {
-                    "command": "appService.Stop",
-                    "when": "never"
-                },
-                {
-                    "command": "appService.Restart",
-                    "when": "never"
-                },
-                {
-                    "command": "appService.Delete",
-                    "when": "never"
-                },
-                {
-                    "command": "appService.DeploymentScript",
-                    "when": "never"
-                },
-                {
-                    "command": "appService.DeployZipPackage",
-                    "when": "never"
-                },
-                {
-                    "command": "appService.ZipAndDeploy",
-                    "when": "never"
-                },
-                {
-                    "command": "appService.LocalGitDeploy",
-                    "when": "never"
-                },
-                {
-                    "command": "appService.OpenVSTSCD",
-                    "when": "never"
-                },
-                {
-                    "command": "deploymentSlot.SwapSlots",
-                    "when": "never"
-                },
-                {
-                    "command": "appSettings.Add",
-                    "when": "never"
-                },
-                {
-                    "command": "appSettings.Edit",
-                    "when": "never"
-                },
-                {
-                    "command": "appSettings.Rename",
-                    "when": "never"
-                },
-                {
-                    "command": "appSettings.Delete",
-                    "when": "never"
-                },
-                {
-                    "command": "diagnostics.OpenLogStream",
-                    "when": "never"
-                },
-                {
-                    "command": "diagnostics.StopLogStream",
-                    "when": "never"
-                },
-                {
-                    "command": "deploymentSlots.CreateSlot",
+                    "command": "appService.LoadMore",
                     "when": "never"
                 },
                 {
@@ -309,12 +237,12 @@
             "view/item/context": [
                 {
                     "command": "appService.CreateWebApp",
-                    "when": "view == azureAppService && viewItem == subscription",
+                    "when": "view == azureAppService && viewItem == azureSubscription",
                     "group": "1_subscriptionGeneralCommands@1"
                 },
                 {
                     "command": "appService.Refresh",
-                    "when": "view == azureAppService && viewItem == subscription",
+                    "when": "view == azureAppService && viewItem == azureSubscription",
                     "group": "2_subscriptionGeneralCommands@1"
                 },
                 {
@@ -505,7 +433,7 @@
                     "group": "zzz_@appServiceDeployCommands"
                 },
                 {
-                    "command": "appService.ZipAndDeploy",
+                    "command": "appService.DeployZipPackage",
                     "when": "explorerResourceIsFolder == true",
                     "group": "zzz_@appServiceDeployCommands"
                 }
@@ -606,7 +534,6 @@
         "test": "node ./node_modules/vscode/bin/test"
     },
     "devDependencies": {
-        "@types/archiver": "^2.0.0",
         "@types/mocha": "^2.2.32",
         "@types/node": "^8.0.51",
         "@types/request": "^2.0.3",
@@ -617,7 +544,6 @@
         "vscode": "^1.0.0"
     },
     "dependencies": {
-        "archiver": "^2.0.3",
         "azure-arm-resource": "^2.0.0-preview",
         "azure-arm-website": "^1.0.0-preview",
         "kudu-api": "^1.4.1",
@@ -626,10 +552,11 @@
         "opn": "^5.1.0",
         "request": "^2.83.0",
         "simple-git": "^1.77.0",
-        "vscode-extension-telemetry": "^0.0.6",
-        "vscode-azureappservice": "^0.4.0",
         "vscode-debugadapter": "^1.24.0",
-        "vscode-debugprotocol": "^1.24.0"
+        "vscode-debugprotocol": "^1.24.0",
+        "vscode-extension-telemetry": "^0.0.8",
+        "vscode-azureappservice": "^0.4.0",
+        "vscode-azureextensionui": "^0.1.1"
     },
     "extensionDependencies": [
         "ms-vscode.azure-account"
