@@ -124,8 +124,9 @@ export class LogPointsManager extends vscode.Disposable {
     public async toggleLogpoint(uri: vscode.Uri): Promise<boolean> {
         if (uri.scheme !== RemoteScriptSchema.schema) {
             vscode.window.showWarningMessage(
-                util.format("Cannot set a tracepoint to this document %s. Expected schema: \"%s\", actual: \"%s\"",
-                            uri.fsPath, RemoteScriptSchema.schema, uri.scheme));
+                util.format(
+                    "Cannot set a tracepoint to this document %s. Expected schema: \"%s\", actual: \"%s\"",
+                    uri.fsPath, RemoteScriptSchema.schema, uri.scheme));
             return false;
         }
 
@@ -139,8 +140,6 @@ export class LogPointsManager extends vscode.Disposable {
         }
 
         const line = vscode.window.activeTextEditor.selection.active.line;
-        // tslint:disable-next-line:no-suspicious-comment
-        // TODO, see if we can get the column number from the editor.
         const column = 0;
         const params = RemoteScriptSchema.extractQueryParams(uri);
 
@@ -186,7 +185,5 @@ export class LogPointsManager extends vscode.Disposable {
 
     // tslint:disable-next-line:no-empty
     private cleanup(): void {
-        // tslint:disable-next-line:no-suspicious-comment
-        // TODO: clean the registery
     }
 }

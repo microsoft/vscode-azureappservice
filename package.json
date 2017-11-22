@@ -302,7 +302,7 @@
                 },
                 {
                     "command": "diagnostics.StartLogPointsSession",
-                    "when": "view == azureAppService && viewItem == appService",
+                    "when": "config.appservice.logpoints == true && view == azureAppService && viewItem == appService",
                     "group": "5_appServiceDiagnosticsCommands@3"
                 },
                 {
@@ -382,7 +382,7 @@
                 },
                 {
                     "command": "diagnostics.StartLogPointsSession",
-                    "when": "view == azureAppService && viewItem == deploymentSlot",
+                    "when": "config.appservice.logpoints == true && view == azureAppService && viewItem == deploymentSlot",
                     "group": "4_deploymentSlotDiagnosticsCommands@3"
                 },
                 {
@@ -440,7 +440,8 @@
             ],
             "editor/context": [
                 {
-                    "command": "diagnostics.LogPoints.Toggle"
+                    "command": "diagnostics.LogPoints.Toggle",
+                    "when": "config.appservice.logpoints == true"
                 }
             ]
         },
@@ -451,6 +452,11 @@
                     "type": "boolean",
                     "default": true,
                     "description": "Show or hide the App Service Explorer"
+                },
+                "appService.logpoints": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Enable or disable the Logpoints feature"
                 }
             }
         },
@@ -463,7 +469,7 @@
             {
                 "type": "jsLogpoints",
                 "label": "Azure App Service LogPoints",
-                "program": "./out/src/diagnostics/logPointsDebugAdapter.js",
+                "program": "./out/src/diagnostics/LogPointsDebugAdapter.js",
                 "runtime": "node",
                 "configurationAttributes": {
                     "launch": {

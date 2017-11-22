@@ -12,9 +12,6 @@ export class CommandRunResult<ResponseType extends { error?: {}, data?: {} }> {
             try {
                 this._json = JSON.parse(this.output);
             } catch (err) {
-                // tslint:disable-next-line:no-suspicious-comment
-                // TODO: re-enable.
-                // util.getOutputChannel().appendLine(`API call error ${err.toString()}`);
                 this._json = null;
             }
         }

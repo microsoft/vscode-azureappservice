@@ -26,8 +26,7 @@ interface IAttachRequestArguments extends DebugProtocol.AttachRequestArguments {
 
 const logPointsDebuggerClient = new MockLogpointsDebuggerClient();
 
-// tslint:disable-next-line:export-name
-export class NodeDebugSession extends LoggingDebugSession {
+export class LogPointsDebugAdapter extends LoggingDebugSession {
     private _sessionId: string;
     private _debugId: string;
 
@@ -154,4 +153,4 @@ export class NodeDebugSession extends LoggingDebugSession {
     }
 }
 
-DebugSession.run(NodeDebugSession);
+DebugSession.run(LogPointsDebugAdapter);
