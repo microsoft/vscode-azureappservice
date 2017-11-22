@@ -4,8 +4,9 @@ import {
     Thread
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
+import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models';
 
-import { MockLogpointsDebuggerClient } from './logPointsClient';
+import { KuduLogPointsDebuggerClient } from './logPointsClient';
 import { CommandRunResult } from './structs/CommandRunResult';
 import { ICloseSessionRequest } from './structs/ICloseSessionRequest';
 import { ILoadedScriptsRequest } from './structs/ILoadedScriptsRequest';
@@ -16,20 +17,24 @@ import { ISetLogpointRequest } from './structs/ISetLogpointRequest';
 
 interface IAttachRequestArguments extends DebugProtocol.AttachRequestArguments {
     trace?: boolean;
-    siteName?: string;
-    publishCredentialName?: string;
-    publishCredentialPassword?: string;
+    siteName: string;
+    publishCredentialUsername: string;
+    publishCredentialPassword: string;
     instanceId?: string;
     sessionId: string;
     debugId: string;
 }
 
-const logPointsDebuggerClient = new MockLogpointsDebuggerClient();
+const logPointsDebuggerClient = new KuduLogPointsDebuggerClient();
 
 // tslint:disable-next-line:export-name
 export class NodeDebugSession extends LoggingDebugSession {
     private _sessionId: string;
     private _debugId: string;
+    private _siteName: string;
+    private _affinityValue: string;
+    private _publishingUsername: string;
+    private _publishingPassword: string;
 
     public constructor() {
         super("jsLogPointsdebugadapter.log");
@@ -49,6 +54,10 @@ export class NodeDebugSession extends LoggingDebugSession {
     protected attachRequest(response: DebugProtocol.AttachResponse, args: IAttachRequestArguments): void {
         this._sessionId = args.sessionId;
         this._debugId = args.debugId;
+        this._siteName = args.siteName;
+        this._affinityValue = args.instanceId;
+        this._publishingUsername = args.publishCredentialUsername;
+        this._publishingPassword = args.publishCredentialPassword;
 
         response.body = response.body || {};
         response.body.supportsConfigurationDoneRequest = false;
@@ -82,7 +91,7 @@ export class NodeDebugSession extends LoggingDebugSession {
         if (command === 'loadSource') {
             const sourceId: string = args;
             const request: ILoadSourceRequest = { sessionId: this._sessionId, debugId: this._debugId, sourceId };
-            logPointsDebuggerClient.loadSource(null, null, null, request).then(
+            logPointsDebuggerClient.loadSource(this._siteName, this._affinityValue, this.getPublishCrednetial(), request).then(
                 (result) => {
                     if (result.isSuccessful()) {
                         response.body = {
@@ -100,7 +109,7 @@ export class NodeDebugSession extends LoggingDebugSession {
                 sessionId: this._sessionId, debugId: this._debugId, sourceId: args.scriptId,
                 lineNumber: args.lineNumber, columNumber: args.columnNumber, expression: args.expression
             };
-            logPointsDebuggerClient.setLogpoint(null, null, null, request)
+            logPointsDebuggerClient.setLogpoint(this._siteName, this._affinityValue, this.getPublishCrednetial(), request)
                 .then(result => {
                     if (result.isSuccessful()) {
                         response.body = result.json;
@@ -115,7 +124,7 @@ export class NodeDebugSession extends LoggingDebugSession {
 
         } else if (command === 'removeLogpoint') {
             const request: IRemoveLogpointRequest = { sessionId: this._sessionId, debugId: this._debugId, logpointId: <string>args };
-            logPointsDebuggerClient.removeLogpoint(null, null, null, request)
+            logPointsDebuggerClient.removeLogpoint(this._siteName, this._affinityValue, this.getPublishCrednetial(), request)
                 .then(result => {
                     logger.log(`removeLogpoint received. ${require('util').inspect(result)}`);
                 });
@@ -127,7 +136,7 @@ export class NodeDebugSession extends LoggingDebugSession {
         // tslint:disable-next-line:no-unused-expression
         args && 1;
         const request: ICloseSessionRequest = { sessionId: this._sessionId };
-        logPointsDebuggerClient.closeSession(null, null, null, request)
+        logPointsDebuggerClient.closeSession(this._siteName, this._affinityValue, this.getPublishCrednetial(), request)
             .then(() => {
                 // Since the response is just a acknowledgement, the client will not even look at it, so we call sendResponse() regardlesss of the result.
                 this.sendResponse(response);
@@ -136,7 +145,8 @@ export class NodeDebugSession extends LoggingDebugSession {
 
     private async getLoadedScripts(): Promise<void> {
         const request: ILoadedScriptsRequest = { sessionId: this._sessionId, debugId: this._debugId };
-        const response: CommandRunResult<ILoadedScriptsResponse> = await logPointsDebuggerClient.loadedScripts(null, null, null, request);
+        const response: CommandRunResult<ILoadedScriptsResponse>
+            = await logPointsDebuggerClient.loadedScripts(this._siteName, this._affinityValue, this.getPublishCrednetial(), request);
 
         if (response.isSuccessful()) {
             response.json.data.forEach((sourceData) => {
@@ -151,6 +161,14 @@ export class NodeDebugSession extends LoggingDebugSession {
             });
         }
 
+    }
+
+    private getPublishCrednetial(): WebSiteModels.User {
+        return {
+            location: undefined,
+            publishingUserName: this._publishingUsername,
+            publishingPassword: this._publishingPassword
+        };
     }
 }
 

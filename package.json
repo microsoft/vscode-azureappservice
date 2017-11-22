@@ -482,7 +482,7 @@
                                 "description": "A URL prefix for the azure scm url.",
                                 "default": ""
                             },
-                            "publishCredentialName": {
+                            "publishCredentialUsername": {
                                 "type": "string",
                                 "description": "publishingUserName",
                                 "default": ""
