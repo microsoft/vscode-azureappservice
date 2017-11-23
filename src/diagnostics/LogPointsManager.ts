@@ -136,8 +136,9 @@ export class LogPointsManager extends vscode.Disposable {
     public async toggleLogpoint(uri: vscode.Uri): Promise<boolean> {
         if (uri.scheme !== RemoteScriptSchema.schema) {
             vscode.window.showWarningMessage(
-                util.format("Cannot set a tracepoint to this document %s. Expected schema: \"%s\", actual: \"%s\"",
-                            uri.fsPath, RemoteScriptSchema.schema, uri.scheme));
+                util.format(
+                    "Cannot set a tracepoint to this document %s. Expected schema: \"%s\", actual: \"%s\"",
+                    uri.fsPath, RemoteScriptSchema.schema, uri.scheme));
             return false;
         }
 
@@ -178,6 +179,9 @@ export class LogPointsManager extends vscode.Disposable {
     }
 
     private onActiveEditorChange(activeEditor: vscode.TextEditor): void {
+        if (!activeEditor) {
+            return;
+        }
         const documentUri = activeEditor.document.uri;
 
         if (documentUri.scheme !== RemoteScriptSchema.schema) {
