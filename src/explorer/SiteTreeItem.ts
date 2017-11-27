@@ -138,6 +138,16 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
             throw new SiteActionError(err, appServicePlan.sku.size);
         }
     }
+
+    public async editScmType(client: WebSiteManagementClient): Promise<string> {
+        const updatedScmType = await this.siteWrapper.editScmType(client);
+        if (!updatedScmType) {
+            throw new UserCancelledError();
+        }
+
+        return updatedScmType;
+
+    }
 }
 
 export async function getAppServicePlan(site: WebSiteModels.Site, client: WebSiteManagementClient): Promise<WebSiteModels.AppServicePlan> {
