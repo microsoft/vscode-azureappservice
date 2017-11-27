@@ -190,13 +190,14 @@ export function activate(context: vscode.ExtensionContext): void {
         }
 
         const client: WebSiteManagementClient = nodeUtils.getWebSiteClient(node);
-        const enableButton = 'Yes';
+        const enableButton: vscode.MessageItem = { title: 'Yes' };
+        const notNowButton: vscode.MessageItem = { title: 'Not Now', isCloseAffordance: true };
         const isEnabled = await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, p => {
             p.report({ message: 'Checking container diagnostics settings...' });
             return node.treeItem.isHttpLogsEnabled(client);
         });
 
-        if (!isEnabled && enableButton === await vscode.window.showWarningMessage('Do you want to enable logging and restart this container?', enableButton)) {
+        if (!isEnabled && enableButton === await vscode.window.showWarningMessage('Do you want to enable logging and restart this container?', enableButton, notNowButton)) {
             outputChannel.show();
             outputChannel.appendLine(`Enabling Logging for "${node.treeItem.site.name}"...`);
             await node.treeItem.enableHttpLogs(client);
