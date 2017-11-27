@@ -56,6 +56,7 @@ export class LogPointsSessionAttach extends WizardBase {
     }
 
     protected initSteps(): void {
+        this.steps.push(new EligibilityCheck(this));
         if (util.isSiteDeploymentSlot(this.site)) {
             this.selectedDeploymentSlot = this.site;
         } else {
@@ -75,6 +76,43 @@ export class LogPointsSessionAttach extends WizardBase {
         }
         this.writeline(`Starting Log Points Session failed - ${error.message}`);
         this.writeline('');
+    }
+}
+
+// tslint:disable:max-classes-per-file
+class EligibilityCheck extends WizardStep {
+    private static ALLOWED_IMAGES: string[] = [
+        "f12azurenodelogpointsnightly.azurecr.io/azure-nodejs-logpoints"
+    ];
+
+    constructor(private _wizard: LogPointsSessionAttach) {
+        super(_wizard, 'Decide the app service eligibility for logpoints.');
+    }
+
+    public async prompt(): Promise<void> {
+        const site = this._wizard.site;
+
+        const kind = site.kind;
+
+        if (!/linux$/.test(kind)) {
+            throw new Error('Only Linux App Services are suppored');
+        }
+
+        const siteClient = this._wizard.websiteManagementClient;
+
+        const config: WebSiteModels.SiteConfigResource = await siteClient.webApps.getConfiguration(site.resourceGroup, site.name);
+
+        const linuxFxVersion = config.linuxFxVersion;
+
+        if (!linuxFxVersion) {
+            throw new Error('Cannot read "linuxFxVersion"');
+        }
+
+        const [framework, imageName] = linuxFxVersion.split('|');
+
+        if ('docker' !== framework.toLocaleLowerCase() || EligibilityCheck.ALLOWED_IMAGES.indexOf(imageName.toLocaleLowerCase()) === -1) {
+            throw new Error(`Please use one of the supported docker image. The ${framework}|${imageName} combination is not supported`);
+        }
     }
 }
 
@@ -136,7 +174,6 @@ class PromptSlotSelection extends WizardStep {
         });
     }
 }
-
 class GetUnoccupiedInstance extends WizardStep {
     constructor(private _wizard: LogPointsSessionAttach) {
         super(_wizard, 'Find the first available unoccupied instance.');
@@ -201,7 +238,6 @@ class GetUnoccupiedInstance extends WizardStep {
     }
 }
 
-// tslint:disable-next-line:max-classes-per-file
 class PickProcessStep extends WizardStep {
     constructor(private _wizard: LogPointsSessionAttach) {
         super(_wizard, 'Enumerate node processes.');
