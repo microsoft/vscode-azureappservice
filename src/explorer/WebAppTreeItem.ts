@@ -10,9 +10,9 @@ import * as fs from 'fs';
 import * as opn from 'opn';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import { AppSettingsTreeItem, AppSettingTreeItem } from 'vscode-azureappservice';
 import { IAzureNode, IAzureTreeItem, UserCancelledError } from 'vscode-azureextensionui';
 import { nodeUtils } from '../utils/nodeUtils';
-import { AppSettingsTreeItem, AppSettingTreeItem } from './AppSettingsTreeItem';
 import { DeploymentSlotsNATreeItem, DeploymentSlotsTreeItem } from './DeploymentSlotsTreeItem';
 import { DeploymentSlotTreeItem } from './DeploymentSlotTreeItem';
 import { getAppServicePlan, SiteTreeItem } from './SiteTreeItem';
@@ -32,7 +32,7 @@ export class WebAppTreeItem extends SiteTreeItem {
         // nodes.push(new FilesNode('Files', '/site/wwwroot', this.site, this.subscription, treeDataProvider, this));
         // nodes.push(new FilesNode('Log Files', '/LogFiles', this.site, this.subscription));
         this.webJobsNode = new WebJobsTreeItem(site);
-        this.appSettingsNode = new AppSettingsTreeItem(site);
+        this.appSettingsNode = new AppSettingsTreeItem(this.siteWrapper);
     }
 
     public get label(): string {

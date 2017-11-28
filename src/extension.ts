@@ -7,6 +7,7 @@
 
 import WebSiteManagementClient = require('azure-arm-website');
 import * as vscode from 'vscode';
+import { AppSettingsTreeItem, AppSettingTreeItem } from 'vscode-azureappservice';
 import { AzureTreeDataProvider, IAzureNode, IAzureParentNode, UserCancelledError } from 'vscode-azureextensionui';
 import { DeploymentSlotSwapper } from './DeploymentSlotSwapper';
 import { LogPointsManager } from './diagnostics/LogPointsManager';
@@ -15,7 +16,6 @@ import { RemoteScriptDocumentProvider, RemoteScriptSchema } from './diagnostics/
 import { LogpointsCollection } from './diagnostics/structs/LogpointsCollection';
 import { ErrorData } from './ErrorData';
 import { SiteActionError, WizardFailedError } from './errors';
-import { AppSettingsTreeItem, AppSettingTreeItem } from './explorer/AppSettingsTreeItem';
 import { DeploymentSlotsTreeItem } from './explorer/DeploymentSlotsTreeItem';
 import { DeploymentSlotTreeItem } from './explorer/DeploymentSlotTreeItem';
 import { LoadedScriptsProvider, openScript } from './explorer/loadedScriptsExplorer';

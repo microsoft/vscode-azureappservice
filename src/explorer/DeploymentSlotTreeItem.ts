@@ -5,8 +5,8 @@
 
 import * as WebSiteModels from 'azure-arm-website/lib/models';
 import * as path from 'path';
+import { AppSettingsTreeItem } from 'vscode-azureappservice';
 import { IAzureParentNode, IAzureTreeItem } from 'vscode-azureextensionui';
-import { AppSettingsTreeItem } from './AppSettingsTreeItem';
 import { SiteTreeItem } from './SiteTreeItem';
 
 export class DeploymentSlotTreeItem extends SiteTreeItem {
@@ -29,6 +29,6 @@ export class DeploymentSlotTreeItem extends SiteTreeItem {
     }
 
     public async loadMoreChildren(node: IAzureParentNode<DeploymentSlotTreeItem>): Promise<IAzureTreeItem[]> {
-        return [new AppSettingsTreeItem(node.treeItem.site)];
+        return [new AppSettingsTreeItem(node.treeItem.siteWrapper)];
     }
 }
