@@ -324,7 +324,7 @@
                 },
                 {
                     "command": "diagnostics.StartLogPointsSession",
-                    "when": "config.appservice.logpoints == true && view == azureAppService && viewItem == appService",
+                    "when": "config.appService.logpoints == true && view == azureAppService && viewItem == appService",
                     "group": "5_appServiceDiagnosticsCommands@3"
                 },
                 {
@@ -404,7 +404,7 @@
                 },
                 {
                     "command": "diagnostics.StartLogPointsSession",
-                    "when": "config.appservice.logpoints == true && view == azureAppService && viewItem == deploymentSlot",
+                    "when": "config.appService.logpoints == true && view == azureAppService && viewItem == deploymentSlot",
                     "group": "4_deploymentSlotDiagnosticsCommands@3"
                 },
                 {
@@ -463,7 +463,7 @@
             "editor/context": [
                 {
                     "command": "diagnostics.LogPoints.Toggle",
-                    "when": "config.appservice.logpoints == true"
+                    "when": "config.appService.logpoints == true"
                 }
             ]
         },

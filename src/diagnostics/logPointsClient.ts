@@ -133,7 +133,7 @@ export class KuduLogPointsDebuggerClient extends LogPointsDebuggerClientBase imp
             json: true,
             body: {
                 command: `/usr/bin/node ./ssh-client.js --command ${encodedCommand}`,
-                dir: 'site/wwwroot'
+                dir: 'logpoints/ssh-client'
             }
         };
 
@@ -165,7 +165,7 @@ export class KuduLogPointsDebuggerClient extends LogPointsDebuggerClientBase imp
         const request = req.defaults({});
         request.cookie(`ARRAffinity=${affinityValue}`);
         const opts = {
-            uri: `${KuduLogPointsDebuggerClient.getBaseUri(siteName)}/api/zip/site/wwwroot/`,
+            uri: `${KuduLogPointsDebuggerClient.getBaseUri(siteName)}/api/zip/logpoints/ssh-client/`,
             headers: {
                 'Content-Type': 'multipart/form-data'
             },
