@@ -1,5 +1,5 @@
 import { SubscriptionModels } from 'azure-arm-resource';
-import { Site, SiteInstance, User, WebAppInstanceCollection } from 'azure-arm-website/lib/models';
+import { Site, SiteConfigResource, SiteInstance, User, WebAppInstanceCollection } from 'azure-arm-website/lib/models';
 import * as vscode from 'vscode';
 import { UserCancelledError } from 'vscode-azureextensionui';
 import * as util from '../util';
@@ -81,10 +81,6 @@ export class LogPointsSessionAttach extends WizardBase {
 
 // tslint:disable:max-classes-per-file
 class EligibilityCheck extends WizardStep {
-    private static ALLOWED_IMAGES: string[] = [
-        "f12azurenodelogpointsnightly.azurecr.io/azure-nodejs-logpoints"
-    ];
-
     constructor(private _wizard: LogPointsSessionAttach) {
         super(_wizard, 'Decide the app service eligibility for logpoints.');
     }
@@ -100,7 +96,7 @@ class EligibilityCheck extends WizardStep {
 
         const siteClient = this._wizard.websiteManagementClient;
 
-        const config: WebSiteModels.SiteConfigResource = await siteClient.webApps.getConfiguration(site.resourceGroup, site.name);
+        const config: SiteConfigResource = await siteClient.webApps.getConfiguration(site.resourceGroup, site.name);
 
         const linuxFxVersion = config.linuxFxVersion;
 
@@ -109,8 +105,9 @@ class EligibilityCheck extends WizardStep {
         }
 
         const [framework, imageName] = linuxFxVersion.split('|');
+        const enabledImages = vscode.workspace.getConfiguration('appService').get<string[]>('enabledDockerImages');
 
-        if ('docker' !== framework.toLocaleLowerCase() || EligibilityCheck.ALLOWED_IMAGES.indexOf(imageName.toLocaleLowerCase()) === -1) {
+        if ('docker' !== framework.toLocaleLowerCase() || enabledImages.indexOf(imageName.toLocaleLowerCase()) === -1) {
             throw new Error(`Please use one of the supported docker image. The ${framework}|${imageName} combination is not supported`);
         }
     }

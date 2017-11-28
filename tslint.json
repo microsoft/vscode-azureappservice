@@ -38,7 +38,6 @@
         "mocha-no-side-effect-code": true,
         "no-any": true,
         "no-arg": true,
-        "no-backbone-get-set-outside-model": true,
         "no-bitwise": true,
         "no-conditional-assignment": true,
         "no-console": [
