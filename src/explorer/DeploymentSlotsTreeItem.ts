@@ -10,6 +10,7 @@ import { IAzureNode, IAzureParentNode, IAzureParentTreeItem, IAzureTreeItem, Use
 import * as util from '../util';
 import { nodeUtils } from '../utils/nodeUtils';
 import { DeploymentSlotTreeItem } from './DeploymentSlotTreeItem';
+import { ResourceNameAvailability } from 'azure-arm-website/lib/models';
 
 export class DeploymentSlotsTreeItem implements IAzureParentTreeItem {
     public static contextValue: string = 'deploymentSlots';
@@ -54,9 +55,7 @@ export class DeploymentSlotsTreeItem implements IAzureParentTreeItem {
     }
 
     public async createChild(node: IAzureParentNode<DeploymentSlotsTreeItem>, showCreatingNode: (label: string) => void): Promise<IAzureTreeItem> {
-        const slotNodes: IAzureNode<DeploymentSlotTreeItem>[] = <IAzureNode<DeploymentSlotTreeItem>[]>await node.getCachedChildren();
-        const slotLabels: string[] = slotNodes.map((n: IAzureNode<DeploymentSlotTreeItem>) => n.treeItem.siteWrapper.slotName);
-        let slotName: string = await this.promptForSlotName(slotLabels);
+        let slotName: string = await this.promptForSlotName(node);
         if (!slotName) {
             throw new UserCancelledError();
         }
@@ -75,19 +74,20 @@ export class DeploymentSlotsTreeItem implements IAzureParentTreeItem {
         return new DeploymentSlotTreeItem(newSite);
     }
 
-    private async promptForSlotName(slotLabels: string[]): Promise<string | undefined> {
+    private async promptForSlotName(node: IAzureParentNode<DeploymentSlotsTreeItem>): Promise<string | undefined> {
         return await window.showInputBox({
             prompt: 'Enter a unique name for the new deployment slot',
             ignoreFocusOut: true,
-            validateInput: (value: string) => {
+            validateInput: async (value: string) => {
                 value = value ? value.trim() : '';
-                if (!value.match(/^[a-z0-9\-]{1,60}$/ig)) {
-                    return 'Name should be 1-60 characters long and can only include alphanumeric characters and hyphens.';
+                // Can not have "production" as a slot name, but checkNameAvailability doesn't validate that
+                if (value === 'production') {
+                    return `The slot name "${value}" is not available.`;
                 }
 
-                // Can not have identical slot names OR production
-                if (value === 'production' || slotLabels.indexOf(value) !== -1) {
-                    return `The slot name "${value}" is not available`;
+                const nameAvailability: ResourceNameAvailability = await nodeUtils.getWebSiteClient(node).checkNameAvailability(`${util.extractSiteName(node.treeItem.site)}-${value}`, 'Slot');
+                if (!nameAvailability.nameAvailable) {
+                    return nameAvailability.message;
                 }
 
                 return null;
