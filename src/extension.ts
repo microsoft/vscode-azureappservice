@@ -9,11 +9,16 @@ import WebSiteManagementClient = require('azure-arm-website');
 import * as vscode from 'vscode';
 import { AzureTreeDataProvider, IAzureNode, IAzureParentNode, UserCancelledError } from 'vscode-azureextensionui';
 import { DeploymentSlotSwapper } from './DeploymentSlotSwapper';
+import { LogPointsManager } from './diagnostics/LogPointsManager';
+import { LogPointsSessionAttach } from './diagnostics/logPointsSessionWizard';
+import { RemoteScriptDocumentProvider, RemoteScriptSchema } from './diagnostics/remoteScriptDocumentProvider';
+import { LogpointsCollection } from './diagnostics/structs/LogpointsCollection';
 import { ErrorData } from './ErrorData';
 import { SiteActionError, WizardFailedError } from './errors';
 import { AppSettingsTreeItem, AppSettingTreeItem } from './explorer/AppSettingsTreeItem';
 import { DeploymentSlotsTreeItem } from './explorer/DeploymentSlotsTreeItem';
 import { DeploymentSlotTreeItem } from './explorer/DeploymentSlotTreeItem';
+import { LoadedScriptsProvider, openScript } from './explorer/loadedScriptsExplorer';
 import { SiteTreeItem } from './explorer/SiteTreeItem';
 import { WebAppProvider } from './explorer/WebAppProvider';
 import { WebAppTreeItem } from './explorer/WebAppTreeItem';
@@ -22,6 +27,7 @@ import * as util from "./util";
 import { nodeUtils } from './utils/nodeUtils';
 
 // tslint:disable-next-line:max-func-body-length
+// tslint:disable-next-line:export-name
 export function activate(context: vscode.ExtensionContext): void {
     context.subscriptions.push(new Reporter(context));
 
@@ -32,6 +38,26 @@ export function activate(context: vscode.ExtensionContext): void {
     const tree = new AzureTreeDataProvider(webAppProvider, 'appService.LoadMore');
     context.subscriptions.push(tree);
     context.subscriptions.push(vscode.window.registerTreeDataProvider('azureAppService', tree));
+
+    // loaded scripts
+    const provider = new LoadedScriptsProvider(context);
+    context.subscriptions.push(vscode.window.registerTreeDataProvider('appservice.loadedScriptsExplorer.jsLogpoints', provider));
+
+    const documentProvider = new RemoteScriptDocumentProvider();
+    context.subscriptions.push(vscode.workspace.registerTextDocumentContentProvider(RemoteScriptSchema.schema, documentProvider));
+
+    const logPointsManager = new LogPointsManager(outputChannel);
+    context.subscriptions.push(logPointsManager);
+
+    const pathIcon = context.asAbsolutePath('resources/logpoint.svg');
+    const logpointDecorationType = vscode.window.createTextEditorDecorationType({
+        gutterIconPath: pathIcon,
+        overviewRulerLane: vscode.OverviewRulerLane.Full,
+        overviewRulerColor: "rgba(21, 126, 251, 0.7)"
+    });
+    context.subscriptions.push(logpointDecorationType);
+
+    LogpointsCollection.TextEditorDecorationType = logpointDecorationType;
 
     initCommand(context, 'appService.Refresh', (node?: IAzureNode) => tree.refresh(node));
     initCommand(context, 'appService.LoadMore', (node?: IAzureNode) => tree.loadMore(node));
@@ -219,6 +245,19 @@ export function activate(context: vscode.ExtensionContext): void {
 
         node.treeItem.stopLogStream();
     });
+    initAsyncCommand(context, 'diagnostics.StartLogPointsSession', async (node: IAzureNode<SiteTreeItem>) => {
+        if (node) {
+            const client: WebSiteManagementClient = nodeUtils.getWebSiteClient(node);
+            const wizard = new LogPointsSessionAttach(outputChannel, client, node.treeItem.site, node.subscription);
+            await wizard.run();
+        }
+    });
+
+    initAsyncCommand(context, 'diagnostics.LogPoints.Toggle', async (uri: vscode.Uri) => {
+        logPointsManager.toggleLogpoint(uri);
+    });
+
+    context.subscriptions.push(vscode.commands.registerCommand('diagnostics.LogPoints.OpenScript', openScript));
 }
 
 // tslint:disable-next-line:no-empty
