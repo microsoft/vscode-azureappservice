@@ -583,8 +583,8 @@
         "vscode-debugadapter": "^1.24.0",
         "vscode-debugprotocol": "^1.24.0",
         "vscode-extension-telemetry": "^0.0.8",
-        "vscode-azureappservice": "^0.5.1",
-        "vscode-azureextensionui": "~0.2.0"
+        "vscode-azureappservice": "~0.6.0",
+        "vscode-azureextensionui": "~0.3.0"
     },
     "extensionDependencies": [
         "ms-vscode.azure-account"
