@@ -8,25 +8,22 @@ import { SubscriptionModels } from 'azure-arm-resource';
 // tslint:disable-next-line:no-require-imports
 import WebSiteManagementClient = require('azure-arm-website');
 import * as vscode from 'vscode';
-import { AzureAccountWrapper } from './AzureAccountWrapper';
-import { UserCancelledError } from './errors';
-import { DeploymentSlotNode } from './explorer/DeploymentSlotNode';
-import { DeploymentSlotsNode } from './explorer/DeploymentSlotsNode';
+import { IAzureNode, UserCancelledError } from 'vscode-azureextensionui';
+import { DeploymentSlotTreeItem } from './explorer/DeploymentSlotTreeItem';
 import { IQuickPickItemWithData } from './util';
+import { nodeUtils } from './utils/nodeUtils';
 import { WizardBase, WizardStep } from './wizard';
 
 export class DeploymentSlotSwapper extends WizardBase {
-    private readonly azureAccount: AzureAccountWrapper;
-    private readonly slot: DeploymentSlotNode;
+    private readonly slot: IAzureNode<DeploymentSlotTreeItem>;
 
-    constructor(output: vscode.OutputChannel, azureAccount: AzureAccountWrapper, slot: DeploymentSlotNode) {
+    constructor(output: vscode.OutputChannel, slot: IAzureNode<DeploymentSlotTreeItem>) {
         super(output);
-        this.azureAccount = azureAccount;
         this.slot = slot;
     }
 
     protected initSteps(): void {
-        this.steps.push(new SwapStep(this, this.azureAccount, this.slot));
+        this.steps.push(new SwapStep(this, this.slot));
     }
 
     protected beforeExecute(): void {
@@ -35,46 +32,37 @@ export class DeploymentSlotSwapper extends WizardBase {
 }
 
 class SwapStep extends WizardStep {
-    private readonly azureAccount: AzureAccountWrapper;
     private _subscription: SubscriptionModels.Subscription;
-    private _sourceSlot: DeploymentSlotNode;
-    private _targetSlot: DeploymentSlotNode;
+    private _sourceSlotNode: IAzureNode<DeploymentSlotTreeItem>;
+    private targetSlot: DeploymentSlotTreeItem | undefined;
 
-    get sourceSlot(): DeploymentSlotNode {
-        return this._sourceSlot;
-    }
-    set sourceSlot(slot: DeploymentSlotNode) {
-        this._sourceSlot = slot;
-    }
-    get targetSlot(): DeploymentSlotNode {
-        return this._targetSlot;
-    }
-    set targetSlot(slot: DeploymentSlotNode) {
-        this._targetSlot = slot;
+    private readonly _productionSlotLabel: string = 'production';
+
+    get sourceSlot(): DeploymentSlotTreeItem {
+        return this._sourceSlotNode.treeItem;
     }
 
-    constructor(wizard: WizardBase, azureAccount: AzureAccountWrapper, slot: DeploymentSlotNode) {
+    constructor(wizard: WizardBase, slot: IAzureNode<DeploymentSlotTreeItem>) {
         super(wizard, 'Select a slot to swap with');
-        this.azureAccount = azureAccount;
-        this.sourceSlot = slot;
+        this._sourceSlotNode = slot;
     }
 
     public async prompt(): Promise<void> {
-        const deploymentSlots: DeploymentSlotNode[] = await this.sourceSlot.getParentNode<DeploymentSlotsNode>().getChildren();
-        const otherSlots: IQuickPickItemWithData<DeploymentSlotNode | undefined>[] = [{
-            label: 'production',
+        const deploymentSlots: IAzureNode<DeploymentSlotTreeItem>[] = <IAzureNode<DeploymentSlotTreeItem>[]>await this._sourceSlotNode.parent.getCachedChildren();
+        const otherSlots: IQuickPickItemWithData<DeploymentSlotTreeItem | undefined>[] = [{
+            label: this._productionSlotLabel,
             description: 'Swap slot with production',
             detail: '',
             data: undefined
         }];
 
         for (const slot of deploymentSlots) {
-            if (this.sourceSlot.label !== slot.label) {
+            if (this.sourceSlot.label !== slot.treeItem.label) {
                 // Deployment slots must have an unique name
-                const otherSlot: IQuickPickItemWithData<DeploymentSlotNode | undefined> = {
-                    label: slot.label,
+                const otherSlot: IQuickPickItemWithData<DeploymentSlotTreeItem | undefined> = {
+                    label: slot.treeItem.label,
                     description: '',
-                    data: slot
+                    data: slot.treeItem
                 };
 
                 otherSlots.push(otherSlot);
@@ -92,14 +80,14 @@ class SwapStep extends WizardStep {
     }
 
     public async execute(): Promise<void> {
-        const credential = this.azureAccount.getCredentialByTenantId(this.sourceSlot.subscription.tenantId);
-        const client = new WebSiteManagementClient(credential, this.sourceSlot.subscription.subscriptionId);
+        const client: WebSiteManagementClient = nodeUtils.getWebSiteClient(this._sourceSlotNode);
         // if this.targetSlot was assigned undefined, the user selected 'production'
         !this.targetSlot ?
             await client.webApps.swapSlotWithProduction(this.sourceSlot.site.resourceGroup, this.sourceSlot.site.repositorySiteName, { targetSlot: this.sourceSlot.label, preserveVnet: true }) :
             await client.webApps.swapSlotSlot(this.sourceSlot.site.resourceGroup, this.sourceSlot.site.repositorySiteName, { targetSlot: this.targetSlot.label, preserveVnet: true }, this.sourceSlot.label);
 
-        this.wizard.writeline(`"${this.targetSlot.label}" was swapped with "${this.sourceSlot.label}".`);
+        const targetSlotLabel: string = this.targetSlot ? this.targetSlot.label : this._productionSlotLabel;
+        this.wizard.writeline(`"${targetSlotLabel}" was swapped with "${this.sourceSlot.label}".`);
     }
 
     get subscription(): SubscriptionModels.Subscription {

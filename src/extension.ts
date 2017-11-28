@@ -5,42 +5,39 @@
 
 'use strict';
 
-import { Subscription } from 'azure-arm-resource/lib/subscription/models';
-import { Site } from 'azure-arm-website/lib/models';
-import { ServiceClientCredentials } from 'ms-rest';
+import WebSiteManagementClient = require('azure-arm-website');
 import * as vscode from 'vscode';
-import { createWebApp } from 'vscode-azureappservice';
-import { AzureAccountWrapper } from './AzureAccountWrapper';
+import { AzureTreeDataProvider, IAzureNode, IAzureParentNode, UserCancelledError } from 'vscode-azureextensionui';
+import { DeploymentSlotSwapper } from './DeploymentSlotSwapper';
 import { LogPointsManager } from './diagnostics/LogPointsManager';
 import { LogPointsSessionAttach } from './diagnostics/logPointsSessionWizard';
 import { RemoteScriptDocumentProvider, RemoteScriptSchema } from './diagnostics/remoteScriptDocumentProvider';
 import { LogpointsCollection } from './diagnostics/structs/LogpointsCollection';
 import { ErrorData } from './ErrorData';
-import { SiteActionError, UserCancelledError, WizardFailedError } from './errors';
-import { AppServiceDataProvider } from './explorer/AppServiceExplorer';
-import { AppServiceNode } from './explorer/AppServiceNode';
-import { AppSettingNode, AppSettingsNode } from './explorer/AppSettingsNodes';
-import { DeploymentSlotNode } from './explorer/DeploymentSlotNode';
-import { DeploymentSlotsNode } from './explorer/DeploymentSlotsNode';
+import { SiteActionError, WizardFailedError } from './errors';
+import { AppSettingsTreeItem, AppSettingTreeItem } from './explorer/AppSettingsTreeItem';
+import { DeploymentSlotsTreeItem } from './explorer/DeploymentSlotsTreeItem';
+import { DeploymentSlotTreeItem } from './explorer/DeploymentSlotTreeItem';
 import { LoadedScriptsProvider, openScript } from './explorer/loadedScriptsExplorer';
-import { NodeBase } from './explorer/NodeBase';
-import { SiteNodeBase } from './explorer/SiteNodeBase';
-import { SubscriptionNode } from './explorer/SubscriptionNode';
+import { SiteTreeItem } from './explorer/SiteTreeItem';
+import { WebAppProvider } from './explorer/WebAppProvider';
+import { WebAppTreeItem } from './explorer/WebAppTreeItem';
 import { Reporter } from './telemetry/reporter';
 import * as util from "./util";
-import { WebAppZipPublisher } from './WebAppZipPublisher';
+import { nodeUtils } from './utils/nodeUtils';
 
 // tslint:disable-next-line:max-func-body-length
+// tslint:disable-next-line:export-name
 export function activate(context: vscode.ExtensionContext): void {
     context.subscriptions.push(new Reporter(context));
 
     const outputChannel = util.getOutputChannel();
     context.subscriptions.push(outputChannel);
 
-    const azureAccount = new AzureAccountWrapper(context);
-    const appServiceDataProvider = new AppServiceDataProvider(azureAccount);
-
-    context.subscriptions.push(vscode.window.registerTreeDataProvider('azureAppService', appServiceDataProvider));
+    const webAppProvider: WebAppProvider = new WebAppProvider(context.globalState);
+    const tree = new AzureTreeDataProvider(webAppProvider, 'appService.LoadMore');
+    context.subscriptions.push(tree);
+    context.subscriptions.push(vscode.window.registerTreeDataProvider('azureAppService', tree));
 
     // loaded scripts
     const provider = new LoadedScriptsProvider(context);
@@ -62,162 +59,196 @@ export function activate(context: vscode.ExtensionContext): void {
 
     LogpointsCollection.TextEditorDecorationType = logpointDecorationType;
 
-    initCommand(context, 'appService.Refresh', (node?: NodeBase) => appServiceDataProvider.refresh(node));
-    initCommand(context, 'appService.Browse', (node: SiteNodeBase) => {
-        if (node) {
-            node.browse();
-        }
-    });
-    initCommand(context, 'appService.OpenInPortal', (node: NodeBase) => {
-        if (node && node.openInPortal) {
-            node.openInPortal();
-        }
-    });
-    initAsyncCommand(context, 'appService.Start', async (node: SiteNodeBase) => {
-        if (node) {
-            const siteType = util.isSiteDeploymentSlot(node.site) ? 'Deployment Slot' : 'Web App';
-            outputChannel.show();
-            outputChannel.appendLine(`Starting ${siteType} "${node.site.name}"...`);
-            await node.start();
-            outputChannel.appendLine(`${siteType} "${node.site.name}" has been started.`);
-        }
-    });
-    initAsyncCommand(context, 'appService.Stop', async (node: SiteNodeBase) => {
-        if (node) {
-            const siteType = util.isSiteDeploymentSlot(node.site) ? 'Deployment Slot' : 'Web App';
-            outputChannel.show();
-            outputChannel.appendLine(`Stopping ${siteType} "${node.site.name}"...`);
-            await node.stop();
-            outputChannel.appendLine(`${siteType} "${node.site.name}" has been stopped. App Service plan charges still apply.`);
-
-        }
-    });
-    initAsyncCommand(context, 'appService.Restart', async (node: SiteNodeBase) => {
-        if (node) {
-            const siteType = util.isSiteDeploymentSlot(node.site) ? 'Deployment Slot' : 'Web App';
-            outputChannel.show();
-            outputChannel.appendLine(`Restarting ${siteType} "${node.site.name}"...`);
-            await node.restart();
-            outputChannel.appendLine(`${siteType} "${node.site.name}" has been restarted.`);
-
-        }
-    });
-    initAsyncCommand(context, 'appService.Delete', async (node: SiteNodeBase) => {
-        if (node) {
-            await node.deleteSite(outputChannel);
-            vscode.commands.executeCommand('appService.Refresh', node.getParentNode());
-        }
-    });
-    initAsyncCommand(context, 'appService.CreateWebApp', async (node?: SubscriptionNode) => {
-        let subscription: Subscription | undefined;
-        let credentials: ServiceClientCredentials | undefined;
-        if (node) {
-            subscription = node.subscription;
-            credentials = azureAccount.getCredentialByTenantId(subscription.tenantId);
+    initCommand(context, 'appService.Refresh', (node?: IAzureNode) => tree.refresh(node));
+    initCommand(context, 'appService.LoadMore', (node?: IAzureNode) => tree.loadMore(node));
+    initAsyncCommand(context, 'appService.Browse', async (node: IAzureNode<SiteTreeItem>) => {
+        if (!node) {
+            node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
         }
 
-        const newSite: Site | undefined = await createWebApp(outputChannel, context.globalState, credentials, subscription);
-        if (newSite === undefined) {
-            throw new UserCancelledError();
+        node.treeItem.browse();
+    });
+    initAsyncCommand(context, 'appService.OpenInPortal', async (node: IAzureNode) => {
+        if (!node) {
+            node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
+        }
+
+        node.openInPortal();
+    });
+    initAsyncCommand(context, 'appService.Start', async (node: IAzureNode<SiteTreeItem>) => {
+        if (!node) {
+            node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
+        }
+
+        const siteType = util.isSiteDeploymentSlot(node.treeItem.site) ? 'Deployment Slot' : 'Web App';
+        outputChannel.show();
+        outputChannel.appendLine(`Starting ${siteType} "${node.treeItem.site.name}"...`);
+        await node.treeItem.siteWrapper.start(nodeUtils.getWebSiteClient(node));
+        outputChannel.appendLine(`${siteType} "${node.treeItem.site.name}" has been started.`);
+    });
+    initAsyncCommand(context, 'appService.Stop', async (node: IAzureNode<SiteTreeItem>) => {
+        if (!node) {
+            node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
+        }
+
+        const siteType = util.isSiteDeploymentSlot(node.treeItem.site) ? 'Deployment Slot' : 'Web App';
+        outputChannel.show();
+        outputChannel.appendLine(`Stopping ${siteType} "${node.treeItem.site.name}"...`);
+        await node.treeItem.siteWrapper.stop(nodeUtils.getWebSiteClient(node));
+        outputChannel.appendLine(`${siteType} "${node.treeItem.site.name}" has been stopped. App Service plan charges still apply.`);
+    });
+    initAsyncCommand(context, 'appService.Restart', async (node: IAzureNode<SiteTreeItem>) => {
+        if (!node) {
+            node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
+        }
+
+        const client: WebSiteManagementClient = nodeUtils.getWebSiteClient(node);
+        const siteType = util.isSiteDeploymentSlot(node.treeItem.site) ? 'Deployment Slot' : 'Web App';
+        outputChannel.show();
+        outputChannel.appendLine(`Restarting ${siteType} "${node.treeItem.site.name}"...`);
+        await node.treeItem.siteWrapper.stop(client);
+        await node.treeItem.siteWrapper.start(client);
+        outputChannel.appendLine(`${siteType} "${node.treeItem.site.name}" has been restarted.`);
+
+    });
+    initAsyncCommand(context, 'appService.Delete', async (node: IAzureNode<SiteTreeItem>) => {
+        if (!node) {
+            node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
+        }
+
+        await node.deleteNode();
+    });
+    initAsyncCommand(context, 'appService.CreateWebApp', async (node?: IAzureParentNode) => {
+        if (!node) {
+            node = <IAzureParentNode>await tree.showNodePicker(AzureTreeDataProvider.subscriptionContextValue);
+        }
+
+        await node.createChild();
+    });
+    initAsyncCommand(context, 'appService.DeployZipPackage', async (target?: vscode.Uri | IAzureNode<WebAppTreeItem> | undefined) => {
+        let node: IAzureNode<WebAppTreeItem>;
+        let fsPath: string;
+        if (target instanceof vscode.Uri) {
+            fsPath = target.fsPath;
         } else {
-            vscode.commands.executeCommand('appService.Refresh', node);
+            fsPath = (await util.showWorkspaceFoldersQuickPick("Select the folder to deploy")).uri.fsPath;
+            node = target;
         }
-    });
-    initAsyncCommand(context, 'appService.DeployZipPackage', async (target?: {}) => {
-        if (target instanceof SiteNodeBase) {
-            const wizard = new WebAppZipPublisher(outputChannel, azureAccount, context.globalState, target.subscription, target.site);
-            await wizard.run();
-        } else if (target instanceof vscode.Uri) {
-            const wizard = new WebAppZipPublisher(outputChannel, azureAccount, context.globalState, undefined, undefined, target.fsPath);
-            await wizard.run();
-        }
-    });
-    initAsyncCommand(context, 'appService.ZipAndDeploy', async (uri?: {}) => {
-        if (uri instanceof vscode.Uri) {
-            const folderPath = uri.fsPath;
-            const wizard = new WebAppZipPublisher(outputChannel, azureAccount, context.globalState, undefined, undefined, folderPath);
-            await wizard.run();
-        }
-    });
-    initAsyncCommand(context, 'appService.LocalGitDeploy', async (node?: SiteNodeBase) => {
-        if (node) {
-            outputChannel.appendLine(`Deploying Local Git repository to "${node.site.name}"...`);
-            await node.localGitDeploy();
-            outputChannel.appendLine(`Local repository has been deployed to "${node.site.name}".`);
-        }
-    });
-    initAsyncCommand(context, 'appService.OpenVSTSCD', async (node?: AppServiceNode) => {
-        if (node) {
-            node.openCdInPortal();
-        }
-    });
-    initAsyncCommand(context, 'appService.DeploymentScript', async (node: AppServiceNode) => {
-        if (node) {
-            await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, p => {
-                p.report({ message: 'Generating script...' });
-                return node.generateDeploymentScript();
-            });
-        }
-    });
-    initAsyncCommand(context, 'deploymentSlots.CreateSlot', async (node: DeploymentSlotsNode) => {
-        if (node) {
-            const newSlot = await node.createNewDeploymentSlot();
-            vscode.commands.executeCommand('appService.Refresh', node);
-            outputChannel.appendLine(`Successfully created deployment slot "${newSlot}" for web app "${node.getParentNode().label}".`);
 
+        if (!node) {
+            node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
         }
-    });
-    initAsyncCommand(context, 'deploymentSlot.SwapSlots', async (node: DeploymentSlotNode) => {
-        if (node) {
-            await node.swapDeploymentSlots(outputChannel);
-        }
-    });
-    initAsyncCommand(context, 'appSettings.Add', async (node: AppSettingsNode) => {
-        if (node) {
-            await node.addSettingItem();
-        }
-    });
-    initAsyncCommand(context, 'appSettings.Edit', async (node: AppSettingNode) => {
-        if (node) {
-            await node.edit();
-        }
-    });
-    initAsyncCommand(context, 'appSettings.Rename', async (node: AppSettingNode) => {
-        if (node) {
-            await node.rename();
-        }
-    });
-    initAsyncCommand(context, 'appSettings.Delete', async (node: AppSettingNode) => {
-        if (node) {
-            await node.delete();
-        }
-    });
-    initAsyncCommand(context, 'diagnostics.OpenLogStream', async (node: SiteNodeBase) => {
-        if (node) {
-            const enableButton = 'Yes';
-            const isEnabled = await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, p => {
-                p.report({ message: 'Checking container diagnostics settings...' });
-                return node.isHttpLogsEnabled();
-            });
 
-            if (!isEnabled && enableButton === await vscode.window.showWarningMessage('Do you want to enable logging and restart this container?', enableButton)) {
-                outputChannel.show();
-                outputChannel.appendLine(`Enabling Logging for "${node.site.name}"...`);
-                await node.enableHttpLogs();
-                await vscode.commands.executeCommand('appService.Restart', node);
-            }
-            // Otherwise connect to log stream anyways, users might see similar "log not enabled" message with how to enable link from the stream output.
-            await node.connectToLogStream(context);
-        }
+        await node.treeItem.siteWrapper.deployZip(fsPath, nodeUtils.getWebSiteClient(node), outputChannel);
     });
-    initCommand(context, 'diagnostics.StopLogStream', (node: SiteNodeBase) => {
-        if (node) {
-            node.stopLogStream();
+    initAsyncCommand(context, 'appService.LocalGitDeploy', async (node?: IAzureNode<SiteTreeItem>) => {
+        if (!node) {
+            node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
         }
+        outputChannel.appendLine(`Deploying Local Git repository to "${node.treeItem.site.name}"...`);
+        await node.treeItem.localGitDeploy(nodeUtils.getWebSiteClient(node));
+        outputChannel.appendLine(`Local repository has been deployed to "${node.treeItem.site.name}".`);
     });
-    initAsyncCommand(context, 'diagnostics.StartLogPointsSession', async (node: SiteNodeBase) => {
+    initAsyncCommand(context, 'appService.ConfigureDeploymentSource', async (node: IAzureNode<SiteTreeItem>) => {
+        if (!node) {
+            node = <IAzureNode<SiteTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
+        }
+        const updatedScmType = await node.treeItem.editScmType(nodeUtils.getWebSiteClient(node));
+        outputChannel.appendLine(`Deployment source for "${node.treeItem.site.name}" has been updated to "${updatedScmType}".`);
+    });
+    initAsyncCommand(context, 'appService.OpenVSTSCD', async (node?: IAzureNode<WebAppTreeItem>) => {
+        if (!node) {
+            node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
+        }
+
+        node.treeItem.openCdInPortal(node);
+    });
+    initAsyncCommand(context, 'appService.DeploymentScript', async (node: IAzureNode<WebAppTreeItem>) => {
+        if (!node) {
+            node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
+        }
+
+        await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, p => {
+            p.report({ message: 'Generating script...' });
+            return node.treeItem.generateDeploymentScript(node);
+        });
+    });
+    initAsyncCommand(context, 'deploymentSlots.CreateSlot', async (node: IAzureParentNode<DeploymentSlotsTreeItem>) => {
+        if (!node) {
+            node = <IAzureParentNode<DeploymentSlotsTreeItem>>await tree.showNodePicker(DeploymentSlotsTreeItem.contextValue);
+        }
+
+        await node.createChild();
+    });
+    initAsyncCommand(context, 'deploymentSlot.SwapSlots', async (node: IAzureNode<DeploymentSlotTreeItem>) => {
+        if (!node) {
+            node = <IAzureParentNode<DeploymentSlotTreeItem>>await tree.showNodePicker(DeploymentSlotTreeItem.contextValue);
+        }
+
+        const wizard = new DeploymentSlotSwapper(outputChannel, node);
+        await wizard.run();
+    });
+    initAsyncCommand(context, 'appSettings.Add', async (node: IAzureParentNode<AppSettingsTreeItem>) => {
+        if (!node) {
+            node = <IAzureParentNode<AppSettingsTreeItem>>await tree.showNodePicker(AppSettingsTreeItem.contextValue);
+        }
+
+        await node.createChild();
+    });
+    initAsyncCommand(context, 'appSettings.Edit', async (node: IAzureNode<AppSettingTreeItem>) => {
+        if (!node) {
+            node = <IAzureNode<AppSettingTreeItem>>await tree.showNodePicker(AppSettingTreeItem.contextValue);
+        }
+
+        await node.treeItem.edit(node);
+    });
+    initAsyncCommand(context, 'appSettings.Rename', async (node: IAzureNode<AppSettingTreeItem>) => {
+        if (!node) {
+            node = <IAzureNode<AppSettingTreeItem>>await tree.showNodePicker(AppSettingTreeItem.contextValue);
+        }
+
+        await node.treeItem.rename(node);
+    });
+    initAsyncCommand(context, 'appSettings.Delete', async (node: IAzureNode<AppSettingTreeItem>) => {
+        if (!node) {
+            node = <IAzureNode<AppSettingTreeItem>>await tree.showNodePicker(AppSettingTreeItem.contextValue);
+        }
+
+        await node.deleteNode();
+    });
+    initAsyncCommand(context, 'diagnostics.OpenLogStream', async (node: IAzureNode<SiteTreeItem>) => {
+        if (!node) {
+            node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
+        }
+
+        const client: WebSiteManagementClient = nodeUtils.getWebSiteClient(node);
+        const enableButton: vscode.MessageItem = { title: 'Yes' };
+        const notNowButton: vscode.MessageItem = { title: 'Not Now', isCloseAffordance: true };
+        const isEnabled = await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, p => {
+            p.report({ message: 'Checking container diagnostics settings...' });
+            return node.treeItem.isHttpLogsEnabled(client);
+        });
+
+        if (!isEnabled && enableButton === await vscode.window.showWarningMessage('Do you want to enable logging and restart this container?', enableButton, notNowButton)) {
+            outputChannel.show();
+            outputChannel.appendLine(`Enabling Logging for "${node.treeItem.site.name}"...`);
+            await node.treeItem.enableHttpLogs(client);
+            await vscode.commands.executeCommand('appService.Restart', node);
+        }
+        // Otherwise connect to log stream anyways, users might see similar "log not enabled" message with how to enable link from the stream output.
+        await node.treeItem.connectToLogStream(client, context);
+    });
+    initAsyncCommand(context, 'diagnostics.StopLogStream', async (node: IAzureNode<SiteTreeItem>) => {
+        if (!node) {
+            node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
+        }
+
+        node.treeItem.stopLogStream();
+    });
+    initAsyncCommand(context, 'diagnostics.StartLogPointsSession', async (node: IAzureNode<SiteTreeItem>) => {
         if (node) {
-            const wizard = new LogPointsSessionAttach(outputChannel, azureAccount, node.site, node.subscription);
+            const client: WebSiteManagementClient = nodeUtils.getWebSiteClient(node);
+            const wizard = new LogPointsSessionAttach(outputChannel, client, node.treeItem.site, node.subscription);
             await wizard.run();
         }
     });

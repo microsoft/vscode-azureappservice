@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-export class UserCancelledError extends Error { }
 export class SiteActionError extends Error {
     public readonly servicePlanSize: string;
     constructor(error: Error, servicePlanSize: string) {

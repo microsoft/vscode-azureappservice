@@ -2,54 +2,12 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
+
 import WebSiteManagementClient = require('azure-arm-website');
+import * as WebSiteModels from 'azure-arm-website/lib/models';
 import * as vscode from 'vscode';
-import * as WebSiteModels from '../node_modules/azure-arm-website/lib/models';
-import { UserCancelledError } from './errors';
+import { UserCancelledError } from 'vscode-azureextensionui';
 import { reporter } from './telemetry/reporter';
-
-export interface PartialList<T> extends Array<T> {
-    nextLink?: string;
-}
-
-export async function listAll<T>(client: { listNext(nextPageLink: string): Promise<PartialList<T>>; }, first: Promise<PartialList<T>>): Promise<T[]> {
-    const all: T[] = [];
-
-    for (let list = await first; list.length || list.nextLink; list = list.nextLink ? await client.listNext(list.nextLink) : []) {
-        all.push(...list);
-    }
-
-    return all;
-}
-
-export function waitForWebSiteState(webSiteManagementClient: WebSiteManagementClient, site: WebSiteModels.Site, state: string, intervalMs = 5000, timeoutMs = 60000): Promise<void> {
-    return new Promise((resolve, reject) => {
-        const func = async (count: number) => {
-            const rgName = site.resourceGroup;
-            const isSlot = isSiteDeploymentSlot(site);
-            const siteName = extractSiteName(site);
-            const slotName = extractDeploymentSlotName(site);
-            const currentSite = await (isSlot ? webSiteManagementClient.webApps.getSlot(rgName, siteName, slotName) : webSiteManagementClient.webApps.get(rgName, siteName));
-
-            if (currentSite.state.toLowerCase() === state.toLowerCase()) {
-                resolve();
-            } else {
-                count += intervalMs;
-
-                if (count < timeoutMs) {
-                    setTimeout(func, intervalMs, count);
-                } else {
-                    reject(new Error(`Timeout waiting for Web Site "${siteName}" state "${state}".`));
-                }
-            }
-        };
-        setTimeout(func, intervalMs, intervalMs);
-    });
-}
-
-export function getSignInCommandString(): string {
-    return 'azure-account.login';
-}
 
 // Web app & deployment slots
 export function isSiteDeploymentSlot(site: WebSiteModels.Site): boolean {
@@ -83,37 +41,6 @@ export function sendTelemetry(eventName: string, properties?: { [key: string]: s
     if (reporter) {
         reporter.sendTelemetryEvent(eventName, properties, measures);
     }
-}
-
-export function errToString(error: {}): string {
-    if (error === null || error === undefined) {
-        return '';
-    }
-
-    if (error instanceof Error) {
-        try {
-            // errors from Azure come as JSON string
-            return JSON.stringify({
-                Error: JSON.parse(error.message).Code,
-                Message: JSON.parse(error.message).Message
-            });
-
-        } catch (e) {
-            return JSON.stringify({
-                Error: error.constructor.name,
-                Message: error.message
-            });
-        }
-
-    }
-
-    if (typeof (error) === 'object') {
-        return JSON.stringify({
-            object: error.constructor.name
-        });
-    }
-
-    return (<{}>error).toString();
 }
 
 // Resource ID
@@ -164,7 +91,7 @@ export async function showWorkspaceFoldersQuickPick(placeHolderString: string): 
         folderQuickPickItems[0] : await vscode.window.showQuickPick(folderQuickPickItems, folderQuickPickOption);
 
     if (!pickedItem) {
-        throw new UserCancelledError;
+        throw new UserCancelledError();
     }
 
     return pickedItem.data;

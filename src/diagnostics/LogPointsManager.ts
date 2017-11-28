@@ -152,8 +152,6 @@ export class LogPointsManager extends vscode.Disposable {
         }
 
         const line = vscode.window.activeTextEditor.selection.active.line;
-        // tslint:disable-next-line:no-suspicious-comment
-        // TODO, see if we can get the column number from the editor.
         const column = 0;
         const params = RemoteScriptSchema.extractQueryParams(uri);
 
@@ -202,7 +200,5 @@ export class LogPointsManager extends vscode.Disposable {
 
     // tslint:disable-next-line:no-empty
     private cleanup(): void {
-        // tslint:disable-next-line:no-suspicious-comment
-        // TODO: clean the registery
     }
 }

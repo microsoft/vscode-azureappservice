@@ -1,8 +1,7 @@
 import { SubscriptionModels } from 'azure-arm-resource';
+import { Site, SiteInstance, User, WebAppInstanceCollection } from 'azure-arm-website/lib/models';
 import * as vscode from 'vscode';
-import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models';
-import { AzureAccountWrapper } from '../AzureAccountWrapper';
-import { UserCancelledError } from '../errors';
+import { UserCancelledError } from 'vscode-azureextensionui';
 import * as util from '../util';
 import { WizardBase, WizardStep } from '../wizard';
 import { createDefaultClient } from './logPointsClient';
@@ -20,38 +19,35 @@ const logPointsDebuggerClient = createDefaultClient();
 export class LogPointsSessionAttach extends WizardBase {
 
     public readonly hasSlot: boolean;
-    public selectedDeploymentSlot: WebSiteModels.Site;
-    public selectedInstance: WebSiteModels.SiteInstance;
+    public selectedDeploymentSlot: Site;
+    public selectedInstance: SiteInstance;
     public sessionId: string;
     public processId: string;
     public debuggerId: string;
 
-    private _cachedPublishCredential: WebSiteModels.User;
+    private _cachedPublishCredential: User;
 
-    constructor(output: vscode.OutputChannel,
-                readonly azureAccount: AzureAccountWrapper,
-                readonly site: WebSiteModels.Site,
-                readonly subscription?: SubscriptionModels.Subscription
+    constructor(
+        output: vscode.OutputChannel,
+        public readonly websiteManagementClient: WebSiteManagementClient,
+        public readonly site: Site,
+        public readonly subscription?: SubscriptionModels.Subscription
     ) {
         super(output);
     }
 
-    public get lastUsedPublishCredential(): WebSiteModels.User {
+    public get lastUsedPublishCredential(): User {
         return this._cachedPublishCredential;
     }
 
-    public get webManagementClient(): WebSiteManagementClient {
-        return new WebSiteManagementClient(this.azureAccount.getCredentialByTenantId(this.subscription.tenantId), this.subscription.subscriptionId);
-    }
-
-    public async fetchPublishCrentential(site: WebSiteModels.Site): Promise<WebSiteModels.User> {
-        const siteClient = new WebSiteManagementClient(this.azureAccount.getCredentialByTenantId(this.subscription.tenantId), this.subscription.subscriptionId);
+    public async fetchPublishCrentential(site: Site): Promise<User> {
+        const siteClient = this.websiteManagementClient;
         const user = await util.getWebAppPublishCredential(siteClient, site);
         this._cachedPublishCredential = user;
         return user;
     }
 
-    public async getCachedCredentialOrRefetch(site: WebSiteModels.Site): Promise<WebSiteModels.User> {
+    public async getCachedCredentialOrRefetch(site: Site): Promise<User> {
         if (this.lastUsedPublishCredential) {
             return Promise.resolve(this.lastUsedPublishCredential);
         }
@@ -83,12 +79,12 @@ export class LogPointsSessionAttach extends WizardBase {
 }
 
 class PromptSlotSelection extends WizardStep {
-    constructor(private _wizard: LogPointsSessionAttach, readonly site: WebSiteModels.Site) {
+    constructor(private _wizard: LogPointsSessionAttach, readonly site: Site) {
         super(_wizard, 'Choose a deployment slot.');
     }
 
     public async prompt(): Promise<void> {
-        let deploymentSlots: WebSiteModels.Site[];
+        let deploymentSlots: Site[];
 
         // Decide if this AppService uses deployment slots
         await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async p => {
@@ -107,8 +103,8 @@ class PromptSlotSelection extends WizardStep {
             return;
         }
 
-        const deploymentQuickPickItems = deploymentSlots.map((deploymentSlot: WebSiteModels.Site) => {
-            return <util.IQuickPickItemWithData<WebSiteModels.Site>>{
+        const deploymentQuickPickItems = deploymentSlots.map((deploymentSlot: Site) => {
+            return <util.IQuickPickItemWithData<Site>>{
                 label: util.extractDeploymentSlotName(deploymentSlot) || deploymentSlot.name,
                 description: '',
                 data: deploymentSlot
@@ -132,8 +128,8 @@ class PromptSlotSelection extends WizardStep {
     /**
      * Returns all the deployment slots and the production slot.
      */
-    private async getDeploymentSlots(): Promise<WebSiteModels.Site[]> {
-        const client = this._wizard.webManagementClient;
+    private async getDeploymentSlots(): Promise<Site[]> {
+        const client = this._wizard.websiteManagementClient;
         const allDeploymentSlots = await client.webApps.listByResourceGroup(this.site.resourceGroup, { includeSlots: true });
         return allDeploymentSlots.filter((slot) => {
             return slot.repositorySiteName === this.site.name;
@@ -151,8 +147,8 @@ class GetUnoccupiedInstance extends WizardStep {
 
         const publishCredential = await this._wizard.getCachedCredentialOrRefetch(selectedSlot);
 
-        let instances: WebSiteModels.WebAppInstanceCollection;
-        const client = this._wizard.webManagementClient;
+        let instances: WebAppInstanceCollection;
+        const client = this._wizard.websiteManagementClient;
 
         await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async p => {
             const message = `Enumerating instances of ${selectedSlot.name}...`;
@@ -177,9 +173,11 @@ class GetUnoccupiedInstance extends WizardStep {
                 p.report({ message: message });
                 this._wizard.writeline(message);
                 await logPointsDebuggerClient.startSession(siteName, instance.name, publishCredential)
-                    .then((r: CommandRunResult<IStartSessionResponse>) => {
+                    .then(
+                    (r: CommandRunResult<IStartSessionResponse>) => {
                         result = r;
-                    },    () => {
+                    },
+                    () => {
                         // If there is an error, mark the request failed by resetting `result`.
                         result = null;
                     });

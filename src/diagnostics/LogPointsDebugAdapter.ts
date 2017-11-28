@@ -1,10 +1,10 @@
+import { User } from 'azure-arm-website/lib/models';
 import {
     DebugSession, Event, InitializedEvent, Logger, logger,
     LoggingDebugSession, Source,
     Thread
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
-import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models';
 
 import { createDefaultClient } from './logPointsClient';
 import { CommandRunResult } from './structs/CommandRunResult';
@@ -28,8 +28,7 @@ interface IAttachRequestArguments extends DebugProtocol.AttachRequestArguments {
 
 const logPointsDebuggerClient = createDefaultClient();
 
-// tslint:disable-next-line:export-name
-export class NodeDebugSession extends LoggingDebugSession {
+export class LogPointsDebugAdapter extends LoggingDebugSession {
     private _sessionId: string;
     private _debugId: string;
     private _siteName: string;
@@ -92,7 +91,7 @@ export class NodeDebugSession extends LoggingDebugSession {
         if (command === 'loadSource') {
             const sourceId: string = args;
             const request: ILoadSourceRequest = { sessionId: this._sessionId, debugId: this._debugId, sourceId };
-            logPointsDebuggerClient.loadSource(this._siteName, this._affinityValue, this.getPublishCrednetial(), request).then(
+            logPointsDebuggerClient.loadSource(this._siteName, this._affinityValue, this.getPublishCredential(), request).then(
                 (result) => {
                     if (result.isSuccessful()) {
                         response.body = {
@@ -110,7 +109,7 @@ export class NodeDebugSession extends LoggingDebugSession {
                 sessionId: this._sessionId, debugId: this._debugId, sourceId: args.scriptId,
                 lineNumber: args.lineNumber, columNumber: args.columnNumber, expression: args.expression
             };
-            logPointsDebuggerClient.setLogpoint(this._siteName, this._affinityValue, this.getPublishCrednetial(), request)
+            logPointsDebuggerClient.setLogpoint(this._siteName, this._affinityValue, this.getPublishCredential(), request)
                 .then(result => {
                     if (result.isSuccessful()) {
                         response.body = result.json;
@@ -125,14 +124,14 @@ export class NodeDebugSession extends LoggingDebugSession {
 
         } else if (command === 'removeLogpoint') {
             const request: IRemoveLogpointRequest = { sessionId: this._sessionId, debugId: this._debugId, logpointId: <string>args };
-            logPointsDebuggerClient.removeLogpoint(this._siteName, this._affinityValue, this.getPublishCrednetial(), request)
+            logPointsDebuggerClient.removeLogpoint(this._siteName, this._affinityValue, this.getPublishCredential(), request)
                 .then(result => {
                     logger.log(`removeLogpoint completed. ${require('util').inspect(result)}`);
                 });
         } else if (command === 'getLogpoints') {
             const request: IGetLogpointsRequest = { sessionId: this._sessionId, debugId: this._debugId, sourceId: <string>args };
 
-            logPointsDebuggerClient.getLogpoints(this._siteName, this._affinityValue, this.getPublishCrednetial(), request)
+            logPointsDebuggerClient.getLogpoints(this._siteName, this._affinityValue, this.getPublishCredential(), request)
                 .then(result => {
                     if (result.isSuccessful()) {
                         response.body = result.json;
@@ -153,7 +152,7 @@ export class NodeDebugSession extends LoggingDebugSession {
         // tslint:disable-next-line:no-unused-expression
         args && 1;
         const request: ICloseSessionRequest = { sessionId: this._sessionId };
-        logPointsDebuggerClient.closeSession(this._siteName, this._affinityValue, this.getPublishCrednetial(), request)
+        logPointsDebuggerClient.closeSession(this._siteName, this._affinityValue, this.getPublishCredential(), request)
             .then(() => {
                 // Since the response is just a acknowledgement, the client will not even look at it, so we call sendResponse() regardlesss of the result.
                 this.sendResponse(response);
@@ -163,7 +162,7 @@ export class NodeDebugSession extends LoggingDebugSession {
     private async getLoadedScripts(): Promise<void> {
         const request: ILoadedScriptsRequest = { sessionId: this._sessionId, debugId: this._debugId };
         const response: CommandRunResult<ILoadedScriptsResponse>
-            = await logPointsDebuggerClient.loadedScripts(this._siteName, this._affinityValue, this.getPublishCrednetial(), request);
+            = await logPointsDebuggerClient.loadedScripts(this._siteName, this._affinityValue, this.getPublishCredential(), request);
 
         if (response.isSuccessful()) {
             response.json.data.forEach((sourceData) => {
@@ -180,7 +179,7 @@ export class NodeDebugSession extends LoggingDebugSession {
 
     }
 
-    private getPublishCrednetial(): WebSiteModels.User {
+    private getPublishCredential(): User {
         return {
             location: undefined,
             publishingUserName: this._publishingUsername,
@@ -189,4 +188,4 @@ export class NodeDebugSession extends LoggingDebugSession {
     }
 }
 
-DebugSession.run(NodeDebugSession);
+DebugSession.run(LogPointsDebugAdapter);
