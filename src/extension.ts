@@ -145,10 +145,16 @@ export function activate(context: vscode.ExtensionContext): void {
         if (!node) {
             node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
         }
-
         outputChannel.appendLine(`Deploying Local Git repository to "${node.treeItem.site.name}"...`);
         await node.treeItem.localGitDeploy(nodeUtils.getWebSiteClient(node));
         outputChannel.appendLine(`Local repository has been deployed to "${node.treeItem.site.name}".`);
+    });
+    initAsyncCommand(context, 'appService.ConfigureDeploymentSource', async (node: IAzureNode<SiteTreeItem>) => {
+        if (!node) {
+            node = <IAzureNode<SiteTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
+        }
+        const updatedScmType = await node.treeItem.editScmType(nodeUtils.getWebSiteClient(node));
+        outputChannel.appendLine(`Deployment source for "${node.treeItem.site.name}" has been updated to "${updatedScmType}".`);
     });
     initAsyncCommand(context, 'appService.OpenVSTSCD', async (node?: IAzureNode<WebAppTreeItem>) => {
         if (!node) {
@@ -216,13 +222,14 @@ export function activate(context: vscode.ExtensionContext): void {
         }
 
         const client: WebSiteManagementClient = nodeUtils.getWebSiteClient(node);
-        const enableButton = 'Yes';
+        const enableButton: vscode.MessageItem = { title: 'Yes' };
+        const notNowButton: vscode.MessageItem = { title: 'Not Now', isCloseAffordance: true };
         const isEnabled = await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, p => {
             p.report({ message: 'Checking container diagnostics settings...' });
             return node.treeItem.isHttpLogsEnabled(client);
         });
 
-        if (!isEnabled && enableButton === await vscode.window.showWarningMessage('Do you want to enable logging and restart this container?', enableButton)) {
+        if (!isEnabled && enableButton === await vscode.window.showWarningMessage('Do you want to enable logging and restart this container?', enableButton, notNowButton)) {
             outputChannel.show();
             outputChannel.appendLine(`Enabling Logging for "${node.treeItem.site.name}"...`);
             await node.treeItem.enableHttpLogs(client);

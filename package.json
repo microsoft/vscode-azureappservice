@@ -123,6 +123,11 @@
                 "category": "Azure App Service"
             },
             {
+                "command": "appService.ConfigureDeploymentSource",
+                "title": "Configure Deployment Source",
+                "category": "Azure App Service"
+            },
+            {
                 "command": "appService.OpenVSTSCD",
                 "title": "Continuous Delivery (Preview)",
                 "category": "Azure App Service"
@@ -284,6 +289,11 @@
                     "command": "appService.LocalGitDeploy",
                     "when": "view == azureAppService && viewItem == appService",
                     "group": "3_appServiceDeployCommands@2"
+                },
+                {
+                    "command": "appService.ConfigureDeploymentSource",
+                    "when": "view == azureAppService && viewItem == appService",
+                    "group": "3_appServiceDeployCommands@3"
                 },
                 {
                     "command": "appService.OpenVSTSCD",
@@ -561,8 +571,8 @@
         "vscode-debugadapter": "^1.24.0",
         "vscode-debugprotocol": "^1.24.0",
         "vscode-extension-telemetry": "^0.0.8",
-        "vscode-azureappservice": "^0.4.0",
-        "vscode-azureextensionui": "^0.1.1"
+        "vscode-azureappservice": "^0.5.1",
+        "vscode-azureextensionui": "~0.2.0"
     },
     "extensionDependencies": [
         "ms-vscode.azure-account"

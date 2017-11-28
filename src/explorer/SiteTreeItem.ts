@@ -60,34 +60,16 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
         opn(uri);
     }
 
-    public async deleteTreeItem(node: IAzureParentNode): Promise<IAzureTreeItem | undefined> {
+    public async deleteTreeItem(node: IAzureParentNode): Promise<void> {
         await this.siteWrapper.deleteSite(nodeUtils.getWebSiteClient(node), util.getOutputChannel());
-        return this;
     }
 
     public async isHttpLogsEnabled(client: WebSiteManagementClient): Promise<boolean> {
-        const logsConfig = this._isSlot ? await client.webApps.getDiagnosticLogsConfigurationSlot(this.site.resourceGroup, this._siteName, this._slotName) :
-            await client.webApps.getDiagnosticLogsConfiguration(this.site.resourceGroup, this._siteName);
-        return logsConfig.httpLogs && logsConfig.httpLogs.fileSystem && logsConfig.httpLogs.fileSystem.enabled;
+        return await this.siteWrapper.isHttpLogsEnabled(client);
     }
 
     public async enableHttpLogs(client: WebSiteManagementClient): Promise<void> {
-        const logsConfig: WebSiteModels.SiteLogsConfig = {
-            location: this.site.location,
-            httpLogs: {
-                fileSystem: {
-                    enabled: true,
-                    retentionInDays: 7,
-                    retentionInMb: 35
-                }
-            }
-        };
-
-        if (this._isSlot) {
-            await client.webApps.updateDiagnosticLogsConfigSlot(this.site.resourceGroup, this._siteName, logsConfig, this._slotName);
-        } else {
-            await client.webApps.updateDiagnosticLogsConfig(this.site.resourceGroup, this._siteName, logsConfig);
-        }
+        await this.siteWrapper.enableHttpLogs(client);
     }
 
     public async connectToLogStream(client: WebSiteManagementClient, extensionContext: ExtensionContext): Promise<void> {
@@ -138,6 +120,16 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
             const appServicePlan = await getAppServicePlan(this.site, client);
             throw new SiteActionError(err, appServicePlan.sku.size);
         }
+    }
+
+    public async editScmType(client: WebSiteManagementClient): Promise<string> {
+        const updatedScmType = await this.siteWrapper.editScmType(client);
+        if (!updatedScmType) {
+            throw new UserCancelledError();
+        }
+
+        return updatedScmType;
+
     }
 }
 
