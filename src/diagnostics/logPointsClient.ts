@@ -68,8 +68,11 @@ export class KuduLogPointsDebuggerClient extends LogPointsDebuggerClientBase imp
         };
     }
 
-    private static base64Encode(s: string): string {
-        const buf = Buffer.from(s, 'utf8');
+    private static base64Encode(payload: string | object): string {
+        if (typeof payload !== 'string') {
+            payload = JSON.stringify(payload);
+        }
+        const buf = Buffer.from(payload, 'utf8');
         return buf.toString('base64');
     }
 
@@ -87,9 +90,14 @@ export class KuduLogPointsDebuggerClient extends LogPointsDebuggerClientBase imp
     }
 
     public attachProcess(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: IAttachProcessRequest): Promise<CommandRunResult<IAttachProcessResponse>> {
+        const jsonPayloadBase64 = KuduLogPointsDebuggerClient.base64Encode({
+            processId: data.processId,
+            codeType: "javascript"
+        });
+
         return this.makeCallAndLogException<IAttachProcessResponse>(
             siteName, affinityValue, publishCredential,
-            `curl -X POST -H "Content-Type: application/json" -d '{"processId":"${data.processId}","codeType":"javascript"}' http://localhost:32923/debugger/session/${data.sessionId}/debugee`);
+            `curl -X POST -H "Content-Type: application/base64" -d ${jsonPayloadBase64} http://localhost:32923/debugger/session/${data.sessionId}/debugee`);
     }
 
     public loadedScripts(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: ILoadedScriptsRequest): Promise<CommandRunResult<ILoadedScriptsResponse>> {
@@ -105,9 +113,16 @@ export class KuduLogPointsDebuggerClient extends LogPointsDebuggerClientBase imp
     }
 
     public setLogpoint(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: ISetLogpointRequest): Promise<CommandRunResult<ISetLogpointResponse>> {
+        const jsonPayloadBase64 = KuduLogPointsDebuggerClient.base64Encode({
+            sourceId: data.sourceId,
+            zeroBasedColumnNumber: data.columNumber,
+            zeroBasedLineNumber: data.lineNumber,
+            expressionToLog: data.expression
+        });
+
         return this.makeCallAndLogException<ISetLogpointResponse>(
             siteName, affinityValue, publishCredential,
-            `curl -X POST -H "Content-Type: application/json" -d '{"sourceId":"${data.sourceId}","zeroBasedColumnNumber":"${data.columNumber}", "zeroBasedLineNumber":"${data.lineNumber}", "expressionToLog":"${data.expression}"}' http://localhost:32923/debugger/session/${data.sessionId}/debugee/${data.debugId}/logpoints`);
+            `curl -X POST -H "Content-Type: application/base64" -d ${jsonPayloadBase64} http://localhost:32923/debugger/session/${data.sessionId}/debugee/${data.debugId}/logpoints`);
     }
 
     public removeLogpoint(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: IRemoveLogpointRequest): Promise<CommandRunResult<IRemoveLogpointResponse>> {
@@ -189,6 +204,14 @@ export class KuduLogPointsDebuggerClient extends LogPointsDebuggerClientBase imp
 }
 
 export class MockLogpointsDebuggerClient extends LogPointsDebuggerClientBase implements ILogPointsDebuggerClient {
+    private static base64Encode(payload: string | object): string {
+        if (typeof payload !== 'string') {
+            payload = JSON.stringify(payload);
+        }
+        const buf = Buffer.from(payload, 'utf8');
+        return buf.toString('base64');
+    }
+
     public startSession(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User): Promise<CommandRunResult<IStartSessionResponse>> {
         return this.makeCallAndLogException<IStartSessionResponse>(siteName, affinityValue, publishCredential, "curl -X POST http://localhost:32923/debugger/session");
     }
@@ -202,9 +225,14 @@ export class MockLogpointsDebuggerClient extends LogPointsDebuggerClientBase imp
     }
 
     public attachProcess(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: IAttachProcessRequest): Promise<CommandRunResult<IAttachProcessResponse>> {
+        const jsonPayloadBase64 = MockLogpointsDebuggerClient.base64Encode({
+            processId: data.processId,
+            codeType: "javascript"
+        });
+
         return this.makeCallAndLogException<IAttachProcessResponse>(
             siteName, affinityValue, publishCredential,
-            `curl -X POST -H "Content-Type: application/json" -d '{"processId":"${data.processId}","codeType":"javascript"}' http://localhost:32923/debugger/session/${data.sessionId}/debugee`);
+            `curl -X POST -H "Content-Type: application/base64" -d ${jsonPayloadBase64} http://localhost:32923/debugger/session/${data.sessionId}/debugee`);
     }
 
     public loadedScripts(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: ILoadedScriptsRequest): Promise<CommandRunResult<ILoadedScriptsResponse>> {
@@ -220,9 +248,16 @@ export class MockLogpointsDebuggerClient extends LogPointsDebuggerClientBase imp
     }
 
     public setLogpoint(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: ISetLogpointRequest): Promise<CommandRunResult<ISetLogpointResponse>> {
+        const jsonPayloadBase64 = MockLogpointsDebuggerClient.base64Encode({
+            sourceId: data.sourceId,
+            zeroBasedColumnNumber: data.columNumber,
+            zeroBasedLineNumber: data.lineNumber,
+            expressionToLog: data.expression
+        });
+
         return this.makeCallAndLogException<ISetLogpointResponse>(
             siteName, affinityValue, publishCredential,
-            `curl -X POST -H "Content-Type: application/json" -d '{"sourceId":"${data.sourceId}","zeroBasedColumnNumber":"${data.columNumber}", "zeroBasedLineNumber":"${data.lineNumber}", "expressionToLog":"${data.expression}"}' http://localhost:32923/debugger/session/${data.sessionId}/debugee/${data.debugId}/logpoints`);
+            `curl -X POST -H "Content-Type: application/base64" -d '${jsonPayloadBase64}' http://localhost:32923/debugger/session/${data.sessionId}/debugee/${data.debugId}/logpoints`);
     }
 
     public removeLogpoint(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: IRemoveLogpointRequest): Promise<CommandRunResult<IRemoveLogpointResponse>> {
