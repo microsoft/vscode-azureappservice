@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Site, WebAppCollection } from 'azure-arm-website/lib/models';
+import { NameValuePairs, Site, WebAppCollection } from 'azure-arm-website/lib/models';
 import * as path from 'path';
 import { window } from 'vscode';
 import { IAzureNode, IAzureParentNode, IAzureParentTreeItem, IAzureTreeItem, UserCancelledError } from 'vscode-azureextensionui';
@@ -59,6 +59,10 @@ export class DeploymentSlotsTreeItem implements IAzureParentTreeItem {
         if (!slotName) {
             throw new UserCancelledError();
         }
+
+        const configurationSource = this.chooseConfigurationSource(node);
+        console.log(configurationSource);
+
         slotName = slotName.trim();
         const newDeploymentSlot = {
             name: slotName,
@@ -75,7 +79,7 @@ export class DeploymentSlotsTreeItem implements IAzureParentTreeItem {
     }
 
     private async promptForSlotName(node: IAzureParentNode<DeploymentSlotsTreeItem>): Promise<string | undefined> {
-        return await window.showInputBox({
+        const slotName = await window.showInputBox({
             prompt: 'Enter a unique name for the new deployment slot',
             ignoreFocusOut: true,
             validateInput: async (value: string) => {
@@ -94,6 +98,52 @@ export class DeploymentSlotsTreeItem implements IAzureParentTreeItem {
             }
         });
     }
+
+    private async chooseConfigurationSource(node: IAzureParentNode<DeploymentSlotsTreeItem>): Promise<IAzureNode | undefined> {
+        const deploymentSlots: IAzureNode[] = <IAzureNode[]>await node.getCachedChildren();
+        const configurationSources: util.IQuickPickItemWithData<IAzureNode | undefined>[] = [{
+            label: "Don't clone configuration from an existing slot",
+            description: '',
+            data: undefined
+        }];
+        // add the production slot itself
+        configurationSources.push({
+            label: node.parent.treeItem._siteName,
+            description: '',
+            detail: '',
+            data: node.parent
+        });
+
+        // add the web app's current deployment slots
+        for (const slot of deploymentSlots) {
+            configurationSources.push({
+                label: `${slot.treeItem._siteName}-${slot.treeItem._slotName}`,
+                description: '',
+                data: slot
+            });
+        }
+
+        const quickPickOptions = { placeHolder: `Choose a configuration source.` };
+        const result = await window.showQuickPick(configurationSources, quickPickOptions);
+        return result.data;
+    }
+
+    // const config = await client.webApps.getConfiguration(node.treeItem.site.resourceGroup, util.extractSiteName(node.treeItem.site));
+    //     const appSettings = await client.webApps.listApplicationSettings(node.treeItem.site.resourceGroup, util.extractSiteName(node.treeItem.site));
+    //     const keyValuePairs: NameValuePair[] = [];
+    //     for (const key of Object.keys(appSettings.properties)) {
+    //         keyValuePairs.push({ name: key, value: appSettings.properties[key] });
+
+    //     }
+    //     config.appSettings = keyValuePairs;
+    //     slotName = slotName.trim();
+    //     const newDeploymentSlot = {
+    //         name: slotName,
+    //         kind: node.treeItem.site.kind,
+    //         location: node.treeItem.site.location,
+    //         serverFarmId: node.treeItem.site.serverFarmId,
+    //         siteConfig: config
+    //     };
 }
 
 export class DeploymentSlotsNATreeItem implements IAzureParentTreeItem {
