@@ -1,6 +1,7 @@
 import * as util from 'util';
 import * as vscode from 'vscode';
 import { RemoteScriptSchema } from './remoteScriptDocumentProvider';
+import { IGetLogpointsResponse } from './structs/IGetLogpointsResponse';
 import { ISetLogpointResponse } from './structs/ISetLogpointResponse';
 import { ILogpoint } from './structs/Logpoint';
 import { LogpointsCollection } from './structs/LogpointsCollection';
@@ -42,17 +43,29 @@ class DebugSessionManager {
      * Re-display the gutter glyphs for the document of documentUri.
      * @param documentUri the Uri of the document.
      */
-    public recoverLogpoints(documentUri: vscode.Uri): void {
-        const logpointsCollection = this.getLogpointCollectionForDocument(documentUri);
-        logpointsCollection.updateTextEditorDecroration();
-    }
+    public async recoverLogpoints(documentUri: vscode.Uri): Promise<void> {
+        const uriString = documentUri.toString();
+        let logpointsCollection = this._logpointsCollectionMapping[uriString];
 
-    /**
-     * Contact server and see what logpoints exist already.
-     */
-    public async reloadLogpoints(): Promise<void> {
-        // Since the API is absent, this method is TBD.
-        //await this._debugSession.customRequest("loadLogpoints");
+        // If we have not seen any logpoints fro this collection,
+        // try to contact server and see if it knows about any existing logpoints.
+        if (!logpointsCollection) {
+            logpointsCollection = new LogpointsCollection(documentUri);
+            this._logpointsCollectionMapping[uriString] = logpointsCollection;
+
+            const params = RemoteScriptSchema.extractQueryParams(documentUri);
+
+            const result: IGetLogpointsResponse = await this._debugSession.customRequest("getLogpoints", params.internalScriptId);
+            result.data.forEach(logpoint => {
+                logpointsCollection.registerLogpoint({
+                    id: logpoint.logpointId,
+                    line: logpoint.actualLocation.zeroBasedLineNumber,
+                    column: logpoint.actualLocation.zeroBasedColumnNumber,
+                    expression: logpoint.expressionToLog
+                });
+            });
+        }
+        logpointsCollection.updateTextEditorDecroration();
     }
 
     public async addLogpoint(scriptId: string, lineNumber: number, columnNumber: number): Promise<ILogpoint> {
@@ -109,7 +122,6 @@ export class LogPointsManager extends vscode.Disposable {
         vscode.debug.onDidStartDebugSession((debugSession) => {
             const debugSessionManager = new DebugSessionManager(debugSession);
             this._debugSessionManagerMapping[debugSession.id] = debugSessionManager;
-            debugSessionManager.reloadLogpoints();
         });
 
         vscode.debug.onDidTerminateDebugSession((debugSession) => {
@@ -165,6 +177,9 @@ export class LogPointsManager extends vscode.Disposable {
     }
 
     private onActiveEditorChange(activeEditor: vscode.TextEditor): void {
+        if (!activeEditor) {
+            return;
+        }
         const documentUri = activeEditor.document.uri;
 
         if (documentUri.scheme !== RemoteScriptSchema.schema) {

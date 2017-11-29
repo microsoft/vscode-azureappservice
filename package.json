@@ -225,6 +225,18 @@
                 {
                     "command": "diagnostics.LogPoints.Toggle",
                     "when": "never"
+                },
+                {
+                    "command": "diagnostics.StartLogPointsSession",
+                    "when": "never"
+                },
+                {
+                    "command": "diagnostics.LogPoints.OpenScript",
+                    "when": "never"
+                },
+                {
+                    "command": "diagnostics.LogPoints.Toggle",
+                    "when": "never"
                 }
             ],
             "view/title": [
@@ -312,7 +324,7 @@
                 },
                 {
                     "command": "diagnostics.StartLogPointsSession",
-                    "when": "config.appservice.logpoints == true && view == azureAppService && viewItem == appService",
+                    "when": "config.appService.logpoints == true && view == azureAppService && viewItem == appService",
                     "group": "5_appServiceDiagnosticsCommands@3"
                 },
                 {
@@ -392,7 +404,7 @@
                 },
                 {
                     "command": "diagnostics.StartLogPointsSession",
-                    "when": "config.appservice.logpoints == true && view == azureAppService && viewItem == deploymentSlot",
+                    "when": "config.appService.logpoints == true && view == azureAppService && viewItem == deploymentSlot",
                     "group": "4_deploymentSlotDiagnosticsCommands@3"
                 },
                 {
@@ -451,7 +463,7 @@
             "editor/context": [
                 {
                     "command": "diagnostics.LogPoints.Toggle",
-                    "when": "config.appservice.logpoints == true"
+                    "when": "config.appService.logpoints == true"
                 }
             ]
         },
@@ -498,7 +510,7 @@
                                 "description": "A URL prefix for the azure scm url.",
                                 "default": ""
                             },
-                            "publishCredentialName": {
+                            "publishCredentialUsername": {
                                 "type": "string",
                                 "description": "publishingUserName",
                                 "default": ""
