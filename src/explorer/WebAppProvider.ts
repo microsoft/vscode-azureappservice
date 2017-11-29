@@ -41,8 +41,8 @@ export class WebAppProvider implements IChildProvider {
             }));
     }
 
-    public async createChild(node: IAzureNode<IAzureTreeItem>, _showCreatingNode: (label: string) => void): Promise<IAzureTreeItem> {
-        const newSite: Site | undefined = await createWebApp(util.getOutputChannel(), this._globalState, node.credentials, node.subscription);
+    public async createChild(node: IAzureNode<IAzureTreeItem>, showCreatingNode: (label: string) => void): Promise<IAzureTreeItem> {
+        const newSite: Site | undefined = await createWebApp(util.getOutputChannel(), this._globalState, node.credentials, node.subscription, showCreatingNode);
         if (newSite === undefined) {
             throw new UserCancelledError();
         } else {
