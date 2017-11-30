@@ -107,7 +107,7 @@ export class DeploymentSlotsTreeItem implements IAzureParentTreeItem {
     }
 
     private async chooseConfigurationSource(node: IAzureParentNode<DeploymentSlotsTreeItem>): Promise<IAzureNode<SiteTreeItem> | undefined> {
-        const deploymentSlots: IAzureNode[] = <IAzureNode[]>await node.getCachedChildren();
+        const deploymentSlots: IAzureNode[] = await node.getCachedChildren();
         const configurationSources: util.IQuickPickItemWithData<IAzureNode | undefined>[] = [{
             label: "Don't clone configuration from an existing slot",
             description: '',
@@ -144,7 +144,7 @@ export class DeploymentSlotsTreeItem implements IAzureParentTreeItem {
             await client.webApps.listApplicationSettingsSlot(node.treeItem.siteWrapper.resourceGroup, node.treeItem.siteWrapper.name, node.treeItem.siteWrapper.slotName) :
             await client.webApps.listApplicationSettings(node.treeItem.siteWrapper.resourceGroup, node.treeItem.siteWrapper.name);
         const appSettingPairs: NameValuePair[] = [];
-        // iterate String Directionary to parse into NameValuePair[]
+        // iterate String Dictionary to parse into NameValuePair[]
         for (const key of Object.keys(appSettings.properties)) {
             appSettingPairs.push({ name: key, value: appSettings.properties[key] });
         }
