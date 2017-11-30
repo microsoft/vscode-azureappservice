@@ -69,7 +69,7 @@ class SwapStep extends WizardStep {
             }
         }
 
-        const quickPickOptions = { placeHolder: `"${this.sourceSlot.label}" will be swapped with the destination slot.` };
+        const quickPickOptions = { placeHolder: `"${this.sourceSlot.label}" will be swapped with the destination slot.`, ignoreFocusOut: true };
         const result = await this.showQuickPick(otherSlots, quickPickOptions);
 
         if (result) {
