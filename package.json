@@ -479,6 +479,13 @@
                     "type": "boolean",
                     "default": false,
                     "description": "Enable or disable the Logpoints feature"
+                },
+                "appService.enabledDockerImages": {
+                    "type": "array",
+                    "default": [
+                        "f12azurenodelogpointsnightly.azurecr.io/azure-nodejs-logpoints"
+                    ],
+                    "description": "The supported Docker images that logpoints feature can run with."
                 }
             }
         },
