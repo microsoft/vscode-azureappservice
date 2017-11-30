@@ -225,6 +225,18 @@
                 {
                     "command": "diagnostics.LogPoints.Toggle",
                     "when": "never"
+                },
+                {
+                    "command": "diagnostics.StartLogPointsSession",
+                    "when": "never"
+                },
+                {
+                    "command": "diagnostics.LogPoints.OpenScript",
+                    "when": "never"
+                },
+                {
+                    "command": "diagnostics.LogPoints.Toggle",
+                    "when": "never"
                 }
             ],
             "view/title": [
@@ -312,7 +324,7 @@
                 },
                 {
                     "command": "diagnostics.StartLogPointsSession",
-                    "when": "config.appservice.logpoints == true && view == azureAppService && viewItem == appService",
+                    "when": "config.appService.logpoints == true && view == azureAppService && viewItem == appService",
                     "group": "5_appServiceDiagnosticsCommands@3"
                 },
                 {
@@ -392,7 +404,7 @@
                 },
                 {
                     "command": "diagnostics.StartLogPointsSession",
-                    "when": "config.appservice.logpoints == true && view == azureAppService && viewItem == deploymentSlot",
+                    "when": "config.appService.logpoints == true && view == azureAppService && viewItem == deploymentSlot",
                     "group": "4_deploymentSlotDiagnosticsCommands@3"
                 },
                 {
@@ -451,7 +463,7 @@
             "editor/context": [
                 {
                     "command": "diagnostics.LogPoints.Toggle",
-                    "when": "config.appservice.logpoints == true"
+                    "when": "config.appService.logpoints == true"
                 }
             ]
         },
@@ -467,6 +479,13 @@
                     "type": "boolean",
                     "default": false,
                     "description": "Enable or disable the Logpoints feature"
+                },
+                "appService.enabledDockerImages": {
+                    "type": "array",
+                    "default": [
+                        "f12azurenodelogpointsnightly.azurecr.io/azure-nodejs-logpoints"
+                    ],
+                    "description": "The supported Docker images that logpoints feature can run with."
                 }
             }
         },
@@ -498,7 +517,7 @@
                                 "description": "A URL prefix for the azure scm url.",
                                 "default": ""
                             },
-                            "publishCredentialName": {
+                            "publishCredentialUsername": {
                                 "type": "string",
                                 "description": "publishingUserName",
                                 "default": ""
@@ -571,8 +590,8 @@
         "vscode-debugadapter": "^1.24.0",
         "vscode-debugprotocol": "^1.24.0",
         "vscode-extension-telemetry": "^0.0.8",
-        "vscode-azureappservice": "^0.6.0",
-        "vscode-azureextensionui": "~0.2.0"
+        "vscode-azureappservice": "~0.6.0",
+        "vscode-azureextensionui": "~0.3.0"
     },
     "extensionDependencies": [
         "ms-vscode.azure-account"

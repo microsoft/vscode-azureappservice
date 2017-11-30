@@ -1,64 +1,53 @@
 import { SubscriptionModels } from 'azure-arm-resource';
+import { Site, SiteConfigResource, SiteInstance, User, WebAppInstanceCollection } from 'azure-arm-website/lib/models';
 import * as vscode from 'vscode';
 import { UserCancelledError } from 'vscode-azureextensionui';
-import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models';
 import * as util from '../util';
 import { WizardBase, WizardStep } from '../wizard';
-import {
-    ILogPointsDebuggerClient, KuduLogPointsDebuggerClient, MockLogpointsDebuggerClient
-} from './logPointsClient';
+import { createDefaultClient } from './logPointsClient';
 
+import WebSiteManagementClient = require('azure-arm-website');
 import { CommandRunResult } from './structs/CommandRunResult';
 import { IAttachProcessRequest } from './structs/IAttachProcessRequest';
 import { IAttachProcessResponse } from './structs/IAttachProcessResponse';
 import { IEnumerateProcessResponse } from './structs/IEnumerateProcessResponse';
 import { IStartSessionResponse } from './structs/IStartSessionResponse';
 
-import WebSiteManagementClient = require('azure-arm-website');
-
-const shouldUseMockKuduCall = true;
-
-let logPointsDebuggerClient: ILogPointsDebuggerClient;
-
-if (shouldUseMockKuduCall) {
-    logPointsDebuggerClient = new MockLogpointsDebuggerClient();
-} else {
-    logPointsDebuggerClient = new KuduLogPointsDebuggerClient();
-}
+const logPointsDebuggerClient = createDefaultClient();
 
 // tslint:disable-next-line:export-name
 export class LogPointsSessionAttach extends WizardBase {
 
     public readonly hasSlot: boolean;
-    public selectedDeploymentSlot: WebSiteModels.Site;
-    public selectedInstance: WebSiteModels.SiteInstance;
+    public selectedDeploymentSlot: Site;
+    public selectedInstance: SiteInstance;
     public sessionId: string;
     public processId: string;
     public debuggerId: string;
 
-    private _cachedPublishCredential: WebSiteModels.User;
+    private _cachedPublishCredential: User;
 
     constructor(
         output: vscode.OutputChannel,
         public readonly websiteManagementClient: WebSiteManagementClient,
-        public readonly site: WebSiteModels.Site,
+        public readonly site: Site,
         public readonly subscription?: SubscriptionModels.Subscription
     ) {
         super(output);
     }
 
-    public get lastUsedPublishCredential(): WebSiteModels.User {
+    public get lastUsedPublishCredential(): User {
         return this._cachedPublishCredential;
     }
 
-    public async fetchPublishCrentential(site: WebSiteModels.Site): Promise<WebSiteModels.User> {
+    public async fetchPublishCrentential(site: Site): Promise<User> {
         const siteClient = this.websiteManagementClient;
         const user = await util.getWebAppPublishCredential(siteClient, site);
         this._cachedPublishCredential = user;
         return user;
     }
 
-    public async getCachedCredentialOrRefetch(site: WebSiteModels.Site): Promise<WebSiteModels.User> {
+    public async getCachedCredentialOrRefetch(site: Site): Promise<User> {
         if (this.lastUsedPublishCredential) {
             return Promise.resolve(this.lastUsedPublishCredential);
         }
@@ -67,6 +56,7 @@ export class LogPointsSessionAttach extends WizardBase {
     }
 
     protected initSteps(): void {
+        this.steps.push(new EligibilityCheck(this));
         if (util.isSiteDeploymentSlot(this.site)) {
             this.selectedDeploymentSlot = this.site;
         } else {
@@ -89,13 +79,47 @@ export class LogPointsSessionAttach extends WizardBase {
     }
 }
 
+// tslint:disable:max-classes-per-file
+class EligibilityCheck extends WizardStep {
+    constructor(private _wizard: LogPointsSessionAttach) {
+        super(_wizard, 'Decide the app service eligibility for logpoints.');
+    }
+
+    public async prompt(): Promise<void> {
+        const site = this._wizard.site;
+
+        const kind = site.kind;
+
+        if (!/linux$/.test(kind)) {
+            throw new Error('Only Linux App Services are suppored');
+        }
+
+        const siteClient = this._wizard.websiteManagementClient;
+
+        const config: SiteConfigResource = await siteClient.webApps.getConfiguration(site.resourceGroup, site.name);
+
+        const linuxFxVersion = config.linuxFxVersion;
+
+        if (!linuxFxVersion) {
+            throw new Error('Cannot read "linuxFxVersion"');
+        }
+
+        const [framework, imageName] = linuxFxVersion.split('|');
+        const enabledImages = vscode.workspace.getConfiguration('appService').get<string[]>('enabledDockerImages');
+
+        if ('docker' !== framework.toLocaleLowerCase() || enabledImages.indexOf(imageName.toLocaleLowerCase()) === -1) {
+            throw new Error(`Please use one of the supported docker image. The ${framework}|${imageName} combination is not supported`);
+        }
+    }
+}
+
 class PromptSlotSelection extends WizardStep {
-    constructor(private _wizard: LogPointsSessionAttach, readonly site: WebSiteModels.Site) {
+    constructor(private _wizard: LogPointsSessionAttach, readonly site: Site) {
         super(_wizard, 'Choose a deployment slot.');
     }
 
     public async prompt(): Promise<void> {
-        let deploymentSlots: WebSiteModels.Site[];
+        let deploymentSlots: Site[];
 
         // Decide if this AppService uses deployment slots
         await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async p => {
@@ -114,8 +138,8 @@ class PromptSlotSelection extends WizardStep {
             return;
         }
 
-        const deploymentQuickPickItems = deploymentSlots.map((deploymentSlot: WebSiteModels.Site) => {
-            return <util.IQuickPickItemWithData<WebSiteModels.Site>>{
+        const deploymentQuickPickItems = deploymentSlots.map((deploymentSlot: Site) => {
+            return <util.IQuickPickItemWithData<Site>>{
                 label: util.extractDeploymentSlotName(deploymentSlot) || deploymentSlot.name,
                 description: '',
                 data: deploymentSlot
@@ -139,7 +163,7 @@ class PromptSlotSelection extends WizardStep {
     /**
      * Returns all the deployment slots and the production slot.
      */
-    private async getDeploymentSlots(): Promise<WebSiteModels.Site[]> {
+    private async getDeploymentSlots(): Promise<Site[]> {
         const client = this._wizard.websiteManagementClient;
         const allDeploymentSlots = await client.webApps.listByResourceGroup(this.site.resourceGroup, { includeSlots: true });
         return allDeploymentSlots.filter((slot) => {
@@ -147,7 +171,6 @@ class PromptSlotSelection extends WizardStep {
         });
     }
 }
-
 class GetUnoccupiedInstance extends WizardStep {
     constructor(private _wizard: LogPointsSessionAttach) {
         super(_wizard, 'Find the first available unoccupied instance.');
@@ -158,7 +181,7 @@ class GetUnoccupiedInstance extends WizardStep {
 
         const publishCredential = await this._wizard.getCachedCredentialOrRefetch(selectedSlot);
 
-        let instances: WebSiteModels.WebAppInstanceCollection;
+        let instances: WebAppInstanceCollection;
         const client = this._wizard.websiteManagementClient;
 
         await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async p => {
@@ -212,7 +235,6 @@ class GetUnoccupiedInstance extends WizardStep {
     }
 }
 
-// tslint:disable-next-line:max-classes-per-file
 class PickProcessStep extends WizardStep {
     constructor(private _wizard: LogPointsSessionAttach) {
         super(_wizard, 'Enumerate node processes.');
@@ -306,6 +328,7 @@ class StartDebugAdapterStep extends WizardStep {
     public async execute(): Promise<void> {
         const site = this._wizard.selectedDeploymentSlot;
         const siteName = util.extractSiteName(site) + (util.isSiteDeploymentSlot(site) ? `-${util.extractDeploymentSlotName(site)}` : '');
+        const publishCredential = await this._wizard.getCachedCredentialOrRefetch(site);
 
         // Assume the next started debug sessionw is the one we will launch next.
         const startEventHandler = vscode.debug.onDidStartDebugSession(() => {
@@ -319,9 +342,9 @@ class StartDebugAdapterStep extends WizardStep {
             request: "attach",
             trace: true,
             siteName: siteName,
-            publishCredentialName: "",
-            publishCredentialPassword: "",
-            instanceId: this._wizard.selectedInstance.id,
+            publishCredentialUsername: publishCredential.publishingUserName,
+            publishCredentialPassword: publishCredential.publishingPassword,
+            instanceId: this._wizard.selectedInstance.name,
             sessionId: this._wizard.sessionId,
             debugId: this._wizard.debuggerId
         });
