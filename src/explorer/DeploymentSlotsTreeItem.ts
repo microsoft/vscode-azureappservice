@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { NameValuePair, Site, SiteConfig, WebAppCollection } from 'azure-arm-website/lib/models';
+import { NameValuePair, Site, WebAppCollection } from 'azure-arm-website/lib/models';
 import * as path from 'path';
 import { window } from 'vscode';
 import { IAzureNode, IAzureParentNode, IAzureParentTreeItem, IAzureTreeItem, UserCancelledError } from 'vscode-azureextensionui';
