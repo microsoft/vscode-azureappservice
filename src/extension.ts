@@ -19,7 +19,7 @@ import { SiteActionError, WizardFailedError } from './errors';
 import { DeploymentSlotsTreeItem } from './explorer/DeploymentSlotsTreeItem';
 import { DeploymentSlotTreeItem } from './explorer/DeploymentSlotTreeItem';
 import { LoadedScriptsProvider, openScript } from './explorer/loadedScriptsExplorer';
-import { SiteTreeItem } from './explorer/SiteTreeItem';
+import { getAppServicePlan, SiteTreeItem } from './explorer/SiteTreeItem';
 import { WebAppProvider } from './explorer/WebAppProvider';
 import { WebAppTreeItem } from './explorer/WebAppTreeItem';
 import { Reporter } from './telemetry/reporter';
@@ -138,8 +138,16 @@ export function activate(context: vscode.ExtensionContext): void {
         if (!node) {
             node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
         }
-
-        await node.treeItem.siteWrapper.deploy(fsPath, nodeUtils.getWebSiteClient(node), outputChannel);
+        const client = nodeUtils.getWebSiteClient(node);
+        try {
+            await node.treeItem.siteWrapper.deploy(fsPath, client, outputChannel);
+        } catch (err) {
+            if (err instanceof UserCancelledError) {
+                throw err;
+            }
+            const appServicePlan = await getAppServicePlan(node.treeItem.site, client);
+            throw new SiteActionError(err, appServicePlan.sku.size);
+        }
     });
     initAsyncCommand(context, 'appService.ConfigureDeploymentSource', async (node: IAzureNode<SiteTreeItem>) => {
         if (!node) {

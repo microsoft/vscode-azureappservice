@@ -38,8 +38,9 @@
         "onCommand:appService.Stop",
         "onCommand:appService.Restart",
         "onCommand:appService.Delete",
+        "onCommand:appService.Deploy",
+        "onCommand:appService.ConfigureDeploymentSource",
         "onCommand:appService.DeploymentScript",
-        "onCommand:appService.DeployZipPackage",
         "onCommand:appService.OpenVSTSCD",
         "onCommand:deploymentSlot.SwapSlots",
         "onCommand:appSettings.Add",
@@ -64,21 +65,21 @@
                 }
             },
             {
-                "command": "appService.Refresh",
-                "title": "Refresh",
-                "category": "Azure App Service",
-                "icon": {
-                    "light": "resources/light/refresh.svg",
-                    "dark": "resources/dark/refresh.svg"
-                }
-            },
-            {
                 "command": "appService.Deploy",
                 "title": "Deploy to Web App",
                 "category": "Azure App Service",
                 "icon": {
                     "light": "resources/light/Deploy.svg",
                     "dark": "resources/dark/Deploy.svg"
+                }
+            },
+            {
+                "command": "appService.Refresh",
+                "title": "Refresh",
+                "category": "Azure App Service",
+                "icon": {
+                    "light": "resources/light/refresh.svg",
+                    "dark": "resources/dark/refresh.svg"
                 }
             },
             {
@@ -119,16 +120,6 @@
             {
                 "command": "appService.DeploymentScript",
                 "title": "Generate Azure CLI Script",
-                "category": "Azure App Service"
-            },
-            {
-                "command": "appService.DeployZipPackage",
-                "title": "Deploy to Web App",
-                "category": "Azure App Service"
-            },
-            {
-                "command": "appService.LocalGitDeploy",
-                "title": "Local Git Deploy to Web App",
                 "category": "Azure App Service"
             },
             {
@@ -255,12 +246,12 @@
                     "group": "navigation@1"
                 },
                 {
-                    "command": "appService.Refresh",
+                    "command": "appService.Deploy",
                     "when": "view == azureAppService",
                     "group": "navigation@2"
                 },
                 {
-                    "command": "appService.Deploy",
+                    "command": "appService.Refresh",
                     "when": "view == azureAppService",
                     "group": "navigation@3"
                 }
@@ -454,12 +445,7 @@
             ],
             "explorer/context": [
                 {
-                    "command": "appService.DeployZipPackage",
-                    "when": "resourceFilename == package.zip",
-                    "group": "zzz_@appServiceDeployCommands"
-                },
-                {
-                    "command": "appService.DeployZipPackage",
+                    "command": "appService.Deploy",
                     "when": "explorerResourceIsFolder == true",
                     "group": "zzz_@appServiceDeployCommands"
                 }
@@ -594,7 +580,7 @@
         "vscode-debugadapter": "^1.24.0",
         "vscode-debugprotocol": "^1.24.0",
         "vscode-extension-telemetry": "^0.0.8",
-        "vscode-azureappservice": "~0.6.0",
+        "vscode-azureappservice": "~0.7.0",
         "vscode-azureextensionui": "~0.3.0"
     },
     "extensionDependencies": [

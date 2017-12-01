@@ -10,10 +10,8 @@ import { Request } from 'request';
 import { ExtensionContext, OutputChannel, window } from 'vscode';
 import { SiteWrapper } from 'vscode-azureappservice';
 import { IAzureParentNode, IAzureParentTreeItem, IAzureTreeItem, UserCancelledError } from 'vscode-azureextensionui';
-import { SiteActionError } from '../errors';
 import { KuduClient } from '../KuduClient';
 import * as util from '../util';
-import { getOutputChannel } from '../util';
 import { nodeUtils } from '../utils/nodeUtils';
 
 export abstract class SiteTreeItem implements IAzureParentTreeItem {
