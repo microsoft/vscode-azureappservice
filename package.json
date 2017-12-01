@@ -73,6 +73,15 @@
                 }
             },
             {
+                "command": "appService.Deploy",
+                "title": "Deploy to Web App",
+                "category": "Azure App Service",
+                "icon": {
+                    "light": "resources/light/Deploy.svg",
+                    "dark": "resources/dark/Deploy.svg"
+                }
+            },
+            {
                 "command": "appService.LoadMore",
                 "title": "Load More",
                 "category": "Azure App Service"
@@ -249,6 +258,11 @@
                     "command": "appService.Refresh",
                     "when": "view == azureAppService",
                     "group": "navigation@2"
+                },
+                {
+                    "command": "appService.Deploy",
+                    "when": "view == azureAppService",
+                    "group": "navigation@3"
                 }
             ],
             "view/item/context": [
@@ -293,44 +307,34 @@
                     "group": "2_appServiceControlCommands@4"
                 },
                 {
-                    "command": "appService.DeployZipPackage",
+                    "command": "appService.OpenVSTSCD",
                     "when": "view == azureAppService && viewItem == appService",
                     "group": "3_appServiceDeployCommands@1"
                 },
                 {
-                    "command": "appService.LocalGitDeploy",
+                    "command": "appService.ConfigureDeploymentSource",
                     "when": "view == azureAppService && viewItem == appService",
                     "group": "3_appServiceDeployCommands@2"
                 },
                 {
-                    "command": "appService.ConfigureDeploymentSource",
-                    "when": "view == azureAppService && viewItem == appService",
-                    "group": "3_appServiceDeployCommands@3"
-                },
-                {
-                    "command": "appService.OpenVSTSCD",
-                    "when": "view == azureAppService && viewItem == appService",
-                    "group": "4_appServiceCicdCommands@1"
-                },
-                {
                     "command": "diagnostics.OpenLogStream",
                     "when": "view == azureAppService && viewItem == appService",
-                    "group": "5_appServiceDiagnosticsCommands@1"
+                    "group": "4_appServiceDiagnosticsCommands@1"
                 },
                 {
                     "command": "diagnostics.StopLogStream",
                     "when": "view == azureAppService && viewItem == appService",
-                    "group": "5_appServiceDiagnosticsCommands@2"
+                    "group": "4_appServiceDiagnosticsCommands@2"
                 },
                 {
                     "command": "diagnostics.StartLogPointsSession",
                     "when": "config.appService.logpoints == true && view == azureAppService && viewItem == appService",
-                    "group": "5_appServiceDiagnosticsCommands@3"
+                    "group": "4_appServiceDiagnosticsCommands@3"
                 },
                 {
                     "command": "appService.DeploymentScript",
                     "when": "view == azureAppService && viewItem == appService",
-                    "group": "6_appServiceMiscCommands@1"
+                    "group": "5_appServiceMiscCommands@1"
                 },
                 {
                     "command": "deploymentSlots.CreateSlot",
@@ -383,12 +387,12 @@
                     "group": "2_deploymentSlotControlCommands@5"
                 },
                 {
-                    "command": "appService.LocalGitDeploy",
+                    "command": "appService.Deploy",
                     "when": "view == azureAppService && viewItem == deploymentSlot",
                     "group": "3_deploymentSlotDeployCommands@1"
                 },
                 {
-                    "command": "appService.DeployZipPackage",
+                    "command": "appService.ConfigureDeploymentSource",
                     "when": "view == azureAppService && viewItem == deploymentSlot",
                     "group": "3_deploymentSlotDeployCommands@2"
                 },

@@ -125,7 +125,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
         await node.createChild();
     });
-    initAsyncCommand(context, 'appService.DeployZipPackage', async (target?: vscode.Uri | IAzureNode<WebAppTreeItem> | undefined) => {
+    initAsyncCommand(context, 'appService.Deploy', async (target?: vscode.Uri | IAzureNode<WebAppTreeItem> | undefined) => {
         let node: IAzureNode<WebAppTreeItem>;
         let fsPath: string;
         if (target instanceof vscode.Uri) {
@@ -139,15 +139,7 @@ export function activate(context: vscode.ExtensionContext): void {
             node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
         }
 
-        await node.treeItem.siteWrapper.deployZip(fsPath, nodeUtils.getWebSiteClient(node), outputChannel);
-    });
-    initAsyncCommand(context, 'appService.LocalGitDeploy', async (node?: IAzureNode<SiteTreeItem>) => {
-        if (!node) {
-            node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
-        }
-        outputChannel.appendLine(`Deploying Local Git repository to "${node.treeItem.site.name}"...`);
-        await node.treeItem.localGitDeploy(nodeUtils.getWebSiteClient(node));
-        outputChannel.appendLine(`Local repository has been deployed to "${node.treeItem.site.name}".`);
+        await node.treeItem.siteWrapper.deploy(fsPath, nodeUtils.getWebSiteClient(node), outputChannel);
     });
     initAsyncCommand(context, 'appService.ConfigureDeploymentSource', async (node: IAzureNode<SiteTreeItem>) => {
         if (!node) {
