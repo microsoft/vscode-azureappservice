@@ -109,19 +109,6 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
         }
     }
 
-    public async localGitDeploy(client: WebSiteManagementClient): Promise<void> {
-        const fsWorkspaceFolder = await util.showWorkspaceFoldersQuickPick('Select the folder to Local Git deploy.');
-        try {
-            await this.siteWrapper.localGitDeploy(fsWorkspaceFolder.uri.fsPath, client, getOutputChannel());
-        } catch (err) {
-            if (err instanceof UserCancelledError) {
-                throw err;
-            }
-            const appServicePlan = await getAppServicePlan(this.site, client);
-            throw new SiteActionError(err, appServicePlan.sku.size);
-        }
-    }
-
     public async editScmType(client: WebSiteManagementClient): Promise<string> {
         return await this.siteWrapper.editScmType(client);
     }
