@@ -1,6 +1,15 @@
 # Change Log
 All notable changes to the "azure-appservice" extension will be documented in this file.
 
+## 0.5.0 - 2017-12-15
+### Added
+- Change Deployment Source for apps and slots
+- Deploy from Explorer
+- Auto-detects deployment method
+- Select configuration source when adding deployment slots
+### Removed
+- Deployment from web app context menu
+
 ## 0.4.0 - 2017-11-10
 ### Added
 - Create Deployment Slot
