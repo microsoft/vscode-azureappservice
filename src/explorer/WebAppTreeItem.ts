@@ -36,7 +36,7 @@ export class WebAppTreeItem extends SiteTreeItem {
     }
 
     public get label(): string {
-        return `${this.site.name} (${this.site.resourceGroup})`;
+        return `${this.site.name} (${this.site.state})`;
     }
 
     public get iconPath(): { light: string, dark: string } {
