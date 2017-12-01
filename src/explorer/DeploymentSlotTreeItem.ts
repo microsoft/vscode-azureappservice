@@ -18,7 +18,7 @@ export class DeploymentSlotTreeItem extends SiteTreeItem {
     }
 
     public get label(): string {
-        return this.siteWrapper.slotName;
+        return `${this.siteWrapper.slotName} (${this.site.state})`;
     }
 
     public get iconPath(): { light: string, dark: string } {
