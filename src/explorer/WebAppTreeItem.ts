@@ -17,8 +17,6 @@ import { DeploymentSlotsNATreeItem, DeploymentSlotsTreeItem } from './Deployment
 import { DeploymentSlotTreeItem } from './DeploymentSlotTreeItem';
 import { getAppServicePlan, SiteTreeItem } from './SiteTreeItem';
 import { WebJobsTreeItem } from './WebJobsTreeItem';
-import { ResourceGroup } from 'azure-arm-resource/lib/resource/models';
-import { Subscription } from 'vscode-azureextensionui/node_modules/azure-arm-resource/lib/subscription/models';
 
 export class WebAppTreeItem extends SiteTreeItem {
     public static contextValue: string = 'appService';
