@@ -314,6 +314,7 @@ class SessionAttachStep extends WizardStep {
             this._wizard.debuggerId = result.json.data.debugeeId;
             this._wizard.writeline(`Attached to process ${this._wizard.processId}, got debugId ${this._wizard.debuggerId}`);
         } else {
+            this._wizard.writeline(`Attached to process ${this._wizard.processId} failed, got response ${result.output}`);
             throw new Error('Attaching process failed.');
         }
     }
