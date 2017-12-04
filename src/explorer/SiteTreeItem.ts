@@ -9,7 +9,7 @@ import * as opn from 'opn';
 import { Request } from 'request';
 import { ExtensionContext, OutputChannel, window } from 'vscode';
 import { SiteWrapper } from 'vscode-azureappservice';
-import { IAzureParentNode, IAzureParentTreeItem, IAzureTreeItem, UserCancelledError } from 'vscode-azureextensionui';
+import { IAzureParentNode, IAzureParentTreeItem, IAzureTreeItem } from 'vscode-azureextensionui';
 import { KuduClient } from '../KuduClient';
 import * as util from '../util';
 import { nodeUtils } from '../utils/nodeUtils';
