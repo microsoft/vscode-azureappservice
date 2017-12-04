@@ -2,12 +2,12 @@
     "name": "vscode-azureappservice",
     "displayName": "Azure App Service Tools",
     "description": "An Azure App Service management extension for Visual Studio Code.",
-    "version": "0.4.0",
+    "version": "0.5.0",
     "publisher": "ms-azuretools",
     "icon": "resources/windows-azure-web-site.png",
     "aiKey": "AIF-d9b70cd4-b9f9-4d70-929b-a071c400b217",
     "engines": {
-        "vscode": "^1.18.0"
+        "vscode": "^1.18.1"
     },
     "repository": {
         "type": "git",
@@ -38,8 +38,9 @@
         "onCommand:appService.Stop",
         "onCommand:appService.Restart",
         "onCommand:appService.Delete",
+        "onCommand:appService.Deploy",
+        "onCommand:appService.ConfigureDeploymentSource",
         "onCommand:appService.DeploymentScript",
-        "onCommand:appService.DeployZipPackage",
         "onCommand:appService.OpenVSTSCD",
         "onCommand:deploymentSlot.SwapSlots",
         "onCommand:appSettings.Add",
@@ -61,6 +62,15 @@
                 "icon": {
                     "light": "resources/light/createAppSvc.svg",
                     "dark": "resources/dark/createAppSvc.svg"
+                }
+            },
+            {
+                "command": "appService.Deploy",
+                "title": "Deploy to Web App",
+                "category": "Azure App Service",
+                "icon": {
+                    "light": "resources/light/Deploy.svg",
+                    "dark": "resources/dark/Deploy.svg"
                 }
             },
             {
@@ -110,16 +120,6 @@
             {
                 "command": "appService.DeploymentScript",
                 "title": "Generate Azure CLI Script",
-                "category": "Azure App Service"
-            },
-            {
-                "command": "appService.DeployZipPackage",
-                "title": "Deploy to Web App",
-                "category": "Azure App Service"
-            },
-            {
-                "command": "appService.LocalGitDeploy",
-                "title": "Local Git Deploy to Web App",
                 "category": "Azure App Service"
             },
             {
@@ -246,9 +246,14 @@
                     "group": "navigation@1"
                 },
                 {
-                    "command": "appService.Refresh",
+                    "command": "appService.Deploy",
                     "when": "view == azureAppService",
                     "group": "navigation@2"
+                },
+                {
+                    "command": "appService.Refresh",
+                    "when": "view == azureAppService",
+                    "group": "navigation@3"
                 }
             ],
             "view/item/context": [
@@ -293,44 +298,34 @@
                     "group": "2_appServiceControlCommands@4"
                 },
                 {
-                    "command": "appService.DeployZipPackage",
+                    "command": "appService.OpenVSTSCD",
                     "when": "view == azureAppService && viewItem == appService",
                     "group": "3_appServiceDeployCommands@1"
                 },
                 {
-                    "command": "appService.LocalGitDeploy",
+                    "command": "appService.ConfigureDeploymentSource",
                     "when": "view == azureAppService && viewItem == appService",
                     "group": "3_appServiceDeployCommands@2"
                 },
                 {
-                    "command": "appService.ConfigureDeploymentSource",
-                    "when": "view == azureAppService && viewItem == appService",
-                    "group": "3_appServiceDeployCommands@3"
-                },
-                {
-                    "command": "appService.OpenVSTSCD",
-                    "when": "view == azureAppService && viewItem == appService",
-                    "group": "4_appServiceCicdCommands@1"
-                },
-                {
                     "command": "diagnostics.OpenLogStream",
                     "when": "view == azureAppService && viewItem == appService",
-                    "group": "5_appServiceDiagnosticsCommands@1"
+                    "group": "4_appServiceDiagnosticsCommands@1"
                 },
                 {
                     "command": "diagnostics.StopLogStream",
                     "when": "view == azureAppService && viewItem == appService",
-                    "group": "5_appServiceDiagnosticsCommands@2"
+                    "group": "4_appServiceDiagnosticsCommands@2"
                 },
                 {
                     "command": "diagnostics.StartLogPointsSession",
                     "when": "config.appService.logpoints == true && view == azureAppService && viewItem == appService",
-                    "group": "5_appServiceDiagnosticsCommands@3"
+                    "group": "4_appServiceDiagnosticsCommands@3"
                 },
                 {
                     "command": "appService.DeploymentScript",
                     "when": "view == azureAppService && viewItem == appService",
-                    "group": "6_appServiceMiscCommands@1"
+                    "group": "5_appServiceMiscCommands@1"
                 },
                 {
                     "command": "deploymentSlots.CreateSlot",
@@ -383,12 +378,12 @@
                     "group": "2_deploymentSlotControlCommands@5"
                 },
                 {
-                    "command": "appService.LocalGitDeploy",
+                    "command": "appService.Deploy",
                     "when": "view == azureAppService && viewItem == deploymentSlot",
                     "group": "3_deploymentSlotDeployCommands@1"
                 },
                 {
-                    "command": "appService.DeployZipPackage",
+                    "command": "appService.ConfigureDeploymentSource",
                     "when": "view == azureAppService && viewItem == deploymentSlot",
                     "group": "3_deploymentSlotDeployCommands@2"
                 },
@@ -450,12 +445,7 @@
             ],
             "explorer/context": [
                 {
-                    "command": "appService.DeployZipPackage",
-                    "when": "resourceFilename == package.zip",
-                    "group": "zzz_@appServiceDeployCommands"
-                },
-                {
-                    "command": "appService.DeployZipPackage",
+                    "command": "appService.Deploy",
                     "when": "explorerResourceIsFolder == true",
                     "group": "zzz_@appServiceDeployCommands"
                 }
@@ -589,7 +579,7 @@
         "opn": "^5.1.0",
         "request": "^2.83.0",
         "simple-git": "^1.77.0",
-        "vscode-azureappservice": "~0.6.0",
+        "vscode-azureappservice": "~0.7.0",
         "vscode-azureextensionui": "~0.3.0",
         "vscode-debugadapter": "^1.24.0",
         "vscode-debugprotocol": "^1.24.0",

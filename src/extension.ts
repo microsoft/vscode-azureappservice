@@ -19,7 +19,7 @@ import { SiteActionError, WizardFailedError } from './errors';
 import { DeploymentSlotsTreeItem } from './explorer/DeploymentSlotsTreeItem';
 import { DeploymentSlotTreeItem } from './explorer/DeploymentSlotTreeItem';
 import { LoadedScriptsProvider, openScript } from './explorer/loadedScriptsExplorer';
-import { SiteTreeItem } from './explorer/SiteTreeItem';
+import { getAppServicePlan, SiteTreeItem } from './explorer/SiteTreeItem';
 import { WebAppProvider } from './explorer/WebAppProvider';
 import { WebAppTreeItem } from './explorer/WebAppTreeItem';
 import { Reporter } from './telemetry/reporter';
@@ -125,7 +125,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
         await node.createChild();
     });
-    initAsyncCommand(context, 'appService.DeployZipPackage', async (target?: vscode.Uri | IAzureNode<WebAppTreeItem> | undefined) => {
+    initAsyncCommand(context, 'appService.Deploy', async (target?: vscode.Uri | IAzureNode<WebAppTreeItem> | undefined) => {
         let node: IAzureNode<WebAppTreeItem>;
         let fsPath: string;
         if (target instanceof vscode.Uri) {
@@ -138,16 +138,16 @@ export function activate(context: vscode.ExtensionContext): void {
         if (!node) {
             node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
         }
-
-        await node.treeItem.siteWrapper.deployZip(fsPath, nodeUtils.getWebSiteClient(node), outputChannel);
-    });
-    initAsyncCommand(context, 'appService.LocalGitDeploy', async (node?: IAzureNode<SiteTreeItem>) => {
-        if (!node) {
-            node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
+        const client = nodeUtils.getWebSiteClient(node);
+        try {
+            await node.treeItem.siteWrapper.deploy(fsPath, client, outputChannel);
+        } catch (err) {
+            if (err instanceof UserCancelledError) {
+                throw err;
+            }
+            const appServicePlan = await getAppServicePlan(node.treeItem.site, client);
+            throw new SiteActionError(err, appServicePlan.sku.size);
         }
-        outputChannel.appendLine(`Deploying Local Git repository to "${node.treeItem.site.name}"...`);
-        await node.treeItem.localGitDeploy(nodeUtils.getWebSiteClient(node));
-        outputChannel.appendLine(`Local repository has been deployed to "${node.treeItem.site.name}".`);
     });
     initAsyncCommand(context, 'appService.ConfigureDeploymentSource', async (node: IAzureNode<SiteTreeItem>) => {
         if (!node) {
