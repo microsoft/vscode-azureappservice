@@ -569,6 +569,7 @@
         "test": "node ./node_modules/vscode/bin/test"
     },
     "devDependencies": {
+        "@types/fs-extra": "^4.0.5",
         "@types/mocha": "^2.2.32",
         "@types/node": "^8.0.51",
         "@types/request": "^2.0.3",
@@ -581,17 +582,18 @@
     "dependencies": {
         "azure-arm-resource": "^2.0.0-preview",
         "azure-arm-website": "^1.0.0-preview",
+        "fs-extra": "^4.0.2",
         "kudu-api": "^1.4.1",
         "ms-rest": "^2.2.2",
         "ms-rest-azure": "^2.3.1",
         "opn": "^5.1.0",
         "request": "^2.83.0",
         "simple-git": "^1.77.0",
+        "vscode-azureappservice": "~0.6.0",
+        "vscode-azureextensionui": "~0.3.0",
         "vscode-debugadapter": "^1.24.0",
         "vscode-debugprotocol": "^1.24.0",
-        "vscode-extension-telemetry": "^0.0.8",
-        "vscode-azureappservice": "~0.6.0",
-        "vscode-azureextensionui": "~0.3.0"
+        "vscode-extension-telemetry": "^0.0.8"
     },
     "extensionDependencies": [
         "ms-vscode.azure-account"

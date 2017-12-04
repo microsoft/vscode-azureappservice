@@ -6,7 +6,7 @@
 import { ResourceManagementClient } from 'azure-arm-resource';
 import WebSiteManagementClient = require('azure-arm-website');
 import { AppServicePlan, Site } from 'azure-arm-website/lib/models';
-import * as fs from 'fs';
+import * as fs from 'fs-extra';
 import * as opn from 'opn';
 import * as path from 'path';
 import * as vscode from 'vscode';
@@ -79,7 +79,8 @@ export class WebAppTreeItem extends SiteTreeItem {
         const tasks = Promise.all([
             resourceClient.resourceGroups.get(this.site.resourceGroup),
             getAppServicePlan(this.site, webSiteClient),
-            webSiteClient.webApps.getConfiguration(this.site.resourceGroup, this.site.name)
+            webSiteClient.webApps.getConfiguration(this.site.resourceGroup, this.site.name),
+            webSiteClient.webApps.listApplicationSettings(this.site.resourceGroup, this.site.name)
         ]);
 
         let uri: vscode.Uri;
@@ -93,66 +94,49 @@ export class WebAppTreeItem extends SiteTreeItem {
         const rg = taskResults[0];
         const plan = taskResults[1];
         const siteConfig = taskResults[2];
-        const script = scriptTemplate.replace('%SUBSCRIPTION_NAME%', subscription.displayName)
+        const appSettings = taskResults[3];
+
+        let script: string;
+
+        if (!siteConfig.linuxFxVersion) {
+            const scriptTemplate = await this.loadScriptTemplate('windows-default.sh');
+            script = scriptTemplate;
+        } else if (siteConfig.linuxFxVersion.toLowerCase().startsWith('linux')) {
+            const scriptTemplate = await this.loadScriptTemplate('linux-default.sh');
+            script = scriptTemplate.replace('%RUNTIME%', siteConfig.linuxFxVersion);
+        } else if (siteConfig.linuxFxVersion.toLowerCase().startsWith('docker')) {
+            const scriptTemplate = await this.loadScriptTemplate('docker-image.sh');
+            const serverUrl = appSettings.properties['DOCKER_REGISTRY_SERVER_URL'];
+            const serverUser = appSettings.properties['DOCKER_REGISTRY_SERVER_USERNAME'];
+            const serverPwd = appSettings.properties['DOCKER_REGISTRY_SERVER_PASSWORD'];
+            const containerParameters =
+                (serverUrl ? `SERVERURL="${serverUrl}"\n` : '') +
+                (serverUser ? `SERVERUSER="${serverUser}"\n` : '') +
+                (serverPwd ? `SERVERPASSWORD="*****"\n` : '')
+            const containerCmdParameters =
+                (serverUrl ? '--docker-registry-server-url $SERVERURL ' : '') +
+                (serverUser ? '--docker-registry-server-user $SERVERUSER ' : '') +
+                (serverPwd ? '--docker-registry-server-password $SERVERPASSWORD ' : '')
+            script = scriptTemplate.replace('%RUNTIME%', siteConfig.linuxFxVersion)
+                .replace('%IMAGENAME%', siteConfig.linuxFxVersion.substring(siteConfig.linuxFxVersion.indexOf('|') + 1))
+                .replace('%DOCKER_PARA%', containerParameters)
+                .replace('%CTN_CMD_PARA%', containerCmdParameters);
+        }
+
+        script = script.replace('%SUBSCRIPTION_NAME%', subscription.displayName)
             .replace('%RG_NAME%', rg.name)
             .replace('%LOCATION%', rg.location)
             .replace('%PLAN_NAME%', plan.name)
             .replace('%PLAN_SKU%', plan.sku.name)
-            .replace('%SITE_NAME%', site.name)
-            .replace('%RUNTIME%', siteConfig.linuxFxVersion);
-        await new Promise<void>((resolve, reject) => {
-            fs.writeFile(uri.fsPath, script, err => {
-                if (err) {
-                    reject(err);
-                } else {
-                    resolve();
-                }
-            });
-        });
+            .replace('%SITE_NAME%', site.name);
+
+        await fs.writeFile(uri.fsPath, script, 'utf8');
         const doc = await vscode.workspace.openTextDocument(uri);
         await vscode.window.showTextDocument(doc);
     }
-}
 
-const scriptTemplate = 'SUBSCRIPTION="%SUBSCRIPTION_NAME%"\n\
-RESOURCEGROUP="%RG_NAME%"\n\
-LOCATION="%LOCATION%"\n\
-PLANNAME="%PLAN_NAME%"\n\
-PLANSKU="%PLAN_SKU%"\n\
-SITENAME="%SITE_NAME%"\n\
-RUNTIME="%RUNTIME%"\n\
-\n\
-# login supports device login, username/password, and service principals\n\
-# see https://docs.microsoft.com/en-us/cli/azure/?view=azure-cli-latest#az_login\n\
-az login\n\
-# list all of the available subscriptions\n\
-az account list -o table\n\
-# set the default subscription for subsequent operations\n\
-az account set --subscription $SUBSCRIPTION\n\
-# create a resource group for your application\n\
-az group create --name $RESOURCEGROUP --location $LOCATION\n\
-# create an appservice plan (a machine) where your site will run\n\
-az appservice plan create --name $PLANNAME --location $LOCATION --is-linux --sku $PLANSKU --resource-group $RESOURCEGROUP\n\
-# create the web application on the plan\n\
-# specify the node version your app requires\n\
-az webapp create --name $SITENAME --plan $PLANNAME --runtime $RUNTIME --resource-group $RESOURCEGROUP\n\
-\n\
-# To set up deployment from a local git repository, uncomment the following commands.\n\
-# first, set the username and password (use environment variables!)\n\
-# USERNAME=""\n\
-# PASSWORD=""\n\
-# az webapp deployment user set --user-name $USERNAME --password $PASSWORD\n\
-\n\
-# now, configure the site for deployment. in this case, we will deploy from the local git repository\n\
-# you can also configure your site to be deployed from a remote git repository or set up a CI/CD workflow\n\
-# az webapp deployment source config-local-git --name $SITENAME --resource-group $RESOURCEGROUP\n\
-\n\
-# the previous command returned the git remote to deploy to\n\
-# use this to set up a new remote named "azure"\n\
-# git remote add azure "https://$USERNAME@$SITENAME.scm.azurewebsites.net/$SITENAME.git"\n\
-# push master to deploy the site\n\
-# git push azure master\n\
-\n\
-# browse to the site\n\
-# az webapp browse --name $SITENAME --resource-group $RESOURCEGROUP\n\
-';
+    private async loadScriptTemplate(scriptName: string): Promise<string> {
+        const templatePath = path.join(__filename, '..', '..', '..', '..', 'resources', 'deploymentScripts', scriptName);
+        return await fs.readFile(templatePath, 'utf8');
+    }
+}
