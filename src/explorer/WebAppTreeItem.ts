@@ -100,21 +100,10 @@ export class WebAppTreeItem extends SiteTreeItem {
 
         if (!siteConfig.linuxFxVersion) {
             const scriptTemplate = await this.loadScriptTemplate('windows-default.sh');
-            script = scriptTemplate.replace('%SUBSCRIPTION_NAME%', subscription.displayName)
-                .replace('%RG_NAME%', rg.name)
-                .replace('%LOCATION%', rg.location)
-                .replace('%PLAN_NAME%', plan.name)
-                .replace('%PLAN_SKU%', plan.sku.name)
-                .replace('%SITE_NAME%', site.name);
+            script = scriptTemplate;
         } else if (siteConfig.linuxFxVersion.toLowerCase().startsWith('linux')) {
             const scriptTemplate = await this.loadScriptTemplate('linux-default.sh');
-            script = scriptTemplate.replace('%SUBSCRIPTION_NAME%', subscription.displayName)
-                .replace('%RG_NAME%', rg.name)
-                .replace('%LOCATION%', rg.location)
-                .replace('%PLAN_NAME%', plan.name)
-                .replace('%PLAN_SKU%', plan.sku.name)
-                .replace('%SITE_NAME%', site.name)
-                .replace('%RUNTIME%', siteConfig.linuxFxVersion);
+            script = scriptTemplate.replace('%RUNTIME%', siteConfig.linuxFxVersion);
         } else if (siteConfig.linuxFxVersion.toLowerCase().startsWith('docker')) {
             const scriptTemplate = await this.loadScriptTemplate('docker-image.sh');
             const serverUrl = appSettings.properties['DOCKER_REGISTRY_SERVER_URL'];
@@ -128,17 +117,18 @@ export class WebAppTreeItem extends SiteTreeItem {
                 (serverUrl ? '--docker-registry-server-url $SERVERURL ' : '') +
                 (serverUser ? '--docker-registry-server-user $SERVERUSER ' : '') +
                 (serverPwd ? '--docker-registry-server-password $SERVERPASSWORD ' : '')
-            script = scriptTemplate.replace('%SUBSCRIPTION_NAME%', subscription.displayName)
-                .replace('%RG_NAME%', rg.name)
-                .replace('%LOCATION%', rg.location)
-                .replace('%PLAN_NAME%', plan.name)
-                .replace('%PLAN_SKU%', plan.sku.name)
-                .replace('%SITE_NAME%', site.name)
-                .replace('%RUNTIME%', siteConfig.linuxFxVersion)
+            script = scriptTemplate.replace('%RUNTIME%', siteConfig.linuxFxVersion)
                 .replace('%IMAGENAME%', siteConfig.linuxFxVersion.substring(siteConfig.linuxFxVersion.indexOf('|') + 1))
                 .replace('%DOCKER_PARA%', containerParameters)
                 .replace('%CTN_CMD_PARA%', containerCmdParameters);
         }
+
+        script = script.replace('%SUBSCRIPTION_NAME%', subscription.displayName)
+            .replace('%RG_NAME%', rg.name)
+            .replace('%LOCATION%', rg.location)
+            .replace('%PLAN_NAME%', plan.name)
+            .replace('%PLAN_SKU%', plan.sku.name)
+            .replace('%SITE_NAME%', site.name);
 
         await fs.writeFile(uri.fsPath, script, 'utf8');
         const doc = await vscode.workspace.openTextDocument(uri);
