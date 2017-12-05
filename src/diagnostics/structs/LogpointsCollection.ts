@@ -9,7 +9,7 @@ export class LogpointsCollection {
     private _logpointRegistry: { [line: number]: ILogpoint };
 
     public constructor(private _documentUri: vscode.Uri) {
-        this._logpointRegistry = {};
+        this.clearRegistry();
     }
 
     public get documentUri(): vscode.Uri {
@@ -40,6 +40,10 @@ export class LogpointsCollection {
     public getLogpoints(): ILogpoint[] {
         // tslint:disable-next-line:no-any
         return (<any>Object).values(this._logpointRegistry);
+    }
+
+    public clearRegistry(): void {
+        this._logpointRegistry = {};
     }
 
     public updateTextEditorDecroration(): void {

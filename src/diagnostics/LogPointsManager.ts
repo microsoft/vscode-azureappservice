@@ -69,6 +69,12 @@ class DebugSessionManager {
         logpointsCollection.updateTextEditorDecroration();
     }
 
+    public removeLogpointGlyphsFromDocument(documentUri: vscode.Uri): void {
+        const logpointsCollection = this.getLogpointCollectionForDocument(documentUri);
+        logpointsCollection.clearRegistry();
+        logpointsCollection.updateTextEditorDecroration();
+    }
+
     public async addLogpoint(scriptId: string, lineNumber: number, columnNumber: number): Promise<ILogpoint> {
         const expression = await vscode.window.showInputBox({
             ignoreFocusOut: true,
@@ -132,6 +138,7 @@ export class LogPointsManager extends vscode.Disposable {
         });
 
         vscode.debug.onDidTerminateDebugSession((debugSession) => {
+            this.onDebugSessionClose(debugSession);
             delete this._debugSessionManagerMapping[debugSession.id];
         });
 
@@ -165,7 +172,7 @@ export class LogPointsManager extends vscode.Disposable {
         const debugSessionManager = this._debugSessionManagerMapping[params.vscodeDebugSessionId];
 
         if (!debugSessionManager) {
-            vscode.window.showErrorMessage(`Cannot find debug session with id ${params.vscodeDebugSessionId}`);
+            vscode.window.showErrorMessage(`The debug session associated with this file has expired. Please close this file and open it again from LOADED SCRIPTS explorer of an active logpoints session. More details can be found here - http://aka.ms/logpoints#setting-up-logpoints`);
             return false;
         }
 
@@ -206,6 +213,23 @@ export class LogPointsManager extends vscode.Disposable {
         }
 
         debugSessionManager.recoverLogpoints(documentUri);
+    }
+
+    private onDebugSessionClose(debugSession: vscode.DebugSession): void {
+
+        const debugSessionManager = this._debugSessionManagerMapping[debugSession.id];
+
+        if (!debugSessionManager) {
+            // If debugSessionManager does not exist, it might have been handled already.
+            return;
+        }
+
+        if (!vscode.window.activeTextEditor) {
+            return;
+        }
+        const documentUri = vscode.window.activeTextEditor.document.uri;
+
+        debugSessionManager.removeLogpointGlyphsFromDocument(documentUri);
     }
 
     // tslint:disable-next-line:no-empty
