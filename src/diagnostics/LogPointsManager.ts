@@ -1,5 +1,6 @@
 import * as util from 'util';
 import * as vscode from 'vscode';
+import * as appserviceUtil from '../util';
 import { RemoteScriptSchema } from './remoteScriptDocumentProvider';
 import { IGetLogpointsResponse } from './structs/IGetLogpointsResponse';
 import { ISetLogpointResponse } from './structs/ISetLogpointResponse';
@@ -81,6 +82,12 @@ class DebugSessionManager {
         }
 
         const result: ISetLogpointResponse = await this._debugSession.customRequest("setLogpoint", { scriptId, lineNumber, columnNumber, expression });
+        if (result.error) {
+            vscode.window.showErrorMessage("Cannot set logpoint successfully. Please refer to DEBUG CONSOLE for details.");
+            appserviceUtil.getOutputChannel().show();
+            appserviceUtil.getOutputChannel().appendLine(`Cannot set logpoint successfully, the error is ${result.error}.`);
+            return null;
+        }
         const logpoint = result.data.logpoint;
         return {
             id: logpoint.logpointId, line: logpoint.actualLocation.zeroBasedLineNumber, column:
@@ -169,6 +176,9 @@ export class LogPointsManager extends vscode.Disposable {
             this._outputChannel.appendLine(`Removed logpoint at line ${logpoint.line} in ${params.path}`);
         } else {
             logpoint = await debugSessionManager.addLogpoint(params.internalScriptId, line, column);
+            if (!logpoint) {
+                return false;
+            }
             debugSessionManager.registerLogpoint(uri, logpoint);
             this._outputChannel.appendLine(`Added logpoint at line ${logpoint.line} in ${params.path}`);
         }

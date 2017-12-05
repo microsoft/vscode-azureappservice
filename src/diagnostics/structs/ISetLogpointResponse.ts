@@ -1,4 +1,5 @@
 export interface ISetLogpointResponse {
+    error?: {};
     data: {
         "logpoint": {
             "logpointId": string,

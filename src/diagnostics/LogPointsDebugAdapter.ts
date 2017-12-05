@@ -114,6 +114,7 @@ export class LogPointsDebugAdapter extends LoggingDebugSession {
                     if (result.isSuccessful()) {
                         response.body = result.json;
                     } else {
+                        logger.error(`Cannot set logpoint. ${result.error}`);
                         response.body = {
                             error: result.error
                         };
