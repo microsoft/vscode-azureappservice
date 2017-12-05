@@ -84,6 +84,7 @@ export function activate(context: vscode.ExtensionContext): void {
         outputChannel.show();
         outputChannel.appendLine(`Starting ${siteType} "${node.treeItem.site.name}"...`);
         await node.treeItem.siteWrapper.start(nodeUtils.getWebSiteClient(node));
+        await node.treeDataProvider.refresh(node);
         outputChannel.appendLine(`${siteType} "${node.treeItem.site.name}" has been started.`);
     });
     initAsyncCommand(context, 'appService.Stop', async (node: IAzureNode<SiteTreeItem>) => {
@@ -95,6 +96,7 @@ export function activate(context: vscode.ExtensionContext): void {
         outputChannel.show();
         outputChannel.appendLine(`Stopping ${siteType} "${node.treeItem.site.name}"...`);
         await node.treeItem.siteWrapper.stop(nodeUtils.getWebSiteClient(node));
+        await node.treeDataProvider.refresh(node);
         outputChannel.appendLine(`${siteType} "${node.treeItem.site.name}" has been stopped. App Service plan charges still apply.`);
     });
     initAsyncCommand(context, 'appService.Restart', async (node: IAzureNode<SiteTreeItem>) => {
