@@ -134,7 +134,7 @@ class PromptSlotSelection extends WizardStep {
         // if there is only one slot, just use that one and don't prompt for user selection.
         if (deploymentSlots.length === 1) {
             this._wizard.selectedDeploymentSlot = deploymentSlots[0];
-            this._wizard.writeline(`Automatically selected deployment solt ${this._wizard.selectedDeploymentSlot.name}.`);
+            this._wizard.writeline(`Automatically selected deployment slot ${this._wizard.selectedDeploymentSlot.name}.`);
             return;
         }
 
