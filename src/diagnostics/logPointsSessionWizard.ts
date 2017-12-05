@@ -69,14 +69,6 @@ export class LogPointsSessionAttach extends WizardBase {
         this.steps.push(new StartDebugAdapterStep(this));
         this.output.show();
     }
-
-    protected onExecuteError(error: Error): void {
-        if (error instanceof UserCancelledError) {
-            return;
-        }
-        this.writeline(`Starting Log Points Session failed - ${error.message}`);
-        this.writeline('');
-    }
 }
 
 // tslint:disable:max-classes-per-file
@@ -104,11 +96,16 @@ class EligibilityCheck extends WizardStep {
             throw new Error('Cannot read "linuxFxVersion"');
         }
 
-        const [framework, imageName] = linuxFxVersion.split('|');
-        const enabledImages = vscode.workspace.getConfiguration('appService').get<string[]>('enabledDockerImages');
+        const [framework, fullImageName] = linuxFxVersion.split('|');
+        // Remove the 'tag' portion of the image name.
+        const imageName = fullImageName.split(':')[0];
+        const enabledImages = vscode.workspace.getConfiguration('appService').get<string[]>('enabledDockerImages') || [];
+        const enabledImagesTagless = enabledImages.map((name) => {
+            return name.split(':')[0].toLocaleLowerCase();
+        });
 
-        if ('docker' !== framework.toLocaleLowerCase() || enabledImages.indexOf(imageName.toLocaleLowerCase()) === -1) {
-            throw new Error(`Please use one of the supported docker image. The ${framework}|${imageName} combination is not supported`);
+        if ('docker' !== framework.toLocaleLowerCase() || enabledImagesTagless.indexOf(imageName.toLocaleLowerCase()) === -1) {
+            throw new Error(`Please use one of the supported docker image. ${imageName} is not supported for starting a Logpoints session. More details can be found here - https://aka.ms/logpoints`);
         }
     }
 }
