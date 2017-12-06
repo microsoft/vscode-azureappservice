@@ -18,9 +18,9 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
     public abstract readonly label: string;
     public abstract contextValue: string;
 
-    public readonly siteWrapper: SiteWrapper;
+    public siteWrapper: SiteWrapper;
 
-    private readonly _site: WebSiteModels.Site;
+    private _site: WebSiteModels.Site;
     private _logStreamOutputChannel: OutputChannel | undefined;
     private _logStream: Request | undefined;
     private readonly _siteName: string;
@@ -47,6 +47,16 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
 
     public get id(): string {
         return this.site.id;
+    }
+
+    public async start(client: WebSiteManagementClient): Promise<void> {
+        await this.siteWrapper.start(client);
+        await this.reloadSite(client);
+    }
+
+    public async stop(client: WebSiteManagementClient): Promise<void> {
+        await this.siteWrapper.stop(client);
+        await this.reloadSite(client);
     }
 
     public browse(): void {
@@ -109,6 +119,12 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
 
     public async editScmType(client: WebSiteManagementClient): Promise<string> {
         return await this.siteWrapper.editScmType(client);
+    }
+
+    private async reloadSite(client: WebSiteManagementClient): Promise<void> {
+        this._site = this._isSlot ? await client.webApps.getSlot(this.site.resourceGroup, this._siteName, this._slotName) :
+            await client.webApps.get(this.site.resourceGroup, this._siteName);
+        this.siteWrapper = new SiteWrapper(this.site);
     }
 }
 
