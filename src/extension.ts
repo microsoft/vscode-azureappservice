@@ -11,7 +11,7 @@ import { AppSettingsTreeItem, AppSettingTreeItem } from 'vscode-azureappservice'
 import { AzureTreeDataProvider, IAzureNode, IAzureParentNode, UserCancelledError } from 'vscode-azureextensionui';
 import { DeploymentSlotSwapper } from './DeploymentSlotSwapper';
 import { LogPointsManager } from './diagnostics/LogPointsManager';
-import { LogPointsSessionAttach } from './diagnostics/logPointsSessionWizard';
+import { LogPointsSessionWizard } from './diagnostics/LogPointsSessionWizard';
 import { RemoteScriptDocumentProvider, RemoteScriptSchema } from './diagnostics/remoteScriptDocumentProvider';
 import { LogpointsCollection } from './diagnostics/structs/LogpointsCollection';
 import { ErrorData } from './ErrorData';
@@ -248,7 +248,7 @@ export function activate(context: vscode.ExtensionContext): void {
     initAsyncCommand(context, 'diagnostics.StartLogPointsSession', async (node: IAzureNode<SiteTreeItem>) => {
         if (node) {
             const client: WebSiteManagementClient = nodeUtils.getWebSiteClient(node);
-            const wizard = new LogPointsSessionAttach(outputChannel, client, node.treeItem.site, node.subscription);
+            const wizard = new LogPointsSessionWizard(outputChannel, node, client);
             await wizard.run();
         }
     });
