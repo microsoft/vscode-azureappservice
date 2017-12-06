@@ -1,4 +1,3 @@
-import { SubscriptionModels } from 'azure-arm-resource';
 import { Site, SiteInstance, User } from 'azure-arm-website/lib/models';
 import * as vscode from 'vscode';
 import { UserCancelledError } from 'vscode-azureextensionui';
@@ -8,6 +7,9 @@ import { createDefaultClient } from './logPointsClient';
 
 import WebSiteManagementClient = require('azure-arm-website');
 
+import { IAzureNode } from 'vscode-azureextensionui';
+import { SiteTreeItem } from '../explorer/SiteTreeItem';
+import { CheckLogStreamAvailability } from './wizardSteps/CheckLogStreamAvailability';
 import { EligibilityCheck } from './wizardSteps/EligibilityCheck';
 import { GetUnoccupiedInstance } from './wizardSteps/GetUnoccupiedInstance';
 import { PickProcessStep } from './wizardSteps/PickProcessStep';
@@ -26,16 +28,17 @@ export class LogPointsSessionWizard extends WizardBase {
     public sessionId: string;
     public processId: string;
     public debuggerId: string;
+    public readonly site: Site;
 
     private _cachedPublishCredential: User;
 
     constructor(
         output: vscode.OutputChannel,
-        public readonly websiteManagementClient: WebSiteManagementClient,
-        public readonly site: Site,
-        public readonly subscription?: SubscriptionModels.Subscription
+        public readonly uiTreeItem: IAzureNode<SiteTreeItem>,
+        public readonly websiteManagementClient: WebSiteManagementClient
     ) {
         super(output);
+        this.site = uiTreeItem.treeItem.site;
     }
 
     public get lastUsedPublishCredential(): User {
@@ -58,6 +61,7 @@ export class LogPointsSessionWizard extends WizardBase {
     }
 
     protected initSteps(): void {
+        this.steps.push(new CheckLogStreamAvailability(this));
         this.steps.push(new EligibilityCheck(this));
         if (util.isSiteDeploymentSlot(this.site)) {
             this.selectedDeploymentSlot = this.site;

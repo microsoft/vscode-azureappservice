@@ -19,7 +19,7 @@ export class StartDebugAdapterStep extends WizardStep {
 
             vscode.commands.executeCommand('workbench.view.debug');
         });
-        await vscode.debug.startDebugging(undefined, {
+        await vscode.debug.startDebugging(vscode.workspace.workspaceFolders[0], {
             type: "jsLogpoints",
             name: "Azure App Service LogPoints",
             request: "attach",

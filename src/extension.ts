@@ -248,7 +248,7 @@ export function activate(context: vscode.ExtensionContext): void {
     initAsyncCommand(context, 'diagnostics.StartLogPointsSession', async (node: IAzureNode<SiteTreeItem>) => {
         if (node) {
             const client: WebSiteManagementClient = nodeUtils.getWebSiteClient(node);
-            const wizard = new LogPointsSessionWizard(outputChannel, client, node.treeItem.site, node.subscription);
+            const wizard = new LogPointsSessionWizard(outputChannel, node, client);
             await wizard.run();
         }
     });
