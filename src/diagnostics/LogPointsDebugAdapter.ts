@@ -148,16 +148,16 @@ export class LogPointsDebugAdapter extends LoggingDebugSession {
     }
 
     protected disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments): void {
-        this.sendResponse(response);
         // There is args.terminateDebuggee, which can be potentially utilized. Ignore for now.
         // tslint:disable-next-line:no-unused-expression
         args && 1;
+        const finish = () => {
+            // Since the response is just a acknowledgement, the client will not even look at it, so we call sendResponse() regardlesss of the result.
+            this.sendResponse(response);
+        };
         const request: ICloseSessionRequest = { sessionId: this._sessionId };
         logPointsDebuggerClient.closeSession(this._siteName, this._affinityValue, this.getPublishCredential(), request)
-            .then(() => {
-                // Since the response is just a acknowledgement, the client will not even look at it, so we call sendResponse() regardlesss of the result.
-                this.sendResponse(response);
-            });
+            .then(finish, finish);
     }
 
     private async getLoadedScripts(): Promise<void> {
