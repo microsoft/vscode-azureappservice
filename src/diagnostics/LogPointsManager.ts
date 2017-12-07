@@ -88,7 +88,7 @@ class DebugSessionManager {
         }
 
         const result: ISetLogpointResponse = await this._debugSession.customRequest("setLogpoint", { scriptId, lineNumber, columnNumber, expression });
-        if (result.error) {
+        if (result.error !== undefined && result.error !== null) {
             vscode.window.showErrorMessage("Cannot set logpoint successfully. Please refer to DEBUG CONSOLE for details.");
             appserviceUtil.getOutputChannel().show();
             appserviceUtil.getOutputChannel().appendLine(`Cannot set logpoint successfully, the error is ${result.error}.`);

@@ -26,6 +26,9 @@ export class CommandRunResult<ResponseType extends { error?: {}, data?: {} }> {
             const outputJson = JSON.parse(this.output);
 
             this._stdout = outputJson.stdout;
+            if (!this.error) {
+                this.error = outputJson.stderr;
+            }
         } catch (err) {
             this._stdout = null;
         }
