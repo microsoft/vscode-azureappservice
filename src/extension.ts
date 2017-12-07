@@ -257,18 +257,21 @@ export function activate(context: vscode.ExtensionContext): void {
         logPointsManager.toggleLogpoint(uri);
     });
 
-    context.subscriptions.push(vscode.commands.registerCommand('diagnostics.LogPoints.OpenScript', openScript));
+    initCommand(context, 'diagnostics.LogPoints.OpenScript', openScript);
 }
 
 // tslint:disable-next-line:no-empty
 export function deactivate(): void {
 }
 
-function initCommand<T>(extensionContext: vscode.ExtensionContext, commandId: string, callback: (context?: T) => void): void {
-    initAsyncCommand(extensionContext, commandId, async (context?: T) => callback(context));
+// tslint:disable-next-line:no-any
+function initCommand<T>(extensionContext: vscode.ExtensionContext, commandId: string, callback: (context?: T, ...rest: any[]) => void): void {
+    // tslint:disable-next-line:no-any
+    initAsyncCommand(extensionContext, commandId, async (context?: T, ...remaining: any[]) => callback.apply(null, [context].concat(remaining)));
 }
 
-function initAsyncCommand<T>(extensionContext: vscode.ExtensionContext, commandId: string, callback: (context?: T) => Promise<void>): void {
+// tslint:disable-next-line:no-any
+function initAsyncCommand<T>(extensionContext: vscode.ExtensionContext, commandId: string, callback: (context?: T, ...rest: any[]) => Promise<void>): void {
     extensionContext.subscriptions.push(vscode.commands.registerCommand(commandId, async (...args: {}[]) => {
         const start = Date.now();
         const properties: { [key: string]: string; } = {};
@@ -280,7 +283,7 @@ function initAsyncCommand<T>(extensionContext: vscode.ExtensionContext, commandI
             if (args.length === 0) {
                 await callback();
             } else {
-                await callback(<T>args[0]);
+                await callback.apply(null, args);
             }
         } catch (err) {
             if (err instanceof SiteActionError) {
