@@ -2,7 +2,7 @@ import { User } from 'azure-arm-website/lib/models';
 import {
     DebugSession, Event, InitializedEvent, Logger, logger,
     LoggingDebugSession, Source,
-    Thread
+    TerminatedEvent, Thread
 } from 'vscode-debugadapter';
 import { DebugProtocol } from 'vscode-debugprotocol';
 
@@ -144,7 +144,22 @@ export class LogPointsDebugAdapter extends LoggingDebugSession {
                     this.sendResponse(response);
                 });
 
+        } else if (command === 'getDebugAdapterMetadata') {
+            response.body = {
+                siteName: this._siteName,
+                publishCredentialUsername: this._publishingUsername,
+                publishCredentialPassword: this._publishingPassword,
+                instanceId: this._affinityValue,
+                sessionId: this._sessionId,
+                debugId: this._debugId
+            };
+
+            this.sendResponse(response);
+        } else if (command === 'terminate') {
+            this.sendResponse(response);
+            this.sendEvent(new TerminatedEvent());
         }
+
     }
 
     protected disconnectRequest(response: DebugProtocol.DisconnectResponse, args: DebugProtocol.DisconnectArguments): void {

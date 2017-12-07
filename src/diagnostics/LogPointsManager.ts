@@ -1,13 +1,16 @@
+import * as WebSiteModels from 'azure-arm-website/lib/models';
 import * as util from 'util';
 import * as vscode from 'vscode';
 import * as appserviceUtil from '../util';
 import { RemoteScriptSchema } from './remoteScriptDocumentProvider';
+import { IDebugSessionMetaData } from './structs/IDebugSessionMetaData';
 import { IGetLogpointsResponse } from './structs/IGetLogpointsResponse';
 import { ISetLogpointResponse } from './structs/ISetLogpointResponse';
 import { ILogpoint } from './structs/Logpoint';
 import { LogpointsCollection } from './structs/LogpointsCollection';
 
 class DebugSessionManager {
+    private _metadata: IDebugSessionMetaData;
     private _logpointsCollectionMapping: { [documentUri: string]: LogpointsCollection };
 
     constructor(private _debugSession: vscode.DebugSession) {
@@ -105,6 +108,20 @@ class DebugSessionManager {
         await this._debugSession.customRequest("removeLogpoint", logpoint.id);
     }
 
+    public async retrieveMetadata(): Promise<IDebugSessionMetaData> {
+        if (!this._metadata) {
+            const response: IDebugSessionMetaData = await this._debugSession.customRequest("getDebugAdapterMetadata");
+            this._metadata = response;
+        }
+
+        return this._metadata;
+    }
+
+    public async kill(): Promise<void> {
+        this._debugSession.customRequest('terminate');
+        return;
+    }
+
     private getLogpointCollectionForDocument(documentUri: vscode.Uri): LogpointsCollection {
         const uriString = documentUri.toString();
         let logpointsCollection = this._logpointsCollectionMapping[uriString];
@@ -193,6 +210,17 @@ export class LogPointsManager extends vscode.Disposable {
         return true;
     }
 
+    public async onAppServiceSiteClosed(site: WebSiteModels.Site): Promise<void> {
+        const debugSessionManager: DebugSessionManager = await this.findDebugSessionManagerBySite(site);
+        if (!debugSessionManager) {
+            // If there is no debugSession associated with the site, then do nothing.
+            return;
+        }
+        await debugSessionManager.kill();
+        this._outputChannel.show();
+        this._outputChannel.appendLine("The logpoints session has terminated because the App Service is stopped or restarted.");
+    }
+
     private onActiveEditorChange(activeEditor: vscode.TextEditor): void {
         if (!activeEditor) {
             return;
@@ -230,6 +258,25 @@ export class LogPointsManager extends vscode.Disposable {
         const documentUri = vscode.window.activeTextEditor.document.uri;
 
         debugSessionManager.removeLogpointGlyphsFromDocument(documentUri);
+    }
+
+    private async findDebugSessionManagerBySite(site: WebSiteModels.Site): Promise<DebugSessionManager> {
+        let matchedDebugSessionManager: DebugSessionManager = null;
+
+        const siteName = appserviceUtil.extractSiteName(site) + (appserviceUtil.isSiteDeploymentSlot(site) ? `-${appserviceUtil.extractDeploymentSlotName(site)}` : '');
+
+        const debugSessionManagers = Object.keys(this._debugSessionManagerMapping).map(
+            (key) => { return this._debugSessionManagerMapping[key]; });
+
+        for (const debugSessionManager of debugSessionManagers) {
+            const debugSessionMetadata = await debugSessionManager.retrieveMetadata();
+            if (siteName === debugSessionMetadata.siteName) {
+                matchedDebugSessionManager = debugSessionManager;
+                break;
+            }
+        }
+
+        return matchedDebugSessionManager;
     }
 
     // tslint:disable-next-line:no-empty
