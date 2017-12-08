@@ -18,7 +18,8 @@ export class DeploymentSlotTreeItem extends SiteTreeItem {
     }
 
     public get label(): string {
-        return `${this.siteWrapper.slotName} (${this.site.state})`;
+        const state = this.site.state;
+        return `${this.siteWrapper.slotName} ${state && state.toLowerCase() !== 'running' ? '(' + state + ')' : ''}`;
     }
 
     public get iconPath(): { light: string, dark: string } {

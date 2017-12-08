@@ -36,7 +36,8 @@ export class WebAppTreeItem extends SiteTreeItem {
     }
 
     public get label(): string {
-        return `${this.site.name} (${this.site.state})`;
+        const state = this.site.state;
+        return `${this.site.name} ${state && state.toLowerCase() !== 'running' ? '(' + state + ')' : ''}`;
     }
 
     public get iconPath(): { light: string, dark: string } {
