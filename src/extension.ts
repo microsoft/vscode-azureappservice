@@ -268,14 +268,15 @@ export function deactivate(): void {
 }
 
 // tslint:disable-next-line:no-any
-function initCommand<T>(extensionContext: vscode.ExtensionContext, commandId: string, callback: (context?: T, ...rest: any[]) => void): void {
+function initCommand(extensionContext: vscode.ExtensionContext, commandId: string, callback: (...args: any[]) => void): void {
     // tslint:disable-next-line:no-any
-    initAsyncCommand(extensionContext, commandId, async (context?: T, ...remaining: any[]) => callback.apply(null, [context].concat(remaining)));
+    initAsyncCommand(extensionContext, commandId, async (...args: any[]) => callback(...args));
 }
 
 // tslint:disable-next-line:no-any
-function initAsyncCommand<T>(extensionContext: vscode.ExtensionContext, commandId: string, callback: (context?: T, ...rest: any[]) => Promise<void>): void {
-    extensionContext.subscriptions.push(vscode.commands.registerCommand(commandId, async (...args: {}[]) => {
+function initAsyncCommand(extensionContext: vscode.ExtensionContext, commandId: string, callback: (...args: any[]) => Promise<void>): void {
+    // tslint:disable-next-line:no-any
+    extensionContext.subscriptions.push(vscode.commands.registerCommand(commandId, async (...args: any[]) => {
         const start = Date.now();
         const properties: { [key: string]: string; } = {};
         const output = util.getOutputChannel();
@@ -286,7 +287,7 @@ function initAsyncCommand<T>(extensionContext: vscode.ExtensionContext, commandI
             if (args.length === 0) {
                 await callback();
             } else {
-                await callback.apply(null, args);
+                await callback(...args);
             }
         } catch (err) {
             if (err instanceof SiteActionError) {
