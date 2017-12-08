@@ -19,7 +19,7 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
 
     public readonly siteWrapper: SiteWrapper;
 
-    private _site: WebSiteModels.Site;
+    private readonly _site: WebSiteModels.Site;
     private _logStreamOutputChannel: OutputChannel | undefined;
     private _logStream: Request | undefined;
     private _label: string;
