@@ -578,6 +578,7 @@
     "dependencies": {
         "azure-arm-resource": "^2.0.0-preview",
         "azure-arm-website": "^1.0.0-preview",
+        "crypto": "^1.0.1",
         "fs-extra": "^4.0.2",
         "kudu-api": "^1.4.1",
         "ms-rest": "^2.2.2",

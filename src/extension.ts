@@ -25,6 +25,8 @@ import { WebAppTreeItem } from './explorer/WebAppTreeItem';
 import { Reporter } from './telemetry/reporter';
 import * as util from "./util";
 import { nodeUtils } from './utils/nodeUtils';
+import { FileTreeItem } from './explorer/FileTreeItem';
+import { FileEditor } from './explorer/editors/fileEditor'
 
 // tslint:disable-next-line:max-func-body-length
 // tslint:disable-next-line:export-name
@@ -282,65 +284,70 @@ export function activate(context: vscode.ExtensionContext): void {
     });
 
     initCommand(context, 'diagnostics.LogPoints.OpenScript', openScript);
-}
 
-// tslint:disable-next-line:no-empty
-export function deactivate(): void {
-}
+    initAsyncCommand(context, 'appService.editFile', async (node: IAzureNode<FileTreeItem>) => {
+        console.log(node);
+        const editor = new FileEditor();
+        editor.showEditor(node);
+    });
 
-// tslint:disable-next-line:no-any
-function initCommand(extensionContext: vscode.ExtensionContext, commandId: string, callback: (...args: any[]) => void): void {
+    // tslint:disable-next-line:no-empty
+    export function deactivate(): void {
+    }
+
     // tslint:disable-next-line:no-any
-    initAsyncCommand(extensionContext, commandId, async (...args: any[]) => callback(...args));
-}
+    function initCommand(extensionContext: vscode.ExtensionContext, commandId: string, callback: (...args: any[]) => void): void {
+        // tslint:disable-next-line:no-any
+        initAsyncCommand(extensionContext, commandId, async (...args: any[]) => callback(...args));
+    }
 
-// tslint:disable-next-line:no-any
-function initAsyncCommand(extensionContext: vscode.ExtensionContext, commandId: string, callback: (...args: any[]) => Promise<void>): void {
     // tslint:disable-next-line:no-any
-    extensionContext.subscriptions.push(vscode.commands.registerCommand(commandId, async (...args: any[]) => {
-        const start = Date.now();
-        const properties: { [key: string]: string; } = {};
-        const output = util.getOutputChannel();
-        properties.result = 'Succeeded';
-        let errorData: ErrorData | undefined;
+    function initAsyncCommand(extensionContext: vscode.ExtensionContext, commandId: string, callback: (...args: any[]) => Promise<void>): void {
+        // tslint:disable-next-line:no-any
+        extensionContext.subscriptions.push(vscode.commands.registerCommand(commandId, async (...args: any[]) => {
+            const start = Date.now();
+            const properties: { [key: string]: string; } = {};
+            const output = util.getOutputChannel();
+            properties.result = 'Succeeded';
+            let errorData: ErrorData | undefined;
 
-        try {
-            if (args.length === 0) {
-                await callback();
-            } else {
-                await callback(...args);
-            }
-        } catch (err) {
-            if (err instanceof SiteActionError) {
-                properties.servicePlan = err.servicePlanSize;
-            }
-
-            if (err instanceof WizardFailedError) {
-                properties.stepTitle = err.stepTitle;
-                properties.stepIndex = err.stepIndex.toString();
-            }
-
-            if (err instanceof UserCancelledError) {
-                properties.result = 'Canceled';
-            } else {
-                properties.result = 'Failed';
-                errorData = new ErrorData(err);
-                output.appendLine(`Error: ${errorData.message}`);
-                if (errorData.message.includes('\n')) {
-                    output.show();
-                    vscode.window.showErrorMessage('An error has occured. Check output window for more details.');
+            try {
+                if (args.length === 0) {
+                    await callback();
                 } else {
-                    vscode.window.showErrorMessage(errorData.message);
+                    await callback(...args);
+                }
+            } catch (err) {
+                if (err instanceof SiteActionError) {
+                    properties.servicePlan = err.servicePlanSize;
                 }
 
+                if (err instanceof WizardFailedError) {
+                    properties.stepTitle = err.stepTitle;
+                    properties.stepIndex = err.stepIndex.toString();
+                }
+
+                if (err instanceof UserCancelledError) {
+                    properties.result = 'Canceled';
+                } else {
+                    properties.result = 'Failed';
+                    errorData = new ErrorData(err);
+                    output.appendLine(`Error: ${errorData.message}`);
+                    if (errorData.message.includes('\n')) {
+                        output.show();
+                        vscode.window.showErrorMessage('An error has occured. Check output window for more details.');
+                    } else {
+                        vscode.window.showErrorMessage(errorData.message);
+                    }
+
+                }
+            } finally {
+                if (errorData) {
+                    properties.error = errorData.errorType;
+                    properties.errorMessage = errorData.message;
+                }
+                const end = Date.now();
+                util.sendTelemetry(commandId, properties, { duration: (end - start) / 1000 });
             }
-        } finally {
-            if (errorData) {
-                properties.error = errorData.errorType;
-                properties.errorMessage = errorData.message;
-            }
-            const end = Date.now();
-            util.sendTelemetry(commandId, properties, { duration: (end - start) / 1000 });
-        }
-    }));
-}
+        }));
+    }
