@@ -17,7 +17,7 @@ import { nodeUtils } from '../utils/nodeUtils';
 export abstract class SiteTreeItem implements IAzureParentTreeItem {
     public abstract contextValue: string;
 
-    public siteWrapper: SiteWrapper;
+    public readonly siteWrapper: SiteWrapper;
 
     private _site: WebSiteModels.Site;
     private _logStreamOutputChannel: OutputChannel | undefined;
