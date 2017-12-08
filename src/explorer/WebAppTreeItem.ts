@@ -35,11 +35,6 @@ export class WebAppTreeItem extends SiteTreeItem {
         this.appSettingsNode = new AppSettingsTreeItem(this.siteWrapper);
     }
 
-    public get label(): string {
-        const state = this.site.state;
-        return `${this.site.name} ${state && state.toLowerCase() !== 'running' ? '(' + state + ')' : ''}`;
-    }
-
     public get iconPath(): { light: string, dark: string } {
         const iconName = 'WebApp_color.svg';
         return {
