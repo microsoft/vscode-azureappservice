@@ -2,6 +2,7 @@
 import { WebAppInstanceCollection } from 'azure-arm-website/lib/models';
 import * as vscode from 'vscode';
 import * as util from '../../util';
+import { callWithTimeout, DEFAULT_TIMEOUT } from '../../utils/logpointsUtil';
 import { WizardStep } from '../../wizard';
 import { ILogPointsDebuggerClient } from '../logPointsClient';
 import { LogPointsSessionWizard } from '../LogPointsSessionWizard';
@@ -43,15 +44,17 @@ export class GetUnoccupiedInstance extends WizardStep {
                 const message = `Trying to start a session from instance ${instance.name}...`;
                 p.report({ message: message });
                 this._wizard.writeline(message);
-                await this._logPointsDebuggerClient.startSession(siteName, instance.name, publishCredential)
-                    .then(
-                    (r: CommandRunResult<IStartSessionResponse>) => {
-                        result = r;
-                    },
-                    () => {
-                        // If there is an error, mark the request failed by resetting `result`.
-                        result = null;
-                    });
+
+                try {
+                    result = await callWithTimeout(
+                        () => {
+                            return this._logPointsDebuggerClient.startSession(siteName, instance.name, publishCredential);
+                        },
+                        DEFAULT_TIMEOUT);
+                } catch (e) {
+                    // If there is an error, mark the request failed by resetting `result`.
+                    result = null;
+                }
             });
 
             if (result && result.isSuccessful()) {
