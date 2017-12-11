@@ -111,15 +111,10 @@ export class LogPointsDebugAdapter extends LoggingDebugSession {
             };
             logPointsDebuggerClient.setLogpoint(this._siteName, this._affinityValue, this.getPublishCredential(), request)
                 .then(result => {
-                    if (result.isSuccessful()) {
-                        response.body = result.json;
-                    } else {
+                    if (!result.isSuccessful()) {
                         logger.error(`Cannot set logpoint. ${result.error}`);
-                        response.body = {
-                            error: result.error
-                        };
                     }
-
+                    response.body = result.json;
                     this.sendResponse(response);
                 });
 
@@ -128,6 +123,9 @@ export class LogPointsDebugAdapter extends LoggingDebugSession {
             logPointsDebuggerClient.removeLogpoint(this._siteName, this._affinityValue, this.getPublishCredential(), request)
                 .then(result => {
                     logger.log(`removeLogpoint completed. ${require('util').inspect(result)}`);
+
+                    response.body = result.json;
+                    this.sendResponse(response);
                 });
         } else if (command === 'getLogpoints') {
             const request: IGetLogpointsRequest = { sessionId: this._sessionId, debugId: this._debugId, sourceId: <string>args };

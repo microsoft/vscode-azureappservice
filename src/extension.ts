@@ -257,7 +257,7 @@ export function activate(context: vscode.ExtensionContext): void {
     });
 
     initAsyncCommand(context, 'diagnostics.LogPoints.Toggle', async (uri: vscode.Uri) => {
-        logPointsManager.toggleLogpoint(uri);
+        await logPointsManager.toggleLogpoint(uri);
     });
 
     initCommand(context, 'diagnostics.LogPoints.OpenScript', openScript);
