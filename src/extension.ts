@@ -126,7 +126,16 @@ export function activate(context: vscode.ExtensionContext): void {
             node = <IAzureParentNode>await tree.showNodePicker(AzureTreeDataProvider.subscriptionContextValue);
         }
 
-        await node.createChild();
+        const createdApp = <IAzureNode<WebAppTreeItem>>await node.createChild();
+
+        // prompt user to deploy to newly created web app
+        const yesButton: vscode.MessageItem = { title: 'Yes' };
+        const noButton: vscode.MessageItem = { title: 'No', isCloseAffordance: true };
+        if (await vscode.window.showInformationMessage('Deploy to web app?', yesButton, noButton)) {
+            const fsPath = (await util.showWorkspaceFoldersQuickPick("Select the folder to deploy")).uri.fsPath;
+            const client = nodeUtils.getWebSiteClient(createdApp);
+            await createdApp.treeItem.siteWrapper.deploy(fsPath, client, outputChannel, false);
+        }
     });
     initAsyncCommand(context, 'appService.Deploy', async (target?: vscode.Uri | IAzureNode<WebAppTreeItem> | undefined) => {
         let node: IAzureNode<WebAppTreeItem>;
@@ -181,7 +190,16 @@ export function activate(context: vscode.ExtensionContext): void {
             node = <IAzureParentNode<DeploymentSlotsTreeItem>>await tree.showNodePicker(DeploymentSlotsTreeItem.contextValue);
         }
 
-        await node.createChild();
+        const createdSlot = <IAzureNode<SiteTreeItem>>await node.createChild();
+
+        // prompt user to deploy to newly created web app
+        const yesButton: vscode.MessageItem = { title: 'Yes' };
+        const noButton: vscode.MessageItem = { title: 'No', isCloseAffordance: true };
+        if (await vscode.window.showInformationMessage('Deploy to deployment slot?', yesButton, noButton)) {
+            const fsPath = (await util.showWorkspaceFoldersQuickPick("Select the folder to deploy")).uri.fsPath;
+            const client = nodeUtils.getWebSiteClient(createdSlot);
+            await createdSlot.treeItem.siteWrapper.deploy(fsPath, client, outputChannel, false);
+        }
     });
     initAsyncCommand(context, 'deploymentSlot.SwapSlots', async (node: IAzureNode<DeploymentSlotTreeItem>) => {
         if (!node) {
