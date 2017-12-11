@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import * as util from '../../util';
+import { callWithTimeout, DEFAULT_TIMEOUT } from '../../utils/logpointsUtil';
 import { WizardStep } from '../../wizard';
 import { ILogPointsDebuggerClient } from '../logPointsClient';
 import { LogPointsSessionWizard } from '../LogPointsSessionWizard';
@@ -26,7 +27,11 @@ export class SessionAttachStep extends WizardStep {
             const message = `Attach debugging to session ${this._wizard.sessionId}...`;
             p.report({ message: message });
             this._wizard.writeline(message);
-            result = await this._logPointsDebuggerClient.attachProcess(siteName, instance.name, publishCredential, requestData);
+            result = await callWithTimeout(
+                () => {
+                    return this._logPointsDebuggerClient.attachProcess(siteName, instance.name, publishCredential, requestData);
+                },
+                DEFAULT_TIMEOUT);
         });
 
         if (result.isSuccessful()) {

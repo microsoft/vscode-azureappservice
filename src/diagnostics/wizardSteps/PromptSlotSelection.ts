@@ -2,6 +2,7 @@ import { Site } from 'azure-arm-website/lib/models';
 import * as vscode from 'vscode';
 import { UserCancelledError } from 'vscode-azureextensionui';
 import * as util from '../../util';
+import { callWithTimeout, DEFAULT_TIMEOUT } from '../../utils/logpointsUtil';
 import { WizardStep } from '../../wizard';
 import { LogPointsSessionWizard } from '../LogPointsSessionWizard';
 
@@ -57,7 +58,11 @@ export class PromptSlotSelection extends WizardStep {
      */
     private async getDeploymentSlots(): Promise<Site[]> {
         const client = this._wizard.websiteManagementClient;
-        const allDeploymentSlots = await client.webApps.listByResourceGroup(this.site.resourceGroup, { includeSlots: true });
+        const allDeploymentSlots = await callWithTimeout(
+            () => {
+                return client.webApps.listByResourceGroup(this.site.resourceGroup, { includeSlots: true });
+            },
+            DEFAULT_TIMEOUT);
         return allDeploymentSlots.filter((slot) => {
             return slot.repositorySiteName === this.site.name;
         });

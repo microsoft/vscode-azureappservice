@@ -9,6 +9,7 @@ import WebSiteManagementClient = require('azure-arm-website');
 
 import { IAzureNode } from 'vscode-azureextensionui';
 import { SiteTreeItem } from '../explorer/SiteTreeItem';
+import { ActivateSite } from './wizardSteps/ActivateSite';
 import { CheckLogStreamAvailability } from './wizardSteps/CheckLogStreamAvailability';
 import { EligibilityCheck } from './wizardSteps/EligibilityCheck';
 import { GetUnoccupiedInstance } from './wizardSteps/GetUnoccupiedInstance';
@@ -69,6 +70,7 @@ export class LogPointsSessionWizard extends WizardBase {
             this.steps.push(new PromptSlotSelection(this, this.site));
         }
 
+        this.steps.push(new ActivateSite(this));
         this.steps.push(new GetUnoccupiedInstance(this, logPointsDebuggerClient));
         this.steps.push(new PickProcessStep(this, logPointsDebuggerClient));
         this.steps.push(new SessionAttachStep(this, logPointsDebuggerClient));
