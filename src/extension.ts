@@ -143,7 +143,7 @@ export function activate(context: vscode.ExtensionContext): void {
         }
         const client = nodeUtils.getWebSiteClient(node);
         try {
-            await node.treeItem.siteWrapper.deploy(fsPath, client, outputChannel);
+            await node.treeItem.siteWrapper.deploy(fsPath, client, outputChannel, 'appService');
         } catch (err) {
             if (err instanceof UserCancelledError) {
                 throw err;
