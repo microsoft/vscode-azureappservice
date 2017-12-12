@@ -83,7 +83,8 @@ export function activate(context: vscode.ExtensionContext): void {
         const siteType = util.isSiteDeploymentSlot(node.treeItem.site) ? 'Deployment Slot' : 'Web App';
         outputChannel.show();
         outputChannel.appendLine(`Starting ${siteType} "${node.treeItem.site.name}"...`);
-        await node.treeItem.siteWrapper.start(nodeUtils.getWebSiteClient(node));
+        await node.treeItem.start(nodeUtils.getWebSiteClient(node));
+        node.refresh();
         outputChannel.appendLine(`${siteType} "${node.treeItem.site.name}" has been started.`);
     });
     initAsyncCommand(context, 'appService.Stop', async (node: IAzureNode<SiteTreeItem>) => {
@@ -94,7 +95,8 @@ export function activate(context: vscode.ExtensionContext): void {
         const siteType = util.isSiteDeploymentSlot(node.treeItem.site) ? 'Deployment Slot' : 'Web App';
         outputChannel.show();
         outputChannel.appendLine(`Stopping ${siteType} "${node.treeItem.site.name}"...`);
-        await node.treeItem.siteWrapper.stop(nodeUtils.getWebSiteClient(node));
+        await node.treeItem.stop(nodeUtils.getWebSiteClient(node));
+        node.refresh();
         outputChannel.appendLine(`${siteType} "${node.treeItem.site.name}" has been stopped. App Service plan charges still apply.`);
 
         logPointsManager.onAppServiceSiteClosed(node.treeItem.site);
@@ -110,6 +112,7 @@ export function activate(context: vscode.ExtensionContext): void {
         outputChannel.appendLine(`Restarting ${siteType} "${node.treeItem.site.name}"...`);
         await node.treeItem.siteWrapper.stop(client);
         await node.treeItem.siteWrapper.start(client);
+        node.refresh();
         outputChannel.appendLine(`${siteType} "${node.treeItem.site.name}" has been restarted.`);
 
         logPointsManager.onAppServiceSiteClosed(node.treeItem.site);

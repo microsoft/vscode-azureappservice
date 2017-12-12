@@ -15,7 +15,6 @@ import * as util from '../util';
 import { nodeUtils } from '../utils/nodeUtils';
 
 export abstract class SiteTreeItem implements IAzureParentTreeItem {
-    public abstract readonly label: string;
     public abstract contextValue: string;
 
     public readonly siteWrapper: SiteWrapper;
@@ -23,9 +22,7 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
     private readonly _site: WebSiteModels.Site;
     private _logStreamOutputChannel: OutputChannel | undefined;
     private _logStream: Request | undefined;
-    private readonly _siteName: string;
-    private readonly _isSlot: boolean;
-    private readonly _slotName: string;
+    private _label: string;
 
     public get site(): WebSiteModels.Site {
         return this._site;
@@ -33,10 +30,12 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
 
     constructor(site: WebSiteModels.Site) {
         this._site = site;
-        this._siteName = util.extractSiteName(site);
-        this._isSlot = util.isSiteDeploymentSlot(site);
-        this._slotName = util.extractDeploymentSlotName(site);
         this.siteWrapper = new SiteWrapper(site);
+        this._label = this.createLabel(site.state);
+    }
+
+    public get label(): string {
+        return this._label;
     }
 
     public hasMoreChildren(): boolean {
@@ -47,6 +46,16 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
 
     public get id(): string {
         return this.site.id;
+    }
+
+    public async start(client: WebSiteManagementClient): Promise<void> {
+        await this.siteWrapper.start(client);
+        this._label = this.createLabel(await this.siteWrapper.getState(client));
+    }
+
+    public async stop(client: WebSiteManagementClient): Promise<void> {
+        await this.siteWrapper.stop(client);
+        this._label = this.createLabel(await this.siteWrapper.getState(client));
     }
 
     public browse(): void {
@@ -71,7 +80,7 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
     }
 
     public async connectToLogStream(client: WebSiteManagementClient, extensionContext: ExtensionContext): Promise<void> {
-        const siteName = this._isSlot ? `${this._siteName}-${this._slotName}` : this._siteName;
+        const siteName = this.siteWrapper.appName;
         const user = await util.getWebAppPublishCredential(client, this.site);
         const kuduClient = new KuduClient(siteName, user.publishingUserName, user.publishingPassword);
 
@@ -109,6 +118,10 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
 
     public async editScmType(client: WebSiteManagementClient): Promise<string> {
         return await this.siteWrapper.editScmType(client);
+    }
+
+    private createLabel(state: string): string {
+        return `${this.siteWrapper.slotName ? this.siteWrapper.slotName : this.siteWrapper.name} ${state && state.toLowerCase() !== 'running' ? '(' + state + ')' : ''}`;
     }
 }
 

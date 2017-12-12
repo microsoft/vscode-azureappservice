@@ -17,10 +17,6 @@ export class DeploymentSlotTreeItem extends SiteTreeItem {
         super(site);
     }
 
-    public get label(): string {
-        return this.siteWrapper.slotName;
-    }
-
     public get iconPath(): { light: string, dark: string } {
         return {
             light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'DeploymentSlot_color.svg'),

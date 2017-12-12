@@ -35,10 +35,6 @@ export class WebAppTreeItem extends SiteTreeItem {
         this.appSettingsNode = new AppSettingsTreeItem(this.siteWrapper);
     }
 
-    public get label(): string {
-        return `${this.site.name} (${this.site.resourceGroup})`;
-    }
-
     public get iconPath(): { light: string, dark: string } {
         const iconName = 'WebApp_color.svg';
         return {
