@@ -1,5 +1,9 @@
 export interface ISetLogpointResponse {
-    error?: {};
+    error?: {
+        // tslint:disable-next-line:no-reserved-keywords
+        "type": string,
+        message: string
+    };
     data: {
         "logpoint": {
             "logpointId": string,

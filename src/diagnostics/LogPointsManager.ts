@@ -5,6 +5,7 @@ import * as appserviceUtil from '../util';
 import { RemoteScriptSchema } from './remoteScriptDocumentProvider';
 import { IDebugSessionMetaData } from './structs/IDebugSessionMetaData';
 import { IGetLogpointsResponse } from './structs/IGetLogpointsResponse';
+import { IRemoveLogpointResponse } from './structs/IRemoveLogpointResponse';
 import { ISetLogpointResponse } from './structs/ISetLogpointResponse';
 import { ILogpoint } from './structs/Logpoint';
 import { LogpointsCollection } from './structs/LogpointsCollection';
@@ -87,15 +88,17 @@ class DebugSessionManager {
 
         if (expression === undefined) {
             vscode.window.showErrorMessage("An expression must be provided.");
-            return null;
+            throw new Error(`[Set Logpoint] Expression is not provided.`);
         }
 
         const result: ISetLogpointResponse = await this._debugSession.customRequest("setLogpoint", { scriptId, lineNumber, columnNumber, expression });
         if (result.error !== undefined && result.error !== null) {
-            vscode.window.showErrorMessage("Cannot set logpoint successfully. Please refer to DEBUG CONSOLE for details.");
-            appserviceUtil.getOutputChannel().show();
-            appserviceUtil.getOutputChannel().appendLine(`Cannot set logpoint successfully, the error is ${result.error}.`);
-            return null;
+            const errorMessage = result.error.message === '' ?
+                'Cannot set logpoint. Please refer to https://aka.ms/logpoints#setting-logpoints for more details.' :
+                `Cannot set logpoint, the error is "${result.error.message}". Please refer to https://aka.ms/logpoints#setting-logpoints for more details.`;
+
+            // Send telemetry with error by throwing it.
+            throw new Error(errorMessage);
         }
         const logpoint = result.data.logpoint;
         return {
@@ -105,7 +108,13 @@ class DebugSessionManager {
     }
 
     public async removeLogpoint(logpoint: ILogpoint): Promise<void> {
-        await this._debugSession.customRequest("removeLogpoint", logpoint.id);
+        const result: IRemoveLogpointResponse = await this._debugSession.customRequest("removeLogpoint", logpoint.id);
+        if (result.error !== undefined && result.error !== null) {
+            const errorMessage = result.error.message === '' ?
+                'Cannot remove logpoint. Please refer to https://aka.ms/logpoints for more details.' :
+                `Cannot remove logpoint, the error is "${result.error.message}". Please refer to https://aka.ms/logpoints for more details.`;
+            throw new Error(errorMessage);
+        }
     }
 
     public async retrieveMetadata(): Promise<IDebugSessionMetaData> {
@@ -189,22 +198,19 @@ export class LogPointsManager extends vscode.Disposable {
         const debugSessionManager = this._debugSessionManagerMapping[params.vscodeDebugSessionId];
 
         if (!debugSessionManager) {
-            vscode.window.showErrorMessage(`The debug session associated with this file has expired. Please close this file and open it again from LOADED SCRIPTS explorer of an active logpoints session. More details can be found here - http://aka.ms/logpoints#setting-up-logpoints`);
+            vscode.window.showErrorMessage(`The debug session associated with this file has expired. Please close this file and open it again from LOADED SCRIPTS explorer of an active logpoints session. More details can be found here http://aka.ms/logpoints#setting-up-logpoints`);
             return false;
         }
 
-        let logpoint = debugSessionManager.getLogpointAtLocation(uri, line);
+        const logpoint = debugSessionManager.getLogpointAtLocation(uri, line);
         if (logpoint) {
-            debugSessionManager.removeLogpoint(logpoint);
+            await debugSessionManager.removeLogpoint(logpoint);
             debugSessionManager.unregisterLogpoint(uri, logpoint);
             this._outputChannel.appendLine(`Removed logpoint at line ${logpoint.line} in ${params.path}`);
         } else {
-            logpoint = await debugSessionManager.addLogpoint(params.internalScriptId, line, column);
-            if (!logpoint) {
-                return false;
-            }
-            debugSessionManager.registerLogpoint(uri, logpoint);
-            this._outputChannel.appendLine(`Added logpoint at line ${logpoint.line} in ${params.path}`);
+            const newLogpoint = await debugSessionManager.addLogpoint(params.internalScriptId, line, column);
+            debugSessionManager.registerLogpoint(uri, newLogpoint);
+            this._outputChannel.appendLine(`Added logpoint at line ${newLogpoint.line} in ${params.path}`);
         }
 
         return true;
