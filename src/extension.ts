@@ -41,6 +41,9 @@ export function activate(context: vscode.ExtensionContext): void {
     context.subscriptions.push(tree);
     context.subscriptions.push(vscode.window.registerTreeDataProvider('azureAppService', tree));
 
+    const fileEditor: FileEditor = new FileEditor();
+    context.subscriptions.push(fileEditor);
+
     // loaded scripts
     const provider = new LoadedScriptsProvider(context);
     context.subscriptions.push(vscode.window.registerTreeDataProvider('appservice.loadedScriptsExplorer.jsLogpoints', provider));
@@ -286,25 +289,65 @@ export function activate(context: vscode.ExtensionContext): void {
     initCommand(context, 'diagnostics.LogPoints.OpenScript', openScript);
 
     initAsyncCommand(context, 'appService.editFile', async (node: IAzureNode<FileTreeItem>) => {
-        console.log(node);
-        const editor = new FileEditor();
-        editor.showEditor(node);
+        await fileEditor.showEditor(node);
     });
+
+    initEvent(context, 'appService.fileEditor.onDidSaveTextDocument', vscode.workspace.onDidSaveTextDocument, (doc: vscode.TextDocument) => fileEditor.onDidSaveTextDocument(context.globalState, doc));
+    context.subscriptions.push(vscode.commands.registerCommand('diagnostics.LogPoints.OpenScript', openScript));
 
     // tslint:disable-next-line:no-empty
     export function deactivate(): void {
     }
 
-    // tslint:disable-next-line:no-any
-    function initCommand(extensionContext: vscode.ExtensionContext, commandId: string, callback: (...args: any[]) => void): void {
-        // tslint:disable-next-line:no-any
-        initAsyncCommand(extensionContext, commandId, async (...args: any[]) => callback(...args));
+    function initEvent<T>(context: vscode.ExtensionContext, eventId: string, event: vscode.Event<T>, callback: (...args: any[]) => any) {
+
+        context.subscriptions.push(event(wrapAsyncCallback(eventId, (...args: any[]) => Promise.resolve(callback(...args)))));
+
     }
 
-    // tslint:disable-next-line:no-any
-    function initAsyncCommand(extensionContext: vscode.ExtensionContext, commandId: string, callback: (...args: any[]) => Promise<void>): void {
-        // tslint:disable-next-line:no-any
-        extensionContext.subscriptions.push(vscode.commands.registerCommand(commandId, async (...args: any[]) => {
+    function initCommand<T>(extensionContext: vscode.ExtensionContext, commandId: string, callback: (context?: T) => void): void {
+        initAsyncCommand(extensionContext, commandId, async (context?: T) => callback(context));
+    }
+
+    function wrapAsyncCallback(callbackId, callback: (...args: any[]) => Promise<any>): (...args: any[]) => Promise<any> {
+        return async (...args: any[]) => {
+            const start = Date.now();
+            let properties: { [key: string]: string; } = {};
+            properties.result = 'Succeeded';
+            let errorData: ErrorData | undefined = null;
+            const output = util.getOutputChannel();
+
+            try {
+                await callback(...args);
+            } catch (err) {
+                if (err instanceof UserCancelledError) {
+                    properties.result = 'Canceled';
+                }
+                else {
+                    properties.result = 'Failed';
+                    errorData = new ErrorData(err);
+                    output.appendLine(errorData.message);
+                    if (errorData.message.includes("\n")) {
+                        output.show();
+                        vscode.window.showErrorMessage('An error has occured. See output window for more details.');
+                    }
+                    else {
+                        vscode.window.showErrorMessage(errorData.message);
+                    }
+                }
+            } finally {
+                if (errorData) {
+                    properties.error = errorData.errorType;
+                    properties.errorMessage = errorData.message;
+                }
+                const end = Date.now();
+                util.sendTelemetry(callbackId, properties, { duration: (end - start) / 1000 });
+            }
+        };
+    }
+
+    function initAsyncCommand<T>(extensionContext: vscode.ExtensionContext, commandId: string, callback: (context?: T) => Promise<void>): void {
+        extensionContext.subscriptions.push(vscode.commands.registerCommand(commandId, async (...args: {}[]) => {
             const start = Date.now();
             const properties: { [key: string]: string; } = {};
             const output = util.getOutputChannel();
@@ -315,7 +358,7 @@ export function activate(context: vscode.ExtensionContext): void {
                 if (args.length === 0) {
                     await callback();
                 } else {
-                    await callback(...args);
+                    await callback(<T>args[0]);
                 }
             } catch (err) {
                 if (err instanceof SiteActionError) {

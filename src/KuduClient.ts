@@ -62,6 +62,24 @@ export class KuduClient {
             });
         });
     }
+    uploadFile(localPath: string, destPath: string) {
+        return new Promise<kuduFile[]>((resolve, reject) => {
+            this._api.vfs.uploadFile(localPath, destPath, '*', (err, body) => {
+                if (err) {
+                    var errorMessage = [];
+                    errorMessage[0] = { name: err.Message };
+                    reject(errorMessage);
+                    // format error to be processed as a NodeBase
+                } else {
+                    // if file is not found, kudu returns an Object rather than an array
+                    if (body.Message) {
+                        body = [{ name: body.Message, path: 'Error' }];
+                    }
+                    resolve(body);
+                }
+            });
+        });
+    }
 
     listAllWebJobs(): Promise<webJob[]> {
         return new Promise<webJob[]>((resolve, reject) => {
