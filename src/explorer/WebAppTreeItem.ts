@@ -11,7 +11,7 @@ import * as opn from 'opn';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { AppSettingsTreeItem, AppSettingTreeItem } from 'vscode-azureappservice';
-import { IAzureNode, IAzureTreeItem, UserCancelledError } from 'vscode-azureextensionui';
+import { IAzureNode, IAzureTreeItem } from 'vscode-azureextensionui';
 import { nodeUtils } from '../utils/nodeUtils';
 import { DeploymentSlotsNATreeItem, DeploymentSlotsTreeItem } from './DeploymentSlotsTreeItem';
 import { DeploymentSlotTreeItem } from './DeploymentSlotTreeItem';
@@ -79,13 +79,6 @@ export class WebAppTreeItem extends SiteTreeItem {
             webSiteClient.webApps.listApplicationSettings(this.site.resourceGroup, this.site.name)
         ]);
 
-        let uri: vscode.Uri;
-        uri = await vscode.window.showSaveDialog({ filters: { 'Shell Script (Bash)': ['sh'] } });
-
-        if (!uri) {
-            throw new UserCancelledError();
-        }
-
         const taskResults = await tasks;
         const rg = taskResults[0];
         const plan = taskResults[1];
@@ -97,9 +90,6 @@ export class WebAppTreeItem extends SiteTreeItem {
         if (!siteConfig.linuxFxVersion) {
             const scriptTemplate = await this.loadScriptTemplate('windows-default.sh');
             script = scriptTemplate;
-        } else if (siteConfig.linuxFxVersion.toLowerCase().startsWith('linux')) {
-            const scriptTemplate = await this.loadScriptTemplate('linux-default.sh');
-            script = scriptTemplate.replace('%RUNTIME%', siteConfig.linuxFxVersion);
         } else if (siteConfig.linuxFxVersion.toLowerCase().startsWith('docker')) {
             const scriptTemplate = await this.loadScriptTemplate('docker-image.sh');
             const serverUrl = appSettings.properties['DOCKER_REGISTRY_SERVER_URL'];
@@ -117,6 +107,9 @@ export class WebAppTreeItem extends SiteTreeItem {
                 .replace('%IMAGENAME%', siteConfig.linuxFxVersion.substring(siteConfig.linuxFxVersion.indexOf('|') + 1))
                 .replace('%DOCKER_PARA%', containerParameters)
                 .replace('%CTN_CMD_PARA%', containerCmdParameters);
+        } else {    // Stock linux image
+            const scriptTemplate = await this.loadScriptTemplate('linux-default.sh');
+            script = scriptTemplate.replace('%RUNTIME%', siteConfig.linuxFxVersion);
         }
 
         script = script.replace('%SUBSCRIPTION_NAME%', subscription.displayName)
@@ -126,8 +119,7 @@ export class WebAppTreeItem extends SiteTreeItem {
             .replace('%PLAN_SKU%', plan.sku.name)
             .replace('%SITE_NAME%', site.name);
 
-        await fs.writeFile(uri.fsPath, script, 'utf8');
-        const doc = await vscode.workspace.openTextDocument(uri);
+        const doc = await vscode.workspace.openTextDocument({ language: 'shellscript', content: script });
         await vscode.window.showTextDocument(doc);
     }
 
