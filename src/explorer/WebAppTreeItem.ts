@@ -11,7 +11,7 @@ import * as opn from 'opn';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { AppSettingsTreeItem, AppSettingTreeItem } from 'vscode-azureappservice';
-import { IAzureNode, IAzureTreeItem, UserCancelledError } from 'vscode-azureextensionui';
+import { IAzureNode, IAzureTreeItem } from 'vscode-azureextensionui';
 import { nodeUtils } from '../utils/nodeUtils';
 import { DeploymentSlotsNATreeItem, DeploymentSlotsTreeItem } from './DeploymentSlotsTreeItem';
 import { DeploymentSlotTreeItem } from './DeploymentSlotTreeItem';
