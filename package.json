@@ -465,11 +465,6 @@
                     "default": true,
                     "description": "Show or hide the App Service Explorer"
                 },
-                "appService.logpoints": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Enable or disable the Logpoints feature"
-                },
                 "appService.enabledDockerImages": {
                     "type": "array",
                     "default": [

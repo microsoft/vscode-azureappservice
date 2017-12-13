@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { UserCancelledError } from 'vscode-azureextensionui';
 import * as util from '../../util';
+import { callWithTimeout, DEFAULT_TIMEOUT } from '../../utils/logpointsUtil';
 import { WizardStep } from '../../wizard';
 import { ILogPointsDebuggerClient } from '../logPointsClient';
 import { LogPointsSessionWizard } from '../LogPointsSessionWizard';
@@ -24,7 +25,11 @@ export class PickProcessStep extends WizardStep {
             p.report({ message: message });
             this._wizard.writeline(message);
             const siteName = util.extractSiteName(selectedSlot) + (util.isSiteDeploymentSlot(selectedSlot) ? `-util.extractDeploymentSlotName(selectedSlot)` : '');
-            result = await this._logPointsDebuggerClient.enumerateProcesses(siteName, instance.name, publishCredential);
+            result = await callWithTimeout(
+                () => {
+                    return this._logPointsDebuggerClient.enumerateProcesses(siteName, instance.name, publishCredential);
+                },
+                DEFAULT_TIMEOUT);
         });
 
         if (!result.isSuccessful() || result.json.data.length === 0) {

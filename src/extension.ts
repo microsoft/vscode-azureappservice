@@ -83,7 +83,8 @@ export function activate(context: vscode.ExtensionContext): void {
         const siteType = util.isSiteDeploymentSlot(node.treeItem.site) ? 'Deployment Slot' : 'Web App';
         outputChannel.show();
         outputChannel.appendLine(`Starting ${siteType} "${node.treeItem.site.name}"...`);
-        await node.treeItem.siteWrapper.start(nodeUtils.getWebSiteClient(node));
+        await node.treeItem.start(nodeUtils.getWebSiteClient(node));
+        node.refresh();
         outputChannel.appendLine(`${siteType} "${node.treeItem.site.name}" has been started.`);
     });
     initAsyncCommand(context, 'appService.Stop', async (node: IAzureNode<SiteTreeItem>) => {
@@ -94,7 +95,8 @@ export function activate(context: vscode.ExtensionContext): void {
         const siteType = util.isSiteDeploymentSlot(node.treeItem.site) ? 'Deployment Slot' : 'Web App';
         outputChannel.show();
         outputChannel.appendLine(`Stopping ${siteType} "${node.treeItem.site.name}"...`);
-        await node.treeItem.siteWrapper.stop(nodeUtils.getWebSiteClient(node));
+        await node.treeItem.stop(nodeUtils.getWebSiteClient(node));
+        node.refresh();
         outputChannel.appendLine(`${siteType} "${node.treeItem.site.name}" has been stopped. App Service plan charges still apply.`);
 
         logPointsManager.onAppServiceSiteClosed(node.treeItem.site);
@@ -110,6 +112,7 @@ export function activate(context: vscode.ExtensionContext): void {
         outputChannel.appendLine(`Restarting ${siteType} "${node.treeItem.site.name}"...`);
         await node.treeItem.siteWrapper.stop(client);
         await node.treeItem.siteWrapper.start(client);
+        node.refresh();
         outputChannel.appendLine(`${siteType} "${node.treeItem.site.name}" has been restarted.`);
 
         logPointsManager.onAppServiceSiteClosed(node.treeItem.site);
@@ -126,7 +129,16 @@ export function activate(context: vscode.ExtensionContext): void {
             node = <IAzureParentNode>await tree.showNodePicker(AzureTreeDataProvider.subscriptionContextValue);
         }
 
-        await node.createChild();
+        const createdApp = <IAzureNode<WebAppTreeItem>>await node.createChild();
+
+        // prompt user to deploy to newly created web app
+        const yesButton: vscode.MessageItem = { title: 'Yes' };
+        const noButton: vscode.MessageItem = { title: 'No', isCloseAffordance: true };
+        if (await vscode.window.showInformationMessage('Deploy to web app?', yesButton, noButton)) {
+            const fsPath = (await util.showWorkspaceFoldersQuickPick("Select the folder to deploy")).uri.fsPath;
+            const client = nodeUtils.getWebSiteClient(createdApp);
+            await createdApp.treeItem.siteWrapper.deploy(fsPath, client, outputChannel, false);
+        }
     });
     initAsyncCommand(context, 'appService.Deploy', async (target?: vscode.Uri | IAzureNode<WebAppTreeItem> | undefined) => {
         let node: IAzureNode<WebAppTreeItem>;
@@ -181,7 +193,16 @@ export function activate(context: vscode.ExtensionContext): void {
             node = <IAzureParentNode<DeploymentSlotsTreeItem>>await tree.showNodePicker(DeploymentSlotsTreeItem.contextValue);
         }
 
-        await node.createChild();
+        const createdSlot = <IAzureNode<SiteTreeItem>>await node.createChild();
+
+        // prompt user to deploy to newly created web app
+        const yesButton: vscode.MessageItem = { title: 'Yes' };
+        const noButton: vscode.MessageItem = { title: 'No', isCloseAffordance: true };
+        if (await vscode.window.showInformationMessage('Deploy to deployment slot?', yesButton, noButton)) {
+            const fsPath = (await util.showWorkspaceFoldersQuickPick("Select the folder to deploy")).uri.fsPath;
+            const client = nodeUtils.getWebSiteClient(createdSlot);
+            await createdSlot.treeItem.siteWrapper.deploy(fsPath, client, outputChannel, false);
+        }
     });
     initAsyncCommand(context, 'deploymentSlot.SwapSlots', async (node: IAzureNode<DeploymentSlotTreeItem>) => {
         if (!node) {
@@ -257,7 +278,7 @@ export function activate(context: vscode.ExtensionContext): void {
     });
 
     initAsyncCommand(context, 'diagnostics.LogPoints.Toggle', async (uri: vscode.Uri) => {
-        logPointsManager.toggleLogpoint(uri);
+        await logPointsManager.toggleLogpoint(uri);
     });
 
     initCommand(context, 'diagnostics.LogPoints.OpenScript', openScript);
