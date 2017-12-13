@@ -4,12 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Site } from 'azure-arm-website/lib/models';
-import * as path from 'path';
-import { IAzureNode, IAzureTreeItem } from 'vscode-azureextensionui';
-import { KuduClient, kuduFile } from '../KuduClient';
-import * as util from '../util';
-import { nodeUtils } from '../utils/nodeUtils';
-import { TreeItemCollapsibleState } from 'vscode';
+import { IAzureTreeItem } from 'vscode-azureextensionui';
+import { KuduClient } from '../KuduClient';
 
 
 export class FileTreeItem implements IAzureTreeItem {
