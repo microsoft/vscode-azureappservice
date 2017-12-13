@@ -17,7 +17,6 @@ import { DeploymentSlotsNATreeItem, DeploymentSlotsTreeItem } from './Deployment
 import { DeploymentSlotTreeItem } from './DeploymentSlotTreeItem';
 import { getAppServicePlan, SiteTreeItem } from './SiteTreeItem';
 import { WebJobsTreeItem } from './WebJobsTreeItem';
-import { window } from 'vscode';
 
 export class WebAppTreeItem extends SiteTreeItem {
     public static contextValue: string = 'appService';
