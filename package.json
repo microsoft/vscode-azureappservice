@@ -472,6 +472,16 @@
                         "azurenodelogpoints.azurecr.io/azure-nodejs-logpoints"
                     ],
                     "description": "The supported Docker images that logpoints feature can run with."
+                },
+                "appService.zipGlobPattern": {
+                    "type": "string",
+                    "default": "**/*",
+                    "description": "Defines which files in the workspace to deploy. This applies to Zip deploy only, has no effect on other deployment methods."
+                },
+                "appService.zipIgnorePattern": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Defines which files in the workspace to ignore for Zip deploy. This applies to Zip deploy only, has no effect on other deployment methods."
                 }
             }
         },
@@ -575,7 +585,7 @@
         "opn": "^5.1.0",
         "request": "^2.83.0",
         "simple-git": "^1.77.0",
-        "vscode-azureappservice": "~0.7.0",
+        "vscode-azureappservice": "~0.8.0",
         "vscode-azureextensionui": "~0.3.0",
         "vscode-debugadapter": "^1.24.0",
         "vscode-debugprotocol": "^1.24.0",
