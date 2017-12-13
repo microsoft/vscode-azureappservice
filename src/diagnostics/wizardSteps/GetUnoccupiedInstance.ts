@@ -35,7 +35,7 @@ export class GetUnoccupiedInstance extends WizardStep {
             return a.name.localeCompare(b.name);
         });
 
-        const siteName = util.extractSiteName(selectedSlot) + (util.isSiteDeploymentSlot(selectedSlot) ? `-${util.extractDeploymentSlotName(selectedSlot)}` : '');
+        const siteName = util.extractSiteScmSubDomainName(selectedSlot);
 
         for (const instance of instances) {
             let result: CommandRunResult<IStartSessionResponse>;

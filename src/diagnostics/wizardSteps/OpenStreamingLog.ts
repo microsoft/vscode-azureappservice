@@ -1,16 +1,15 @@
 import * as vscode from 'vscode';
-import { IAzureNode, IAzureTreeItem, UserCancelledError } from 'vscode-azureextensionui';
-import { SiteTreeItem } from '../../explorer/SiteTreeItem';
+import { UserCancelledError } from 'vscode-azureextensionui';
 import { WizardStep } from '../../wizard';
 import { LogPointsSessionWizard } from '../LogPointsSessionWizard';
 
-export class CheckLogStreamAvailability extends WizardStep {
+export class OpenStreamingLog extends WizardStep {
     constructor(private _wizard: LogPointsSessionWizard) {
         super(_wizard, 'Detect logging stream availability.');
     }
 
     public async prompt(): Promise<void> {
-        const siteTreeItem = this.getSiteTreeItem();
+        const siteTreeItem = this._wizard.selectedDeploymentSlotTreeItem;
 
         if (!siteTreeItem) {
             throw new Error('Cannot locate a site to check logging stream availability.');
@@ -23,22 +22,9 @@ export class CheckLogStreamAvailability extends WizardStep {
             vscode.window.showInformationMessage("Logpoints session require Streaming Log to start, which is not currently enabled. Please use \"View Streaming Log\" command to enable it.");
             throw new UserCancelledError("Streaming log is not enabled.");
         }
-    }
 
-    private getSiteTreeItem(): SiteTreeItem {
-        let extendedTreeItem: IAzureNode<IAzureTreeItem> = this._wizard.uiTreeItem;
-
-        while (extendedTreeItem) {
-            if (!extendedTreeItem) {
-                break;
-            }
-
-            if (extendedTreeItem.treeItem instanceof SiteTreeItem) {
-                return extendedTreeItem.treeItem;
-            }
-            extendedTreeItem = extendedTreeItem.parent;
-        }
-
-        return null;
+        // Open streaming log
+        const outputChannel = await siteTreeItem.connectToLogStream(this._wizard.websiteManagementClient, this._wizard.extensionContext);
+        this._wizard.logpointsManager.onStreamingLogOutputChannelCreated(siteTreeItem.site, outputChannel);
     }
 }
