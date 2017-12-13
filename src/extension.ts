@@ -137,7 +137,7 @@ export function activate(context: vscode.ExtensionContext): void {
         if (await vscode.window.showInformationMessage('Deploy to web app?', yesButton, noButton)) {
             const fsPath = (await util.showWorkspaceFoldersQuickPick("Select the folder to deploy")).uri.fsPath;
             const client = nodeUtils.getWebSiteClient(createdApp);
-            await createdApp.treeItem.siteWrapper.deploy(fsPath, client, outputChannel, false);
+            await createdApp.treeItem.siteWrapper.deploy(fsPath, client, outputChannel, 'appService', false);
         }
     });
     initAsyncCommand(context, 'appService.Deploy', async (target?: vscode.Uri | IAzureNode<WebAppTreeItem> | undefined) => {
@@ -201,7 +201,7 @@ export function activate(context: vscode.ExtensionContext): void {
         if (await vscode.window.showInformationMessage('Deploy to deployment slot?', yesButton, noButton)) {
             const fsPath = (await util.showWorkspaceFoldersQuickPick("Select the folder to deploy")).uri.fsPath;
             const client = nodeUtils.getWebSiteClient(createdSlot);
-            await createdSlot.treeItem.siteWrapper.deploy(fsPath, client, outputChannel, false);
+            await createdSlot.treeItem.siteWrapper.deploy(fsPath, client, outputChannel, 'appService', false);
         }
     });
     initAsyncCommand(context, 'deploymentSlot.SwapSlots', async (node: IAzureNode<DeploymentSlotTreeItem>) => {
