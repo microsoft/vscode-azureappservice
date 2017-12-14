@@ -53,7 +53,7 @@ class DebugSessionManager {
         const uriString = documentUri.toString();
         let logpointsCollection = this._logpointsCollectionMapping[uriString];
 
-        // If we have not seen any logpoints fro this collection,
+        // If we have not seen any logpoints for this collection,
         // try to contact server and see if it knows about any existing logpoints.
         if (!logpointsCollection) {
             logpointsCollection = new LogpointsCollection(documentUri);

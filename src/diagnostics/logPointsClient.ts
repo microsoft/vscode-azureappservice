@@ -19,12 +19,13 @@ import { IRemoveLogpointRequest } from './structs/IRemoveLogpointRequest';
 import { IRemoveLogpointResponse } from './structs/IRemoveLogpointResponse';
 import { ISetLogpointRequest } from './structs/ISetLogpointRequest';
 import { ISetLogpointResponse } from './structs/ISetLogpointResponse';
+import { IStartSessionRequest } from './structs/IStartSessionRequest';
 import { IStartSessionResponse } from './structs/IStartSessionResponse';
 
 export interface ILogPointsDebuggerClient {
     call<ResponseType>(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, command: string): Promise<CommandRunResult<ResponseType>>;
 
-    startSession(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User): Promise<CommandRunResult<IStartSessionResponse>>;
+    startSession(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: IStartSessionRequest): Promise<CommandRunResult<IStartSessionResponse>>;
 
     closeSession(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: ICloseSessionRequest): Promise<CommandRunResult<ICloseSessionResponse>>;
 
@@ -76,9 +77,15 @@ export class KuduLogPointsDebuggerClient extends LogPointsDebuggerClientBase imp
         return buf.toString('base64');
     }
 
-    public async startSession(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User): Promise<CommandRunResult<IStartSessionResponse>> {
+    public async startSession(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: IStartSessionRequest): Promise<CommandRunResult<IStartSessionResponse>> {
         await this.uploadSshClient(siteName, affinityValue, publishCredential);
-        return this.makeCallAndLogException<IStartSessionResponse>(siteName, affinityValue, publishCredential, "curl -s -S -X POST http://localhost:32923/debugger/session");
+        const jsonPayloadBase64 = KuduLogPointsDebuggerClient.base64Encode({
+            username: data.username
+        });
+
+        return this.makeCallAndLogException<IStartSessionResponse>(
+            siteName, affinityValue, publishCredential,
+            `curl -s -S -X POST -H "Content-Type: application/base64" -d ${jsonPayloadBase64} http://localhost:32923/debugger/session`);
     }
 
     public closeSession(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: ICloseSessionRequest): Promise<CommandRunResult<ICloseSessionResponse>> {
@@ -212,8 +219,14 @@ export class MockLogpointsDebuggerClient extends LogPointsDebuggerClientBase imp
         return buf.toString('base64');
     }
 
-    public startSession(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User): Promise<CommandRunResult<IStartSessionResponse>> {
-        return this.makeCallAndLogException<IStartSessionResponse>(siteName, affinityValue, publishCredential, "curl -s -S -X POST http://localhost:32923/debugger/session");
+    public startSession(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: IStartSessionRequest): Promise<CommandRunResult<IStartSessionResponse>> {
+        const jsonPayloadBase64 = MockLogpointsDebuggerClient.base64Encode({
+            username: data.username
+        });
+
+        return this.makeCallAndLogException<IStartSessionResponse>(
+            siteName, affinityValue, publishCredential,
+            `curl -s -S -X POST -H "Content-Type: application/base64" -d ${jsonPayloadBase64} http://localhost:32923/debugger/session`);
     }
 
     public closeSession(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, data: ICloseSessionRequest): Promise<CommandRunResult<ICloseSessionResponse>> {
