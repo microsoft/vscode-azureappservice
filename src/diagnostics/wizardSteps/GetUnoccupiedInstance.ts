@@ -7,6 +7,7 @@ import { WizardStep } from '../../wizard';
 import { ILogPointsDebuggerClient } from '../logPointsClient';
 import { LogPointsSessionWizard } from '../LogPointsSessionWizard';
 import { CommandRunResult } from '../structs/CommandRunResult';
+import { IStartSessionRequest } from '../structs/IStartSessionRequest';
 import { IStartSessionResponse } from '../structs/IStartSessionResponse';
 
 export class GetUnoccupiedInstance extends WizardStep {
@@ -36,6 +37,7 @@ export class GetUnoccupiedInstance extends WizardStep {
         });
 
         const siteName = util.extractSiteScmSubDomainName(selectedSlot);
+        const startSessionRequest: IStartSessionRequest = { username: this._wizard.uiTreeItem.userId };
 
         for (const instance of instances) {
             let result: CommandRunResult<IStartSessionResponse>;
@@ -48,7 +50,7 @@ export class GetUnoccupiedInstance extends WizardStep {
                 try {
                     result = await callWithTimeout(
                         () => {
-                            return this._logPointsDebuggerClient.startSession(siteName, instance.name, publishCredential);
+                            return this._logPointsDebuggerClient.startSession(siteName, instance.name, publishCredential, startSessionRequest);
                         },
                         DEFAULT_TIMEOUT);
                 } catch (e) {

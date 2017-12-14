@@ -586,7 +586,7 @@
         "request": "^2.83.0",
         "simple-git": "^1.77.0",
         "vscode-azureappservice": "~0.8.0",
-        "vscode-azureextensionui": "~0.3.0",
+        "vscode-azureextensionui": "~0.4.1",
         "vscode-debugadapter": "^1.24.0",
         "vscode-debugprotocol": "^1.24.0",
         "vscode-extension-telemetry": "^0.0.8"
