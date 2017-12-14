@@ -473,7 +473,6 @@
                     ],
                     "description": "The supported Docker images that logpoints feature can run with."
                 },
-<<<<<<< HEAD
                 "appService.zipGlobPattern": {
                     "type": "string",
                     "default": "**/*",
@@ -483,17 +482,16 @@
                     "type": "string",
                     "default": "",
                     "description": "Defines which files in the workspace to ignore for Zip deploy. This applies to Zip deploy only, has no effect on other deployment methods."
-=======
-                "appService.editRemoteFiles": {
+                },
+                "appService.showRemoteFiles": {
                     "type": "boolean",
                     "default": false,
-                    "description": "Show or hide the File Nodes of a Web App"
+                    "description": "Show or hide the File Nodes of a Web App.  Caution: Manually editing your Web App's files could cause unexpected behavior."
                 },
                 "appService.showSavePrompt": {
                     "type": "boolean",
                     "default": true,
-                    "description": "Show warning dialog on File file save."
->>>>>>> Leverage azureui to remote edit
+                    "description": "Show warning dialog on remote file uploading."
                 }
             }
         },
@@ -590,7 +588,6 @@
     "dependencies": {
         "azure-arm-resource": "^2.0.0-preview",
         "azure-arm-website": "^1.0.0-preview",
-        "crypto": "^1.0.1",
         "fs-extra": "^4.0.2",
         "kudu-api": "^1.4.1",
         "ms-rest": "^2.2.2",
@@ -598,13 +595,8 @@
         "opn": "^5.1.0",
         "request": "^2.83.0",
         "simple-git": "^1.77.0",
-<<<<<<< HEAD
         "vscode-azureappservice": "~0.8.0",
-        "vscode-azureextensionui": "~0.3.0",
-=======
-        "vscode-azureappservice": "~0.7.0",
         "vscode-azureextensionui": "~0.4.0",
->>>>>>> Leverage azureui to remote edit
         "vscode-debugadapter": "^1.24.0",
         "vscode-debugprotocol": "^1.24.0",
         "vscode-extension-telemetry": "^0.0.8"

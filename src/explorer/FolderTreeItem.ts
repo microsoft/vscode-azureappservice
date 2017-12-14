@@ -15,18 +15,18 @@ export class FolderTreeItem implements IAzureParentTreeItem {
     public static contextValue: string = 'Folder';
     public readonly contextValue: string = FolderTreeItem.contextValue;
     public readonly childTypeLabel: string = 'Files';
-    constructor(readonly site: Site, readonly label: string, readonly path: string) {
+    constructor(readonly site: Site, readonly label: string, readonly path: string, readonly useIcon: boolean = false) {
     }
 
     public get id(): string {
         return `${this.site.id}/Folders`;
     }
 
-    public get iconPath(): { light: string, dark: string } {
-        return {
-            light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'Folder.svg'),
-            dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'Folder.svg')
-        };
+    public get iconPath(): { light: string, dark: string } | undefined {
+        return this.useIcon ? {
+            light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'Folder.png'),
+            dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'Folder.png')
+        } : undefined;
     }
 
     public hasMoreChildren(): boolean {
@@ -44,7 +44,7 @@ export class FolderTreeItem implements IAzureParentTreeItem {
             return file.mime === 'inode/directory' ?
                 // truncate the /home of the path
                 new FolderTreeItem(this.site, file.name, file.path.substring(file.path.indexOf('site'))) :
-                new FileTreeItem(this.site, file.name, file.path.substring(file.path.indexOf('site')), kuduClient);
+                new FileTreeItem(this.site, file.name, file.path.substring(file.path.indexOf('site')));
         });
     }
 }

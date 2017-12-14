@@ -31,7 +31,7 @@ export class WebAppTreeItem extends SiteTreeItem {
         super(site);
         this.deploymentSlotsNode = appServicePlan.sku.tier === 'Basic' ? new DeploymentSlotsNATreeItem() : new DeploymentSlotsTreeItem(site);
         // https://github.com/Microsoft/vscode-azureappservice/issues/45
-        this.folderNode = new FolderTreeItem(site, 'Files', "/site/wwwroot");
+        this.folderNode = new FolderTreeItem(site, 'Files', "/site/wwwroot", true);
         // nodes.push(new FilesNode('Log Files', '/LogFiles', this.site, this.subscription));
         this.webJobsNode = new WebJobsTreeItem(site);
         this.appSettingsNode = new AppSettingsTreeItem(this.siteWrapper);
@@ -46,7 +46,7 @@ export class WebAppTreeItem extends SiteTreeItem {
     }
 
     public async loadMoreChildren(_parentNode: IAzureNode): Promise<IAzureTreeItem[]> {
-        return vscode.workspace.getConfiguration().get("appService.editRemoteFiles") ?
+        return vscode.workspace.getConfiguration().get("appService.showRemoteFiles") ?
             [this.deploymentSlotsNode, this.folderNode, this.webJobsNode, this.appSettingsNode] :
             [this.deploymentSlotsNode, this.webJobsNode, this.appSettingsNode];
     }

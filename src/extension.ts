@@ -88,7 +88,7 @@ export function activate(context: vscode.ExtensionContext): void {
         const siteType = util.isSiteDeploymentSlot(node.treeItem.site) ? 'Deployment Slot' : 'Web App';
         outputChannel.show();
         outputChannel.appendLine(`Starting ${siteType} "${node.treeItem.site.name}"...`);
-        await node.treeItem.start(nodeUtils.getWebSiteClient(node));
+        await node.treeItem.siteWrapper.start(nodeUtils.getWebSiteClient(node));
         node.refresh();
         outputChannel.appendLine(`${siteType} "${node.treeItem.site.name}" has been started.`);
     });
@@ -100,7 +100,7 @@ export function activate(context: vscode.ExtensionContext): void {
         const siteType = util.isSiteDeploymentSlot(node.treeItem.site) ? 'Deployment Slot' : 'Web App';
         outputChannel.show();
         outputChannel.appendLine(`Stopping ${siteType} "${node.treeItem.site.name}"...`);
-        await node.treeItem.stop(nodeUtils.getWebSiteClient(node));
+        await node.treeItem.siteWrapper.stop(nodeUtils.getWebSiteClient(node));
         node.refresh();
         outputChannel.appendLine(`${siteType} "${node.treeItem.site.name}" has been stopped. App Service plan charges still apply.`);
 
@@ -288,109 +288,112 @@ export function activate(context: vscode.ExtensionContext): void {
 
     initCommand(context, 'diagnostics.LogPoints.OpenScript', openScript);
 
-    initAsyncCommand(context, 'appService.editFile', async (node: IAzureNode<FileTreeItem>) => {
+    initAsyncCommand(context, 'appService.showFile', async (node: IAzureNode<FileTreeItem>) => {
         await fileEditor.showEditor(node);
     });
 
     initEvent(context, 'appService.fileEditor.onDidSaveTextDocument', vscode.workspace.onDidSaveTextDocument, (doc: vscode.TextDocument) => fileEditor.onDidSaveTextDocument(context.globalState, doc));
-    context.subscriptions.push(vscode.commands.registerCommand('diagnostics.LogPoints.OpenScript', openScript));
 
-    // tslint:disable-next-line:no-empty
-    export function deactivate(): void {
-    }
 
-    function initEvent<T>(context: vscode.ExtensionContext, eventId: string, event: vscode.Event<T>, callback: (...args: any[]) => any) {
+}
 
-        context.subscriptions.push(event(wrapAsyncCallback(eventId, (...args: any[]) => Promise.resolve(callback(...args)))));
 
-    }
+// tslint:disable-next-line:no-empty
+export function deactivate(): void {
+}
 
-    function initCommand<T>(extensionContext: vscode.ExtensionContext, commandId: string, callback: (context?: T) => void): void {
-        initAsyncCommand(extensionContext, commandId, async (context?: T) => callback(context));
-    }
+function initEvent<T>(context: vscode.ExtensionContext, eventId: string, event: vscode.Event<T>, callback: (...args: any[]) => any) {
 
-    function wrapAsyncCallback(callbackId, callback: (...args: any[]) => Promise<any>): (...args: any[]) => Promise<any> {
-        return async (...args: any[]) => {
-            const start = Date.now();
-            let properties: { [key: string]: string; } = {};
-            properties.result = 'Succeeded';
-            let errorData: ErrorData | undefined = null;
-            const output = util.getOutputChannel();
+    context.subscriptions.push(event(wrapAsyncCallback(eventId, (...args: any[]) => Promise.resolve(callback(...args)))));
 
-            try {
-                await callback(...args);
-            } catch (err) {
-                if (err instanceof UserCancelledError) {
-                    properties.result = 'Canceled';
+}
+
+function initCommand<T>(extensionContext: vscode.ExtensionContext, commandId: string, callback: (context?: T) => void): void {
+    initAsyncCommand(extensionContext, commandId, async (context?: T) => callback(context));
+}
+
+function wrapAsyncCallback(callbackId, callback: (...args: any[]) => Promise<any>): (...args: any[]) => Promise<any> {
+    return async (...args: any[]) => {
+        const start = Date.now();
+        let properties: { [key: string]: string; } = {};
+        properties.result = 'Succeeded';
+        let errorData: ErrorData | undefined = null;
+        const output = util.getOutputChannel();
+
+        try {
+            await callback(...args);
+        } catch (err) {
+            if (err instanceof UserCancelledError) {
+                properties.result = 'Canceled';
+            }
+            else {
+                properties.result = 'Failed';
+                errorData = new ErrorData(err);
+                output.appendLine(errorData.message);
+                if (errorData.message.includes("\n")) {
+                    output.show();
+                    vscode.window.showErrorMessage('An error has occured. See output window for more details.');
                 }
                 else {
-                    properties.result = 'Failed';
-                    errorData = new ErrorData(err);
-                    output.appendLine(errorData.message);
-                    if (errorData.message.includes("\n")) {
-                        output.show();
-                        vscode.window.showErrorMessage('An error has occured. See output window for more details.');
-                    }
-                    else {
-                        vscode.window.showErrorMessage(errorData.message);
-                    }
+                    vscode.window.showErrorMessage(errorData.message);
                 }
-            } finally {
-                if (errorData) {
-                    properties.error = errorData.errorType;
-                    properties.errorMessage = errorData.message;
-                }
-                const end = Date.now();
-                util.sendTelemetry(callbackId, properties, { duration: (end - start) / 1000 });
             }
-        };
-    }
-
-    function initAsyncCommand<T>(extensionContext: vscode.ExtensionContext, commandId: string, callback: (context?: T) => Promise<void>): void {
-        extensionContext.subscriptions.push(vscode.commands.registerCommand(commandId, async (...args: {}[]) => {
-            const start = Date.now();
-            const properties: { [key: string]: string; } = {};
-            const output = util.getOutputChannel();
-            properties.result = 'Succeeded';
-            let errorData: ErrorData | undefined;
-
-            try {
-                if (args.length === 0) {
-                    await callback();
-                } else {
-                    await callback(<T>args[0]);
-                }
-            } catch (err) {
-                if (err instanceof SiteActionError) {
-                    properties.servicePlan = err.servicePlanSize;
-                }
-
-                if (err instanceof WizardFailedError) {
-                    properties.stepTitle = err.stepTitle;
-                    properties.stepIndex = err.stepIndex.toString();
-                }
-
-                if (err instanceof UserCancelledError) {
-                    properties.result = 'Canceled';
-                } else {
-                    properties.result = 'Failed';
-                    errorData = new ErrorData(err);
-                    output.appendLine(`Error: ${errorData.message}`);
-                    if (errorData.message.includes('\n')) {
-                        output.show();
-                        vscode.window.showErrorMessage('An error has occured. Check output window for more details.');
-                    } else {
-                        vscode.window.showErrorMessage(errorData.message);
-                    }
-
-                }
-            } finally {
-                if (errorData) {
-                    properties.error = errorData.errorType;
-                    properties.errorMessage = errorData.message;
-                }
-                const end = Date.now();
-                util.sendTelemetry(commandId, properties, { duration: (end - start) / 1000 });
+        } finally {
+            if (errorData) {
+                properties.error = errorData.errorType;
+                properties.errorMessage = errorData.message;
             }
-        }));
-    }
+            const end = Date.now();
+            util.sendTelemetry(callbackId, properties, { duration: (end - start) / 1000 });
+        }
+    };
+}
+
+function initAsyncCommand<T>(extensionContext: vscode.ExtensionContext, commandId: string, callback: (context?: T) => Promise<void>): void {
+    extensionContext.subscriptions.push(vscode.commands.registerCommand(commandId, async (...args: {}[]) => {
+        const start = Date.now();
+        const properties: { [key: string]: string; } = {};
+        const output = util.getOutputChannel();
+        properties.result = 'Succeeded';
+        let errorData: ErrorData | undefined;
+
+        try {
+            if (args.length === 0) {
+                await callback();
+            } else {
+                await callback(<T>args[0]);
+            }
+        } catch (err) {
+            if (err instanceof SiteActionError) {
+                properties.servicePlan = err.servicePlanSize;
+            }
+
+            if (err instanceof WizardFailedError) {
+                properties.stepTitle = err.stepTitle;
+                properties.stepIndex = err.stepIndex.toString();
+            }
+
+            if (err instanceof UserCancelledError) {
+                properties.result = 'Canceled';
+            } else {
+                properties.result = 'Failed';
+                errorData = new ErrorData(err);
+                output.appendLine(`Error: ${errorData.message}`);
+                if (errorData.message.includes('\n')) {
+                    output.show();
+                    vscode.window.showErrorMessage('An error has occured. Check output window for more details.');
+                } else {
+                    vscode.window.showErrorMessage(errorData.message);
+                }
+
+            }
+        } finally {
+            if (errorData) {
+                properties.error = errorData.errorType;
+                properties.errorMessage = errorData.message;
+            }
+            const end = Date.now();
+            util.sendTelemetry(commandId, properties, { duration: (end - start) / 1000 });
+        }
+    }));
+}
