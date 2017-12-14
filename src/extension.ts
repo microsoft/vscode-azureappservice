@@ -308,11 +308,19 @@ function initEvent<T>(context: vscode.ExtensionContext, eventId: string, event: 
 
 }
 
-function initCommand<T>(extensionContext: vscode.ExtensionContext, commandId: string, callback: (context?: T) => void): void {
-    initAsyncCommand(extensionContext, commandId, async (context?: T) => callback(context));
+// tslint:disable-next-line:no-any
+function initCommand(extensionContext: vscode.ExtensionContext, commandId: string, callback: (...args: any[]) => void): void {
+
+    initAsyncCommand(extensionContext, commandId, async (...args: any[]) => callback(...args));
 }
 
-function wrapAsyncCallback(callbackId, callback: (...args: any[]) => Promise<any>): (...args: any[]) => Promise<any> {
+// tslint:disable-next-line:no-any
+function initAsyncCommand(context: vscode.ExtensionContext, commandId: string, callback: (...args: any[]) => Promise<any>) {
+    context.subscriptions.push(vscode.commands.registerCommand(commandId, wrapAsyncCallback(commandId, callback)));
+}
+
+
+function wrapAsyncCallback(commandId, callback: (...args: any[]) => Promise<any>): (...args: any[]) => Promise<any> {
     return async (...args: any[]) => {
         const start = Date.now();
         let properties: { [key: string]: string; } = {};
@@ -321,47 +329,10 @@ function wrapAsyncCallback(callbackId, callback: (...args: any[]) => Promise<any
         const output = util.getOutputChannel();
 
         try {
-            await callback(...args);
-        } catch (err) {
-            if (err instanceof UserCancelledError) {
-                properties.result = 'Canceled';
-            }
-            else {
-                properties.result = 'Failed';
-                errorData = new ErrorData(err);
-                output.appendLine(errorData.message);
-                if (errorData.message.includes("\n")) {
-                    output.show();
-                    vscode.window.showErrorMessage('An error has occured. See output window for more details.');
-                }
-                else {
-                    vscode.window.showErrorMessage(errorData.message);
-                }
-            }
-        } finally {
-            if (errorData) {
-                properties.error = errorData.errorType;
-                properties.errorMessage = errorData.message;
-            }
-            const end = Date.now();
-            util.sendTelemetry(callbackId, properties, { duration: (end - start) / 1000 });
-        }
-    };
-}
-
-function initAsyncCommand<T>(extensionContext: vscode.ExtensionContext, commandId: string, callback: (context?: T) => Promise<void>): void {
-    extensionContext.subscriptions.push(vscode.commands.registerCommand(commandId, async (...args: {}[]) => {
-        const start = Date.now();
-        const properties: { [key: string]: string; } = {};
-        const output = util.getOutputChannel();
-        properties.result = 'Succeeded';
-        let errorData: ErrorData | undefined;
-
-        try {
             if (args.length === 0) {
                 await callback();
             } else {
-                await callback(<T>args[0]);
+                await callback(args[0]);
             }
         } catch (err) {
             if (err instanceof SiteActionError) {
@@ -395,5 +366,5 @@ function initAsyncCommand<T>(extensionContext: vscode.ExtensionContext, commandI
             const end = Date.now();
             util.sendTelemetry(commandId, properties, { duration: (end - start) / 1000 });
         }
-    }));
+    };
 }
