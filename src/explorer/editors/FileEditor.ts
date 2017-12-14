@@ -33,9 +33,9 @@ export class FileEditor extends BaseEditor<IAzureNode<FileTreeItem>> {
         return await kuduClient.getFile(node.treeItem.path);
     }
 
-    async getSize(node: IAzureNode<FileTreeItem>): Promise<number> {
+    async getSize(_node: IAzureNode<FileTreeItem>): Promise<number> {
         // this is not implemented for Azure App Services
-        return node ? 0 : 0;
+        return 0;
 
     }
 
