@@ -26,7 +26,7 @@ import { Reporter } from './telemetry/reporter';
 import * as util from "./util";
 import { nodeUtils } from './utils/nodeUtils';
 import { FileTreeItem } from './explorer/FileTreeItem';
-import { FileEditor } from './explorer/editors/fileEditor'
+import { FileEditor } from './explorer/editors/FileEditor'
 
 // tslint:disable-next-line:max-func-body-length
 // tslint:disable-next-line:export-name
