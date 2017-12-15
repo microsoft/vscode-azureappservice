@@ -1,8 +1,9 @@
 import { Site } from 'azure-arm-website/lib/models';
 import * as vscode from 'vscode';
-import { UserCancelledError } from 'vscode-azureextensionui';
+import { IAzureNode, IAzureParentNode, IAzureTreeItem, UserCancelledError } from 'vscode-azureextensionui';
+import { DeploymentSlotsTreeItem } from '../../explorer/DeploymentSlotsTreeItem';
+import { SiteTreeItem } from '../../explorer/SiteTreeItem';
 import * as util from '../../util';
-import { callWithTimeout, DEFAULT_TIMEOUT } from '../../utils/logpointsUtil';
 import { WizardStep } from '../../wizard';
 import { LogPointsSessionWizard } from '../LogPointsSessionWizard';
 
@@ -12,30 +13,31 @@ export class PromptSlotSelection extends WizardStep {
     }
 
     public async prompt(): Promise<void> {
-        let deploymentSlots: Site[];
+        let deploymentSlotsTreeItems: SiteTreeItem[];
 
         // Decide if this AppService uses deployment slots
         await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async p => {
             const message = 'Enumerating deployment slots for the App Service...';
             p.report({ message: message });
             this._wizard.writeline(message);
-            deploymentSlots = await this.getDeploymentSlots();
+            deploymentSlotsTreeItems = await this.getDeploymentSlotsTreeItems();
         });
 
-        this._wizard.writeline(`Got ${deploymentSlots.length} deployment slot(s)`);
+        this._wizard.writeline(`Got ${deploymentSlotsTreeItems.length} deployment slot(s)`);
 
         // if there is only one slot, just use that one and don't prompt for user selection.
-        if (deploymentSlots.length === 1) {
-            this._wizard.selectedDeploymentSlot = deploymentSlots[0];
+        if (deploymentSlotsTreeItems.length === 1) {
+            this._wizard.selectedDeploymentSlotTreeItem = deploymentSlotsTreeItems[0];
             this._wizard.writeline(`Automatically selected deployment solt ${this._wizard.selectedDeploymentSlot.name}.`);
             return;
         }
 
-        const deploymentQuickPickItems = deploymentSlots.map((deploymentSlot: Site) => {
-            return <util.IQuickPickItemWithData<Site>>{
+        const deploymentQuickPickItems = deploymentSlotsTreeItems.map((deploymentSlotTreeItem: SiteTreeItem) => {
+            const deploymentSlot = deploymentSlotTreeItem.site;
+            return <util.IQuickPickItemWithData<SiteTreeItem>>{
                 label: util.extractDeploymentSlotName(deploymentSlot) || deploymentSlot.name,
                 description: '',
-                data: deploymentSlot
+                data: deploymentSlotTreeItem
             };
         });
 
@@ -49,22 +51,37 @@ export class PromptSlotSelection extends WizardStep {
             }
             throw e;
         }
-
-        this._wizard.selectedDeploymentSlot = pickedItem.data;
+        this._wizard.selectedDeploymentSlotTreeItem = pickedItem.data;
         this._wizard.writeline(`The deployment slot you selected is: ${this._wizard.selectedDeploymentSlot.name}`);
     }
+
     /**
      * Returns all the deployment slots and the production slot.
      */
-    private async getDeploymentSlots(): Promise<Site[]> {
-        const client = this._wizard.websiteManagementClient;
-        const allDeploymentSlots = await callWithTimeout(
-            () => {
-                return client.webApps.listByResourceGroup(this.site.resourceGroup, { includeSlots: true });
-            },
-            DEFAULT_TIMEOUT);
-        return allDeploymentSlots.filter((slot) => {
-            return slot.repositorySiteName === this.site.name;
+    private async getDeploymentSlotsTreeItems(): Promise<SiteTreeItem[]> {
+        const appServiceTreeItem = <IAzureParentNode<SiteTreeItem>>this._wizard.uiTreeItem;
+        const result = await appServiceTreeItem.getCachedChildren();
+
+        let deploymentSlotsCategoryNode: IAzureParentNode<IAzureTreeItem>;
+        if (!result || result.length <= 0) {
+            throw new Error('Cannot find any tree node under the App Service node.');
+        }
+
+        result.forEach((treeNode: IAzureNode<IAzureTreeItem>) => {
+            if (treeNode.treeItem instanceof DeploymentSlotsTreeItem) {
+                deploymentSlotsCategoryNode = <IAzureParentNode<IAzureTreeItem>>treeNode;
+            }
         });
+
+        if (!deploymentSlotsCategoryNode) {
+            throw new Error('Cannot find the Deployment Slots tree node');
+        }
+
+        const deploymentSlotTreeNodes = await deploymentSlotsCategoryNode.getCachedChildren();
+        const deploymentSlotTreeItems = deploymentSlotTreeNodes.map((node: IAzureNode<SiteTreeItem>) => {
+            return node.treeItem;
+        });
+
+        return [this._wizard.uiTreeItem.treeItem].concat(deploymentSlotTreeItems);
     }
 }

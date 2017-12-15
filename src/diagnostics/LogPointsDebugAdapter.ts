@@ -84,6 +84,8 @@ export class LogPointsDebugAdapter extends LoggingDebugSession {
         this.sendResponse(response);
 
         this.getLoadedScripts();
+
+        this.sendSessionStartedEvent();
     }
 
     // tslint:disable-next-line:no-any
@@ -191,6 +193,10 @@ export class LogPointsDebugAdapter extends LoggingDebugSession {
             });
         }
 
+    }
+
+    private sendSessionStartedEvent(): void {
+        this.sendEvent(new Event('sessionStarted'));
     }
 
     private getPublishCredential(): User {

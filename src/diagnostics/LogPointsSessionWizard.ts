@@ -9,10 +9,11 @@ import WebSiteManagementClient = require('azure-arm-website');
 
 import { IAzureNode } from 'vscode-azureextensionui';
 import { SiteTreeItem } from '../explorer/SiteTreeItem';
+import { LogPointsManager } from './LogPointsManager';
 import { ActivateSite } from './wizardSteps/ActivateSite';
-import { CheckLogStreamAvailability } from './wizardSteps/CheckLogStreamAvailability';
 import { EligibilityCheck } from './wizardSteps/EligibilityCheck';
 import { GetUnoccupiedInstance } from './wizardSteps/GetUnoccupiedInstance';
+import { OpenStreamingLog } from './wizardSteps/OpenStreamingLog';
 import { PickProcessStep } from './wizardSteps/PickProcessStep';
 import { PromptSlotSelection } from './wizardSteps/PromptSlotSelection';
 import { SessionAttachStep } from './wizardSteps/SessionAttachStep';
@@ -24,7 +25,7 @@ const logPointsDebuggerClient = createDefaultClient();
 export class LogPointsSessionWizard extends WizardBase {
 
     public readonly hasSlot: boolean;
-    public selectedDeploymentSlot: Site;
+    public selectedDeploymentSlotTreeItem: SiteTreeItem;
     public selectedInstance: SiteInstance;
     public sessionId: string;
     public processId: string;
@@ -34,12 +35,18 @@ export class LogPointsSessionWizard extends WizardBase {
     private _cachedPublishCredential: User;
 
     constructor(
+        public logpointsManager: LogPointsManager,
+        public extensionContext: vscode.ExtensionContext,
         output: vscode.OutputChannel,
         public readonly uiTreeItem: IAzureNode<SiteTreeItem>,
         public readonly websiteManagementClient: WebSiteManagementClient
     ) {
         super(output);
         this.site = uiTreeItem.treeItem.site;
+    }
+
+    public get selectedDeploymentSlot(): Site {
+        return this.selectedDeploymentSlotTreeItem ? this.selectedDeploymentSlotTreeItem.site : null;
     }
 
     public get lastUsedPublishCredential(): User {
@@ -62,14 +69,14 @@ export class LogPointsSessionWizard extends WizardBase {
     }
 
     protected initSteps(): void {
-        this.steps.push(new CheckLogStreamAvailability(this));
         this.steps.push(new EligibilityCheck(this));
         if (util.isSiteDeploymentSlot(this.site)) {
-            this.selectedDeploymentSlot = this.site;
+            this.selectedDeploymentSlotTreeItem = this.uiTreeItem.treeItem;
         } else {
             this.steps.push(new PromptSlotSelection(this, this.site));
         }
 
+        this.steps.push(new OpenStreamingLog(this));
         this.steps.push(new ActivateSite(this));
         this.steps.push(new GetUnoccupiedInstance(this, logPointsDebuggerClient));
         this.steps.push(new PickProcessStep(this, logPointsDebuggerClient));

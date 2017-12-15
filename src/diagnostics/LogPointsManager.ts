@@ -1,6 +1,7 @@
 import * as WebSiteModels from 'azure-arm-website/lib/models';
 import * as util from 'util';
 import * as vscode from 'vscode';
+import { DebugSessionCustomEvent } from 'vscode';
 import * as appserviceUtil from '../util';
 import { RemoteScriptSchema } from './remoteScriptDocumentProvider';
 import { IDebugSessionMetaData } from './structs/IDebugSessionMetaData';
@@ -52,7 +53,7 @@ class DebugSessionManager {
         const uriString = documentUri.toString();
         let logpointsCollection = this._logpointsCollectionMapping[uriString];
 
-        // If we have not seen any logpoints fro this collection,
+        // If we have not seen any logpoints for this collection,
         // try to contact server and see if it knows about any existing logpoints.
         if (!logpointsCollection) {
             logpointsCollection = new LogpointsCollection(documentUri);
@@ -145,6 +146,7 @@ class DebugSessionManager {
 
 export class LogPointsManager extends vscode.Disposable {
     private _debugSessionManagerMapping: { [key: string]: DebugSessionManager };
+    private _siteStreamingLogOutputChannelMapping: { [siteName: string]: vscode.OutputChannel };
 
     constructor(private _outputChannel: vscode.OutputChannel) {
         super(() => {
@@ -152,6 +154,7 @@ export class LogPointsManager extends vscode.Disposable {
         });
 
         this._debugSessionManagerMapping = {};
+        this._siteStreamingLogOutputChannelMapping = {};
         this.initialize();
     }
 
@@ -166,10 +169,18 @@ export class LogPointsManager extends vscode.Disposable {
         vscode.debug.onDidTerminateDebugSession((debugSession) => {
             this.onDebugSessionClose(debugSession);
             delete this._debugSessionManagerMapping[debugSession.id];
+            const siteName = debugSession.name;
+            if (this._siteStreamingLogOutputChannelMapping[siteName]) {
+                delete this._siteStreamingLogOutputChannelMapping[siteName];
+            }
         });
 
         vscode.window.onDidChangeActiveTextEditor((event: vscode.TextEditor) => {
             this.onActiveEditorChange(event);
+        });
+
+        vscode.debug.onDidReceiveDebugSessionCustomEvent((event: DebugSessionCustomEvent) => {
+            this.onDebugSessionCustomEvent(event);
         });
     }
 
@@ -227,6 +238,11 @@ export class LogPointsManager extends vscode.Disposable {
         this._outputChannel.appendLine("The logpoints session has terminated because the App Service is stopped or restarted.");
     }
 
+    public onStreamingLogOutputChannelCreated(site: WebSiteModels.Site, outputChannel: vscode.OutputChannel): void {
+        const siteName = appserviceUtil.extractSiteScmSubDomainName(site);
+        this._siteStreamingLogOutputChannelMapping[siteName] = outputChannel;
+    }
+
     private onActiveEditorChange(activeEditor: vscode.TextEditor): void {
         if (!activeEditor) {
             return;
@@ -266,10 +282,25 @@ export class LogPointsManager extends vscode.Disposable {
         debugSessionManager.removeLogpointGlyphsFromDocument(documentUri);
     }
 
+    private onDebugSessionCustomEvent(e: DebugSessionCustomEvent): void {
+        if (e.event === 'sessionStarted') {
+            const siteName = e.session.name;
+
+            const streamingLogOutputChannel = this._siteStreamingLogOutputChannelMapping[siteName];
+
+            if (streamingLogOutputChannel) {
+                streamingLogOutputChannel.show();
+            } else {
+                this._outputChannel.show();
+                this._outputChannel.appendLine('Cannot find streaming log output channel.');
+            }
+        }
+    }
+
     private async findDebugSessionManagerBySite(site: WebSiteModels.Site): Promise<DebugSessionManager> {
         let matchedDebugSessionManager: DebugSessionManager = null;
 
-        const siteName = appserviceUtil.extractSiteName(site) + (appserviceUtil.isSiteDeploymentSlot(site) ? `-${appserviceUtil.extractDeploymentSlotName(site)}` : '');
+        const siteName = appserviceUtil.extractSiteScmSubDomainName(site);
 
         const debugSessionManagers = Object.keys(this._debugSessionManagerMapping).map(
             (key) => { return this._debugSessionManagerMapping[key]; });

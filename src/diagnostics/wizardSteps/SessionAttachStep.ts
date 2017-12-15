@@ -21,7 +21,7 @@ export class SessionAttachStep extends WizardStep {
         let result: CommandRunResult<IAttachProcessResponse>;
         const requestData: IAttachProcessRequest = { sessionId: this._wizard.sessionId, processId: this._wizard.processId };
 
-        const siteName = util.extractSiteName(selectedSlot) + (util.isSiteDeploymentSlot(selectedSlot) ? `-${util.extractDeploymentSlotName(selectedSlot)}` : '');
+        const siteName = util.extractSiteScmSubDomainName(selectedSlot);
 
         await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async p => {
             const message = `Attach debugging to session ${this._wizard.sessionId}...`;
@@ -38,8 +38,7 @@ export class SessionAttachStep extends WizardStep {
             this._wizard.debuggerId = result.json.data.debugeeId;
             this._wizard.writeline(`Attached to process ${this._wizard.processId}, got debugId ${this._wizard.debuggerId}`);
         } else {
-            this._wizard.writeline(`Attached to process ${this._wizard.processId} failed, got response ${result.output}`);
-            throw new Error('Attaching process failed.');
+            throw new Error(`Attached to process ${this._wizard.processId} failed, got response ${result.json.error.message}`);
         }
     }
 }
