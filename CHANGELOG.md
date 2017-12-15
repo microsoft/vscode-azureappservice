@@ -7,13 +7,21 @@ All notable changes to the "azure-appservice" extension will be documented in th
 - Deploy from Explorer
 - Auto-detects deployment method
 - Select configuration source when adding deployment slots
+- View and edit a web app's files (feature flag required)
+- Browse for any folder when deploying
+
 ### Removed
 - Deployment from web app context menu
+- Display a web app's resource group (display state instead)
+
+### Fixed
+- [Bugs fixed](https://github.com/Microsoft/vscode-azureappservice/issues?q=is%3Aissue+milestone%3A%220.5.0%22+label%3Abug+is%3Aclosed)
 
 ## 0.4.0 - 2017-11-10
 ### Added
 - Create Deployment Slot
 - Icons now match the Azure portal
+
 ### Fixed
 - [Bugs fixed](https://github.com/Microsoft/vscode-azureappservice/issues?q=is%3Aissue+milestone%3A%22Version+0.4.0%22+label%3Abug+is%3Aclosed)
 
@@ -21,6 +29,7 @@ All notable changes to the "azure-appservice" extension will be documented in th
 ### Fixed
 - Show warning message that zip deploy is a destructive action
 - Leverage [new app service zipdeploy](https://github.com/projectkudu/kudu/wiki/Deploying-from-a-zip-file)
+
 ### Removed
 - Zip Deploy no longer runs 'npm install'. It expects a ready-to-run app
 
@@ -32,8 +41,10 @@ All notable changes to the "azure-appservice" extension will be documented in th
 - Swap deployment slots with production site
 - "Open In Portal" context menu command for Application Settings
 - Generate bash script based on existing web app for automated resource provisioning
+
 ### Removed
 - "Create New Web App" no longer show bash script, use "Generate Azure CLI Script" context menu command instead.
+
 ### Fixed
 - [Bugs fixed](https://github.com/Microsoft/vscode-azureappservice/issues?q=is%3Aissue+milestone%3A%22Version+0.3.0%22+is%3Aclosed+label%3Abug)
 
@@ -43,8 +54,10 @@ All notable changes to the "azure-appservice" extension will be documented in th
 - View web app log stream
 - View and edit web app settings
 - Delete Deployment Slots and Web Apps
+
 ### Removed
 - The Explorer view no longer shows Function apps. Function app will have its own Visual Studio Code extension.
+
 ### Fixed
 - [Bugs fixed](https://github.com/Microsoft/vscode-azureappservice/issues?q=is%3Aissue+milestone%3A%22Version+0.2.0%22+label%3Abug+is%3Aclosed)
 

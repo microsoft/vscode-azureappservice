@@ -19,6 +19,12 @@ The Azure App Services extension for VS Code lets you quickly browse, create, ma
 
 ![Web App Log Stream](resources/WebApp_LogStream.png)
 
+## Preview Features
+
+* View and edit a web app's files
+  * To enable this feature, modify your `appService.showRemoteFiles` user setting to true.
+  * CAUTION: Manually editing your Web App's files could cause unexpected behavior.
+
 ## Known Issues
 
 * Local Git deployment may fail with large commits
