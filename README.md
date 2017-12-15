@@ -2,27 +2,45 @@
 The Azure App Services extension for VS Code lets you quickly browse, create, manage, and deploy Azure App Service websites.
 
 ## Features
-
 * Browse sites across all of your Azure subscriptions
 * Browse to the Azure Portal for advanced tasks, such as scaling
 * Create new web apps/deployment slots (Linux with Node.js only)
 * Deploy to your web apps/deployment slots
 
 ![Deploy to Web App](resources/WebApp_Deploy.png)
+
 * Start, stop, and restart the web app/deployment slot
 * Swap deployment slots
 * View and edit web app settings
-
-![Add App Settings](resources/ApplicationSettings_Add.png)
-![Edit App Settings](resources/ApplicationSettings_Edit.png)
 * View web app log stream
 
 ![Web App Log Stream](resources/WebApp_LogStream.png)
 
+* How to configure zip deployment:
+  * If you set the deployment source of your web app to “None”, the deploy command will Zip the contents of a selected folder and upload the Zip file to Azure. You might want to use the following settings to customize which files to include/exclude:
+
+  * 'appService.zipGlobPattern'
+    * Uses a glob pattern to define which files to be included in the deployment. The default value is “**/*”.
+
+  * 'appService.zipIgnorePattern'
+    * Uses a glob pattern to define which files to be excluded from the deployment. The default value is “” which doesn’t exclude any files/folders.
+
+  * For example, you might want to exclude the “node_modules” folder from the deployment to speed up the Zip file creation and uploading. In this case, you will need the following setting:
+    * “appService.zipIgnorePattern”: “node_modules{,/**}”
+  * And in order to have the web app run proper deployment command to restore the npm packages, you need to have the following Application Setting on your site:
+    * SCM_DO_BUILD_DURING_DEPLOYMENT=true
+
+    ![Web App Log Stream](resources/Scm_Do_Build_During_Deployment.png)
+
 ## Preview Features
 
 * View and edit a web app's files
-  * To enable this feature, modify your `appService.showRemoteFiles` user setting to true.
+  * To enable this feature, click File > Preferences > Settings. modify your `appService.showRemoteFiles` to be true.
+
+  ![Enable Remote File Editing](resources/Remote_File_Editing_Setting.png)
+
+  * To view a file, click on it in the explorer.
+  * To edit, make edits in the editor and save it.  When prompted to upload the file, click "Upload".
   * CAUTION: Manually editing your Web App's files could cause unexpected behavior.
 
 ## Known Issues
