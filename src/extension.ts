@@ -115,8 +115,7 @@ export function activate(context: vscode.ExtensionContext): void {
         const siteType = util.isSiteDeploymentSlot(node.treeItem.site) ? 'Deployment Slot' : 'Web App';
         outputChannel.show();
         outputChannel.appendLine(`Restarting ${siteType} "${node.treeItem.site.name}"...`);
-        await node.treeItem.siteWrapper.stop(client);
-        await node.treeItem.siteWrapper.start(client);
+        await node.treeItem.restart(client);
         node.refresh();
         outputChannel.appendLine(`${siteType} "${node.treeItem.site.name}" has been restarted.`);
 
