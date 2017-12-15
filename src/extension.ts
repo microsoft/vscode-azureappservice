@@ -18,6 +18,8 @@ import { ErrorData } from './ErrorData';
 import { SiteActionError, WizardFailedError } from './errors';
 import { DeploymentSlotsTreeItem } from './explorer/DeploymentSlotsTreeItem';
 import { DeploymentSlotTreeItem } from './explorer/DeploymentSlotTreeItem';
+import { FileEditor } from './explorer/editors/FileEditor';
+import { FileTreeItem } from './explorer/FileTreeItem';
 import { LoadedScriptsProvider, openScript } from './explorer/loadedScriptsExplorer';
 import { getAppServicePlan, SiteTreeItem } from './explorer/SiteTreeItem';
 import { WebAppProvider } from './explorer/WebAppProvider';
@@ -25,11 +27,9 @@ import { WebAppTreeItem } from './explorer/WebAppTreeItem';
 import { Reporter } from './telemetry/reporter';
 import * as util from "./util";
 import { nodeUtils } from './utils/nodeUtils';
-import { FileTreeItem } from './explorer/FileTreeItem';
-import { FileEditor } from './explorer/editors/FileEditor'
 
-// tslint:disable-next-line:max-func-body-length
 // tslint:disable-next-line:export-name
+// tslint:disable-next-line:max-func-body-length
 export function activate(context: vscode.ExtensionContext): void {
     context.subscriptions.push(new Reporter(context));
 
@@ -140,7 +140,7 @@ export function activate(context: vscode.ExtensionContext): void {
         const yesButton: vscode.MessageItem = { title: 'Yes' };
         const noButton: vscode.MessageItem = { title: 'No', isCloseAffordance: true };
         if (await vscode.window.showInformationMessage('Deploy to web app?', yesButton, noButton) === yesButton) {
-            const fsPath = (await util.showWorkspaceFoldersQuickPick("Select the folder to deploy")).uri.fsPath;
+            const fsPath = await util.showWorkspaceFoldersQuickPick("Select the folder to deploy");
             const client = nodeUtils.getWebSiteClient(createdApp);
             await createdApp.treeItem.siteWrapper.deploy(fsPath, client, outputChannel, 'appService', false);
         }
@@ -151,7 +151,7 @@ export function activate(context: vscode.ExtensionContext): void {
         if (target instanceof vscode.Uri) {
             fsPath = target.fsPath;
         } else {
-            fsPath = (await util.showWorkspaceFoldersQuickPick("Select the folder to deploy")).uri.fsPath;
+            fsPath = await util.showWorkspaceFoldersQuickPick("Select the folder to deploy");
             node = target;
         }
 
@@ -204,7 +204,7 @@ export function activate(context: vscode.ExtensionContext): void {
         const yesButton: vscode.MessageItem = { title: 'Yes' };
         const noButton: vscode.MessageItem = { title: 'No', isCloseAffordance: true };
         if (await vscode.window.showInformationMessage('Deploy to deployment slot?', yesButton, noButton) === yesButton) {
-            const fsPath = (await util.showWorkspaceFoldersQuickPick("Select the folder to deploy")).uri.fsPath;
+            const fsPath = await util.showWorkspaceFoldersQuickPick("Select the folder to deploy");
             const client = nodeUtils.getWebSiteClient(createdSlot);
             await createdSlot.treeItem.siteWrapper.deploy(fsPath, client, outputChannel, 'appService', false);
         }
@@ -293,34 +293,32 @@ export function activate(context: vscode.ExtensionContext): void {
     });
 
     initEvent(context, 'appService.fileEditor.onDidSaveTextDocument', vscode.workspace.onDidSaveTextDocument, (doc: vscode.TextDocument) => fileEditor.onDidSaveTextDocument(context.globalState, doc));
-
-
 }
-
 
 // tslint:disable-next-line:no-empty
 export function deactivate(): void {
 }
 
+// tslint:disable:no-any
 function initEvent<T>(context: vscode.ExtensionContext, eventId: string, event: vscode.Event<T>, callback: (...args: any[]) => any) {
-
     context.subscriptions.push(event(wrapAsyncCallback(eventId, (...args: any[]) => Promise.resolve(callback(...args)))));
-
 }
+// tslint:enable:no-any
 
-// tslint:disable-next-line:no-any
+// tslint:disable:no-any
 function initCommand(extensionContext: vscode.ExtensionContext, commandId: string, callback: (...args: any[]) => void): void {
-
     initAsyncCommand(extensionContext, commandId, async (...args: any[]) => callback(...args));
 }
+// tslint:enable:no-any
 
 // tslint:disable-next-line:no-any
 function initAsyncCommand(context: vscode.ExtensionContext, commandId: string, callback: (...args: any[]) => Promise<any>) {
     context.subscriptions.push(vscode.commands.registerCommand(commandId, wrapAsyncCallback(commandId, callback)));
 }
 
-
+// tslint:disable-next-line:no-any
 function wrapAsyncCallback(commandId, callback: (...args: any[]) => Promise<any>): (...args: any[]) => Promise<any> {
+    // tslint:disable-next-line:no-any
     return async (...args: any[]) => {
         const start = Date.now();
         const properties: { [key: string]: string; } = {};
@@ -352,7 +350,6 @@ function wrapAsyncCallback(commandId, callback: (...args: any[]) => Promise<any>
                 } else {
                     vscode.window.showErrorMessage(errorData.message);
                 }
-
             }
         } finally {
             if (errorData) {
