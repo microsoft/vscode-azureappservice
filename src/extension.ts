@@ -329,39 +329,38 @@ function wrapAsyncCallback(commandId, callback: (...args: any[]) => Promise<any>
         const output = util.getOutputChannel();
 
         try {
-            await callback(...args)
-        }
+            await callback(...args);
         } catch (err) {
-        if (err instanceof SiteActionError) {
-            properties.servicePlan = err.servicePlanSize;
-        }
-
-        if (err instanceof WizardFailedError) {
-            properties.stepTitle = err.stepTitle;
-            properties.stepIndex = err.stepIndex.toString();
-        }
-
-        if (err instanceof UserCancelledError) {
-            properties.result = 'Canceled';
-        } else {
-            properties.result = 'Failed';
-            errorData = new ErrorData(err);
-            output.appendLine(`Error: ${errorData.message}`);
-            if (errorData.message.includes('\n')) {
-                output.show();
-                vscode.window.showErrorMessage('An error has occured. Check output window for more details.');
-            } else {
-                vscode.window.showErrorMessage(errorData.message);
+            if (err instanceof SiteActionError) {
+                properties.servicePlan = err.servicePlanSize;
             }
 
+            if (err instanceof WizardFailedError) {
+                properties.stepTitle = err.stepTitle;
+                properties.stepIndex = err.stepIndex.toString();
+            }
+
+            if (err instanceof UserCancelledError) {
+                properties.result = 'Canceled';
+            } else {
+                properties.result = 'Failed';
+                errorData = new ErrorData(err);
+                output.appendLine(`Error: ${errorData.message}`);
+                if (errorData.message.includes('\n')) {
+                    output.show();
+                    vscode.window.showErrorMessage('An error has occured. Check output window for more details.');
+                } else {
+                    vscode.window.showErrorMessage(errorData.message);
+                }
+
+            }
+        } finally {
+            if (errorData) {
+                properties.error = errorData.errorType;
+                properties.errorMessage = errorData.message;
+            }
+            const end = Date.now();
+            util.sendTelemetry(commandId, properties, { duration: (end - start) / 1000 });
         }
-    } finally {
-        if (errorData) {
-            properties.error = errorData.errorType;
-            properties.errorMessage = errorData.message;
-        }
-        const end = Date.now();
-        util.sendTelemetry(commandId, properties, { duration: (end - start) / 1000 });
-    }
-};
+    };
 }
