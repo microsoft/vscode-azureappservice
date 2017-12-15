@@ -30,8 +30,8 @@ export class WebAppTreeItem extends SiteTreeItem {
     constructor(site: Site, appServicePlan: AppServicePlan) {
         super(site);
         this.deploymentSlotsNode = appServicePlan.sku.tier === 'Basic' ? new DeploymentSlotsNATreeItem() : new DeploymentSlotsTreeItem(site);
-        // https://github.com/Microsoft/vscode-azureappservice/issues/45
         this.folderNode = new FolderTreeItem(site, 'Files', "/site/wwwroot", true);
+        // https://github.com/Microsoft/vscode-azureappservice/issues/45
         // nodes.push(new FilesNode('Log Files', '/LogFiles', this.site, this.subscription));
         this.webJobsNode = new WebJobsTreeItem(site);
         this.appSettingsNode = new AppSettingsTreeItem(this.siteWrapper);

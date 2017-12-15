@@ -88,7 +88,7 @@ export function activate(context: vscode.ExtensionContext): void {
         const siteType = util.isSiteDeploymentSlot(node.treeItem.site) ? 'Deployment Slot' : 'Web App';
         outputChannel.show();
         outputChannel.appendLine(`Starting ${siteType} "${node.treeItem.site.name}"...`);
-        await node.treeItem.siteWrapper.start(nodeUtils.getWebSiteClient(node));
+        await node.treeItem.start(nodeUtils.getWebSiteClient(node));
         node.refresh();
         outputChannel.appendLine(`${siteType} "${node.treeItem.site.name}" has been started.`);
     });
@@ -100,7 +100,7 @@ export function activate(context: vscode.ExtensionContext): void {
         const siteType = util.isSiteDeploymentSlot(node.treeItem.site) ? 'Deployment Slot' : 'Web App';
         outputChannel.show();
         outputChannel.appendLine(`Stopping ${siteType} "${node.treeItem.site.name}"...`);
-        await node.treeItem.siteWrapper.stop(nodeUtils.getWebSiteClient(node));
+        await node.treeItem.stop(nodeUtils.getWebSiteClient(node));
         node.refresh();
         outputChannel.appendLine(`${siteType} "${node.treeItem.site.name}" has been stopped. App Service plan charges still apply.`);
 
@@ -323,48 +323,45 @@ function initAsyncCommand(context: vscode.ExtensionContext, commandId: string, c
 function wrapAsyncCallback(commandId, callback: (...args: any[]) => Promise<any>): (...args: any[]) => Promise<any> {
     return async (...args: any[]) => {
         const start = Date.now();
-        let properties: { [key: string]: string; } = {};
+        const properties: { [key: string]: string; } = {};
         properties.result = 'Succeeded';
-        let errorData: ErrorData | undefined = null;
+        let errorData: ErrorData | undefined;
         const output = util.getOutputChannel();
 
         try {
-            if (args.length === 0) {
-                await callback();
-            } else {
-                await callback(args[0]);
-            }
-        } catch (err) {
-            if (err instanceof SiteActionError) {
-                properties.servicePlan = err.servicePlanSize;
-            }
-
-            if (err instanceof WizardFailedError) {
-                properties.stepTitle = err.stepTitle;
-                properties.stepIndex = err.stepIndex.toString();
-            }
-
-            if (err instanceof UserCancelledError) {
-                properties.result = 'Canceled';
-            } else {
-                properties.result = 'Failed';
-                errorData = new ErrorData(err);
-                output.appendLine(`Error: ${errorData.message}`);
-                if (errorData.message.includes('\n')) {
-                    output.show();
-                    vscode.window.showErrorMessage('An error has occured. Check output window for more details.');
-                } else {
-                    vscode.window.showErrorMessage(errorData.message);
-                }
-
-            }
-        } finally {
-            if (errorData) {
-                properties.error = errorData.errorType;
-                properties.errorMessage = errorData.message;
-            }
-            const end = Date.now();
-            util.sendTelemetry(commandId, properties, { duration: (end - start) / 1000 });
+            await callback(...args)
         }
-    };
+        } catch (err) {
+        if (err instanceof SiteActionError) {
+            properties.servicePlan = err.servicePlanSize;
+        }
+
+        if (err instanceof WizardFailedError) {
+            properties.stepTitle = err.stepTitle;
+            properties.stepIndex = err.stepIndex.toString();
+        }
+
+        if (err instanceof UserCancelledError) {
+            properties.result = 'Canceled';
+        } else {
+            properties.result = 'Failed';
+            errorData = new ErrorData(err);
+            output.appendLine(`Error: ${errorData.message}`);
+            if (errorData.message.includes('\n')) {
+                output.show();
+                vscode.window.showErrorMessage('An error has occured. Check output window for more details.');
+            } else {
+                vscode.window.showErrorMessage(errorData.message);
+            }
+
+        }
+    } finally {
+        if (errorData) {
+            properties.error = errorData.errorType;
+            properties.errorMessage = errorData.message;
+        }
+        const end = Date.now();
+        util.sendTelemetry(commandId, properties, { duration: (end - start) / 1000 });
+    }
+};
 }
