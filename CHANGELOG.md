@@ -3,12 +3,17 @@ All notable changes to the "azure-appservice" extension will be documented in th
 
 ## 0.5.0 - 2017-12-15
 ### Added
-- Change Deployment Source for apps and slots
-- Deploy from Explorer
-- Auto-detects deployment method
-- Select configuration source when adding deployment slots
-- View and edit a web app's files (feature flag required)
+- Configure web app's deployment source from the explorer
+- Deploy from Explorer with a button
+- Deploy projects immediately after web app creation
 - Browse for any folder when deploying
+- Zip deployment configuration
+- Create deployment slots from configuration sources
+- Show current running state of web apps
+- Improve resource deployment scripts
+- Leverage npm package "vscode-azureextensionui"
+- View and edit a web app's files (feature flag required)
+- Run commands from the Command Palette
 
 ### Removed
 - Deployment from web app context menu
