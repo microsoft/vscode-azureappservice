@@ -20,6 +20,22 @@ The Azure App Services extension for VS Code lets you quickly browse, create, ma
 
 ![Web App Log Stream](resources/WebApp_LogStream.png)
 
+* How to configure zip deployment:
+  * If you set the deployment source of your web app to “None”, the deploy command will Zip the contents of a selected folder and upload the Zip file to Azure. You might want to use the following settings to customize which files to include/exclude:
+
+  * 'appService.zipGlobPattern'
+    * Uses a glob pattern to define which files to be included in the deployment. The default value is “**/*”.
+
+  * 'appService.zipIgnorePattern'
+    * Uses a glob pattern to define which files to be excluded from the deployment. The default value is “” which doesn’t exclude any files/folders.
+
+  * For example, you might want to exclude the “node_modules” folder from the deployment to speed up the Zip file creation and uploading. In this case, you will need the following setting:
+    * “appService.zipIgnorePattern”: “node_modules{,/**}”
+  * And in order to have the web app run proper deployment command to restore the npm packages, you need to have the following Application Setting on your site:
+    * SCM_DO_BUILD_DURING_DEPLOYMENT=true
+
+    ![Web App Log Stream](resources/Scm_Do_Build_During_Deployment.png)
+
 ## Preview Features
 
 * View and edit a web app's files
