@@ -12,10 +12,6 @@ The Azure App Services extension for VS Code lets you quickly browse, create, ma
 * Start, stop, and restart the web app/deployment slot
 * Swap deployment slots
 * View and edit web app settings
-
-![Add App Settings](resources/ApplicationSettings_Add.png)
-![Edit App Settings](resources/ApplicationSettings_Edit.png)
-
 * View web app log stream
 
 ![Web App Log Stream](resources/WebApp_LogStream.png)
