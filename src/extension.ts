@@ -293,10 +293,7 @@ export function activate(context: vscode.ExtensionContext): void {
     });
 
     initEvent(context, 'appService.fileEditor.onDidSaveTextDocument', vscode.workspace.onDidSaveTextDocument, (doc: vscode.TextDocument) => fileEditor.onDidSaveTextDocument(context.globalState, doc));
-
-
 }
-
 
 // tslint:disable-next-line:no-empty
 export function deactivate(): void {
@@ -319,9 +316,10 @@ function initAsyncCommand(context: vscode.ExtensionContext, commandId: string, c
     context.subscriptions.push(vscode.commands.registerCommand(commandId, wrapAsyncCallback(commandId, callback)));
 }
 
-
-function wrapAsyncCallback(commandId, callback: (...args: any[]) => Promise<any>): (...args: {}[]) => Promise<{}> {
-    return async (...args: {}[]) => {
+// tslint:disable-next-line:no-any
+function wrapAsyncCallback(commandId, callback: (...args: any[]) => Promise<any>): (...args: any[]) => Promise<any> {
+    // tslint:disable-next-line:no-any
+    return async (...args: any[]) => {
         const start = Date.now();
         const properties: { [key: string]: string; } = {};
         properties.result = 'Succeeded';
@@ -352,7 +350,6 @@ function wrapAsyncCallback(commandId, callback: (...args: any[]) => Promise<any>
                 } else {
                     vscode.window.showErrorMessage(errorData.message);
                 }
-
             }
         } finally {
             if (errorData) {
