@@ -79,7 +79,7 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
         await this.siteWrapper.enableHttpLogs(client);
     }
 
-    public async connectToLogStream(client: WebSiteManagementClient, extensionContext: ExtensionContext): Promise<void> {
+    public async connectToLogStream(client: WebSiteManagementClient, extensionContext: ExtensionContext): Promise<OutputChannel> {
         const siteName = this.siteWrapper.appName;
         const user = await util.getWebAppPublishCredential(client, this.site);
         const kuduClient = new KuduClient(siteName, user.publishingUserName, user.publishingPassword);
@@ -102,6 +102,8 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
         }).on('complete', () => {
             this._logStreamOutputChannel.appendLine('Disconnected from log-streaming service.');
         });
+
+        return this._logStreamOutputChannel;
     }
 
     public stopLogStream(): void {
@@ -121,7 +123,7 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
     }
 
     private createLabel(state: string): string {
-        return `${this.siteWrapper.slotName ? this.siteWrapper.slotName : this.siteWrapper.name} ${state && state.toLowerCase() !== 'running' ? '(' + state + ')' : ''}`;
+        return `${this.siteWrapper.slotName ? this.siteWrapper.slotName : this.siteWrapper.name} ${state && state.toLowerCase() !== 'running' ? `(${state})` : ''}`;
     }
 }
 
