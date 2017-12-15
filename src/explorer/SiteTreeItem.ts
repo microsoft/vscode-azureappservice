@@ -59,9 +59,8 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
     }
 
     public async restart(client: WebSiteManagementClient): Promise<void> {
-        await this.siteWrapper.start(client);
-        await this.siteWrapper.stop(client);
-        this._label = this.createLabel(await this.siteWrapper.getState(client));
+        await this.stop(client);
+        await this.start(client);
     }
 
     public browse(): void {
