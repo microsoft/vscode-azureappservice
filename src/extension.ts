@@ -139,7 +139,7 @@ export function activate(context: vscode.ExtensionContext): void {
         // prompt user to deploy to newly created web app
         const yesButton: vscode.MessageItem = { title: 'Yes' };
         const noButton: vscode.MessageItem = { title: 'No', isCloseAffordance: true };
-        if (await vscode.window.showInformationMessage('Deploy to web app?', yesButton, noButton)) {
+        if (await vscode.window.showInformationMessage('Deploy to web app?', yesButton, noButton) === yesButton) {
             const fsPath = (await util.showWorkspaceFoldersQuickPick("Select the folder to deploy")).uri.fsPath;
             const client = nodeUtils.getWebSiteClient(createdApp);
             await createdApp.treeItem.siteWrapper.deploy(fsPath, client, outputChannel, 'appService', false);
@@ -203,7 +203,7 @@ export function activate(context: vscode.ExtensionContext): void {
         // prompt user to deploy to newly created web app
         const yesButton: vscode.MessageItem = { title: 'Yes' };
         const noButton: vscode.MessageItem = { title: 'No', isCloseAffordance: true };
-        if (await vscode.window.showInformationMessage('Deploy to deployment slot?', yesButton, noButton)) {
+        if (await vscode.window.showInformationMessage('Deploy to deployment slot?', yesButton, noButton) === yesButton) {
             const fsPath = (await util.showWorkspaceFoldersQuickPick("Select the folder to deploy")).uri.fsPath;
             const client = nodeUtils.getWebSiteClient(createdSlot);
             await createdSlot.treeItem.siteWrapper.deploy(fsPath, client, outputChannel, 'appService', false);
