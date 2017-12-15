@@ -72,7 +72,8 @@ export function parseAzureResourceId(resourceId: string): { [key: string]: strin
     return result;
 }
 
-export async function showWorkspaceFoldersQuickPick(placeHolderString: string): Promise<vscode.WorkspaceFolder> {
+export async function showWorkspaceFoldersQuickPick(placeHolderString: string): Promise<string> {
+    const browse: IQuickPickItemWithData<vscode.WorkspaceFolder> = { label: '$(file-directory) Browse...', description: '', data: undefined };
     const folderQuickPickItems = vscode.workspace.workspaceFolders ?
         vscode.workspace.workspaceFolders.map((value) => {
             {
@@ -84,17 +85,31 @@ export async function showWorkspaceFoldersQuickPick(placeHolderString: string): 
             }
         }) :
         [];
-    // VS Code will handle [] by alerting user there are no workspaces opened
+    folderQuickPickItems.splice(0, 0, browse);
 
     const folderQuickPickOption = { placeHolder: placeHolderString };
-    const pickedItem = folderQuickPickItems.length === 1 ?
-        folderQuickPickItems[0] : await vscode.window.showQuickPick(folderQuickPickItems, folderQuickPickOption);
+    const pickedItem = await vscode.window.showQuickPick(folderQuickPickItems, folderQuickPickOption);
 
     if (!pickedItem) {
         throw new UserCancelledError();
     }
 
-    return pickedItem.data;
+    if (pickedItem === browse) {
+        const browseResult = await vscode.window.showOpenDialog({
+            canSelectFiles: false,
+            canSelectFolders: true,
+            canSelectMany: false,
+            defaultUri: vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri : undefined
+        });
+
+        if (!browseResult) {
+            throw new UserCancelledError();
+        }
+
+        return browseResult[0].fsPath;
+    }
+
+    return pickedItem.data.uri.fsPath;
 }
 
 export interface IQuickPickItemWithData<T> extends vscode.QuickPickItem {

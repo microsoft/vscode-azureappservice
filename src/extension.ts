@@ -26,8 +26,8 @@ import { Reporter } from './telemetry/reporter';
 import * as util from "./util";
 import { nodeUtils } from './utils/nodeUtils';
 
-// tslint:disable-next-line:max-func-body-length
 // tslint:disable-next-line:export-name
+// tslint:disable-next-line:max-func-body-length
 export function activate(context: vscode.ExtensionContext): void {
     context.subscriptions.push(new Reporter(context));
 
@@ -135,7 +135,7 @@ export function activate(context: vscode.ExtensionContext): void {
         const yesButton: vscode.MessageItem = { title: 'Yes' };
         const noButton: vscode.MessageItem = { title: 'No', isCloseAffordance: true };
         if (await vscode.window.showInformationMessage('Deploy to web app?', yesButton, noButton)) {
-            const fsPath = (await util.showWorkspaceFoldersQuickPick("Select the folder to deploy")).uri.fsPath;
+            const fsPath = await util.showWorkspaceFoldersQuickPick("Select the folder to deploy");
             const client = nodeUtils.getWebSiteClient(createdApp);
             await createdApp.treeItem.siteWrapper.deploy(fsPath, client, outputChannel, 'appService', false);
         }
@@ -146,7 +146,7 @@ export function activate(context: vscode.ExtensionContext): void {
         if (target instanceof vscode.Uri) {
             fsPath = target.fsPath;
         } else {
-            fsPath = (await util.showWorkspaceFoldersQuickPick("Select the folder to deploy")).uri.fsPath;
+            fsPath = await util.showWorkspaceFoldersQuickPick("Select the folder to deploy");
             node = target;
         }
 
@@ -199,7 +199,7 @@ export function activate(context: vscode.ExtensionContext): void {
         const yesButton: vscode.MessageItem = { title: 'Yes' };
         const noButton: vscode.MessageItem = { title: 'No', isCloseAffordance: true };
         if (await vscode.window.showInformationMessage('Deploy to deployment slot?', yesButton, noButton)) {
-            const fsPath = (await util.showWorkspaceFoldersQuickPick("Select the folder to deploy")).uri.fsPath;
+            const fsPath = await util.showWorkspaceFoldersQuickPick("Select the folder to deploy");
             const client = nodeUtils.getWebSiteClient(createdSlot);
             await createdSlot.treeItem.siteWrapper.deploy(fsPath, client, outputChannel, 'appService', false);
         }
