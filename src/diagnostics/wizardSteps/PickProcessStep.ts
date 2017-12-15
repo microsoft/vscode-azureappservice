@@ -24,7 +24,7 @@ export class PickProcessStep extends WizardStep {
             const message = `Enumerate node processes from instance ${instance.name}...`;
             p.report({ message: message });
             this._wizard.writeline(message);
-            const siteName = util.extractSiteName(selectedSlot) + (util.isSiteDeploymentSlot(selectedSlot) ? `-util.extractDeploymentSlotName(selectedSlot)` : '');
+            const siteName = util.extractSiteScmSubDomainName(selectedSlot);
             result = await callWithTimeout(
                 () => {
                     return this._logPointsDebuggerClient.enumerateProcesses(siteName, instance.name, publishCredential);

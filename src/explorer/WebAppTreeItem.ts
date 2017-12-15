@@ -17,6 +17,7 @@ import { DeploymentSlotsNATreeItem, DeploymentSlotsTreeItem } from './Deployment
 import { DeploymentSlotTreeItem } from './DeploymentSlotTreeItem';
 import { getAppServicePlan, SiteTreeItem } from './SiteTreeItem';
 import { WebJobsTreeItem } from './WebJobsTreeItem';
+import { FolderTreeItem } from './FolderTreeItem';
 
 export class WebAppTreeItem extends SiteTreeItem {
     public static contextValue: string = 'appService';
@@ -24,12 +25,13 @@ export class WebAppTreeItem extends SiteTreeItem {
     public readonly deploymentSlotsNode: IAzureTreeItem;
     public readonly appSettingsNode: IAzureTreeItem;
     public readonly webJobsNode: IAzureTreeItem;
+    public readonly folderNode: IAzureTreeItem;
 
     constructor(site: Site, appServicePlan: AppServicePlan) {
         super(site);
         this.deploymentSlotsNode = appServicePlan.sku.tier === 'Basic' ? new DeploymentSlotsNATreeItem() : new DeploymentSlotsTreeItem(site);
+        this.folderNode = new FolderTreeItem(site, 'Files', "/site/wwwroot", true);
         // https://github.com/Microsoft/vscode-azureappservice/issues/45
-        // nodes.push(new FilesNode('Files', '/site/wwwroot', this.site, this.subscription, treeDataProvider, this));
         // nodes.push(new FilesNode('Log Files', '/LogFiles', this.site, this.subscription));
         this.webJobsNode = new WebJobsTreeItem(site);
         this.appSettingsNode = new AppSettingsTreeItem(this.siteWrapper);
@@ -44,7 +46,9 @@ export class WebAppTreeItem extends SiteTreeItem {
     }
 
     public async loadMoreChildren(_parentNode: IAzureNode): Promise<IAzureTreeItem[]> {
-        return [this.deploymentSlotsNode, this.webJobsNode, this.appSettingsNode];
+        return vscode.workspace.getConfiguration().get("appService.showRemoteFiles") ?
+            [this.deploymentSlotsNode, this.folderNode, this.webJobsNode, this.appSettingsNode] :
+            [this.deploymentSlotsNode, this.webJobsNode, this.appSettingsNode];
     }
 
     public pickTreeItem(expectedContextValue: string): IAzureTreeItem | undefined {
@@ -55,6 +59,8 @@ export class WebAppTreeItem extends SiteTreeItem {
             case AppSettingsTreeItem.contextValue:
             case AppSettingTreeItem.contextValue:
                 return this.appSettingsNode;
+            case FolderTreeItem.contextValue:
+                return this.folderNode;
             case WebJobsTreeItem.contextValue:
                 return this.webJobsNode;
             default:

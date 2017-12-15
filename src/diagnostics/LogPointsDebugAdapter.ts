@@ -84,6 +84,8 @@ export class LogPointsDebugAdapter extends LoggingDebugSession {
         this.sendResponse(response);
 
         this.getLoadedScripts();
+
+        this.sendSessionStartedEvent();
     }
 
     // tslint:disable-next-line:no-any
@@ -183,7 +185,7 @@ export class LogPointsDebugAdapter extends LoggingDebugSession {
                 const source = new Source(sourceData.name, sourceData.path);
                 try {
                     source.sourceReference = parseInt(sourceData.sourceId, 10);
-                } catch {
+                } catch (error) {
                     // if parseInt is not sucessful, then do not set the 'sourceReference' field.
                 }
 
@@ -191,6 +193,10 @@ export class LogPointsDebugAdapter extends LoggingDebugSession {
             });
         }
 
+    }
+
+    private sendSessionStartedEvent(): void {
+        this.sendEvent(new Event('sessionStarted'));
     }
 
     private getPublishCredential(): User {

@@ -18,6 +18,10 @@ export function extractSiteName(site: WebSiteModels.Site): string {
     return isSiteDeploymentSlot(site) ? site.name.substring(0, site.name.lastIndexOf('/')) : site.name;
 }
 
+export function extractSiteScmSubDomainName(site: WebSiteModels.Site): string {
+    return extractSiteName(site) + (isSiteDeploymentSlot(site) ? `-${extractDeploymentSlotName(site)}` : '');
+}
+
 export function extractDeploymentSlotName(site: WebSiteModels.Site): string | undefined {
     return isSiteDeploymentSlot(site) ? site.name.substring(site.name.lastIndexOf('/') + 1) : undefined;
 }
@@ -37,7 +41,7 @@ export function getOutputChannel(): vscode.OutputChannel {
 }
 
 // Telemetry for the extension
-export function sendTelemetry(eventName: string, properties?: { [key: string]: string; }, measures?: { [key: string]: number; }) {
+export function sendTelemetry(eventName: string, properties?: { [key: string]: string; }, measures?: { [key: string]: number; }): void {
     if (reporter) {
         reporter.sendTelemetryEvent(eventName, properties, measures);
     }

@@ -10,7 +10,8 @@ export class StartDebugAdapterStep extends WizardStep {
 
     public async execute(): Promise<void> {
         const site = this._wizard.selectedDeploymentSlot;
-        const siteName = util.extractSiteName(site) + (util.isSiteDeploymentSlot(site) ? `-${util.extractDeploymentSlotName(site)}` : '');
+        const siteName = util.extractSiteScmSubDomainName(site);
+
         const publishCredential = await this._wizard.getCachedCredentialOrRefetch(site);
 
         // Assume the next started debug sessionw is the one we will launch next.
@@ -21,7 +22,7 @@ export class StartDebugAdapterStep extends WizardStep {
         });
         await vscode.debug.startDebugging(vscode.workspace.workspaceFolders[0], {
             type: "jsLogpoints",
-            name: "Azure App Service LogPoints",
+            name: siteName,
             request: "attach",
             trace: true,
             siteName: siteName,
