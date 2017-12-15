@@ -11,7 +11,7 @@ All notable changes to the "azure-appservice" extension will be documented in th
 - Create deployment slots from configuration sources
 - Show current running state of web apps
 - Improve resource deployment scripts
-- UI improvements including "Creating..." placeholder nodes, "Load More..." when there are a lot of web apps, ect.
+- UI improvements including "Creating..." placeholder nodes, "Load More..." when there are a lot of web apps, etc.
 - View and edit a web app's files (feature flag required)
 - Run commands from the Command Palette
 
