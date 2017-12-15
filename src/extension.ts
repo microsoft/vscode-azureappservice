@@ -300,9 +300,7 @@ export function deactivate(): void {
 }
 
 function initEvent<T>(context: vscode.ExtensionContext, eventId: string, event: vscode.Event<T>, callback: (...args: any[]) => any) {
-
     context.subscriptions.push(event(wrapAsyncCallback(eventId, (...args: any[]) => Promise.resolve(callback(...args)))));
-
 }
 
 // tslint:disable-next-line:no-any
