@@ -58,6 +58,12 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
         this._label = this.createLabel(await this.siteWrapper.getState(client));
     }
 
+    public async restart(client: WebSiteManagementClient): Promise<void> {
+        await this.siteWrapper.start(client);
+        await this.siteWrapper.stop(client);
+        this._label = this.createLabel(await this.siteWrapper.getState(client));
+    }
+
     public browse(): void {
         const defaultHostName = this.site.defaultHostName;
         const isSsl = this.site.hostNameSslStates.findIndex(value =>
