@@ -11,8 +11,6 @@ import { KuduClient } from '../../KuduClient';
 import { getOutputChannel } from '../../util';
 import { nodeUtils } from '../../utils/nodeUtils';
 
-
-
 export class FileEditor extends BaseEditor<IAzureNode<FileTreeItem>> {
     constructor() {
         super('appService.showSavePrompt', getOutputChannel())
