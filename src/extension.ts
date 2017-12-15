@@ -18,6 +18,8 @@ import { ErrorData } from './ErrorData';
 import { SiteActionError, WizardFailedError } from './errors';
 import { DeploymentSlotsTreeItem } from './explorer/DeploymentSlotsTreeItem';
 import { DeploymentSlotTreeItem } from './explorer/DeploymentSlotTreeItem';
+import { FileEditor } from './explorer/editors/FileEditor';
+import { FileTreeItem } from './explorer/FileTreeItem';
 import { LoadedScriptsProvider, openScript } from './explorer/loadedScriptsExplorer';
 import { getAppServicePlan, SiteTreeItem } from './explorer/SiteTreeItem';
 import { WebAppProvider } from './explorer/WebAppProvider';
@@ -25,8 +27,6 @@ import { WebAppTreeItem } from './explorer/WebAppTreeItem';
 import { Reporter } from './telemetry/reporter';
 import * as util from "./util";
 import { nodeUtils } from './utils/nodeUtils';
-import { FileTreeItem } from './explorer/FileTreeItem';
-import { FileEditor } from './explorer/editors/FileEditor'
 
 // tslint:disable-next-line:export-name
 // tslint:disable-next-line:max-func-body-length
@@ -299,15 +299,17 @@ export function activate(context: vscode.ExtensionContext): void {
 export function deactivate(): void {
 }
 
+// tslint:disable:no-any
 function initEvent<T>(context: vscode.ExtensionContext, eventId: string, event: vscode.Event<T>, callback: (...args: any[]) => any) {
     context.subscriptions.push(event(wrapAsyncCallback(eventId, (...args: any[]) => Promise.resolve(callback(...args)))));
 }
+// tslint:enable:no-any
 
-// tslint:disable-next-line:no-any
+// tslint:disable:no-any
 function initCommand(extensionContext: vscode.ExtensionContext, commandId: string, callback: (...args: any[]) => void): void {
-
     initAsyncCommand(extensionContext, commandId, async (...args: any[]) => callback(...args));
 }
+// tslint:enable:no-any
 
 // tslint:disable-next-line:no-any
 function initAsyncCommand(context: vscode.ExtensionContext, commandId: string, callback: (...args: any[]) => Promise<any>) {

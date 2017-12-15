@@ -89,7 +89,7 @@ export async function showWorkspaceFoldersQuickPick(placeHolderString: string): 
             }
         }) :
         [];
-    folderQuickPickItems.splice(0, 0, browse);
+    folderQuickPickItems.unshift(browse);
 
     const folderQuickPickOption = { placeHolder: placeHolderString };
     const pickedItem = await vscode.window.showQuickPick(folderQuickPickItems, folderQuickPickOption);
