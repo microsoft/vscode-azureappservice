@@ -482,6 +482,16 @@
                     "type": "string",
                     "default": "",
                     "description": "Defines which files in the workspace to ignore for Zip deploy. This applies to Zip deploy only, has no effect on other deployment methods."
+                },
+                "appService.showRemoteFiles": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Show or hide the File Nodes of a Web App.  Caution: Manually editing your Web App's files could cause unexpected behavior."
+                },
+                "appService.showSavePrompt": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Show warning dialog on remote file uploading."
                 }
             }
         },

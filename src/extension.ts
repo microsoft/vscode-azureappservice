@@ -25,6 +25,8 @@ import { WebAppTreeItem } from './explorer/WebAppTreeItem';
 import { Reporter } from './telemetry/reporter';
 import * as util from "./util";
 import { nodeUtils } from './utils/nodeUtils';
+import { FileTreeItem } from './explorer/FileTreeItem';
+import { FileEditor } from './explorer/editors/FileEditor'
 
 // tslint:disable-next-line:max-func-body-length
 // tslint:disable-next-line:export-name
@@ -38,6 +40,9 @@ export function activate(context: vscode.ExtensionContext): void {
     const tree = new AzureTreeDataProvider(webAppProvider, 'appService.LoadMore');
     context.subscriptions.push(tree);
     context.subscriptions.push(vscode.window.registerTreeDataProvider('azureAppService', tree));
+
+    const fileEditor: FileEditor = new FileEditor();
+    context.subscriptions.push(fileEditor);
 
     // loaded scripts
     const provider = new LoadedScriptsProvider(context);
@@ -282,34 +287,49 @@ export function activate(context: vscode.ExtensionContext): void {
     });
 
     initCommand(context, 'diagnostics.LogPoints.OpenScript', openScript);
+
+    initAsyncCommand(context, 'appService.showFile', async (node: IAzureNode<FileTreeItem>) => {
+        await fileEditor.showEditor(node);
+    });
+
+    initEvent(context, 'appService.fileEditor.onDidSaveTextDocument', vscode.workspace.onDidSaveTextDocument, (doc: vscode.TextDocument) => fileEditor.onDidSaveTextDocument(context.globalState, doc));
+
+
 }
+
 
 // tslint:disable-next-line:no-empty
 export function deactivate(): void {
 }
 
+function initEvent<T>(context: vscode.ExtensionContext, eventId: string, event: vscode.Event<T>, callback: (...args: any[]) => any) {
+
+    context.subscriptions.push(event(wrapAsyncCallback(eventId, (...args: any[]) => Promise.resolve(callback(...args)))));
+
+}
+
 // tslint:disable-next-line:no-any
 function initCommand(extensionContext: vscode.ExtensionContext, commandId: string, callback: (...args: any[]) => void): void {
-    // tslint:disable-next-line:no-any
+
     initAsyncCommand(extensionContext, commandId, async (...args: any[]) => callback(...args));
 }
 
 // tslint:disable-next-line:no-any
-function initAsyncCommand(extensionContext: vscode.ExtensionContext, commandId: string, callback: (...args: any[]) => Promise<void>): void {
-    // tslint:disable-next-line:no-any
-    extensionContext.subscriptions.push(vscode.commands.registerCommand(commandId, async (...args: any[]) => {
+function initAsyncCommand(context: vscode.ExtensionContext, commandId: string, callback: (...args: any[]) => Promise<any>) {
+    context.subscriptions.push(vscode.commands.registerCommand(commandId, wrapAsyncCallback(commandId, callback)));
+}
+
+
+function wrapAsyncCallback(commandId, callback: (...args: any[]) => Promise<any>): (...args: any[]) => Promise<any> {
+    return async (...args: any[]) => {
         const start = Date.now();
         const properties: { [key: string]: string; } = {};
-        const output = util.getOutputChannel();
         properties.result = 'Succeeded';
         let errorData: ErrorData | undefined;
+        const output = util.getOutputChannel();
 
         try {
-            if (args.length === 0) {
-                await callback();
-            } else {
-                await callback(...args);
-            }
+            await callback(...args);
         } catch (err) {
             if (err instanceof SiteActionError) {
                 properties.servicePlan = err.servicePlanSize;
@@ -342,5 +362,5 @@ function initAsyncCommand(extensionContext: vscode.ExtensionContext, commandId: 
             const end = Date.now();
             util.sendTelemetry(commandId, properties, { duration: (end - start) / 1000 });
         }
-    }));
+    };
 }

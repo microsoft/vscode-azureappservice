@@ -185,7 +185,7 @@ export class LogPointsDebugAdapter extends LoggingDebugSession {
                 const source = new Source(sourceData.name, sourceData.path);
                 try {
                     source.sourceReference = parseInt(sourceData.sourceId, 10);
-                } catch {
+                } catch (error) {
                     // if parseInt is not sucessful, then do not set the 'sourceReference' field.
                 }
 
