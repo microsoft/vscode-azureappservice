@@ -3,37 +3,36 @@ The Azure App Services extension for VS Code lets you quickly browse, create, ma
 
 ## Features
 
-* Browse sites across all of your Azure subscriptions
-* Browse to the Azure Portal for advanced tasks, such as scaling
-* Create new web apps/deployment slots (Linux with Node.js only)
-* Deploy to your web apps/deployment slots
-* View and edit remote files on your web apps (Preview)
+  * Browse sites across all of your Azure subscriptions
+  * Browse to the Azure Portal for advanced tasks, such as scaling
+  * Create new web apps/deployment slots (Linux with Node.js only)
+  * Deploy to your web apps/deployment slots
+  * View and edit remote files on your web apps (Preview)
+  ![Deploy to Web App](resources/WebApp_Deploy.png)
 
-![Deploy to Web App](resources/WebApp_Deploy.png)
-* Start, stop, and restart the web app/deployment slot
-* Swap deployment slots
-* View and edit web app settings
+  * Start, stop, and restart the web app/deployment slot
+  * Swap deployment slots
+  ![Create Deployment Slot](resources/Add_Deployment_Slot.png)
+  ![Choose configuration source](resources/Deployment_Slot_Configuration_Source.png)
 
-![Create Deployment Slot](resources/Add_Deployment_Slot.png)
-![Choose configuration source](resources/Deployment_Slot_Configuration_Source.png)
+  * View and edit web app settings
+  ![Add App Settings](resources/ApplicationSettings_Add.png)
+  ![Edit App Settings](resources/ApplicationSettings_Edit.png)
+  * View web app log stream
 
-
-![Add App Settings](resources/ApplicationSettings_Add.png)
-![Edit App Settings](resources/ApplicationSettings_Edit.png)
-* View web app log stream
-
-![Web App Log Stream](resources/WebApp_LogStream.png)
+  ![Web App Log Stream](resources/WebApp_LogStream.png)
 
 ## Preview Features
 
 * View and edit a web app's files
   * To enable this feature, modify your `appService.showRemoteFiles` user setting to true.
   * To modify user settings, click File > Preferences > Settings.
+
   ![Enable Remote File Editing](resources/Remote_File_Editing_Setting.png)
 
-![Enable Remote File Editing](resources/Remote_File_Editing_Setting.png)
   * To view a file, click on it in the explorer.
-![Remote File Editing](resources/Remote_File_Editing.png)
+  ![Remote File Editing](resources/Remote_File_Editing.png)
+
   * To edit, make edits in the editor and save it.  When prompted to upload the file, click "Upload".
   * CAUTION: Manually editing your Web App's files could cause unexpected behavior.
 
