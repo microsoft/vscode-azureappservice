@@ -11,7 +11,7 @@ All notable changes to the "azure-appservice" extension will be documented in th
 - Create deployment slots from configuration sources
 - Show current running state of web apps
 - Improve resource deployment scripts
-- Leverage npm package "vscode-azureextensionui"
+- UI improvements including "Creating..." placeholder nodes, "Load More..." when there are a lot of web apps, ect.
 - View and edit a web app's files (feature flag required)
 - Run commands from the Command Palette
 
