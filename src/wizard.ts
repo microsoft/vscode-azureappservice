@@ -4,8 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import { UserCancelledError } from 'vscode-azureextensionui';
-import { WizardFailedError } from './errors';
+import { TelemetryProperties, UserCancelledError } from 'vscode-azureextensionui';
 import * as util from './util';
 
 export type WizardStatus = 'PromptCompleted' | 'Completed' | 'Faulted' | 'Cancelled';
@@ -29,7 +28,7 @@ export abstract class WizardBase {
 
     protected abstract initSteps(): void;
 
-    public async run(promptOnly: boolean = false): Promise<IWizardResult> {
+    public async run(properties: TelemetryProperties, promptOnly: boolean = false): Promise<IWizardResult> {
         this.initSteps();
 
         // Go through the prompts...
@@ -37,7 +36,7 @@ export abstract class WizardBase {
             try {
                 await step.prompt();
             } catch (err) {
-                this.onError(err, step);
+                this.onError(properties, err, step);
             }
         }
 
@@ -49,10 +48,10 @@ export abstract class WizardBase {
             };
         }
 
-        return this.execute();
+        return this.execute(properties);
     }
 
-    public async execute(): Promise<IWizardResult> {
+    public async execute(properties: TelemetryProperties): Promise<IWizardResult> {
         // Execute each step...
         this.output.show(true);
         for (let i = 0; i < this.steps.length; i++) {
@@ -62,7 +61,7 @@ export abstract class WizardBase {
                 this.beforeExecute(step, i);
                 await this.steps[i].execute();
             } catch (err) {
-                this.onError(err, step);
+                this.onError(properties, err, step);
             }
         }
 
@@ -95,12 +94,10 @@ export abstract class WizardBase {
         return step;
     }
 
-    protected onError(err: Error, step: WizardStep): void {
-        if (err instanceof UserCancelledError) {
-            throw err;
-        }
-
-        throw new WizardFailedError(err, step.telemetryStepTitle, step.stepIndex);
+    protected onError(properties: TelemetryProperties, err: Error, step: WizardStep): void {
+        properties.stepTitle = step.telemetryStepTitle;
+        properties.stepIndex = step.stepIndex.toString();
+        throw err;
     }
 
     protected beforeExecute(_step: WizardStep, _stepIndex: number): void {
@@ -140,9 +137,9 @@ export class WizardStep {
     }
 
     public async showQuickPick<T>(items: util.IQuickPickItemWithData<T>[] | Thenable<util.IQuickPickItemWithData<T>[]>,
-        options: vscode.QuickPickOptions,
-        persistenceKey?: string,
-        token?: vscode.CancellationToken): Promise<util.IQuickPickItemWithData<T>> {
+                                  options: vscode.QuickPickOptions,
+                                  persistenceKey?: string,
+                                  token?: vscode.CancellationToken): Promise<util.IQuickPickItemWithData<T>> {
         options.ignoreFocusOut = true;
         let resolvedItems = await items;
         if (this.persistenceState && persistenceKey) {
