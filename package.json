@@ -586,7 +586,7 @@
         "vscode": "^1.0.0"
     },
     "dependencies": {
-        "azure-arm-resource": "^2.0.0-preview",
+        "azure-arm-resource": "^3.0.0-preview",
         "azure-arm-website": "^1.0.0-preview",
         "fs-extra": "^4.0.2",
         "kudu-api": "^1.4.1",
@@ -596,10 +596,10 @@
         "request": "^2.83.0",
         "simple-git": "^1.77.0",
         "vscode-azureappservice": "~0.8.0",
-        "vscode-azureextensionui": "~0.4.1",
+        "vscode-azureextensionui": "~0.5.0",
         "vscode-debugadapter": "^1.24.0",
         "vscode-debugprotocol": "^1.24.0",
-        "vscode-extension-telemetry": "^0.0.8"
+        "vscode-extension-telemetry": "^0.0.10"
     },
     "extensionDependencies": [
         "ms-vscode.azure-account"
