@@ -403,6 +403,11 @@
                     "group": "4_deploymentSlotDiagnosticsCommands@3"
                 },
                 {
+                    "command": "appService.Refresh",
+                    "when": "view == azureAppService && viewItem == folder",
+                    "group": "1_folderGeneralCommands@1"
+                },
+                {
                     "command": "appService.OpenInPortal",
                     "when": "view == azureAppService && viewItem == webJobs",
                     "group": "1_webJobsGeneralCommands@1"

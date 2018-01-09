@@ -7,7 +7,7 @@ import { Site } from 'azure-arm-website/lib/models';
 import { IAzureTreeItem } from 'vscode-azureextensionui';
 
 export class FileTreeItem implements IAzureTreeItem {
-    public static contextValue: string = 'File';
+    public static contextValue: string = 'file';
     public readonly contextValue: string = FileTreeItem.contextValue;
     public readonly commandId: string = 'appService.showFile';
 
