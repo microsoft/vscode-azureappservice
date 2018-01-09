@@ -209,13 +209,14 @@ export function activate(context: vscode.ExtensionContext): void {
             await createdSlot.treeItem.siteWrapper.deploy(fsPath, client, outputChannel, 'appService', false);
         }
     });
-    actionHandler.registerCommandWithCustomTelemetry('deploymentSlot.SwapSlots', async (properties: TelemetryProperties, _measurements: TelemetryMeasurements, node: IAzureNode<DeploymentSlotTreeItem>) => {
+    actionHandler.registerCommandWithCustomTelemetry('deploymentSlot.SwapSlots', async (properties: TelemetryProperties, _measurements: TelemetryMeasurements, node: IAzureParentNode<DeploymentSlotTreeItem>) => {
         if (!node) {
             node = <IAzureParentNode<DeploymentSlotTreeItem>>await tree.showNodePicker(DeploymentSlotTreeItem.contextValue);
         }
 
         const wizard = new DeploymentSlotSwapper(outputChannel, node);
-        await wizard.run(properties);
+        const result = await wizard.run(properties);
+
     });
     actionHandler.registerCommand('appSettings.Add', async (node: IAzureParentNode<AppSettingsTreeItem>) => {
         if (!node) {
