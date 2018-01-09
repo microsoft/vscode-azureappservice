@@ -57,10 +57,10 @@ class SwapStep extends WizardStep {
         }];
 
         for (const slot of deploymentSlots) {
-            if (this.sourceSlot.label !== slot.treeItem.label) {
+            if (this.sourceSlot.siteWrapper.slotName !== slot.treeItem.siteWrapper.slotName) {
                 // Deployment slots must have an unique name
                 const otherSlot: IQuickPickItemWithData<DeploymentSlotTreeItem | undefined> = {
-                    label: slot.treeItem.label,
+                    label: slot.treeItem.siteWrapper.slotName,
                     description: '',
                     data: slot.treeItem
                 };
@@ -69,7 +69,7 @@ class SwapStep extends WizardStep {
             }
         }
 
-        const quickPickOptions = { placeHolder: `"${this.sourceSlot.label}" will be swapped with the destination slot.`, ignoreFocusOut: true };
+        const quickPickOptions = { placeHolder: `"${this.sourceSlot.siteWrapper.slotName}" will be swapped with the destination slot.`, ignoreFocusOut: true };
         const result = await this.showQuickPick(otherSlots, quickPickOptions);
 
         if (result) {
@@ -83,11 +83,11 @@ class SwapStep extends WizardStep {
         const client: WebSiteManagementClient = nodeUtils.getWebSiteClient(this._sourceSlotNode);
         // if this.targetSlot was assigned undefined, the user selected 'production'
         !this.targetSlot ?
-            await client.webApps.swapSlotWithProduction(this.sourceSlot.site.resourceGroup, this.sourceSlot.site.repositorySiteName, { targetSlot: this.sourceSlot.label, preserveVnet: true }) :
-            await client.webApps.swapSlotSlot(this.sourceSlot.site.resourceGroup, this.sourceSlot.site.repositorySiteName, { targetSlot: this.targetSlot.label, preserveVnet: true }, this.sourceSlot.label);
+            await client.webApps.swapSlotWithProduction(this.sourceSlot.site.resourceGroup, this.sourceSlot.site.repositorySiteName, { targetSlot: this.sourceSlot.siteWrapper.slotName, preserveVnet: true }) :
+            await client.webApps.swapSlotSlot(this.sourceSlot.site.resourceGroup, this.sourceSlot.site.repositorySiteName, { targetSlot: this.targetSlot.siteWrapper.slotName, preserveVnet: true }, this.sourceSlot.siteWrapper.slotName);
 
-        const targetSlotLabel: string = this.targetSlot ? this.targetSlot.label : this._productionSlotLabel;
-        this.wizard.writeline(`"${targetSlotLabel}" was swapped with "${this.sourceSlot.label}".`);
+        const targetSlotLabel: string = this.targetSlot ? this.targetSlot.siteWrapper.slotName : this._productionSlotLabel;
+        this.wizard.writeline(`"${targetSlotLabel}" was swapped with "${this.sourceSlot.siteWrapper.slotName}".`);
     }
 
     get subscription(): SubscriptionModels.Subscription {
