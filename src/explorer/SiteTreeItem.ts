@@ -128,7 +128,7 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
     }
 
     private createLabel(state: string): string {
-        return `${this.siteWrapper.slotName ? this.siteWrapper.slotName : this.siteWrapper.name} ${state && state.toLowerCase() !== 'running' ? `(${state})` : ''}`;
+        return `${this.siteWrapper.slotName ? this.siteWrapper.slotName : this.siteWrapper.name}${state && state.toLowerCase() !== 'running' ? ` (${state})` : ''}`;
     }
 }
 
