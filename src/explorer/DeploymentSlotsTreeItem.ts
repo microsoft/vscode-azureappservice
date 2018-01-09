@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { NameValuePair, Site, WebAppCollection } from 'azure-arm-website/lib/models';
+import { ResourceNameAvailability } from 'azure-arm-website/lib/models';
 import * as path from 'path';
 import { window } from 'vscode';
 import { IAzureNode, IAzureParentNode, IAzureParentTreeItem, IAzureTreeItem, UserCancelledError } from 'vscode-azureextensionui';
@@ -11,7 +12,6 @@ import * as util from '../util';
 import { nodeUtils } from '../utils/nodeUtils';
 import { DeploymentSlotTreeItem } from './DeploymentSlotTreeItem';
 import { SiteTreeItem } from './SiteTreeItem';
-import { ResourceNameAvailability } from 'azure-arm-website/lib/models';
 
 export class DeploymentSlotsTreeItem implements IAzureParentTreeItem {
     public static contextValue: string = 'deploymentSlots';
@@ -82,7 +82,9 @@ export class DeploymentSlotsTreeItem implements IAzureParentTreeItem {
 
         // if user has more slots than the service plan allows, Azure will respond with an error
         const newSite: Site = await nodeUtils.getWebSiteClient(node).webApps.createOrUpdateSlot(node.treeItem.site.resourceGroup, util.extractSiteName(node.treeItem.site), newDeploymentSlot, slotName);
-        return new DeploymentSlotTreeItem(newSite);
+        const newItem: DeploymentSlotTreeItem = new DeploymentSlotTreeItem(newSite);
+        newItem.browse();
+        return newItem;
     }
 
     private async promptForSlotName(node: IAzureParentNode<DeploymentSlotsTreeItem>): Promise<string | undefined> {

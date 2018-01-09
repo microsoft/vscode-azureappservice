@@ -47,7 +47,9 @@ export class WebAppProvider implements IChildProvider {
             throw new UserCancelledError();
         } else {
             const appServicePlan: AppServicePlan = await getAppServicePlan(newSite, nodeUtils.getWebSiteClient(node));
-            return new WebAppTreeItem(newSite, appServicePlan);
+            const newItem: WebAppTreeItem = new WebAppTreeItem(newSite, appServicePlan);
+            newItem.browse();
+            return newItem;
         }
     }
 }
