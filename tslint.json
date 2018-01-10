@@ -305,5 +305,10 @@
         "no-switch-case-fall-through": false,
         "typeof-compare": false
     },
-    "rulesDirectory": "node_modules/tslint-microsoft-contrib/"
+    "rulesDirectory": "node_modules/tslint-microsoft-contrib/",
+    "linterOptions": {
+        "exclude": [
+            "src/KuduClient.ts" // working to phase this file
+        ]
+    }
 }

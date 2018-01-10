@@ -10,7 +10,9 @@ export class ErrorData {
     constructor(error: any) {
         if (error instanceof Error) {
             try {
+                // tslint:disable-next-line:no-unsafe-any
                 this.errorType = JSON.parse(error.message).Code;
+                // tslint:disable-next-line:no-unsafe-any
                 this.message = JSON.parse(error.message).Message;
             } catch (err) {
                 this.errorType = error.constructor.name;
