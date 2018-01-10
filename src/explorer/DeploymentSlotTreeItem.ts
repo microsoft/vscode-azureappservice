@@ -19,7 +19,7 @@ export class DeploymentSlotTreeItem extends SiteTreeItem {
 
     constructor(site: WebSiteModels.Site) {
         super(site);
-        this.folderNode = new FolderTreeItem(site, 'Files', "/site/wwwroot", true);
+        this.folderNode = new FolderTreeItem(this.siteWrapper, 'Files', "/site/wwwroot", true);
         this.appSettingsNode = new AppSettingsTreeItem(this.siteWrapper);
     }
 

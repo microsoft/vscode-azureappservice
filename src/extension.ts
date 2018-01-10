@@ -215,7 +215,7 @@ export function activate(context: vscode.ExtensionContext): void {
         }
 
         const wizard = new DeploymentSlotSwapper(outputChannel, node);
-        const result = await wizard.run(properties);
+        await wizard.run(properties);
 
     });
     actionHandler.registerCommand('appSettings.Add', async (node: IAzureParentNode<AppSettingsTreeItem>) => {
