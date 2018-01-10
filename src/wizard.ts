@@ -26,8 +26,6 @@ export abstract class WizardBase {
         this.output.appendLine(text);
     }
 
-    protected abstract initSteps(): void;
-
     public async run(properties: TelemetryProperties, promptOnly: boolean = false): Promise<IWizardResult> {
         this.initSteps();
 
@@ -84,6 +82,8 @@ export abstract class WizardBase {
             isOptional ? null : `The Wizard should have had a ${stepTypeConstructor.name} step`);
     }
 
+    protected abstract initSteps(): void;
+
     protected findStep(predicate: (step: WizardStep) => boolean, errorMessage?: string): WizardStep {
         const step = this.steps.find(predicate);
 
@@ -136,10 +136,11 @@ export class WizardStep {
         return `Step ${this.stepIndex + 1}/${this.wizard.steps.length}`;
     }
 
-    public async showQuickPick<T>(items: util.IQuickPickItemWithData<T>[] | Thenable<util.IQuickPickItemWithData<T>[]>,
-                                  options: vscode.QuickPickOptions,
-                                  persistenceKey?: string,
-                                  token?: vscode.CancellationToken): Promise<util.IQuickPickItemWithData<T>> {
+    public async showQuickPick<T>(
+        items: util.IQuickPickItemWithData<T>[] | Thenable<util.IQuickPickItemWithData<T>[]>,
+        options: vscode.QuickPickOptions,
+        persistenceKey?: string,
+        token?: vscode.CancellationToken): Promise<util.IQuickPickItemWithData<T>> {
         options.ignoreFocusOut = true;
         let resolvedItems = await items;
         if (this.persistenceState && persistenceKey) {
