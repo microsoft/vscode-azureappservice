@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import * as util from '../../util';
 import { BaseEditor, IAzureNode } from 'vscode-azureextensionui';
 import { FileTreeItem } from '../FileTreeItem';
 import { KuduClient } from '../../KuduClient';
@@ -17,7 +16,7 @@ export class FileEditor extends BaseEditor<IAzureNode<FileTreeItem>> {
     }
 
     async getSaveConfirmationText(node: IAzureNode<FileTreeItem>): Promise<string> {
-        return `Saving '${node.treeItem.label}' will update the file "${node.treeItem.label}" in "${node.treeItem.site.name}".`;
+        return `Saving '${node.treeItem.label}' will update the file "${node.treeItem.label}" in "${node.treeItem.siteWrapper.appName}".`;
     }
 
     async getFilename(node: IAzureNode<FileTreeItem>): Promise<string> {
@@ -26,8 +25,9 @@ export class FileEditor extends BaseEditor<IAzureNode<FileTreeItem>> {
 
     async getData(node: IAzureNode<FileTreeItem>): Promise<string> {
         const webAppClient = nodeUtils.getWebSiteClient(node);
-        const user = await util.getWebAppPublishCredential(webAppClient, node.treeItem.site);
-        const kuduClient = new KuduClient(node.treeItem.site.name, user.publishingUserName, user.publishingPassword);
+        const publishingCredential = await node.treeItem.siteWrapper.getWebAppPublishCredential(webAppClient);
+        const kuduClient = new KuduClient(node.treeItem.siteWrapper.appName, publishingCredential.publishingUserName, publishingCredential.publishingPassword);
+
         return await kuduClient.getFile(node.treeItem.path);
     }
 
@@ -39,8 +39,8 @@ export class FileEditor extends BaseEditor<IAzureNode<FileTreeItem>> {
 
     async updateData(node: IAzureNode<FileTreeItem>): Promise<string> {
         const webAppClient = nodeUtils.getWebSiteClient(node);
-        const user = await util.getWebAppPublishCredential(webAppClient, node.treeItem.site);
-        const kuduClient = new KuduClient(node.treeItem.site.name, user.publishingUserName, user.publishingPassword);
+        const publishingCredential = await node.treeItem.siteWrapper.getWebAppPublishCredential(webAppClient);
+        const kuduClient = new KuduClient(node.treeItem.siteWrapper.appName, publishingCredential.publishingUserName, publishingCredential.publishingPassword);
 
         const localPath: string = vscode.window.activeTextEditor.document.fileName;
         const destPath: string = node.treeItem.path;
