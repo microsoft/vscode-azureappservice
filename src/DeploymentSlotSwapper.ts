@@ -34,7 +34,7 @@ export class DeploymentSlotSwapper extends WizardBase {
 class SwapStep extends WizardStep {
     private _subscription: SubscriptionModels.Subscription;
     private _sourceSlotNode: IAzureNode<DeploymentSlotTreeItem>;
-    private targetSlot: DeploymentSlotTreeItem | undefined;
+    private targetSlotNode: IAzureNode<DeploymentSlotTreeItem | undefined>;
 
     private readonly _productionSlotLabel: string = 'production';
 
@@ -49,7 +49,7 @@ class SwapStep extends WizardStep {
 
     public async prompt(): Promise<void> {
         const deploymentSlots: IAzureNode<DeploymentSlotTreeItem>[] = <IAzureNode<DeploymentSlotTreeItem>[]>await this._sourceSlotNode.parent.getCachedChildren();
-        const otherSlots: IQuickPickItemWithData<DeploymentSlotTreeItem | undefined>[] = [{
+        const otherSlots: IQuickPickItemWithData<IAzureNode<DeploymentSlotTreeItem | undefined>>[] = [{
             label: this._productionSlotLabel,
             description: 'Swap slot with production',
             detail: '',
@@ -59,10 +59,10 @@ class SwapStep extends WizardStep {
         for (const slot of deploymentSlots) {
             if (this.sourceSlot.siteWrapper.slotName !== slot.treeItem.siteWrapper.slotName) {
                 // Deployment slots must have an unique name
-                const otherSlot: IQuickPickItemWithData<DeploymentSlotTreeItem | undefined> = {
+                const otherSlot: IQuickPickItemWithData<IAzureNode<DeploymentSlotTreeItem | undefined>> = {
                     label: slot.treeItem.siteWrapper.slotName,
                     description: '',
-                    data: slot.treeItem
+                    data: slot
                 };
 
                 otherSlots.push(otherSlot);
@@ -73,7 +73,7 @@ class SwapStep extends WizardStep {
         const result = await this.showQuickPick(otherSlots, quickPickOptions);
 
         if (result) {
-            this.targetSlot = result.data;
+            this.targetSlotNode = result.data;
         } else {
             throw new UserCancelledError();
         }
@@ -82,11 +82,11 @@ class SwapStep extends WizardStep {
     public async execute(): Promise<void> {
         const client: WebSiteManagementClient = nodeUtils.getWebSiteClient(this._sourceSlotNode);
         // if this.targetSlot was assigned undefined, the user selected 'production'
-        !this.targetSlot ?
+        !this.targetSlotNode ?
             await client.webApps.swapSlotWithProduction(this.sourceSlot.site.resourceGroup, this.sourceSlot.site.repositorySiteName, { targetSlot: this.sourceSlot.siteWrapper.slotName, preserveVnet: true }) :
-            await client.webApps.swapSlotSlot(this.sourceSlot.site.resourceGroup, this.sourceSlot.site.repositorySiteName, { targetSlot: this.targetSlot.siteWrapper.slotName, preserveVnet: true }, this.sourceSlot.siteWrapper.slotName);
+            await client.webApps.swapSlotSlot(this.sourceSlot.site.resourceGroup, this.sourceSlot.site.repositorySiteName, { targetSlot: this.targetSlotNode.treeItem.siteWrapper.slotName, preserveVnet: true }, this.sourceSlot.siteWrapper.slotName);
 
-        const targetSlotLabel: string = this.targetSlot ? this.targetSlot.siteWrapper.slotName : this._productionSlotLabel;
+        const targetSlotLabel: string = this.targetSlotNode ? this.targetSlotNode.treeItem.siteWrapper.slotName : this._productionSlotLabel;
         this.wizard.writeline(`"${targetSlotLabel}" was swapped with "${this.sourceSlot.siteWrapper.slotName}".`);
     }
 

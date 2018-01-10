@@ -211,7 +211,7 @@ export function activate(context: vscode.ExtensionContext): void {
     });
     actionHandler.registerCommandWithCustomTelemetry('deploymentSlot.SwapSlots', async (properties: TelemetryProperties, _measurements: TelemetryMeasurements, node: IAzureNode<DeploymentSlotTreeItem>) => {
         if (!node) {
-            node = <IAzureParentNode<DeploymentSlotTreeItem>>await tree.showNodePicker(DeploymentSlotTreeItem.contextValue);
+            node = <IAzureNode<DeploymentSlotTreeItem>>await tree.showNodePicker(DeploymentSlotTreeItem.contextValue);
         }
 
         const wizard = new DeploymentSlotSwapper(outputChannel, node);
