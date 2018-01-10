@@ -6,16 +6,16 @@
 import { Site } from 'azure-arm-website/lib/models';
 import * as path from 'path';
 import { IAzureNode, IAzureParentTreeItem, IAzureTreeItem } from 'vscode-azureextensionui';
-import { FileTreeItem } from './FileTreeItem';
 import { KuduClient, kuduFile } from '../KuduClient';
 import * as util from '../util';
 import { nodeUtils } from '../utils/nodeUtils';
+import { FileTreeItem } from './FileTreeItem';
 
 export class FolderTreeItem implements IAzureParentTreeItem {
     public static contextValue: string = 'folder';
     public readonly contextValue: string = FolderTreeItem.contextValue;
     public readonly childTypeLabel: string = 'files';
-    constructor(readonly site: Site, readonly label: string, readonly path: string, readonly useIcon: boolean = false) {
+    constructor(readonly site: Site, readonly label: string, readonly folderPath: string, readonly useIcon: boolean = false) {
     }
 
     public get id(): string {
@@ -38,7 +38,7 @@ export class FolderTreeItem implements IAzureParentTreeItem {
         const user = await util.getWebAppPublishCredential(webAppClient, node.treeItem.site);
         const kuduClient = new KuduClient(node.treeItem.site.name, user.publishingUserName, user.publishingPassword);
 
-        const fileList: kuduFile[] = await kuduClient.listFiles(this.path);
+        const fileList: kuduFile[] = await kuduClient.listFiles(this.folderPath);
 
         return fileList.map((file: kuduFile) => {
             return file.mime === 'inode/directory' ?

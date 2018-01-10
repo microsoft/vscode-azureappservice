@@ -15,9 +15,9 @@ import { IAzureNode, IAzureTreeItem } from 'vscode-azureextensionui';
 import { nodeUtils } from '../utils/nodeUtils';
 import { DeploymentSlotsNATreeItem, DeploymentSlotsTreeItem } from './DeploymentSlotsTreeItem';
 import { DeploymentSlotTreeItem } from './DeploymentSlotTreeItem';
+import { FolderTreeItem } from './FolderTreeItem';
 import { getAppServicePlan, SiteTreeItem } from './SiteTreeItem';
 import { WebJobsTreeItem } from './WebJobsTreeItem';
-import { FolderTreeItem } from './FolderTreeItem';
 
 export class WebAppTreeItem extends SiteTreeItem {
     public static contextValue: string = 'appService';
@@ -31,8 +31,6 @@ export class WebAppTreeItem extends SiteTreeItem {
         super(site);
         this.deploymentSlotsNode = appServicePlan.sku.tier === 'Basic' ? new DeploymentSlotsNATreeItem() : new DeploymentSlotsTreeItem(site);
         this.folderNode = new FolderTreeItem(site, 'Files', "/site/wwwroot", true);
-        // https://github.com/Microsoft/vscode-azureappservice/issues/45
-        // nodes.push(new FilesNode('Log Files', '/LogFiles', this.site, this.subscription));
         this.webJobsNode = new WebJobsTreeItem(site);
         this.appSettingsNode = new AppSettingsTreeItem(this.siteWrapper);
     }
@@ -98,17 +96,17 @@ export class WebAppTreeItem extends SiteTreeItem {
             script = scriptTemplate;
         } else if (siteConfig.linuxFxVersion.toLowerCase().startsWith('docker')) {
             const scriptTemplate = await this.loadScriptTemplate('docker-image.sh');
-            const serverUrl = appSettings.properties['DOCKER_REGISTRY_SERVER_URL'];
-            const serverUser = appSettings.properties['DOCKER_REGISTRY_SERVER_USERNAME'];
-            const serverPwd = appSettings.properties['DOCKER_REGISTRY_SERVER_PASSWORD'];
+            const serverUrl = appSettings.properties.DOCKER_REGISTRY_SERVER_URL;
+            const serverUser = appSettings.properties.DOCKER_REGISTRY_SERVER_USERNAME;
+            const serverPwd = appSettings.properties.DOCKER_REGISTRY_SERVER_PASSWORD;
             const containerParameters =
                 (serverUrl ? `SERVERURL="${serverUrl}"\n` : '') +
                 (serverUser ? `SERVERUSER="${serverUser}"\n` : '') +
-                (serverPwd ? `SERVERPASSWORD="*****"\n` : '')
+                (serverPwd ? `SERVERPASSWORD="*****"\n` : '');
             const containerCmdParameters =
                 (serverUrl ? '--docker-registry-server-url $SERVERURL ' : '') +
                 (serverUser ? '--docker-registry-server-user $SERVERUSER ' : '') +
-                (serverPwd ? '--docker-registry-server-password $SERVERPASSWORD ' : '')
+                (serverPwd ? '--docker-registry-server-password $SERVERPASSWORD ' : '');
             script = scriptTemplate.replace('%RUNTIME%', siteConfig.linuxFxVersion)
                 .replace('%IMAGENAME%', siteConfig.linuxFxVersion.substring(siteConfig.linuxFxVersion.indexOf('|') + 1))
                 .replace('%DOCKER_PARA%', containerParameters)
