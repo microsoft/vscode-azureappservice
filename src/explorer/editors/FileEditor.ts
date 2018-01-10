@@ -26,7 +26,7 @@ export class FileEditor extends BaseEditor<IAzureNode<FileTreeItem>> {
     async getData(node: IAzureNode<FileTreeItem>): Promise<string> {
         const webAppClient = nodeUtils.getWebSiteClient(node);
         const publishingCredential = await node.treeItem.siteWrapper.getWebAppPublishCredential(webAppClient);
-        const kuduClient = new KuduClient(node.treeItem.siteWrapper.name, publishingCredential.publishingUserName, publishingCredential.publishingPassword);
+        const kuduClient = new KuduClient(node.treeItem.siteWrapper.appName, publishingCredential.publishingUserName, publishingCredential.publishingPassword);
 
         return await kuduClient.getFile(node.treeItem.path);
     }

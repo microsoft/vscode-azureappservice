@@ -14,8 +14,8 @@ import { SiteTreeItem } from './SiteTreeItem';
 export class DeploymentSlotTreeItem extends SiteTreeItem {
     public static contextValue: string = 'deploymentSlot';
     public readonly contextValue: string = DeploymentSlotTreeItem.contextValue;
-    public readonly appSettingsNode: IAzureTreeItem;
-    public readonly folderNode: IAzureTreeItem;
+    private readonly appSettingsNode: IAzureTreeItem;
+    private readonly folderNode: IAzureTreeItem;
 
     constructor(site: WebSiteModels.Site) {
         super(site);
