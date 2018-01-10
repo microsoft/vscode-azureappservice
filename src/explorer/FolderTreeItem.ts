@@ -15,7 +15,7 @@ import { nodeUtils } from '../utils/nodeUtils';
 export class FolderTreeItem implements IAzureParentTreeItem {
     public static contextValue: string = 'folder';
     public readonly contextValue: string = FolderTreeItem.contextValue;
-    public readonly childTypeLabel: string = 'Files';
+    public readonly childTypeLabel: string = 'files';
     constructor(readonly siteWrapper: SiteWrapper, readonly label: string, readonly path: string, readonly useIcon: boolean = false) {
     }
 
