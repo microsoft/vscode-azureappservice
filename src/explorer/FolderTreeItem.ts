@@ -3,20 +3,21 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as path from 'path';
-import { IAzureNode, IAzureParentTreeItem, IAzureTreeItem } from 'vscode-azureextensionui';
-import { SiteWrapper } from 'vscode-azureappservice';
 import WebSiteManagementClient = require('azure-arm-website');
+import * as path from 'path';
+import { SiteWrapper } from 'vscode-azureappservice';
+import { IAzureNode, IAzureParentTreeItem, IAzureTreeItem } from 'vscode-azureextensionui';
 import KuduClient from 'vscode-azurekudu';
 import { kuduFile } from '../KuduClient';
-import { FileTreeItem } from './FileTreeItem';
 import { nodeUtils } from '../utils/nodeUtils';
+import { FileTreeItem } from './FileTreeItem';
 
 export class FolderTreeItem implements IAzureParentTreeItem {
     public static contextValue: string = 'folder';
     public readonly contextValue: string = FolderTreeItem.contextValue;
     public readonly childTypeLabel: string = 'files';
-    constructor(readonly siteWrapper: SiteWrapper, readonly label: string, readonly path: string, readonly useIcon: boolean = false) {
+
+    constructor(readonly siteWrapper: SiteWrapper, readonly label: string, readonly folderPath: string, readonly useIcon: boolean = false) {
     }
 
     public get id(): string {
@@ -38,7 +39,7 @@ export class FolderTreeItem implements IAzureParentTreeItem {
         const webAppClient: WebSiteManagementClient = nodeUtils.getWebSiteClient(node);
         const kuduClient: KuduClient = await this.siteWrapper.getKuduClient(webAppClient);
 
-        const fileList = await kuduClient.vfs.getItem(this.path);
+        const fileList = await kuduClient.vfs.getItem(this.folderPath);
         return fileList.map((file: kuduFile) => {
             return file.mime === 'inode/directory' ?
                 // truncate the /home of the path

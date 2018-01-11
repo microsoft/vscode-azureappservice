@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 import * as vscode from 'vscode';
 
 import { Event, EventEmitter, ProviderResult, TreeDataProvider, TreeItem } from 'vscode';
@@ -37,9 +42,7 @@ export class LoadedScriptsProvider implements TreeDataProvider<BaseTreeItem> {
                 sessionRoot.addPath(<Source>event.body);
 
                 clearTimeout(timeout);
-                timeout = setTimeout(() => {
-                    this._onDidChangeTreeData.fire(undefined);
-                },                   300);
+                timeout = setTimeout(() => { this._onDidChangeTreeData.fire(undefined); }, 300);
             }
 
         }));
