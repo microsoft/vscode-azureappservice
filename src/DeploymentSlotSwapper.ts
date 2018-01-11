@@ -6,7 +6,7 @@
 import * as vscode from 'vscode';
 import { IAzureNode } from 'vscode-azureextensionui';
 import { DeploymentSlotTreeItem } from './explorer/DeploymentSlotTreeItem';
-import { SwapStep } from './SwapStep';
+import { SwapSlotStep } from './SwapSlotStep';
 import { WizardBase } from './wizard';
 
 export class DeploymentSlotSwapper extends WizardBase {
@@ -18,7 +18,7 @@ export class DeploymentSlotSwapper extends WizardBase {
     }
 
     protected initSteps(): void {
-        this.steps.push(new SwapStep(this, this.slot));
+        this.steps.push(new SwapSlotStep(this, this.slot));
     }
 
     protected beforeExecute(): void {

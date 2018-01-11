@@ -12,7 +12,7 @@ import { IQuickPickItemWithData } from './util';
 import { nodeUtils } from './utils/nodeUtils';
 import { WizardBase, WizardStep } from './wizard';
 
-export class SwapStep extends WizardStep {
+export class SwapSlotStep extends WizardStep {
     private _subscription: SubscriptionModels.Subscription;
     private _sourceSlotNode: IAzureNode<DeploymentSlotTreeItem>;
     private targetSlot: DeploymentSlotTreeItem | undefined;
