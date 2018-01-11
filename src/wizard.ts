@@ -34,7 +34,7 @@ export abstract class WizardBase {
             try {
                 await step.prompt();
             } catch (err) {
-                this.onError(properties, err, step);
+                this.onError(properties, <Error>err, step);
             }
         }
 
@@ -59,7 +59,7 @@ export abstract class WizardBase {
                 this.beforeExecute(step, i);
                 await this.steps[i].execute();
             } catch (err) {
-                this.onError(properties, err, step);
+                this.onError(properties, <Error>err, step);
             }
         }
 
