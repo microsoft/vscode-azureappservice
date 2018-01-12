@@ -27,8 +27,18 @@ export class FileEditor extends BaseEditor<IAzureNode<FileTreeItem>> {
         const webAppClient = nodeUtils.getWebSiteClient(node);
         const publishingCredential = await node.treeItem.siteWrapper.getWebAppPublishCredential(webAppClient);
         const kuduClient = new KuduClient(node.treeItem.siteWrapper.appName, publishingCredential.publishingUserName, publishingCredential.publishingPassword);
-
-        return await kuduClient.getFile(node.treeItem.path);
+        const file = await kuduClient.getFile(node.treeItem.path);
+        let error;
+        try {
+            // Kudu returns errors as a JSON string rather than an error
+            error = JSON.parse(file);
+        } finally {
+            if (error && error.Message && error.Message.indexOf(`${node.treeItem.path}' not found.`) > -1) {
+                // will only throw an error if the path
+                throw new Error(error.Message);
+            }
+            return file;
+        }
     }
 
     public async getSize(_node: IAzureNode<FileTreeItem>): Promise<number> {
