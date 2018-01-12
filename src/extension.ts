@@ -64,8 +64,8 @@ export function activate(context: vscode.ExtensionContext): void {
 
     const actionHandler: AzureActionHandler = new AzureActionHandler(context, outputChannel, reporter);
 
-    actionHandler.registerCommand('appService.Refresh', (node?: IAzureNode) => tree.refresh(node));
-    actionHandler.registerCommand('appService.LoadMore', (node?: IAzureNode) => tree.loadMore(node));
+    actionHandler.registerCommand('appService.Refresh', async (node?: IAzureNode) => await tree.refresh(node));
+    actionHandler.registerCommand('appService.LoadMore', async (node?: IAzureNode) => await tree.loadMore(node));
     actionHandler.registerCommand('appService.Browse', async (node: IAzureNode<SiteTreeItem>) => {
         if (!node) {
             node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
@@ -89,7 +89,7 @@ export function activate(context: vscode.ExtensionContext): void {
         outputChannel.show();
         outputChannel.appendLine(`Starting ${siteType} "${node.treeItem.site.name}"...`);
         await node.treeItem.start(nodeUtils.getWebSiteClient(node));
-        node.refresh();
+        await node.refresh();
         outputChannel.appendLine(`${siteType} "${node.treeItem.site.name}" has been started.`);
     });
     actionHandler.registerCommand('appService.Stop', async (node: IAzureNode<SiteTreeItem>) => {
@@ -101,10 +101,10 @@ export function activate(context: vscode.ExtensionContext): void {
         outputChannel.show();
         outputChannel.appendLine(`Stopping ${siteType} "${node.treeItem.site.name}"...`);
         await node.treeItem.stop(nodeUtils.getWebSiteClient(node));
-        node.refresh();
+        await node.refresh();
         outputChannel.appendLine(`${siteType} "${node.treeItem.site.name}" has been stopped. App Service plan charges still apply.`);
 
-        logPointsManager.onAppServiceSiteClosed(node.treeItem.site);
+        await logPointsManager.onAppServiceSiteClosed(node.treeItem.site);
     });
     actionHandler.registerCommand('appService.Restart', async (node: IAzureNode<SiteTreeItem>) => {
         if (!node) {
@@ -116,10 +116,10 @@ export function activate(context: vscode.ExtensionContext): void {
         outputChannel.show();
         outputChannel.appendLine(`Restarting ${siteType} "${node.treeItem.site.name}"...`);
         await node.treeItem.restart(client);
-        node.refresh();
+        await node.refresh();
         outputChannel.appendLine(`${siteType} "${node.treeItem.site.name}" has been restarted.`);
 
-        logPointsManager.onAppServiceSiteClosed(node.treeItem.site);
+        await logPointsManager.onAppServiceSiteClosed(node.treeItem.site);
     });
     actionHandler.registerCommand('appService.Delete', async (node: IAzureNode<SiteTreeItem>) => {
         if (!node) {
@@ -188,9 +188,9 @@ export function activate(context: vscode.ExtensionContext): void {
             node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
         }
 
-        await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, p => {
+        await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async p => {
             p.report({ message: 'Generating script...' });
-            return node.treeItem.generateDeploymentScript(node);
+            await node.treeItem.generateDeploymentScript(node);
         });
     });
     actionHandler.registerCommand('deploymentSlots.CreateSlot', async (node: IAzureParentNode<DeploymentSlotsTreeItem>) => {
@@ -253,9 +253,9 @@ export function activate(context: vscode.ExtensionContext): void {
         const client: WebSiteManagementClient = nodeUtils.getWebSiteClient(node);
         const enableButton: vscode.MessageItem = { title: 'Yes' };
         const notNowButton: vscode.MessageItem = { title: 'Not Now', isCloseAffordance: true };
-        const isEnabled = await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, p => {
+        const isEnabled = await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async p => {
             p.report({ message: 'Checking container diagnostics settings...' });
-            return node.treeItem.isHttpLogsEnabled(client);
+            return await node.treeItem.isHttpLogsEnabled(client);
         });
 
         if (!isEnabled && enableButton === await vscode.window.showWarningMessage('Do you want to enable logging and restart this container?', enableButton, notNowButton)) {
@@ -292,7 +292,7 @@ export function activate(context: vscode.ExtensionContext): void {
         await fileEditor.showEditor(node);
     });
 
-    actionHandler.registerEvent('appService.fileEditor.onDidSaveTextDocument', vscode.workspace.onDidSaveTextDocument, (trackTelemetry: () => void, doc: vscode.TextDocument) => fileEditor.onDidSaveTextDocument(trackTelemetry, context.globalState, doc));
+    actionHandler.registerEvent('appService.fileEditor.onDidSaveTextDocument', vscode.workspace.onDidSaveTextDocument, async (trackTelemetry: () => void, doc: vscode.TextDocument) => await fileEditor.onDidSaveTextDocument(trackTelemetry, context.globalState, doc));
 }
 
 // tslint:disable-next-line:no-empty

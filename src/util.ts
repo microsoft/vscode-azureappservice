@@ -26,11 +26,11 @@ export function extractDeploymentSlotName(site: WebSiteModels.Site): string | un
     return isSiteDeploymentSlot(site) ? site.name.substring(site.name.lastIndexOf('/') + 1) : undefined;
 }
 
-export function getWebAppPublishCredential(webSiteManagementClient: WebSiteManagementClient, site: WebSiteModels.Site): Promise<WebSiteModels.User> {
+export async function getWebAppPublishCredential(webSiteManagementClient: WebSiteManagementClient, site: WebSiteModels.Site): Promise<WebSiteModels.User> {
     const webApps = webSiteManagementClient.webApps;
     const siteName = extractSiteName(site);
     const slotName = extractDeploymentSlotName(site);
-    return isSiteDeploymentSlot(site) ? webApps.listPublishingCredentialsSlot(site.resourceGroup, siteName, slotName) : webApps.listPublishingCredentials(site.resourceGroup, siteName);
+    return isSiteDeploymentSlot(site) ? await webApps.listPublishingCredentialsSlot(site.resourceGroup, siteName, slotName) : await webApps.listPublishingCredentials(site.resourceGroup, siteName);
 }
 
 // Output channel for the extension
