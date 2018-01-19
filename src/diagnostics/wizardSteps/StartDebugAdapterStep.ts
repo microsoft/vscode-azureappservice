@@ -20,7 +20,7 @@ export class StartDebugAdapterStep extends WizardStep {
 
             vscode.commands.executeCommand('workbench.view.debug');
         });
-        const folder = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0] : undefined;
+        const folder = undefined; // For logpoints scenarios, workspace folder is always undefined
         await vscode.debug.startDebugging(folder, {
             type: "jsLogpoints",
             name: siteName,
