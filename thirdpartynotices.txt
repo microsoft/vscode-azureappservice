@@ -5,7 +5,13 @@ This project incorporates material from the projects listed below.  The original
 and the license under which Microsoft received such material are set out below. Microsoft reserves
 all other rights not expressly granted, whether by implication, estoppel or otherwise.
 
-1. opn version 5.1.0 (https://github.com/sindresorhus/opn
+1. opn (https://github.com/sindresorhus/opn)
+2. kudu-api (https://github.com/itsananderson/kudu-api/)
+3. request (https://github.com/request/request)
+4. fs-extra (https://github.com/jprichardson/node-fs-extra)
+
+opn NOTICES BEGIN HERE
+=============================
 
 The MIT License (MIT)
 
@@ -29,7 +35,11 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 
-2. kudu-api version 1.4.1 (https://github.com/itsananderson/kudu-api/)
+END OF opn NOTICES AND INFORMATION
+==================================
+
+kudu-api NOTICES BEGIN HERE
+=============================
 
 The MIT License (MIT)
 
@@ -53,32 +63,11 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-3. node-archiver version 2.0.3 (https://github.com/archiverjs/node-archiver)
+END OF kudu-api NOTICES AND INFORMATION
+==================================
 
-Copyright (c) 2012-2014 Chris Talkington, contributors.
-
-Permission is hereby granted, free of charge, to any person
-obtaining a copy of this software and associated documentation
-files (the "Software"), to deal in the Software without
-restriction, including without limitation the rights to use,
-copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the
-Software is furnished to do so, subject to the following
-conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
-OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
-NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
-HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
-WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
-FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
-OTHER DEALINGS IN THE SOFTWARE.
-
-4. request version 2.83.0 (https://github.com/request/request)
+request NOTICES BEGIN HERE
+=============================
 
 Apache License
 
@@ -234,30 +223,11 @@ against, such Contributor by reason of your accepting any such warranty or addit
 
 END OF TERMS AND CONDITIONS
 
-5. simple-git version 1.77.0 (https://github.com/steveukx/git-js)
+END OF request NOTICES AND INFORMATION
+==================================
 
-The MIT License (MIT)
-
-Copyright (c) 2015 Steve King
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of
-this software and associated documentation files (the "Software"), to deal in
-the Software without restriction, including without limitation the rights to
-use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of
-the Software, and to permit persons to whom the Software is furnished to do so,
-subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
-FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
-COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
-IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-6. node-fs-extra version 4.0.2 (https://github.com/jprichardson/node-fs-extra)
+fs-extra NOTICES BEGIN HERE
+=============================
 
 (The MIT License)
 
@@ -274,3 +244,6 @@ THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
 OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
  ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+END OF fs-extra NOTICES AND INFORMATION
+==================================
