@@ -5,7 +5,7 @@
 
 import * as vscode from 'vscode';
 import { BaseEditor, IAzureNode } from 'vscode-azureextensionui';
-import { KuduClient } from '../../KuduClient';
+import KuduClient from 'vscode-azurekudu';
 import { getOutputChannel } from '../../util';
 import { nodeUtils } from '../../utils/nodeUtils';
 import { FileTreeItem } from '../FileTreeItem';
@@ -25,10 +25,11 @@ export class FileEditor extends BaseEditor<IAzureNode<FileTreeItem>> {
 
     public async getData(node: IAzureNode<FileTreeItem>): Promise<string> {
         const webAppClient = nodeUtils.getWebSiteClient(node);
-        const publishingCredential = await node.treeItem.siteWrapper.getWebAppPublishCredential(webAppClient);
-        const kuduClient = new KuduClient(node.treeItem.siteWrapper.appName, publishingCredential.publishingUserName, publishingCredential.publishingPassword);
+        const kuduClient: KuduClient = await node.treeItem.siteWrapper.getKuduClient(webAppClient);
+        // Kudu response is structured as a response.body
+        return (await kuduClient.vfs.getItemWithHttpOperationResponse(node.treeItem.path)).response.body;
 
-        return await kuduClient.getFile(node.treeItem.path);
+
     }
 
     public async getSize(_node: IAzureNode<FileTreeItem>): Promise<number> {
@@ -39,13 +40,12 @@ export class FileEditor extends BaseEditor<IAzureNode<FileTreeItem>> {
 
     public async updateData(node: IAzureNode<FileTreeItem>): Promise<string> {
         const webAppClient = nodeUtils.getWebSiteClient(node);
-        const publishingCredential = await node.treeItem.siteWrapper.getWebAppPublishCredential(webAppClient);
-        const kuduClient = new KuduClient(node.treeItem.siteWrapper.appName, publishingCredential.publishingUserName, publishingCredential.publishingPassword);
+        const kuduClient: KuduClient = await node.treeItem.siteWrapper.getKuduClient(webAppClient);
 
-        const localPath: string = vscode.window.activeTextEditor.document.fileName;
+        const localPath: vscode.TextDocument = vscode.window.activeTextEditor.document.uri.fsPath;
         const destPath: string = node.treeItem.path;
 
-        await kuduClient.uploadFile(localPath, destPath);
+        await kuduClient.vfs.putItem(localPath, destPath);
         return await this.getData(node);
     }
 }
