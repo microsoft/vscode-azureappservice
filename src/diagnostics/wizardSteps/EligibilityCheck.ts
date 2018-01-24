@@ -13,7 +13,7 @@ export class EligibilityCheck extends WizardStep {
 
         const kind = site.kind;
 
-        if (!/linux$/.test(kind)) {
+        if (!/(^|,)linux($|,)/.test(kind)) {
             throw new Error('Only Linux App Services are suppored');
         }
 
