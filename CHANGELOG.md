@@ -9,12 +9,8 @@ Happy New Year, everybody!  Welcome to 2018!
 - Link to a great tutorial to get started in the README
 - View and edit a deployment slot's files (feature flag required)
 
-### Removed
-- Tools from the name
-
 ### Fixed
-- [Minor bugs fixed](https://github.com/Microsoft/vscode-azureappservice/pull/275)
-
+- [Bugs fixed](https://github.com/Microsoft/vscode-azureappservice/issues?utf8=%E2%9C%93&q=is%3Aissue+milestone%3A%220.6.0%22+label%3Abug+is%3Aclosed+)
 
 ## 0.5.0 - 2017-12-15
 ### Added
