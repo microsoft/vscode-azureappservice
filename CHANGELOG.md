@@ -1,6 +1,21 @@
 # Change Log
 All notable changes to the "azure-appservice" extension will be documented in this file.
 
+## 0.6.0 - 2018-01-25
+Happy New Year, everybody!  Welcome to 2018!
+
+### Added
+- Auto-browse after web app and slot creation
+- Link to a great tutorial to get started in the README
+- View and edit a deployment slot's files (feature flag required)
+
+### Removed
+- Tools from the name
+
+### Fixed
+- [Minor bugs fixed](https://github.com/Microsoft/vscode-azureappservice/pull/275)
+
+
 ## 0.5.0 - 2017-12-15
 ### Added
 - Configure web app's deployment source from the explorer
