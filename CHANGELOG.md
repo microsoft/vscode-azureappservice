@@ -1,7 +1,7 @@
 # Change Log
 All notable changes to the "azure-appservice" extension will be documented in this file.
 
-## 0.6.0 - 2018-01-25
+## 0.5.1 - 2018-01-25
 Happy New Year, everybody!  Welcome to 2018!
 
 ### Added
