@@ -8,7 +8,7 @@ import * as path from 'path';
 import { SiteWrapper } from 'vscode-azureappservice';
 import { IAzureNode, IAzureParentTreeItem, IAzureTreeItem } from 'vscode-azureextensionui';
 import KuduClient from 'vscode-azurekudu';
-import { kuduFile } from '../KuduClient';
+import { kuduFile, kuduIncomingMessage } from '../KuduClient';
 import { nodeUtils } from '../utils/nodeUtils';
 import { FileTreeItem } from './FileTreeItem';
 
@@ -38,14 +38,9 @@ export class FolderTreeItem implements IAzureParentTreeItem {
     public async loadMoreChildren(node: IAzureNode<FolderTreeItem>): Promise<IAzureTreeItem[]> {
         const webAppClient: WebSiteManagementClient = nodeUtils.getWebSiteClient(node);
         const kuduClient: KuduClient = await this.siteWrapper.getKuduClient(webAppClient);
-
-        const file = await new Promise((resolve, reject) => {
-            kuduClient.vfs.getItem(this.folderPath, undefined, (err, result, request, response) => {
-                resolve(response.body)
-            });
-        });
-
-        const fileList = JSON.parse(file);
+        const httpResponse: kuduIncomingMessage = (await kuduClient.vfs.getItemWithHttpOperationResponse(this.folderPath)).response;
+        // response contains a body with a JSON parseable string
+        const fileList = JSON.parse(httpResponse.body);
         return fileList.map((file: kuduFile) => {
             return file.mime === 'inode/directory' ?
                 // truncate the /home of the path

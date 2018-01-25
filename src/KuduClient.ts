@@ -5,9 +5,11 @@
 
 import * as kuduApi from 'kudu-api';
 import * as request from 'request';
+import { IncomingMessage } from 'http';
 
 export type kuduFile = { mime: string, name: string, path: string };
 export type webJob = { name: string, Message: string };
+export type kuduIncomingMessage = IncomingMessage & { body: string };
 
 /*
     DEPRECATED - Use 'vscode-azureappservice' or 'vscode-azurekudu' npm package instead
