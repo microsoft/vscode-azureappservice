@@ -14,7 +14,7 @@ export class EligibilityCheck extends WizardStep {
         const kind = site.kind;
 
         if (!/(^|,)linux($|,)/.test(kind)) {
-            throw new Error('Only Linux App Services are suppored');
+            throw new Error('Only Linux App Services are supported');
         }
 
         const siteClient = this._wizard.websiteManagementClient;
