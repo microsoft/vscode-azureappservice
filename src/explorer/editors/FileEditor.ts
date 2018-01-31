@@ -4,11 +4,14 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
+import * as fs from 'fs';
 import { BaseEditor, IAzureNode } from 'vscode-azureextensionui';
-import { KuduClient } from '../../KuduClient';
+import KuduClient from 'vscode-azurekudu';
 import { getOutputChannel } from '../../util';
+import { kuduIncomingMessage } from '../../KuduClient';
 import { nodeUtils } from '../../utils/nodeUtils';
 import { FileTreeItem } from '../FileTreeItem';
+import { Readable } from 'stream';
 
 export class FileEditor extends BaseEditor<IAzureNode<FileTreeItem>> {
     constructor() {
@@ -25,10 +28,12 @@ export class FileEditor extends BaseEditor<IAzureNode<FileTreeItem>> {
 
     public async getData(node: IAzureNode<FileTreeItem>): Promise<string> {
         const webAppClient = nodeUtils.getWebSiteClient(node);
-        const publishingCredential = await node.treeItem.siteWrapper.getWebAppPublishCredential(webAppClient);
-        const kuduClient = new KuduClient(node.treeItem.siteWrapper.appName, publishingCredential.publishingUserName, publishingCredential.publishingPassword);
-
-        return await kuduClient.getFile(node.treeItem.path);
+        const kuduClient: KuduClient = await node.treeItem.siteWrapper.getKuduClient(webAppClient);
+        // Kudu response is structured as a response.body
+        const httpResponse: kuduIncomingMessage = <kuduIncomingMessage>(await kuduClient.vfs.getItemWithHttpOperationResponse(node.treeItem.path)).response;
+        // this is the only time that the file's etag is exposed; it is required for uploading the file
+        node.treeItem.etag = <string>httpResponse.headers.etag; // this should not be a string[]
+        return httpResponse.body;
     }
 
     public async getSize(_node: IAzureNode<FileTreeItem>): Promise<number> {
@@ -39,13 +44,10 @@ export class FileEditor extends BaseEditor<IAzureNode<FileTreeItem>> {
 
     public async updateData(node: IAzureNode<FileTreeItem>): Promise<string> {
         const webAppClient = nodeUtils.getWebSiteClient(node);
-        const publishingCredential = await node.treeItem.siteWrapper.getWebAppPublishCredential(webAppClient);
-        const kuduClient = new KuduClient(node.treeItem.siteWrapper.appName, publishingCredential.publishingUserName, publishingCredential.publishingPassword);
-
-        const localPath: string = vscode.window.activeTextEditor.document.fileName;
+        const kuduClient: KuduClient = await node.treeItem.siteWrapper.getKuduClient(webAppClient);
+        const localFile: Readable = fs.createReadStream(vscode.window.activeTextEditor.document.uri.fsPath);
         const destPath: string = node.treeItem.path;
-
-        await kuduClient.uploadFile(localPath, destPath);
+        await kuduClient.vfs.putItem(localFile, destPath, { customHeaders: { ['If-Match']: node.treeItem.etag } });
         return await this.getData(node);
     }
 }
