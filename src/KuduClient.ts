@@ -5,9 +5,11 @@
 
 import * as kuduApi from 'kudu-api';
 import * as request from 'request';
+import { IncomingMessage } from 'http';
 
 export type kuduFile = { mime: string, name: string, path: string };
 export type webJob = { name: string, Message: string };
+export type kuduIncomingMessage = IncomingMessage & { body: string };
 
 /*
     DEPRECATED - Use 'vscode-azureappservice' or 'vscode-azurekudu' npm package instead
@@ -22,62 +24,6 @@ export class KuduClient {
             username: publishingUserName,
             password: publishingPassword,
             domain: this.domain
-        });
-    }
-
-    getFile(path: string): Promise<string> {
-        return new Promise<string>((resolve, reject) => {
-            this._api.vfs.getFile(path, (err, body) => {
-                if (err) {
-                    var errorMessage = [];
-                    errorMessage[0] = { name: err.Message };
-                    reject(errorMessage);
-                    // format error to be processed as a NodeBase
-                } else {
-                    // if file is not found, kudu returns an Object rather than an array
-                    if (body.Message) {
-                        body = [{ name: body.Message, path: 'Error' }];
-                    }
-                    resolve(body);
-                }
-            });
-        });
-    }
-
-    listFiles(path: string): Promise<kuduFile[]> {
-        return new Promise<kuduFile[]>((resolve, reject) => {
-            this._api.vfs.listFiles(path, (err, body) => {
-                if (err) {
-                    var errorMessage = [];
-                    errorMessage[0] = { name: err.Message };
-                    reject(errorMessage);
-                    // format error to be processed as a NodeBase
-                } else {
-                    // if file is not found, kudu returns an Object rather than an array
-                    if (body.Message) {
-                        body = [{ name: body.Message, path: 'Error' }];
-                    }
-                    resolve(body);
-                }
-            });
-        });
-    }
-    uploadFile(localPath: string, destPath: string) {
-        return new Promise<kuduFile[]>((resolve, reject) => {
-            this._api.vfs.uploadFile(localPath, destPath, '*', (err, body) => {
-                if (err) {
-                    var errorMessage = [];
-                    errorMessage[0] = { name: err.Message };
-                    reject(errorMessage);
-                    // format error to be processed as a NodeBase
-                } else {
-                    // if file is not found, kudu returns an Object rather than an array
-                    if (body.Message) {
-                        body = [{ name: body.Message, path: 'Error' }];
-                    }
-                    resolve(body);
-                }
-            });
         });
     }
 
