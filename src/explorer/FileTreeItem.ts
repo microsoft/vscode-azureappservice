@@ -10,7 +10,7 @@ export class FileTreeItem implements IAzureTreeItem {
     public static contextValue: string = 'file';
     public readonly contextValue: string = FileTreeItem.contextValue;
     public readonly commandId: string = 'appService.showFile';
-    private _etag: string | undefined = undefined; // cannot create find _etag on creation due to Kudu API calls
+    private _etag: string | undefined = undefined; // cannot create _etag on creation due to Kudu API calls
 
     constructor(readonly siteWrapper: SiteWrapper, readonly label: string, readonly path: string) {
     }

@@ -31,6 +31,7 @@ export class FileEditor extends BaseEditor<IAzureNode<FileTreeItem>> {
         const kuduClient: KuduClient = await node.treeItem.siteWrapper.getKuduClient(webAppClient);
         // Kudu response is structured as a response.body
         const httpResponse: kuduIncomingMessage = <kuduIncomingMessage>(await kuduClient.vfs.getItemWithHttpOperationResponse(node.treeItem.path)).response;
+        // this is the only time that the file's etag is exposed; it is required for uploading the file
         node.treeItem.etag = <string>httpResponse.headers.etag; // this should not be a string[]
         return httpResponse.body;
     }
