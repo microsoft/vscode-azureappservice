@@ -1,4 +1,4 @@
-# Azure App Services for Visual Studio Code (Preview)
+# Azure App Services for Visual Studio Code (Preview) [![Build Status](https://travis-ci.org/Microsoft/vscode-azureappservice.svg?branch=master)](https://travis-ci.org/Microsoft/vscode-azureappservice) [![Release Status](https://img.shields.io/github/tag/Microsoft/vscode-azureappservice.svg?label=prerelease&colorB=0e7fc0)](https://github.com/Microsoft/vscode-azureappservice/releases)
 The Azure App Services extension for VS Code lets you quickly browse, create, manage, and deploy Azure App Service websites.
 
 Check out this [deployment tutorial](https://code.visualstudio.com/tutorials/app-service-extension/getting-started) to get started with deploying to Azure App Service on Linux.
