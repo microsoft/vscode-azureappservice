@@ -199,6 +199,7 @@ export function activate(context: vscode.ExtensionContext): void {
         }
 
         const createdSlot = <IAzureNode<SiteTreeItem>>await node.createChild();
+        tree.refresh(node);
 
         // prompt user to deploy to newly created web app
         const yesButton: vscode.MessageItem = { title: 'Yes' };
