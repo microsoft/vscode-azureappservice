@@ -134,7 +134,7 @@ export function activate(context: vscode.ExtensionContext): void {
         }
 
         const createdApp = <IAzureNode<WebAppTreeItem>>await node.createChild();
-        tree.refresh();
+        await tree.refresh();
         // prompt user to deploy to newly created web app
         const yesButton: vscode.MessageItem = { title: 'Yes' };
         const noButton: vscode.MessageItem = { title: 'No', isCloseAffordance: true };
@@ -199,7 +199,7 @@ export function activate(context: vscode.ExtensionContext): void {
         }
 
         const createdSlot = <IAzureNode<SiteTreeItem>>await node.createChild();
-        tree.refresh(node);
+        await tree.refresh(node);
 
         // prompt user to deploy to newly created web app
         const yesButton: vscode.MessageItem = { title: 'Yes' };
