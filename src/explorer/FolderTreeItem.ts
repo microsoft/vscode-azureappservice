@@ -38,7 +38,7 @@ export class FolderTreeItem implements IAzureParentTreeItem {
     public async loadMoreChildren(node: IAzureNode<FolderTreeItem>): Promise<IAzureTreeItem[]> {
         const webAppClient: WebSiteManagementClient = nodeUtils.getWebSiteClient(node);
         const kuduClient: KuduClient = await this.siteWrapper.getKuduClient(webAppClient);
-        const httpResponse: kuduIncomingMessage = (await kuduClient.vfs.getItemWithHttpOperationResponse(this.folderPath)).response;
+        const httpResponse: kuduIncomingMessage = <kuduIncomingMessage>(await kuduClient.vfs.getItemWithHttpOperationResponse(this.folderPath)).response;
         // response contains a body with a JSON parseable string
         const fileList = JSON.parse(httpResponse.body);
         return fileList.map((file: kuduFile) => {

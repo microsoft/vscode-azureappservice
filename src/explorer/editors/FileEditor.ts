@@ -4,11 +4,14 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
+import * as fs from 'fs';
 import { BaseEditor, IAzureNode } from 'vscode-azureextensionui';
 import KuduClient from 'vscode-azurekudu';
 import { getOutputChannel } from '../../util';
+import { kuduIncomingMessage } from '../../KuduClient';
 import { nodeUtils } from '../../utils/nodeUtils';
 import { FileTreeItem } from '../FileTreeItem';
+import { Readable } from 'stream';
 
 export class FileEditor extends BaseEditor<IAzureNode<FileTreeItem>> {
     constructor() {
@@ -27,9 +30,9 @@ export class FileEditor extends BaseEditor<IAzureNode<FileTreeItem>> {
         const webAppClient = nodeUtils.getWebSiteClient(node);
         const kuduClient: KuduClient = await node.treeItem.siteWrapper.getKuduClient(webAppClient);
         // Kudu response is structured as a response.body
-        return (await kuduClient.vfs.getItemWithHttpOperationResponse(node.treeItem.path)).response.body;
-
-
+        const httpResponse: kuduIncomingMessage = <kuduIncomingMessage>(await kuduClient.vfs.getItemWithHttpOperationResponse(node.treeItem.path)).response;
+        node.treeItem.etag = <string>httpResponse.headers.etag; // this should not be a string[]
+        return httpResponse.body;
     }
 
     public async getSize(_node: IAzureNode<FileTreeItem>): Promise<number> {
@@ -41,11 +44,9 @@ export class FileEditor extends BaseEditor<IAzureNode<FileTreeItem>> {
     public async updateData(node: IAzureNode<FileTreeItem>): Promise<string> {
         const webAppClient = nodeUtils.getWebSiteClient(node);
         const kuduClient: KuduClient = await node.treeItem.siteWrapper.getKuduClient(webAppClient);
-
-        const localPath: vscode.TextDocument = vscode.window.activeTextEditor.document.uri.fsPath;
+        const localFile: Readable = fs.createReadStream(vscode.window.activeTextEditor.document.uri.fsPath);
         const destPath: string = node.treeItem.path;
-
-        await kuduClient.vfs.putItem(localPath, destPath);
+        await kuduClient.vfs.putItem(localFile, destPath, { customHeaders: { ['If-Match']: node.treeItem.etag } });
         return await this.getData(node);
     }
 }
