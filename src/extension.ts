@@ -23,8 +23,8 @@ import { LoadedScriptsProvider, openScript } from './explorer/loadedScriptsExplo
 import { getAppServicePlan, SiteTreeItem } from './explorer/SiteTreeItem';
 import { WebAppProvider } from './explorer/WebAppProvider';
 import { WebAppTreeItem } from './explorer/WebAppTreeItem';
-import { getPackageInfo, IPackageInfo } from './telemetry/reporter';
 import * as util from "./util";
+import { getPackageInfo, IPackageInfo } from './utils/IPackageInfo';
 import { nodeUtils } from './utils/nodeUtils';
 
 // tslint:disable-next-line:export-name
