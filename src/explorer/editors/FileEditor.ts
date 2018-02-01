@@ -3,15 +3,15 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as vscode from 'vscode';
 import * as fs from 'fs';
+import { Readable } from 'stream';
+import * as vscode from 'vscode';
 import { BaseEditor, IAzureNode } from 'vscode-azureextensionui';
 import KuduClient from 'vscode-azurekudu';
-import { getOutputChannel } from '../../util';
 import { kuduIncomingMessage } from '../../KuduClient';
+import { getOutputChannel } from '../../util';
 import { nodeUtils } from '../../utils/nodeUtils';
 import { FileTreeItem } from '../FileTreeItem';
-import { Readable } from 'stream';
 
 export class FileEditor extends BaseEditor<IAzureNode<FileTreeItem>> {
     constructor() {

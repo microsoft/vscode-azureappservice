@@ -68,7 +68,8 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
         const isSsl = this.site.hostNameSslStates.findIndex(value =>
             value.name === defaultHostName && value.sslState === `Enabled`);
         // tslint:disable-next-line:no-http-string
-        const uri = `${isSsl ? 'https://' : 'http://'}${defaultHostName}`;
+        const uri = `${isSsl !== -1 ? 'https://' : 'http://'}${defaultHostName}`;
+        // tslint:disable-next-line:no-unsafe-any
         opn(uri);
     }
 
@@ -101,9 +102,7 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
         this._logStream = kuduClient.getLogStream().on('data', chunk => {
             this._logStreamOutputChannel.append(chunk.toString());
         }).on('error', err => {
-            util.sendTelemetry('ConnectToLogStreamError', { name: err.name, message: err.message });
-            this._logStreamOutputChannel.appendLine('Error connecting to log-streaming service:');
-            this._logStreamOutputChannel.appendLine(err.message);
+            throw (err);
         }).on('complete', () => {
             this._logStreamOutputChannel.appendLine('Disconnected from log-streaming service.');
         });

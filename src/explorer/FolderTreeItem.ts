@@ -40,7 +40,8 @@ export class FolderTreeItem implements IAzureParentTreeItem {
         const kuduClient: KuduClient = await this.siteWrapper.getKuduClient(webAppClient);
         const httpResponse: kuduIncomingMessage = <kuduIncomingMessage>(await kuduClient.vfs.getItemWithHttpOperationResponse(this.folderPath)).response;
         // response contains a body with a JSON parseable string
-        const fileList = JSON.parse(httpResponse.body);
+        // tslint:disable-next-line:no-unsafe-any
+        const fileList: kuduFile[] = JSON.parse(httpResponse.body);
         return fileList.map((file: kuduFile) => {
             return file.mime === 'inode/directory' ?
                 // truncate the /home of the path

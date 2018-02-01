@@ -68,6 +68,7 @@ export class WebAppTreeItem extends SiteTreeItem {
 
     public openCdInPortal(node: IAzureNode): void {
         const deepLink = `${node.environment.portalUrl}/${node.tenantId}/#resource${this.site.id}/vstscd`;
+        // tslint:disable-next-line:no-unsafe-any
         opn(deepLink);
     }
 
