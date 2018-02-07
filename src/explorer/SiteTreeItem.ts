@@ -65,10 +65,11 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
 
     public browse(): void {
         const defaultHostName = this.site.defaultHostName;
-        const isSsl = this.site.hostNameSslStates.findIndex(value =>
+        const isSsl: boolean = this.site.hostNameSslStates.some(value =>
             value.name === defaultHostName && value.sslState === `Enabled`);
         // tslint:disable-next-line:no-http-string
         const uri = `${isSsl ? 'https://' : 'http://'}${defaultHostName}`;
+        // tslint:disable-next-line:no-unsafe-any
         opn(uri);
     }
 

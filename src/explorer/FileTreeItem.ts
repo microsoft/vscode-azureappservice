@@ -10,7 +10,7 @@ export class FileTreeItem implements IAzureTreeItem {
     public static contextValue: string = 'file';
     public readonly contextValue: string = FileTreeItem.contextValue;
     public readonly commandId: string = 'appService.showFile';
-    public etag: string | undefined = undefined; // cannot create etag on creation due to Kudu API calls
+    public etag: string | undefined; // cannot create etag on creation due to Kudu API calls
 
     constructor(readonly siteWrapper: SiteWrapper, readonly label: string, readonly path: string) {
     }
@@ -19,4 +19,3 @@ export class FileTreeItem implements IAzureTreeItem {
         return `${this.siteWrapper.id}/File`;
     }
 }
-

@@ -7,7 +7,7 @@ import WebSiteManagementClient = require('azure-arm-website');
 import * as WebSiteModels from 'azure-arm-website/lib/models';
 import * as vscode from 'vscode';
 import { UserCancelledError } from 'vscode-azureextensionui';
-import { reporter } from './telemetry/reporter';
+import { reporter } from './utils/IPackageInfo';
 
 // Web app & deployment slots
 export function isSiteDeploymentSlot(site: WebSiteModels.Site): boolean {
@@ -40,7 +40,6 @@ export function getOutputChannel(): vscode.OutputChannel {
     return outputChannel;
 }
 
-// Telemetry for the extension
 export function sendTelemetry(eventName: string, properties?: { [key: string]: string; }, measures?: { [key: string]: number; }): void {
     if (reporter) {
         reporter.sendTelemetryEvent(eventName, properties, measures);

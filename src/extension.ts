@@ -9,6 +9,7 @@ import WebSiteManagementClient = require('azure-arm-website');
 import * as vscode from 'vscode';
 import { AppSettingsTreeItem, AppSettingTreeItem } from 'vscode-azureappservice';
 import { AzureActionHandler, AzureTreeDataProvider, IAzureNode, IAzureParentNode, TelemetryMeasurements, TelemetryProperties, UserCancelledError } from 'vscode-azureextensionui';
+import TelemetryReporter from 'vscode-extension-telemetry';
 import { DeploymentSlotSwapper } from './DeploymentSlotSwapper';
 import { LogPointsManager } from './diagnostics/LogPointsManager';
 import { LogPointsSessionWizard } from './diagnostics/LogPointsSessionWizard';
@@ -22,14 +23,16 @@ import { LoadedScriptsProvider, openScript } from './explorer/loadedScriptsExplo
 import { getAppServicePlan, SiteTreeItem } from './explorer/SiteTreeItem';
 import { WebAppProvider } from './explorer/WebAppProvider';
 import { WebAppTreeItem } from './explorer/WebAppTreeItem';
-import { Reporter, reporter } from './telemetry/reporter';
 import * as util from "./util";
+import { getPackageInfo, IPackageInfo } from './utils/IPackageInfo';
 import { nodeUtils } from './utils/nodeUtils';
 
 // tslint:disable-next-line:export-name
 // tslint:disable-next-line:max-func-body-length
 export function activate(context: vscode.ExtensionContext): void {
-    context.subscriptions.push(new Reporter(context));
+    const packageInfo: IPackageInfo = getPackageInfo(context);
+    const reporter = new TelemetryReporter(packageInfo.name, packageInfo.version, packageInfo.aiKey);
+    context.subscriptions.push(reporter);
 
     const outputChannel = util.getOutputChannel();
     context.subscriptions.push(outputChannel);

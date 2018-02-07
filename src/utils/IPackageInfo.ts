@@ -9,6 +9,7 @@ export let reporter: TelemetryReporter;
 
 export class Reporter extends vscode.Disposable {
     constructor(ctx: vscode.ExtensionContext) {
+        //tslint:disable-next-line:promise-function-async
         super(() => reporter.dispose());
 
         const packageInfo = getPackageInfo(ctx);
@@ -18,15 +19,15 @@ export class Reporter extends vscode.Disposable {
     }
 }
 
-interface IPackageInfo {
+export interface IPackageInfo {
     name: string;
     version: string;
     aiKey: string;
 }
 
-function getPackageInfo(context: vscode.ExtensionContext): IPackageInfo | undefined {
+export function getPackageInfo(context: vscode.ExtensionContext): IPackageInfo | undefined {
     // tslint:disable-next-line:non-literal-require
-    const extensionPackage = require(context.asAbsolutePath('./package.json')); // context.asAbsolutePath here is trusted
+    const extensionPackage: IPackageInfo = <IPackageInfo>require(context.asAbsolutePath('./package.json')); // context.asAbsolutePath here is trusted
     if (extensionPackage) {
         return {
             name: extensionPackage.name,
