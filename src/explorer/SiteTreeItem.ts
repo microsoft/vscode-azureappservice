@@ -102,7 +102,9 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
         this._logStream = kuduClient.getLogStream().on('data', chunk => {
             this._logStreamOutputChannel.append(chunk.toString());
         }).on('error', err => {
-            throw (err);
+            util.sendTelemetry('ConnectToLogStreamError', { name: err.name, message: err.message });
+            this._logStreamOutputChannel.appendLine('Error connecting to log-streaming service:');
+            this._logStreamOutputChannel.appendLine(err.message);
         }).on('complete', () => {
             this._logStreamOutputChannel.appendLine('Disconnected from log-streaming service.');
         });

@@ -3,6 +3,21 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import * as vscode from 'vscode';
+import TelemetryReporter from 'vscode-extension-telemetry';
+
+export let reporter: TelemetryReporter;
+
+export class Reporter extends vscode.Disposable {
+    constructor(ctx: vscode.ExtensionContext) {
+        //tslint:disable-next-line:promise-function-async
+        super(() => reporter.dispose());
+
+        const packageInfo = getPackageInfo(ctx);
+        if (packageInfo) {
+            reporter = new TelemetryReporter(packageInfo.name, packageInfo.version, packageInfo.aiKey);
+        }
+    }
+}
 
 export interface IPackageInfo {
     name: string;
