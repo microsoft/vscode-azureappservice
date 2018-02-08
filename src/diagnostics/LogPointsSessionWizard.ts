@@ -1,6 +1,6 @@
 import { Site, SiteInstance, User } from 'azure-arm-website/lib/models';
 import * as vscode from 'vscode';
-import { UserCancelledError } from 'vscode-azureextensionui';
+import { AzureActionHandler, UserCancelledError } from 'vscode-azureextensionui';
 import * as util from '../util';
 import { WizardBase } from '../wizard';
 import { createDefaultClient } from './logPointsClient';
@@ -39,7 +39,8 @@ export class LogPointsSessionWizard extends WizardBase {
         public extensionContext: vscode.ExtensionContext,
         output: vscode.OutputChannel,
         public readonly uiTreeItem: IAzureNode<SiteTreeItem>,
-        public readonly websiteManagementClient: WebSiteManagementClient
+        public readonly websiteManagementClient: WebSiteManagementClient,
+        public readonly actionHandler: AzureActionHandler
     ) {
         super(output);
         this.site = uiTreeItem.treeItem.site;

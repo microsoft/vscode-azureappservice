@@ -248,39 +248,50 @@ export function activate(context: vscode.ExtensionContext): void {
 
         await node.deleteNode();
     });
-    actionHandler.registerCommand('diagnostics.OpenLogStream', async (node: IAzureNode<SiteTreeItem>) => {
+    actionHandler.registerCommand('diagnostics.OpenLogStream', async (node?: IAzureNode<SiteTreeItem>) => {
         if (!node) {
             node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
         }
 
-        const client: WebSiteManagementClient = nodeUtils.getWebSiteClient(node);
-        const enableButton: vscode.MessageItem = { title: 'Yes' };
-        const notNowButton: vscode.MessageItem = { title: 'Not Now', isCloseAffordance: true };
-        const isEnabled = await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async p => {
-            p.report({ message: 'Checking container diagnostics settings...' });
-            return await node.treeItem.isHttpLogsEnabled(client);
-        });
+        if (node.treeItem.logStream && node.treeItem.logStream.isConnected) {
+            // tslint:disable-next-line:no-non-null-assertion
+            node.treeItem.logStreamOutputChannel!.show();
+            await vscode.window.showWarningMessage(`The log-streaming service for "${node.treeItem.label}" is already active.`);
+        } else {
+            const client: WebSiteManagementClient = nodeUtils.getWebSiteClient(node);
+            const enableButton: vscode.MessageItem = { title: 'Yes' };
+            const notNowButton: vscode.MessageItem = { title: 'Not Now', isCloseAffordance: true };
+            const isEnabled = await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async p => {
+                p.report({ message: 'Checking container diagnostics settings...' });
+                return await node.treeItem.isHttpLogsEnabled(client);
+            });
 
-        if (!isEnabled && enableButton === await vscode.window.showWarningMessage('Do you want to enable logging and restart this container?', enableButton, notNowButton)) {
-            outputChannel.show();
-            outputChannel.appendLine(`Enabling Logging for "${node.treeItem.site.name}"...`);
-            await node.treeItem.enableHttpLogs(client);
-            await vscode.commands.executeCommand('appService.Restart', node);
+            if (!isEnabled && enableButton === await vscode.window.showWarningMessage(`Do you want to enable application logging for ${node.treeItem.label}?`, enableButton, notNowButton)) {
+                outputChannel.show();
+                outputChannel.appendLine(`Enabling Logging for "${node.treeItem.site.name}"...`);
+                await node.treeItem.enableHttpLogs(client);
+                await vscode.commands.executeCommand('appService.Restart', node);
+            }
+            // Otherwise connect to log stream anyways, users might see similar "log not enabled" message with how to enable link from the stream output.
+            node.treeItem.logStream = await node.treeItem.connectToLogStream(client, actionHandler, context);
+            node.treeItem.logStreamOutputChannel.show();
         }
-        // Otherwise connect to log stream anyways, users might see similar "log not enabled" message with how to enable link from the stream output.
-        await node.treeItem.connectToLogStream(client, context);
     });
-    actionHandler.registerCommand('diagnostics.StopLogStream', async (node: IAzureNode<SiteTreeItem>) => {
+    actionHandler.registerCommand('diagnostics.StopLogStream', async (node?: IAzureNode<SiteTreeItem>) => {
         if (!node) {
             node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
         }
 
-        node.treeItem.stopLogStream();
+        if (node.treeItem.logStream && node.treeItem.logStream.isConnected) {
+            node.treeItem.logStream.dispose();
+        } else {
+            await vscode.window.showWarningMessage(`The log-streaming service for "${node.treeItem.label}" is already disconnected.`);
+        }
     });
     actionHandler.registerCommandWithCustomTelemetry('diagnostics.StartLogPointsSession', async (properties: TelemetryProperties, _measurements: TelemetryMeasurements, node: IAzureNode<SiteTreeItem>) => {
         if (node) {
             const client: WebSiteManagementClient = nodeUtils.getWebSiteClient(node);
-            const wizard = new LogPointsSessionWizard(logPointsManager, context, outputChannel, node, client);
+            const wizard = new LogPointsSessionWizard(logPointsManager, context, outputChannel, node, client, actionHandler);
             await wizard.run(properties);
         }
     });

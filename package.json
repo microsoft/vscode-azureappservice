@@ -159,7 +159,7 @@
             },
             {
                 "command": "diagnostics.OpenLogStream",
-                "title": "View Streaming Logs",
+                "title": "Start Streaming Logs",
                 "category": "Azure App Service"
             },
             {

@@ -6,11 +6,10 @@
 import WebSiteManagementClient = require('azure-arm-website');
 import * as WebSiteModels from 'azure-arm-website/lib/models';
 import * as opn from 'opn';
-import { Request } from 'request';
 import { ExtensionContext, OutputChannel, window } from 'vscode';
-import { SiteWrapper } from 'vscode-azureappservice';
-import { IAzureParentNode, IAzureParentTreeItem, IAzureTreeItem } from 'vscode-azureextensionui';
-import { KuduClient } from '../KuduClient';
+import { ILogStream, SiteWrapper } from 'vscode-azureappservice';
+import { AzureActionHandler, IAzureParentNode, IAzureParentTreeItem, IAzureTreeItem } from 'vscode-azureextensionui';
+import KuduClient from 'vscode-azurekudu';
 import * as util from '../util';
 import { nodeUtils } from '../utils/nodeUtils';
 
@@ -18,10 +17,10 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
     public abstract contextValue: string;
 
     public readonly siteWrapper: SiteWrapper;
+    public logStream: ILogStream | undefined;
+    public logStreamOutputChannel: OutputChannel | undefined;
 
     private readonly _site: WebSiteModels.Site;
-    private _logStreamOutputChannel: OutputChannel | undefined;
-    private _logStream: Request | undefined;
     private _label: string;
 
     public get site(): WebSiteModels.Site {
@@ -85,43 +84,14 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
         await this.siteWrapper.enableHttpLogs(client);
     }
 
-    public async connectToLogStream(client: WebSiteManagementClient, extensionContext: ExtensionContext): Promise<OutputChannel> {
-        const siteName = this.siteWrapper.appName;
-        const user = await util.getWebAppPublishCredential(client, this.site);
-        const kuduClient = new KuduClient(siteName, user.publishingUserName, user.publishingPassword);
-
-        if (!this._logStreamOutputChannel) {
-            this._logStreamOutputChannel = window.createOutputChannel(`${siteName} - Log Stream`);
-            extensionContext.subscriptions.push(this._logStreamOutputChannel);
+    public async connectToLogStream(client: WebSiteManagementClient, actionHandler: AzureActionHandler, context: ExtensionContext): Promise<ILogStream> {
+        const kuduClient: KuduClient = await this.siteWrapper.getKuduClient(client);
+        if (!this.logStreamOutputChannel) {
+            const logStreamoutputChannel: OutputChannel = window.createOutputChannel(`${this.label} - Log Stream`);
+            context.subscriptions.push(logStreamoutputChannel);
+            this.logStreamOutputChannel = logStreamoutputChannel;
         }
-
-        this.stopLogStream();
-        this._logStreamOutputChannel.appendLine('Connecting to log-streaming service...');
-        this._logStreamOutputChannel.show();
-
-        this._logStream = kuduClient.getLogStream().on('data', chunk => {
-            this._logStreamOutputChannel.append(chunk.toString());
-        }).on('error', err => {
-            util.sendTelemetry('ConnectToLogStreamError', { name: err.name, message: err.message });
-            this._logStreamOutputChannel.appendLine('Error connecting to log-streaming service:');
-            this._logStreamOutputChannel.appendLine(err.message);
-        }).on('complete', () => {
-            this._logStreamOutputChannel.appendLine('Disconnected from log-streaming service.');
-        });
-
-        return this._logStreamOutputChannel;
-    }
-
-    public stopLogStream(): void {
-        if (this._logStream) {
-            this._logStream.removeAllListeners();
-            this._logStream.destroy();
-            this._logStream = undefined;
-
-            if (this._logStreamOutputChannel) {
-                this._logStreamOutputChannel.appendLine('Disconnected from log-streaming service.');
-            }
-        }
+        return await this.siteWrapper.startStreamingLogs(kuduClient, actionHandler, this.logStreamOutputChannel);
     }
 
     public async editScmType(client: WebSiteManagementClient): Promise<string> {

@@ -7,7 +7,6 @@ import WebSiteManagementClient = require('azure-arm-website');
 import * as WebSiteModels from 'azure-arm-website/lib/models';
 import * as vscode from 'vscode';
 import { UserCancelledError } from 'vscode-azureextensionui';
-import { reporter } from './utils/IPackageInfo';
 
 // Web app & deployment slots
 export function isSiteDeploymentSlot(site: WebSiteModels.Site): boolean {
@@ -38,12 +37,6 @@ const outputChannel = vscode.window.createOutputChannel("Azure App Service");
 
 export function getOutputChannel(): vscode.OutputChannel {
     return outputChannel;
-}
-
-export function sendTelemetry(eventName: string, properties?: { [key: string]: string; }, measures?: { [key: string]: number; }): void {
-    if (reporter) {
-        reporter.sendTelemetryEvent(eventName, properties, measures);
-    }
 }
 
 // Resource ID

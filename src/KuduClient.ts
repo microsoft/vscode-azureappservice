@@ -3,9 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { IncomingMessage } from 'http';
 import * as kuduApi from 'kudu-api';
 import * as request from 'request';
-import { IncomingMessage } from 'http';
 
 export type kuduFile = { mime: string, name: string, path: string };
 export type webJob = { name: string, Message: string };
@@ -27,11 +27,11 @@ export class KuduClient {
         });
     }
 
-    listAllWebJobs(): Promise<webJob[]> {
+    public listAllWebJobs(): Promise<webJob[]> {
         return new Promise<webJob[]>((resolve, reject) => {
             this._api.webjobs.listAll((err, jobList) => {
                 if (err) {
-                    var errorMessage = [];
+                    const errorMessage = [];
                     errorMessage[0] = { name: err.Message };
                     reject(errorMessage);
                 } else {
@@ -41,14 +41,14 @@ export class KuduClient {
         });
     }
 
-    getLogStream(): request.Request {
+    public getLogStream(): request.Request {
         const baseUrl = `https://${this.webAppName}.${this.domain}/`;
         const headers = {
             Authorization: 'Basic ' + new Buffer(this.publishingUserName + ':' + this.publishingPassword).toString('base64')
         };
         const r = request.defaults({
             baseUrl: baseUrl,
-            headers: headers,
+            headers: headers
         });
         return r('/api/logstream');
     }
