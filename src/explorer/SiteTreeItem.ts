@@ -87,7 +87,7 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
     public async connectToLogStream(client: WebSiteManagementClient, actionHandler: AzureActionHandler, context: ExtensionContext): Promise<ILogStream> {
         const kuduClient: KuduClient = await this.siteWrapper.getKuduClient(client);
         if (!this.logStreamOutputChannel) {
-            const logStreamoutputChannel: OutputChannel = window.createOutputChannel(`${this.label} - Log Stream`);
+            const logStreamoutputChannel: OutputChannel = window.createOutputChannel(`${this.siteWrapper.appName} - Log Stream`);
             context.subscriptions.push(logStreamoutputChannel);
             this.logStreamOutputChannel = logStreamoutputChannel;
         }

@@ -256,7 +256,7 @@ export function activate(context: vscode.ExtensionContext): void {
         if (node.treeItem.logStream && node.treeItem.logStream.isConnected) {
             // tslint:disable-next-line:no-non-null-assertion
             node.treeItem.logStreamOutputChannel!.show();
-            await vscode.window.showWarningMessage(`The log-streaming service for "${node.treeItem.label}" is already active.`);
+            await vscode.window.showWarningMessage(`The log-streaming service for "${node.treeItem.siteWrapper.appName}" is already active.`);
         } else {
             const client: WebSiteManagementClient = nodeUtils.getWebSiteClient(node);
             const enableButton: vscode.MessageItem = { title: 'Yes' };
@@ -266,7 +266,7 @@ export function activate(context: vscode.ExtensionContext): void {
                 return await node.treeItem.isHttpLogsEnabled(client);
             });
 
-            if (!isEnabled && enableButton === await vscode.window.showWarningMessage(`Do you want to enable application logging for ${node.treeItem.label}?`, enableButton, notNowButton)) {
+            if (!isEnabled && enableButton === await vscode.window.showWarningMessage(`Do you want to enable application logging for ${node.treeItem.siteWrapper.appName}?`, enableButton, notNowButton)) {
                 outputChannel.show();
                 outputChannel.appendLine(`Enabling Logging for "${node.treeItem.site.name}"...`);
                 await node.treeItem.enableHttpLogs(client);
