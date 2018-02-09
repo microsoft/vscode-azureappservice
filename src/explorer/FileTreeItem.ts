@@ -15,7 +15,4 @@ export class FileTreeItem implements IAzureTreeItem {
     constructor(readonly siteWrapper: SiteWrapper, readonly label: string, readonly path: string) {
     }
 
-    public get id(): string {
-        return `${this.siteWrapper.id}/File`;
-    }
 }
