@@ -144,7 +144,7 @@ export function activate(context: vscode.ExtensionContext): void {
         if (await vscode.window.showInformationMessage('Deploy to web app?', yesButton, noButton) === yesButton) {
             const fsPath = await util.showWorkspaceFoldersQuickPick("Select the folder to deploy");
             const client = nodeUtils.getWebSiteClient(createdApp);
-            await createdApp.treeItem.siteWrapper.deploy(fsPath, client, outputChannel, 'appService', false);
+            await createdApp.treeItem.deploy(fsPath, client, outputChannel, 'appService', false);
         }
     });
     actionHandler.registerCommandWithCustomTelemetry('appService.Deploy', async (properties: TelemetryProperties, _measurements: TelemetryMeasurements, target?: vscode.Uri | IAzureNode<WebAppTreeItem> | undefined) => {
@@ -162,7 +162,7 @@ export function activate(context: vscode.ExtensionContext): void {
         }
         const client = nodeUtils.getWebSiteClient(node);
         try {
-            await node.treeItem.siteWrapper.deploy(fsPath, client, outputChannel, 'appService');
+            await node.treeItem.deploy(fsPath, client, outputChannel, 'appService');
         } catch (err) {
             if (err instanceof UserCancelledError) {
                 throw err;
@@ -209,7 +209,7 @@ export function activate(context: vscode.ExtensionContext): void {
         if (await vscode.window.showInformationMessage('Deploy to deployment slot?', yesButton, noButton) === yesButton) {
             const fsPath = await util.showWorkspaceFoldersQuickPick("Select the folder to deploy");
             const client = nodeUtils.getWebSiteClient(createdSlot);
-            await createdSlot.treeItem.siteWrapper.deploy(fsPath, client, outputChannel, 'appService', false);
+            await createdSlot.treeItem.deploy(fsPath, client, outputChannel, 'appService', false);
         }
     });
     actionHandler.registerCommandWithCustomTelemetry('deploymentSlot.SwapSlots', async (properties: TelemetryProperties, _measurements: TelemetryMeasurements, node: IAzureNode<DeploymentSlotTreeItem>) => {

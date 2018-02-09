@@ -98,6 +98,11 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
         return await this.siteWrapper.editScmType(client);
     }
 
+    public async deploy(fsPath: string, client: WebSiteManagementClient, outputChannel: OutputChannel, configureSecitonName: string, confirmDeployment: boolean = false): Promise<void> {
+        await this.siteWrapper.deploy(fsPath, client, outputChannel, configureSecitonName, confirmDeployment);
+        this.browse();
+    }
+
     private createLabel(state: string): string {
         return (this.siteWrapper.slotName ? this.siteWrapper.slotName : this.siteWrapper.name) +    // Site/slot name
             (state && state.toLowerCase() !== 'running' ? ` (${state})` : '');  // Status (if site/slot not running)
