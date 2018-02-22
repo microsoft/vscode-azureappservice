@@ -176,7 +176,7 @@ export function activate(context: vscode.ExtensionContext): void {
         if (!node) {
             node = <IAzureNode<SiteTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
         }
-        await node.treeItem.editScmType(node, nodeUtils.getWebSiteClient(node), outputChannel);
+        await node.treeItem.editScmType(node, outputChannel);
     });
     actionHandler.registerCommand('appService.OpenVSTSCD', async (node?: IAzureNode<WebAppTreeItem>) => {
         if (!node) {

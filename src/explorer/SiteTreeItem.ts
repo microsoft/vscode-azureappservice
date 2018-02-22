@@ -94,8 +94,8 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
         return await this.siteWrapper.startStreamingLogs(kuduClient, actionHandler, this.logStreamOutputChannel);
     }
 
-    public async editScmType(node: IAzureNode, client: WebSiteManagementClient, outputChannel: OutputChannel): Promise<string> {
-        return await this.siteWrapper.editScmType(node, client, outputChannel);
+    public async editScmType(node: IAzureNode, outputChannel: OutputChannel): Promise<string> {
+        return await this.siteWrapper.editScmType(node, outputChannel);
     }
 
     private createLabel(state: string): string {
