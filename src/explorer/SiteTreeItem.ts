@@ -8,7 +8,7 @@ import * as WebSiteModels from 'azure-arm-website/lib/models';
 import * as opn from 'opn';
 import { ExtensionContext, OutputChannel, window } from 'vscode';
 import { ILogStream, SiteWrapper } from 'vscode-azureappservice';
-import { AzureActionHandler, IAzureParentNode, IAzureParentTreeItem, IAzureTreeItem } from 'vscode-azureextensionui';
+import { AzureActionHandler, IAzureNode, IAzureParentNode, IAzureParentTreeItem, IAzureTreeItem } from 'vscode-azureextensionui';
 import KuduClient from 'vscode-azurekudu';
 import * as util from '../util';
 import { nodeUtils } from '../utils/nodeUtils';
@@ -94,8 +94,8 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
         return await this.siteWrapper.startStreamingLogs(kuduClient, actionHandler, this.logStreamOutputChannel);
     }
 
-    public async editScmType(client: WebSiteManagementClient): Promise<string> {
-        return await this.siteWrapper.editScmType(client);
+    public async editScmType(node: IAzureNode, outputChannel: OutputChannel): Promise<string> {
+        return await this.siteWrapper.editScmType(node, outputChannel);
     }
 
     private createLabel(state: string): string {
