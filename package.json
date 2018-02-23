@@ -259,12 +259,12 @@
             "view/item/context": [
                 {
                     "command": "appService.CreateWebApp",
-                    "when": "view == azureAppService && viewItem == azureSubscription",
+                    "when": "view == azureAppService && viewItem == azureextensionui.azureSubscription",
                     "group": "1_subscriptionGeneralCommands@1"
                 },
                 {
                     "command": "appService.Refresh",
-                    "when": "view == azureAppService && viewItem == azureSubscription",
+                    "when": "view == azureAppService && viewItem == azureextensionui.azureSubscription",
                     "group": "2_subscriptionGeneralCommands@1"
                 },
                 {
