@@ -20,10 +20,6 @@ export class FolderTreeItem implements IAzureParentTreeItem {
     constructor(readonly siteWrapper: SiteWrapper, readonly label: string, readonly folderPath: string, readonly useIcon: boolean = false) {
     }
 
-    public get id(): string {
-        return `${this.siteWrapper.id}/Folders`;
-    }
-
     public get iconPath(): { light: string, dark: string } | undefined {
         return this.useIcon ? {
             light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'Folder.png'),
