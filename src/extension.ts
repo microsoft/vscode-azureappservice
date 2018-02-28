@@ -10,7 +10,6 @@ import * as vscode from 'vscode';
 import { AppSettingsTreeItem, AppSettingTreeItem } from 'vscode-azureappservice';
 import { AzureActionHandler, AzureTreeDataProvider, IAzureNode, IAzureParentNode, TelemetryMeasurements, TelemetryProperties, UserCancelledError } from 'vscode-azureextensionui';
 import TelemetryReporter from 'vscode-extension-telemetry';
-import KuduClient from '../../vscode-azuretools/appservice/node_modules/vscode-azurekudu';
 import { DeploymentSlotSwapper } from './DeploymentSlotSwapper';
 import { LogPointsManager } from './diagnostics/LogPointsManager';
 import { LogPointsSessionWizard } from './diagnostics/LogPointsSessionWizard';
@@ -177,10 +176,7 @@ export function activate(context: vscode.ExtensionContext): void {
         if (!node) {
             node = <IAzureNode<SiteTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
         }
-        const cli = nodeUtils.getWebSiteClient(node);
-        const kudu = await node.treeItem.siteWrapper.getKuduClient(cli);
-        console.log((await cli.webApps.getConfiguration(node.treeItem.siteWrapper.resourceGroup, node.treeItem.siteWrapper.appName)));
-        //await node.treeItem.editScmType(node, outputChannel);
+        await node.treeItem.editScmType(node, outputChannel);
     });
     actionHandler.registerCommand('appService.OpenVSTSCD', async (node?: IAzureNode<WebAppTreeItem>) => {
         if (!node) {
