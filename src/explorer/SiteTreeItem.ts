@@ -6,7 +6,7 @@
 import WebSiteManagementClient = require('azure-arm-website');
 import * as WebSiteModels from 'azure-arm-website/lib/models';
 import * as opn from 'opn';
-import { ExtensionContext, OutputChannel, window } from 'vscode';
+import { ExtensionContext, MessageItem, OutputChannel, window, workspace } from 'vscode';
 import { ILogStream, SiteWrapper } from 'vscode-azureappservice';
 import { AzureActionHandler, IAzureNode, IAzureParentNode, IAzureParentTreeItem, IAzureTreeItem } from 'vscode-azureextensionui';
 import KuduClient from 'vscode-azurekudu';
@@ -96,6 +96,33 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
 
     public async editScmType(node: IAzureNode, outputChannel: OutputChannel): Promise<string> {
         return await this.siteWrapper.editScmType(node, outputChannel);
+    }
+
+    public async deploy(fsPath: string, client: WebSiteManagementClient, outputChannel: OutputChannel, configurationSectionName: string): Promise<void> {
+        const siteConfig = await this.siteWrapper.getSiteConfig(client);
+        if (siteConfig.scmType === 'None') {
+            // check if web app is being zipdeployed
+            await this.enableScmDoBuildDuringDeploy(client);
+        }
+        await this.siteWrapper.deploy(fsPath, client, outputChannel, configurationSectionName);
+    }
+
+    private async enableScmDoBuildDuringDeploy(client: WebSiteManagementClient): Promise<void> {
+        const yesButton: MessageItem = { title: 'Yes' };
+        const noButton: MessageItem = { title: 'No', isCloseAffordance: true };
+        const appSettings: WebSiteModels.StringDictionary = await client.webApps.listApplicationSettings(this.siteWrapper.resourceGroup, this.siteWrapper.appName);
+        if (!appSettings.properties.SCM_DO_BUILD_DURING_DEPLOYMENT) {
+            // if the web app does not have the "SCM_DO_BUILD_DURING_DEPLOYMENT", then it will return "undefined"
+            const buildDuringDeploy: string = "Run build script during deployment? Zipping all packages will cause a slower deployment.";
+            if (await window.showInformationMessage(buildDuringDeploy, yesButton, noButton) === yesButton) {
+                appSettings.properties.SCM_DO_BUILD_DURING_DEPLOYMENT = 'true';
+                workspace.getConfiguration().update('appService.zipIgnorePattern', 'node_modules{,/**}');
+                await client.webApps.updateApplicationSettings(this.siteWrapper.resourceGroup, this.siteWrapper.appName, appSettings);
+            } else {
+                appSettings.properties.SCM_DO_BUILD_DURING_DEPLOYMENT = 'false';
+                await client.webApps.updateApplicationSettings(this.siteWrapper.resourceGroup, this.siteWrapper.appName, appSettings);
+            }
+        }
     }
 
     private createLabel(state: string): string {

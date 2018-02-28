@@ -6,11 +6,11 @@
 'use strict';
 
 import WebSiteManagementClient = require('azure-arm-website');
-import { StringDictionary } from 'azure-arm-website/lib/models';
 import * as vscode from 'vscode';
 import { AppSettingsTreeItem, AppSettingTreeItem } from 'vscode-azureappservice';
 import { AzureActionHandler, AzureTreeDataProvider, IAzureNode, IAzureParentNode, TelemetryMeasurements, TelemetryProperties, UserCancelledError } from 'vscode-azureextensionui';
 import TelemetryReporter from 'vscode-extension-telemetry';
+import KuduClient from '../../vscode-azuretools/appservice/node_modules/vscode-azurekudu';
 import { DeploymentSlotSwapper } from './DeploymentSlotSwapper';
 import { LogPointsManager } from './diagnostics/LogPointsManager';
 import { LogPointsSessionWizard } from './diagnostics/LogPointsSessionWizard';
@@ -66,11 +66,10 @@ export function activate(context: vscode.ExtensionContext): void {
 
     LogpointsCollection.TextEditorDecorationType = logpointDecorationType;
 
-    const actionHandler: AzureActionHandler = new AzureActionHandler(context, outputChannel, reporter);
-
     const yesButton: vscode.MessageItem = { title: 'Yes' };
     const noButton: vscode.MessageItem = { title: 'No', isCloseAffordance: true };
 
+    const actionHandler: AzureActionHandler = new AzureActionHandler(context, outputChannel, reporter);
     actionHandler.registerCommand('appService.Refresh', async (node?: IAzureNode) => await tree.refresh(node));
     actionHandler.registerCommand('appService.LoadMore', async (node?: IAzureNode) => await tree.loadMore(node));
     actionHandler.registerCommand('appService.Browse', async (node: IAzureNode<SiteTreeItem>) => {
@@ -143,8 +142,6 @@ export function activate(context: vscode.ExtensionContext): void {
         const createdApp = <IAzureNode<WebAppTreeItem>>await node.createChild();
 
         // prompt user to deploy to newly created web app
-        const yesButton: vscode.MessageItem = { title: 'Yes' };
-        const noButton: vscode.MessageItem = { title: 'No', isCloseAffordance: true };
         if (await vscode.window.showInformationMessage('Deploy to web app?', yesButton, noButton) === yesButton) {
             const fsPath = await util.showWorkspaceFoldersQuickPick("Select the folder to deploy");
             const client = nodeUtils.getWebSiteClient(createdApp);
@@ -166,22 +163,7 @@ export function activate(context: vscode.ExtensionContext): void {
         }
         const client = nodeUtils.getWebSiteClient(node);
         try {
-            if ((await node.treeItem.siteWrapper.getSiteConfig(client)).scmType === 'None') {
-                // check if web app is being zipdeployed
-                const appSettings: StringDictionary = await client.webApps.listApplicationSettings(node.treeItem.siteWrapper.resourceGroup, node.treeItem.siteWrapper.appName);
-                if (!appSettings.properties.SCM_DO_BUILD_DURING_DEPLOYMENT) {
-                    // if the web app does not have the "SCM_DO_BUILD_DURING_DEPLOYMENT", then it will return "undefined"
-                    const buildDuringDeploy: string = "Run build script during deployment? Zipping all packages will cause a slower deployment.";
-                    if (await vscode.window.showInformationMessage(buildDuringDeploy, yesButton, noButton) === yesButton) {
-                        appSettings.properties.SCM_DO_BUILD_DURING_DEPLOYMENT = 'true';
-                        await client.webApps.updateApplicationSettings(node.treeItem.siteWrapper.resourceGroup, node.treeItem.siteWrapper.appName, appSettings);
-                    } else {
-                        appSettings.properties.SCM_DO_BUILD_DURING_DEPLOYMENT = 'false';
-                        await client.webApps.updateApplicationSettings(node.treeItem.siteWrapper.resourceGroup, node.treeItem.siteWrapper.appName, appSettings);
-                    }
-                }
-            }
-            await node.treeItem.siteWrapper.deploy(fsPath, client, outputChannel, 'appService');
+            await node.treeItem.deploy(fsPath, client, outputChannel, 'appService');
         } catch (err) {
             if (err instanceof UserCancelledError) {
                 throw err;
@@ -195,7 +177,10 @@ export function activate(context: vscode.ExtensionContext): void {
         if (!node) {
             node = <IAzureNode<SiteTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
         }
-        await node.treeItem.editScmType(node, outputChannel);
+        const cli = nodeUtils.getWebSiteClient(node);
+        const kudu = await node.treeItem.siteWrapper.getKuduClient(cli);
+        console.log((await cli.webApps.getConfiguration(node.treeItem.siteWrapper.resourceGroup, node.treeItem.siteWrapper.appName)));
+        //await node.treeItem.editScmType(node, outputChannel);
     });
     actionHandler.registerCommand('appService.OpenVSTSCD', async (node?: IAzureNode<WebAppTreeItem>) => {
         if (!node) {
