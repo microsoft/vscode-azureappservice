@@ -81,7 +81,7 @@ export function activate(context: vscode.ExtensionContext): void {
             node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
         }
 
-        node.treeItem.contextValue === 'deploymentSlot' ? node.openInPortal(`${node.treeItem.id}`) : node.openInPortal();
+        node.treeItem.contextValue === 'deploymentSlot' ? node.openInPortal(node.treeItem.id) : node.openInPortal();
     });
     actionHandler.registerCommand('appService.Start', async (node: IAzureNode<SiteTreeItem>) => {
         if (!node) {
