@@ -24,7 +24,7 @@ export class OpenStreamingLog extends WizardStep {
         }
 
         // Open streaming log
-        await siteTreeItem.connectToLogStream(this._wizard.websiteManagementClient, this._wizard.actionHandler, this._wizard.extensionContext);
+        await siteTreeItem.connectToLogStream(this._wizard.websiteManagementClient, this._wizard.telemetryReporter, this._wizard.extensionContext);
         this._wizard.logpointsManager.onStreamingLogOutputChannelCreated(siteTreeItem.site, siteTreeItem.logStreamOutputChannel);
     }
 }

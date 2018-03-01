@@ -8,7 +8,7 @@
 import WebSiteManagementClient = require('azure-arm-website');
 import * as vscode from 'vscode';
 import { AppSettingsTreeItem, AppSettingTreeItem } from 'vscode-azureappservice';
-import { AzureActionHandler, AzureTreeDataProvider, IAzureNode, IAzureParentNode, TelemetryMeasurements, TelemetryProperties, UserCancelledError } from 'vscode-azureextensionui';
+import { AzureActionHandler, AzureTreeDataProvider, IActionContext, IAzureNode, IAzureParentNode, UserCancelledError } from 'vscode-azureextensionui';
 import TelemetryReporter from 'vscode-extension-telemetry';
 import { DeploymentSlotSwapper } from './DeploymentSlotSwapper';
 import { LogPointsManager } from './diagnostics/LogPointsManager';
@@ -147,7 +147,7 @@ export function activate(context: vscode.ExtensionContext): void {
             await createdApp.treeItem.siteWrapper.deploy(fsPath, client, outputChannel, 'appService', false);
         }
     });
-    actionHandler.registerCommandWithCustomTelemetry('appService.Deploy', async (properties: TelemetryProperties, _measurements: TelemetryMeasurements, target?: vscode.Uri | IAzureNode<WebAppTreeItem> | undefined) => {
+    actionHandler.registerCommand('appService.Deploy', async function (this: IActionContext, target?: vscode.Uri | IAzureNode<WebAppTreeItem> | undefined): Promise<void> {
         let node: IAzureNode<WebAppTreeItem>;
         let fsPath: string;
         if (target instanceof vscode.Uri) {
@@ -168,7 +168,7 @@ export function activate(context: vscode.ExtensionContext): void {
                 throw err;
             }
             const appServicePlan = await getAppServicePlan(node.treeItem.site, client);
-            properties.servicePlan = appServicePlan.sku.size;
+            this.properties.servicePlan = appServicePlan.sku.size;
             throw err;
         }
     });
@@ -211,13 +211,13 @@ export function activate(context: vscode.ExtensionContext): void {
             await createdSlot.treeItem.siteWrapper.deploy(fsPath, client, outputChannel, 'appService', false);
         }
     });
-    actionHandler.registerCommandWithCustomTelemetry('deploymentSlot.SwapSlots', async (properties: TelemetryProperties, _measurements: TelemetryMeasurements, node: IAzureNode<DeploymentSlotTreeItem>) => {
+    actionHandler.registerCommand('deploymentSlot.SwapSlots', async function (this: IActionContext, node: IAzureNode<DeploymentSlotTreeItem>): Promise<void> {
         if (!node) {
             node = <IAzureNode<DeploymentSlotTreeItem>>await tree.showNodePicker(DeploymentSlotTreeItem.contextValue);
         }
 
         const wizard = new DeploymentSlotSwapper(outputChannel, node);
-        await wizard.run(properties);
+        await wizard.run(this.properties);
     });
     actionHandler.registerCommand('appSettings.Add', async (node: IAzureParentNode<AppSettingsTreeItem>) => {
         if (!node) {
@@ -272,7 +272,7 @@ export function activate(context: vscode.ExtensionContext): void {
                 await vscode.commands.executeCommand('appService.Restart', node);
             }
             // Otherwise connect to log stream anyways, users might see similar "log not enabled" message with how to enable link from the stream output.
-            node.treeItem.logStream = await node.treeItem.connectToLogStream(client, actionHandler, context);
+            node.treeItem.logStream = await node.treeItem.connectToLogStream(client, reporter, context);
             node.treeItem.logStreamOutputChannel.show();
         }
     });
@@ -287,11 +287,11 @@ export function activate(context: vscode.ExtensionContext): void {
             await vscode.window.showWarningMessage(`The log-streaming service for "${node.treeItem.label}" is already disconnected.`);
         }
     });
-    actionHandler.registerCommandWithCustomTelemetry('diagnostics.StartLogPointsSession', async (properties: TelemetryProperties, _measurements: TelemetryMeasurements, node: IAzureNode<SiteTreeItem>) => {
+    actionHandler.registerCommand('diagnostics.StartLogPointsSession', async function (this: IActionContext, node: IAzureNode<SiteTreeItem>): Promise<void> {
         if (node) {
             const client: WebSiteManagementClient = nodeUtils.getWebSiteClient(node);
-            const wizard = new LogPointsSessionWizard(logPointsManager, context, outputChannel, node, client, actionHandler);
-            await wizard.run(properties);
+            const wizard = new LogPointsSessionWizard(logPointsManager, context, outputChannel, node, client, reporter);
+            await wizard.run(this.properties);
         }
     });
 
@@ -305,7 +305,7 @@ export function activate(context: vscode.ExtensionContext): void {
         await fileEditor.showEditor(node);
     });
 
-    actionHandler.registerEvent('appService.fileEditor.onDidSaveTextDocument', vscode.workspace.onDidSaveTextDocument, async (trackTelemetry: () => void, doc: vscode.TextDocument) => await fileEditor.onDidSaveTextDocument(trackTelemetry, context.globalState, doc));
+    actionHandler.registerEvent('appService.fileEditor.onDidSaveTextDocument', vscode.workspace.onDidSaveTextDocument, async function (this: IActionContext, doc: vscode.TextDocument): Promise<void> { await fileEditor.onDidSaveTextDocument(this, context.globalState, doc); });
 }
 
 // tslint:disable-next-line:no-empty
