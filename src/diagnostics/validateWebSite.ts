@@ -66,7 +66,7 @@ export async function validateWebSite(context: ExtensionContext, siteTreeItem: S
 
             if (Date.now() > timeoutTime) {
                 properties.timedOut = 'true';
-                log(siteWrapper, outputChannel, `Timed out waiting for response from ${uri}. Last status code returned: ${currentStatusCode}`);
+                log(siteWrapper, outputChannel, `Timed out waiting for successful response from ${uri}. Last status code returned: ${currentStatusCode}`);
                 throw new Error(currentStatusMessage);
             }
 
