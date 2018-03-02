@@ -13,7 +13,7 @@ import KuduClient from 'vscode-azurekudu';
 import TelemetryReporter from 'vscode-extension-telemetry';
 import * as util from '../util';
 import { nodeUtils } from '../utils/nodeUtils';
-import { validateWebSite } from '../diagnostics/validateWebSite';
+import { validateWebSite } from '../validateWebSite';
 
 export abstract class SiteTreeItem implements IAzureParentTreeItem {
     public abstract contextValue: string;

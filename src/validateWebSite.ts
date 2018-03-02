@@ -6,7 +6,7 @@
 import { SiteWrapper } from "vscode-azureappservice";
 import TelemetryReporter from "vscode-extension-telemetry";
 import { OutputChannel } from 'vscode';
-import { SiteTreeItem } from '../explorer/SiteTreeItem';
+import { SiteTreeItem } from './explorer/SiteTreeItem';
 import { IncomingMessage } from 'http';
 import { IActionContext, parseError, callWithTelemetryAndErrorHandling } from 'vscode-azureextensionui';
 import * as requestP from 'request-promise';
