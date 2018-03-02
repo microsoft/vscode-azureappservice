@@ -98,7 +98,7 @@ export class DeploymentSlotsTreeItem implements IAzureParentTreeItem {
                     return `The slot name "${value}" is not available.`;
                 }
 
-                const nameAvailability: ResourceNameAvailability = await nodeUtils.getWebSiteClient(node).checkNameAvailability(`$${util.extractSiteName(node.treeItem.site)}-{value}`, 'Slot');
+                const nameAvailability: ResourceNameAvailability = await nodeUtils.getWebSiteClient(node).checkNameAvailability(`${util.extractSiteName(node.treeItem.site)}-${value}`, 'Slot');
                 if (!nameAvailability.nameAvailable) {
                     return nameAvailability.message;
                 }
