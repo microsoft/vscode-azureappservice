@@ -12,6 +12,8 @@ import { AzureActionHandler, IAzureNode, IAzureParentNode, IAzureParentTreeItem,
 import KuduClient from 'vscode-azurekudu';
 import * as util from '../util';
 import { nodeUtils } from '../utils/nodeUtils';
+import TelemetryReporter from 'vscode-extension-telemetry';
+import { validateWebSite } from '../diagnostics/validateWebSite';
 
 export abstract class SiteTreeItem implements IAzureParentTreeItem {
     public abstract contextValue: string;
@@ -63,13 +65,19 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
     }
 
     public browse(): void {
+        const uri = this.defaultHostUri;
+        // tslint:disable-next-line:no-unsafe-any
+        opn(uri);
+    }
+
+    public get defaultHostUri(): string {
         const defaultHostName = this.site.defaultHostName;
         const isSsl: boolean = this.site.hostNameSslStates.some(value =>
             value.name === defaultHostName && value.sslState === `Enabled`);
         // tslint:disable-next-line:no-http-string
         const uri = `${isSsl ? 'https://' : 'http://'}${defaultHostName}`;
         // tslint:disable-next-line:no-unsafe-any
-        opn(uri);
+        return uri;
     }
 
     public async deleteTreeItem(node: IAzureParentNode): Promise<void> {
@@ -97,6 +105,22 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
     public async editScmType(node: IAzureNode, outputChannel: OutputChannel): Promise<string> {
         return await this.siteWrapper.editScmType(node, outputChannel);
     }
+
+    public async deploy(
+        fsPath: string,
+        client: WebSiteManagementClient,
+        context: ExtensionContext,
+        outputChannel: OutputChannel,
+        telemetryReporter: TelemetryReporter,
+        configurationSectionName: string,
+        confirmDeployment: boolean = true
+    ): Promise<void> {
+        await this.siteWrapper.deploy(fsPath, client, outputChannel, configurationSectionName, confirmDeployment);
+
+        // Don't wait
+        validateWebSite(context, this, outputChannel, telemetryReporter);
+    }
+
 
     private createLabel(state: string): string {
         return (this.siteWrapper.slotName ? this.siteWrapper.slotName : this.siteWrapper.name) +    // Site/slot name
