@@ -9,8 +9,7 @@ import * as requestP from 'request-promise';
 import { URL } from 'url';
 import { isNumber } from 'util';
 import { OutputChannel } from 'vscode';
-import { SiteWrapper } from "vscode-azureappservice";
-import { callWithTelemetryAndErrorHandling, IActionContext, parseError } from 'vscode-azureextensionui';
+import { callWithTelemetryAndErrorHandling, IActionContext } from 'vscode-azureextensionui';
 import TelemetryReporter from "vscode-extension-telemetry";
 import { SiteTreeItem } from './explorer/SiteTreeItem';
 
@@ -24,23 +23,22 @@ type WebError = {
 };
 
 interface IValidateProperties {
-    statusCodes?: string; // Comma-delimited
-    lastStatusCode?: string;
-    lastStatusMessage?: string;
-    timedOut?: 'true' | 'false';
+    statusCodes?: string; // [[code,elapsedSeconds], [code,elapsedSeconds]...]
 }
 
+const initialPollingIntervalMs = 5000;
+const pollingIncrementMs = 0; // Increase in interval each time
+const maximumValidationMs = 60 * 1000; //
+
 export async function validateWebSite(siteTreeItem: SiteTreeItem, outputChannel: OutputChannel, telemetryReporter: TelemetryReporter): Promise<void> {
-    const siteWrapper = siteTreeItem.siteWrapper;
     return callWithTelemetryAndErrorHandling('appService.validateWebSite', telemetryReporter, outputChannel, async function (this: IActionContext): Promise<void> {
         this.rethrowError = false;
         this.suppressErrorDisplay = true;
 
         const properties = <IValidateProperties>this.properties;
 
-        let pollingIntervalMs = 1000;
-        const pollingIncrementMs = 1000; // Increase in interval each time
-        const timeoutTime = Date.now() + 60 * 1000;
+        let pollingIntervalMs = initialPollingIntervalMs;
+        const start = Date.now();
         const uri = siteTreeItem.defaultHostUri;
         const options: {} = {
             method: 'GET',
@@ -48,54 +46,34 @@ export async function validateWebSite(siteTreeItem: SiteTreeItem, outputChannel:
             resolveWithFullResponse: true
         };
         let currentStatusCode: number = 0;
-        let currentStatusMessage: string = '';
-
-        properties.statusCodes = '';
-        properties.timedOut = 'false';
-
-        log(siteWrapper, outputChannel, `Checking for successful response from ${uri}.`);
+        const statusCodes: { code: number, elapsed: number, reported?: boolean }[] = [];
 
         // tslint:disable-next-line:no-constant-condition
         while (true) {
-            let isSuccess: boolean;
             try {
                 const response = <IncomingMessage>(await requestPromise(options));
-                // request throws an error for 400-500 responses
-                // a status code 200-300 indicates success
                 currentStatusCode = response.statusCode;
-                isSuccess = response.statusCode >= 200 && response.statusCode < 400;
-                currentStatusMessage = response.statusMessage;
-            } catch (e) {
-                const error = <WebError>e;
-                const response = error.response || {};
-                isSuccess = false;
+            } catch (error) {
+                const response = (<WebError>error).response || {};
                 currentStatusCode = isNumber(response.statusCode) ? response.statusCode : 0;
-                currentStatusMessage = response.statusMessage || parseError(error).message;
             }
 
-            properties.statusCodes = properties.statusCodes ? `${properties.statusCodes},` : '';
-            properties.statusCodes += currentStatusCode;
-            properties.lastStatusCode = currentStatusCode.toString();
-            properties.lastStatusMessage = currentStatusMessage;
+            const elapsedSeconds = Math.round((Date.now() - start) / 1000);
+            statusCodes.push({ code: currentStatusCode, elapsed: elapsedSeconds });
 
-            if (isSuccess) {
-                log(siteWrapper, outputChannel, `${uri} returned successful status code ${currentStatusCode}`);
-                return;
-            }
-
-            if (Date.now() > timeoutTime) {
-                properties.timedOut = 'true';
-                log(siteWrapper, outputChannel, `Timed out waiting for successful response from ${uri}. Last status code returned: ${currentStatusCode}`);
-                throw new Error(currentStatusMessage);
+            if (Date.now() > start + maximumValidationMs) {
+                break;
             }
 
             // tslint:disable-next-line:no-string-based-set-timeout // false positive
-            await new Promise<void>((resolve, _reject): void => { setTimeout(resolve, pollingIntervalMs); });
+            await delay(pollingIntervalMs);
             pollingIntervalMs += pollingIncrementMs;
         }
+
+        properties.statusCodes = JSON.stringify(statusCodes);
     });
 }
 
-function log(siteWrapper: SiteWrapper, outputChannel: OutputChannel, message: string): void {
-    outputChannel.appendLine(`${(new Date()).toLocaleTimeString()} ${siteWrapper.appName}: ${message}`);
+function delay(delayMs: number): Promise<void> {
+    return new Promise<void>((resolve, _reject): void => { setTimeout(resolve, delayMs); });
 }
