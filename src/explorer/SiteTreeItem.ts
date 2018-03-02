@@ -75,9 +75,7 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
         const isSsl: boolean = this.site.hostNameSslStates.some(value =>
             value.name === defaultHostName && value.sslState === `Enabled`);
         // tslint:disable-next-line:no-http-string
-        const uri = `${isSsl ? 'https://' : 'http://'}${defaultHostName}`;
-        // tslint:disable-next-line:no-unsafe-any
-        return uri;
+        return `${isSsl ? 'https://' : 'http://'}${defaultHostName}`;
     }
 
     public async deleteTreeItem(node: IAzureParentNode): Promise<void> {
@@ -117,9 +115,14 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
         await this.siteWrapper.deploy(fsPath, client, outputChannel, configurationSectionName, confirmDeployment);
 
         // Don't wait
-        validateWebSite(this, outputChannel, telemetryReporter);
+        validateWebSite(this, outputChannel, telemetryReporter).then(
+            () => {
+                // ignore
+            },
+            () => {
+                // ignore
+            });
     }
-
 
     private createLabel(state: string): string {
         return (this.siteWrapper.slotName ? this.siteWrapper.slotName : this.siteWrapper.name) +    // Site/slot name

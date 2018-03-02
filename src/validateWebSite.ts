@@ -3,13 +3,25 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { SiteWrapper } from "vscode-azureappservice";
-import TelemetryReporter from "vscode-extension-telemetry";
-import { OutputChannel } from 'vscode';
-import { SiteTreeItem } from './explorer/SiteTreeItem';
 import { IncomingMessage } from 'http';
-import { IActionContext, parseError, callWithTelemetryAndErrorHandling } from 'vscode-azureextensionui';
+import { RequestOptions } from 'https';
 import * as requestP from 'request-promise';
+import { URL } from 'url';
+import { isNumber } from 'util';
+import { OutputChannel } from 'vscode';
+import { SiteWrapper } from "vscode-azureappservice";
+import { callWithTelemetryAndErrorHandling, IActionContext, parseError } from 'vscode-azureextensionui';
+import TelemetryReporter from "vscode-extension-telemetry";
+import { SiteTreeItem } from './explorer/SiteTreeItem';
+
+const requestPromise = <(options: RequestOptions | string | URL) => Promise<IncomingMessage>><Function>requestP;
+
+type WebError = {
+    response?: {
+        statusCode?: number;
+        statusMessage?: string;
+    }
+};
 
 interface IValidateProperties {
     statusCodes?: string; // Comma-delimited
@@ -19,16 +31,16 @@ interface IValidateProperties {
 }
 
 export async function validateWebSite(siteTreeItem: SiteTreeItem, outputChannel: OutputChannel, telemetryReporter: TelemetryReporter): Promise<void> {
-    let siteWrapper = siteTreeItem.siteWrapper;
+    const siteWrapper = siteTreeItem.siteWrapper;
     return callWithTelemetryAndErrorHandling('appService.validateWebSite', telemetryReporter, outputChannel, async function (this: IActionContext): Promise<void> {
         this.rethrowError = false;
         this.suppressErrorDisplay = true;
 
-        let properties = <IValidateProperties>this.properties;
+        const properties = <IValidateProperties>this.properties;
 
         let pollingIntervalMs = 1000;
-        let pollingIncrementMs = 1000; // Increase in interval each time
-        let timeoutTime = Date.now() + 60 * 1000;
+        const pollingIncrementMs = 1000; // Increase in interval each time
+        const timeoutTime = Date.now() + 60 * 1000;
         const uri = siteTreeItem.defaultHostUri;
         const options: {} = {
             method: 'GET',
@@ -43,23 +55,25 @@ export async function validateWebSite(siteTreeItem: SiteTreeItem, outputChannel:
 
         log(siteWrapper, outputChannel, `Checking for successful response from ${uri}.`);
 
+        // tslint:disable-next-line:no-constant-condition
         while (true) {
             let isSuccess: boolean;
             try {
-                let response = <IncomingMessage>(await requestP(options));
+                const response = <IncomingMessage>(await requestPromise(options));
                 // request throws an error for 400-500 responses
                 // a status code 200-300 indicates success
                 currentStatusCode = response.statusCode;
                 isSuccess = response.statusCode >= 200 && response.statusCode < 400;
                 currentStatusMessage = response.statusMessage;
-            } catch (error) {
-                let response = error.response || {};
+            } catch (e) {
+                const error = <WebError>e;
+                const response = error.response || {};
                 isSuccess = false;
-                currentStatusCode = response.statusCode || 0;
+                currentStatusCode = isNumber(response.statusCode) ? response.statusCode : 0;
                 currentStatusMessage = response.statusMessage || parseError(error).message;
             }
 
-            properties.statusCodes = properties.statusCodes ? properties.statusCodes + ',' : '';
+            properties.statusCodes = properties.statusCodes ? `${properties.statusCodes},` : '';
             properties.statusCodes += currentStatusCode;
             properties.lastStatusCode = currentStatusCode.toString();
             properties.lastStatusMessage = currentStatusMessage;
@@ -75,7 +89,8 @@ export async function validateWebSite(siteTreeItem: SiteTreeItem, outputChannel:
                 throw new Error(currentStatusMessage);
             }
 
-            await new Promise((resolve): void => { setTimeout(resolve, pollingIntervalMs); });
+            // tslint:disable-next-line:no-string-based-set-timeout // false positive
+            await new Promise<void>((resolve, _reject): void => { setTimeout(resolve, pollingIntervalMs); });
             pollingIntervalMs += pollingIncrementMs;
         }
     });
