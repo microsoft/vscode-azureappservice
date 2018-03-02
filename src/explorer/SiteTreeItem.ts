@@ -13,7 +13,6 @@ import KuduClient from 'vscode-azurekudu';
 import TelemetryReporter from 'vscode-extension-telemetry';
 import * as util from '../util';
 import { nodeUtils } from '../utils/nodeUtils';
-import TelemetryReporter from 'vscode-extension-telemetry';
 import { validateWebSite } from '../diagnostics/validateWebSite';
 
 export abstract class SiteTreeItem implements IAzureParentTreeItem {
@@ -110,7 +109,6 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
     public async deploy(
         fsPath: string,
         client: WebSiteManagementClient,
-        context: ExtensionContext,
         outputChannel: OutputChannel,
         telemetryReporter: TelemetryReporter,
         configurationSectionName: string,
@@ -119,7 +117,7 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
         await this.siteWrapper.deploy(fsPath, client, outputChannel, configurationSectionName, confirmDeployment);
 
         // Don't wait
-        validateWebSite(context, this, outputChannel, telemetryReporter);
+        validateWebSite(this, outputChannel, telemetryReporter);
     }
 
 

@@ -5,10 +5,10 @@
 
 import { SiteWrapper } from "vscode-azureappservice";
 import TelemetryReporter from "vscode-extension-telemetry";
-import { OutputChannel, ExtensionContext } from 'vscode';
+import { OutputChannel } from 'vscode';
 import { SiteTreeItem } from '../explorer/SiteTreeItem';
 import { IncomingMessage } from 'http';
-import { AzureActionHandler, parseError } from 'vscode-azureextensionui';
+import { IActionContext, parseError, callWithTelemetryAndErrorHandling } from 'vscode-azureextensionui';
 import * as requestP from 'request-promise';
 
 interface IValidateProperties {
@@ -18,9 +18,14 @@ interface IValidateProperties {
     timedOut?: 'true' | 'false';
 }
 
-export async function validateWebSite(context: ExtensionContext, siteTreeItem: SiteTreeItem, outputChannel: OutputChannel, telemetryReporter: TelemetryReporter): Promise<void> {
+export async function validateWebSite(siteTreeItem: SiteTreeItem, outputChannel: OutputChannel, telemetryReporter: TelemetryReporter): Promise<void> {
     let siteWrapper = siteTreeItem.siteWrapper;
-    return (new AzureActionHandler(context, outputChannel, telemetryReporter)).callWithTelemetry('appService.validateWebSite', async (properties: IValidateProperties, _measurements) => {
+    return callWithTelemetryAndErrorHandling('appService.validateWebSite', telemetryReporter, outputChannel, async function (this: IActionContext): Promise<void> {
+        this.rethrowError = false;
+        this.suppressErrorDisplay = true;
+
+        let properties = <IValidateProperties>this.properties;
+
         let pollingIntervalMs = 1000;
         let pollingIncrementMs = 1000; // Increase in interval each time
         let timeoutTime = Date.now() + 60 * 1000;
@@ -36,7 +41,7 @@ export async function validateWebSite(context: ExtensionContext, siteTreeItem: S
         properties.statusCodes = '';
         properties.timedOut = 'false';
 
-        log(siteWrapper, outputChannel, `Waiting for response from ${uri}.`);
+        log(siteWrapper, outputChannel, `Checking for successful response from ${uri}.`);
 
         while (true) {
             let isSuccess: boolean;

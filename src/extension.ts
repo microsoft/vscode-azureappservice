@@ -144,7 +144,7 @@ export function activate(context: vscode.ExtensionContext): void {
         if (await vscode.window.showInformationMessage('Deploy to web app?', yesButton, noButton) === yesButton) {
             const fsPath = await util.showWorkspaceFoldersQuickPick("Select the folder to deploy");
             const client = nodeUtils.getWebSiteClient(createdApp);
-            await createdApp.treeItem.deploy(fsPath, client, context, outputChannel, reporter, 'appService', false);
+            await createdApp.treeItem.deploy(fsPath, client, outputChannel, reporter, 'appService', false);
         }
     });
     actionHandler.registerCommand('appService.Deploy', async function (this: IActionContext, target?: vscode.Uri | IAzureNode<WebAppTreeItem> | undefined): Promise<void> {
@@ -162,7 +162,7 @@ export function activate(context: vscode.ExtensionContext): void {
         }
         const client = nodeUtils.getWebSiteClient(node);
         try {
-            await node.treeItem.deploy(fsPath, client, context, outputChannel, reporter, 'appService');
+            await node.treeItem.deploy(fsPath, client, outputChannel, reporter, 'appService');
         } catch (err) {
             if (err instanceof UserCancelledError) {
                 throw err;
@@ -208,7 +208,7 @@ export function activate(context: vscode.ExtensionContext): void {
         if (await vscode.window.showInformationMessage('Deploy to deployment slot?', yesButton, noButton) === yesButton) {
             const fsPath = await util.showWorkspaceFoldersQuickPick("Select the folder to deploy");
             const client = nodeUtils.getWebSiteClient(createdSlot);
-            await createdSlot.treeItem.deploy(fsPath, client, context, outputChannel, reporter, 'appService', false);
+            await createdSlot.treeItem.deploy(fsPath, client, outputChannel, reporter, 'appService', false);
         }
     });
     actionHandler.registerCommand('deploymentSlot.SwapSlots', async function (this: IActionContext, node: IAzureNode<DeploymentSlotTreeItem>): Promise<void> {
