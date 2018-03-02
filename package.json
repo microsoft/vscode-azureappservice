@@ -479,12 +479,17 @@
                     "description": "The supported Docker images that logpoints feature can run with."
                 },
                 "appService.zipGlobPattern": {
+                    "scope": "resource",
                     "type": "string",
                     "default": "**/*",
                     "description": "Defines which files in the workspace to deploy. This applies to Zip deploy only, has no effect on other deployment methods."
                 },
                 "appService.zipIgnorePattern": {
-                    "type": "string",
+                    "scope": "resource",
+                    "type": [
+                        "string",
+                        "array"
+                    ],
                     "default": "",
                     "description": "Defines which files in the workspace to ignore for Zip deploy. This applies to Zip deploy only, has no effect on other deployment methods."
                 },
