@@ -1,6 +1,6 @@
 import { Site, SiteInstance, User } from 'azure-arm-website/lib/models';
 import * as vscode from 'vscode';
-import { AzureActionHandler, UserCancelledError } from 'vscode-azureextensionui';
+import { UserCancelledError } from 'vscode-azureextensionui';
 import * as util from '../util';
 import { WizardBase } from '../wizard';
 import { createDefaultClient } from './logPointsClient';
@@ -18,6 +18,7 @@ import { PickProcessStep } from './wizardSteps/PickProcessStep';
 import { PromptSlotSelection } from './wizardSteps/PromptSlotSelection';
 import { SessionAttachStep } from './wizardSteps/SessionAttachStep';
 import { StartDebugAdapterStep } from './wizardSteps/StartDebugAdapterStep';
+import TelemetryReporter from 'vscode-extension-telemetry';
 
 const logPointsDebuggerClient = createDefaultClient();
 
@@ -40,7 +41,7 @@ export class LogPointsSessionWizard extends WizardBase {
         output: vscode.OutputChannel,
         public readonly uiTreeItem: IAzureNode<SiteTreeItem>,
         public readonly websiteManagementClient: WebSiteManagementClient,
-        public readonly actionHandler: AzureActionHandler
+        public readonly telemetryReporter: TelemetryReporter
     ) {
         super(output);
         this.site = uiTreeItem.treeItem.site;

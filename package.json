@@ -479,12 +479,17 @@
                     "description": "The supported Docker images that logpoints feature can run with."
                 },
                 "appService.zipGlobPattern": {
+                    "scope": "resource",
                     "type": "string",
                     "default": "**/*",
                     "description": "Defines which files in the workspace to deploy. This applies to Zip deploy only, has no effect on other deployment methods."
                 },
                 "appService.zipIgnorePattern": {
-                    "type": "string",
+                    "scope": "resource",
+                    "type": [
+                        "string",
+                        "array"
+                    ],
                     "default": "",
                     "description": "Defines which files in the workspace to ignore for Zip deploy. This applies to Zip deploy only, has no effect on other deployment methods."
                 },
@@ -597,12 +602,12 @@
         "kudu-api": "^1.4.1",
         "opn": "^5.1.0",
         "request": "^2.83.0",
-        "vscode-azureappservice": "~0.10.1",
-        "vscode-azureextensionui": "~0.7.1",
+        "vscode-azureappservice": "~0.11.0",
+        "vscode-azureextensionui": "~0.8.0",
         "vscode-azurekudu": "~0.1.6",
         "vscode-debugadapter": "^1.24.0",
         "vscode-debugprotocol": "^1.24.0",
-        "vscode-extension-telemetry": "^0.0.10"
+        "vscode-extension-telemetry": "^0.0.15"
     },
     "extensionDependencies": [
         "ms-vscode.azure-account"

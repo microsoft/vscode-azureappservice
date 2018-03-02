@@ -8,8 +8,9 @@ import * as WebSiteModels from 'azure-arm-website/lib/models';
 import * as opn from 'opn';
 import { ExtensionContext, MessageItem, OutputChannel, window, workspace } from 'vscode';
 import { ILogStream, SiteWrapper } from 'vscode-azureappservice';
-import { AzureActionHandler, IAzureNode, IAzureParentNode, IAzureParentTreeItem, IAzureTreeItem } from 'vscode-azureextensionui';
+import { IAzureNode, IAzureParentNode, IAzureParentTreeItem, IAzureTreeItem } from 'vscode-azureextensionui';
 import KuduClient from 'vscode-azurekudu';
+import TelemetryReporter from 'vscode-extension-telemetry';
 import * as util from '../util';
 import { nodeUtils } from '../utils/nodeUtils';
 
@@ -84,14 +85,14 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
         await this.siteWrapper.enableHttpLogs(client);
     }
 
-    public async connectToLogStream(client: WebSiteManagementClient, actionHandler: AzureActionHandler, context: ExtensionContext): Promise<ILogStream> {
+    public async connectToLogStream(client: WebSiteManagementClient, reporter: TelemetryReporter, context: ExtensionContext): Promise<ILogStream> {
         const kuduClient: KuduClient = await this.siteWrapper.getKuduClient(client);
         if (!this.logStreamOutputChannel) {
             const logStreamoutputChannel: OutputChannel = window.createOutputChannel(`${this.siteWrapper.appName} - Log Stream`);
             context.subscriptions.push(logStreamoutputChannel);
             this.logStreamOutputChannel = logStreamoutputChannel;
         }
-        return await this.siteWrapper.startStreamingLogs(kuduClient, actionHandler, this.logStreamOutputChannel);
+        return await this.siteWrapper.startStreamingLogs(kuduClient, reporter, this.logStreamOutputChannel);
     }
 
     public async editScmType(node: IAzureNode, outputChannel: OutputChannel): Promise<string> {
