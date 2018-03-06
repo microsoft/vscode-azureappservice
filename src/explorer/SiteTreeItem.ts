@@ -16,6 +16,7 @@ import TelemetryReporter from 'vscode-extension-telemetry';
 import * as constants from '../constants';
 import * as util from '../util';
 import { nodeUtils } from '../utils/nodeUtils';
+import { validateWebSite } from '../validateWebSite';
 
 export abstract class SiteTreeItem implements IAzureParentTreeItem {
     public abstract contextValue: string;
@@ -67,13 +68,17 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
     }
 
     public browse(): void {
+        const uri = this.defaultHostUri;
+        // tslint:disable-next-line:no-unsafe-any
+        opn(uri);
+    }
+
+    public get defaultHostUri(): string {
         const defaultHostName = this.site.defaultHostName;
         const isSsl: boolean = this.site.hostNameSslStates.some(value =>
             value.name === defaultHostName && value.sslState === `Enabled`);
         // tslint:disable-next-line:no-http-string
-        const uri = `${isSsl ? 'https://' : 'http://'}${defaultHostName}`;
-        // tslint:disable-next-line:no-unsafe-any
-        opn(uri);
+        return `${isSsl ? 'https://' : 'http://'}${defaultHostName}`;
     }
 
     public async deleteTreeItem(node: IAzureParentNode): Promise<void> {
@@ -102,7 +107,14 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
         return await this.siteWrapper.editScmType(node, outputChannel);
     }
 
-    public async deploy(fsPath: string, client: WebSiteManagementClient, outputChannel: OutputChannel, configurationSectionName: string): Promise<void> {
+    public async deploy(
+        fsPath: string,
+        client: WebSiteManagementClient,
+        outputChannel: OutputChannel,
+        telemetryReporter: TelemetryReporter,
+        configurationSectionName: string,
+        confirmDeployment: boolean = true
+    ): Promise<void> {
         const workspaceConfig: WorkspaceConfiguration = workspace.getConfiguration('appService', Uri.file(fsPath));
         if (!workspaceConfig.get(constants.configurationSettings.neverPromptBuildDuringDeploy)) {
             const siteConfig: WebSiteModels.SiteConfigResource = await this.siteWrapper.getSiteConfig(client);
@@ -112,7 +124,16 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
                 await this.enableScmDoBuildDuringDeploy(fsPath, constants.runtimes[siteConfig.linuxFxVersion.substring(0, siteConfig.linuxFxVersion.indexOf('|'))]);
             }
         }
-        await this.siteWrapper.deploy(fsPath, client, outputChannel, configurationSectionName);
+        await this.siteWrapper.deploy(fsPath, client, outputChannel, configurationSectionName, confirmDeployment);
+
+        // Don't wait
+        validateWebSite(this, outputChannel, telemetryReporter).then(
+            () => {
+                // ignore
+            },
+            () => {
+                // ignore
+            });
     }
 
     private async enableScmDoBuildDuringDeploy(fsPath: string, runtime: string): Promise<void> {
@@ -126,7 +147,6 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
         } else {
             workspace.getConfiguration('appService', Uri.file(fsPath)).update(constants.configurationSettings.neverPromptBuildDuringDeploy, true, ConfigurationTarget.WorkspaceFolder);
         }
-
     }
 
     private createLabel(state: string): string {
