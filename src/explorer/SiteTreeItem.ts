@@ -5,12 +5,15 @@
 
 import WebSiteManagementClient = require('azure-arm-website');
 import * as WebSiteModels from 'azure-arm-website/lib/models';
+import * as fse from 'fs-extra';
 import * as opn from 'opn';
-import { ExtensionContext, MessageItem, OutputChannel, window, workspace } from 'vscode';
+import * as path from 'path';
+import { ConfigurationTarget, ExtensionContext, MessageItem, OutputChannel, Uri, window, workspace, WorkspaceConfiguration } from 'vscode';
 import { ILogStream, SiteWrapper } from 'vscode-azureappservice';
 import { IAzureNode, IAzureParentNode, IAzureParentTreeItem, IAzureTreeItem } from 'vscode-azureextensionui';
 import KuduClient from 'vscode-azurekudu';
 import TelemetryReporter from 'vscode-extension-telemetry';
+import * as constants from '../constants';
 import * as util from '../util';
 import { nodeUtils } from '../utils/nodeUtils';
 
@@ -100,30 +103,30 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
     }
 
     public async deploy(fsPath: string, client: WebSiteManagementClient, outputChannel: OutputChannel, configurationSectionName: string): Promise<void> {
-        const siteConfig = await this.siteWrapper.getSiteConfig(client);
-        if (siteConfig.scmType === 'None') {
-            // check if web app is being zipdeployed
-            await this.enableScmDoBuildDuringDeploy(client);
+        const workspaceConfig: WorkspaceConfiguration = workspace.getConfiguration('appService', Uri.file(fsPath));
+        if (!workspaceConfig.get(constants.configurationSettings.neverPromptBuildDuringDeploy)) {
+            const siteConfig: WebSiteModels.SiteConfigResource = await this.siteWrapper.getSiteConfig(client);
+            if (siteConfig.linuxFxVersion.startsWith('node') && siteConfig.scmType === 'None' && !(await fse.pathExists(path.join(fsPath, constants.deploymentFileName)))) {
+                // check if web app has node runtime, is being zipdeployed, and if there is no .deployment file
+                await this.enableScmDoBuildDuringDeploy(fsPath, siteConfig.linuxFxVersion);
+            }
         }
         await this.siteWrapper.deploy(fsPath, client, outputChannel, configurationSectionName);
     }
 
-    private async enableScmDoBuildDuringDeploy(client: WebSiteManagementClient): Promise<void> {
+    private async enableScmDoBuildDuringDeploy(fsPath: string, runtime: string): Promise<void> {
         const yesButton: MessageItem = { title: 'Yes' };
         const noButton: MessageItem = { title: 'No', isCloseAffordance: true };
-        const appSettings: WebSiteModels.StringDictionary = await client.webApps.listApplicationSettings(this.siteWrapper.resourceGroup, this.siteWrapper.appName);
-        if (!appSettings.properties.SCM_DO_BUILD_DURING_DEPLOYMENT) {
-            // if the web app does not have the "SCM_DO_BUILD_DURING_DEPLOYMENT", then it will return "undefined"
-            const buildDuringDeploy: string = "Run build script during deployment? Zipping all packages will cause a slower deployment.";
-            if (await window.showInformationMessage(buildDuringDeploy, yesButton, noButton) === yesButton) {
-                appSettings.properties.SCM_DO_BUILD_DURING_DEPLOYMENT = 'true';
-                workspace.getConfiguration().update('appService.zipIgnorePattern', 'node_modules{,/**}');
-                await client.webApps.updateApplicationSettings(this.siteWrapper.resourceGroup, this.siteWrapper.appName, appSettings);
-            } else {
-                appSettings.properties.SCM_DO_BUILD_DURING_DEPLOYMENT = 'false';
-                await client.webApps.updateApplicationSettings(this.siteWrapper.resourceGroup, this.siteWrapper.appName, appSettings);
-            }
+        const runtimeParsed = runtime.substring(0, runtime.indexOf('|'));
+        const ignoredDirectory: string = constants.ignoreFolderForDeployment[runtimeParsed];
+        const buildDuringDeploy: string = `Run build script during deployment?  The "${ignoredDirectory.substring(0, ignoredDirectory.indexOf('{'))}" directory will be built during the deployment, rather than zipped, resulting in a faster deployment.`;
+        if (await window.showInformationMessage(buildDuringDeploy, yesButton, noButton) === yesButton) {
+            workspace.getConfiguration('appService', Uri.file(fsPath)).update(constants.configurationSettings.zipIgnorePattern, ignoredDirectory, ConfigurationTarget.WorkspaceFolder);
+            await fse.writeFile(path.join(fsPath, constants.deploymentFileName), constants.deploymentFile);
+        } else {
+            workspace.getConfiguration('appService', Uri.file(fsPath)).update(constants.configurationSettings.neverPromptBuildDuringDeploy, true, ConfigurationTarget.WorkspaceFolder);
         }
+
     }
 
     private createLabel(state: string): string {

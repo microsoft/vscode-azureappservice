@@ -498,10 +498,11 @@
                     "default": false,
                     "description": "Show or hide the File Nodes of a Web App.  Caution: Manually editing your Web App's files could cause unexpected behavior."
                 },
-                "appService.showSavePrompt": {
+                "appService.neverPromptBuildDuringDeploy": {
+                    "scope": "resource",
                     "type": "boolean",
-                    "default": true,
-                    "description": "Show warning dialog on remote file uploading."
+                    "default": false,
+                    "description": "Never prompt to do a build during a zipdeploy for a specific workspace folder."
                 }
             }
         },
