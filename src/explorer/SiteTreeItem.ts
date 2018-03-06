@@ -139,10 +139,24 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
     private async enableScmDoBuildDuringDeploy(fsPath: string, runtime: string): Promise<void> {
         const yesButton: MessageItem = { title: 'Yes' };
         const noButton: MessageItem = { title: 'No', isCloseAffordance: true };
+        const learnMoreButton: MessageItem = { title: 'Learn More' };
         const zipIgnoreFolders: string[] = constants.getIgnoredFoldersForDeployment(runtime);
         const buildDuringDeploy: string = `Run build script during deployment?  The "${zipIgnoreFolders.join(", ")}" directory will be built during the deployment, rather than zipped, resulting in a faster deployment.`;
-        if (await window.showInformationMessage(buildDuringDeploy, yesButton, noButton) === yesButton) {
-            workspace.getConfiguration('appService', Uri.file(fsPath)).update(constants.configurationSettings.zipIgnorePattern, zipIgnoreFolders, ConfigurationTarget.WorkspaceFolder);
+        let input: MessageItem = learnMoreButton;
+        while (input === learnMoreButton) {
+            input = await window.showInformationMessage(buildDuringDeploy, yesButton, noButton, learnMoreButton);
+            if (input === learnMoreButton) {
+                // tslint:disable-next-line:no-unsafe-any
+                opn('https://aka.ms/Kwwkbd');
+            }
+        }
+        if (input === yesButton) {
+            let oldSettings: string[] | string = workspace.getConfiguration('appService', Uri.file(fsPath)).get(constants.configurationSettings.zipIgnorePattern);
+            if (typeof oldSettings === "string") {
+                oldSettings = [oldSettings];
+                // settings have to be an array to concat the proper zipIgnoreFolders
+            }
+            workspace.getConfiguration('appService', Uri.file(fsPath)).update(constants.configurationSettings.zipIgnorePattern, oldSettings.concat(zipIgnoreFolders), ConfigurationTarget.WorkspaceFolder);
             await fse.writeFile(path.join(fsPath, constants.deploymentFileName), constants.deploymentFile);
         } else {
             workspace.getConfiguration('appService', Uri.file(fsPath)).update(constants.configurationSettings.neverPromptBuildDuringDeploy, true, ConfigurationTarget.WorkspaceFolder);

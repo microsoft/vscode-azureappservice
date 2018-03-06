@@ -490,7 +490,7 @@
                         "string",
                         "array"
                     ],
-                    "default": "",
+                    "default": [],
                     "description": "Defines which files in the workspace to ignore for Zip deploy. This applies to Zip deploy only, has no effect on other deployment methods."
                 },
                 "appService.showRemoteFiles": {
