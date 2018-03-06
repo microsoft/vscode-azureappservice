@@ -65,7 +65,6 @@ export async function validateWebSite(siteTreeItem: SiteTreeItem, outputChannel:
                 break;
             }
 
-            // tslint:disable-next-line:no-string-based-set-timeout // false positive
             await delay(pollingIntervalMs);
             pollingIntervalMs += pollingIncrementMs;
         }
@@ -74,6 +73,7 @@ export async function validateWebSite(siteTreeItem: SiteTreeItem, outputChannel:
     });
 }
 
-function delay(delayMs: number): Promise<void> {
-    return new Promise<void>((resolve, _reject): void => { setTimeout(resolve, delayMs); });
+async function delay(delayMs: number): Promise<void> {
+    // tslint:disable-next-line:no-string-based-set-timeout // tslint false positive
+    await new Promise<void>((resolve, _reject): void => { setTimeout(resolve, delayMs); });
 }
