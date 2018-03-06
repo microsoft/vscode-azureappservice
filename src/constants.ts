@@ -7,8 +7,20 @@ export const deploymentFileName: string = '.deployment';
 export const deploymentFile: string = `[config]
 SCM_DO_BUILD_DURING_DEPLOYMENT=true`;
 
-export enum ignoreFolderForDeployment {
-    node = 'node_modules{,/**}'
+export enum runtimes {
+    node = 'node',
+    php = 'php',
+    dotnetcore = 'dotnetcore',
+    ruby = 'ruby'
+}
+
+export function getIgnoredFoldersForDeployment(runtime: string): string[] | undefined {
+    switch (runtime) {
+        case runtimes.node:
+            return ['node_modules{,/**}'];
+        default:
+            return undefined;
+    }
 }
 
 export enum configurationSettings {

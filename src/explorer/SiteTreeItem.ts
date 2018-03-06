@@ -106,9 +106,10 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
         const workspaceConfig: WorkspaceConfiguration = workspace.getConfiguration('appService', Uri.file(fsPath));
         if (!workspaceConfig.get(constants.configurationSettings.neverPromptBuildDuringDeploy)) {
             const siteConfig: WebSiteModels.SiteConfigResource = await this.siteWrapper.getSiteConfig(client);
-            if (siteConfig.linuxFxVersion.startsWith('node') && siteConfig.scmType === 'None' && !(await fse.pathExists(path.join(fsPath, constants.deploymentFileName)))) {
+            if (siteConfig.linuxFxVersion.startsWith(constants.runtimes.node) && siteConfig.scmType === 'None' && !(await fse.pathExists(path.join(fsPath, constants.deploymentFileName)))) {
                 // check if web app has node runtime, is being zipdeployed, and if there is no .deployment file
-                await this.enableScmDoBuildDuringDeploy(fsPath, siteConfig.linuxFxVersion);
+                // tslint:disable-next-line:no-unsafe-any
+                await this.enableScmDoBuildDuringDeploy(fsPath, constants.runtimes[siteConfig.linuxFxVersion.substring(0, siteConfig.linuxFxVersion.indexOf('|'))]);
             }
         }
         await this.siteWrapper.deploy(fsPath, client, outputChannel, configurationSectionName);
@@ -117,11 +118,10 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
     private async enableScmDoBuildDuringDeploy(fsPath: string, runtime: string): Promise<void> {
         const yesButton: MessageItem = { title: 'Yes' };
         const noButton: MessageItem = { title: 'No', isCloseAffordance: true };
-        const runtimeParsed = runtime.substring(0, runtime.indexOf('|'));
-        const ignoredDirectory: string = constants.ignoreFolderForDeployment[runtimeParsed];
-        const buildDuringDeploy: string = `Run build script during deployment?  The "${ignoredDirectory.substring(0, ignoredDirectory.indexOf('{'))}" directory will be built during the deployment, rather than zipped, resulting in a faster deployment.`;
+        const zipIgnoreFolders: string[] = constants.getIgnoredFoldersForDeployment(runtime);
+        const buildDuringDeploy: string = `Run build script during deployment?  The "${zipIgnoreFolders.join(", ")}" directory will be built during the deployment, rather than zipped, resulting in a faster deployment.`;
         if (await window.showInformationMessage(buildDuringDeploy, yesButton, noButton) === yesButton) {
-            workspace.getConfiguration('appService', Uri.file(fsPath)).update(constants.configurationSettings.zipIgnorePattern, ignoredDirectory, ConfigurationTarget.WorkspaceFolder);
+            workspace.getConfiguration('appService', Uri.file(fsPath)).update(constants.configurationSettings.zipIgnorePattern, zipIgnoreFolders, ConfigurationTarget.WorkspaceFolder);
             await fse.writeFile(path.join(fsPath, constants.deploymentFileName), constants.deploymentFile);
         } else {
             workspace.getConfiguration('appService', Uri.file(fsPath)).update(constants.configurationSettings.neverPromptBuildDuringDeploy, true, ConfigurationTarget.WorkspaceFolder);

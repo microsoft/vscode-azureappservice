@@ -8,7 +8,7 @@
 import WebSiteManagementClient = require('azure-arm-website');
 import * as vscode from 'vscode';
 import { AppSettingsTreeItem, AppSettingTreeItem } from 'vscode-azureappservice';
-import { AzureActionHandler, AzureTreeDataProvider, IActionContext, IAzureNode, IAzureParentNode, UserCancelledError } from 'vscode-azureextensionui';
+import { AzureActionHandler, AzureTreeDataProvider, IActionContext, IAzureNode, IAzureParentNode, parseError } from 'vscode-azureextensionui';
 import TelemetryReporter from 'vscode-extension-telemetry';
 import { DeploymentSlotSwapper } from './DeploymentSlotSwapper';
 import { LogPointsManager } from './diagnostics/LogPointsManager';
@@ -164,7 +164,7 @@ export function activate(context: vscode.ExtensionContext): void {
         try {
             await node.treeItem.deploy(fsPath, client, outputChannel, 'appService');
         } catch (err) {
-            if (err instanceof UserCancelledError) {
+            if (parseError(err).isUserCancelledError) {
                 throw err;
             }
             const appServicePlan = await getAppServicePlan(node.treeItem.site, client);
