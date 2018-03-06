@@ -46,7 +46,7 @@ export async function validateWebSite(siteTreeItem: SiteTreeItem, outputChannel:
             resolveWithFullResponse: true
         };
         let currentStatusCode: number = 0;
-        const statusCodes: { code: number, elapsed: number, reported?: boolean }[] = [];
+        const statusCodes: { code: number, elapsed: number }[] = [];
 
         // tslint:disable-next-line:no-constant-condition
         while (true) {
@@ -74,6 +74,5 @@ export async function validateWebSite(siteTreeItem: SiteTreeItem, outputChannel:
 }
 
 async function delay(delayMs: number): Promise<void> {
-    // tslint:disable-next-line:no-string-based-set-timeout // tslint false positive
-    await new Promise<void>((resolve, _reject): void => { setTimeout(resolve, delayMs); });
+    await new Promise<void>((resolve: () => void): void => { setTimeout(resolve, delayMs); });
 }
