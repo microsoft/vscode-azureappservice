@@ -8,7 +8,7 @@ import * as WebSiteModels from 'azure-arm-website/lib/models';
 import * as opn from 'opn';
 import { ExtensionContext, OutputChannel, window } from 'vscode';
 import { ILogStream, SiteWrapper } from 'vscode-azureappservice';
-import { IAzureNode, IAzureParentNode, IAzureParentTreeItem, IAzureTreeItem } from 'vscode-azureextensionui';
+import { IAzureNode, IAzureParentNode, IAzureParentTreeItem, IAzureTreeItem, TelemetryProperties } from 'vscode-azureextensionui';
 import KuduClient from 'vscode-azurekudu';
 import TelemetryReporter from 'vscode-extension-telemetry';
 import * as util from '../util';
@@ -111,7 +111,7 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
         telemetryReporter: TelemetryReporter,
         configurationSectionName: string,
         confirmDeployment: boolean = true,
-        telemetryProperties: { [key: string]: string }
+        telemetryProperties: TelemetryProperties
     ): Promise<void> {
         cancelWebsiteValidation(this);
         await this.siteWrapper.deploy(fsPath, client, outputChannel, configurationSectionName, confirmDeployment, telemetryProperties);
