@@ -38,7 +38,7 @@ export function activate(context: vscode.ExtensionContext): void {
     context.subscriptions.push(outputChannel);
 
     const webAppProvider: WebAppProvider = new WebAppProvider(context.globalState);
-    const tree = new AzureTreeDataProvider(webAppProvider, 'appService.LoadMore');
+    const tree = new AzureTreeDataProvider(webAppProvider, 'appService.LoadMore', undefined, reporter);
     context.subscriptions.push(tree);
     context.subscriptions.push(vscode.window.registerTreeDataProvider('azureAppService', tree));
 

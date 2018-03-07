@@ -604,7 +604,7 @@
         "opn": "^5.1.0",
         "request": "^2.83.0",
         "vscode-azureappservice": "~0.11.1",
-        "vscode-azureextensionui": "~0.8.0",
+        "vscode-azureextensionui": "~0.8.2",
         "vscode-azurekudu": "~0.1.6",
         "vscode-debugadapter": "^1.24.0",
         "vscode-debugprotocol": "^1.24.0",
