@@ -142,9 +142,13 @@ export function activate(context: vscode.ExtensionContext): void {
         const yesButton: vscode.MessageItem = { title: 'Yes' };
         const noButton: vscode.MessageItem = { title: 'No', isCloseAffordance: true };
         if (await vscode.window.showInformationMessage('Deploy to web app?', yesButton, noButton) === yesButton) {
-            const fsPath = await util.showWorkspaceFoldersQuickPick("Select the folder to deploy");
+            this.properties.deployingToWebApp = 'true';
+
+            const fsPath = await util.showWorkspaceFoldersQuickPick("Select the folder to deploy", this.properties);
             const client = nodeUtils.getWebSiteClient(createdApp);
             await createdApp.treeItem.deploy(fsPath, client, outputChannel, reporter, 'appService', false, this.properties);
+        } else {
+            this.properties.deployingToWebApp = 'false';
         }
     });
     actionHandler.registerCommand('appService.Deploy', async function (this: IActionContext, target?: vscode.Uri | IAzureNode<WebAppTreeItem> | undefined): Promise<void> {
@@ -153,12 +157,19 @@ export function activate(context: vscode.ExtensionContext): void {
         if (target instanceof vscode.Uri) {
             fsPath = target.fsPath;
         } else {
-            fsPath = await util.showWorkspaceFoldersQuickPick("Select the folder to deploy");
+            fsPath = await util.showWorkspaceFoldersQuickPick("Select the folder to deploy", this.properties);
             node = target;
         }
 
         if (!node) {
-            node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
+            try {
+                node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
+            } catch (err2) {
+                if (err2 instanceof UserCancelledError) {
+                    this.properties.cancelStep = `showNodePicker:${WebAppTreeItem.contextValue}`;
+                }
+                throw err2;
+            }
         }
         const client = nodeUtils.getWebSiteClient(node);
         try {
@@ -206,7 +217,7 @@ export function activate(context: vscode.ExtensionContext): void {
         const yesButton: vscode.MessageItem = { title: 'Yes' };
         const noButton: vscode.MessageItem = { title: 'No', isCloseAffordance: true };
         if (await vscode.window.showInformationMessage('Deploy to deployment slot?', yesButton, noButton) === yesButton) {
-            const fsPath = await util.showWorkspaceFoldersQuickPick("Select the folder to deploy");
+            const fsPath = await util.showWorkspaceFoldersQuickPick("Select the folder to deploy", this.properties);
             const client = nodeUtils.getWebSiteClient(createdSlot);
             await createdSlot.treeItem.deploy(fsPath, client, outputChannel, reporter, 'appService', false, this.properties);
         }

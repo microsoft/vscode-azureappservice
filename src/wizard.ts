@@ -13,6 +13,7 @@ export abstract class WizardBase {
     public readonly output: vscode.OutputChannel;
     private readonly _steps: WizardStep[] = [];
     private _result: IWizardResult;
+    private _telemetryProperties: TelemetryProperties;
 
     protected constructor(output: vscode.OutputChannel) {
         this.output = output;
@@ -27,6 +28,7 @@ export abstract class WizardBase {
     }
 
     public async run(properties: TelemetryProperties, promptOnly: boolean = false): Promise<IWizardResult> {
+        this._telemetryProperties = properties;
         this.initSteps();
 
         // Go through the prompts...
@@ -34,7 +36,7 @@ export abstract class WizardBase {
             try {
                 await step.prompt();
             } catch (err) {
-                this.onError(properties, <Error>err, step);
+                this.onError(<Error>err, step);
             }
         }
 
@@ -46,10 +48,10 @@ export abstract class WizardBase {
             };
         }
 
-        return this.execute(properties);
+        return this.execute();
     }
 
-    public async execute(properties: TelemetryProperties): Promise<IWizardResult> {
+    public async execute(): Promise<IWizardResult> {
         // Execute each step...
         this.output.show(true);
         for (let i = 0; i < this.steps.length; i++) {
@@ -59,7 +61,7 @@ export abstract class WizardBase {
                 this.beforeExecute(step, i);
                 await this.steps[i].execute();
             } catch (err) {
-                this.onError(properties, <Error>err, step);
+                this.onError(<Error>err, step);
             }
         }
 
@@ -94,9 +96,15 @@ export abstract class WizardBase {
         return step;
     }
 
-    protected onError(properties: TelemetryProperties, err: Error, step: WizardStep): void {
-        properties.stepTitle = step.telemetryStepTitle;
-        properties.stepIndex = step.stepIndex.toString();
+    protected cancel(step: WizardStep): void {
+        this._telemetryProperties.stepTitle = step.telemetryStepTitle;
+        this._telemetryProperties.stepIndex = step.stepIndex.toString();
+        throw new UserCancelledError();
+    }
+
+    protected onError(err: Error, step: WizardStep): void {
+        this._telemetryProperties.stepTitle = step.telemetryStepTitle;
+        this._telemetryProperties.stepIndex = step.stepIndex.toString();
         throw err;
     }
 
