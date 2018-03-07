@@ -87,7 +87,7 @@ export async function showWorkspaceFoldersQuickPick(placeHolderString: string, t
     const pickedItem = await vscode.window.showQuickPick(folderQuickPickItems, folderQuickPickOption);
 
     if (!pickedItem) {
-        telemetryProperties.cancelStep = placeHolderString;
+        telemetryProperties.cancelStep = 'showWorkspaceFolders';
         throw new UserCancelledError();
     }
 
@@ -100,7 +100,7 @@ export async function showWorkspaceFoldersQuickPick(placeHolderString: string, t
         });
 
         if (!browseResult) {
-            telemetryProperties.cancelStep = 'showWorkspaceFoldersQuickPick';
+            telemetryProperties.cancelStep = 'showWorkspaceFoldersBrowse';
             throw new UserCancelledError();
         }
 

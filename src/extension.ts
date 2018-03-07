@@ -8,7 +8,7 @@
 import WebSiteManagementClient = require('azure-arm-website');
 import * as vscode from 'vscode';
 import { AppSettingsTreeItem, AppSettingTreeItem } from 'vscode-azureappservice';
-import { AzureActionHandler, AzureTreeDataProvider, IActionContext, IAzureNode, IAzureParentNode, UserCancelledError } from 'vscode-azureextensionui';
+import { AzureActionHandler, AzureTreeDataProvider, IActionContext, IAzureNode, IAzureParentNode, parseError } from 'vscode-azureextensionui';
 import TelemetryReporter from 'vscode-extension-telemetry';
 import { DeploymentSlotSwapper } from './DeploymentSlotSwapper';
 import { LogPointsManager } from './diagnostics/LogPointsManager';
@@ -132,6 +132,8 @@ export function activate(context: vscode.ExtensionContext): void {
         await node.deleteNode();
     });
     actionHandler.registerCommand('appService.CreateWebApp', async function (this: IActionContext, node?: IAzureParentNode): Promise<void> {
+        const deployingToWebApp = 'deployingToWebApp';
+
         if (!node) {
             node = <IAzureParentNode>await tree.showNodePicker(AzureTreeDataProvider.subscriptionContextValue);
         }
@@ -142,13 +144,13 @@ export function activate(context: vscode.ExtensionContext): void {
         const yesButton: vscode.MessageItem = { title: 'Yes' };
         const noButton: vscode.MessageItem = { title: 'No', isCloseAffordance: true };
         if (await vscode.window.showInformationMessage('Deploy to web app?', yesButton, noButton) === yesButton) {
-            this.properties.deployingToWebApp = 'true';
+            this.properties[deployingToWebApp] = 'true';
 
             const fsPath = await util.showWorkspaceFoldersQuickPick("Select the folder to deploy", this.properties);
             const client = nodeUtils.getWebSiteClient(createdApp);
             await createdApp.treeItem.deploy(fsPath, client, outputChannel, reporter, 'appService', false, this.properties);
         } else {
-            this.properties.deployingToWebApp = 'false';
+            this.properties[deployingToWebApp] = 'false';
         }
     });
     actionHandler.registerCommand('appService.Deploy', async function (this: IActionContext, target?: vscode.Uri | IAzureNode<WebAppTreeItem> | undefined): Promise<void> {
@@ -165,7 +167,7 @@ export function activate(context: vscode.ExtensionContext): void {
             try {
                 node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
             } catch (err2) {
-                if (err2 instanceof UserCancelledError) {
+                if (parseError(err2).isUserCancelledError) {
                     this.properties.cancelStep = `showNodePicker:${WebAppTreeItem.contextValue}`;
                 }
                 throw err2;
@@ -175,7 +177,7 @@ export function activate(context: vscode.ExtensionContext): void {
         try {
             await node.treeItem.deploy(fsPath, client, outputChannel, reporter, 'appService', true, this.properties);
         } catch (err) {
-            if (err instanceof UserCancelledError) {
+            if (parseError(err).isUserCancelledError) {
                 throw err;
             }
             const appServicePlan = await getAppServicePlan(node.treeItem.site, client);
@@ -207,6 +209,8 @@ export function activate(context: vscode.ExtensionContext): void {
         });
     });
     actionHandler.registerCommand('deploymentSlots.CreateSlot', async function (this: IActionContext, node: IAzureParentNode<DeploymentSlotsTreeItem>): Promise<void> {
+        const deployingToDeploymentSlot = 'deployingToDeploymentSlot';
+
         if (!node) {
             node = <IAzureParentNode<DeploymentSlotsTreeItem>>await tree.showNodePicker(DeploymentSlotsTreeItem.contextValue);
         }
@@ -217,9 +221,12 @@ export function activate(context: vscode.ExtensionContext): void {
         const yesButton: vscode.MessageItem = { title: 'Yes' };
         const noButton: vscode.MessageItem = { title: 'No', isCloseAffordance: true };
         if (await vscode.window.showInformationMessage('Deploy to deployment slot?', yesButton, noButton) === yesButton) {
+            this.properties[deployingToDeploymentSlot] = 'true';
             const fsPath = await util.showWorkspaceFoldersQuickPick("Select the folder to deploy", this.properties);
             const client = nodeUtils.getWebSiteClient(createdSlot);
             await createdSlot.treeItem.deploy(fsPath, client, outputChannel, reporter, 'appService', false, this.properties);
+        } else {
+            this.properties[deployingToDeploymentSlot] = 'false';
         }
     });
     actionHandler.registerCommand('deploymentSlot.SwapSlots', async function (this: IActionContext, node: IAzureNode<DeploymentSlotTreeItem>): Promise<void> {
