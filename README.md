@@ -1,4 +1,5 @@
 # Azure App Services for Visual Studio Code (Preview)
+
 [![Build Status](https://travis-ci.org/Microsoft/vscode-azureappservice.svg?branch=master)](https://travis-ci.org/Microsoft/vscode-azureappservice) [![Release Status](https://img.shields.io/github/tag/Microsoft/vscode-azureappservice.svg?label=prerelease&colorB=0e7fc0)](https://github.com/Microsoft/vscode-azureappservice/releases)
 
 The Azure App Services extension for VS Code lets you quickly browse, create, manage, and deploy Azure App Service websites.
@@ -6,6 +7,7 @@ The Azure App Services extension for VS Code lets you quickly browse, create, ma
 Check out this [deployment tutorial](https://code.visualstudio.com/tutorials/app-service-extension/getting-started) to get started with deploying to Azure App Service on Linux.
 
 ## Features
+
 * Browse sites across all of your Azure subscriptions
 * Browse to the Azure Portal for advanced tasks, such as scaling
 * Create new web apps/deployment slots (Linux with Node.js only)
@@ -20,19 +22,29 @@ Check out this [deployment tutorial](https://code.visualstudio.com/tutorials/app
 
 ![Web App Log Stream](resources/WebApp_LogStream.png)
 
+## Configuring Zipdeploy
+
 * How to configure zip deployment:
-  * If you set the deployment source of your web app to “None”, the deploy command will Zip the contents of a selected folder and upload the Zip file to Azure. You might want to use the following settings to customize which files to include/exclude:
+  * If you set the deployment source of your web app to “None” (the default source on app creation), the deploy command will Zip the contents of a selected folder and upload the Zip file to Azure.
+
+  * VS Code will prompt on deploy if you would like to configure your project for faster deployment.  If you click "Yes", the following changes will be made in your project:
+    * The vscode setting 'appService.zipIgnorePattern' is changed to include build artifacts to be ignored for zipping.  These will be built on the server by running the appropriate build command.
+    * A '.deployment' file will be created in the root of the project.  This file configures SCM_DO_BUILD_DURING_DEPLOYMENT=true which enables build on deploy.
+      > NOTE: Currently only 'node' runtimes support this feature.
+  * If you select 'Never show again,' the 'appService.showBuildDuringDeployPrompt' vscode setting will be set to 'false' and you will no longer be prompted for this project.  Delete this setting or set it to 'true' to re-enable the prompt.
+
+  ### Zipdeploy Configuration Settings
 
   * 'appService.zipGlobPattern'
     * Uses a glob pattern to define which files to be included in the deployment. The default value is “**/*”.
 
   * 'appService.zipIgnorePattern'
-    * Uses a glob pattern to define which files to be excluded from the deployment. The default value is “” which doesn’t exclude any files/folders.
+    * Uses a glob pattern to define which files to be excluded from the deployment. The default value is [] which doesn’t exclude any files/folders.
 
   * For example, you might want to exclude the “node_modules” folder from the deployment to speed up the Zip file creation and uploading. In this case, you will need the following setting:
-    * “appService.zipIgnorePattern”: “node_modules{,/**}”
+    * “appService.zipIgnorePattern”: ["node_modules{,/**}"]
   * And in order to have the web app run proper deployment command to restore the npm packages, you need to have the following Application Setting on your site:
-    * SCM_DO_BUILD_DURING_DEPLOYMENT=true
+    * SCM_DO_BUILD_DURING_DEPLOYMENT=true or include the '.deployment' file that is generated.
 
     ![Web App Log Stream](resources/Scm_Do_Build_During_Deployment.png)
 
