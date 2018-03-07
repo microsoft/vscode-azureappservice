@@ -6,7 +6,7 @@
 import WebSiteManagementClient = require('azure-arm-website');
 import * as WebSiteModels from 'azure-arm-website/lib/models';
 import * as vscode from 'vscode';
-import { UserCancelledError } from 'vscode-azureextensionui';
+import { TelemetryProperties, UserCancelledError } from 'vscode-azureextensionui';
 
 // Web app & deployment slots
 export function isSiteDeploymentSlot(site: WebSiteModels.Site): boolean {
@@ -68,7 +68,7 @@ export function parseAzureResourceId(resourceId: string): { [key: string]: strin
     return result;
 }
 
-export async function showWorkspaceFoldersQuickPick(placeHolderString: string): Promise<string> {
+export async function showWorkspaceFoldersQuickPick(placeHolderString: string, telemetryProperties: TelemetryProperties): Promise<string> {
     const browse: IQuickPickItemWithData<vscode.WorkspaceFolder> = { label: '$(file-directory) Browse...', description: '', data: undefined };
     const folderQuickPickItems = vscode.workspace.workspaceFolders ?
         vscode.workspace.workspaceFolders.map((value) => {
@@ -87,6 +87,7 @@ export async function showWorkspaceFoldersQuickPick(placeHolderString: string): 
     const pickedItem = await vscode.window.showQuickPick(folderQuickPickItems, folderQuickPickOption);
 
     if (!pickedItem) {
+        telemetryProperties.cancelStep = 'showWorkspaceFolders';
         throw new UserCancelledError();
     }
 
@@ -99,6 +100,7 @@ export async function showWorkspaceFoldersQuickPick(placeHolderString: string): 
         });
 
         if (!browseResult) {
+            telemetryProperties.cancelStep = 'showWorkspaceFoldersBrowse';
             throw new UserCancelledError();
         }
 
