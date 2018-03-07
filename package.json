@@ -603,7 +603,7 @@
         "kudu-api": "^1.4.1",
         "opn": "^5.1.0",
         "request": "^2.83.0",
-        "vscode-azureappservice": "~0.11.0",
+        "vscode-azureappservice": "~0.11.1",
         "vscode-azureextensionui": "~0.8.2",
         "vscode-azurekudu": "~0.1.6",
         "vscode-debugadapter": "^1.24.0",
