@@ -138,10 +138,10 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
 
     private async enableScmDoBuildDuringDeploy(fsPath: string, runtime: string): Promise<void> {
         const yesButton: MessageItem = { title: 'Yes' };
-        const dontShowAgainButton: MessageItem = { title: "Don't show again", isCloseAffordance: true };
+        const dontShowAgainButton: MessageItem = { title: "Don't show again" };
         const learnMoreButton: MessageItem = { title: 'Learn More' };
         const zipIgnoreFolders: string[] = constants.getIgnoredFoldersForDeployment(runtime);
-        const buildDuringDeploy: string = `Run build script during deployment?  The "${zipIgnoreFolders.join(", ")}" directory will be built during the deployment, rather than zipped, resulting in a faster deployment.`;
+        const buildDuringDeploy: string = `Would you like to configure your project for faster deployment?`;
         let input: MessageItem = learnMoreButton;
         while (input === learnMoreButton) {
             input = await window.showInformationMessage(buildDuringDeploy, yesButton, dontShowAgainButton, learnMoreButton);

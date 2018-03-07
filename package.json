@@ -507,7 +507,7 @@
                     "scope": "resource",
                     "type": "boolean",
                     "default": true,
-                    "description": "Show prompt to do a build during a zipdeploy for a specific workspace folder."
+                    "description": "Show prompt to improve performance of zipdeploy by excluding build artifacts from the zip file and running a build during deployment."
                 }
             }
         },
