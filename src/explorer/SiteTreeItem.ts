@@ -13,7 +13,7 @@ import KuduClient from 'vscode-azurekudu';
 import TelemetryReporter from 'vscode-extension-telemetry';
 import * as util from '../util';
 import { nodeUtils } from '../utils/nodeUtils';
-import { validateWebSite } from '../validateWebSite';
+import { cancelWebsiteValidation, validateWebSite } from '../validateWebSite';
 
 export abstract class SiteTreeItem implements IAzureParentTreeItem {
     public abstract contextValue: string;
@@ -113,6 +113,7 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
         confirmDeployment: boolean = true,
         telemetryProperties: { [key: string]: string }
     ): Promise<void> {
+        cancelWebsiteValidation(this);
         await this.siteWrapper.deploy(fsPath, client, outputChannel, configurationSectionName, confirmDeployment, telemetryProperties);
 
         // Don't wait
