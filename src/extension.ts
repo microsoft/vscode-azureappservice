@@ -39,7 +39,7 @@ export function activate(context: vscode.ExtensionContext): void {
     context.subscriptions.push(outputChannel);
 
     const webAppProvider: WebAppProvider = new WebAppProvider(context.globalState);
-    const tree = new AzureTreeDataProvider(webAppProvider, 'appService.LoadMore');
+    const tree = new AzureTreeDataProvider(webAppProvider, 'appService.LoadMore', undefined, reporter);
     context.subscriptions.push(tree);
     context.subscriptions.push(vscode.window.registerTreeDataProvider('azureAppService', tree));
 
@@ -84,7 +84,8 @@ export function activate(context: vscode.ExtensionContext): void {
             node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
         }
 
-        node.openInPortal();
+        node.treeItem.contextValue === 'deploymentSlot' ? node.openInPortal(node.treeItem.id) : node.openInPortal();
+        // the deep link for slots does not follow the conventional pattern of including its parent in the path name so this is how we extract the slot's id
     });
     actionHandler.registerCommand('appService.Start', async (node: IAzureNode<SiteTreeItem>) => {
         if (!node) {
@@ -134,7 +135,9 @@ export function activate(context: vscode.ExtensionContext): void {
 
         await node.deleteNode();
     });
-    actionHandler.registerCommand('appService.CreateWebApp', async (node?: IAzureParentNode) => {
+    actionHandler.registerCommand('appService.CreateWebApp', async function (this: IActionContext, node?: IAzureParentNode): Promise<void> {
+        const deployingToWebApp = 'deployingToWebApp';
+
         if (!node) {
             node = <IAzureParentNode>await tree.showNodePicker(AzureTreeDataProvider.subscriptionContextValue);
         }
@@ -143,9 +146,13 @@ export function activate(context: vscode.ExtensionContext): void {
 
         // prompt user to deploy to newly created web app
         if (await vscode.window.showInformationMessage('Deploy to web app?', yesButton, noButton) === yesButton) {
-            const fsPath = await util.showWorkspaceFoldersQuickPick("Select the folder to deploy");
+            this.properties[deployingToWebApp] = 'true';
+
+            const fsPath = await util.showWorkspaceFoldersQuickPick("Select the folder to deploy", this.properties);
             const client = nodeUtils.getWebSiteClient(createdApp);
-            await createdApp.treeItem.deploy(fsPath, client, outputChannel, reporter, extensionPrefix, false);
+            await createdApp.treeItem.deploy(fsPath, client, outputChannel, reporter, extensionPrefix, false, this.properties);
+        } else {
+            this.properties[deployingToWebApp] = 'false';
         }
     });
     actionHandler.registerCommand('appService.Deploy', async function (this: IActionContext, target?: vscode.Uri | IAzureNode<WebAppTreeItem> | undefined): Promise<void> {
@@ -154,16 +161,23 @@ export function activate(context: vscode.ExtensionContext): void {
         if (target instanceof vscode.Uri) {
             fsPath = target.fsPath;
         } else {
-            fsPath = await util.showWorkspaceFoldersQuickPick("Select the folder to deploy");
+            fsPath = await util.showWorkspaceFoldersQuickPick("Select the folder to deploy", this.properties);
             node = target;
         }
 
         if (!node) {
-            node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
+            try {
+                node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
+            } catch (err2) {
+                if (parseError(err2).isUserCancelledError) {
+                    this.properties.cancelStep = `showNodePicker:${WebAppTreeItem.contextValue}`;
+                }
+                throw err2;
+            }
         }
         const client = nodeUtils.getWebSiteClient(node);
         try {
-            await node.treeItem.deploy(fsPath, client, outputChannel, reporter, extensionPrefix);
+            await node.treeItem.deploy(fsPath, client, outputChannel, reporter, extensionPrefix, true, this.properties);
         } catch (err) {
             if (parseError(err).isUserCancelledError) {
                 throw err;
@@ -196,7 +210,9 @@ export function activate(context: vscode.ExtensionContext): void {
             await node.treeItem.generateDeploymentScript(node);
         });
     });
-    actionHandler.registerCommand('deploymentSlots.CreateSlot', async (node: IAzureParentNode<DeploymentSlotsTreeItem>) => {
+    actionHandler.registerCommand('deploymentSlots.CreateSlot', async function (this: IActionContext, node: IAzureParentNode<DeploymentSlotsTreeItem>): Promise<void> {
+        const deployingToDeploymentSlot = 'deployingToDeploymentSlot';
+
         if (!node) {
             node = <IAzureParentNode<DeploymentSlotsTreeItem>>await tree.showNodePicker(DeploymentSlotsTreeItem.contextValue);
         }
@@ -205,9 +221,12 @@ export function activate(context: vscode.ExtensionContext): void {
 
         // prompt user to deploy to newly created web app
         if (await vscode.window.showInformationMessage('Deploy to deployment slot?', yesButton, noButton) === yesButton) {
-            const fsPath = await util.showWorkspaceFoldersQuickPick("Select the folder to deploy");
+            this.properties[deployingToDeploymentSlot] = 'true';
+            const fsPath = await util.showWorkspaceFoldersQuickPick("Select the folder to deploy", this.properties);
             const client = nodeUtils.getWebSiteClient(createdSlot);
-            await createdSlot.treeItem.deploy(fsPath, client, outputChannel, reporter, extensionPrefix, false);
+            await createdSlot.treeItem.deploy(fsPath, client, outputChannel, reporter, extensionPrefix, false, this.properties);
+        } else {
+            this.properties[deployingToDeploymentSlot] = 'false';
         }
     });
     actionHandler.registerCommand('deploymentSlot.SwapSlots', async function (this: IActionContext, node: IAzureNode<DeploymentSlotTreeItem>): Promise<void> {

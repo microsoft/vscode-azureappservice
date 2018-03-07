@@ -10,13 +10,13 @@ import * as opn from 'opn';
 import * as path from 'path';
 import { ExtensionContext, MessageItem, OutputChannel, Uri, window, workspace, WorkspaceConfiguration } from 'vscode';
 import { ILogStream, SiteWrapper } from 'vscode-azureappservice';
-import { IAzureNode, IAzureParentNode, IAzureParentTreeItem, IAzureTreeItem } from 'vscode-azureextensionui';
+import { IAzureNode, IAzureParentNode, IAzureParentTreeItem, IAzureTreeItem, TelemetryProperties } from 'vscode-azureextensionui';
 import KuduClient from 'vscode-azurekudu';
 import TelemetryReporter from 'vscode-extension-telemetry';
 import * as constants from '../constants';
 import * as util from '../util';
 import { nodeUtils } from '../utils/nodeUtils';
-import { validateWebSite } from '../validateWebSite';
+import { cancelWebsiteValidation, validateWebSite } from '../validateWebSite';
 
 export abstract class SiteTreeItem implements IAzureParentTreeItem {
     public abstract contextValue: string;
@@ -113,7 +113,8 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
         outputChannel: OutputChannel,
         telemetryReporter: TelemetryReporter,
         configurationSectionName: string,
-        confirmDeployment: boolean = true
+        confirmDeployment: boolean = true,
+        telemetryProperties: TelemetryProperties
     ): Promise<void> {
         const workspaceConfig: WorkspaceConfiguration = workspace.getConfiguration(constants.extensionPrefix, Uri.file(fsPath));
         if (workspaceConfig.get(constants.configurationSettings.showBuildDuringDeployPrompt)) {
@@ -124,7 +125,8 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
                 await this.enableScmDoBuildDuringDeploy(fsPath, constants.runtimes[siteConfig.linuxFxVersion.substring(0, siteConfig.linuxFxVersion.indexOf('|'))]);
             }
         }
-        await this.siteWrapper.deploy(fsPath, client, outputChannel, configurationSectionName, confirmDeployment);
+        cancelWebsiteValidation(this);
+        await this.siteWrapper.deploy(fsPath, client, outputChannel, configurationSectionName, confirmDeployment, telemetryProperties);
 
         // Don't wait
         validateWebSite(this, outputChannel, telemetryReporter).then(
