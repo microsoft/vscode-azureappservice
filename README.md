@@ -29,7 +29,7 @@ Check out this [deployment tutorial](https://code.visualstudio.com/tutorials/app
 
   * VS Code will prompt on deploy if you would like to configure your project for faster deployment.  If you click "Yes", the following changes will be made in your project:
     * The vscode setting 'appService.zipIgnorePattern' is changed to include build artifacts to be ignored for zipping.  These will be built on the server by running the appropriate build command.
-    * A '.deployment' file will be created in the root of the project.  This file configures SCM_DO_BUILD_DURING_DEPLOYMENT=true enabling build on deploy.
+    * A '.deployment' file will be created in the root of the project.  This file configures SCM_DO_BUILD_DURING_DEPLOYMENT=true which enables build on deploy.
       > NOTE: Currently only 'node' runtimes support this feature.
   * If you select 'Never show again,' the 'appService.showBuildDuringDeployPrompt' vscode setting will be set to 'false' and you will no longer be prompted for this project.  Delete this setting or set it to 'true' to re-enable the prompt.
 
