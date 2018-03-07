@@ -2,7 +2,7 @@
     "name": "vscode-azureappservice",
     "displayName": "Azure App Service",
     "description": "An Azure App Service management extension for Visual Studio Code.",
-    "version": "0.6.0",
+    "version": "0.5.1",
     "publisher": "ms-azuretools",
     "icon": "resources/windows-azure-web-site.png",
     "aiKey": "AIF-d9b70cd4-b9f9-4d70-929b-a071c400b217",
@@ -498,11 +498,16 @@
                     "default": false,
                     "description": "Show or hide the File Nodes of a Web App.  Caution: Manually editing your Web App's files could cause unexpected behavior."
                 },
-                "appService.neverPromptBuildDuringDeploy": {
+                "appService.showSavePrompt": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Show warning dialog on remote file uploading."
+                },
+                "appService.showBuildDuringDeployPrompt": {
                     "scope": "resource",
                     "type": "boolean",
-                    "default": false,
-                    "description": "Never prompt to do a build during a zipdeploy for a specific workspace folder."
+                    "default": true,
+                    "description": "Show prompt to do a build during a zipdeploy for a specific workspace folder."
                 }
             }
         },

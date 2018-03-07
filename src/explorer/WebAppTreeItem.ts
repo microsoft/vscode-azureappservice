@@ -12,7 +12,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { AppSettingsTreeItem, AppSettingTreeItem } from 'vscode-azureappservice';
 import { IAzureNode, IAzureTreeItem } from 'vscode-azureextensionui';
-import { configurationSettings } from '../constants';
+import { configurationSettings, extensionPrefix } from '../constants';
 import { nodeUtils } from '../utils/nodeUtils';
 import { DeploymentSlotsNATreeItem, DeploymentSlotsTreeItem } from './DeploymentSlotsTreeItem';
 import { DeploymentSlotTreeItem } from './DeploymentSlotTreeItem';
@@ -21,7 +21,7 @@ import { getAppServicePlan, SiteTreeItem } from './SiteTreeItem';
 import { WebJobsTreeItem } from './WebJobsTreeItem';
 
 export class WebAppTreeItem extends SiteTreeItem {
-    public static contextValue: string = 'appService';
+    public static contextValue: string = extensionPrefix;
     public readonly contextValue: string = WebAppTreeItem.contextValue;
     public readonly deploymentSlotsNode: IAzureTreeItem;
     public readonly appSettingsNode: IAzureTreeItem;
@@ -45,7 +45,7 @@ export class WebAppTreeItem extends SiteTreeItem {
     }
 
     public async loadMoreChildren(_parentNode: IAzureNode): Promise<IAzureTreeItem[]> {
-        return vscode.workspace.getConfiguration('appService').get(configurationSettings.showRemoteFiles) ?
+        return vscode.workspace.getConfiguration(extensionPrefix).get(configurationSettings.showRemoteFiles) ?
             [this.deploymentSlotsNode, this.folderNode, this.webJobsNode, this.appSettingsNode] :
             [this.deploymentSlotsNode, this.webJobsNode, this.appSettingsNode];
     }

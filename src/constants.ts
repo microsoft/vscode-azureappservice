@@ -7,6 +7,7 @@ export const deploymentFileName: string = '.deployment';
 export const deploymentFile: string = `[config]
 SCM_DO_BUILD_DURING_DEPLOYMENT=true`;
 
+export const extensionPrefix: string = 'appService';
 export enum runtimes {
     node = 'node',
     php = 'php',
@@ -25,6 +26,6 @@ export function getIgnoredFoldersForDeployment(runtime: string): string[] | unde
 
 export enum configurationSettings {
     zipIgnorePattern = 'zipIgnorePattern',
-    neverPromptBuildDuringDeploy = 'neverPromptBuildDuringDeploy',
+    showBuildDuringDeployPrompt = 'showBuildDuringDeployPrompt',
     showRemoteFiles = 'showRemoteFiles'
 }
