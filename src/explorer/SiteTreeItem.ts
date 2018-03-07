@@ -110,9 +110,10 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
         outputChannel: OutputChannel,
         telemetryReporter: TelemetryReporter,
         configurationSectionName: string,
-        confirmDeployment: boolean = true
+        confirmDeployment: boolean = true,
+        telemetryProperties: { [key: string]: string }
     ): Promise<void> {
-        await this.siteWrapper.deploy(fsPath, client, outputChannel, configurationSectionName, confirmDeployment);
+        await this.siteWrapper.deploy(fsPath, client, outputChannel, configurationSectionName, confirmDeployment, telemetryProperties);
 
         // Don't wait
         validateWebSite(this, outputChannel, telemetryReporter).then(
