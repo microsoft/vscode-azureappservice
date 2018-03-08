@@ -490,7 +490,7 @@
                         "string",
                         "array"
                     ],
-                    "default": "",
+                    "default": [],
                     "description": "Defines which files in the workspace to ignore for Zip deploy. This applies to Zip deploy only, has no effect on other deployment methods."
                 },
                 "appService.showRemoteFiles": {
@@ -502,6 +502,12 @@
                     "type": "boolean",
                     "default": true,
                     "description": "Show warning dialog on remote file uploading."
+                },
+                "appService.showBuildDuringDeployPrompt": {
+                    "scope": "resource",
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Show prompt to improve performance of zipdeploy by excluding build artifacts from the zip file and running a build during deployment."
                 }
             }
         },
@@ -603,6 +609,7 @@
         "kudu-api": "^1.4.1",
         "opn": "^5.1.0",
         "request": "^2.83.0",
+        "request-promise": "^4.2.2",
         "vscode-azureappservice": "~0.11.1",
         "vscode-azureextensionui": "~0.8.2",
         "vscode-azurekudu": "~0.1.6",

@@ -5,12 +5,15 @@
 
 import WebSiteManagementClient = require('azure-arm-website');
 import * as WebSiteModels from 'azure-arm-website/lib/models';
+import * as fse from 'fs-extra';
 import * as opn from 'opn';
-import { ExtensionContext, OutputChannel, window } from 'vscode';
+import * as path from 'path';
+import { ExtensionContext, MessageItem, OutputChannel, Uri, window, workspace, WorkspaceConfiguration } from 'vscode';
 import { ILogStream, SiteWrapper } from 'vscode-azureappservice';
 import { IAzureNode, IAzureParentNode, IAzureParentTreeItem, IAzureTreeItem, TelemetryProperties } from 'vscode-azureextensionui';
 import KuduClient from 'vscode-azurekudu';
 import TelemetryReporter from 'vscode-extension-telemetry';
+import * as constants from '../constants';
 import * as util from '../util';
 import { nodeUtils } from '../utils/nodeUtils';
 import { cancelWebsiteValidation, validateWebSite } from '../validateWebSite';
@@ -113,6 +116,15 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
         confirmDeployment: boolean = true,
         telemetryProperties: TelemetryProperties
     ): Promise<void> {
+        const workspaceConfig: WorkspaceConfiguration = workspace.getConfiguration(constants.extensionPrefix, Uri.file(fsPath));
+        if (workspaceConfig.get(constants.configurationSettings.showBuildDuringDeployPrompt)) {
+            const siteConfig: WebSiteModels.SiteConfigResource = await this.siteWrapper.getSiteConfig(client);
+            if (siteConfig.linuxFxVersion.startsWith(constants.runtimes.node) && siteConfig.scmType === 'None' && !(await fse.pathExists(path.join(fsPath, constants.deploymentFileName)))) {
+                // check if web app has node runtime, is being zipdeployed, and if there is no .deployment file
+                // tslint:disable-next-line:no-unsafe-any
+                await this.enableScmDoBuildDuringDeploy(fsPath, constants.runtimes[siteConfig.linuxFxVersion.substring(0, siteConfig.linuxFxVersion.indexOf('|'))]);
+            }
+        }
         cancelWebsiteValidation(this);
         await this.siteWrapper.deploy(fsPath, client, outputChannel, configurationSectionName, confirmDeployment, telemetryProperties);
 
@@ -124,6 +136,33 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
             () => {
                 // ignore
             });
+    }
+
+    private async enableScmDoBuildDuringDeploy(fsPath: string, runtime: string): Promise<void> {
+        const yesButton: MessageItem = { title: 'Yes' };
+        const dontShowAgainButton: MessageItem = { title: "Don't show again" };
+        const learnMoreButton: MessageItem = { title: 'Learn More' };
+        const zipIgnoreFolders: string[] = constants.getIgnoredFoldersForDeployment(runtime);
+        const buildDuringDeploy: string = `Would you like to configure your project for faster deployment?`;
+        let input: MessageItem = learnMoreButton;
+        while (input === learnMoreButton) {
+            input = await window.showInformationMessage(buildDuringDeploy, yesButton, dontShowAgainButton, learnMoreButton);
+            if (input === learnMoreButton) {
+                // tslint:disable-next-line:no-unsafe-any
+                opn('https://aka.ms/Kwwkbd');
+            }
+        }
+        if (input === yesButton) {
+            let oldSettings: string[] | string = workspace.getConfiguration(constants.extensionPrefix, Uri.file(fsPath)).get(constants.configurationSettings.zipIgnorePattern);
+            if (typeof oldSettings === "string") {
+                oldSettings = [oldSettings];
+                // settings have to be an array to concat the proper zipIgnoreFolders
+            }
+            workspace.getConfiguration(constants.extensionPrefix, Uri.file(fsPath)).update(constants.configurationSettings.zipIgnorePattern, oldSettings.concat(zipIgnoreFolders));
+            await fse.writeFile(path.join(fsPath, constants.deploymentFileName), constants.deploymentFile);
+        } else if (input === dontShowAgainButton) {
+            workspace.getConfiguration(constants.extensionPrefix, Uri.file(fsPath)).update(constants.configurationSettings.showBuildDuringDeployPrompt, false);
+        }
     }
 
     private createLabel(state: string): string {

@@ -10,6 +10,7 @@ import * as vscode from 'vscode';
 import { AppSettingsTreeItem, AppSettingTreeItem } from 'vscode-azureappservice';
 import { AzureActionHandler, AzureTreeDataProvider, IActionContext, IAzureNode, IAzureParentNode, parseError } from 'vscode-azureextensionui';
 import TelemetryReporter from 'vscode-extension-telemetry';
+import { extensionPrefix } from './constants';
 import { DeploymentSlotSwapper } from './DeploymentSlotSwapper';
 import { LogPointsManager } from './diagnostics/LogPointsManager';
 import { LogPointsSessionWizard } from './diagnostics/LogPointsSessionWizard';
@@ -65,8 +66,10 @@ export function activate(context: vscode.ExtensionContext): void {
 
     LogpointsCollection.TextEditorDecorationType = logpointDecorationType;
 
-    const actionHandler: AzureActionHandler = new AzureActionHandler(context, outputChannel, reporter);
+    const yesButton: vscode.MessageItem = { title: 'Yes' };
+    const noButton: vscode.MessageItem = { title: 'No', isCloseAffordance: true };
 
+    const actionHandler: AzureActionHandler = new AzureActionHandler(context, outputChannel, reporter);
     actionHandler.registerCommand('appService.Refresh', async (node?: IAzureNode) => await tree.refresh(node));
     actionHandler.registerCommand('appService.LoadMore', async (node?: IAzureNode) => await tree.loadMore(node));
     actionHandler.registerCommand('appService.Browse', async (node: IAzureNode<SiteTreeItem>) => {
@@ -142,14 +145,12 @@ export function activate(context: vscode.ExtensionContext): void {
         const createdApp = <IAzureNode<WebAppTreeItem>>await node.createChild();
 
         // prompt user to deploy to newly created web app
-        const yesButton: vscode.MessageItem = { title: 'Yes' };
-        const noButton: vscode.MessageItem = { title: 'No', isCloseAffordance: true };
         if (await vscode.window.showInformationMessage('Deploy to web app?', yesButton, noButton) === yesButton) {
             this.properties[deployingToWebApp] = 'true';
 
             const fsPath = await util.showWorkspaceFoldersQuickPick("Select the folder to deploy", this.properties);
             const client = nodeUtils.getWebSiteClient(createdApp);
-            await createdApp.treeItem.deploy(fsPath, client, outputChannel, reporter, 'appService', false, this.properties);
+            await createdApp.treeItem.deploy(fsPath, client, outputChannel, reporter, extensionPrefix, false, this.properties);
         } else {
             this.properties[deployingToWebApp] = 'false';
         }
@@ -176,7 +177,7 @@ export function activate(context: vscode.ExtensionContext): void {
         }
         const client = nodeUtils.getWebSiteClient(node);
         try {
-            await node.treeItem.deploy(fsPath, client, outputChannel, reporter, 'appService', true, this.properties);
+            await node.treeItem.deploy(fsPath, client, outputChannel, reporter, extensionPrefix, true, this.properties);
         } catch (err) {
             if (parseError(err).isUserCancelledError) {
                 throw err;
@@ -219,13 +220,11 @@ export function activate(context: vscode.ExtensionContext): void {
         const createdSlot = <IAzureNode<SiteTreeItem>>await node.createChild();
 
         // prompt user to deploy to newly created web app
-        const yesButton: vscode.MessageItem = { title: 'Yes' };
-        const noButton: vscode.MessageItem = { title: 'No', isCloseAffordance: true };
         if (await vscode.window.showInformationMessage('Deploy to deployment slot?', yesButton, noButton) === yesButton) {
             this.properties[deployingToDeploymentSlot] = 'true';
             const fsPath = await util.showWorkspaceFoldersQuickPick("Select the folder to deploy", this.properties);
             const client = nodeUtils.getWebSiteClient(createdSlot);
-            await createdSlot.treeItem.deploy(fsPath, client, outputChannel, reporter, 'appService', false, this.properties);
+            await createdSlot.treeItem.deploy(fsPath, client, outputChannel, reporter, extensionPrefix, false, this.properties);
         } else {
             this.properties[deployingToDeploymentSlot] = 'false';
         }
