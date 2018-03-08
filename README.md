@@ -42,9 +42,9 @@ Check out this [deployment tutorial](https://code.visualstudio.com/tutorials/app
     * Uses a glob pattern to define which files to be excluded from the deployment. The default value is [] which doesn’t exclude any files/folders.
 
   * For example, you might want to exclude the 'node_modules' folder from the deployment to speed up the Zip file creation and uploading. In this case, you will need the following setting:
-    * `appService.zipIgnorePattern: ['node_modules{,/**}']`
-  * And in order to have the web app run proper deployment command to restore the npm packages, you need to have the following Application Setting on your site:
-    * `SCM_DO_BUILD_DURING_DEPLOYMENT=true` or include the '.deployment' file that is generated.
+    * `"appService.zipIgnorePattern: ['node_modules{,/**}']"`
+  * And in order to have the web app run the proper deployment command to install the npm packages, you need to have the following Application Setting on your site or in a '.deployment' file at the root of your repo:
+    * `SCM_DO_BUILD_DURING_DEPLOYMENT=true`
 
     ![Web App Log Stream](resources/Scm_Do_Build_During_Deployment.png)
 
