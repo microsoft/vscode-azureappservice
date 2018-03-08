@@ -25,6 +25,7 @@ type WebError = {
 interface IValidateProperties {
     statusCodes?: string; // [[code,elapsedSeconds], [code,elapsedSeconds]...]
     canceled?: 'true' | 'false';
+    correlationId?: string;
 }
 
 const initialPollingIntervalMs = 5000;
@@ -44,7 +45,7 @@ export function cancelWebsiteValidation(siteTreeItem: SiteTreeItem): void {
     }
 }
 
-export async function validateWebSite(siteTreeItem: SiteTreeItem, outputChannel: OutputChannel, telemetryReporter: TelemetryReporter): Promise<void> {
+export async function validateWebSite(deploymentCorelationId: string, siteTreeItem: SiteTreeItem, outputChannel: OutputChannel, telemetryReporter: TelemetryReporter): Promise<void> {
     cancelWebsiteValidation(siteTreeItem);
     const id = siteTreeItem.id;
     const cancellation: ICancellation = { canceled: false };
@@ -55,6 +56,7 @@ export async function validateWebSite(siteTreeItem: SiteTreeItem, outputChannel:
         this.suppressErrorDisplay = true;
 
         const properties = <IValidateProperties>this.properties;
+        properties.correlationId = deploymentCorelationId;
 
         let pollingIntervalMs = initialPollingIntervalMs;
         const start = Date.now();

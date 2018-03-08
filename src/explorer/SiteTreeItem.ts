@@ -5,6 +5,7 @@
 
 import WebSiteManagementClient = require('azure-arm-website');
 import * as WebSiteModels from 'azure-arm-website/lib/models';
+import { randomBytes } from 'crypto';
 import * as fse from 'fs-extra';
 import * as opn from 'opn';
 import * as path from 'path';
@@ -116,6 +117,9 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
         confirmDeployment: boolean = true,
         telemetryProperties: TelemetryProperties
     ): Promise<void> {
+        const correlationId = getRandomHexString(10);
+        telemetryProperties.correlationId = correlationId;
+
         const workspaceConfig: WorkspaceConfiguration = workspace.getConfiguration(constants.extensionPrefix, Uri.file(fsPath));
         if (workspaceConfig.get(constants.configurationSettings.showBuildDuringDeployPrompt)) {
             const siteConfig: WebSiteModels.SiteConfigResource = await this.siteWrapper.getSiteConfig(client);
@@ -129,7 +133,7 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
         await this.siteWrapper.deploy(fsPath, client, outputChannel, configurationSectionName, confirmDeployment, telemetryProperties);
 
         // Don't wait
-        validateWebSite(this, outputChannel, telemetryReporter).then(
+        validateWebSite(correlationId, this, outputChannel, telemetryReporter).then(
             () => {
                 // ignore
             },
@@ -174,4 +178,9 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
 export async function getAppServicePlan(site: WebSiteModels.Site, client: WebSiteManagementClient): Promise<WebSiteModels.AppServicePlan> {
     const serverFarmId = util.parseAzureResourceId(site.serverFarmId.toLowerCase());
     return await client.appServicePlans.get(serverFarmId.resourcegroups, serverFarmId.serverfarms);
+}
+
+function getRandomHexString(length: number): string {
+    const buffer: Buffer = randomBytes(Math.ceil(length / 2));
+    return buffer.toString('hex').slice(0, length);
 }
