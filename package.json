@@ -596,11 +596,14 @@
         "@types/node": "^8.0.51",
         "@types/request": "^2.0.3",
         "@types/request-promise": "4.1.41",
+        "azure-storage": "^2.8.1",
+        "gulp": "^3.9.1",
         "mocha": "^2.3.3",
         "tslint": "^5.7.0",
         "tslint-microsoft-contrib": "5.0.1",
         "typescript": "^2.0.3",
-        "vscode": "^1.0.0"
+        "vscode": "^1.0.0",
+        "vsce": "^1.37.5"
     },
     "dependencies": {
         "azure-arm-resource": "^3.0.0-preview",

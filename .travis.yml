@@ -7,7 +7,8 @@ install:
   - npm install
 
 script:
-  - tsc -p ./
+  - gulp package
+  - gulp upload-vsix
   - npm run lint
 
 notifications:
