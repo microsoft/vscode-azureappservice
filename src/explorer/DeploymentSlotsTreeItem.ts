@@ -82,9 +82,7 @@ export class DeploymentSlotsTreeItem implements IAzureParentTreeItem {
 
         // if user has more slots than the service plan allows, Azure will respond with an error
         const newSite: Site = await nodeUtils.getWebSiteClient(node).webApps.createOrUpdateSlot(node.treeItem.site.resourceGroup, util.extractSiteName(node.treeItem.site), newDeploymentSlot, slotName);
-        const newItem: DeploymentSlotTreeItem = new DeploymentSlotTreeItem(newSite);
-        newItem.browse();
-        return newItem;
+        return new DeploymentSlotTreeItem(newSite);
     }
 
     private async promptForSlotName(node: IAzureParentNode<DeploymentSlotsTreeItem>): Promise<string | undefined> {
