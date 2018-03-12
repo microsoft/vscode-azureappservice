@@ -123,7 +123,7 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
         const workspaceConfig: WorkspaceConfiguration = workspace.getConfiguration(constants.extensionPrefix, Uri.file(fsPath));
         if (workspaceConfig.get(constants.configurationSettings.showBuildDuringDeployPrompt)) {
             const siteConfig: WebSiteModels.SiteConfigResource = await this.siteWrapper.getSiteConfig(client);
-            if (siteConfig.linuxFxVersion.startsWith(constants.runtimes.node) && siteConfig.scmType === 'None' && !(await fse.pathExists(path.join(fsPath, constants.deploymentFileName)))) {
+            if (siteConfig.linuxFxVersion.startsWith(constants.runtimes.node) || siteConfig.linuxFxVersion.startsWith(constants.runtimes.dotnetcore) && siteConfig.scmType === 'None' && !(await fse.pathExists(path.join(fsPath, constants.deploymentFileName)))) {
                 // check if web app has node runtime, is being zipdeployed, and if there is no .deployment file
                 // tslint:disable-next-line:no-unsafe-any
                 await this.enableScmDoBuildDuringDeploy(fsPath, constants.runtimes[siteConfig.linuxFxVersion.substring(0, siteConfig.linuxFxVersion.indexOf('|'))]);
