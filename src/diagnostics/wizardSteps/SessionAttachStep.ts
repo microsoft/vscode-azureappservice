@@ -1,5 +1,9 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 import * as vscode from 'vscode';
-import * as util from '../../util';
 import { callWithTimeout, DEFAULT_TIMEOUT } from '../../utils/logpointsUtil';
 import { WizardStep } from '../../wizard';
 import { ILogPointsDebuggerClient } from '../logPointsClient';
@@ -21,15 +25,13 @@ export class SessionAttachStep extends WizardStep {
         let result: CommandRunResult<IAttachProcessResponse>;
         const requestData: IAttachProcessRequest = { sessionId: this._wizard.sessionId, processId: this._wizard.processId };
 
-        const siteName = util.extractSiteScmSubDomainName(selectedSlot);
-
         await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async p => {
             const message = `Attach debugging to session ${this._wizard.sessionId}...`;
             p.report({ message: message });
             this._wizard.writeline(message);
             result = await callWithTimeout(
                 () => {
-                    return this._logPointsDebuggerClient.attachProcess(siteName, instance.name, publishCredential, requestData);
+                    return this._logPointsDebuggerClient.attachProcess(selectedSlot.fullName, instance.name, publishCredential, requestData);
                 },
                 DEFAULT_TIMEOUT);
         });

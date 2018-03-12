@@ -3,10 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { NameValuePair, Site, WebAppCollection } from 'azure-arm-website/lib/models';
+import WebSiteManagementClient = require('azure-arm-website');
 import { ResourceNameAvailability } from 'azure-arm-website/lib/models';
+import { NameValuePair, Site, WebAppCollection } from 'azure-arm-website/lib/models';
 import * as path from 'path';
 import { window } from 'vscode';
+import { SiteClient } from 'vscode-azureappservice';
 import { IAzureNode, IAzureParentNode, IAzureParentTreeItem, IAzureTreeItem, UserCancelledError } from 'vscode-azureextensionui';
 import * as util from '../util';
 import { nodeUtils } from '../utils/nodeUtils';
@@ -18,12 +20,12 @@ export class DeploymentSlotsTreeItem implements IAzureParentTreeItem {
     public readonly contextValue: string = DeploymentSlotsTreeItem.contextValue;
     public readonly label: string = 'Deployment Slots';
     public readonly childTypeLabel: string = 'Deployment Slot';
-    public readonly site: Site;
+    public readonly client: SiteClient;
 
     private _nextLink: string | undefined;
 
-    constructor(site: Site) {
-        this.site = site;
+    constructor(client: SiteClient) {
+        this.client = client;
     }
 
     public get iconPath(): { light: string, dark: string } {
@@ -34,29 +36,31 @@ export class DeploymentSlotsTreeItem implements IAzureParentTreeItem {
     }
 
     public get id(): string {
-        return `${this.site.id}/deploymentSlots`;
+        return `${this.client.id}/deploymentSlots`;
     }
 
     public hasMoreChildren(): boolean {
         return this._nextLink !== undefined;
     }
 
-    public async loadMoreChildren(node: IAzureNode): Promise<IAzureTreeItem[]> {
-        const deploymentSlotsNode: DeploymentSlotsTreeItem = <DeploymentSlotsTreeItem>node.treeItem;
+    public async loadMoreChildren(node: IAzureNode, clearCache: boolean): Promise<IAzureTreeItem[]> {
+        if (clearCache) {
+            this._nextLink = undefined;
+        }
 
+        const client: WebSiteManagementClient = nodeUtils.getWebSiteClient(node);
         const webAppCollection: WebAppCollection = this._nextLink === undefined ?
-            await nodeUtils.getWebSiteClient(node).webApps.listByResourceGroup(deploymentSlotsNode.site.resourceGroup, { includeSlots: true }) :
-            await nodeUtils.getWebSiteClient(node).webApps.listByResourceGroupNext(this._nextLink);
+            await client.webApps.listSlots(this.client.resourceGroup, this.client.siteName) :
+            await client.webApps.listSlotsNext(this._nextLink);
 
         this._nextLink = webAppCollection.nextLink;
 
-        return webAppCollection
-            .filter((s: Site) => util.isSiteDeploymentSlot(s) && s.repositorySiteName === deploymentSlotsNode.site.name)
-            .map((s: Site) => new DeploymentSlotTreeItem(s));
+        return webAppCollection.map((s: Site) => new DeploymentSlotTreeItem(new SiteClient(s, node)));
     }
 
     public async createChild(node: IAzureParentNode<DeploymentSlotsTreeItem>, showCreatingNode: (label: string) => void): Promise<IAzureTreeItem> {
-        let slotName: string = await this.promptForSlotName(node);
+        const client: WebSiteManagementClient = nodeUtils.getWebSiteClient(node);
+        let slotName: string = await this.promptForSlotName(client);
         if (!slotName) {
             throw new UserCancelledError();
         }
@@ -64,9 +68,9 @@ export class DeploymentSlotsTreeItem implements IAzureParentTreeItem {
         slotName = slotName.trim();
         const newDeploymentSlot: Site = {
             name: slotName,
-            kind: node.treeItem.site.kind,
-            location: node.treeItem.site.location,
-            serverFarmId: node.treeItem.site.serverFarmId,
+            kind: this.client.kind,
+            location: this.client.location,
+            serverFarmId: this.client.serverFarmId,
             siteConfig: {
                 appSettings: [] // neccesary to have clean appSettings; by default it copies the production's slot
             }
@@ -74,18 +78,18 @@ export class DeploymentSlotsTreeItem implements IAzureParentTreeItem {
 
         const configurationSource: IAzureNode<SiteTreeItem> | undefined = await this.chooseConfigurationSource(node);
         if (!!configurationSource) {
-            const appSettings = await this.parseAppSettings(configurationSource);
+            const appSettings = await this.parseAppSettings();
             newDeploymentSlot.siteConfig.appSettings = appSettings;
         }
 
         showCreatingNode(slotName);
 
         // if user has more slots than the service plan allows, Azure will respond with an error
-        const newSite: Site = await nodeUtils.getWebSiteClient(node).webApps.createOrUpdateSlot(node.treeItem.site.resourceGroup, util.extractSiteName(node.treeItem.site), newDeploymentSlot, slotName);
-        return new DeploymentSlotTreeItem(newSite);
+        const newSite: Site = await client.webApps.createOrUpdateSlot(this.client.resourceGroup, this.client.siteName, newDeploymentSlot, slotName);
+        return new DeploymentSlotTreeItem(new SiteClient(newSite, node));
     }
 
-    private async promptForSlotName(node: IAzureParentNode<DeploymentSlotsTreeItem>): Promise<string | undefined> {
+    private async promptForSlotName(client: WebSiteManagementClient): Promise<string | undefined> {
         return await window.showInputBox({
             prompt: 'Enter a unique name for the new deployment slot',
             ignoreFocusOut: true,
@@ -96,7 +100,7 @@ export class DeploymentSlotsTreeItem implements IAzureParentTreeItem {
                     return `The slot name "${value}" is not available.`;
                 }
 
-                const nameAvailability: ResourceNameAvailability = await nodeUtils.getWebSiteClient(node).checkNameAvailability(`${util.extractSiteName(node.treeItem.site)}-${value}`, 'Slot');
+                const nameAvailability: ResourceNameAvailability = await client.checkNameAvailability(`${this.client.siteName}-${value}`, 'Slot');
                 if (!nameAvailability.nameAvailable) {
                     return nameAvailability.message;
                 }
@@ -115,7 +119,7 @@ export class DeploymentSlotsTreeItem implements IAzureParentTreeItem {
         }];
         // add the production slot itself
         configurationSources.push({
-            label: (<SiteTreeItem>node.parent.treeItem).siteWrapper.appName,
+            label: (<SiteTreeItem>node.parent.treeItem).client.fullName,
             description: '',
             detail: '',
             data: node.parent
@@ -124,7 +128,7 @@ export class DeploymentSlotsTreeItem implements IAzureParentTreeItem {
         // add the web app's current deployment slots
         for (const slot of deploymentSlots) {
             configurationSources.push({
-                label: (<SiteTreeItem>slot.treeItem).siteWrapper.appName,
+                label: (<SiteTreeItem>slot.treeItem).client.fullName,
                 description: '',
                 data: slot
             });
@@ -138,11 +142,8 @@ export class DeploymentSlotsTreeItem implements IAzureParentTreeItem {
         return <IAzureNode<SiteTreeItem>>result.data;
     }
 
-    private async parseAppSettings(node: IAzureNode<SiteTreeItem>): Promise<NameValuePair[]> {
-        const client = nodeUtils.getWebSiteClient(node);
-        const appSettings = node.treeItem.siteWrapper.slotName ?
-            await client.webApps.listApplicationSettingsSlot(node.treeItem.siteWrapper.resourceGroup, node.treeItem.siteWrapper.name, node.treeItem.siteWrapper.slotName) :
-            await client.webApps.listApplicationSettings(node.treeItem.siteWrapper.resourceGroup, node.treeItem.siteWrapper.name);
+    private async parseAppSettings(): Promise<NameValuePair[]> {
+        const appSettings = await this.client.listApplicationSettings();
         const appSettingPairs: NameValuePair[] = [];
         // iterate String Dictionary to parse into NameValuePair[]
         for (const key of Object.keys(appSettings.properties)) {

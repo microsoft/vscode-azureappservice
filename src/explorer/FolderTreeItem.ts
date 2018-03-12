@@ -3,13 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import WebSiteManagementClient = require('azure-arm-website');
+import { IncomingMessage } from 'http';
 import * as path from 'path';
-import { SiteWrapper } from 'vscode-azureappservice';
-import { IAzureNode, IAzureParentTreeItem, IAzureTreeItem } from 'vscode-azureextensionui';
+import { getKuduClient, SiteClient } from 'vscode-azureappservice';
+import { IAzureParentTreeItem, IAzureTreeItem } from 'vscode-azureextensionui';
 import KuduClient from 'vscode-azurekudu';
-import { kuduFile, kuduIncomingMessage } from '../KuduClient';
-import { nodeUtils } from '../utils/nodeUtils';
 import { FileTreeItem } from './FileTreeItem';
 
 export class FolderTreeItem implements IAzureParentTreeItem {
@@ -17,7 +15,7 @@ export class FolderTreeItem implements IAzureParentTreeItem {
     public readonly contextValue: string = FolderTreeItem.contextValue;
     public readonly childTypeLabel: string = 'files';
 
-    constructor(readonly siteWrapper: SiteWrapper, readonly label: string, readonly folderPath: string, readonly useIcon: boolean = false) {
+    constructor(readonly client: SiteClient, readonly label: string, readonly folderPath: string, readonly useIcon: boolean = false) {
     }
 
     public get iconPath(): { light: string, dark: string } | undefined {
@@ -31,17 +29,19 @@ export class FolderTreeItem implements IAzureParentTreeItem {
         return false;
     }
 
-    public async loadMoreChildren(node: IAzureNode<FolderTreeItem>): Promise<IAzureTreeItem[]> {
-        const webAppClient: WebSiteManagementClient = nodeUtils.getWebSiteClient(node);
-        const kuduClient: KuduClient = await this.siteWrapper.getKuduClient(webAppClient);
+    public async loadMoreChildren(): Promise<IAzureTreeItem[]> {
+        const kuduClient: KuduClient = await getKuduClient(this.client);
         const httpResponse: kuduIncomingMessage = <kuduIncomingMessage>(await kuduClient.vfs.getItemWithHttpOperationResponse(this.folderPath)).response;
         // response contains a body with a JSON parseable string
         const fileList: kuduFile[] = <kuduFile[]>JSON.parse(httpResponse.body);
         return fileList.map((file: kuduFile) => {
             return file.mime === 'inode/directory' ?
                 // truncate the /home of the path
-                new FolderTreeItem(this.siteWrapper, file.name, file.path.substring(file.path.indexOf('site'))) :
-                new FileTreeItem(this.siteWrapper, file.name, file.path.substring(file.path.indexOf('site')));
+                new FolderTreeItem(this.client, file.name, file.path.substring(file.path.indexOf('site'))) :
+                new FileTreeItem(this.client, file.name, file.path.substring(file.path.indexOf('site')));
         });
     }
 }
+
+type kuduFile = { mime: string, name: string, path: string };
+type kuduIncomingMessage = IncomingMessage & { body: string };

@@ -1,8 +1,11 @@
-import * as WebSiteModels from 'azure-arm-website/lib/models';
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 import * as util from 'util';
 import * as vscode from 'vscode';
 import { DebugSessionCustomEvent } from 'vscode';
-import * as appserviceUtil from '../util';
 import { RemoteScriptSchema } from './remoteScriptDocumentProvider';
 import { IDebugSessionMetaData } from './structs/IDebugSessionMetaData';
 import { IGetLogpointsResponse } from './structs/IGetLogpointsResponse';
@@ -10,6 +13,7 @@ import { IRemoveLogpointResponse } from './structs/IRemoveLogpointResponse';
 import { ISetLogpointResponse } from './structs/ISetLogpointResponse';
 import { ILogpoint } from './structs/Logpoint';
 import { LogpointsCollection } from './structs/LogpointsCollection';
+import { SiteClient } from 'vscode-azureappservice';
 
 class DebugSessionManager {
     private _metadata: IDebugSessionMetaData;
@@ -227,8 +231,8 @@ export class LogPointsManager extends vscode.Disposable {
         return true;
     }
 
-    public async onAppServiceSiteClosed(site: WebSiteModels.Site): Promise<void> {
-        const debugSessionManager: DebugSessionManager = await this.findDebugSessionManagerBySite(site);
+    public async onAppServiceSiteClosed(client: SiteClient): Promise<void> {
+        const debugSessionManager: DebugSessionManager = await this.findDebugSessionManagerBySite(client);
         if (!debugSessionManager) {
             // If there is no debugSession associated with the site, then do nothing.
             return;
@@ -238,9 +242,8 @@ export class LogPointsManager extends vscode.Disposable {
         this._outputChannel.appendLine("The logpoints session has terminated because the App Service is stopped or restarted.");
     }
 
-    public onStreamingLogOutputChannelCreated(site: WebSiteModels.Site, outputChannel: vscode.OutputChannel): void {
-        const siteName = appserviceUtil.extractSiteScmSubDomainName(site);
-        this._siteStreamingLogOutputChannelMapping[siteName] = outputChannel;
+    public onStreamingLogOutputChannelCreated(client: SiteClient, outputChannel: vscode.OutputChannel): void {
+        this._siteStreamingLogOutputChannelMapping[client.fullName] = outputChannel;
     }
 
     private onActiveEditorChange(activeEditor: vscode.TextEditor): void {
@@ -297,17 +300,15 @@ export class LogPointsManager extends vscode.Disposable {
         }
     }
 
-    private async findDebugSessionManagerBySite(site: WebSiteModels.Site): Promise<DebugSessionManager> {
+    private async findDebugSessionManagerBySite(client: SiteClient): Promise<DebugSessionManager> {
         let matchedDebugSessionManager: DebugSessionManager = null;
-
-        const siteName = appserviceUtil.extractSiteScmSubDomainName(site);
 
         const debugSessionManagers = Object.keys(this._debugSessionManagerMapping).map(
             (key) => { return this._debugSessionManagerMapping[key]; });
 
         for (const debugSessionManager of debugSessionManagers) {
             const debugSessionMetadata = await debugSessionManager.retrieveMetadata();
-            if (siteName === debugSessionMetadata.siteName) {
+            if (client.fullName === debugSessionMetadata.siteName) {
                 matchedDebugSessionManager = debugSessionManager;
                 break;
             }

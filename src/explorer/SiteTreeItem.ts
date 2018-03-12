@@ -3,40 +3,32 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import WebSiteManagementClient = require('azure-arm-website');
 import * as WebSiteModels from 'azure-arm-website/lib/models';
 import { randomBytes } from 'crypto';
 import * as fse from 'fs-extra';
 import * as opn from 'opn';
 import * as path from 'path';
 import { ExtensionContext, MessageItem, OutputChannel, Uri, window, workspace, WorkspaceConfiguration } from 'vscode';
-import { ILogStream, SiteWrapper } from 'vscode-azureappservice';
-import { IAzureNode, IAzureParentNode, IAzureParentTreeItem, IAzureTreeItem, TelemetryProperties } from 'vscode-azureextensionui';
-import KuduClient from 'vscode-azurekudu';
+import { deleteSite, ILogStream, SiteClient, startStreamingLogs } from 'vscode-azureappservice';
+import * as appservice from 'vscode-azureappservice';
+import { IAzureParentNode, IAzureParentTreeItem, IAzureTreeItem, TelemetryProperties } from 'vscode-azureextensionui';
 import TelemetryReporter from 'vscode-extension-telemetry';
 import * as constants from '../constants';
 import * as util from '../util';
-import { nodeUtils } from '../utils/nodeUtils';
 import { cancelWebsiteValidation, validateWebSite } from '../validateWebSite';
 
 export abstract class SiteTreeItem implements IAzureParentTreeItem {
     public abstract contextValue: string;
 
-    public readonly siteWrapper: SiteWrapper;
+    public readonly client: SiteClient;
     public logStream: ILogStream | undefined;
     public logStreamOutputChannel: OutputChannel | undefined;
 
-    private readonly _site: WebSiteModels.Site;
     private _label: string;
 
-    public get site(): WebSiteModels.Site {
-        return this._site;
-    }
-
-    constructor(site: WebSiteModels.Site) {
-        this._site = site;
-        this.siteWrapper = new SiteWrapper(site);
-        this._label = this.createLabel(site.state);
+    constructor(client: SiteClient) {
+        this.client = client;
+        this._label = this.createLabel(client.initialState);
     }
 
     public get label(): string {
@@ -50,67 +42,64 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
     public abstract loadMoreChildren(node: IAzureParentNode): Promise<IAzureTreeItem[]>;
 
     public get id(): string {
-        return this.site.id;
+        return this.client.id;
     }
 
-    public async start(client: WebSiteManagementClient): Promise<void> {
-        await this.siteWrapper.start(client);
-        this._label = this.createLabel(await this.siteWrapper.getState(client));
+    public async start(): Promise<void> {
+        await this.client.start();
+        this._label = this.createLabel(await this.client.getState());
     }
 
-    public async stop(client: WebSiteManagementClient): Promise<void> {
-        await this.siteWrapper.stop(client);
-        this._label = this.createLabel(await this.siteWrapper.getState(client));
+    public async stop(): Promise<void> {
+        await this.client.stop();
+        this._label = this.createLabel(await this.client.getState());
     }
 
-    public async restart(client: WebSiteManagementClient): Promise<void> {
-        await this.stop(client);
-        await this.start(client);
+    public async restart(): Promise<void> {
+        await this.stop();
+        await this.start();
     }
 
     public browse(): void {
-        const uri = this.defaultHostUri;
         // tslint:disable-next-line:no-unsafe-any
-        opn(uri);
+        opn(this.client.defaultHostUrl);
     }
 
-    public get defaultHostUri(): string {
-        const defaultHostName = this.site.defaultHostName;
-        const isSsl: boolean = this.site.hostNameSslStates.some(value =>
-            value.name === defaultHostName && value.sslState === `Enabled`);
-        // tslint:disable-next-line:no-http-string
-        return `${isSsl ? 'https://' : 'http://'}${defaultHostName}`;
+    public async deleteTreeItem(): Promise<void> {
+        await deleteSite(this.client, util.getOutputChannel());
     }
 
-    public async deleteTreeItem(node: IAzureParentNode): Promise<void> {
-        await this.siteWrapper.deleteSite(nodeUtils.getWebSiteClient(node), util.getOutputChannel());
+    public async isHttpLogsEnabled(): Promise<boolean> {
+        const logsConfig: WebSiteModels.SiteLogsConfig = await this.client.getLogsConfig();
+        return logsConfig.httpLogs && logsConfig.httpLogs.fileSystem && logsConfig.httpLogs.fileSystem.enabled;
     }
 
-    public async isHttpLogsEnabled(client: WebSiteManagementClient): Promise<boolean> {
-        return await this.siteWrapper.isHttpLogsEnabled(client);
+    public async enableHttpLogs(): Promise<void> {
+        const logsConfig: WebSiteModels.SiteLogsConfig = {
+            location: this.client.location,
+            httpLogs: {
+                fileSystem: {
+                    enabled: true,
+                    retentionInDays: 7,
+                    retentionInMb: 35
+                }
+            }
+        };
+
+        await this.client.updateLogsConfig(logsConfig);
     }
 
-    public async enableHttpLogs(client: WebSiteManagementClient): Promise<void> {
-        await this.siteWrapper.enableHttpLogs(client);
-    }
-
-    public async connectToLogStream(client: WebSiteManagementClient, reporter: TelemetryReporter, context: ExtensionContext): Promise<ILogStream> {
-        const kuduClient: KuduClient = await this.siteWrapper.getKuduClient(client);
+    public async connectToLogStream(reporter: TelemetryReporter, context: ExtensionContext): Promise<ILogStream> {
         if (!this.logStreamOutputChannel) {
-            const logStreamoutputChannel: OutputChannel = window.createOutputChannel(`${this.siteWrapper.appName} - Log Stream`);
+            const logStreamoutputChannel: OutputChannel = window.createOutputChannel(`${this.client.fullName} - Log Stream`);
             context.subscriptions.push(logStreamoutputChannel);
             this.logStreamOutputChannel = logStreamoutputChannel;
         }
-        return await this.siteWrapper.startStreamingLogs(kuduClient, reporter, this.logStreamOutputChannel);
-    }
-
-    public async editScmType(node: IAzureNode, outputChannel: OutputChannel): Promise<string> {
-        return await this.siteWrapper.editScmType(node, outputChannel);
+        return await startStreamingLogs(this.client, reporter, this.logStreamOutputChannel);
     }
 
     public async deploy(
         fsPath: string,
-        client: WebSiteManagementClient,
         outputChannel: OutputChannel,
         telemetryReporter: TelemetryReporter,
         configurationSectionName: string,
@@ -122,7 +111,7 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
 
         const workspaceConfig: WorkspaceConfiguration = workspace.getConfiguration(constants.extensionPrefix, Uri.file(fsPath));
         if (workspaceConfig.get(constants.configurationSettings.showBuildDuringDeployPrompt)) {
-            const siteConfig: WebSiteModels.SiteConfigResource = await this.siteWrapper.getSiteConfig(client);
+            const siteConfig: WebSiteModels.SiteConfigResource = await this.client.getSiteConfig();
             if (siteConfig.linuxFxVersion.startsWith(constants.runtimes.node) && siteConfig.scmType === 'None' && !(await fse.pathExists(path.join(fsPath, constants.deploymentFileName)))) {
                 // check if web app has node runtime, is being zipdeployed, and if there is no .deployment file
                 // tslint:disable-next-line:no-unsafe-any
@@ -130,7 +119,7 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
             }
         }
         cancelWebsiteValidation(this);
-        await this.siteWrapper.deploy(fsPath, client, outputChannel, configurationSectionName, confirmDeployment, telemetryProperties);
+        await appservice.deploy(this.client, fsPath, outputChannel, configurationSectionName, confirmDeployment, telemetryProperties);
 
         // Don't wait
         validateWebSite(correlationId, this, outputChannel, telemetryReporter).then(
@@ -170,14 +159,9 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
     }
 
     private createLabel(state: string): string {
-        return (this.siteWrapper.slotName ? this.siteWrapper.slotName : this.siteWrapper.name) +    // Site/slot name
+        return (this.client.slotName ? this.client.slotName : this.client.siteName) +    // Site/slot name
             (state && state.toLowerCase() !== 'running' ? ` (${state})` : '');  // Status (if site/slot not running)
     }
-}
-
-export async function getAppServicePlan(site: WebSiteModels.Site, client: WebSiteManagementClient): Promise<WebSiteModels.AppServicePlan> {
-    const serverFarmId = util.parseAzureResourceId(site.serverFarmId.toLowerCase());
-    return await client.appServicePlans.get(serverFarmId.resourcegroups, serverFarmId.serverfarms);
 }
 
 function getRandomHexString(length: number): string {

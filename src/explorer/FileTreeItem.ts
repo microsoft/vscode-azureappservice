@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { SiteWrapper } from 'vscode-azureappservice';
+import { SiteClient } from 'vscode-azureappservice';
 import { IAzureTreeItem } from 'vscode-azureextensionui';
 
 export class FileTreeItem implements IAzureTreeItem {
@@ -12,7 +12,7 @@ export class FileTreeItem implements IAzureTreeItem {
     public readonly commandId: string = 'appService.showFile';
     public etag: string | undefined; // cannot create etag on creation due to Kudu API calls
 
-    constructor(readonly siteWrapper: SiteWrapper, readonly label: string, readonly path: string) {
+    constructor(readonly client: SiteClient, readonly label: string, readonly path: string) {
     }
 
 }

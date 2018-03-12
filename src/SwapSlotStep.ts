@@ -38,10 +38,10 @@ export class SwapSlotStep extends WizardStep {
         }];
 
         for (const slot of deploymentSlots) {
-            if (this.sourceSlot.siteWrapper.slotName !== slot.treeItem.siteWrapper.slotName) {
+            if (this.sourceSlot.client.slotName !== slot.treeItem.client.slotName) {
                 // Deployment slots must have an unique name
                 const otherSlot: IQuickPickItemWithData<DeploymentSlotTreeItem | undefined> = {
-                    label: slot.treeItem.siteWrapper.slotName,
+                    label: slot.treeItem.client.slotName,
                     description: '',
                     data: slot.treeItem
                 };
@@ -50,7 +50,7 @@ export class SwapSlotStep extends WizardStep {
             }
         }
 
-        const quickPickOptions = { placeHolder: `"${this.sourceSlot.siteWrapper.slotName}" will be swapped with the destination slot.`, ignoreFocusOut: true };
+        const quickPickOptions = { placeHolder: `"${this.sourceSlot.client.slotName}" will be swapped with the destination slot.`, ignoreFocusOut: true };
         const result = await this.showQuickPick(otherSlots, quickPickOptions);
 
         if (result) {
@@ -64,12 +64,12 @@ export class SwapSlotStep extends WizardStep {
         const client: WebSiteManagementClient = nodeUtils.getWebSiteClient(this._sourceSlotNode);
         // if this.targetSlot was assigned undefined, the user selected 'production'
         if (!this.targetSlot) {
-            await client.webApps.swapSlotWithProduction(this.sourceSlot.site.resourceGroup, this.sourceSlot.site.repositorySiteName, { targetSlot: this.sourceSlot.siteWrapper.slotName, preserveVnet: true });
+            await client.webApps.swapSlotWithProduction(this.sourceSlot.client.resourceGroup, this.sourceSlot.client.siteName, { targetSlot: this.sourceSlot.client.slotName, preserveVnet: true });
         } else {
-            await client.webApps.swapSlotSlot(this.sourceSlot.site.resourceGroup, this.sourceSlot.site.repositorySiteName, { targetSlot: this.targetSlot.siteWrapper.slotName, preserveVnet: true }, this.sourceSlot.siteWrapper.slotName);
+            await client.webApps.swapSlotSlot(this.sourceSlot.client.resourceGroup, this.sourceSlot.client.siteName, { targetSlot: this.targetSlot.client.slotName, preserveVnet: true }, this.sourceSlot.client.slotName);
         }
-        const targetSlotLabel: string = this.targetSlot ? this.targetSlot.siteWrapper.slotName : this._productionSlotLabel;
-        this.wizard.writeline(`"${targetSlotLabel}" was swapped with "${this.sourceSlot.siteWrapper.slotName}".`);
+        const targetSlotLabel: string = this.targetSlot ? this.targetSlot.client.slotName : this._productionSlotLabel;
+        this.wizard.writeline(`"${targetSlotLabel}" was swapped with "${this.sourceSlot.client.slotName}".`);
     }
 
     get subscription(): SubscriptionModels.Subscription {

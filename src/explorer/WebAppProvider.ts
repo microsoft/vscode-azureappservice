@@ -3,13 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import WebSiteManagementClient = require('azure-arm-website');
 import { AppServicePlan, Site, WebAppCollection } from 'azure-arm-website/lib/models';
 import { Memento } from 'vscode';
-import { createWebApp } from 'vscode-azureappservice';
+import { createWebApp, SiteClient } from 'vscode-azureappservice';
 import { IAzureNode, IAzureTreeItem, IChildProvider, UserCancelledError } from 'vscode-azureextensionui';
 import * as util from '../util';
 import { nodeUtils } from '../utils/nodeUtils';
-import { getAppServicePlan } from './SiteTreeItem';
 import { WebAppTreeItem } from './WebAppTreeItem';
 
 export class WebAppProvider implements IChildProvider {
@@ -26,18 +26,24 @@ export class WebAppProvider implements IChildProvider {
         return this._nextLink !== undefined;
     }
 
-    public async loadMoreChildren(node: IAzureNode): Promise<IAzureTreeItem[]> {
+    public async loadMoreChildren(node: IAzureNode, clearCache: boolean): Promise<IAzureTreeItem[]> {
+        if (clearCache) {
+            this._nextLink = undefined;
+        }
+
+        const client: WebSiteManagementClient = nodeUtils.getWebSiteClient(node);
         const webAppCollection: WebAppCollection = this._nextLink === undefined ?
-            await nodeUtils.getWebSiteClient(node).webApps.list() :
-            await nodeUtils.getWebSiteClient(node).webApps.listNext(this._nextLink);
+            await client.webApps.list() :
+            await client.webApps.listNext(this._nextLink);
 
         this._nextLink = webAppCollection.nextLink;
 
         return await Promise.all(webAppCollection
-            .filter((site: Site) => site.kind !== 'functionapp')
-            .map(async (site: Site) => {
-                const appServicePlan: AppServicePlan = await getAppServicePlan(site, nodeUtils.getWebSiteClient(node));
-                return new WebAppTreeItem(site, appServicePlan);
+            .map((s: Site) => new SiteClient(s, node))
+            .filter((s: SiteClient) => !s.isFunctionApp)
+            .map(async (s: SiteClient) => {
+                const appServicePlan: AppServicePlan = await s.getAppServicePlan();
+                return new WebAppTreeItem(s, appServicePlan);
             }));
     }
 
@@ -46,8 +52,9 @@ export class WebAppProvider implements IChildProvider {
         if (newSite === undefined) {
             throw new UserCancelledError();
         } else {
-            const appServicePlan: AppServicePlan = await getAppServicePlan(newSite, nodeUtils.getWebSiteClient(node));
-            return new WebAppTreeItem(newSite, appServicePlan);
+            const siteClient: SiteClient = new SiteClient(newSite, node);
+            const appServicePlan: AppServicePlan = await siteClient.getAppServicePlan();
+            return new WebAppTreeItem(siteClient, appServicePlan);
         }
     }
 }

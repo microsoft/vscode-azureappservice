@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 import { Site } from 'azure-arm-website/lib/models';
 import * as vscode from 'vscode';
 import { IAzureNode, IAzureParentNode, IAzureTreeItem, UserCancelledError } from 'vscode-azureextensionui';
@@ -28,14 +33,13 @@ export class PromptSlotSelection extends WizardStep {
         // if there is only one slot, just use that one and don't prompt for user selection.
         if (deploymentSlotsTreeItems.length === 1) {
             this._wizard.selectedDeploymentSlotTreeItem = deploymentSlotsTreeItems[0];
-            this._wizard.writeline(`Automatically selected deployment solt ${this._wizard.selectedDeploymentSlot.name}.`);
+            this._wizard.writeline(`Automatically selected deployment slot ${this._wizard.selectedDeploymentSlot.fullName}.`);
             return;
         }
 
         const deploymentQuickPickItems = deploymentSlotsTreeItems.map((deploymentSlotTreeItem: SiteTreeItem) => {
-            const deploymentSlot = deploymentSlotTreeItem.site;
             return <util.IQuickPickItemWithData<SiteTreeItem>>{
-                label: util.extractDeploymentSlotName(deploymentSlot) || deploymentSlot.name,
+                label: deploymentSlotTreeItem.label,
                 description: '',
                 data: deploymentSlotTreeItem
             };
@@ -52,7 +56,7 @@ export class PromptSlotSelection extends WizardStep {
             throw e;
         }
         this._wizard.selectedDeploymentSlotTreeItem = pickedItem.data;
-        this._wizard.writeline(`The deployment slot you selected is: ${this._wizard.selectedDeploymentSlot.name}`);
+        this._wizard.writeline(`The deployment slot you selected is: ${this._wizard.selectedDeploymentSlot.fullName}`);
     }
 
     /**

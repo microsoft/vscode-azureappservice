@@ -60,7 +60,7 @@ export async function validateWebSite(deploymentCorelationId: string, siteTreeIt
 
         let pollingIntervalMs = initialPollingIntervalMs;
         const start = Date.now();
-        const uri = siteTreeItem.defaultHostUri;
+        const uri = siteTreeItem.client.defaultHostUrl;
         const options: {} = {
             method: 'GET',
             uri: uri,

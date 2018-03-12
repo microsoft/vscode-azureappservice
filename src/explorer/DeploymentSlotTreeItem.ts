@@ -3,10 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as WebSiteModels from 'azure-arm-website/lib/models';
 import * as path from 'path';
 import { workspace } from 'vscode';
-import { AppSettingsTreeItem } from 'vscode-azureappservice';
+import { AppSettingsTreeItem, SiteClient } from 'vscode-azureappservice';
 import { IAzureParentNode, IAzureTreeItem } from 'vscode-azureextensionui';
 import { configurationSettings, extensionPrefix } from '../constants';
 import { FolderTreeItem } from './FolderTreeItem';
@@ -18,10 +17,10 @@ export class DeploymentSlotTreeItem extends SiteTreeItem {
     private readonly appSettingsNode: IAzureTreeItem;
     private readonly folderNode: IAzureTreeItem;
 
-    constructor(site: WebSiteModels.Site) {
-        super(site);
-        this.folderNode = new FolderTreeItem(this.siteWrapper, 'Files', "/site/wwwroot", true);
-        this.appSettingsNode = new AppSettingsTreeItem(this.siteWrapper);
+    constructor(client: SiteClient) {
+        super(client);
+        this.folderNode = new FolderTreeItem(this.client, 'Files', "/site/wwwroot", true);
+        this.appSettingsNode = new AppSettingsTreeItem(this.client);
     }
 
     public get iconPath(): { light: string, dark: string } {

@@ -1,7 +1,10 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
 
 import { WebAppInstanceCollection } from 'azure-arm-website/lib/models';
 import * as vscode from 'vscode';
-import * as util from '../../util';
 import { callWithTimeout, DEFAULT_TIMEOUT } from '../../utils/logpointsUtil';
 import { WizardStep } from '../../wizard';
 import { ILogPointsDebuggerClient } from '../logPointsClient';
@@ -21,13 +24,12 @@ export class GetUnoccupiedInstance extends WizardStep {
         const publishCredential = await this._wizard.getCachedCredentialOrRefetch(selectedSlot);
 
         let instances: WebAppInstanceCollection;
-        const client = this._wizard.websiteManagementClient;
 
         await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async p => {
-            const message = `Enumerating instances of ${selectedSlot.name}...`;
+            const message = `Enumerating instances of ${selectedSlot.fullName}...`;
             p.report({ message: message });
             this._wizard.writeline(message);
-            instances = await client.webApps.listInstanceIdentifiers(selectedSlot.resourceGroup, selectedSlot.repositorySiteName);
+            instances = await this._wizard.client.listInstanceIdentifiers();
 
             this._wizard.writeline(`Got ${instances.length} instances.`);
         });
@@ -36,7 +38,6 @@ export class GetUnoccupiedInstance extends WizardStep {
             return a.name.localeCompare(b.name);
         });
 
-        const siteName = util.extractSiteScmSubDomainName(selectedSlot);
         const startSessionRequest: IStartSessionRequest = { username: this._wizard.uiTreeItem.userId };
 
         for (const instance of instances) {
@@ -50,7 +51,7 @@ export class GetUnoccupiedInstance extends WizardStep {
                 try {
                     result = await callWithTimeout(
                         () => {
-                            return this._logPointsDebuggerClient.startSession(siteName, instance.name, publishCredential, startSessionRequest);
+                            return this._logPointsDebuggerClient.startSession(selectedSlot.fullName, instance.name, publishCredential, startSessionRequest);
                         },
                         DEFAULT_TIMEOUT);
                 } catch (e) {
@@ -70,7 +71,7 @@ export class GetUnoccupiedInstance extends WizardStep {
         }
 
         if (!this._wizard.selectedInstance) {
-            const errorMessage = `There is no instance available to debug for ${selectedSlot.name}.`;
+            const errorMessage = `There is no instance available to debug for ${selectedSlot.fullName}.`;
             vscode.window.showErrorMessage(errorMessage);
             throw new Error(errorMessage);
         }

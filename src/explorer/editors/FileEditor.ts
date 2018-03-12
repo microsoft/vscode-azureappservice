@@ -6,11 +6,9 @@
 import * as fs from 'fs';
 import { Readable } from 'stream';
 import * as vscode from 'vscode';
-import { IFileResult } from 'vscode-azureappservice';
+import { getFile, IFileResult, putFile } from 'vscode-azureappservice';
 import { BaseEditor, IAzureNode } from 'vscode-azureextensionui';
-import KuduClient from 'vscode-azurekudu';
 import { getOutputChannel } from '../../util';
-import { nodeUtils } from '../../utils/nodeUtils';
 import { FileTreeItem } from '../FileTreeItem';
 
 export class FileEditor extends BaseEditor<IAzureNode<FileTreeItem>> {
@@ -19,7 +17,7 @@ export class FileEditor extends BaseEditor<IAzureNode<FileTreeItem>> {
     }
 
     public async getSaveConfirmationText(node: IAzureNode<FileTreeItem>): Promise<string> {
-        return `Saving '${node.treeItem.label}' will update the file "${node.treeItem.label}" in "${node.treeItem.siteWrapper.appName}".`;
+        return `Saving '${node.treeItem.label}' will update the file "${node.treeItem.label}" in "${node.treeItem.client.fullName}".`;
     }
 
     public async getFilename(node: IAzureNode<FileTreeItem>): Promise<string> {
@@ -27,9 +25,7 @@ export class FileEditor extends BaseEditor<IAzureNode<FileTreeItem>> {
     }
 
     public async getData(node: IAzureNode<FileTreeItem>): Promise<string> {
-        const webAppClient = nodeUtils.getWebSiteClient(node);
-        const kuduClient: KuduClient = await node.treeItem.siteWrapper.getKuduClient(webAppClient);
-        const result: IFileResult = await node.treeItem.siteWrapper.getFile(kuduClient, node.treeItem.path);
+        const result: IFileResult = await getFile(node.treeItem.client, node.treeItem.path);
         node.treeItem.etag = result.etag;
         return result.data;
     }
@@ -40,10 +36,8 @@ export class FileEditor extends BaseEditor<IAzureNode<FileTreeItem>> {
     }
 
     public async updateData(node: IAzureNode<FileTreeItem>): Promise<string> {
-        const webAppClient = nodeUtils.getWebSiteClient(node);
-        const kuduClient: KuduClient = await node.treeItem.siteWrapper.getKuduClient(webAppClient);
         const localFile: Readable = fs.createReadStream(vscode.window.activeTextEditor.document.uri.fsPath);
-        node.treeItem.etag = await node.treeItem.siteWrapper.putFile(kuduClient, localFile, node.treeItem.path, node.treeItem.etag);
+        node.treeItem.etag = await putFile(node.treeItem.client, localFile, node.treeItem.path, node.treeItem.etag);
         return await this.getData(node);
     }
 }

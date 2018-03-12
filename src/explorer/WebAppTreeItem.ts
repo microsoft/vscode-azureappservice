@@ -4,20 +4,17 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { ResourceManagementClient } from 'azure-arm-resource';
-import WebSiteManagementClient = require('azure-arm-website');
-import { AppServicePlan, Site } from 'azure-arm-website/lib/models';
+import { AppServicePlan } from 'azure-arm-website/lib/models';
 import * as fs from 'fs-extra';
-import * as opn from 'opn';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { AppSettingsTreeItem, AppSettingTreeItem } from 'vscode-azureappservice';
+import { AppSettingsTreeItem, AppSettingTreeItem, SiteClient } from 'vscode-azureappservice';
 import { IAzureNode, IAzureTreeItem } from 'vscode-azureextensionui';
 import { configurationSettings, extensionPrefix } from '../constants';
-import { nodeUtils } from '../utils/nodeUtils';
 import { DeploymentSlotsNATreeItem, DeploymentSlotsTreeItem } from './DeploymentSlotsTreeItem';
 import { DeploymentSlotTreeItem } from './DeploymentSlotTreeItem';
 import { FolderTreeItem } from './FolderTreeItem';
-import { getAppServicePlan, SiteTreeItem } from './SiteTreeItem';
+import { SiteTreeItem } from './SiteTreeItem';
 import { WebJobsTreeItem } from './WebJobsTreeItem';
 
 export class WebAppTreeItem extends SiteTreeItem {
@@ -28,12 +25,12 @@ export class WebAppTreeItem extends SiteTreeItem {
     public readonly webJobsNode: IAzureTreeItem;
     public readonly folderNode: IAzureTreeItem;
 
-    constructor(site: Site, appServicePlan: AppServicePlan) {
-        super(site);
-        this.deploymentSlotsNode = appServicePlan.sku.tier === 'Basic' ? new DeploymentSlotsNATreeItem() : new DeploymentSlotsTreeItem(site);
-        this.folderNode = new FolderTreeItem(this.siteWrapper, 'Files', "/site/wwwroot", true);
-        this.webJobsNode = new WebJobsTreeItem(site);
-        this.appSettingsNode = new AppSettingsTreeItem(this.siteWrapper);
+    constructor(client: SiteClient, appServicePlan: AppServicePlan) {
+        super(client);
+        this.deploymentSlotsNode = appServicePlan.sku.tier === 'Basic' ? new DeploymentSlotsNATreeItem() : new DeploymentSlotsTreeItem(this.client);
+        this.folderNode = new FolderTreeItem(this.client, 'Files', "/site/wwwroot", true);
+        this.webJobsNode = new WebJobsTreeItem(this.client);
+        this.appSettingsNode = new AppSettingsTreeItem(this.client);
     }
 
     public get iconPath(): { light: string, dark: string } {
@@ -68,21 +65,17 @@ export class WebAppTreeItem extends SiteTreeItem {
     }
 
     public openCdInPortal(node: IAzureNode): void {
-        const deepLink = `${node.environment.portalUrl}/${node.tenantId}/#resource${this.site.id}/vstscd`;
-        // tslint:disable-next-line:no-unsafe-any
-        opn(deepLink);
+        node.openInPortal(`${this.client.id}/vstscd`);
     }
 
     public async generateDeploymentScript(node: IAzureNode): Promise<void> {
         const resourceClient = new ResourceManagementClient(node.credentials, node.subscription.subscriptionId);
-        const webSiteClient: WebSiteManagementClient = nodeUtils.getWebSiteClient(node);
         const subscription = node.subscription;
-        const site = this.site;
         const tasks = Promise.all([
-            resourceClient.resourceGroups.get(this.site.resourceGroup),
-            getAppServicePlan(this.site, webSiteClient),
-            webSiteClient.webApps.getConfiguration(this.site.resourceGroup, this.site.name),
-            webSiteClient.webApps.listApplicationSettings(this.site.resourceGroup, this.site.name)
+            resourceClient.resourceGroups.get(this.client.resourceGroup),
+            this.client.getAppServicePlan(),
+            this.client.getSiteConfig(),
+            this.client.listApplicationSettings()
         ]);
 
         const taskResults = await tasks;
@@ -123,7 +116,7 @@ export class WebAppTreeItem extends SiteTreeItem {
             .replace('%LOCATION%', rg.location)
             .replace('%PLAN_NAME%', plan.name)
             .replace('%PLAN_SKU%', plan.sku.name)
-            .replace('%SITE_NAME%', site.name);
+            .replace('%SITE_NAME%', this.client.siteName);
 
         const doc = await vscode.workspace.openTextDocument({ language: 'shellscript', content: script });
         await vscode.window.showTextDocument(doc);
