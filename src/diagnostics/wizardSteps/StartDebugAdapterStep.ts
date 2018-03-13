@@ -1,7 +1,12 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 import * as vscode from 'vscode';
-import * as util from '../../util';
 import { WizardStep } from '../../wizard';
 import { LogPointsSessionWizard } from '../LogPointsSessionWizard';
+import { SiteClient } from 'vscode-azureappservice';
 
 export class StartDebugAdapterStep extends WizardStep {
     constructor(private _wizard: LogPointsSessionWizard) {
@@ -9,10 +14,9 @@ export class StartDebugAdapterStep extends WizardStep {
     }
 
     public async execute(): Promise<void> {
-        const site = this._wizard.selectedDeploymentSlot;
-        const siteName = util.extractSiteScmSubDomainName(site);
+        const client: SiteClient = this._wizard.selectedDeploymentSlot;
 
-        const publishCredential = await this._wizard.getCachedCredentialOrRefetch(site);
+        const publishCredential = await this._wizard.getCachedCredentialOrRefetch(client);
 
         // Assume the next started debug sessionw is the one we will launch next.
         const startEventHandler = vscode.debug.onDidStartDebugSession(() => {
@@ -23,10 +27,10 @@ export class StartDebugAdapterStep extends WizardStep {
         const folder = undefined; // For logpoints scenarios, workspace folder is always undefined
         await vscode.debug.startDebugging(folder, {
             type: "jsLogpoints",
-            name: siteName,
+            name: client.fullName,
             request: "attach",
             trace: true,
-            siteName: siteName,
+            siteName: client.fullName,
             publishCredentialUsername: publishCredential.publishingUserName,
             publishCredentialPassword: publishCredential.publishingPassword,
             instanceId: this._wizard.selectedInstance.name,

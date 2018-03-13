@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 import * as vscode from 'vscode';
 import { Source } from 'vscode-debugadapter';
 
@@ -17,7 +22,7 @@ export module RemoteScriptSchema {
             const parts = paramPair.split('=');
             collect[parts[0]] = parts[1];
             return collect;
-        },                       <KeyValuePair>{});
+        }, <KeyValuePair>{});
     }
 
     export function create(debugSession: vscode.DebugSession, script: Source): vscode.Uri {

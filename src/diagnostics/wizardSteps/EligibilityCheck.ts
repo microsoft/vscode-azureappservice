@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 import { SiteConfigResource } from 'azure-arm-website/lib/models';
 import * as vscode from 'vscode';
 import { WizardStep } from '../../wizard';
@@ -10,17 +15,11 @@ export class EligibilityCheck extends WizardStep {
     }
 
     public async prompt(): Promise<void> {
-        const site = this._wizard.site;
-
-        const kind = site.kind;
-
-        if (!/(^|,)linux($|,)/.test(kind)) {
+        if (!/(^|,)linux($|,)/.test(this._wizard.client.kind)) {
             throw new Error('Only Linux App Services are supported');
         }
 
-        const siteClient = this._wizard.websiteManagementClient;
-
-        const config: SiteConfigResource = await siteClient.webApps.getConfiguration(site.resourceGroup, site.name);
+        const config: SiteConfigResource = await this._wizard.client.getSiteConfig();
 
         const linuxFxVersion = config.linuxFxVersion;
 

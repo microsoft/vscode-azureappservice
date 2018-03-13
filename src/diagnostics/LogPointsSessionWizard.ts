@@ -1,12 +1,13 @@
-import { Site, SiteInstance, User } from 'azure-arm-website/lib/models';
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
+import { SiteInstance, User } from 'azure-arm-website/lib/models';
 import * as vscode from 'vscode';
 import { UserCancelledError } from 'vscode-azureextensionui';
-import * as util from '../util';
 import { WizardBase } from '../wizard';
 import { createDefaultClient } from './logPointsClient';
-
-import WebSiteManagementClient = require('azure-arm-website');
-
 import { IAzureNode } from 'vscode-azureextensionui';
 import { SiteTreeItem } from '../explorer/SiteTreeItem';
 import { LogPointsManager } from './LogPointsManager';
@@ -19,6 +20,7 @@ import { PromptSlotSelection } from './wizardSteps/PromptSlotSelection';
 import { SessionAttachStep } from './wizardSteps/SessionAttachStep';
 import { StartDebugAdapterStep } from './wizardSteps/StartDebugAdapterStep';
 import TelemetryReporter from 'vscode-extension-telemetry';
+import { SiteClient } from 'vscode-azureappservice';
 
 const logPointsDebuggerClient = createDefaultClient();
 
@@ -31,7 +33,6 @@ export class LogPointsSessionWizard extends WizardBase {
     public sessionId: string;
     public processId: string;
     public debuggerId: string;
-    public readonly site: Site;
 
     private _cachedPublishCredential: User;
 
@@ -40,42 +41,40 @@ export class LogPointsSessionWizard extends WizardBase {
         public extensionContext: vscode.ExtensionContext,
         output: vscode.OutputChannel,
         public readonly uiTreeItem: IAzureNode<SiteTreeItem>,
-        public readonly websiteManagementClient: WebSiteManagementClient,
+        public readonly client: SiteClient,
         public readonly telemetryReporter: TelemetryReporter
     ) {
         super(output);
-        this.site = uiTreeItem.treeItem.site;
     }
 
-    public get selectedDeploymentSlot(): Site {
-        return this.selectedDeploymentSlotTreeItem ? this.selectedDeploymentSlotTreeItem.site : null;
+    public get selectedDeploymentSlot(): SiteClient {
+        return this.selectedDeploymentSlotTreeItem ? this.selectedDeploymentSlotTreeItem.client : null;
     }
 
     public get lastUsedPublishCredential(): User {
         return this._cachedPublishCredential;
     }
 
-    public async fetchPublishCrentential(site: Site): Promise<User> {
-        const siteClient = this.websiteManagementClient;
-        const user = await util.getWebAppPublishCredential(siteClient, site);
+    public async fetchPublishCrentential(client: SiteClient): Promise<User> {
+        const user = await client.getWebAppPublishCredential();
         this._cachedPublishCredential = user;
         return user;
     }
 
-    public async getCachedCredentialOrRefetch(site: Site): Promise<User> {
+    public async getCachedCredentialOrRefetch(client: SiteClient): Promise<User> {
         if (this.lastUsedPublishCredential) {
             return Promise.resolve(this.lastUsedPublishCredential);
         }
 
-        return this.fetchPublishCrentential(site);
+        return this.fetchPublishCrentential(client);
     }
 
     protected initSteps(): void {
         this.steps.push(new EligibilityCheck(this));
-        if (util.isSiteDeploymentSlot(this.site)) {
+        if (this.client.isSlot) {
             this.selectedDeploymentSlotTreeItem = this.uiTreeItem.treeItem;
         } else {
-            this.steps.push(new PromptSlotSelection(this, this.site));
+            this.steps.push(new PromptSlotSelection(this, this.client));
         }
 
         this.steps.push(new OpenStreamingLog(this));

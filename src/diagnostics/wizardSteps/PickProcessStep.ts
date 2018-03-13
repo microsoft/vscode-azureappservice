@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 import * as vscode from 'vscode';
 import { UserCancelledError } from 'vscode-azureextensionui';
 import * as util from '../../util';
@@ -24,10 +29,9 @@ export class PickProcessStep extends WizardStep {
             const message = `Enumerate node processes from instance ${instance.name}...`;
             p.report({ message: message });
             this._wizard.writeline(message);
-            const siteName = util.extractSiteScmSubDomainName(selectedSlot);
             result = await callWithTimeout(
                 () => {
-                    return this._logPointsDebuggerClient.enumerateProcesses(siteName, instance.name, publishCredential);
+                    return this._logPointsDebuggerClient.enumerateProcesses(selectedSlot.fullName, instance.name, publishCredential);
                 },
                 DEFAULT_TIMEOUT);
         });

@@ -3,34 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import WebSiteManagementClient = require('azure-arm-website');
-import * as WebSiteModels from 'azure-arm-website/lib/models';
 import * as vscode from 'vscode';
 import { TelemetryProperties, UserCancelledError } from 'vscode-azureextensionui';
-
-// Web app & deployment slots
-export function isSiteDeploymentSlot(site: WebSiteModels.Site): boolean {
-    return site.type.toLowerCase() === 'microsoft.web/sites/slots';
-}
-
-export function extractSiteName(site: WebSiteModels.Site): string {
-    return isSiteDeploymentSlot(site) ? site.name.substring(0, site.name.lastIndexOf('/')) : site.name;
-}
-
-export function extractSiteScmSubDomainName(site: WebSiteModels.Site): string {
-    return extractSiteName(site) + (isSiteDeploymentSlot(site) ? `-${extractDeploymentSlotName(site)}` : '');
-}
-
-export function extractDeploymentSlotName(site: WebSiteModels.Site): string | undefined {
-    return isSiteDeploymentSlot(site) ? site.name.substring(site.name.lastIndexOf('/') + 1) : undefined;
-}
-
-export async function getWebAppPublishCredential(webSiteManagementClient: WebSiteManagementClient, site: WebSiteModels.Site): Promise<WebSiteModels.User> {
-    const webApps = webSiteManagementClient.webApps;
-    const siteName = extractSiteName(site);
-    const slotName = extractDeploymentSlotName(site);
-    return isSiteDeploymentSlot(site) ? await webApps.listPublishingCredentialsSlot(site.resourceGroup, siteName, slotName) : await webApps.listPublishingCredentials(site.resourceGroup, siteName);
-}
 
 // Output channel for the extension
 const outputChannel = vscode.window.createOutputChannel("Azure App Service");

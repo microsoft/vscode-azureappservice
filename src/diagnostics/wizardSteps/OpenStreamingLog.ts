@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 import * as vscode from 'vscode';
 import { UserCancelledError } from 'vscode-azureextensionui';
 import { WizardStep } from '../../wizard';
@@ -15,7 +20,7 @@ export class OpenStreamingLog extends WizardStep {
             throw new Error('Cannot locate a site to check logging stream availability.');
         }
 
-        const loggingEnabled = await siteTreeItem.isHttpLogsEnabled(this._wizard.websiteManagementClient);
+        const loggingEnabled = await siteTreeItem.isHttpLogsEnabled();
 
         // Only proceed if logging is enabled.
         if (!loggingEnabled) {
@@ -24,7 +29,7 @@ export class OpenStreamingLog extends WizardStep {
         }
 
         // Open streaming log
-        await siteTreeItem.connectToLogStream(this._wizard.websiteManagementClient, this._wizard.telemetryReporter, this._wizard.extensionContext);
-        this._wizard.logpointsManager.onStreamingLogOutputChannelCreated(siteTreeItem.site, siteTreeItem.logStreamOutputChannel);
+        await siteTreeItem.connectToLogStream(this._wizard.telemetryReporter, this._wizard.extensionContext);
+        this._wizard.logpointsManager.onStreamingLogOutputChannelCreated(siteTreeItem.client, siteTreeItem.logStreamOutputChannel);
     }
 }
