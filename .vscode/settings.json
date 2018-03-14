@@ -9,5 +9,25 @@
         "**/node_modules": true
     },
     "tslint.autoFixOnSave": true,
-    "tslint.ignoreDefinitionFiles": true
+    "tslint.ignoreDefinitionFiles": true,
+    "cSpell.words": [
+        "Logpoints",
+        "appservice",
+        "azureappservice",
+        "azurecr",
+        "azureextensionui",
+        "azurekudu",
+        "azurenodelogpoints",
+        "azurenodelogpointsnightly",
+        "azuretools",
+        "debugadapter",
+        "etag",
+        "logpoint",
+        "mailto",
+        "opencode",
+        "repo",
+        "repos",
+        "runtimes",
+        "vsce"
+    ]
 }
