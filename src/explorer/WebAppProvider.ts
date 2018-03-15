@@ -5,9 +5,8 @@
 
 import WebSiteManagementClient = require('azure-arm-website');
 import { AppServicePlan, Site, WebAppCollection } from 'azure-arm-website/lib/models';
-import { Memento } from 'vscode';
 import { createWebApp, SiteClient } from 'vscode-azureappservice';
-import { IAzureNode, IAzureTreeItem, IChildProvider, UserCancelledError } from 'vscode-azureextensionui';
+import { IActionContext, IAzureNode, IAzureTreeItem, IChildProvider, UserCancelledError } from 'vscode-azureextensionui';
 import * as util from '../util';
 import { nodeUtils } from '../utils/nodeUtils';
 import { WebAppTreeItem } from './WebAppTreeItem';
@@ -16,11 +15,6 @@ export class WebAppProvider implements IChildProvider {
     public readonly childTypeLabel: string = 'Web App';
 
     private _nextLink: string | undefined;
-    private _globalState: Memento;
-
-    public constructor(globalState: Memento) {
-        this._globalState = globalState;
-    }
 
     public hasMoreChildren(): boolean {
         return this._nextLink !== undefined;
@@ -47,8 +41,8 @@ export class WebAppProvider implements IChildProvider {
             }));
     }
 
-    public async createChild(node: IAzureNode<IAzureTreeItem>, showCreatingNode: (label: string) => void): Promise<IAzureTreeItem> {
-        const newSite: Site | undefined = await createWebApp(util.getOutputChannel(), this._globalState, node.credentials, node.subscription, showCreatingNode);
+    public async createChild(node: IAzureNode<IAzureTreeItem>, showCreatingNode: (label: string) => void, actionContext: IActionContext): Promise<IAzureTreeItem> {
+        const newSite: Site | undefined = await createWebApp(util.getOutputChannel(), node.ui, actionContext, node.credentials, node.subscription, showCreatingNode);
         if (newSite === undefined) {
             throw new UserCancelledError();
         } else {

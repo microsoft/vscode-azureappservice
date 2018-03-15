@@ -11,7 +11,7 @@ import * as path from 'path';
 import { ExtensionContext, MessageItem, OutputChannel, Uri, window, workspace, WorkspaceConfiguration } from 'vscode';
 import { deleteSite, ILogStream, SiteClient, startStreamingLogs } from 'vscode-azureappservice';
 import * as appservice from 'vscode-azureappservice';
-import { IAzureParentNode, IAzureParentTreeItem, IAzureTreeItem, TelemetryProperties } from 'vscode-azureextensionui';
+import { IAzureNode, IAzureParentNode, IAzureParentTreeItem, IAzureTreeItem, IAzureUserInput, TelemetryProperties } from 'vscode-azureextensionui';
 import TelemetryReporter from 'vscode-extension-telemetry';
 import * as constants from '../constants';
 import * as util from '../util';
@@ -65,8 +65,8 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
         opn(this.client.defaultHostUrl);
     }
 
-    public async deleteTreeItem(): Promise<void> {
-        await deleteSite(this.client, util.getOutputChannel());
+    public async deleteTreeItem(node: IAzureNode): Promise<void> {
+        await deleteSite(this.client, node.ui, util.getOutputChannel());
     }
 
     public async isHttpLogsEnabled(): Promise<boolean> {
@@ -101,6 +101,7 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
     public async deploy(
         fsPath: string,
         outputChannel: OutputChannel,
+        ui: IAzureUserInput,
         telemetryReporter: TelemetryReporter,
         configurationSectionName: string,
         confirmDeployment: boolean = true,
@@ -119,7 +120,7 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
             }
         }
         cancelWebsiteValidation(this);
-        await appservice.deploy(this.client, fsPath, outputChannel, configurationSectionName, confirmDeployment, telemetryProperties);
+        await appservice.deploy(this.client, fsPath, outputChannel, ui, configurationSectionName, confirmDeployment, telemetryProperties);
 
         // Don't wait
         validateWebSite(correlationId, this, outputChannel, telemetryReporter).then(
