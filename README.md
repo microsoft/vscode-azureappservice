@@ -22,7 +22,7 @@ Check out this [deployment tutorial](https://code.visualstudio.com/tutorials/app
 
 ![Web App Log Stream](resources/WebApp_LogStream.png)
 
-## Configuring Zipdeploy
+## Configuring Zip Deploy
 
 * How to configure zip deployment:
   * If you set the deployment source of your web app to “None” (the default source on app creation), the deploy command will Zip the contents of a selected folder and upload the Zip file to Azure.
@@ -33,16 +33,16 @@ Check out this [deployment tutorial](https://code.visualstudio.com/tutorials/app
       > NOTE: Currently only 'node' runtimes support this feature.
   * If you select 'Never show again,' the `appService.showBuildDuringDeployPrompt` vscode setting will be set to `false` and you will no longer be prompted for this project.  Delete this setting or set it to `true` to re-enable the prompt.
 
-  ### Zipdeploy Configuration Settings
+### Zip Deploy Configuration Settings
 
-  * `appService.zipGlobPattern`
-    * Uses a glob pattern to define which files to be included in the deployment. The default value is '**/*'.
+* `appService.zipGlobPattern`
+  * Uses a glob pattern to define which files to be included in the deployment. The default value is '**/*'.
 
-  * `appService.zipIgnorePattern`
-    * Uses a glob pattern to define which files to be excluded from the deployment. The default value is [] which doesn’t exclude any files/folders.
+* `appService.zipIgnorePattern`
+  * Uses a glob pattern to define which files to be excluded from the deployment. The default value is [] which doesn’t exclude any files/folders.
 
-  * For example, you might want to exclude the 'node_modules' folder from the deployment to speed up the Zip file creation and uploading. In this case, you will need the following setting:
-    * `"appService.zipIgnorePattern: ['node_modules{,/**}']"`
+* For example, you might want to exclude the 'node_modules' folder from the deployment to speed up the Zip file creation and uploading. In this case, you will need the following setting:
+  * `"appService.zipIgnorePattern: ['node_modules{,/**}']"`
   * And in order to have the web app run the proper deployment command to install the npm packages, you need to have the following Application Setting on your site or in a '.deployment' file at the root of your repo:
     * `SCM_DO_BUILD_DURING_DEPLOYMENT=true`
 
@@ -71,7 +71,7 @@ All you need is an Azure Subscription to get started. If you don't have one, [cl
 
 This project welcomes contributions and suggestions.  Most contributions require you to agree to a
 Contributor License Agreement (CLA) declaring that you have the right to, and actually do, grant us
-the rights to use your contribution. For details, visit https://cla.microsoft.com.
+the rights to use your contribution. For details, visit <https://cla.microsoft.com>.
 
 When you submit a pull request, a CLA-bot will automatically determine whether you need to provide
 a CLA and decorate the PR appropriately (e.g., label, comment). Simply follow the instructions
@@ -82,7 +82,9 @@ For more information see the [Code of Conduct FAQ](https://opensource.microsoft.
 contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
 
 ## Telemetry
+
 VS Code collects usage data and sends it to Microsoft to help improve our products and services. Read our [privacy statement](https://go.microsoft.com/fwlink/?LinkID=528096&clcid=0x409) to learn more. If you don’t wish to send usage data to Microsoft, you can set the `telemetry.enableTelemetry` setting to `false`. Learn more in our [FAQ](https://code.visualstudio.com/docs/supporting/faq#_how-to-disable-telemetry-reporting).
 
 ## License
+
 [MIT](LICENSE.md)

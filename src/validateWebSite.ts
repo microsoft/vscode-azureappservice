@@ -45,7 +45,7 @@ export function cancelWebsiteValidation(siteTreeItem: SiteTreeItem): void {
     }
 }
 
-export async function validateWebSite(deploymentCorelationId: string, siteTreeItem: SiteTreeItem, outputChannel: OutputChannel, telemetryReporter: TelemetryReporter): Promise<void> {
+export async function validateWebSite(deploymentCorrelationId: string, siteTreeItem: SiteTreeItem, outputChannel: OutputChannel, telemetryReporter: TelemetryReporter): Promise<void> {
     cancelWebsiteValidation(siteTreeItem);
     const id = siteTreeItem.id;
     const cancellation: ICancellation = { canceled: false };
@@ -56,7 +56,7 @@ export async function validateWebSite(deploymentCorelationId: string, siteTreeIt
         this.suppressErrorDisplay = true;
 
         const properties = <IValidateProperties>this.properties;
-        properties.correlationId = deploymentCorelationId;
+        properties.correlationId = deploymentCorrelationId;
 
         let pollingIntervalMs = initialPollingIntervalMs;
         const start = Date.now();
