@@ -9,8 +9,8 @@ import * as vscode from 'vscode';
 import { AppSettingsTreeItem, AppSettingTreeItem, editScmType } from 'vscode-azureappservice';
 import { AzureActionHandler, AzureTreeDataProvider, AzureUserInput, IActionContext, IAzureNode, IAzureParentNode, IAzureUserInput, parseError } from 'vscode-azureextensionui';
 import TelemetryReporter from 'vscode-extension-telemetry';
+import { swapSlots } from './commands/swapSlots';
 import { extensionPrefix } from './constants';
-import { DeploymentSlotSwapper } from './DeploymentSlotSwapper';
 import { LogPointsManager } from './diagnostics/LogPointsManager';
 import { LogPointsSessionWizard } from './diagnostics/LogPointsSessionWizard';
 import { RemoteScriptDocumentProvider, RemoteScriptSchema } from './diagnostics/remoteScriptDocumentProvider';
@@ -223,14 +223,7 @@ export function activate(context: vscode.ExtensionContext): void {
             this.properties[deployingToDeploymentSlot] = 'false';
         }
     });
-    actionHandler.registerCommand('deploymentSlot.SwapSlots', async function (this: IActionContext, node: IAzureNode<DeploymentSlotTreeItem>): Promise<void> {
-        if (!node) {
-            node = <IAzureNode<DeploymentSlotTreeItem>>await tree.showNodePicker(DeploymentSlotTreeItem.contextValue);
-        }
-
-        const wizard = new DeploymentSlotSwapper(outputChannel, node);
-        await wizard.run(this.properties);
-    });
+    actionHandler.registerCommand('deploymentSlot.SwapSlots', async (node: IAzureNode<DeploymentSlotTreeItem>) => await swapSlots(tree, node, outputChannel));
     actionHandler.registerCommand('appSettings.Add', async (node: IAzureParentNode<AppSettingsTreeItem>) => {
         if (!node) {
             node = <IAzureParentNode<AppSettingsTreeItem>>await tree.showNodePicker(AppSettingsTreeItem.contextValue);
