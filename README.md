@@ -69,7 +69,7 @@ If you don't have an Azure Account, you can sign up for one today for free and r
 
 You may sign out of Azure by selecting "View->Command Palette" and searching for "Azure: Sign Out".
 
-To select which subscriptions show up in the extension's explorer, click on the "Select Subscriptions..." button on any subscription node (indicated by a "key" icon when you hover over it), or select "View->Command Palette" and search for "Azure: Select Subscriptions". Note that this selection affects all VS Code extensions that support the [Azure Account and Sign-In](https://github.com/Microsoft/vscode-azure-account) extension.
+To select which subscriptions show up in the extension's explorer, click on the "Select Subscriptions..." button on any subscription node (indicated by a "filter" icon when you hover over it), or select "View->Command Palette" and search for "Azure: Select Subscriptions". Note that this selection affects all VS Code extensions that support the [Azure Account and Sign-In](https://github.com/Microsoft/vscode-azure-account) extension.
 
 ![Select Azure Subscriptions](resources/SelectSubscriptionsScreenshot.png)
 
