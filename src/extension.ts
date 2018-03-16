@@ -71,6 +71,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
     const actionHandler: AzureActionHandler = new AzureActionHandler(context, outputChannel, reporter);
     actionHandler.registerCommand('appService.Refresh', async (node?: IAzureNode) => await tree.refresh(node));
+    actionHandler.registerCommand('appService.selectSubscriptions', () => vscode.commands.executeCommand("azure-account.selectSubscriptions"));
     actionHandler.registerCommand('appService.LoadMore', async (node?: IAzureNode) => await tree.loadMore(node));
     actionHandler.registerCommand('appService.Browse', async (node: IAzureNode<SiteTreeItem>) => {
         if (!node) {

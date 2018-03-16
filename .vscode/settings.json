@@ -11,6 +11,7 @@
     "tslint.autoFixOnSave": true,
     "tslint.ignoreDefinitionFiles": true,
     "cSpell.words": [
+        "Affordance",
         "Logpoints",
         "appservice",
         "azureappservice",
