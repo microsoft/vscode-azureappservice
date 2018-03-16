@@ -39,9 +39,12 @@ export async function swapSlots(tree: AzureTreeDataProvider, sourceSlotNode: IAz
         }
     }
 
-    const quickPickOptions = { placeHolder: `"${sourceSlotClient.slotName}" will be swapped with the destination slot.`, ignoreFocusOut: true };
+    const quickPickOptions = { placeHolder: `Select which slot to swap with "${sourceSlotClient.slotName}".` };
     const targetSlot: DeploymentSlotTreeItem | undefined = (await sourceSlotNode.ui.showQuickPick(otherSlots, quickPickOptions)).data;
 
+    const targetSlotLabel: string = targetSlot ? targetSlot.client.slotName : productionSlotLabel;
+    outputChannel.show(true);
+    outputChannel.appendLine(`Swapping "${targetSlotLabel}" with "${sourceSlotClient.slotName}"...`);
     const client: WebSiteManagementClient = nodeUtils.getWebSiteClient(sourceSlotNode);
     // if targetSlot was assigned undefined, the user selected 'production'
     if (!targetSlot) {
@@ -49,6 +52,5 @@ export async function swapSlots(tree: AzureTreeDataProvider, sourceSlotNode: IAz
     } else {
         await client.webApps.swapSlotSlot(sourceSlotClient.resourceGroup, sourceSlotClient.siteName, { targetSlot: targetSlot.client.slotName, preserveVnet: true }, sourceSlotClient.slotName);
     }
-    const targetSlotLabel: string = targetSlot ? targetSlot.client.slotName : productionSlotLabel;
-    outputChannel.appendLine(`"${targetSlotLabel}" was swapped with "${sourceSlotClient.slotName}".`);
+    outputChannel.appendLine(`Successfully swapped "${targetSlotLabel}" with "${sourceSlotClient.slotName}".`);
 }
