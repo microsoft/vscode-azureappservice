@@ -507,7 +507,7 @@
                     "scope": "resource",
                     "type": "boolean",
                     "default": true,
-                    "description": "Show prompt to improve performance of zipdeploy by excluding build artifacts from the zip file and running a build during deployment."
+                    "description": "Show prompt to improve performance of Zip Deploy by excluding build artifacts from the zip file and running a build during deployment."
                 }
             }
         },
@@ -585,6 +585,7 @@
     },
     "scripts": {
         "vscode:prepublish": "tsc -p ./",
+        "build": "tsc -p ./",
         "compile": "tsc -watch -p ./",
         "lint": "tslint --project tsconfig.json -t verbose",
         "postinstall": "node ./node_modules/vscode/bin/install",
@@ -612,8 +613,8 @@
         "opn": "^5.1.0",
         "request": "^2.83.0",
         "request-promise": "^4.2.2",
-        "vscode-azureappservice": "~0.12.0",
-        "vscode-azureextensionui": "~0.8.2",
+        "vscode-azureappservice": "~0.13.0",
+        "vscode-azureextensionui": "~0.9.0",
         "vscode-azurekudu": "~0.1.6",
         "vscode-debugadapter": "^1.24.0",
         "vscode-debugprotocol": "^1.24.0",
