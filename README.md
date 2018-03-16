@@ -65,7 +65,7 @@ If you are not signed in to Azure, you will see a "Sign in to Azure..." link. Al
 
 ![Sign in to Azure](resources/SignInScreenshot.png)
 
-If you don't have an Azure Account, you can sign up for one today for free and receive $200 in credits by selecting "View->Command Palette" and searching for "Azure: Create an Account".
+If you don't have an Azure Account, you can sign up for one today for free and receive $200 in credits by selecting "Create a Free Azure Account..." or selecting "View->Command Palette" and searching for "Azure: Create an Account".
 
 You may sign out of Azure by selecting "View->Command Palette" and searching for "Azure: Sign Out".
 

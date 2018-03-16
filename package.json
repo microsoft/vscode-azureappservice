@@ -56,6 +56,14 @@
     "contributes": {
         "commands": [
             {
+                "command": "appService.selectSubscriptions",
+                "title": "Select Subscriptions...",
+                "icon": {
+                    "light": "resources/light/filter.svg",
+                    "dark": "resources/dark/filter.svg"
+                }
+            },
+            {
                 "command": "appService.CreateWebApp",
                 "title": "Create New Web App",
                 "category": "Azure App Service",
@@ -257,6 +265,11 @@
                 }
             ],
             "view/item/context": [
+                {
+                    "command": "appService.selectSubscriptions",
+                    "when": "view == azureAppService && viewItem == azureextensionui.azureSubscription",
+                    "group": "inline"
+                },
                 {
                     "command": "appService.CreateWebApp",
                     "when": "view == azureAppService && viewItem == azureextensionui.azureSubscription",
