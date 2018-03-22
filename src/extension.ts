@@ -161,6 +161,12 @@ export function activate(context: vscode.ExtensionContext): void {
             node = target;
         }
 
+        let newApp: boolean = false;
+        // if the tree changes here, a new app was created
+        tree.onDidChangeTreeData(() => {
+            newApp = true;
+        });
+
         if (!node) {
             try {
                 node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
@@ -173,7 +179,7 @@ export function activate(context: vscode.ExtensionContext): void {
         }
 
         try {
-            await node.treeItem.deploy(fsPath, outputChannel, ui, reporter, extensionPrefix, true, this.properties);
+            await node.treeItem.deploy(fsPath, outputChannel, ui, reporter, extensionPrefix, !newApp, this.properties);
         } catch (err) {
             if (parseError(err).isUserCancelledError) {
                 throw err;
