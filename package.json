@@ -74,7 +74,7 @@
             },
             {
                 "command": "appService.Deploy",
-                "title": "Deploy to Web App",
+                "title": "Deploy Resource",
                 "category": "Azure App Service",
                 "icon": {
                     "light": "resources/light/Deploy.svg",
@@ -311,7 +311,7 @@
                     "group": "2_appServiceControlCommands@4"
                 },
                 {
-                    "command": "appService.OpenVSTSCD",
+                    "command": "appService.Deploy",
                     "when": "view == azureAppService && viewItem == appService",
                     "group": "3_appServiceDeployCommands@1"
                 },
@@ -319,6 +319,11 @@
                     "command": "appService.ConfigureDeploymentSource",
                     "when": "view == azureAppService && viewItem == appService",
                     "group": "3_appServiceDeployCommands@2"
+                },
+                {
+                    "command": "appService.OpenVSTSCD",
+                    "when": "view == azureAppService && viewItem == appService",
+                    "group": "3_appServiceDeployCommands@3"
                 },
                 {
                     "command": "diagnostics.OpenLogStream",
