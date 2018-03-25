@@ -11,6 +11,7 @@ import { AzureActionHandler, AzureTreeDataProvider, AzureUserInput, IActionConte
 import TelemetryReporter from 'vscode-extension-telemetry';
 import { swapSlots } from './commands/swapSlots';
 import { extensionPrefix } from './constants';
+import { RemoteDebugCommands } from './diagnostics/RemoteDebugCommands';
 import { DeploymentSlotsTreeItem } from './explorer/DeploymentSlotsTreeItem';
 import { DeploymentSlotTreeItem } from './explorer/DeploymentSlotTreeItem';
 import { FileEditor } from './explorer/editors/FileEditor';
@@ -312,6 +313,30 @@ export function activate(context: vscode.ExtensionContext): void {
             const wizard = new LogPointsSessionWizard(logPointsManager, context, outputChannel, node, node.treeItem.client, reporter);
             await wizard.run(this.properties);
         }
+    });
+
+    actionHandler.registerCommand('diagnostics.EnableRemoteDebug', async (node?: IAzureNode<SiteTreeItem>) => {
+        if (!node) {
+            node = <IAzureNode<SiteTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
+        }
+        const commands: RemoteDebugCommands = new RemoteDebugCommands(node.treeItem.client, node.ui, outputChannel);
+        await commands.enableRemoteDebug();
+    });
+
+    actionHandler.registerCommand('diagnostics.DisableRemoteDebug', async (node?: IAzureNode<SiteTreeItem>) => {
+        if (!node) {
+            node = <IAzureNode<SiteTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
+        }
+        const commands: RemoteDebugCommands = new RemoteDebugCommands(node.treeItem.client, node.ui, outputChannel);
+        await commands.disableRemoteDebug();
+    });
+
+    actionHandler.registerCommand('diagnostics.StartRemoteDebug', async (node?: IAzureNode<SiteTreeItem>) => {
+        if (!node) {
+            node = <IAzureNode<SiteTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
+        }
+        const commands: RemoteDebugCommands = new RemoteDebugCommands(node.treeItem.client, node.ui, outputChannel);
+        await commands.startRemoteDebug();
     });
 
     actionHandler.registerCommand('diagnostics.LogPoints.Toggle', async (uri: vscode.Uri) => {
