@@ -162,8 +162,8 @@ export function activate(context: vscode.ExtensionContext): void {
         }
 
         let newApp: boolean = false;
-        // if the tree changes here, a new app was created
-        tree.onDidChangeTreeData(() => {
+        const onNodeCreatedFromQuickPickDisposable: vscode.Disposable = tree.onNodeCreatedFromQuickPick(() => {
+            // event is fired from azure-extensionui if node was created from nodePicker
             newApp = true;
         });
 
@@ -187,6 +187,8 @@ export function activate(context: vscode.ExtensionContext): void {
             const appServicePlan = await node.treeItem.client.getAppServicePlan();
             this.properties.servicePlan = appServicePlan.sku.size;
             throw err;
+        } finally {
+            onNodeCreatedFromQuickPickDisposable.dispose();
         }
     });
     actionHandler.registerCommand('appService.ConfigureDeploymentSource', async (node: IAzureNode<SiteTreeItem>) => {
