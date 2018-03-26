@@ -215,6 +215,10 @@
         "menus": {
             "commandPalette": [
                 {
+                    "command": "appService.selectSubscriptions",
+                    "when": "never"
+                },
+                {
                     "command": "appService.Refresh",
                     "when": "never"
                 },
