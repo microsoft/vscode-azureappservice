@@ -160,42 +160,43 @@ export function activate(context: vscode.ExtensionContext): void {
             // event is fired from azure-extensionui if node was created during deployment
             newNodes.push(newNode);
         });
-
-        if (target instanceof vscode.Uri) {
-            fsPath = target.fsPath;
-        } else {
-            fsPath = await util.showWorkspaceFoldersQuickPick("Select the folder to deploy", this.properties);
-            node = target;
-        }
-
-        if (!node) {
-            try {
-                node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
-
-            } catch (err2) {
-                if (parseError(err2).isUserCancelledError) {
-                    this.properties.cancelStep = `showNodePicker:${WebAppTreeItem.contextValue}`;
-                }
-                throw err2;
-            }
-        }
         try {
-            if (newNodes.length > 0) {
-                for (const newApp of newNodes) {
-                    if (newApp.id === node.id) {
-                        // if the node selected for deployment is the same newly created nodes, stifle the confirmDeployment dialog
-                        confirmDeployment = false;
+            if (target instanceof vscode.Uri) {
+                fsPath = target.fsPath;
+            } else {
+                fsPath = await util.showWorkspaceFoldersQuickPick("Select the folder to deploy", this.properties);
+                node = target;
+            }
+
+            if (!node) {
+                try {
+                    node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
+
+                } catch (err2) {
+                    if (parseError(err2).isUserCancelledError) {
+                        this.properties.cancelStep = `showNodePicker:${WebAppTreeItem.contextValue}`;
+                    }
+                    throw err2;
+                }
+            }
+            try {
+                if (newNodes.length > 0) {
+                    for (const newApp of newNodes) {
+                        if (newApp.id === node.id) {
+                            // if the node selected for deployment is the same newly created nodes, stifle the confirmDeployment dialog
+                            confirmDeployment = false;
+                        }
                     }
                 }
-            }
-            await node.treeItem.deploy(fsPath, outputChannel, ui, reporter, extensionPrefix, confirmDeployment, this.properties);
-        } catch (err) {
-            if (parseError(err).isUserCancelledError) {
+                await node.treeItem.deploy(fsPath, outputChannel, ui, reporter, extensionPrefix, confirmDeployment, this.properties);
+            } catch (err) {
+                if (parseError(err).isUserCancelledError) {
+                    throw err;
+                }
+                const appServicePlan = await node.treeItem.client.getAppServicePlan();
+                this.properties.servicePlan = appServicePlan.sku.size;
                 throw err;
             }
-            const appServicePlan = await node.treeItem.client.getAppServicePlan();
-            this.properties.servicePlan = appServicePlan.sku.size;
-            throw err;
         } finally {
             onNodeCreatedFromQuickPickDisposable.dispose();
         }
