@@ -154,6 +154,13 @@ export function activate(context: vscode.ExtensionContext): void {
     actionHandler.registerCommand('appService.Deploy', async function (this: IActionContext, target?: vscode.Uri | IAzureNode<WebAppTreeItem> | undefined): Promise<void> {
         let node: IAzureNode<WebAppTreeItem>;
         let fsPath: string;
+        let newApp: IAzureNode<WebAppTreeItem>;
+        let confirmDeployment: boolean = true;
+        const onNodeCreatedFromQuickPickDisposable: vscode.Disposable = tree.onNodeCreatedFromQuickPick((node: IAzureNode<WebAppTreeItem>) => {
+            // event is fired from azure-extensionui if node was created from nodePicker
+            newApp = node;
+        });
+
         if (target instanceof vscode.Uri) {
             fsPath = target.fsPath;
         } else {
@@ -161,15 +168,10 @@ export function activate(context: vscode.ExtensionContext): void {
             node = target;
         }
 
-        let newApp: boolean = false;
-        const onNodeCreatedFromQuickPickDisposable: vscode.Disposable = tree.onNodeCreatedFromQuickPick(() => {
-            // event is fired from azure-extensionui if node was created from nodePicker
-            newApp = true;
-        });
-
         if (!node) {
             try {
                 node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
+
             } catch (err2) {
                 if (parseError(err2).isUserCancelledError) {
                     this.properties.cancelStep = `showNodePicker:${WebAppTreeItem.contextValue}`;
@@ -177,9 +179,12 @@ export function activate(context: vscode.ExtensionContext): void {
                 throw err2;
             }
         }
-
         try {
-            await node.treeItem.deploy(fsPath, outputChannel, ui, reporter, extensionPrefix, !newApp, this.properties);
+            if (newApp && newApp.id === node.id) {
+                // if the node selected for deployment is the same as the one that was created from the picker, stifle the confirmDeployment dialog
+                confirmDeployment = false;
+            }
+            await node.treeItem.deploy(fsPath, outputChannel, ui, reporter, extensionPrefix, confirmDeployment, this.properties);
         } catch (err) {
             if (parseError(err).isUserCancelledError) {
                 throw err;
