@@ -153,12 +153,12 @@ export function activate(context: vscode.ExtensionContext): void {
     });
     actionHandler.registerCommand('appService.Deploy', async function (this: IActionContext, target?: vscode.Uri | IAzureNode<WebAppTreeItem> | undefined): Promise<void> {
         let node: IAzureNode<WebAppTreeItem>;
+        const newNodes: IAzureNode<WebAppTreeItem>[] = [];
         let fsPath: string;
-        let newApp: IAzureNode<WebAppTreeItem>;
         let confirmDeployment: boolean = true;
-        const onNodeCreatedFromQuickPickDisposable: vscode.Disposable = tree.onNodeCreatedFromQuickPick((node: IAzureNode<WebAppTreeItem>) => {
-            // event is fired from azure-extensionui if node was created from nodePicker
-            newApp = node;
+        const onNodeCreatedFromQuickPickDisposable: vscode.Disposable = tree.onNodeCreate((newNode: IAzureNode<WebAppTreeItem>) => {
+            // event is fired from azure-extensionui if node was created during deployment
+            newNodes.push(newNode);
         });
 
         if (target instanceof vscode.Uri) {
@@ -180,9 +180,13 @@ export function activate(context: vscode.ExtensionContext): void {
             }
         }
         try {
-            if (newApp && newApp.id === node.id) {
-                // if the node selected for deployment is the same as the one that was created from the picker, stifle the confirmDeployment dialog
-                confirmDeployment = false;
+            if (newNodes.length > 0) {
+                for (const newApp of newNodes) {
+                    if (newApp.id === node.id) {
+                        // if the node selected for deployment is the same newly created nodes, stifle the confirmDeployment dialog
+                        confirmDeployment = false;
+                    }
+                }
             }
             await node.treeItem.deploy(fsPath, outputChannel, ui, reporter, extensionPrefix, confirmDeployment, this.properties);
         } catch (err) {
