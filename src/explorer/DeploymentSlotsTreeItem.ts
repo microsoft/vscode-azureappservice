@@ -36,7 +36,7 @@ export class DeploymentSlotsTreeItem implements IAzureParentTreeItem {
     }
 
     public get id(): string {
-        return `${this.client.id}/deploymentSlots`;
+        return `${this.client.id}/slots`;
     }
 
     public hasMoreChildren(): boolean {
