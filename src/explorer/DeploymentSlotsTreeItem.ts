@@ -11,7 +11,6 @@ import { window } from 'vscode';
 import { SiteClient } from 'vscode-azureappservice';
 import { IAzureNode, IAzureParentNode, IAzureParentTreeItem, IAzureTreeItem, UserCancelledError } from 'vscode-azureextensionui';
 import * as util from '../util';
-import { nodeUtils } from '../utils/nodeUtils';
 import { DeploymentSlotTreeItem } from './DeploymentSlotTreeItem';
 import { SiteTreeItem } from './SiteTreeItem';
 
@@ -48,7 +47,7 @@ export class DeploymentSlotsTreeItem implements IAzureParentTreeItem {
             this._nextLink = undefined;
         }
 
-        const client: WebSiteManagementClient = nodeUtils.getWebSiteClient(node);
+        const client: WebSiteManagementClient = new WebSiteManagementClient(node.credentials, node.subscriptionId);
         const webAppCollection: WebAppCollection = this._nextLink === undefined ?
             await client.webApps.listSlots(this.client.resourceGroup, this.client.siteName) :
             await client.webApps.listSlotsNext(this._nextLink);
@@ -59,7 +58,7 @@ export class DeploymentSlotsTreeItem implements IAzureParentTreeItem {
     }
 
     public async createChild(node: IAzureParentNode<DeploymentSlotsTreeItem>, showCreatingNode: (label: string) => void): Promise<IAzureTreeItem> {
-        const client: WebSiteManagementClient = nodeUtils.getWebSiteClient(node);
+        const client: WebSiteManagementClient = new WebSiteManagementClient(node.credentials, node.subscriptionId);
         let slotName: string = await this.promptForSlotName(client);
         if (!slotName) {
             throw new UserCancelledError();
