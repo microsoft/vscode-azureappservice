@@ -280,6 +280,11 @@
                     "group": "1_subscriptionGeneralCommands@1"
                 },
                 {
+                    "command": "appService.OpenInPortal",
+                    "when": "view == azureAppService && viewItem == azureextensionui.azureSubscription",
+                    "group": "1_subscriptionGeneralCommands@2"
+                },
+                {
                     "command": "appService.Refresh",
                     "when": "view == azureAppService && viewItem == azureextensionui.azureSubscription",
                     "group": "2_subscriptionGeneralCommands@1"
