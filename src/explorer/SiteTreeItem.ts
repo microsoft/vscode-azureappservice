@@ -161,7 +161,7 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
 
     private createLabel(state: string): string {
         return (this.client.slotName ? this.client.slotName : this.client.siteName) +    // Site/slot name
-            (state && typeof state !== 'undefined' && state.toLowerCase() !== 'running' ? ` (${state})` : '');  // Status (if site/slot not running)
+            (state && state != undefined && state.toLowerCase() !== 'running' ? ` (${state})` : '');  // Status (if site/slot not running)
     }
 }
 
