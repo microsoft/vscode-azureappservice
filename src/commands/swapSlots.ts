@@ -9,7 +9,6 @@ import { OutputChannel } from 'vscode';
 import { SiteClient } from 'vscode-azureappservice';
 import { AzureTreeDataProvider, IAzureNode, IAzureQuickPickItem } from 'vscode-azureextensionui';
 import { DeploymentSlotTreeItem } from '../explorer/DeploymentSlotTreeItem';
-import { nodeUtils } from '../utils/nodeUtils';
 
 export async function swapSlots(tree: AzureTreeDataProvider, sourceSlotNode: IAzureNode<DeploymentSlotTreeItem> | undefined, outputChannel: OutputChannel): Promise<void> {
     if (!sourceSlotNode) {
@@ -45,7 +44,7 @@ export async function swapSlots(tree: AzureTreeDataProvider, sourceSlotNode: IAz
     const targetSlotLabel: string = targetSlot ? targetSlot.client.slotName : productionSlotLabel;
     outputChannel.show(true);
     outputChannel.appendLine(`Swapping "${targetSlotLabel}" with "${sourceSlotClient.slotName}"...`);
-    const client: WebSiteManagementClient = nodeUtils.getWebSiteClient(sourceSlotNode);
+    const client: WebSiteManagementClient = new WebSiteManagementClient(sourceSlotNode.credentials, sourceSlotNode.subscriptionId);
     // if targetSlot was assigned undefined, the user selected 'production'
     if (!targetSlot) {
         await client.webApps.swapSlotWithProduction(sourceSlotClient.resourceGroup, sourceSlotClient.siteName, { targetSlot: sourceSlotClient.slotName, preserveVnet: true });

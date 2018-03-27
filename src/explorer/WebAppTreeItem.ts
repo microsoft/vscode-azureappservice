@@ -69,8 +69,7 @@ export class WebAppTreeItem extends SiteTreeItem {
     }
 
     public async generateDeploymentScript(node: IAzureNode): Promise<void> {
-        const resourceClient = new ResourceManagementClient(node.credentials, node.subscription.subscriptionId);
-        const subscription = node.subscription;
+        const resourceClient = new ResourceManagementClient(node.credentials, node.subscriptionId);
         const tasks = Promise.all([
             resourceClient.resourceGroups.get(this.client.resourceGroup),
             this.client.getAppServicePlan(),
@@ -111,7 +110,7 @@ export class WebAppTreeItem extends SiteTreeItem {
             script = scriptTemplate.replace('%RUNTIME%', siteConfig.linuxFxVersion);
         }
 
-        script = script.replace('%SUBSCRIPTION_NAME%', subscription.displayName)
+        script = script.replace('%SUBSCRIPTION_NAME%', node.subscriptionDisplayName)
             .replace('%RG_NAME%', rg.name)
             .replace('%LOCATION%', rg.location)
             .replace('%PLAN_NAME%', plan.name)
