@@ -49,7 +49,6 @@ export class WebAppProvider implements IChildProvider {
                         enabledHostNames: [s.hostNames[0], s.hostNames[0]],
                         repositorySiteName: `${s.name}-invalid`
                     };
-
                     return new SiteClient(site, node);
                 }
             })
