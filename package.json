@@ -215,6 +215,10 @@
         "menus": {
             "commandPalette": [
                 {
+                    "command": "appService.selectSubscriptions",
+                    "when": "never"
+                },
+                {
                     "command": "appService.Refresh",
                     "when": "never"
                 },
@@ -276,6 +280,11 @@
                     "group": "1_subscriptionGeneralCommands@1"
                 },
                 {
+                    "command": "appService.OpenInPortal",
+                    "when": "view == azureAppService && viewItem == azureextensionui.azureSubscription",
+                    "group": "1_subscriptionGeneralCommands@2"
+                },
+                {
                     "command": "appService.Refresh",
                     "when": "view == azureAppService && viewItem == azureextensionui.azureSubscription",
                     "group": "2_subscriptionGeneralCommands@1"
@@ -311,7 +320,7 @@
                     "group": "2_appServiceControlCommands@4"
                 },
                 {
-                    "command": "appService.OpenVSTSCD",
+                    "command": "appService.Deploy",
                     "when": "view == azureAppService && viewItem == appService",
                     "group": "3_appServiceDeployCommands@1"
                 },
@@ -319,6 +328,11 @@
                     "command": "appService.ConfigureDeploymentSource",
                     "when": "view == azureAppService && viewItem == appService",
                     "group": "3_appServiceDeployCommands@2"
+                },
+                {
+                    "command": "appService.OpenVSTSCD",
+                    "when": "view == azureAppService && viewItem == appService",
+                    "group": "3_appServiceDeployCommands@3"
                 },
                 {
                     "command": "diagnostics.OpenLogStream",
@@ -626,8 +640,8 @@
         "opn": "^5.1.0",
         "request": "^2.83.0",
         "request-promise": "^4.2.2",
-        "vscode-azureappservice": "~0.13.0",
-        "vscode-azureextensionui": "~0.9.0",
+        "vscode-azureappservice": "~0.14.0",
+        "vscode-azureextensionui": "~0.11.1",
         "vscode-azurekudu": "~0.1.6",
         "vscode-debugadapter": "^1.24.0",
         "vscode-debugprotocol": "^1.24.0",
