@@ -32,6 +32,12 @@ export class WebAppProvider implements IChildProvider {
         this._nextLink = webAppCollection.nextLink;
 
         return await Promise.all(webAppCollection
+            .filter((s: Site) => {
+                try {
+                    const siteClient = new SiteClient(s, node);
+                    return siteClient !== undefined;
+                } catch { return false; }
+            })
             .map((s: Site) => new SiteClient(s, node))
             .filter((s: SiteClient) => !s.isFunctionApp)
             .map(async (s: SiteClient) => {
