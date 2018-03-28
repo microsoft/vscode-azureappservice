@@ -45,7 +45,7 @@ export class WebAppProvider implements IChildProvider {
                         defaultHostName: s.hostNames[0],
                         location: `${s.name}-invalid`,
                         kind: s.kind,
-                        state: `${s.name}-invalid`,
+                        state: `invalid`,
                         enabledHostNames: [s.hostNames[0], s.hostNames[0]],
                         repositorySiteName: `${s.name}-invalid`
                     };

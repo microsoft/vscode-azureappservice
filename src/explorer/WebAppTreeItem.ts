@@ -14,6 +14,7 @@ import { configurationSettings, extensionPrefix } from '../constants';
 import { DeploymentSlotsNATreeItem, DeploymentSlotsTreeItem } from './DeploymentSlotsTreeItem';
 import { DeploymentSlotTreeItem } from './DeploymentSlotTreeItem';
 import { FolderTreeItem } from './FolderTreeItem';
+import { InvalidTreeItem } from './InvalidTreeItem';
 import { SiteTreeItem } from './SiteTreeItem';
 import { WebJobsTreeItem } from './WebJobsTreeItem';
 
@@ -24,13 +25,18 @@ export class WebAppTreeItem extends SiteTreeItem {
     public readonly appSettingsNode: IAzureTreeItem;
     public readonly webJobsNode: IAzureTreeItem;
     public readonly folderNode: IAzureTreeItem;
+    public readonly invalidAppServiceNode: IAzureTreeItem;
 
     constructor(client: SiteClient, appServicePlan: AppServicePlan) {
         super(client);
-        this.deploymentSlotsNode = (appServicePlan && appServicePlan.sku.tier === 'Basic') ? new DeploymentSlotsNATreeItem() : new DeploymentSlotsTreeItem(this.client);
-        this.folderNode = new FolderTreeItem(this.client, 'Files', "/site/wwwroot", true);
-        this.webJobsNode = new WebJobsTreeItem(this.client);
-        this.appSettingsNode = new AppSettingsTreeItem(this.client);
+        if (appServicePlan) {
+            this.deploymentSlotsNode = appServicePlan.sku.tier === 'Basic' ? new DeploymentSlotsNATreeItem() : new DeploymentSlotsTreeItem(this.client);
+            this.folderNode = new FolderTreeItem(this.client, 'Files', "/site/wwwroot", true);
+            this.webJobsNode = new WebJobsTreeItem(this.client);
+            this.appSettingsNode = new AppSettingsTreeItem(this.client);
+        } else {
+            this.invalidAppServiceNode = new InvalidTreeItem();
+        }
     }
 
     public get iconPath(): { light: string, dark: string } {
@@ -42,9 +48,13 @@ export class WebAppTreeItem extends SiteTreeItem {
     }
 
     public async loadMoreChildren(_parentNode: IAzureNode): Promise<IAzureTreeItem[]> {
-        return vscode.workspace.getConfiguration(extensionPrefix).get(configurationSettings.showRemoteFiles) ?
-            [this.deploymentSlotsNode, this.folderNode, this.webJobsNode, this.appSettingsNode] :
-            [this.deploymentSlotsNode, this.webJobsNode, this.appSettingsNode];
+        if (!this.invalidAppServiceNode) {
+            return vscode.workspace.getConfiguration(extensionPrefix).get(configurationSettings.showRemoteFiles) ?
+                [this.deploymentSlotsNode, this.folderNode, this.webJobsNode, this.appSettingsNode] :
+                [this.deploymentSlotsNode, this.webJobsNode, this.appSettingsNode];
+        } else {
+            return [this.invalidAppServiceNode];
+        }
     }
 
     public pickTreeItem(expectedContextValue: string): IAzureTreeItem | undefined {
@@ -59,6 +69,8 @@ export class WebAppTreeItem extends SiteTreeItem {
                 return this.folderNode;
             case WebJobsTreeItem.contextValue:
                 return this.webJobsNode;
+            case InvalidTreeItem.contextValue:
+                return this.invalidAppServiceNode;
             default:
                 return undefined;
         }
