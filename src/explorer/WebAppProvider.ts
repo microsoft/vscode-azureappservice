@@ -32,17 +32,35 @@ export class WebAppProvider implements IChildProvider {
         this._nextLink = webAppCollection.nextLink;
 
         return await Promise.all(webAppCollection
-            .filter((s: Site) => {
+            .map((s: Site) => {
                 try {
-                    const siteClient = new SiteClient(s, node);
-                    return siteClient !== undefined;
-                } catch { return false; }
+                    return new SiteClient(s, node);
+                } catch {
+                    const site: Site = {
+                        id: `${s.name}-invalid`,
+                        serverFarmId: `/subscriptions/${s.name}-invalid/resourceGroups/${s.name}-invalid/providers/Microsoft.Web/serverfarms/${s.name}-invalid`,
+                        name: s.name,
+                        resourceGroup: `${s.name}-invalid`,
+                        type: s.type,
+                        defaultHostName: s.hostNames[0],
+                        location: `${s.name}-invalid`,
+                        kind: s.kind,
+                        state: `${s.name}-invalid`,
+                        enabledHostNames: [s.hostNames[0], s.hostNames[0]],
+                        repositorySiteName: `${s.name}-invalid`
+                    };
+
+                    return new SiteClient(site, node);
+                }
             })
-            .map((s: Site) => new SiteClient(s, node))
             .filter((s: SiteClient) => !s.isFunctionApp)
             .map(async (s: SiteClient) => {
-                const appServicePlan: AppServicePlan = await s.getAppServicePlan();
-                return new WebAppTreeItem(s, appServicePlan);
+                try {
+                    const appServicePlan: AppServicePlan = await s.getAppServicePlan();
+                    return new WebAppTreeItem(s, appServicePlan);
+                } catch {
+                    return new WebAppTreeItem(s, null);
+                }
             }));
     }
 

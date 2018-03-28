@@ -27,7 +27,7 @@ export class WebAppTreeItem extends SiteTreeItem {
 
     constructor(client: SiteClient, appServicePlan: AppServicePlan) {
         super(client);
-        this.deploymentSlotsNode = appServicePlan.sku.tier === 'Basic' ? new DeploymentSlotsNATreeItem() : new DeploymentSlotsTreeItem(this.client);
+        this.deploymentSlotsNode = (appServicePlan && appServicePlan.sku.tier === 'Basic') ? new DeploymentSlotsNATreeItem() : new DeploymentSlotsTreeItem(this.client);
         this.folderNode = new FolderTreeItem(this.client, 'Files', "/site/wwwroot", true);
         this.webJobsNode = new WebJobsTreeItem(this.client);
         this.appSettingsNode = new AppSettingsTreeItem(this.client);
