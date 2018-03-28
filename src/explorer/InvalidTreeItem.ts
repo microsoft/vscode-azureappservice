@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as path from 'path';
 import { IAzureNode, IAzureParentTreeItem, IAzureTreeItem } from 'vscode-azureextensionui';
 
 export class InvalidTreeItem implements IAzureParentTreeItem {
@@ -25,5 +24,3 @@ export class InvalidTreeItem implements IAzureParentTreeItem {
         return [{ id: id, contextValue: id, label: "App Service configuration is invalid" }];
     }
 }
-
-type invalidAppService = { name: string, Message: string };
