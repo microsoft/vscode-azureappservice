@@ -36,7 +36,10 @@ export class WebAppProvider implements IChildProvider {
                 try {
                     const siteClient = new SiteClient(s, node);
                     return siteClient !== undefined;
-                } catch { return false; }
+                    // tslint:disable-next-line:no-unsafe-any
+                } catch (err) {
+                    return false;
+                }
             })
             .map((s: Site) => new SiteClient(s, node))
             .filter((s: SiteClient) => !s.isFunctionApp)
