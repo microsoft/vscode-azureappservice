@@ -24,15 +24,23 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
     public logStream: ILogStream | undefined;
     public logStreamOutputChannel: OutputChannel | undefined;
 
-    private _label: string;
+    private _state?: string;
 
     constructor(client: SiteClient) {
         this.client = client;
-        this._label = this.createLabel(client.initialState);
+        this._state = client.initialState;
     }
 
     public get label(): string {
-        return this._label;
+        return this.client.isSlot ? this.client.slotName : this.client.siteName;
+    }
+
+    public get description(): string | undefined {
+        return this._state && this._state.toLowerCase() !== 'running' ? this._state : undefined;
+    }
+
+    public async refreshLabel(): Promise<void> {
+        this._state = await this.client.getState();
     }
 
     public hasMoreChildren(): boolean {
@@ -43,21 +51,6 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
 
     public get id(): string {
         return this.client.id;
-    }
-
-    public async start(): Promise<void> {
-        await this.client.start();
-        this._label = this.createLabel(await this.client.getState());
-    }
-
-    public async stop(): Promise<void> {
-        await this.client.stop();
-        this._label = this.createLabel(await this.client.getState());
-    }
-
-    public async restart(): Promise<void> {
-        await this.stop();
-        await this.start();
     }
 
     public browse(): void {
@@ -99,6 +92,7 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
     }
 
     public async deploy(
+        node: IAzureNode,
         fsPath: string,
         outputChannel: OutputChannel,
         ui: IAzureUserInput,
@@ -120,7 +114,10 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
             }
         }
         cancelWebsiteValidation(this);
-        await appservice.deploy(this.client, fsPath, outputChannel, ui, configurationSectionName, confirmDeployment, telemetryProperties);
+
+        await node.runWithTemporaryDescription("Deploying...", async () => {
+            await appservice.deploy(this.client, fsPath, outputChannel, ui, configurationSectionName, confirmDeployment, telemetryProperties);
+        });
 
         // Don't wait
         validateWebSite(correlationId, this, outputChannel, telemetryReporter).then(
@@ -157,11 +154,6 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
         } else if (input === dontShowAgainButton) {
             workspace.getConfiguration(constants.extensionPrefix, Uri.file(fsPath)).update(constants.configurationSettings.showBuildDuringDeployPrompt, false);
         }
-    }
-
-    private createLabel(state: string): string {
-        return (this.client.slotName ? this.client.slotName : this.client.siteName) +    // Site/slot name
-            (state && state.toLowerCase() !== 'running' ? ` (${state})` : '');  // Status (if site/slot not running)
     }
 }
 
