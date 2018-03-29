@@ -8,7 +8,7 @@ import { AppServicePlan, Site, WebAppCollection } from 'azure-arm-website/lib/mo
 import { createWebApp, SiteClient } from 'vscode-azureappservice';
 import { IActionContext, IAzureNode, IAzureTreeItem, IChildProvider, UserCancelledError } from 'vscode-azureextensionui';
 import * as util from '../util';
-import { WebAppTreeItem } from './WebAppTreeItem';
+import { InvalidWebAppTreeItem, WebAppTreeItem } from './WebAppTreeItem';
 
 export class WebAppProvider implements IChildProvider {
     public readonly childTypeLabel: string = 'Web App';
@@ -31,36 +31,18 @@ export class WebAppProvider implements IChildProvider {
 
         this._nextLink = webAppCollection.nextLink;
 
-        return await Promise.all(webAppCollection
-            .map((s: Site) => {
+        const treeItems: IAzureTreeItem[] = [];
+        await Promise.all(webAppCollection
+            .map(async (s: Site) => {
                 try {
-                    return new SiteClient(s, node);
+                    const siteClient: SiteClient = new SiteClient(s, node);
+                    const appServicePlan: AppServicePlan = await siteClient.getAppServicePlan();
+                    treeItems.push(new WebAppTreeItem(siteClient, appServicePlan));
                 } catch {
-                    const site: Site = {
-                        id: `${s.name}-invalid`,
-                        serverFarmId: `/subscriptions/${s.name}-invalid/resourceGroups/${s.name}-invalid/providers/Microsoft.Web/serverfarms/${s.name}-invalid`,
-                        name: s.name,
-                        resourceGroup: `${s.name}-invalid`,
-                        type: s.type,
-                        defaultHostName: s.hostNames[0],
-                        location: `${s.name}-invalid`,
-                        kind: s.kind,
-                        state: `invalid`,
-                        enabledHostNames: [s.hostNames[0], s.hostNames[0]],
-                        repositorySiteName: `${s.name}-invalid`
-                    };
-                    return new SiteClient(site, node);
-                }
-            })
-            .filter((s: SiteClient) => !s.isFunctionApp)
-            .map(async (s: SiteClient) => {
-                try {
-                    const appServicePlan: AppServicePlan = await s.getAppServicePlan();
-                    return new WebAppTreeItem(s, appServicePlan);
-                } catch {
-                    return new WebAppTreeItem(s, null);
+                    treeItems.push(new InvalidWebAppTreeItem(`${s.name} (invalid)`));
                 }
             }));
+        return treeItems;
     }
 
     public async createChild(node: IAzureNode<IAzureTreeItem>, showCreatingNode: (label: string) => void, actionContext: IActionContext): Promise<IAzureTreeItem> {
