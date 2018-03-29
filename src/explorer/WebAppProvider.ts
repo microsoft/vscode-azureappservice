@@ -8,6 +8,7 @@ import { AppServicePlan, Site, WebAppCollection } from 'azure-arm-website/lib/mo
 import { createWebApp, SiteClient } from 'vscode-azureappservice';
 import { IActionContext, IAzureNode, IAzureTreeItem, IChildProvider, UserCancelledError } from 'vscode-azureextensionui';
 import * as util from '../util';
+import { InvalidWebAppTreeItem } from './InvalidWebAppTreeItem';
 import { WebAppTreeItem } from './WebAppTreeItem';
 
 export class WebAppProvider implements IChildProvider {
@@ -31,22 +32,20 @@ export class WebAppProvider implements IChildProvider {
 
         this._nextLink = webAppCollection.nextLink;
 
-        return await Promise.all(webAppCollection
-            .filter((s: Site) => {
+        const treeItems: IAzureTreeItem[] = [];
+        await Promise.all(webAppCollection
+            .map(async (s: Site) => {
                 try {
-                    const siteClient = new SiteClient(s, node);
-                    return siteClient !== undefined;
-                    // tslint:disable-next-line:no-unsafe-any
-                } catch (err) {
-                    return false;
+                    const siteClient: SiteClient = new SiteClient(s, node);
+                    if (!siteClient.isFunctionApp) {
+                        const appServicePlan: AppServicePlan = await siteClient.getAppServicePlan();
+                        treeItems.push(new WebAppTreeItem(siteClient, appServicePlan));
+                    }
+                } catch {
+                    treeItems.push(new InvalidWebAppTreeItem(s.name, 'Invalid'));
                 }
-            })
-            .map((s: Site) => new SiteClient(s, node))
-            .filter((s: SiteClient) => !s.isFunctionApp)
-            .map(async (s: SiteClient) => {
-                const appServicePlan: AppServicePlan = await s.getAppServicePlan();
-                return new WebAppTreeItem(s, appServicePlan);
             }));
+        return treeItems;
     }
 
     public async createChild(node: IAzureNode<IAzureTreeItem>, showCreatingNode: (label: string) => void, actionContext: IActionContext): Promise<IAzureTreeItem> {
