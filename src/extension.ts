@@ -19,6 +19,7 @@ import { DeploymentSlotsTreeItem } from './explorer/DeploymentSlotsTreeItem';
 import { DeploymentSlotTreeItem } from './explorer/DeploymentSlotTreeItem';
 import { FileEditor } from './explorer/editors/FileEditor';
 import { FileTreeItem } from './explorer/FileTreeItem';
+import { InvalidWebAppTreeItem } from './explorer/InvalidWebAppTreeItem';
 import { LoadedScriptsProvider, openScript } from './explorer/loadedScriptsExplorer';
 import { SiteTreeItem } from './explorer/SiteTreeItem';
 import { WebAppProvider } from './explorer/WebAppProvider';
@@ -213,6 +214,13 @@ export function activate(context: vscode.ExtensionContext): void {
         }
 
         node.treeItem.openCdInPortal(node);
+    });
+    actionHandler.registerCommand('invalidAppService.Invalid', async (node?: IAzureNode<InvalidWebAppTreeItem>) => {
+        if (!node) {
+            node = <IAzureNode<InvalidWebAppTreeItem>>await tree.showNodePicker(InvalidWebAppTreeItem.contextValue);
+        }
+
+        node.treeItem.invalid();
     });
     actionHandler.registerCommand('appService.DeploymentScript', async (node: IAzureNode<WebAppTreeItem>) => {
         if (!node) {

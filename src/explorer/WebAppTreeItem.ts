@@ -24,7 +24,6 @@ export class WebAppTreeItem extends SiteTreeItem {
     public readonly appSettingsNode: IAzureTreeItem;
     public readonly webJobsNode: IAzureTreeItem;
     public readonly folderNode: IAzureTreeItem;
-    public readonly invalidAppServiceNode: IAzureTreeItem;
 
     constructor(client: SiteClient, appServicePlan: AppServicePlan) {
         super(client);
@@ -125,22 +124,5 @@ export class WebAppTreeItem extends SiteTreeItem {
     private async loadScriptTemplate(scriptName: string): Promise<string> {
         const templatePath = path.join(__filename, '..', '..', '..', '..', 'resources', 'deploymentScripts', scriptName);
         return await fs.readFile(templatePath, 'utf8');
-    }
-}
-
-export class InvalidWebAppTreeItem implements IAzureTreeItem {
-    public static contextValue: string = 'file';
-    public readonly contextValue: string = InvalidWebAppTreeItem.contextValue;
-    public readonly commandId: string = 'appService.showFile';
-
-    constructor(readonly label: string) {
-    }
-
-    public get iconPath(): { light: string, dark: string } {
-        const iconName = 'WebApp_grayscale.svg';
-        return {
-            light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', iconName),
-            dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', iconName)
-        };
     }
 }

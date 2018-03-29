@@ -8,7 +8,8 @@ import { AppServicePlan, Site, WebAppCollection } from 'azure-arm-website/lib/mo
 import { createWebApp, SiteClient } from 'vscode-azureappservice';
 import { IActionContext, IAzureNode, IAzureTreeItem, IChildProvider, UserCancelledError } from 'vscode-azureextensionui';
 import * as util from '../util';
-import { InvalidWebAppTreeItem, WebAppTreeItem } from './WebAppTreeItem';
+import { InvalidWebAppTreeItem } from './InvalidWebAppTreeItem';
+import { WebAppTreeItem } from './WebAppTreeItem';
 
 export class WebAppProvider implements IChildProvider {
     public readonly childTypeLabel: string = 'Web App';
@@ -36,10 +37,12 @@ export class WebAppProvider implements IChildProvider {
             .map(async (s: Site) => {
                 try {
                     const siteClient: SiteClient = new SiteClient(s, node);
-                    const appServicePlan: AppServicePlan = await siteClient.getAppServicePlan();
-                    treeItems.push(new WebAppTreeItem(siteClient, appServicePlan));
+                    if (!siteClient.isFunctionApp) {
+                        const appServicePlan: AppServicePlan = await siteClient.getAppServicePlan();
+                        treeItems.push(new WebAppTreeItem(siteClient, appServicePlan));
+                    }
                 } catch {
-                    treeItems.push(new InvalidWebAppTreeItem(`${s.name} (invalid)`));
+                    treeItems.push(new InvalidWebAppTreeItem(s.name, 'Invalid'));
                 }
             }));
         return treeItems;
