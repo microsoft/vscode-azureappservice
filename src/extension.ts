@@ -215,13 +215,6 @@ export function activate(context: vscode.ExtensionContext): void {
 
         node.treeItem.openCdInPortal(node);
     });
-    actionHandler.registerCommand('invalidAppService.Invalid', async (node?: IAzureNode<InvalidWebAppTreeItem>) => {
-        if (!node) {
-            node = <IAzureNode<InvalidWebAppTreeItem>>await tree.showNodePicker(InvalidWebAppTreeItem.contextValue);
-        }
-
-        node.treeItem.invalid();
-    });
     actionHandler.registerCommand('appService.DeploymentScript', async (node: IAzureNode<WebAppTreeItem>) => {
         if (!node) {
             node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);

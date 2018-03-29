@@ -42,7 +42,6 @@
         "onCommand:appService.ConfigureDeploymentSource",
         "onCommand:appService.DeploymentScript",
         "onCommand:appService.OpenVSTSCD",
-        "onCommand:invalidAppService.Invalid",
         "onCommand:deploymentSlot.SwapSlots",
         "onCommand:appSettings.Add",
         "onCommand:appSettings.Edit",
@@ -139,11 +138,6 @@
             {
                 "command": "appService.OpenVSTSCD",
                 "title": "Continuous Delivery (Preview)",
-                "category": "Azure App Service"
-            },
-            {
-                "command": "invalidAppService.Invalid",
-                "title": "App Service configuration is invalid",
                 "category": "Azure App Service"
             },
             {
@@ -298,11 +292,6 @@
                 {
                     "command": "appService.OpenInPortal",
                     "when": "view == azureAppService && viewItem == appService",
-                    "group": "1_appServiceGeneralCommands@1"
-                },
-                {
-                    "command": "invalidAppService.Invalid",
-                    "when": "view == azureAppService && viewItem == invalidAppService",
                     "group": "1_appServiceGeneralCommands@1"
                 },
                 {
