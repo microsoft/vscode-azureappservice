@@ -7,6 +7,7 @@ All notable changes to the "azure-appservice" extension will be documented in th
 - Deploy to Web App context menu action for Web Apps
 - Open in Portal context menu action for Subscriptions
 - Creating Windows web apps
+- Report issue button on error dialogs that links to the GitHub repo
 
 ### Removed
 - Auto-browse after web app and slot creation
