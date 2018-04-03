@@ -10,7 +10,7 @@ Check out this [deployment tutorial](https://code.visualstudio.com/tutorials/app
 
 * Browse sites across all of your Azure subscriptions
 * Browse to the Azure Portal for advanced tasks, such as scaling
-* Create new web apps/deployment slots (Linux with Node.js only)
+* Create new web apps/deployment slots
 * Deploy to your web apps/deployment slots
 
 ![Deploy to Web App](resources/WebApp_Deploy.png)

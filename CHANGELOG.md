@@ -1,6 +1,19 @@
 # Change Log
 All notable changes to the "azure-appservice" extension will be documented in this file.
 
+## 0.7.0 - 2018-04-05
+### Added
+- Subscription filter button next to Subscription nodes in the explorer
+- Deploy to Web App context menu action for Web Apps
+- Create Windows web apps
+- Report issue button on error dialogs that links to the GitHub repo
+
+### Removed
+- Auto-browse after web app and slot creation
+
+### Fixed
+- [Bugs fixed](https://github.com/Microsoft/vscode-azureappservice/issues?utf8=%E2%9C%93&q=is%3Aissue+milestone%3A%220.7.0%22+label%3Abug+is%3Aclosed+)
+
 ## 0.6.1 - 2018-03-12
 ### [Fixed](https://github.com/Microsoft/vscode-azureappservice/issues?utf8=%E2%9C%93&q=is%3Aissue+milestone%3A%220.6.1%22+label%3Abug+is%3Aclosed+)
 - Open in Portal and Browse Website fail on Linux with message "spawn EACCES"
