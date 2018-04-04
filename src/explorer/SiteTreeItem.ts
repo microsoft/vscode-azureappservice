@@ -40,7 +40,11 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
     }
 
     public async refreshLabel(): Promise<void> {
-        this._state = await this.client.getState();
+        try {
+            this._state = await this.client.getState();
+        } catch {
+            this._state = 'Unknown';
+        }
     }
 
     public hasMoreChildren(): boolean {
