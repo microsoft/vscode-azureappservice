@@ -93,22 +93,24 @@ export function activate(context: vscode.ExtensionContext): void {
             node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
         }
 
-        outputChannel.show();
-        outputChannel.appendLine(`Starting "${node.treeItem.client.fullName}"...`);
-        await node.treeItem.start();
-        await node.refresh();
-        outputChannel.appendLine(`"${node.treeItem.client.fullName}" has been started.`);
+        await node.runWithTemporaryDescription("Starting...", async () => {
+            outputChannel.show();
+            outputChannel.appendLine(`Starting "${node.treeItem.client.fullName}"...`);
+            await node.treeItem.client.start();
+            outputChannel.appendLine(`"${node.treeItem.client.fullName}" has been started.`);
+        });
     });
     actionHandler.registerCommand('appService.Stop', async (node: IAzureNode<SiteTreeItem>) => {
         if (!node) {
             node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
         }
 
-        outputChannel.show();
-        outputChannel.appendLine(`Stopping "${node.treeItem.client.fullName}"...`);
-        await node.treeItem.stop();
-        await node.refresh();
-        outputChannel.appendLine(`"${node.treeItem.client.fullName}" has been stopped. App Service plan charges still apply.`);
+        await node.runWithTemporaryDescription("Stopping...", async () => {
+            outputChannel.show();
+            outputChannel.appendLine(`Stopping "${node.treeItem.client.fullName}"...`);
+            await node.treeItem.client.stop();
+            outputChannel.appendLine(`"${node.treeItem.client.fullName}" has been stopped. App Service plan charges still apply.`);
+        });
 
         await logPointsManager.onAppServiceSiteClosed(node.treeItem.client);
     });
@@ -117,11 +119,14 @@ export function activate(context: vscode.ExtensionContext): void {
             node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
         }
 
-        outputChannel.show();
-        outputChannel.appendLine(`Restarting "${node.treeItem.client.fullName}"...`);
-        await node.treeItem.restart();
-        await node.refresh();
-        outputChannel.appendLine(`"${node.treeItem.client.fullName}" has been restarted.`);
+        await node.runWithTemporaryDescription("Restarting...", async () => {
+            outputChannel.show();
+            outputChannel.appendLine(`Restarting "${node.treeItem.client.fullName}"...`);
+            await node.treeItem.client.stop();
+            await node.treeItem.client.start();
+            await node.refresh();
+            outputChannel.appendLine(`"${node.treeItem.client.fullName}" has been restarted.`);
+        });
 
         await logPointsManager.onAppServiceSiteClosed(node.treeItem.client);
     });
@@ -146,7 +151,7 @@ export function activate(context: vscode.ExtensionContext): void {
             this.properties[deployingToWebApp] = 'true';
 
             const fsPath = await util.showWorkspaceFoldersQuickPick("Select the folder to deploy", this.properties);
-            await createdApp.treeItem.deploy(fsPath, outputChannel, ui, reporter, extensionPrefix, false, this.properties);
+            await createdApp.treeItem.deploy(node, fsPath, outputChannel, ui, reporter, extensionPrefix, false, this.properties);
         } else {
             this.properties[deployingToWebApp] = 'false';
         }
@@ -179,24 +184,16 @@ export function activate(context: vscode.ExtensionContext): void {
                     throw err2;
                 }
             }
-            try {
-                if (newNodes.length > 0) {
-                    for (const newApp of newNodes) {
-                        if (newApp.id === node.id) {
-                            // if the node selected for deployment is the same newly created nodes, stifle the confirmDeployment dialog
-                            confirmDeployment = false;
-                        }
+
+            if (newNodes.length > 0) {
+                for (const newApp of newNodes) {
+                    if (newApp.id === node.id) {
+                        // if the node selected for deployment is the same newly created nodes, stifle the confirmDeployment dialog
+                        confirmDeployment = false;
                     }
                 }
-                await node.treeItem.deploy(fsPath, outputChannel, ui, reporter, extensionPrefix, confirmDeployment, this.properties);
-            } catch (err) {
-                if (parseError(err).isUserCancelledError) {
-                    throw err;
-                }
-                const appServicePlan = await node.treeItem.client.getAppServicePlan();
-                this.properties.servicePlan = appServicePlan.sku.size;
-                throw err;
             }
+            await node.treeItem.deploy(node, fsPath, outputChannel, ui, reporter, extensionPrefix, confirmDeployment, this.properties);
         } finally {
             onNodeCreatedFromQuickPickDisposable.dispose();
         }
@@ -237,7 +234,7 @@ export function activate(context: vscode.ExtensionContext): void {
         if (await vscode.window.showInformationMessage('Deploy to deployment slot?', yesButton, noButton) === yesButton) {
             this.properties[deployingToDeploymentSlot] = 'true';
             const fsPath = await util.showWorkspaceFoldersQuickPick("Select the folder to deploy", this.properties);
-            await createdSlot.treeItem.deploy(fsPath, outputChannel, ui, reporter, extensionPrefix, false, this.properties);
+            await createdSlot.treeItem.deploy(node, fsPath, outputChannel, ui, reporter, extensionPrefix, false, this.properties);
         } else {
             this.properties[deployingToDeploymentSlot] = 'false';
         }
