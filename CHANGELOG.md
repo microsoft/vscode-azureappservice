@@ -1,6 +1,10 @@
 # Change Log
 All notable changes to the "azure-appservice" extension will be documented in this file.
 
+## 0.7.1 - 2018-04-13
+### [Fixed](https://github.com/Microsoft/vscode-azureappservice/issues?utf8=%E2%9C%93&q=is%3Aissue+milestone%3A%220.7.1%22+label%3Abug+is%3Aclosed+)
+- Deployment fail when deploying to web app with a custom domain
+
 ## 0.7.0 - 2018-04-05
 ### Added
 - Subscription filter button next to Subscription nodes in the explorer
