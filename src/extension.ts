@@ -5,12 +5,14 @@
 
 'use strict';
 
+import * as path from 'path';
 import * as vscode from 'vscode';
+import { workspace } from 'vscode';
 import { AppSettingsTreeItem, AppSettingTreeItem, editScmType } from 'vscode-azureappservice';
 import { AzureActionHandler, AzureTreeDataProvider, AzureUserInput, IActionContext, IAzureNode, IAzureParentNode, IAzureUserInput, parseError } from 'vscode-azureextensionui';
 import TelemetryReporter from 'vscode-extension-telemetry';
 import { swapSlots } from './commands/swapSlots';
-import { extensionPrefix } from './constants';
+import { configurationSettings, extensionPrefix } from './constants';
 import { LogPointsManager } from './diagnostics/LogPointsManager';
 import { LogPointsSessionWizard } from './diagnostics/LogPointsSessionWizard';
 import { RemoteScriptDocumentProvider, RemoteScriptSchema } from './diagnostics/remoteScriptDocumentProvider';
@@ -171,6 +173,12 @@ export function activate(context: vscode.ExtensionContext): void {
             } else {
                 fsPath = await util.showWorkspaceFoldersQuickPick("Select the folder to deploy", this.properties);
                 node = target;
+            }
+
+            const deploySubpath: string = workspace.getConfiguration(extensionPrefix).get(configurationSettings.deploySubpath);
+
+            if (deploySubpath) {
+                fsPath = path.join(fsPath, deploySubpath);
             }
 
             if (!node) {
