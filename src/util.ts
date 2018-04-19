@@ -43,10 +43,10 @@ export function parseAzureResourceId(resourceId: string): { [key: string]: strin
     return result;
 }
 
-export async function showWorkspaceFoldersQuickPick(placeHolderString: string, telemetryProperties: TelemetryProperties, subpath: string | undefined): Promise<string> {
+export async function showWorkspaceFoldersQuickPick(placeHolderString: string, telemetryProperties: TelemetryProperties, subPathSetting: string | undefined): Promise<string> {
     const folderQuickPickItems = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders.map((value) => {
         {
-            const fsPath: string = subpath ? path.join(value.uri.fsPath, subpath) : value.uri.fsPath;
+            const fsPath: string = subPathSetting ? path.join(value.uri.fsPath, subPathSetting) : value.uri.fsPath;
 
             return {
                 label: value.name,
