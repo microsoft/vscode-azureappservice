@@ -6,7 +6,6 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { TelemetryProperties, UserCancelledError } from 'vscode-azureextensionui';
-import { configurationSettings, extensionPrefix } from './constants';
 
 // Output channel for the extension
 const outputChannel = vscode.window.createOutputChannel("Azure App Service");
@@ -44,11 +43,9 @@ export function parseAzureResourceId(resourceId: string): { [key: string]: strin
     return result;
 }
 
-export async function showWorkspaceFoldersQuickPick(placeHolderString: string, telemetryProperties: TelemetryProperties): Promise<string> {
+export async function showWorkspaceFoldersQuickPick(placeHolderString: string, telemetryProperties: TelemetryProperties, subpath: string | undefined): Promise<string> {
     const folderQuickPickItems = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders.map((value) => {
         {
-            const subpath: string = vscode.workspace.getConfiguration(extensionPrefix).get(configurationSettings.deploySubpath);
-
             const fsPath: string = subpath ? path.join(value.uri.fsPath, subpath) : value.uri.fsPath;
 
             return {
