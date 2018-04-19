@@ -11,10 +11,6 @@ import { AzureActionHandler, AzureTreeDataProvider, AzureUserInput, IActionConte
 import TelemetryReporter from 'vscode-extension-telemetry';
 import { swapSlots } from './commands/swapSlots';
 import { extensionPrefix } from './constants';
-import { LogPointsManager } from './diagnostics/LogPointsManager';
-import { LogPointsSessionWizard } from './diagnostics/LogPointsSessionWizard';
-import { RemoteScriptDocumentProvider, RemoteScriptSchema } from './diagnostics/remoteScriptDocumentProvider';
-import { LogpointsCollection } from './diagnostics/structs/LogpointsCollection';
 import { DeploymentSlotsTreeItem } from './explorer/DeploymentSlotsTreeItem';
 import { DeploymentSlotTreeItem } from './explorer/DeploymentSlotTreeItem';
 import { FileEditor } from './explorer/editors/FileEditor';
@@ -23,6 +19,10 @@ import { LoadedScriptsProvider, openScript } from './explorer/loadedScriptsExplo
 import { SiteTreeItem } from './explorer/SiteTreeItem';
 import { WebAppProvider } from './explorer/WebAppProvider';
 import { WebAppTreeItem } from './explorer/WebAppTreeItem';
+import { LogPointsManager } from './logPoints/LogPointsManager';
+import { LogPointsSessionWizard } from './logPoints/LogPointsSessionWizard';
+import { RemoteScriptDocumentProvider, RemoteScriptSchema } from './logPoints/remoteScriptDocumentProvider';
+import { LogpointsCollection } from './logPoints/structs/LogpointsCollection';
 import * as util from "./util";
 import { getPackageInfo, IPackageInfo } from './utils/IPackageInfo';
 

@@ -7,7 +7,7 @@ import * as vscode from 'vscode';
 
 import { Event, EventEmitter, ProviderResult, TreeDataProvider, TreeItem } from 'vscode';
 import { Source } from 'vscode-debugadapter';
-import { RemoteScriptSchema } from '../diagnostics/remoteScriptDocumentProvider';
+import { RemoteScriptSchema } from '../logPoints/remoteScriptDocumentProvider';
 
 const AZURE_JS_DEBUG_TYPE = 'jsLogpoints';
 
