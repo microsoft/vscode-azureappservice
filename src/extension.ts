@@ -151,7 +151,7 @@ export function activate(context: vscode.ExtensionContext): void {
             this.properties[deployingToWebApp] = 'true';
 
             const fsPath = await util.showWorkspaceFoldersQuickPick("Select the folder to deploy", this.properties);
-            await createdApp.treeItem.deploy(node, fsPath, outputChannel, ui, reporter, extensionPrefix, false, this.properties);
+            await createdApp.treeItem.deploy(createdApp, fsPath, outputChannel, ui, reporter, extensionPrefix, false, this.properties);
         } else {
             this.properties[deployingToWebApp] = 'false';
         }
@@ -234,7 +234,7 @@ export function activate(context: vscode.ExtensionContext): void {
         if (await vscode.window.showInformationMessage('Deploy to deployment slot?', yesButton, noButton) === yesButton) {
             this.properties[deployingToDeploymentSlot] = 'true';
             const fsPath = await util.showWorkspaceFoldersQuickPick("Select the folder to deploy", this.properties);
-            await createdSlot.treeItem.deploy(node, fsPath, outputChannel, ui, reporter, extensionPrefix, false, this.properties);
+            await createdSlot.treeItem.deploy(createdSlot, fsPath, outputChannel, ui, reporter, extensionPrefix, false, this.properties);
         } else {
             this.properties[deployingToDeploymentSlot] = 'false';
         }
