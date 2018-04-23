@@ -17,7 +17,7 @@ export function reportMessage(message: string, progress: vscode.Progress<{}>): v
 
 export function checkForRemoteDebugSupport(siteConfig: SiteConfigResource): void {
     // So far only node on linux is supported
-    if (!siteConfig.linuxFxVersion.toLowerCase().startsWith('node')) {
+    if (siteConfig.linuxFxVersion && !siteConfig.linuxFxVersion.toLowerCase().startsWith('node')) {
         throw new Error('Azure Remote Debugging is currently only supported for node on Linux.');
     }
 }
