@@ -9,6 +9,9 @@ import * as vscode from 'vscode';
 import { AppSettingsTreeItem, AppSettingTreeItem, editScmType } from 'vscode-azureappservice';
 import { AzureActionHandler, AzureTreeDataProvider, AzureUserInput, IActionContext, IAzureNode, IAzureParentNode, IAzureUserInput, parseError } from 'vscode-azureextensionui';
 import TelemetryReporter from 'vscode-extension-telemetry';
+import { attachDebugger } from './commands/remoteDebug/attachDebugger';
+import { disableRemoteDebug } from './commands/remoteDebug/disableRemoteDebug';
+import { enableRemoteDebug } from './commands/remoteDebug/enableRemoteDebug';
 import { swapSlots } from './commands/swapSlots';
 import { extensionPrefix } from './constants';
 import { DeploymentSlotsTreeItem } from './explorer/DeploymentSlotsTreeItem';
@@ -19,6 +22,7 @@ import { LoadedScriptsProvider, openScript } from './explorer/loadedScriptsExplo
 import { SiteTreeItem } from './explorer/SiteTreeItem';
 import { WebAppProvider } from './explorer/WebAppProvider';
 import { WebAppTreeItem } from './explorer/WebAppTreeItem';
+import { ext } from './extensionVariables';
 import { LogPointsManager } from './logPoints/LogPointsManager';
 import { LogPointsSessionWizard } from './logPoints/LogPointsSessionWizard';
 import { RemoteScriptDocumentProvider, RemoteScriptSchema } from './logPoints/remoteScriptDocumentProvider';
@@ -31,15 +35,19 @@ import { getPackageInfo, IPackageInfo } from './utils/IPackageInfo';
 export function activate(context: vscode.ExtensionContext): void {
     const packageInfo: IPackageInfo = getPackageInfo(context);
     const reporter = new TelemetryReporter(packageInfo.name, packageInfo.version, packageInfo.aiKey);
+    ext.reporter = reporter;
     context.subscriptions.push(reporter);
 
     const ui: IAzureUserInput = new AzureUserInput(context.globalState);
+    ext.ui = ui;
 
     const outputChannel = util.getOutputChannel();
+    ext.outputChannel = outputChannel;
     context.subscriptions.push(outputChannel);
 
     const webAppProvider: WebAppProvider = new WebAppProvider();
     const tree = new AzureTreeDataProvider(webAppProvider, 'appService.LoadMore', ui, reporter);
+    ext.tree = tree;
     context.subscriptions.push(tree);
     context.subscriptions.push(vscode.window.registerTreeDataProvider('azureAppService', tree));
 
@@ -319,6 +327,10 @@ export function activate(context: vscode.ExtensionContext): void {
     });
 
     actionHandler.registerCommand('diagnostics.LogPoints.OpenScript', openScript);
+
+    actionHandler.registerCommand('diagnostics.EnableRemoteDebug', async (node?: IAzureNode<SiteTreeItem>) => enableRemoteDebug(tree, node));
+    actionHandler.registerCommand('diagnostics.DisableRemoteDebug', async (node?: IAzureNode<SiteTreeItem>) => disableRemoteDebug(tree, node));
+    actionHandler.registerCommand('diagnostics.AttachDebugger', async (node?: IAzureNode<SiteTreeItem>) => attachDebugger(tree, node));
 
     actionHandler.registerCommand('appService.showFile', async (node: IAzureNode<FileTreeItem>) => {
         await fileEditor.showEditor(node);

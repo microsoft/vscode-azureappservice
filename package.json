@@ -49,6 +49,9 @@
         "onCommand:appSettings.Delete",
         "onCommand:diagnostics.OpenLogStream",
         "onCommand:diagnostics.StopLogStream",
+        "onCommand:diagnostics.EnableRemoteDebug",
+        "onCommand:diagnostics.DisableRemoteDebug",
+        "onCommand:diagnostics.AttachDebugger",
         "onCommand:deploymentSlots.CreateSlot",
         "onView:azureAppService"
     ],
@@ -181,6 +184,21 @@
                 "category": "Azure App Service"
             },
             {
+                "command": "diagnostics.EnableRemoteDebug",
+                "title": "Enable Remote Debugging",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "diagnostics.DisableRemoteDebug",
+                "title": "Disable Remote Debugging",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "diagnostics.AttachDebugger",
+                "title": "Attach Debugger",
+                "category": "Azure App Service"
+            },
+            {
                 "command": "diagnostics.StartLogPointsSession",
                 "title": "Launch Logpoints Debug Session",
                 "category": "Azure App Service"
@@ -249,6 +267,18 @@
                 {
                     "command": "diagnostics.LogPoints.Toggle",
                     "when": "never"
+                },
+                {
+                    "command": "diagnostics.EnableRemoteDebug",
+                    "when": "config.appService.enableRemoteDebugging == true"
+                },
+                {
+                    "command": "diagnostics.DisableRemoteDebug",
+                    "when": "config.appService.enableRemoteDebugging == true"
+                },
+                {
+                    "command": "diagnostics.AttachDebugger",
+                    "when": "config.appService.enableRemoteDebugging == true"
                 }
             ],
             "view/title": [
@@ -350,9 +380,24 @@
                     "group": "4_appServiceDiagnosticsCommands@3"
                 },
                 {
+                    "command": "diagnostics.EnableRemoteDebug",
+                    "when": "config.appService.enableRemoteDebugging == true && view == azureAppService && viewItem == appService",
+                    "group": "5_appServiceRemoteDebugCommands@1"
+                },
+                {
+                    "command": "diagnostics.DisableRemoteDebug",
+                    "when": "config.appService.enableRemoteDebugging == true && view == azureAppService && viewItem == appService",
+                    "group": "5_appServiceRemoteDebugCommands@2"
+                },
+                {
+                    "command": "diagnostics.AttachDebugger",
+                    "when": "config.appService.enableRemoteDebugging == true && view == azureAppService && viewItem == appService",
+                    "group": "5_appServiceRemoteDebugCommands@3"
+                },
+                {
                     "command": "appService.DeploymentScript",
                     "when": "view == azureAppService && viewItem == appService",
-                    "group": "5_appServiceMiscCommands@1"
+                    "group": "6_appServiceMiscCommands@1"
                 },
                 {
                     "command": "deploymentSlots.CreateSlot",
@@ -428,6 +473,21 @@
                     "command": "diagnostics.StartLogPointsSession",
                     "when": "config.appService.logpoints == true && view == azureAppService && viewItem == deploymentSlot",
                     "group": "4_deploymentSlotDiagnosticsCommands@3"
+                },
+                {
+                    "command": "diagnostics.EnableRemoteDebug",
+                    "when": "config.appService.enableRemoteDebugging == true && view == azureAppService && viewItem == deploymentSlot",
+                    "group": "5_appServiceRemoteDebugCommands@1"
+                },
+                {
+                    "command": "diagnostics.DisableRemoteDebug",
+                    "when": "config.appService.enableRemoteDebugging == true && view == azureAppService && viewItem == deploymentSlot",
+                    "group": "5_appServiceRemoteDebugCommands@2"
+                },
+                {
+                    "command": "diagnostics.AttachDebugger",
+                    "when": "config.appService.enableRemoteDebugging == true && view == azureAppService && viewItem == deploymentSlot",
+                    "group": "5_appServiceRemoteDebugCommands@3"
                 },
                 {
                     "command": "appService.Refresh",
@@ -535,6 +595,11 @@
                     "type": "boolean",
                     "default": true,
                     "description": "Show prompt to improve performance of Zip Deploy by excluding build artifacts from the zip file and running a build during deployment."
+                },
+                "appService.enableRemoteDebugging": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Enables remote debugging of a Web App. This experimental preview only supports node on Linux."
                 }
             }
         },
@@ -637,7 +702,8 @@
         "azure-arm-resource": "^3.0.0-preview",
         "azure-arm-website": "^1.0.0-preview",
         "fs-extra": "^4.0.2",
-        "opn": "^5.1.0",
+        "opn": "^5.3.0",
+        "portfinder": "^1.0.13",
         "request": "^2.83.0",
         "request-promise": "^4.2.2",
         "vscode-azureappservice": "~0.15.0",
