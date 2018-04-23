@@ -293,7 +293,7 @@ export function activate(context: vscode.ExtensionContext): void {
                 return await node.treeItem.isHttpLogsEnabled();
             });
 
-            if (!isEnabled && enableButton === await vscode.window.showWarningMessage(`Do you want to enable application logging for ${node.treeItem.client.fullName}?`, enableButton, notNowButton)) {
+            if (!isEnabled && enableButton === await vscode.window.showWarningMessage(`Do you want to enable application logging for ${node.treeItem.client.fullName}?`, { modal: true }, enableButton, notNowButton)) {
                 outputChannel.show();
                 outputChannel.appendLine(`Enabling Logging for "${node.treeItem.client.fullName}"...`);
                 await node.treeItem.enableHttpLogs();
