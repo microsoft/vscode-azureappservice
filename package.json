@@ -49,9 +49,8 @@
         "onCommand:appSettings.Delete",
         "onCommand:diagnostics.OpenLogStream",
         "onCommand:diagnostics.StopLogStream",
-        "onCommand:diagnostics.EnableRemoteDebug",
+        "onCommand:diagnostics.StartRemoteDebug",
         "onCommand:diagnostics.DisableRemoteDebug",
-        "onCommand:diagnostics.AttachDebugger",
         "onCommand:deploymentSlots.CreateSlot",
         "onView:azureAppService"
     ],
@@ -184,18 +183,13 @@
                 "category": "Azure App Service"
             },
             {
-                "command": "diagnostics.EnableRemoteDebug",
-                "title": "Enable Remote Debugging",
+                "command": "diagnostics.StartRemoteDebug",
+                "title": "Start Remote Debugging",
                 "category": "Azure App Service"
             },
             {
                 "command": "diagnostics.DisableRemoteDebug",
                 "title": "Disable Remote Debugging",
-                "category": "Azure App Service"
-            },
-            {
-                "command": "diagnostics.AttachDebugger",
-                "title": "Attach Debugger",
                 "category": "Azure App Service"
             },
             {
@@ -269,15 +263,11 @@
                     "when": "never"
                 },
                 {
-                    "command": "diagnostics.EnableRemoteDebug",
+                    "command": "diagnostics.StartRemoteDebug",
                     "when": "config.appService.enableRemoteDebugging == true"
                 },
                 {
                     "command": "diagnostics.DisableRemoteDebug",
-                    "when": "config.appService.enableRemoteDebugging == true"
-                },
-                {
-                    "command": "diagnostics.AttachDebugger",
                     "when": "config.appService.enableRemoteDebugging == true"
                 }
             ],
@@ -380,7 +370,7 @@
                     "group": "4_appServiceDiagnosticsCommands@3"
                 },
                 {
-                    "command": "diagnostics.EnableRemoteDebug",
+                    "command": "diagnostics.StartRemoteDebug",
                     "when": "config.appService.enableRemoteDebugging == true && view == azureAppService && viewItem == appService",
                     "group": "5_appServiceRemoteDebugCommands@1"
                 },
@@ -388,11 +378,6 @@
                     "command": "diagnostics.DisableRemoteDebug",
                     "when": "config.appService.enableRemoteDebugging == true && view == azureAppService && viewItem == appService",
                     "group": "5_appServiceRemoteDebugCommands@2"
-                },
-                {
-                    "command": "diagnostics.AttachDebugger",
-                    "when": "config.appService.enableRemoteDebugging == true && view == azureAppService && viewItem == appService",
-                    "group": "5_appServiceRemoteDebugCommands@3"
                 },
                 {
                     "command": "appService.DeploymentScript",
@@ -475,7 +460,7 @@
                     "group": "4_deploymentSlotDiagnosticsCommands@3"
                 },
                 {
-                    "command": "diagnostics.EnableRemoteDebug",
+                    "command": "diagnostics.StartRemoteDebug",
                     "when": "config.appService.enableRemoteDebugging == true && view == azureAppService && viewItem == deploymentSlot",
                     "group": "5_appServiceRemoteDebugCommands@1"
                 },
@@ -483,11 +468,6 @@
                     "command": "diagnostics.DisableRemoteDebug",
                     "when": "config.appService.enableRemoteDebugging == true && view == azureAppService && viewItem == deploymentSlot",
                     "group": "5_appServiceRemoteDebugCommands@2"
-                },
-                {
-                    "command": "diagnostics.AttachDebugger",
-                    "when": "config.appService.enableRemoteDebugging == true && view == azureAppService && viewItem == deploymentSlot",
-                    "group": "5_appServiceRemoteDebugCommands@3"
                 },
                 {
                     "command": "appService.Refresh",
