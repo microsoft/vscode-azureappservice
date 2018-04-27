@@ -9,9 +9,8 @@ import * as vscode from 'vscode';
 import { AppSettingsTreeItem, AppSettingTreeItem, editScmType } from 'vscode-azureappservice';
 import { AzureActionHandler, AzureTreeDataProvider, AzureUserInput, IActionContext, IAzureNode, IAzureParentNode, IAzureUserInput, parseError } from 'vscode-azureextensionui';
 import TelemetryReporter from 'vscode-extension-telemetry';
-import { attachDebugger } from './commands/remoteDebug/attachDebugger';
 import { disableRemoteDebug } from './commands/remoteDebug/disableRemoteDebug';
-import { enableRemoteDebug } from './commands/remoteDebug/enableRemoteDebug';
+import { startRemoteDebug } from './commands/remoteDebug/startRemoteDebug';
 import { swapSlots } from './commands/swapSlots';
 import { extensionPrefix } from './constants';
 import { DeploymentSlotsTreeItem } from './explorer/DeploymentSlotsTreeItem';
@@ -328,9 +327,8 @@ export function activate(context: vscode.ExtensionContext): void {
 
     actionHandler.registerCommand('diagnostics.LogPoints.OpenScript', openScript);
 
-    actionHandler.registerCommand('diagnostics.EnableRemoteDebug', async (node?: IAzureNode<SiteTreeItem>) => enableRemoteDebug(tree, node));
+    actionHandler.registerCommand('diagnostics.StartRemoteDebug', async (node?: IAzureNode<SiteTreeItem>) => startRemoteDebug(tree, node));
     actionHandler.registerCommand('diagnostics.DisableRemoteDebug', async (node?: IAzureNode<SiteTreeItem>) => disableRemoteDebug(tree, node));
-    actionHandler.registerCommand('diagnostics.AttachDebugger', async (node?: IAzureNode<SiteTreeItem>) => attachDebugger(tree, node));
 
     actionHandler.registerCommand('appService.showFile', async (node: IAzureNode<FileTreeItem>) => {
         await fileEditor.showEditor(node);
