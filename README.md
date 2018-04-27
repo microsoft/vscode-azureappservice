@@ -59,6 +59,12 @@ Check out this [deployment tutorial](https://code.visualstudio.com/tutorials/app
   * To edit, make edits in the editor and save it.  When prompted to upload the file, click 'Upload'.
   * CAUTION: Manually editing your Web App's files could cause unexpected behavior.
 
+* Remote debugging for Node.js apps running on Linux
+  * To enable this feature, click File > Preferences > Settings. modify your `appService.enableRemoteDebugging` to be true.
+  * Right-click a web application on the explorer and it will be on the context menu.  (This feature currently only works for Node.js apps running on Linux)
+
+  ![Remote Debugging](resources/Remote_Debugging_Setting.png)
+
 ## Managing Azure Subscriptions
 
 If you are not signed in to Azure, you will see a "Sign in to Azure..." link. Alternatively, you can select "View->Command Palette" in the VS Code menu, and search for "Azure: Sign In".

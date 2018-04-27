@@ -1,6 +1,14 @@
 # Change Log
 All notable changes to the "azure-appservice" extension will be documented in this file.
 
+## 0.8.0 - 2018-05-01
+### Added
+- Remote debugging support for Node.js on Linux (feature flag required)
+- Modal confirmation dialogs for more visibility
+
+### Fixed
+- [Bugs fixed](https://github.com/Microsoft/vscode-azureappservice/issues?utf8=%E2%9C%93&q=is%3Aissue+milestone%3A%220.8.0%22+label%3Abug+is%3Aclosed+)
+
 ## 0.7.1 - 2018-04-13
 ### [Fixed](https://github.com/Microsoft/vscode-azureappservice/issues?utf8=%E2%9C%93&q=is%3Aissue+milestone%3A%220.7.1%22+label%3Abug+is%3Aclosed+)
 - Deployment fail when deploying to web app with a custom domain
