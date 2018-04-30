@@ -13,7 +13,7 @@ import { WebAppTreeItem } from '../../explorer/WebAppTreeItem';
 import { ext } from '../../extensionVariables';
 import * as remoteDebug from './remoteDebugCommon';
 
-export async function attachDebugger(tree: AzureTreeDataProvider, node?: IAzureNode<SiteTreeItem>): Promise<void> {
+export async function startRemoteDebug(tree: AzureTreeDataProvider, node?: IAzureNode<SiteTreeItem>): Promise<void> {
     if (!node) {
         node = <IAzureNode<SiteTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
     }
