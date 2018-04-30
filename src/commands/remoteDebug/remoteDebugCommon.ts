@@ -7,7 +7,7 @@ import { SiteConfigResource } from 'azure-arm-website/lib/models';
 import * as opn from 'opn';
 import * as vscode from 'vscode';
 import { SiteClient } from 'vscode-azureappservice';
-import { DialogResponses } from 'vscode-azureextensionui';
+import { callWithTelemetryAndErrorHandling, DialogResponses, IActionContext } from 'vscode-azureextensionui';
 import { ext } from '../../extensionVariables';
 
 export function reportMessage(message: string, progress: vscode.Progress<{}>): void {
@@ -29,7 +29,11 @@ export async function setRemoteDebug(isRemoteDebuggingToBeEnabled: boolean, conf
             siteConfig.remoteDebuggingEnabled = isRemoteDebuggingToBeEnabled;
 
             reportMessage('Updating site configuration to set remote debugging...', progress);
-            await siteClient.updateConfiguration(siteConfig);
+            await callWithTelemetryAndErrorHandling('diagnostics.remoteDebugUpdateConfiguration', ext.reporter, ext.outputChannel, async function (this: IActionContext): Promise<void> {
+                this.suppressErrorDisplay = true;
+                this.rethrowError = true;
+                await siteClient.updateConfiguration(siteConfig);
+            });
             reportMessage('Updating site configuration done...', progress);
         } else if (result === DialogResponses.learnMore) {
             // tslint:disable-next-line:no-unsafe-any

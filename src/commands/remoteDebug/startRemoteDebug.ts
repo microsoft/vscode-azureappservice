@@ -7,7 +7,7 @@ import { SiteConfigResource, User } from 'azure-arm-website/lib/models';
 import * as portfinder from 'portfinder';
 import * as vscode from 'vscode';
 import { SiteClient, TunnelProxy } from 'vscode-azureappservice';
-import { AzureTreeDataProvider, IAzureNode } from 'vscode-azureextensionui';
+import { AzureTreeDataProvider, callWithTelemetryAndErrorHandling, IActionContext, IAzureNode } from 'vscode-azureextensionui';
 import { SiteTreeItem } from '../../explorer/SiteTreeItem';
 import { WebAppTreeItem } from '../../explorer/WebAppTreeItem';
 import { ext } from '../../extensionVariables';
@@ -43,7 +43,13 @@ export async function startRemoteDebug(tree: AzureTreeDataProvider, node?: IAzur
 
         // Enable tracing for debug configuration
         debugConfig.trace = 'verbose';
-        await vscode.debug.startDebugging(undefined, debugConfig);
+        await callWithTelemetryAndErrorHandling('diagnostics.remoteDebugAttach', ext.reporter, ext.outputChannel, async function (this: IActionContext): Promise<void> {
+            this.suppressErrorDisplay = true;
+            this.rethrowError = true;
+            await vscode.debug.startDebugging(undefined, debugConfig);
+        });
+
+        remoteDebug.reportMessage('Attached!', progress);
 
         const terminateDebugListener: vscode.Disposable = vscode.debug.onDidTerminateDebugSession(async (event: vscode.DebugSession) => {
             if (event.name === debugConfig.name) {
