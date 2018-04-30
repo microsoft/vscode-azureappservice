@@ -3,8 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as path from 'path';
 import * as vscode from 'vscode';
 import { TelemetryProperties, UserCancelledError } from 'vscode-azureextensionui';
+import { configurationSettings, extensionPrefix } from './constants';
 
 // Output channel for the extension
 const outputChannel = vscode.window.createOutputChannel("Azure App Service");
@@ -42,20 +44,21 @@ export function parseAzureResourceId(resourceId: string): { [key: string]: strin
     return result;
 }
 
-export async function showWorkspaceFoldersQuickPick(placeHolderString: string, telemetryProperties: TelemetryProperties): Promise<string> {
-    const browse: IQuickPickItemWithData<vscode.WorkspaceFolder> = { label: '$(file-directory) Browse...', description: '', data: undefined };
-    const folderQuickPickItems = vscode.workspace.workspaceFolders ?
-        vscode.workspace.workspaceFolders.map((value) => {
-            {
-                return <IQuickPickItemWithData<vscode.WorkspaceFolder>>{
-                    label: value.name,
-                    description: value.uri.fsPath,
-                    data: value
-                };
-            }
-        }) :
-        [];
-    folderQuickPickItems.unshift(browse);
+export async function showWorkspaceFoldersQuickPick(placeHolderString: string, telemetryProperties: TelemetryProperties, subPathSetting: string | undefined): Promise<string> {
+    const folderQuickPickItems = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders.map((value) => {
+        {
+            const subpath: string = vscode.workspace.getConfiguration(extensionPrefix, value.uri).get(configurationSettings.deploySubpath);
+            const fsPath: string = subPathSetting ? path.join(value.uri.fsPath, subpath) : value.uri.fsPath;
+
+            return {
+                label: value.name,
+                description: fsPath,
+                data: fsPath
+            };
+        }
+    }) : [];
+
+    folderQuickPickItems.unshift({ label: '$(file-directory) Browse...', description: '', data: undefined });
 
     const folderQuickPickOption = { placeHolder: placeHolderString };
     const pickedItem = await vscode.window.showQuickPick(folderQuickPickItems, folderQuickPickOption);
@@ -65,7 +68,7 @@ export async function showWorkspaceFoldersQuickPick(placeHolderString: string, t
         throw new UserCancelledError();
     }
 
-    if (pickedItem === browse) {
+    if (pickedItem && !pickedItem.data) {
         const browseResult = await vscode.window.showOpenDialog({
             canSelectFiles: false,
             canSelectFolders: true,
@@ -81,7 +84,7 @@ export async function showWorkspaceFoldersQuickPick(placeHolderString: string, t
         return browseResult[0].fsPath;
     }
 
-    return pickedItem.data.uri.fsPath;
+    return pickedItem.data;
 }
 
 export interface IQuickPickItemWithData<T> extends vscode.QuickPickItem {

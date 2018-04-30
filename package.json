@@ -576,6 +576,11 @@
                     "default": true,
                     "description": "Show prompt to improve performance of Zip Deploy by excluding build artifacts from the zip file and running a build during deployment."
                 },
+                "appService.deploySubpath": {
+                    "scope": "resource",
+                    "type": "string",
+                    "description": "The default subpath of a workspace folder to use when deploying."
+                },
                 "appService.enableRemoteDebugging": {
                     "type": "boolean",
                     "default": false,

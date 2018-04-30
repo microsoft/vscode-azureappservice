@@ -12,7 +12,7 @@ import TelemetryReporter from 'vscode-extension-telemetry';
 import { disableRemoteDebug } from './commands/remoteDebug/disableRemoteDebug';
 import { startRemoteDebug } from './commands/remoteDebug/startRemoteDebug';
 import { swapSlots } from './commands/swapSlots';
-import { extensionPrefix } from './constants';
+import { configurationSettings, extensionPrefix } from './constants';
 import { DeploymentSlotsTreeItem } from './explorer/DeploymentSlotsTreeItem';
 import { DeploymentSlotTreeItem } from './explorer/DeploymentSlotTreeItem';
 import { FileEditor } from './explorer/editors/FileEditor';
@@ -157,7 +157,7 @@ export function activate(context: vscode.ExtensionContext): void {
         if (await vscode.window.showInformationMessage('Deploy to web app?', yesButton, noButton) === yesButton) {
             this.properties[deployingToWebApp] = 'true';
 
-            const fsPath = await util.showWorkspaceFoldersQuickPick("Select the folder to deploy", this.properties);
+            const fsPath = await util.showWorkspaceFoldersQuickPick("Select the folder to deploy", this.properties, configurationSettings.deploySubpath);
             await createdApp.treeItem.deploy(createdApp, fsPath, outputChannel, ui, reporter, extensionPrefix, false, this.properties);
         } else {
             this.properties[deployingToWebApp] = 'false';
@@ -176,7 +176,7 @@ export function activate(context: vscode.ExtensionContext): void {
             if (target instanceof vscode.Uri) {
                 fsPath = target.fsPath;
             } else {
-                fsPath = await util.showWorkspaceFoldersQuickPick("Select the folder to deploy", this.properties);
+                fsPath = await util.showWorkspaceFoldersQuickPick("Select the folder to deploy", this.properties, configurationSettings.deploySubpath);
                 node = target;
             }
 
@@ -240,7 +240,7 @@ export function activate(context: vscode.ExtensionContext): void {
         // prompt user to deploy to newly created web app
         if (await vscode.window.showInformationMessage('Deploy to deployment slot?', yesButton, noButton) === yesButton) {
             this.properties[deployingToDeploymentSlot] = 'true';
-            const fsPath = await util.showWorkspaceFoldersQuickPick("Select the folder to deploy", this.properties);
+            const fsPath = await util.showWorkspaceFoldersQuickPick("Select the folder to deploy", this.properties, configurationSettings.deploySubpath);
             await createdSlot.treeItem.deploy(createdSlot, fsPath, outputChannel, ui, reporter, extensionPrefix, false, this.properties);
         } else {
             this.properties[deployingToDeploymentSlot] = 'false';
