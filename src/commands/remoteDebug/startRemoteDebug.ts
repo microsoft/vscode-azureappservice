@@ -41,8 +41,6 @@ export async function startRemoteDebug(tree: AzureTreeDataProvider, node?: IAzur
 
         remoteDebug.reportMessage('Attaching debugger...', progress);
 
-        // Enable tracing for debug configuration
-        debugConfig.trace = 'verbose';
         await callWithTelemetryAndErrorHandling('diagnostics.remoteDebugAttach', ext.reporter, ext.outputChannel, async function (this: IActionContext): Promise<void> {
             this.suppressErrorDisplay = true;
             this.rethrowError = true;
