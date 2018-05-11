@@ -42,7 +42,9 @@ export class WebAppProvider implements IChildProvider {
                         treeItems.push(new WebAppTreeItem(siteClient, appServicePlan));
                     }
                 } catch {
-                    treeItems.push(new InvalidWebAppTreeItem(s.name, 'Invalid'));
+                    if (s.name) {
+                        treeItems.push(new InvalidWebAppTreeItem(s.name, 'Invalid'));
+                    }
                 }
             }));
         return treeItems;

@@ -303,7 +303,7 @@ export class MockLogpointsDebuggerClient extends LogPointsDebuggerClientBase imp
                 }
 
                 const output = JSON.stringify({ exitCode: 0, stdout, stderr });
-                resolve(new CommandRunResult<ResponseType>(null, 0, output));
+                resolve(new CommandRunResult<ResponseType>(undefined, 0, output));
             });
         });
     }

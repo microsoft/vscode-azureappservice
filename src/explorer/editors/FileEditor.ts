@@ -36,8 +36,12 @@ export class FileEditor extends BaseEditor<IAzureNode<FileTreeItem>> {
     }
 
     public async updateData(node: IAzureNode<FileTreeItem>): Promise<string> {
+        if (!vscode.window.activeTextEditor) {
+            throw new Error('Cannot update file after it has been closed.');
+        }
         const localFile: Readable = fs.createReadStream(vscode.window.activeTextEditor.document.uri.fsPath);
-        node.treeItem.etag = await putFile(node.treeItem.client, localFile, node.treeItem.path, node.treeItem.etag);
+        // tslint:disable-next-line:no-non-null-assertion
+        node.treeItem.etag = await putFile(node.treeItem.client, localFile, node.treeItem.path, node.treeItem.etag!);
         return await this.getData(node);
     }
 }

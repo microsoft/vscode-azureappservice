@@ -11,7 +11,7 @@
         "noUnusedLocals": true,
         "noImplicitThis": true,
         "noImplicitReturns": true,
-        "strictNullChecks": false,
+        "strictNullChecks": true,
         "noUnusedParameters": true
     },
     "exclude": [

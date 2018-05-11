@@ -4,12 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import WebSiteManagementClient = require('azure-arm-website');
-import { ResourceNameAvailability } from 'azure-arm-website/lib/models';
-import { NameValuePair, Site, WebAppCollection } from 'azure-arm-website/lib/models';
+import { NameValuePair, ResourceNameAvailability, Site, WebAppCollection } from 'azure-arm-website/lib/models';
 import * as path from 'path';
 import { window } from 'vscode';
 import { SiteClient } from 'vscode-azureappservice';
 import { IAzureNode, IAzureParentNode, IAzureParentTreeItem, IAzureTreeItem, UserCancelledError } from 'vscode-azureextensionui';
+import { ext } from '../extensionVariables';
 import * as util from '../util';
 import { DeploymentSlotTreeItem } from './DeploymentSlotTreeItem';
 import { SiteTreeItem } from './SiteTreeItem';
@@ -78,7 +78,8 @@ export class DeploymentSlotsTreeItem implements IAzureParentTreeItem {
         const configurationSource: IAzureNode<SiteTreeItem> | undefined = await this.chooseConfigurationSource(node);
         if (!!configurationSource) {
             const appSettings = await this.parseAppSettings();
-            newDeploymentSlot.siteConfig.appSettings = appSettings;
+            // tslint:disable-next-line:no-non-null-assertion
+            newDeploymentSlot.siteConfig!.appSettings = appSettings;
         }
 
         showCreatingNode(slotName);
@@ -88,8 +89,8 @@ export class DeploymentSlotsTreeItem implements IAzureParentTreeItem {
         return new DeploymentSlotTreeItem(new SiteClient(newSite, node));
     }
 
-    private async promptForSlotName(client: WebSiteManagementClient): Promise<string | undefined> {
-        return await window.showInputBox({
+    private async promptForSlotName(client: WebSiteManagementClient): Promise<string> {
+        return await ext.ui.showInputBox({
             prompt: 'Enter a unique name for the new deployment slot',
             ignoreFocusOut: true,
             validateInput: async (value: string) => {
@@ -118,7 +119,8 @@ export class DeploymentSlotsTreeItem implements IAzureParentTreeItem {
         }];
         // add the production slot itself
         configurationSources.push({
-            label: (<SiteTreeItem>node.parent.treeItem).client.fullName,
+            // tslint:disable-next-line:no-non-null-assertion
+            label: (<SiteTreeItem>node.parent!.treeItem).client.fullName,
             description: '',
             detail: '',
             data: node.parent
@@ -144,9 +146,11 @@ export class DeploymentSlotsTreeItem implements IAzureParentTreeItem {
     private async parseAppSettings(): Promise<NameValuePair[]> {
         const appSettings = await this.client.listApplicationSettings();
         const appSettingPairs: NameValuePair[] = [];
-        // iterate String Dictionary to parse into NameValuePair[]
-        for (const key of Object.keys(appSettings.properties)) {
-            appSettingPairs.push({ name: key, value: appSettings.properties[key] });
+        if (appSettings.properties) {
+            // iterate String Dictionary to parse into NameValuePair[]
+            for (const key of Object.keys(appSettings.properties)) {
+                appSettingPairs.push({ name: key, value: appSettings.properties[key] });
+            }
         }
         return appSettingPairs;
     }

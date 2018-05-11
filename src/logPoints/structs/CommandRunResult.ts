@@ -1,20 +1,25 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 export class CommandRunResult<ResponseType extends { error?: {}, data?: {} }> {
-    private _json: ResponseType;
-    private _stdout: string;
-    constructor(public error: {}, public exitCode: number, public output: string) {
+    private _json: ResponseType | undefined;
+    private _stdout: string | undefined;
+    constructor(public error: {} | undefined, public exitCode: number, public output: string) {
         this.parseStdOut();
     }
 
     public isSuccessful(): boolean {
-        return this.exitCode === 0 && this.json && !this.json.error;
+        return !!(this.exitCode === 0 && this.json && !this.json.error);
     }
 
-    public get json(): ResponseType {
+    public get json(): ResponseType | undefined {
         if (this._json === undefined) {
             try {
-                this._json = JSON.parse(this._stdout);
+                this._json = this._stdout ? JSON.parse(this._stdout) : undefined;
             } catch (err) {
-                this._json = null;
+                this._json = undefined;
             }
         }
 
@@ -30,7 +35,7 @@ export class CommandRunResult<ResponseType extends { error?: {}, data?: {} }> {
                 this.error = outputJson.stderr;
             }
         } catch (err) {
-            this._stdout = null;
+            this._stdout = undefined;
         }
     }
 }

@@ -99,7 +99,7 @@ class BaseTreeItem extends TreeItem {
     }
 
     protected compare(a: BaseTreeItem, b: BaseTreeItem): number {
-        return a.label.localeCompare(b.label);
+        return a.label!.localeCompare(b.label!); // non-null behavior unknown. Should be handled by logPoints team
     }
 }
 
@@ -192,7 +192,7 @@ class SessionTreeItem extends BaseTreeItem {
     private category(item: BaseTreeItem): number {
 
         // <...> come at the very end
-        if (/^<.+>$/.test(item.label)) {
+        if (/^<.+>$/.test(item.label!)) { // non-null behavior unknown. Should be handled by logPoints team
             return 1000;
         }
 

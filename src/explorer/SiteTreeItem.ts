@@ -12,8 +12,8 @@ import { ExtensionContext, MessageItem, OutputChannel, Uri, window, workspace, W
 import { deleteSite, ILogStream, SiteClient, startStreamingLogs } from 'vscode-azureappservice';
 import * as appservice from 'vscode-azureappservice';
 import { IAzureNode, IAzureParentNode, IAzureParentTreeItem, IAzureTreeItem, IAzureUserInput, TelemetryProperties } from 'vscode-azureextensionui';
-import TelemetryReporter from 'vscode-extension-telemetry';
 import * as constants from '../constants';
+import { ext } from '../extensionVariables';
 import * as util from '../util';
 import { cancelWebsiteValidation, validateWebSite } from '../validateWebSite';
 
@@ -32,7 +32,8 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
     }
 
     public get label(): string {
-        return this.client.isSlot ? this.client.slotName : this.client.siteName;
+        // tslint:disable-next-line:no-non-null-assertion
+        return this.client.isSlot ? this.client.slotName! : this.client.siteName;
     }
 
     public get description(): string | undefined {
@@ -68,7 +69,7 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
 
     public async isHttpLogsEnabled(): Promise<boolean> {
         const logsConfig: WebSiteModels.SiteLogsConfig = await this.client.getLogsConfig();
-        return logsConfig.httpLogs && logsConfig.httpLogs.fileSystem && logsConfig.httpLogs.fileSystem.enabled;
+        return !!(logsConfig.httpLogs && logsConfig.httpLogs.fileSystem && logsConfig.httpLogs.fileSystem.enabled);
     }
 
     public async enableHttpLogs(): Promise<void> {
@@ -86,13 +87,14 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
         await this.client.updateLogsConfig(logsConfig);
     }
 
-    public async connectToLogStream(reporter: TelemetryReporter, context: ExtensionContext): Promise<ILogStream> {
+    public async connectToLogStream(context: ExtensionContext): Promise<ILogStream> {
         if (!this.logStreamOutputChannel) {
             const logStreamoutputChannel: OutputChannel = window.createOutputChannel(`${this.client.fullName} - Log Stream`);
             context.subscriptions.push(logStreamoutputChannel);
             this.logStreamOutputChannel = logStreamoutputChannel;
         }
-        return await startStreamingLogs(this.client, reporter, this.logStreamOutputChannel);
+        this.logStreamOutputChannel.show();
+        return await startStreamingLogs(this.client, ext.reporter, this.logStreamOutputChannel);
     }
 
     public async deploy(
@@ -100,7 +102,6 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
         fsPath: string,
         outputChannel: OutputChannel,
         ui: IAzureUserInput,
-        telemetryReporter: TelemetryReporter,
         configurationSectionName: string,
         confirmDeployment: boolean = true,
         telemetryProperties: TelemetryProperties
@@ -111,7 +112,7 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
         const workspaceConfig: WorkspaceConfiguration = workspace.getConfiguration(constants.extensionPrefix, Uri.file(fsPath));
         if (workspaceConfig.get(constants.configurationSettings.showBuildDuringDeployPrompt)) {
             const siteConfig: WebSiteModels.SiteConfigResource = await this.client.getSiteConfig();
-            if (siteConfig.linuxFxVersion.startsWith(constants.runtimes.node) && siteConfig.scmType === 'None' && !(await fse.pathExists(path.join(fsPath, constants.deploymentFileName)))) {
+            if (siteConfig.linuxFxVersion && siteConfig.linuxFxVersion.startsWith(constants.runtimes.node) && siteConfig.scmType === 'None' && !(await fse.pathExists(path.join(fsPath, constants.deploymentFileName)))) {
                 // check if web app has node runtime, is being zipdeployed, and if there is no .deployment file
                 // tslint:disable-next-line:no-unsafe-any
                 await this.enableScmDoBuildDuringDeploy(fsPath, constants.runtimes[siteConfig.linuxFxVersion.substring(0, siteConfig.linuxFxVersion.indexOf('|'))]);
@@ -124,7 +125,7 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
         });
 
         // Don't wait
-        validateWebSite(correlationId, this, outputChannel, telemetryReporter).then(
+        validateWebSite(correlationId, this, outputChannel).then(
             () => {
                 // ignore
             },
@@ -139,7 +140,7 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
         const learnMoreButton: MessageItem = { title: 'Learn More' };
         const zipIgnoreFolders: string[] = constants.getIgnoredFoldersForDeployment(runtime);
         const buildDuringDeploy: string = `Would you like to configure your project for faster deployment?`;
-        let input: MessageItem = learnMoreButton;
+        let input: MessageItem | undefined = learnMoreButton;
         while (input === learnMoreButton) {
             input = await window.showInformationMessage(buildDuringDeploy, yesButton, dontShowAgainButton, learnMoreButton);
             if (input === learnMoreButton) {
@@ -148,8 +149,10 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
             }
         }
         if (input === yesButton) {
-            let oldSettings: string[] | string = workspace.getConfiguration(constants.extensionPrefix, Uri.file(fsPath)).get(constants.configurationSettings.zipIgnorePattern);
-            if (typeof oldSettings === "string") {
+            let oldSettings: string[] | string | undefined = workspace.getConfiguration(constants.extensionPrefix, Uri.file(fsPath)).get(constants.configurationSettings.zipIgnorePattern);
+            if (!oldSettings) {
+                oldSettings = [];
+            } else if (typeof oldSettings === "string") {
                 oldSettings = [oldSettings];
                 // settings have to be an array to concat the proper zipIgnoreFolders
             }

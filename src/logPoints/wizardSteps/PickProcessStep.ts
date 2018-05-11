@@ -19,29 +19,27 @@ export class PickProcessStep extends WizardStep {
     }
 
     public async prompt(): Promise<void> {
-        const selectedSlot = (<LogPointsSessionWizard>this.wizard).selectedDeploymentSlot;
+        const selectedSlot = (<LogPointsSessionWizard>this.wizard).selectedDeploymentSlot!; // non-null behavior unknown. Should be handled by logPoints team
         const instance = this._wizard.selectedInstance;
         const publishCredential = await this._wizard.getCachedCredentialOrRefetch(selectedSlot);
 
-        let result: CommandRunResult<IEnumerateProcessResponse>;
-
-        await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async p => {
+        let result: CommandRunResult<IEnumerateProcessResponse> = await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async p => {
             const message = `Enumerate node processes from instance ${instance.name}...`;
             p.report({ message: message });
             this._wizard.writeline(message);
-            result = await callWithTimeout(
+            return await callWithTimeout(
                 () => {
-                    return this._logPointsDebuggerClient.enumerateProcesses(selectedSlot.fullName, instance.name, publishCredential);
+                    return this._logPointsDebuggerClient.enumerateProcesses(selectedSlot.fullName, instance.name!, publishCredential); // non-null behavior unknown. Should be handled by logPoints team
                 },
                 DEFAULT_TIMEOUT);
         });
 
-        if (!result.isSuccessful() || result.json.data.length === 0) {
+        if (!result.isSuccessful() || result.json!.data.length === 0) { // non-null behavior unknown. Should be handled by logPoints team
             throw new Error('Enumerating processes failed.');
         }
 
         // Show a quick pick list (even if there is only 1 process)
-        const quickPickItems: util.IQuickPickItemWithData<string>[] = result.json.data.map((process) => {
+        const quickPickItems: util.IQuickPickItemWithData<string>[] = result.json!.data.map((process) => { // non-null behavior unknown. Should be handled by logPoints team
             return <util.IQuickPickItemWithData<string>>{
                 label: `${process.pid}`,
                 description: ` ${process.command} `

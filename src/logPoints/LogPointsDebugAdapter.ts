@@ -60,7 +60,7 @@ export class LogPointsDebugAdapter extends LoggingDebugSession {
         this._sessionId = args.sessionId;
         this._debugId = args.debugId;
         this._siteName = args.siteName;
-        this._affinityValue = args.instanceId;
+        this._affinityValue = args.instanceId!; // non-null behavior unknown. Should be handled by logPoints team
         this._publishingUsername = args.publishCredentialUsername;
         this._publishingPassword = args.publishCredentialPassword;
 
@@ -102,7 +102,7 @@ export class LogPointsDebugAdapter extends LoggingDebugSession {
                 (result) => {
                     if (result.isSuccessful()) {
                         response.body = {
-                            content: result.json.data
+                            content: result.json!.data // non-null behavior unknown. Should be handled by logPoints team
                         };
                     } else {
                         response.body = {
@@ -186,7 +186,7 @@ export class LogPointsDebugAdapter extends LoggingDebugSession {
             = await logPointsDebuggerClient.loadedScripts(this._siteName, this._affinityValue, this.getPublishCredential(), request);
 
         if (response.isSuccessful()) {
-            response.json.data.forEach((sourceData) => {
+            response.json!.data.forEach((sourceData) => { // non-null behavior unknown. Should be handled by logPoints team
                 const source = new Source(sourceData.name, sourceData.path);
                 try {
                     source.sourceReference = parseInt(sourceData.sourceId, 10);
@@ -206,9 +206,9 @@ export class LogPointsDebugAdapter extends LoggingDebugSession {
 
     private getPublishCredential(): User {
         return {
-            location: undefined,
-            publishingUserName: this._publishingUsername,
-            publishingPassword: this._publishingPassword
+            location: undefined!, // non-null behavior unknown. Should be handled by logPoints team
+            publishingUserName: this._publishingUsername!,
+            publishingPassword: this._publishingPassword!
         };
     }
 }

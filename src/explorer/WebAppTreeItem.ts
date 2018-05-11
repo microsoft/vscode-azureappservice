@@ -27,7 +27,8 @@ export class WebAppTreeItem extends SiteTreeItem {
 
     constructor(client: SiteClient, appServicePlan: AppServicePlan) {
         super(client);
-        this.deploymentSlotsNode = appServicePlan.sku.tier === 'Basic' ? new DeploymentSlotsNATreeItem() : new DeploymentSlotsTreeItem(this.client);
+        // tslint:disable-next-line:no-non-null-assertion
+        this.deploymentSlotsNode = appServicePlan.sku!.tier === 'Basic' ? new DeploymentSlotsNATreeItem() : new DeploymentSlotsTreeItem(this.client);
         this.folderNode = new FolderTreeItem(this.client, 'Files', "/site/wwwroot", true);
         this.webJobsNode = new WebJobsTreeItem(this.client);
         this.appSettingsNode = new AppSettingsTreeItem(this.client);
@@ -90,9 +91,14 @@ export class WebAppTreeItem extends SiteTreeItem {
             script = scriptTemplate;
         } else if (siteConfig.linuxFxVersion.toLowerCase().startsWith('docker')) {
             const scriptTemplate = await this.loadScriptTemplate('docker-image.sh');
-            const serverUrl = appSettings.properties.DOCKER_REGISTRY_SERVER_URL;
-            const serverUser = appSettings.properties.DOCKER_REGISTRY_SERVER_USERNAME;
-            const serverPwd = appSettings.properties.DOCKER_REGISTRY_SERVER_PASSWORD;
+            let serverUrl: string | undefined;
+            let serverUser: string | undefined;
+            let serverPwd: string | undefined;
+            if (appSettings.properties) {
+                serverUrl = appSettings.properties.DOCKER_REGISTRY_SERVER_URL;
+                serverUser = appSettings.properties.DOCKER_REGISTRY_SERVER_USERNAME;
+                serverPwd = appSettings.properties.DOCKER_REGISTRY_SERVER_PASSWORD;
+            }
             const containerParameters =
                 (serverUrl ? `SERVERURL="${serverUrl}"\n` : '') +
                 (serverUser ? `SERVERUSER="${serverUser}"\n` : '') +
@@ -110,12 +116,14 @@ export class WebAppTreeItem extends SiteTreeItem {
             script = scriptTemplate.replace('%RUNTIME%', siteConfig.linuxFxVersion);
         }
 
+        // tslint:disable:no-non-null-assertion
         script = script.replace('%SUBSCRIPTION_NAME%', node.subscriptionDisplayName)
-            .replace('%RG_NAME%', rg.name)
+            .replace('%RG_NAME%', rg.name!)
             .replace('%LOCATION%', rg.location)
-            .replace('%PLAN_NAME%', plan.name)
-            .replace('%PLAN_SKU%', plan.sku.name)
+            .replace('%PLAN_NAME%', plan.name!)
+            .replace('%PLAN_SKU%', plan.sku!.name!)
             .replace('%SITE_NAME%', this.client.siteName);
+        // tslint:enable:no-non-null-assertion
 
         const doc = await vscode.workspace.openTextDocument({ language: 'shellscript', content: script });
         await vscode.window.showTextDocument(doc);

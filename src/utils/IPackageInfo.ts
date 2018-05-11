@@ -11,7 +11,7 @@ export interface IPackageInfo {
 
 export function getPackageInfo(context: vscode.ExtensionContext): IPackageInfo | undefined {
     // tslint:disable-next-line:non-literal-require
-    const extensionPackage: IPackageInfo = <IPackageInfo>require(context.asAbsolutePath('./package.json')); // context.asAbsolutePath here is trusted
+    const extensionPackage: IPackageInfo | undefined = <IPackageInfo | undefined>require(context.asAbsolutePath('./package.json')); // context.asAbsolutePath here is trusted
     if (extensionPackage) {
         return {
             name: extensionPackage.name,

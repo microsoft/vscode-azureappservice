@@ -19,7 +19,6 @@ import { PickProcessStep } from './wizardSteps/PickProcessStep';
 import { PromptSlotSelection } from './wizardSteps/PromptSlotSelection';
 import { SessionAttachStep } from './wizardSteps/SessionAttachStep';
 import { StartDebugAdapterStep } from './wizardSteps/StartDebugAdapterStep';
-import TelemetryReporter from 'vscode-extension-telemetry';
 import { SiteClient } from 'vscode-azureappservice';
 
 const logPointsDebuggerClient = createDefaultClient();
@@ -41,14 +40,13 @@ export class LogPointsSessionWizard extends WizardBase {
         public extensionContext: vscode.ExtensionContext,
         output: vscode.OutputChannel,
         public readonly uiTreeItem: IAzureNode<SiteTreeItem>,
-        public readonly client: SiteClient,
-        public readonly telemetryReporter: TelemetryReporter
+        public readonly client: SiteClient
     ) {
         super(output);
     }
 
-    public get selectedDeploymentSlot(): SiteClient {
-        return this.selectedDeploymentSlotTreeItem ? this.selectedDeploymentSlotTreeItem.client : null;
+    public get selectedDeploymentSlot(): SiteClient | undefined {
+        return this.selectedDeploymentSlotTreeItem ? this.selectedDeploymentSlotTreeItem.client : undefined;
     }
 
     public get lastUsedPublishCredential(): User {
