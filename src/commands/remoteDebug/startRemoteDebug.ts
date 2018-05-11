@@ -41,7 +41,7 @@ export async function startRemoteDebug(tree: AzureTreeDataProvider, node?: IAzur
 
         remoteDebug.reportMessage('Attaching debugger...', progress);
 
-        await callWithTelemetryAndErrorHandling('diagnostics.remoteDebugAttach', ext.reporter, ext.outputChannel, async function (this: IActionContext): Promise<void> {
+        await callWithTelemetryAndErrorHandling('appService.remoteDebugAttach', ext.reporter, ext.outputChannel, async function (this: IActionContext): Promise<void> {
             this.suppressErrorDisplay = true;
             this.rethrowError = true;
             await vscode.debug.startDebugging(undefined, debugConfig);

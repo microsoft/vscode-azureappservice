@@ -42,16 +42,16 @@
         "onCommand:appService.ConfigureDeploymentSource",
         "onCommand:appService.DeploymentScript",
         "onCommand:appService.OpenVSTSCD",
-        "onCommand:deploymentSlot.SwapSlots",
-        "onCommand:appSettings.Add",
-        "onCommand:appSettings.Edit",
-        "onCommand:appSettings.Rename",
-        "onCommand:appSettings.Delete",
-        "onCommand:diagnostics.OpenLogStream",
-        "onCommand:diagnostics.StopLogStream",
-        "onCommand:diagnostics.StartRemoteDebug",
-        "onCommand:diagnostics.DisableRemoteDebug",
-        "onCommand:deploymentSlots.CreateSlot",
+        "onCommand:appService.SwapSlots",
+        "onCommand:appService.appSettings.Add",
+        "onCommand:appService.appSettings.Edit",
+        "onCommand:appService.appSettings.Rename",
+        "onCommand:appService.appSettings.Delete",
+        "onCommand:appService.OpenLogStream",
+        "onCommand:appService.StopLogStream",
+        "onCommand:appService.StartRemoteDebug",
+        "onCommand:appService.DisableRemoteDebug",
+        "onCommand:appService.CreateSlot",
         "onView:azureAppService"
     ],
     "main": "./out/src/extension",
@@ -143,67 +143,67 @@
                 "category": "Azure App Service"
             },
             {
-                "command": "deploymentSlot.SwapSlots",
+                "command": "appService.SwapSlots",
                 "title": "Swap Deployment Slot",
                 "category": "Azure App Service"
             },
             {
-                "command": "appSettings.Add",
+                "command": "appService.appSettings.Add",
                 "title": "Add New Setting...",
                 "category": "Azure App Service"
             },
             {
-                "command": "appSettings.Edit",
+                "command": "appService.appSettings.Edit",
                 "title": "Edit...",
                 "category": "Azure App Service"
             },
             {
-                "command": "appSettings.Rename",
+                "command": "appService.appSettings.Rename",
                 "title": "Rename...",
                 "category": "Azure App Service"
             },
             {
-                "command": "appSettings.Delete",
+                "command": "appService.appSettings.Delete",
                 "title": "Delete",
                 "category": "Azure App Service"
             },
             {
-                "command": "diagnostics.OpenLogStream",
+                "command": "appService.OpenLogStream",
                 "title": "Start Streaming Logs",
                 "category": "Azure App Service"
             },
             {
-                "command": "diagnostics.StopLogStream",
+                "command": "appService.StopLogStream",
                 "title": "Stop Streaming Logs",
                 "category": "Azure App Service"
             },
             {
-                "command": "deploymentSlots.CreateSlot",
+                "command": "appService.CreateSlot",
                 "title": "Create New Deployment Slot",
                 "category": "Azure App Service"
             },
             {
-                "command": "diagnostics.StartRemoteDebug",
+                "command": "appService.StartRemoteDebug",
                 "title": "Start Remote Debugging",
                 "category": "Azure App Service"
             },
             {
-                "command": "diagnostics.DisableRemoteDebug",
+                "command": "appService.DisableRemoteDebug",
                 "title": "Disable Remote Debugging",
                 "category": "Azure App Service"
             },
             {
-                "command": "diagnostics.StartLogPointsSession",
+                "command": "appService.StartLogPointsSession",
                 "title": "Launch Logpoints Debug Session",
                 "category": "Azure App Service"
             },
             {
-                "command": "diagnostics.LogPoints.OpenScript",
+                "command": "appService.LogPoints.OpenScript",
                 "title": "Open and See the Content of a Script",
                 "category": "Azure App Service"
             },
             {
-                "command": "diagnostics.LogPoints.Toggle",
+                "command": "appService.LogPoints.Toggle",
                 "title": "Set or remove a logpoint",
                 "category": "Azure App Service"
             }
@@ -248,35 +248,35 @@
                     "when": "never"
                 },
                 {
-                    "command": "diagnostics.StartLogPointsSession",
+                    "command": "appService.StartLogPointsSession",
                     "when": "never"
                 },
                 {
-                    "command": "diagnostics.LogPoints.OpenScript",
+                    "command": "appService.LogPoints.OpenScript",
                     "when": "never"
                 },
                 {
-                    "command": "diagnostics.LogPoints.Toggle",
+                    "command": "appService.LogPoints.Toggle",
                     "when": "never"
                 },
                 {
-                    "command": "diagnostics.StartLogPointsSession",
+                    "command": "appService.StartLogPointsSession",
                     "when": "never"
                 },
                 {
-                    "command": "diagnostics.LogPoints.OpenScript",
+                    "command": "appService.LogPoints.OpenScript",
                     "when": "never"
                 },
                 {
-                    "command": "diagnostics.LogPoints.Toggle",
+                    "command": "appService.LogPoints.Toggle",
                     "when": "never"
                 },
                 {
-                    "command": "diagnostics.StartRemoteDebug",
+                    "command": "appService.StartRemoteDebug",
                     "when": "config.appService.enableRemoteDebugging == true"
                 },
                 {
-                    "command": "diagnostics.DisableRemoteDebug",
+                    "command": "appService.DisableRemoteDebug",
                     "when": "config.appService.enableRemoteDebugging == true"
                 }
             ],
@@ -364,27 +364,27 @@
                     "group": "3_appServiceDeployCommands@3"
                 },
                 {
-                    "command": "diagnostics.OpenLogStream",
+                    "command": "appService.OpenLogStream",
                     "when": "view == azureAppService && viewItem == appService",
                     "group": "4_appServiceDiagnosticsCommands@1"
                 },
                 {
-                    "command": "diagnostics.StopLogStream",
+                    "command": "appService.StopLogStream",
                     "when": "view == azureAppService && viewItem == appService",
                     "group": "4_appServiceDiagnosticsCommands@2"
                 },
                 {
-                    "command": "diagnostics.StartLogPointsSession",
+                    "command": "appService.StartLogPointsSession",
                     "when": "config.appService.logpoints == true && view == azureAppService && viewItem == appService",
                     "group": "4_appServiceDiagnosticsCommands@3"
                 },
                 {
-                    "command": "diagnostics.StartRemoteDebug",
+                    "command": "appService.StartRemoteDebug",
                     "when": "config.appService.enableRemoteDebugging == true && view == azureAppService && viewItem == appService",
                     "group": "5_appServiceRemoteDebugCommands@1"
                 },
                 {
-                    "command": "diagnostics.DisableRemoteDebug",
+                    "command": "appService.DisableRemoteDebug",
                     "when": "config.appService.enableRemoteDebugging == true && view == azureAppService && viewItem == appService",
                     "group": "5_appServiceRemoteDebugCommands@2"
                 },
@@ -394,7 +394,7 @@
                     "group": "6_appServiceMiscCommands@1"
                 },
                 {
-                    "command": "deploymentSlots.CreateSlot",
+                    "command": "appService.CreateSlot",
                     "when": "view == azureAppService && viewItem == deploymentSlots",
                     "group": "1_deploymentSlotsGeneralCommands@1"
                 },
@@ -434,7 +434,7 @@
                     "group": "2_deploymentSlotControlCommands@3"
                 },
                 {
-                    "command": "deploymentSlot.SwapSlots",
+                    "command": "appService.SwapSlots",
                     "when": "view == azureAppService && viewItem == deploymentSlot",
                     "group": "2_deploymentSlotControlCommands@4"
                 },
@@ -454,27 +454,27 @@
                     "group": "3_deploymentSlotDeployCommands@2"
                 },
                 {
-                    "command": "diagnostics.OpenLogStream",
+                    "command": "appService.OpenLogStream",
                     "when": "view == azureAppService && viewItem == deploymentSlot",
                     "group": "4_deploymentSlotDiagnosticsCommands@1"
                 },
                 {
-                    "command": "diagnostics.StopLogStream",
+                    "command": "appService.StopLogStream",
                     "when": "view == azureAppService && viewItem == deploymentSlot",
                     "group": "4_deploymentSlotDiagnosticsCommands@2"
                 },
                 {
-                    "command": "diagnostics.StartLogPointsSession",
+                    "command": "appService.StartLogPointsSession",
                     "when": "config.appService.logpoints == true && view == azureAppService && viewItem == deploymentSlot",
                     "group": "4_deploymentSlotDiagnosticsCommands@3"
                 },
                 {
-                    "command": "diagnostics.StartRemoteDebug",
+                    "command": "appService.StartRemoteDebug",
                     "when": "config.appService.enableRemoteDebugging == true && view == azureAppService && viewItem == deploymentSlot",
                     "group": "5_appServiceRemoteDebugCommands@1"
                 },
                 {
-                    "command": "diagnostics.DisableRemoteDebug",
+                    "command": "appService.DisableRemoteDebug",
                     "when": "config.appService.enableRemoteDebugging == true && view == azureAppService && viewItem == deploymentSlot",
                     "group": "5_appServiceRemoteDebugCommands@2"
                 },
@@ -494,7 +494,7 @@
                     "group": "1_webJobsGeneralCommands@2"
                 },
                 {
-                    "command": "appSettings.Add",
+                    "command": "appService.appSettings.Add",
                     "when": "view == azureAppService && viewItem == applicationSettings",
                     "group": "1_appSettingsEdit@1"
                 },
@@ -509,17 +509,17 @@
                     "group": "2_appSettingsGeneral@1"
                 },
                 {
-                    "command": "appSettings.Edit",
+                    "command": "appService.appSettings.Edit",
                     "when": "view == azureAppService && viewItem == applicationSettingItem",
                     "group": "1_appSettingItemEdit@1"
                 },
                 {
-                    "command": "appSettings.Rename",
+                    "command": "appService.appSettings.Rename",
                     "when": "view == azureAppService && viewItem == applicationSettingItem",
                     "group": "1_appSettingItemEdit@2"
                 },
                 {
-                    "command": "appSettings.Delete",
+                    "command": "appService.appSettings.Delete",
                     "when": "view == azureAppService && viewItem == applicationSettingItem",
                     "group": "1_appSettingItemEdit@3"
                 }
@@ -533,7 +533,7 @@
             ],
             "editor/context": [
                 {
-                    "command": "diagnostics.LogPoints.Toggle",
+                    "command": "appService.LogPoints.Toggle",
                     "when": "config.appService.logpoints == true"
                 }
             ]

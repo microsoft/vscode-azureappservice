@@ -29,7 +29,7 @@ export async function setRemoteDebug(isRemoteDebuggingToBeEnabled: boolean, conf
             siteConfig.remoteDebuggingEnabled = isRemoteDebuggingToBeEnabled;
 
             reportMessage('Updating site configuration to set remote debugging...', progress);
-            await callWithTelemetryAndErrorHandling('diagnostics.remoteDebugUpdateConfiguration', ext.reporter, ext.outputChannel, async function (this: IActionContext): Promise<void> {
+            await callWithTelemetryAndErrorHandling('appService.remoteDebugUpdateConfiguration', ext.reporter, ext.outputChannel, async function (this: IActionContext): Promise<void> {
                 this.suppressErrorDisplay = true;
                 this.rethrowError = true;
                 await siteClient.updateConfiguration(siteConfig);
