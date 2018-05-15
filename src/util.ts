@@ -5,7 +5,7 @@
 
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { TelemetryProperties, UserCancelledError } from 'vscode-azureextensionui';
+import { IAzureQuickPickItem, TelemetryProperties, UserCancelledError } from 'vscode-azureextensionui';
 import { extensionPrefix } from './constants';
 
 // Output channel for the extension
@@ -45,11 +45,11 @@ export function parseAzureResourceId(resourceId: string): { [key: string]: strin
 }
 
 export async function showWorkspaceFoldersQuickPick(placeHolderString: string, telemetryProperties: TelemetryProperties, subPathSetting: string | undefined): Promise<string> {
-    const folderQuickPickItems = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders.map((value) => {
+    const folderQuickPickItems: IAzureQuickPickItem<string | undefined>[] = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders.map((value) => {
         {
             let fsPath: string = value.uri.fsPath;
             if (subPathSetting) {
-                const subpath: string = vscode.workspace.getConfiguration(extensionPrefix, value.uri).get(subPathSetting);
+                const subpath: string | undefined = vscode.workspace.getConfiguration(extensionPrefix, value.uri).get(subPathSetting);
                 if (subpath) {
                     fsPath = path.join(fsPath, subpath);
                 }
@@ -71,9 +71,7 @@ export async function showWorkspaceFoldersQuickPick(placeHolderString: string, t
     if (!pickedItem) {
         telemetryProperties.cancelStep = 'showWorkspaceFolders';
         throw new UserCancelledError();
-    }
-
-    if (pickedItem && !pickedItem.data) {
+    } else if (!pickedItem.data) {
         const browseResult = await vscode.window.showOpenDialog({
             canSelectFiles: false,
             canSelectFolders: true,
@@ -87,9 +85,9 @@ export async function showWorkspaceFoldersQuickPick(placeHolderString: string, t
         }
 
         return browseResult[0].fsPath;
+    } else {
+        return pickedItem.data;
     }
-
-    return pickedItem.data;
 }
 
 export interface IQuickPickItemWithData<T> extends vscode.QuickPickItem {

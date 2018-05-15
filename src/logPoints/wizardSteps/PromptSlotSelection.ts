@@ -18,14 +18,12 @@ export class PromptSlotSelection extends WizardStep {
     }
 
     public async prompt(): Promise<void> {
-        let deploymentSlotsTreeItems: SiteTreeItem[];
-
         // Decide if this AppService uses deployment slots
-        await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async p => {
+        let deploymentSlotsTreeItems: SiteTreeItem[] = await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async p => {
             const message = 'Enumerating deployment slots for the App Service...';
             p.report({ message: message });
             this._wizard.writeline(message);
-            deploymentSlotsTreeItems = await this.getDeploymentSlotsTreeItems();
+            return await this.getDeploymentSlotsTreeItems();
         });
 
         this._wizard.writeline(`Got ${deploymentSlotsTreeItems.length} deployment slot(s)`);
@@ -33,7 +31,7 @@ export class PromptSlotSelection extends WizardStep {
         // if there is only one slot, just use that one and don't prompt for user selection.
         if (deploymentSlotsTreeItems.length === 1) {
             this._wizard.selectedDeploymentSlotTreeItem = deploymentSlotsTreeItems[0];
-            this._wizard.writeline(`Automatically selected deployment slot ${this._wizard.selectedDeploymentSlot.fullName}.`);
+            this._wizard.writeline(`Automatically selected deployment slot ${this._wizard.selectedDeploymentSlot!.fullName}.`); // non-null behavior unknown. Should be handled by logPoints team
             return;
         }
 
@@ -56,7 +54,7 @@ export class PromptSlotSelection extends WizardStep {
             throw e;
         }
         this._wizard.selectedDeploymentSlotTreeItem = pickedItem.data;
-        this._wizard.writeline(`The deployment slot you selected is: ${this._wizard.selectedDeploymentSlot.fullName}`);
+        this._wizard.writeline(`The deployment slot you selected is: ${this._wizard.selectedDeploymentSlot!.fullName}`); // non-null behavior unknown. Should be handled by logPoints team
     }
 
     /**
@@ -66,7 +64,7 @@ export class PromptSlotSelection extends WizardStep {
         const appServiceTreeItem = <IAzureParentNode<SiteTreeItem>>this._wizard.uiTreeItem;
         const result = await appServiceTreeItem.getCachedChildren();
 
-        let deploymentSlotsCategoryNode: IAzureParentNode<IAzureTreeItem>;
+        let deploymentSlotsCategoryNode: IAzureParentNode<IAzureTreeItem> | undefined;
         if (!result || result.length <= 0) {
             throw new Error('Cannot find any tree node under the App Service node.');
         }

@@ -14,7 +14,7 @@ export class StartDebugAdapterStep extends WizardStep {
     }
 
     public async execute(): Promise<void> {
-        const client: SiteClient = this._wizard.selectedDeploymentSlot;
+        const client: SiteClient = this._wizard.selectedDeploymentSlot!; // non-null behavior unknown. Should be handled by logPoints team
 
         const publishCredential = await this._wizard.getCachedCredentialOrRefetch(client);
 

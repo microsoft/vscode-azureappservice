@@ -10,8 +10,8 @@ import { URL } from 'url';
 import { isNumber } from 'util';
 import { OutputChannel } from 'vscode';
 import { callWithTelemetryAndErrorHandling, IActionContext } from 'vscode-azureextensionui';
-import TelemetryReporter from "vscode-extension-telemetry";
 import { SiteTreeItem } from './explorer/SiteTreeItem';
+import { ext } from './extensionVariables';
 
 const requestPromise = <(options: RequestOptions | string | URL) => Promise<IncomingMessage>><Function>requestP;
 
@@ -45,13 +45,13 @@ export function cancelWebsiteValidation(siteTreeItem: SiteTreeItem): void {
     }
 }
 
-export async function validateWebSite(deploymentCorrelationId: string, siteTreeItem: SiteTreeItem, outputChannel: OutputChannel, telemetryReporter: TelemetryReporter): Promise<void> {
+export async function validateWebSite(deploymentCorrelationId: string, siteTreeItem: SiteTreeItem, outputChannel: OutputChannel): Promise<void> {
     cancelWebsiteValidation(siteTreeItem);
     const id = siteTreeItem.id;
     const cancellation: ICancellation = { canceled: false };
     cancellations.set(id, cancellation);
 
-    return callWithTelemetryAndErrorHandling('appService.validateWebSite', telemetryReporter, outputChannel, async function (this: IActionContext): Promise<void> {
+    return callWithTelemetryAndErrorHandling('appService.validateWebSite', ext.reporter, outputChannel, async function (this: IActionContext): Promise<void> {
         this.rethrowError = false;
         this.suppressErrorDisplay = true;
 
@@ -66,8 +66,8 @@ export async function validateWebSite(deploymentCorrelationId: string, siteTreeI
             uri: uri,
             resolveWithFullResponse: true
         };
-        let currentStatusCode: number = 0;
-        const statusCodes: { code: number, elapsed: number }[] = [];
+        let currentStatusCode: number | undefined = 0;
+        const statusCodes: { code: number | undefined, elapsed: number }[] = [];
 
         // tslint:disable-next-line:no-constant-condition
         while (true) {
@@ -75,6 +75,7 @@ export async function validateWebSite(deploymentCorrelationId: string, siteTreeI
                 const response = <IncomingMessage>(await requestPromise(options));
                 currentStatusCode = response.statusCode;
             } catch (error) {
+                // tslint:disable-next-line:strict-boolean-expressions
                 const response = (<WebError>error).response || {};
                 currentStatusCode = isNumber(response.statusCode) ? response.statusCode : 0;
             }

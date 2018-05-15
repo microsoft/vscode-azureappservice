@@ -18,29 +18,28 @@ export class SessionAttachStep extends WizardStep {
     }
 
     public async execute(): Promise<void> {
-        const selectedSlot = (<LogPointsSessionWizard>this.wizard).selectedDeploymentSlot;
+        const selectedSlot = (<LogPointsSessionWizard>this.wizard).selectedDeploymentSlot!; // non-null behavior unknown. Should be handled by logPoints team
         const instance = this._wizard.selectedInstance;
         const publishCredential = await this._wizard.getCachedCredentialOrRefetch(selectedSlot);
 
-        let result: CommandRunResult<IAttachProcessResponse>;
         const requestData: IAttachProcessRequest = { sessionId: this._wizard.sessionId, processId: this._wizard.processId };
 
-        await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async p => {
+        let result: CommandRunResult<IAttachProcessResponse> = await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async p => {
             const message = `Attach debugging to session ${this._wizard.sessionId}...`;
             p.report({ message: message });
             this._wizard.writeline(message);
-            result = await callWithTimeout(
+            return await callWithTimeout(
                 () => {
-                    return this._logPointsDebuggerClient.attachProcess(selectedSlot.fullName, instance.name, publishCredential, requestData);
+                    return this._logPointsDebuggerClient.attachProcess(selectedSlot.fullName, instance.name!, publishCredential, requestData); // non-null behavior unknown. Should be handled by logPoints team
                 },
                 DEFAULT_TIMEOUT);
         });
 
         if (result.isSuccessful()) {
-            this._wizard.debuggerId = result.json.data.debugeeId;
+            this._wizard.debuggerId = result.json!.data.debugeeId; // non-null behavior unknown. Should be handled by logPoints team
             this._wizard.writeline(`Attached to process ${this._wizard.processId}, got debugId ${this._wizard.debuggerId}`);
         } else {
-            throw new Error(`Attached to process ${this._wizard.processId} failed, got response ${result.json.error.message}`);
+            throw new Error(`Attached to process ${this._wizard.processId} failed, got response ${result.json!.error!.message}`); // non-null behavior unknown. Should be handled by logPoints team
         }
     }
 }

@@ -15,12 +15,12 @@ export enum runtimes {
     ruby = 'ruby'
 }
 
-export function getIgnoredFoldersForDeployment(runtime: string): string[] | undefined {
+export function getIgnoredFoldersForDeployment(runtime: string): string[] {
     switch (runtime) {
         case runtimes.node:
             return ['node_modules{,/**}'];
         default:
-            return undefined;
+            return [];
     }
 }
 

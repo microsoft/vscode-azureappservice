@@ -19,29 +19,27 @@ export class GetUnoccupiedInstance extends WizardStep {
     }
 
     public async prompt(): Promise<void> {
-        const selectedSlot = (<LogPointsSessionWizard>this.wizard).selectedDeploymentSlot;
+        const selectedSlot = (<LogPointsSessionWizard>this.wizard).selectedDeploymentSlot!; // non-null behavior unknown. Should be handled by logPoints team
 
         const publishCredential = await this._wizard.getCachedCredentialOrRefetch(selectedSlot);
 
-        let instances: WebAppInstanceCollection;
-
-        await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async p => {
+        let instances: WebAppInstanceCollection = await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async p => {
             const message = `Enumerating instances of ${selectedSlot.fullName}...`;
             p.report({ message: message });
             this._wizard.writeline(message);
-            instances = await this._wizard.client.listInstanceIdentifiers();
-
-            this._wizard.writeline(`Got ${instances.length} instances.`);
+            const result = await this._wizard.client.listInstanceIdentifiers();
+            this._wizard.writeline(`Got ${result.length} instances.`);
+            return result;
         });
 
         instances = instances.sort((a, b) => {
-            return a.name.localeCompare(b.name);
+            return a.name!.localeCompare(b.name!); // non-null behavior unknown. Should be handled by logPoints team
         });
 
         const startSessionRequest: IStartSessionRequest = { username: this._wizard.uiTreeItem.userId };
 
         for (const instance of instances) {
-            let result: CommandRunResult<IStartSessionResponse>;
+            let result: CommandRunResult<IStartSessionResponse> | undefined;
 
             await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async p => {
                 const message = `Trying to start a session from instance ${instance.name}...`;
@@ -51,18 +49,18 @@ export class GetUnoccupiedInstance extends WizardStep {
                 try {
                     result = await callWithTimeout(
                         () => {
-                            return this._logPointsDebuggerClient.startSession(selectedSlot.fullName, instance.name, publishCredential, startSessionRequest);
+                            return this._logPointsDebuggerClient.startSession(selectedSlot.fullName, instance.name!, publishCredential, startSessionRequest); // non-null behavior unknown. Should be handled by logPoints team
                         },
                         DEFAULT_TIMEOUT);
                 } catch (e) {
                     // If there is an error, mark the request failed by resetting `result`.
-                    result = null;
+                    result = undefined;
                 }
             });
 
             if (result && result.isSuccessful()) {
                 this._wizard.selectedInstance = instance;
-                this._wizard.sessionId = result.json.data.debuggingSessionId;
+                this._wizard.sessionId = result.json!.data.debuggingSessionId; // non-null behavior unknown. Should be handled by logPoints team
 
                 this._wizard.writeline(`Selected instance ${instance.name}`);
 

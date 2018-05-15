@@ -32,10 +32,11 @@ import { getPackageInfo, IPackageInfo } from './utils/IPackageInfo';
 // tslint:disable-next-line:export-name
 // tslint:disable-next-line:max-func-body-length
 export function activate(context: vscode.ExtensionContext): void {
-    const packageInfo: IPackageInfo = getPackageInfo(context);
-    const reporter = new TelemetryReporter(packageInfo.name, packageInfo.version, packageInfo.aiKey);
-    ext.reporter = reporter;
-    context.subscriptions.push(reporter);
+    const packageInfo: IPackageInfo | undefined = getPackageInfo(context);
+    if (packageInfo) {
+        ext.reporter = new TelemetryReporter(packageInfo.name, packageInfo.version, packageInfo.aiKey);
+        context.subscriptions.push(ext.reporter);
+    }
 
     const ui: IAzureUserInput = new AzureUserInput(context.globalState);
     ext.ui = ui;
@@ -45,7 +46,7 @@ export function activate(context: vscode.ExtensionContext): void {
     context.subscriptions.push(outputChannel);
 
     const webAppProvider: WebAppProvider = new WebAppProvider();
-    const tree = new AzureTreeDataProvider(webAppProvider, 'appService.LoadMore', ui, reporter);
+    const tree = new AzureTreeDataProvider(webAppProvider, 'appService.LoadMore', ui, ext.reporter);
     ext.tree = tree;
     context.subscriptions.push(tree);
     context.subscriptions.push(vscode.window.registerTreeDataProvider('azureAppService', tree));
@@ -76,68 +77,73 @@ export function activate(context: vscode.ExtensionContext): void {
     const yesButton: vscode.MessageItem = { title: 'Yes' };
     const noButton: vscode.MessageItem = { title: 'No', isCloseAffordance: true };
 
-    const actionHandler: AzureActionHandler = new AzureActionHandler(context, outputChannel, reporter);
+    const actionHandler: AzureActionHandler = new AzureActionHandler(context, outputChannel, ext.reporter);
     actionHandler.registerCommand('appService.Refresh', async (node?: IAzureNode) => await tree.refresh(node));
     actionHandler.registerCommand('appService.selectSubscriptions', () => vscode.commands.executeCommand("azure-account.selectSubscriptions"));
-    actionHandler.registerCommand('appService.LoadMore', async (node?: IAzureNode) => await tree.loadMore(node));
-    actionHandler.registerCommand('appService.Browse', async (node: IAzureNode<SiteTreeItem>) => {
+    actionHandler.registerCommand('appService.LoadMore', async (node: IAzureNode) => await tree.loadMore(node));
+    actionHandler.registerCommand('appService.Browse', async (node?: IAzureNode<SiteTreeItem>) => {
         if (!node) {
             node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
         }
 
         node.treeItem.browse();
     });
-    actionHandler.registerCommand('appService.OpenInPortal', async (node: IAzureNode) => {
+    actionHandler.registerCommand('appService.OpenInPortal', async (node?: IAzureNode) => {
         if (!node) {
             node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
         }
 
-        node.treeItem.contextValue === DeploymentSlotsTreeItem.contextValue ? node.openInPortal(`${node.parent.id}/deploymentSlots`) : node.openInPortal();
+        // tslint:disable-next-line:no-non-null-assertion
+        node.treeItem.contextValue === DeploymentSlotsTreeItem.contextValue ? node.openInPortal(`${node.parent!.id}/deploymentSlots`) : node.openInPortal();
         // the deep link for slots does not follow the conventional pattern of including its parent in the path name so this is how we extract the slot's id
     });
-    actionHandler.registerCommand('appService.Start', async (node: IAzureNode<SiteTreeItem>) => {
+    actionHandler.registerCommand('appService.Start', async (node?: IAzureNode<SiteTreeItem>) => {
         if (!node) {
             node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
         }
 
+        const treeItem: SiteTreeItem = node.treeItem;
         await node.runWithTemporaryDescription("Starting...", async () => {
             outputChannel.show();
-            outputChannel.appendLine(`Starting "${node.treeItem.client.fullName}"...`);
-            await node.treeItem.client.start();
-            outputChannel.appendLine(`"${node.treeItem.client.fullName}" has been started.`);
+            outputChannel.appendLine(`Starting "${treeItem.client.fullName}"...`);
+            await treeItem.client.start();
+            outputChannel.appendLine(`"${treeItem.client.fullName}" has been started.`);
         });
     });
-    actionHandler.registerCommand('appService.Stop', async (node: IAzureNode<SiteTreeItem>) => {
+    actionHandler.registerCommand('appService.Stop', async (node?: IAzureNode<SiteTreeItem>) => {
         if (!node) {
             node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
         }
 
+        const treeItem: SiteTreeItem = node.treeItem;
         await node.runWithTemporaryDescription("Stopping...", async () => {
             outputChannel.show();
-            outputChannel.appendLine(`Stopping "${node.treeItem.client.fullName}"...`);
-            await node.treeItem.client.stop();
-            outputChannel.appendLine(`"${node.treeItem.client.fullName}" has been stopped. App Service plan charges still apply.`);
+            outputChannel.appendLine(`Stopping "${treeItem.client.fullName}"...`);
+            await treeItem.client.stop();
+            outputChannel.appendLine(`"${treeItem.client.fullName}" has been stopped. App Service plan charges still apply.`);
         });
 
         await logPointsManager.onAppServiceSiteClosed(node.treeItem.client);
     });
-    actionHandler.registerCommand('appService.Restart', async (node: IAzureNode<SiteTreeItem>) => {
+    actionHandler.registerCommand('appService.Restart', async (node?: IAzureNode<SiteTreeItem>) => {
         if (!node) {
             node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
         }
 
+        const treeItem: SiteTreeItem = node.treeItem;
         await node.runWithTemporaryDescription("Restarting...", async () => {
             outputChannel.show();
-            outputChannel.appendLine(`Restarting "${node.treeItem.client.fullName}"...`);
-            await node.treeItem.client.stop();
-            await node.treeItem.client.start();
-            await node.refresh();
-            outputChannel.appendLine(`"${node.treeItem.client.fullName}" has been restarted.`);
+            outputChannel.appendLine(`Restarting "${treeItem.client.fullName}"...`);
+            await treeItem.client.stop();
+            await treeItem.client.start();
+            // tslint:disable-next-line:no-non-null-assertion
+            await node!.refresh();
+            outputChannel.appendLine(`"${treeItem.client.fullName}" has been restarted.`);
         });
 
         await logPointsManager.onAppServiceSiteClosed(node.treeItem.client);
     });
-    actionHandler.registerCommand('appService.Delete', async (node: IAzureNode<SiteTreeItem>) => {
+    actionHandler.registerCommand('appService.Delete', async (node?: IAzureNode<SiteTreeItem>) => {
         if (!node) {
             node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
         }
@@ -158,13 +164,13 @@ export function activate(context: vscode.ExtensionContext): void {
             this.properties[deployingToWebApp] = 'true';
 
             const fsPath = await util.showWorkspaceFoldersQuickPick("Select the folder to deploy", this.properties, configurationSettings.deploySubpath);
-            await createdApp.treeItem.deploy(createdApp, fsPath, outputChannel, ui, reporter, extensionPrefix, false, this.properties);
+            await createdApp.treeItem.deploy(createdApp, fsPath, outputChannel, ui, extensionPrefix, false, this.properties);
         } else {
             this.properties[deployingToWebApp] = 'false';
         }
     });
     actionHandler.registerCommand('appService.Deploy', async function (this: IActionContext, target?: vscode.Uri | IAzureNode<WebAppTreeItem> | undefined): Promise<void> {
-        let node: IAzureNode<WebAppTreeItem>;
+        let node: IAzureNode<WebAppTreeItem> | undefined;
         const newNodes: IAzureNode<WebAppTreeItem>[] = [];
         let fsPath: string;
         let confirmDeployment: boolean = true;
@@ -200,12 +206,12 @@ export function activate(context: vscode.ExtensionContext): void {
                     }
                 }
             }
-            await node.treeItem.deploy(node, fsPath, outputChannel, ui, reporter, extensionPrefix, confirmDeployment, this.properties);
+            await node.treeItem.deploy(node, fsPath, outputChannel, ui, extensionPrefix, confirmDeployment, this.properties);
         } finally {
             onNodeCreatedFromQuickPickDisposable.dispose();
         }
     });
-    actionHandler.registerCommand('appService.ConfigureDeploymentSource', async (node: IAzureNode<SiteTreeItem>) => {
+    actionHandler.registerCommand('appService.ConfigureDeploymentSource', async (node?: IAzureNode<SiteTreeItem>) => {
         if (!node) {
             node = <IAzureNode<SiteTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
         }
@@ -218,17 +224,18 @@ export function activate(context: vscode.ExtensionContext): void {
 
         node.treeItem.openCdInPortal(node);
     });
-    actionHandler.registerCommand('appService.DeploymentScript', async (node: IAzureNode<WebAppTreeItem>) => {
+    actionHandler.registerCommand('appService.DeploymentScript', async (node?: IAzureNode<WebAppTreeItem>) => {
         if (!node) {
             node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
         }
 
         await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async p => {
             p.report({ message: 'Generating script...' });
-            await node.treeItem.generateDeploymentScript(node);
+            // tslint:disable-next-line:no-non-null-assertion
+            await node!.treeItem.generateDeploymentScript(node!);
         });
     });
-    actionHandler.registerCommand('deploymentSlots.CreateSlot', async function (this: IActionContext, node: IAzureParentNode<DeploymentSlotsTreeItem>): Promise<void> {
+    actionHandler.registerCommand('deploymentSlots.CreateSlot', async function (this: IActionContext, node?: IAzureParentNode<DeploymentSlotsTreeItem>): Promise<void> {
         const deployingToDeploymentSlot = 'deployingToDeploymentSlot';
 
         if (!node) {
@@ -241,34 +248,34 @@ export function activate(context: vscode.ExtensionContext): void {
         if (await vscode.window.showInformationMessage('Deploy to deployment slot?', yesButton, noButton) === yesButton) {
             this.properties[deployingToDeploymentSlot] = 'true';
             const fsPath = await util.showWorkspaceFoldersQuickPick("Select the folder to deploy", this.properties, configurationSettings.deploySubpath);
-            await createdSlot.treeItem.deploy(createdSlot, fsPath, outputChannel, ui, reporter, extensionPrefix, false, this.properties);
+            await createdSlot.treeItem.deploy(createdSlot, fsPath, outputChannel, ui, extensionPrefix, false, this.properties);
         } else {
             this.properties[deployingToDeploymentSlot] = 'false';
         }
     });
     actionHandler.registerCommand('deploymentSlot.SwapSlots', async (node: IAzureNode<DeploymentSlotTreeItem>) => await swapSlots(tree, node, outputChannel));
-    actionHandler.registerCommand('appSettings.Add', async (node: IAzureParentNode<AppSettingsTreeItem>) => {
+    actionHandler.registerCommand('appSettings.Add', async (node?: IAzureParentNode<AppSettingsTreeItem>) => {
         if (!node) {
             node = <IAzureParentNode<AppSettingsTreeItem>>await tree.showNodePicker(AppSettingsTreeItem.contextValue);
         }
 
         await node.createChild();
     });
-    actionHandler.registerCommand('appSettings.Edit', async (node: IAzureNode<AppSettingTreeItem>) => {
+    actionHandler.registerCommand('appSettings.Edit', async (node?: IAzureNode<AppSettingTreeItem>) => {
         if (!node) {
             node = <IAzureNode<AppSettingTreeItem>>await tree.showNodePicker(AppSettingTreeItem.contextValue);
         }
 
         await node.treeItem.edit(node);
     });
-    actionHandler.registerCommand('appSettings.Rename', async (node: IAzureNode<AppSettingTreeItem>) => {
+    actionHandler.registerCommand('appSettings.Rename', async (node?: IAzureNode<AppSettingTreeItem>) => {
         if (!node) {
             node = <IAzureNode<AppSettingTreeItem>>await tree.showNodePicker(AppSettingTreeItem.contextValue);
         }
 
         await node.treeItem.rename(node);
     });
-    actionHandler.registerCommand('appSettings.Delete', async (node: IAzureNode<AppSettingTreeItem>) => {
+    actionHandler.registerCommand('appSettings.Delete', async (node?: IAzureNode<AppSettingTreeItem>) => {
         if (!node) {
             node = <IAzureNode<AppSettingTreeItem>>await tree.showNodePicker(AppSettingTreeItem.contextValue);
         }
@@ -289,7 +296,8 @@ export function activate(context: vscode.ExtensionContext): void {
             const notNowButton: vscode.MessageItem = { title: 'Not Now', isCloseAffordance: true };
             const isEnabled = await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async p => {
                 p.report({ message: 'Checking container diagnostics settings...' });
-                return await node.treeItem.isHttpLogsEnabled();
+                // tslint:disable-next-line:no-non-null-assertion
+                return await node!.treeItem.isHttpLogsEnabled();
             });
 
             if (!isEnabled && enableButton === await vscode.window.showWarningMessage(`Do you want to enable application logging for ${node.treeItem.client.fullName}?`, { modal: true }, enableButton, notNowButton)) {
@@ -299,8 +307,7 @@ export function activate(context: vscode.ExtensionContext): void {
                 await vscode.commands.executeCommand('appService.Restart', node);
             }
             // Otherwise connect to log stream anyways, users might see similar "log not enabled" message with how to enable link from the stream output.
-            node.treeItem.logStream = await node.treeItem.connectToLogStream(reporter, context);
-            node.treeItem.logStreamOutputChannel.show();
+            node.treeItem.logStream = await node.treeItem.connectToLogStream(context);
         }
     });
     actionHandler.registerCommand('diagnostics.StopLogStream', async (node?: IAzureNode<SiteTreeItem>) => {
@@ -314,9 +321,9 @@ export function activate(context: vscode.ExtensionContext): void {
             await vscode.window.showWarningMessage(`The log-streaming service for "${node.treeItem.label}" is already disconnected.`);
         }
     });
-    actionHandler.registerCommand('diagnostics.StartLogPointsSession', async function (this: IActionContext, node: IAzureNode<SiteTreeItem>): Promise<void> {
+    actionHandler.registerCommand('diagnostics.StartLogPointsSession', async function (this: IActionContext, node?: IAzureNode<SiteTreeItem>): Promise<void> {
         if (node) {
-            const wizard = new LogPointsSessionWizard(logPointsManager, context, outputChannel, node, node.treeItem.client, reporter);
+            const wizard = new LogPointsSessionWizard(logPointsManager, context, outputChannel, node, node.treeItem.client);
             await wizard.run(this.properties);
         }
     });

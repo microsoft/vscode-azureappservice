@@ -14,5 +14,5 @@ export namespace ext {
     export let tree: AzureTreeDataProvider;
     export let outputChannel: OutputChannel;
     export let ui: IAzureUserInput;
-    export let reporter: TelemetryReporter;
+    export let reporter: TelemetryReporter | undefined;
 }

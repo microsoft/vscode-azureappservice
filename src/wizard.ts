@@ -81,12 +81,12 @@ export abstract class WizardBase {
     public findStepOfType<T extends WizardStep>(stepTypeConstructor: { new(...args: {}[]): T }, isOptional?: boolean): T {
         return <T>this.findStep(
             step => step instanceof stepTypeConstructor,
-            isOptional ? null : `The Wizard should have had a ${stepTypeConstructor.name} step`);
+            isOptional ? undefined : `The Wizard should have had a ${stepTypeConstructor.name} step`);
     }
 
     protected abstract initSteps(): void;
 
-    protected findStep(predicate: (step: WizardStep) => boolean, errorMessage?: string): WizardStep {
+    protected findStep(predicate: (step: WizardStep) => boolean, errorMessage?: string): WizardStep | undefined {
         const step = this.steps.find(predicate);
 
         if (!step && errorMessage) {
@@ -167,17 +167,6 @@ export class WizardStep {
 
         if (this.persistenceState && persistenceKey) {
             this.persistenceState.update(persistenceKey, result.persistenceId);
-        }
-
-        return result;
-    }
-
-    public async showInputBox(options?: vscode.InputBoxOptions, token?: vscode.CancellationToken): Promise<string> {
-        options.ignoreFocusOut = true;
-        const result = await vscode.window.showInputBox(options, token);
-
-        if (!result) {
-            throw new UserCancelledError();
         }
 
         return result;

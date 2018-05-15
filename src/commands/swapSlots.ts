@@ -17,7 +17,8 @@ export async function swapSlots(tree: AzureTreeDataProvider, sourceSlotNode: IAz
     const sourceSlotClient: SiteClient = sourceSlotNode.treeItem.client;
 
     const productionSlotLabel: string = 'production';
-    const deploymentSlots: IAzureNode<DeploymentSlotTreeItem>[] = <IAzureNode<DeploymentSlotTreeItem>[]>await sourceSlotNode.parent.getCachedChildren();
+    // tslint:disable-next-line:no-non-null-assertion
+    const deploymentSlots: IAzureNode<DeploymentSlotTreeItem>[] = <IAzureNode<DeploymentSlotTreeItem>[]>await sourceSlotNode.parent!.getCachedChildren();
     const otherSlots: IAzureQuickPickItem<DeploymentSlotTreeItem | undefined>[] = [{
         label: productionSlotLabel,
         description: 'Swap slot with production',
@@ -29,7 +30,8 @@ export async function swapSlots(tree: AzureTreeDataProvider, sourceSlotNode: IAz
         if (sourceSlotClient.slotName !== slot.treeItem.client.slotName) {
             // Deployment slots must have an unique name
             const otherSlot: IAzureQuickPickItem<DeploymentSlotTreeItem | undefined> = {
-                label: slot.treeItem.client.slotName,
+                // tslint:disable-next-line:no-non-null-assertion
+                label: slot.treeItem.client.slotName!,
                 description: '',
                 data: slot.treeItem
             };
@@ -41,15 +43,18 @@ export async function swapSlots(tree: AzureTreeDataProvider, sourceSlotNode: IAz
     const quickPickOptions = { placeHolder: `Select which slot to swap with "${sourceSlotClient.slotName}".` };
     const targetSlot: DeploymentSlotTreeItem | undefined = (await sourceSlotNode.ui.showQuickPick(otherSlots, quickPickOptions)).data;
 
-    const targetSlotLabel: string = targetSlot ? targetSlot.client.slotName : productionSlotLabel;
+    // tslint:disable-next-line:no-non-null-assertion
+    const targetSlotLabel: string = targetSlot ? targetSlot.client.slotName! : productionSlotLabel;
     outputChannel.show(true);
     outputChannel.appendLine(`Swapping "${targetSlotLabel}" with "${sourceSlotClient.slotName}"...`);
     const client: WebSiteManagementClient = new WebSiteManagementClient(sourceSlotNode.credentials, sourceSlotNode.subscriptionId);
     // if targetSlot was assigned undefined, the user selected 'production'
     if (!targetSlot) {
-        await client.webApps.swapSlotWithProduction(sourceSlotClient.resourceGroup, sourceSlotClient.siteName, { targetSlot: sourceSlotClient.slotName, preserveVnet: true });
+        // tslint:disable-next-line:no-non-null-assertion
+        await client.webApps.swapSlotWithProduction(sourceSlotClient.resourceGroup, sourceSlotClient.siteName, { targetSlot: sourceSlotClient.slotName!, preserveVnet: true });
     } else {
-        await client.webApps.swapSlotSlot(sourceSlotClient.resourceGroup, sourceSlotClient.siteName, { targetSlot: targetSlot.client.slotName, preserveVnet: true }, sourceSlotClient.slotName);
+        // tslint:disable-next-line:no-non-null-assertion
+        await client.webApps.swapSlotSlot(sourceSlotClient.resourceGroup, sourceSlotClient.siteName, { targetSlot: targetSlot.client.slotName!, preserveVnet: true }, sourceSlotClient.slotName!);
     }
     outputChannel.appendLine(`Successfully swapped "${targetSlotLabel}" with "${sourceSlotClient.slotName}".`);
 }

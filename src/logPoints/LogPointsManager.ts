@@ -23,10 +23,6 @@ class DebugSessionManager {
         this._logpointsCollectionMapping = {};
     }
 
-    public toggleLogpoint(): ILogpoint {
-        return null;
-    }
-
     public registerLogpoint(documentUri: vscode.Uri, logpoint: ILogpoint): void {
         const logpointsCollection = this.getLogpointCollectionForDocument(documentUri);
         logpointsCollection.registerLogpoint(logpoint);
@@ -39,7 +35,7 @@ class DebugSessionManager {
         logpointsCollection.updateTextEditorDecroration();
     }
 
-    public getLogpointAtLocation(documentUri: vscode.Uri, lineNumber: number): ILogpoint {
+    public getLogpointAtLocation(documentUri: vscode.Uri, lineNumber: number): ILogpoint | undefined {
         const uriString = documentUri.toString();
         if (!this._logpointsCollectionMapping[uriString]) {
             return undefined;
@@ -232,7 +228,7 @@ export class LogPointsManager extends vscode.Disposable {
     }
 
     public async onAppServiceSiteClosed(client: SiteClient): Promise<void> {
-        const debugSessionManager: DebugSessionManager = await this.findDebugSessionManagerBySite(client);
+        const debugSessionManager: DebugSessionManager | undefined = await this.findDebugSessionManagerBySite(client);
         if (!debugSessionManager) {
             // If there is no debugSession associated with the site, then do nothing.
             return;
@@ -300,8 +296,8 @@ export class LogPointsManager extends vscode.Disposable {
         }
     }
 
-    private async findDebugSessionManagerBySite(client: SiteClient): Promise<DebugSessionManager> {
-        let matchedDebugSessionManager: DebugSessionManager = null;
+    private async findDebugSessionManagerBySite(client: SiteClient): Promise<DebugSessionManager | undefined> {
+        let matchedDebugSessionManager: DebugSessionManager | undefined;
 
         const debugSessionManagers = Object.keys(this._debugSessionManagerMapping).map(
             (key) => { return this._debugSessionManagerMapping[key]; });
