@@ -73,7 +73,7 @@ class BaseTreeItem extends TreeItem {
 
     public setSource(session: vscode.DebugSession, source: Source): void {
         this.command = {
-            command: 'diagnostics.LogPoints.OpenScript',
+            command: 'appService.LogPoints.OpenScript',
             arguments: [session, source],
             title: ''
         };
