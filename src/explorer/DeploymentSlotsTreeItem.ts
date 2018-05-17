@@ -6,11 +6,9 @@
 import WebSiteManagementClient = require('azure-arm-website');
 import { NameValuePair, ResourceNameAvailability, Site, WebAppCollection } from 'azure-arm-website/lib/models';
 import * as path from 'path';
-import { window } from 'vscode';
 import { SiteClient } from 'vscode-azureappservice';
-import { IAzureNode, IAzureParentNode, IAzureParentTreeItem, IAzureTreeItem, UserCancelledError } from 'vscode-azureextensionui';
+import { IAzureNode, IAzureParentNode, IAzureParentTreeItem, IAzureQuickPickItem, IAzureTreeItem, UserCancelledError } from 'vscode-azureextensionui';
 import { ext } from '../extensionVariables';
-import * as util from '../util';
 import { DeploymentSlotTreeItem } from './DeploymentSlotTreeItem';
 import { SiteTreeItem } from './SiteTreeItem';
 
@@ -75,9 +73,9 @@ export class DeploymentSlotsTreeItem implements IAzureParentTreeItem {
             }
         };
 
-        const configurationSource: IAzureNode<SiteTreeItem> | undefined = await this.chooseConfigurationSource(node);
+        const configurationSource: SiteClient | undefined = await this.chooseConfigurationSource(node);
         if (!!configurationSource) {
-            const appSettings = await this.parseAppSettings();
+            const appSettings = await this.parseAppSettings(configurationSource);
             // tslint:disable-next-line:no-non-null-assertion
             newDeploymentSlot.siteConfig!.appSettings = appSettings;
         }
@@ -110,41 +108,40 @@ export class DeploymentSlotsTreeItem implements IAzureParentTreeItem {
         });
     }
 
-    private async chooseConfigurationSource(node: IAzureParentNode<DeploymentSlotsTreeItem>): Promise<IAzureNode<SiteTreeItem> | undefined> {
+    private async chooseConfigurationSource(node: IAzureParentNode<DeploymentSlotsTreeItem>): Promise<SiteClient | undefined> {
         const deploymentSlots: IAzureNode[] = await node.getCachedChildren();
-        const configurationSources: util.IQuickPickItemWithData<IAzureNode | undefined>[] = [{
+        const configurationSources: IAzureQuickPickItem<SiteClient | undefined>[] = [{
             label: "Don't clone configuration from an existing slot",
             description: '',
             data: undefined
         }];
+
+        // tslint:disable-next-line:no-non-null-assertion
+        const prodSiteClient: SiteClient = (<SiteTreeItem>node.parent!.treeItem).client;
         // add the production slot itself
         configurationSources.push({
             // tslint:disable-next-line:no-non-null-assertion
-            label: (<SiteTreeItem>node.parent!.treeItem).client.fullName,
+            label: prodSiteClient.fullName,
             description: '',
-            detail: '',
-            data: node.parent
+            data: prodSiteClient
         });
 
         // add the web app's current deployment slots
         for (const slot of deploymentSlots) {
+            const slotSiteClient: SiteClient = (<SiteTreeItem>slot.treeItem).client;
             configurationSources.push({
-                label: (<SiteTreeItem>slot.treeItem).client.fullName,
+                label: slotSiteClient.fullName,
                 description: '',
-                data: slot
+                data: slotSiteClient
             });
         }
 
         const quickPickOptions = { placeHolder: `Choose a configuration source.`, ignoreFocusOut: true };
-        const result = await window.showQuickPick(configurationSources, quickPickOptions);
-        if (!result) {
-            throw new UserCancelledError();
-        }
-        return <IAzureNode<SiteTreeItem>>result.data;
+        return (await ext.ui.showQuickPick(configurationSources, quickPickOptions)).data;
     }
 
-    private async parseAppSettings(): Promise<NameValuePair[]> {
-        const appSettings = await this.client.listApplicationSettings();
+    private async parseAppSettings(siteClient: SiteClient): Promise<NameValuePair[]> {
+        const appSettings = await siteClient.listApplicationSettings();
         const appSettingPairs: NameValuePair[] = [];
         if (appSettings.properties) {
             // iterate String Dictionary to parse into NameValuePair[]
