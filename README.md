@@ -50,15 +50,6 @@ Check out this [deployment tutorial](https://code.visualstudio.com/tutorials/app
 
 ## Preview Features
 
-* View and edit a web app's files
-  * To enable this feature, click File > Preferences > Settings. modify your `appService.showRemoteFiles` to be true.
-
-  ![Enable Remote File Editing](resources/Remote_File_Editing_Setting.png)
-
-  * To view a file, click on it in the explorer.
-  * To edit, make edits in the editor and save it.  When prompted to upload the file, click 'Upload'.
-  * CAUTION: Manually editing your Web App's files could cause unexpected behavior.
-
 * Remote debugging for Node.js apps running on Linux
   * To enable this feature, click File > Preferences > Settings. modify your `appService.enableRemoteDebugging` to be true.
   * Right-click a web application on the explorer and it will be on the context menu.  (This feature currently only works for Node.js apps running on Linux)

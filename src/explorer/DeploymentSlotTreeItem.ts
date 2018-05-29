@@ -31,9 +31,7 @@ export class DeploymentSlotTreeItem extends SiteTreeItem {
     }
 
     public async loadMoreChildren(_node: IAzureParentNode<DeploymentSlotTreeItem>): Promise<IAzureTreeItem[]> {
-        return workspace.getConfiguration(extensionPrefix).get(configurationSettings.showRemoteFiles) ?
-            [this.folderNode, this.appSettingsNode] :
-            [this.appSettingsNode];
+        return [this.folderNode, this.appSettingsNode];
     }
 
     public pickTreeItem(expectedContextValue: string): IAzureTreeItem | undefined {

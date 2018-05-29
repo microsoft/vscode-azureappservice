@@ -43,9 +43,7 @@ export class WebAppTreeItem extends SiteTreeItem {
     }
 
     public async loadMoreChildren(_parentNode: IAzureNode): Promise<IAzureTreeItem[]> {
-        return vscode.workspace.getConfiguration(extensionPrefix).get(configurationSettings.showRemoteFiles) ?
-            [this.deploymentSlotsNode, this.folderNode, this.webJobsNode, this.appSettingsNode] :
-            [this.deploymentSlotsNode, this.webJobsNode, this.appSettingsNode];
+        return [this.deploymentSlotsNode, this.folderNode, this.webJobsNode, this.appSettingsNode];
     }
 
     public pickTreeItem(expectedContextValue: string): IAzureTreeItem | undefined {
