@@ -10,7 +10,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { AppSettingsTreeItem, AppSettingTreeItem, SiteClient } from 'vscode-azureappservice';
 import { IAzureNode, IAzureTreeItem } from 'vscode-azureextensionui';
-import { configurationSettings, extensionPrefix } from '../constants';
+import { extensionPrefix } from '../constants';
 import { DeploymentSlotsNATreeItem, DeploymentSlotsTreeItem } from './DeploymentSlotsTreeItem';
 import { DeploymentSlotTreeItem } from './DeploymentSlotTreeItem';
 import { FolderTreeItem } from './FolderTreeItem';

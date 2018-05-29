@@ -4,10 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as path from 'path';
-import { workspace } from 'vscode';
 import { AppSettingsTreeItem, SiteClient } from 'vscode-azureappservice';
 import { IAzureParentNode, IAzureTreeItem } from 'vscode-azureextensionui';
-import { configurationSettings, extensionPrefix } from '../constants';
 import { FolderTreeItem } from './FolderTreeItem';
 import { SiteTreeItem } from './SiteTreeItem';
 
