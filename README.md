@@ -19,6 +19,10 @@ Check out this [deployment tutorial](https://code.visualstudio.com/tutorials/app
 * Swap deployment slots
 * View and edit web app settings
 * View web app log stream
+* View and edit a web app's remote files
+  * To view a file, click on it in the explorer.
+  * To edit, make edits in the editor and save it.  When prompted to upload the file, click 'Upload'.
+  * CAUTION: Manually editing your Web App's files could cause unexpected behavior.
 
 ![Web App Log Stream](resources/WebApp_LogStream.png)
 
