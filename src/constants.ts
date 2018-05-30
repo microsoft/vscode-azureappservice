@@ -27,6 +27,5 @@ export function getIgnoredFoldersForDeployment(runtime: string): string[] {
 export enum configurationSettings {
     zipIgnorePattern = 'zipIgnorePattern',
     showBuildDuringDeployPrompt = 'showBuildDuringDeployPrompt',
-    showRemoteFiles = 'showRemoteFiles',
     deploySubpath = 'deploySubpath'
 }

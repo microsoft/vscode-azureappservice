@@ -4,10 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as path from 'path';
-import { workspace } from 'vscode';
 import { AppSettingsTreeItem, SiteClient } from 'vscode-azureappservice';
 import { IAzureParentNode, IAzureTreeItem } from 'vscode-azureextensionui';
-import { configurationSettings, extensionPrefix } from '../constants';
 import { FolderTreeItem } from './FolderTreeItem';
 import { SiteTreeItem } from './SiteTreeItem';
 
@@ -31,9 +29,7 @@ export class DeploymentSlotTreeItem extends SiteTreeItem {
     }
 
     public async loadMoreChildren(_node: IAzureParentNode<DeploymentSlotTreeItem>): Promise<IAzureTreeItem[]> {
-        return workspace.getConfiguration(extensionPrefix).get(configurationSettings.showRemoteFiles) ?
-            [this.folderNode, this.appSettingsNode] :
-            [this.appSettingsNode];
+        return [this.folderNode, this.appSettingsNode];
     }
 
     public pickTreeItem(expectedContextValue: string): IAzureTreeItem | undefined {
