@@ -7,6 +7,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { IAzureQuickPickItem, TelemetryProperties, UserCancelledError } from 'vscode-azureextensionui';
 import { extensionPrefix } from './constants';
+import { ext } from './extensionVariables';
 
 // Output channel for the extension
 const outputChannel = vscode.window.createOutputChannel("Azure App Service");
@@ -63,15 +64,14 @@ export async function showWorkspaceFoldersQuickPick(placeHolderString: string, t
         }
     }) : [];
 
-    folderQuickPickItems.unshift({ label: '$(file-directory) Browse...', description: '', data: undefined });
+    folderQuickPickItems.push({ label: '$(file-directory) Browse...', description: '', data: undefined });
 
     const folderQuickPickOption = { placeHolder: placeHolderString };
-    const pickedItem = await vscode.window.showQuickPick(folderQuickPickItems, folderQuickPickOption);
+    telemetryProperties.cancelStep = 'showWorkspaceFolders';
+    const pickedItem = await ext.ui.showQuickPick(folderQuickPickItems, folderQuickPickOption);
+    telemetryProperties.cancelStep = '';
 
-    if (!pickedItem) {
-        telemetryProperties.cancelStep = 'showWorkspaceFolders';
-        throw new UserCancelledError();
-    } else if (!pickedItem.data) {
+    if (!pickedItem.data) {
         const browseResult = await vscode.window.showOpenDialog({
             canSelectFiles: false,
             canSelectFolders: true,
