@@ -67,12 +67,11 @@ export async function showWorkspaceFoldersQuickPick(placeHolderString: string, t
     folderQuickPickItems.push({ label: '$(file-directory) Browse...', description: '', data: undefined });
 
     const folderQuickPickOption = { placeHolder: placeHolderString };
+    telemetryProperties.cancelStep = 'showWorkspaceFolders';
     const pickedItem = await ext.ui.showQuickPick(folderQuickPickItems, folderQuickPickOption);
+    telemetryProperties.cancelStep = '';
 
-    if (!pickedItem) {
-        telemetryProperties.cancelStep = 'showWorkspaceFolders';
-        throw new UserCancelledError();
-    } else if (!pickedItem.data) {
+    if (!pickedItem.data) {
         const browseResult = await vscode.window.showOpenDialog({
             canSelectFiles: false,
             canSelectFolders: true,
