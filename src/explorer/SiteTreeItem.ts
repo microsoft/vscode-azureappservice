@@ -99,7 +99,7 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
 
     public async deploy(
         node: IAzureNode,
-        fsPath: string,
+        fsPath: string | undefined,
         outputChannel: OutputChannel,
         ui: IAzureUserInput,
         configurationSectionName: string,
@@ -109,19 +109,30 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
         const correlationId = getRandomHexString(10);
         telemetryProperties.correlationId = correlationId;
 
-        const workspaceConfig: WorkspaceConfiguration = workspace.getConfiguration(constants.extensionPrefix, Uri.file(fsPath));
+        const siteConfig: WebSiteModels.SiteConfigResource = await this.client.getSiteConfig();
+        let deploymentFilePath: string;
+        if (fsPath) {
+            deploymentFilePath = fsPath;
+        } else {
+            if (siteConfig.linuxFxVersion && siteConfig.linuxFxVersion.toLowerCase().startsWith('tomcat')) {
+                deploymentFilePath = await util.showWarQuickPick('Select the war file to deploy...', telemetryProperties);
+            } else {
+                deploymentFilePath = await util.showWorkspaceFoldersQuickPick("Select the folder to deploy", telemetryProperties, constants.configurationSettings.deploySubpath);
+            }
+        }
+
+        const workspaceConfig: WorkspaceConfiguration = workspace.getConfiguration(constants.extensionPrefix, Uri.file(deploymentFilePath));
         if (workspaceConfig.get(constants.configurationSettings.showBuildDuringDeployPrompt)) {
-            const siteConfig: WebSiteModels.SiteConfigResource = await this.client.getSiteConfig();
-            if (siteConfig.linuxFxVersion && siteConfig.linuxFxVersion.startsWith(constants.runtimes.node) && siteConfig.scmType === 'None' && !(await fse.pathExists(path.join(fsPath, constants.deploymentFileName)))) {
+            if (siteConfig.linuxFxVersion && siteConfig.linuxFxVersion.startsWith(constants.runtimes.node) && siteConfig.scmType === 'None' && !(await fse.pathExists(path.join(deploymentFilePath, constants.deploymentFileName)))) {
                 // check if web app has node runtime, is being zipdeployed, and if there is no .deployment file
                 // tslint:disable-next-line:no-unsafe-any
-                await this.enableScmDoBuildDuringDeploy(fsPath, constants.runtimes[siteConfig.linuxFxVersion.substring(0, siteConfig.linuxFxVersion.indexOf('|'))]);
+                await this.enableScmDoBuildDuringDeploy(deploymentFilePath, constants.runtimes[siteConfig.linuxFxVersion.substring(0, siteConfig.linuxFxVersion.indexOf('|'))]);
             }
         }
         cancelWebsiteValidation(this);
 
         await node.runWithTemporaryDescription("Deploying...", async () => {
-            await appservice.deploy(this.client, fsPath, outputChannel, ui, configurationSectionName, confirmDeployment, telemetryProperties);
+            await appservice.deploy(this.client, deploymentFilePath, outputChannel, ui, configurationSectionName, confirmDeployment, telemetryProperties);
         });
 
         // Don't wait
