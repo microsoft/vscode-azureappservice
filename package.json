@@ -589,6 +589,11 @@
                     "type": "boolean",
                     "default": false,
                     "description": "Enables remote debugging of a Web App. This experimental preview only supports node on Linux."
+                },
+                "appService.improvedCreation": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "The default web app creation process smartly chooses a resource group, an app service plan, an OS, and a runtime based on your current project."
                 }
             }
         },

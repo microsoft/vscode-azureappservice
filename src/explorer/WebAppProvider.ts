@@ -5,10 +5,10 @@
 
 import WebSiteManagementClient = require('azure-arm-website');
 import { AppServicePlan, Site, WebAppCollection } from 'azure-arm-website/lib/models';
-
+import { workspace, WorkspaceConfiguration } from 'vscode';
 import { createWebApp, SiteClient } from 'vscode-azureappservice';
 import { IActionContext, IAzureNode, IAzureTreeItem, IChildProvider, UserCancelledError } from 'vscode-azureextensionui';
-import { configurationSettings } from '../constants';
+import { configurationSettings, extensionPrefix } from '../constants';
 import * as util from '../util';
 import { InvalidWebAppTreeItem } from './InvalidWebAppTreeItem';
 import { WebAppTreeItem } from './WebAppTreeItem';
@@ -53,9 +53,14 @@ export class WebAppProvider implements IChildProvider {
     }
 
     public async createChild(node: IAzureNode<IAzureTreeItem>, showCreatingNode: (label: string) => void, actionContext: IActionContext): Promise<IAzureTreeItem> {
-        // get workspace here
-        const fsPath: string = await util.showWorkspaceFoldersQuickPick("Select the folder to deploy", actionContext.properties, configurationSettings.deploySubpath);
-        const newSite: Site | undefined = await createWebApp(util.getOutputChannel(), node.ui, actionContext, node.credentials, node.subscriptionId, node.subscriptionDisplayName, showCreatingNode, true, fsPath);
+        // get workspace fspath here, but only if one is opened
+        const workspaceConfig: WorkspaceConfiguration = workspace.getConfiguration(extensionPrefix);
+        let fsPath: string | undefined;
+        const improvedCreation: boolean | undefined = workspaceConfig.get(configurationSettings.improvedCreation);
+        if (improvedCreation && workspace.workspaceFolders) {
+            fsPath = workspace.workspaceFolders.length === 1 ? workspace.workspaceFolders[0].uri.fsPath : undefined;
+        }
+        const newSite: Site | undefined = await createWebApp(util.getOutputChannel(), node.ui, actionContext, node.credentials, node.subscriptionId, node.subscriptionDisplayName, showCreatingNode, fsPath, improvedCreation);
         if (newSite === undefined) {
             throw new UserCancelledError();
         } else {
