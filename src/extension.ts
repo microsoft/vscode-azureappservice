@@ -5,8 +5,9 @@
 
 'use strict';
 
+import { extname } from 'path';
 import * as vscode from 'vscode';
-import { AppSettingsTreeItem, AppSettingTreeItem, editScmType } from 'vscode-azureappservice';
+import { AppSettingsTreeItem, AppSettingTreeItem, editScmType, getFile, IFileResult } from 'vscode-azureappservice';
 import { AzureActionHandler, AzureTreeDataProvider, AzureUserInput, IActionContext, IAzureNode, IAzureParentNode, IAzureUserInput, parseError } from 'vscode-azureextensionui';
 import TelemetryReporter from 'vscode-extension-telemetry';
 import { disableRemoteDebug } from './commands/remoteDebug/disableRemoteDebug';
@@ -335,7 +336,18 @@ export function activate(context: vscode.ExtensionContext): void {
     actionHandler.registerCommand('appService.DisableRemoteDebug', async (node?: IAzureNode<SiteTreeItem>) => disableRemoteDebug(tree, node));
 
     actionHandler.registerCommand('appService.showFile', async (node: IAzureNode<FileTreeItem>) => {
-        await fileEditor.showEditor(node);
+        const logFiles: string = 'LogFiles/';
+        // we don't want to let users save log files, so rather than using the FileEditor, just open an untitled document
+        if (node.treeItem.path.startsWith(logFiles)) {
+            const file: IFileResult = await getFile(node.treeItem.client, node.treeItem.path);
+            const document: vscode.TextDocument = await vscode.workspace.openTextDocument({
+                language: extname(node.treeItem.path).substring(1), // remove the prepending dot of the ext
+                content: file.data
+            });
+            await vscode.window.showTextDocument(document);
+        } else {
+            await fileEditor.showEditor(node);
+        }
     });
 
     actionHandler.registerEvent('appService.fileEditor.onDidSaveTextDocument', vscode.workspace.onDidSaveTextDocument, async function (this: IActionContext, doc: vscode.TextDocument): Promise<void> { await fileEditor.onDidSaveTextDocument(this, context.globalState, doc); });
