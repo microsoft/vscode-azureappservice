@@ -24,12 +24,14 @@ export class WebAppTreeItem extends SiteTreeItem {
     public readonly appSettingsNode: IAzureTreeItem;
     public readonly webJobsNode: IAzureTreeItem;
     public readonly folderNode: IAzureTreeItem;
+    public readonly logFolderNode: IAzureTreeItem;
 
     constructor(client: SiteClient, appServicePlan: AppServicePlan) {
         super(client);
         // tslint:disable-next-line:no-non-null-assertion
         this.deploymentSlotsNode = appServicePlan.sku!.tier === 'Basic' ? new DeploymentSlotsNATreeItem() : new DeploymentSlotsTreeItem(this.client);
         this.folderNode = new FolderTreeItem(this.client, 'Files', "/site/wwwroot", true);
+        this.logFolderNode = new FolderTreeItem(this.client, 'Log Files', '/LogFiles', true);
         this.webJobsNode = new WebJobsTreeItem(this.client);
         this.appSettingsNode = new AppSettingsTreeItem(this.client);
     }
@@ -43,7 +45,7 @@ export class WebAppTreeItem extends SiteTreeItem {
     }
 
     public async loadMoreChildren(_parentNode: IAzureNode): Promise<IAzureTreeItem[]> {
-        return [this.deploymentSlotsNode, this.folderNode, this.webJobsNode, this.appSettingsNode];
+        return [this.deploymentSlotsNode, this.folderNode, this.logFolderNode, this.webJobsNode, this.appSettingsNode];
     }
 
     public pickTreeItem(expectedContextValue: string): IAzureTreeItem | undefined {
