@@ -14,7 +14,7 @@ export class DeploymentSlotTreeItem extends SiteTreeItem {
     public readonly contextValue: string = DeploymentSlotTreeItem.contextValue;
     private readonly appSettingsNode: IAzureTreeItem;
     private readonly folderNode: IAzureTreeItem;
-    public readonly logFolderNode: IAzureTreeItem;
+    private readonly logFolderNode: IAzureTreeItem;
 
     constructor(client: SiteClient) {
         super(client);
