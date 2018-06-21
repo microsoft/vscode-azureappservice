@@ -291,14 +291,14 @@ export function activate(context: vscode.ExtensionContext): void {
             await vscode.window.showWarningMessage(`The log-streaming service for "${node.treeItem.client.fullName}" is already active.`);
         } else {
             const enableButton: vscode.MessageItem = { title: 'Yes' };
-            const notNowButton: vscode.MessageItem = { title: 'Not Now', isCloseAffordance: true };
             const isEnabled = await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async p => {
                 p.report({ message: 'Checking container diagnostics settings...' });
                 // tslint:disable-next-line:no-non-null-assertion
                 return await node!.treeItem.isHttpLogsEnabled();
             });
 
-            if (!isEnabled && enableButton === await vscode.window.showWarningMessage(`Do you want to enable application logging for ${node.treeItem.client.fullName}?`, { modal: true }, enableButton, notNowButton)) {
+            if (!isEnabled) {
+                await ui.showWarningMessage(`Do you want to enable application logging for ${node.treeItem.client.fullName}? The web app will be restarted.`, { modal: true }, enableButton);
                 outputChannel.show();
                 outputChannel.appendLine(`Enabling Logging for "${node.treeItem.client.fullName}"...`);
                 await node.treeItem.enableHttpLogs();
