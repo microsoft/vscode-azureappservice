@@ -99,7 +99,7 @@
             },
             {
                 "command": "appService.OpenInPortal",
-                "title": "Open In Portal",
+                "title": "Open in Portal",
                 "category": "Azure App Service"
             },
             {
