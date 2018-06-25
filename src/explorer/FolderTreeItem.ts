@@ -37,7 +37,9 @@ export class FolderTreeItem implements IAzureParentTreeItem {
         const home: string = 'home';
         return fileList.map((file: kuduFile) => {
             return file.mime === 'inode/directory' ?
-                // truncate the home/ of the path
+                // truncate the home of the path
+                // the substring starts at file.path.indexOf(home) because the path sometimes includes site/ or D:\
+                // the home.length + 1 is to account for the trailing slash, Linux uses / and Window uses \
                 new FolderTreeItem(this.client, file.name, file.path.substring(file.path.indexOf(home) + home.length + 1)) :
                 new FileTreeItem(this.client, file.name, file.path.substring(file.path.indexOf(home) + home.length + 1));
         });
