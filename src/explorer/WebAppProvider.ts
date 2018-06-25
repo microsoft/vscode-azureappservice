@@ -55,12 +55,8 @@ export class WebAppProvider implements IChildProvider {
     public async createChild(node: IAzureNode<IAzureTreeItem>, showCreatingNode: (label: string) => void, actionContext: IActionContext): Promise<IAzureTreeItem> {
         // get workspace fspath here, but only if one is opened
         const workspaceConfig: WorkspaceConfiguration = workspace.getConfiguration(extensionPrefix);
-        let fsPath: string | undefined;
-        const improvedCreation: boolean | undefined = workspaceConfig.get(configurationSettings.improvedCreation);
-        if (improvedCreation && workspace.workspaceFolders) {
-            fsPath = workspace.workspaceFolders.length === 1 ? workspace.workspaceFolders[0].uri.fsPath : undefined;
-        }
-        const newSite: Site | undefined = await createWebApp(util.getOutputChannel(), node.ui, actionContext, node.credentials, node.subscriptionId, node.subscriptionDisplayName, showCreatingNode, fsPath, improvedCreation);
+        const advancedCreation: boolean | undefined = workspaceConfig.get(configurationSettings.advancedCreation);
+        const newSite: Site | undefined = await createWebApp(util.getOutputChannel(), node.ui, actionContext, node.credentials, node.subscriptionId, node.subscriptionDisplayName, showCreatingNode, advancedCreation);
         if (newSite === undefined) {
             throw new UserCancelledError();
         } else {

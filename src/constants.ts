@@ -28,5 +28,5 @@ export enum configurationSettings {
     zipIgnorePattern = 'zipIgnorePattern',
     showBuildDuringDeployPrompt = 'showBuildDuringDeployPrompt',
     deploySubpath = 'deploySubpath',
-    improvedCreation = 'improvedCreation'
+    advancedCreation = 'advancedCreation'
 }
