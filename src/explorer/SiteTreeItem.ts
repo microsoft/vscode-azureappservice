@@ -108,8 +108,12 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
     ): Promise<void> {
         const correlationId = getRandomHexString(10);
         telemetryProperties.correlationId = correlationId;
-
         const siteConfig: WebSiteModels.SiteConfigResource = await this.client.getSiteConfig();
+        let deployConfig: { app: string, path: string } | undefined;
+        if (workspace.workspaceFolders) {
+            deployConfig = workspace.getConfiguration(constants.extensionPrefix, workspace.workspaceFolders[0].uri).get(constants.configurationSettings.deploymentConfigurations);
+        }
+
         if (!fsPath) {
             if (siteConfig.linuxFxVersion && siteConfig.linuxFxVersion.toLowerCase().startsWith(constants.runtimes.tomcat)) {
                 fsPath = await showWarQuickPick('Select the war file to deploy...', telemetryProperties);
@@ -117,7 +121,6 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
                 fsPath = await util.showWorkspaceFoldersQuickPick("Select the folder to deploy", telemetryProperties, constants.configurationSettings.deploySubpath);
             }
         }
-
         const workspaceConfig: WorkspaceConfiguration = workspace.getConfiguration(constants.extensionPrefix, Uri.file(fsPath));
         if (workspaceConfig.get(constants.configurationSettings.showBuildDuringDeployPrompt)) {
             if (siteConfig.linuxFxVersion && siteConfig.linuxFxVersion.startsWith(constants.runtimes.node) && siteConfig.scmType === 'None' && !(await fse.pathExists(path.join(fsPath, constants.deploymentFileName)))) {
@@ -127,11 +130,13 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
             }
         }
         cancelWebsiteValidation(this);
+        if (!deployConfig || !deployConfig.app || !deployConfig.path) {
+            await this.promptToSaveDeployConfigs(node, fsPath);
+        }
 
         await node.runWithTemporaryDescription("Deploying...", async () => {
             await appservice.deploy(this.client, <string>fsPath, outputChannel, ui, configurationSectionName, confirmDeployment, telemetryProperties);
         });
-
         // Don't wait
         validateWebSite(correlationId, this, outputChannel).then(
             () => {
@@ -168,6 +173,16 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
             await fse.writeFile(path.join(fsPath, constants.deploymentFileName), constants.deploymentFile);
         } else if (input === dontShowAgainButton) {
             workspace.getConfiguration(constants.extensionPrefix, Uri.file(fsPath)).update(constants.configurationSettings.showBuildDuringDeployPrompt, false);
+        }
+    }
+
+    private async promptToSaveDeployConfigs(node: IAzureNode, fsPath: string): Promise<void> {
+        const result = await ext.ui.showWarningMessage('Save these deployment configurations for this project?', { title: 'Yes' });
+        if (result.title === 'Yes') {
+            workspace.getConfiguration(constants.extensionPrefix, Uri.file(fsPath)).update(constants.configurationSettings.deploymentConfigurations, {
+                app: node.id,
+                path: fsPath
+            });
         }
     }
 }

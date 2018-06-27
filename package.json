@@ -594,6 +594,11 @@
                     "type": "boolean",
                     "default": false,
                     "description": "Enables remote debugging of a Web App. This experimental preview only supports node on Linux."
+                },
+                "appService.deploymentConfigurations": {
+                    "scope": "resource",
+                    "type": "object",
+                    "description": "A workspace setting that will save deployment configurations so that upon clicking 'Deploy' no futher prompts are required from the user"
                 }
             }
         },

@@ -5,6 +5,7 @@
 
 'use strict';
 
+import * as fs from 'fs-extra';
 import { extname } from 'path';
 import * as vscode from 'vscode';
 import { AppSettingsTreeItem, AppSettingTreeItem, editScmType, getFile, IFileResult } from 'vscode-azureappservice';
@@ -14,6 +15,7 @@ import { disableRemoteDebug } from './commands/remoteDebug/disableRemoteDebug';
 import { startRemoteDebug } from './commands/remoteDebug/startRemoteDebug';
 import { swapSlots } from './commands/swapSlots';
 import { extensionPrefix } from './constants';
+import * as constants from './constants';
 import { DeploymentSlotsTreeItem } from './explorer/DeploymentSlotsTreeItem';
 import { DeploymentSlotTreeItem } from './explorer/DeploymentSlotTreeItem';
 import { FileEditor } from './explorer/editors/FileEditor';
@@ -163,8 +165,7 @@ export function activate(context: vscode.ExtensionContext): void {
         // prompt user to deploy to newly created web app
         if (await vscode.window.showInformationMessage('Deploy to web app?', yesButton, noButton) === yesButton) {
             this.properties[deployingToWebApp] = 'true';
-
-            await createdApp.treeItem.deploy(createdApp, undefined, outputChannel, ui, extensionPrefix, false, this.properties);
+            await vscode.commands.executeCommand('appService.Deploy', createdApp);
         } else {
             this.properties[deployingToWebApp] = 'false';
         }
@@ -174,6 +175,19 @@ export function activate(context: vscode.ExtensionContext): void {
         const newNodes: IAzureNode<WebAppTreeItem>[] = [];
         let fsPath: string | undefined;
         let confirmDeployment: boolean = true;
+        let deployConfig: { app: string, path: string } | undefined;
+        let nodeFromConfig: IAzureNode<WebAppTreeItem> | undefined;
+        if (vscode.workspace.workspaceFolders) {
+            deployConfig = vscode.workspace.getConfiguration(constants.extensionPrefix, vscode.workspace.workspaceFolders[0].uri).get(constants.configurationSettings.deploymentConfigurations);
+            if (deployConfig && deployConfig.app && deployConfig.path) {
+
+                const pathExists: boolean = fs.exists(deployConfig.path);
+
+                fsPath = deployConfig.path;
+                nodeFromConfig = <IAzureNode<WebAppTreeItem>>await ext.tree.findNode(deployConfig.app);
+            }
+        }
+
         const onNodeCreatedFromQuickPickDisposable: vscode.Disposable = tree.onNodeCreate((newNode: IAzureNode<WebAppTreeItem>) => {
             // event is fired from azure-extensionui if node was created during deployment
             newNodes.push(newNode);
@@ -181,6 +195,8 @@ export function activate(context: vscode.ExtensionContext): void {
         try {
             if (target instanceof vscode.Uri) {
                 fsPath = target.fsPath;
+            } else if (nodeFromConfig) {
+                node = nodeFromConfig;
             } else {
                 node = target;
             }
