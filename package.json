@@ -594,6 +594,11 @@
                     "type": "boolean",
                     "default": false,
                     "description": "Enables remote debugging of a Web App. This experimental preview only supports node on Linux."
+                },
+                "appService.advancedCreation": {
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Enables the Advanced Web App Creation which will prompt for app name, location, website OS, runtime, resource group, and app service plan."
                 }
             }
         },
@@ -700,8 +705,9 @@
         "portfinder": "^1.0.13",
         "request": "^2.83.0",
         "request-promise": "^4.2.2",
-        "vscode-azureappservice": "~0.16.3",
-        "vscode-azureextensionui": "~0.15.0",
+        "vscode-azureappservice": "~0.16.6",
+        "vscode-azureextensionui": "~0.15.1",
+
         "vscode-azurekudu": "~0.1.6",
         "vscode-debugadapter": "^1.24.0",
         "vscode-debugprotocol": "^1.24.0",
