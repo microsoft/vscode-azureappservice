@@ -11,7 +11,7 @@ import * as path from 'path';
 import { ExtensionContext, MessageItem, OutputChannel, Uri, window, workspace, WorkspaceConfiguration } from 'vscode';
 import { deleteSite, ILogStream, SiteClient, startStreamingLogs } from 'vscode-azureappservice';
 import * as appservice from 'vscode-azureappservice';
-import { IAzureNode, IAzureParentNode, IAzureParentTreeItem, IAzureTreeItem, IAzureUserInput, TelemetryProperties } from 'vscode-azureextensionui';
+import { IAzureNode, IAzureParentNode, IAzureParentTreeItem, IAzureQuickPickItem, IAzureTreeItem, IAzureUserInput, TelemetryProperties, UserCancelledError } from 'vscode-azureextensionui';
 import * as constants from '../constants';
 import { ext } from '../extensionVariables';
 import * as util from '../util';
@@ -99,7 +99,7 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
 
     public async deploy(
         node: IAzureNode,
-        fsPath: string,
+        fsPath: string | undefined,
         outputChannel: OutputChannel,
         ui: IAzureUserInput,
         configurationSectionName: string,
@@ -109,9 +109,17 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
         const correlationId = getRandomHexString(10);
         telemetryProperties.correlationId = correlationId;
 
+        const siteConfig: WebSiteModels.SiteConfigResource = await this.client.getSiteConfig();
+        if (!fsPath) {
+            if (siteConfig.linuxFxVersion && siteConfig.linuxFxVersion.toLowerCase().startsWith(constants.runtimes.tomcat)) {
+                fsPath = await showWarQuickPick('Select the war file to deploy...', telemetryProperties);
+            } else {
+                fsPath = await util.showWorkspaceFoldersQuickPick("Select the folder to deploy", telemetryProperties, constants.configurationSettings.deploySubpath);
+            }
+        }
+
         const workspaceConfig: WorkspaceConfiguration = workspace.getConfiguration(constants.extensionPrefix, Uri.file(fsPath));
         if (workspaceConfig.get(constants.configurationSettings.showBuildDuringDeployPrompt)) {
-            const siteConfig: WebSiteModels.SiteConfigResource = await this.client.getSiteConfig();
             if (siteConfig.linuxFxVersion && siteConfig.linuxFxVersion.startsWith(constants.runtimes.node) && siteConfig.scmType === 'None' && !(await fse.pathExists(path.join(fsPath, constants.deploymentFileName)))) {
                 // check if web app has node runtime, is being zipdeployed, and if there is no .deployment file
                 // tslint:disable-next-line:no-unsafe-any
@@ -121,7 +129,7 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
         cancelWebsiteValidation(this);
 
         await node.runWithTemporaryDescription("Deploying...", async () => {
-            await appservice.deploy(this.client, fsPath, outputChannel, ui, configurationSectionName, confirmDeployment, telemetryProperties);
+            await appservice.deploy(this.client, <string>fsPath, outputChannel, ui, configurationSectionName, confirmDeployment, telemetryProperties);
         });
 
         // Don't wait
@@ -167,4 +175,42 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
 function getRandomHexString(length: number): string {
     const buffer: Buffer = randomBytes(Math.ceil(length / 2));
     return buffer.toString('hex').slice(0, length);
+}
+
+async function showWarQuickPick(placeHolderString: string, telemetryProperties: TelemetryProperties): Promise<string> {
+    const warFiles: Uri[] = await workspace.findFiles('**/*.war');
+    const warQuickPickItems: IAzureQuickPickItem<string | undefined>[] = warFiles.map((uri: Uri) => {
+        return {
+            label: path.basename(uri.fsPath),
+            description: uri.fsPath,
+            data: uri.fsPath
+        };
+    });
+
+    warQuickPickItems.push({ label: '$(package) Browse...', description: '', data: undefined });
+
+    const warQuickPickOption = { placeHolder: placeHolderString };
+    const pickedItem = await window.showQuickPick(warQuickPickItems, warQuickPickOption);
+
+    if (!pickedItem) {
+        telemetryProperties.cancelStep = 'showWar';
+        throw new UserCancelledError();
+    } else if (!pickedItem.data) {
+        const browseResult = await window.showOpenDialog({
+            canSelectFiles: true,
+            canSelectFolders: false,
+            canSelectMany: false,
+            defaultUri: workspace.workspaceFolders ? workspace.workspaceFolders[0].uri : undefined,
+            filters: { War: ['war'] }
+        });
+
+        if (!browseResult) {
+            telemetryProperties.cancelStep = 'showWarBrowse';
+            throw new UserCancelledError();
+        }
+
+        return browseResult[0].fsPath;
+    } else {
+        return pickedItem.data;
+    }
 }

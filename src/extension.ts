@@ -5,14 +5,15 @@
 
 'use strict';
 
+import { extname } from 'path';
 import * as vscode from 'vscode';
-import { AppSettingsTreeItem, AppSettingTreeItem, editScmType } from 'vscode-azureappservice';
+import { AppSettingsTreeItem, AppSettingTreeItem, editScmType, getFile, IFileResult } from 'vscode-azureappservice';
 import { AzureActionHandler, AzureTreeDataProvider, AzureUserInput, IActionContext, IAzureNode, IAzureParentNode, IAzureUserInput, parseError } from 'vscode-azureextensionui';
 import TelemetryReporter from 'vscode-extension-telemetry';
 import { disableRemoteDebug } from './commands/remoteDebug/disableRemoteDebug';
 import { startRemoteDebug } from './commands/remoteDebug/startRemoteDebug';
 import { swapSlots } from './commands/swapSlots';
-import { configurationSettings, extensionPrefix } from './constants';
+import { extensionPrefix } from './constants';
 import { DeploymentSlotsTreeItem } from './explorer/DeploymentSlotsTreeItem';
 import { DeploymentSlotTreeItem } from './explorer/DeploymentSlotTreeItem';
 import { FileEditor } from './explorer/editors/FileEditor';
@@ -163,8 +164,7 @@ export function activate(context: vscode.ExtensionContext): void {
         if (await vscode.window.showInformationMessage('Deploy to web app?', yesButton, noButton) === yesButton) {
             this.properties[deployingToWebApp] = 'true';
 
-            const fsPath = await util.showWorkspaceFoldersQuickPick("Select the folder to deploy", this.properties, configurationSettings.deploySubpath);
-            await createdApp.treeItem.deploy(createdApp, fsPath, outputChannel, ui, extensionPrefix, false, this.properties);
+            await createdApp.treeItem.deploy(createdApp, undefined, outputChannel, ui, extensionPrefix, false, this.properties);
         } else {
             this.properties[deployingToWebApp] = 'false';
         }
@@ -172,7 +172,7 @@ export function activate(context: vscode.ExtensionContext): void {
     actionHandler.registerCommand('appService.Deploy', async function (this: IActionContext, target?: vscode.Uri | IAzureNode<WebAppTreeItem> | undefined): Promise<void> {
         let node: IAzureNode<WebAppTreeItem> | undefined;
         const newNodes: IAzureNode<WebAppTreeItem>[] = [];
-        let fsPath: string;
+        let fsPath: string | undefined;
         let confirmDeployment: boolean = true;
         const onNodeCreatedFromQuickPickDisposable: vscode.Disposable = tree.onNodeCreate((newNode: IAzureNode<WebAppTreeItem>) => {
             // event is fired from azure-extensionui if node was created during deployment
@@ -182,7 +182,6 @@ export function activate(context: vscode.ExtensionContext): void {
             if (target instanceof vscode.Uri) {
                 fsPath = target.fsPath;
             } else {
-                fsPath = await util.showWorkspaceFoldersQuickPick("Select the folder to deploy", this.properties, configurationSettings.deploySubpath);
                 node = target;
             }
 
@@ -247,8 +246,7 @@ export function activate(context: vscode.ExtensionContext): void {
         // prompt user to deploy to newly created web app
         if (await vscode.window.showInformationMessage('Deploy to deployment slot?', yesButton, noButton) === yesButton) {
             this.properties[deployingToDeploymentSlot] = 'true';
-            const fsPath = await util.showWorkspaceFoldersQuickPick("Select the folder to deploy", this.properties, configurationSettings.deploySubpath);
-            await createdSlot.treeItem.deploy(createdSlot, fsPath, outputChannel, ui, extensionPrefix, false, this.properties);
+            await createdSlot.treeItem.deploy(createdSlot, undefined, outputChannel, ui, extensionPrefix, false, this.properties);
         } else {
             this.properties[deployingToDeploymentSlot] = 'false';
         }
@@ -293,14 +291,14 @@ export function activate(context: vscode.ExtensionContext): void {
             await vscode.window.showWarningMessage(`The log-streaming service for "${node.treeItem.client.fullName}" is already active.`);
         } else {
             const enableButton: vscode.MessageItem = { title: 'Yes' };
-            const notNowButton: vscode.MessageItem = { title: 'Not Now', isCloseAffordance: true };
             const isEnabled = await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async p => {
                 p.report({ message: 'Checking container diagnostics settings...' });
                 // tslint:disable-next-line:no-non-null-assertion
                 return await node!.treeItem.isHttpLogsEnabled();
             });
 
-            if (!isEnabled && enableButton === await vscode.window.showWarningMessage(`Do you want to enable application logging for ${node.treeItem.client.fullName}?`, { modal: true }, enableButton, notNowButton)) {
+            if (!isEnabled) {
+                await ui.showWarningMessage(`Do you want to enable application logging for ${node.treeItem.client.fullName}? The web app will be restarted.`, { modal: true }, enableButton);
                 outputChannel.show();
                 outputChannel.appendLine(`Enabling Logging for "${node.treeItem.client.fullName}"...`);
                 await node.treeItem.enableHttpLogs();
@@ -338,7 +336,18 @@ export function activate(context: vscode.ExtensionContext): void {
     actionHandler.registerCommand('appService.DisableRemoteDebug', async (node?: IAzureNode<SiteTreeItem>) => disableRemoteDebug(tree, node));
 
     actionHandler.registerCommand('appService.showFile', async (node: IAzureNode<FileTreeItem>) => {
-        await fileEditor.showEditor(node);
+        const logFiles: string = 'LogFiles/';
+        // we don't want to let users save log files, so rather than using the FileEditor, just open an untitled document
+        if (node.treeItem.path.startsWith(logFiles)) {
+            const file: IFileResult = await getFile(node.treeItem.client, node.treeItem.path);
+            const document: vscode.TextDocument = await vscode.workspace.openTextDocument({
+                language: extname(node.treeItem.path).substring(1), // remove the prepending dot of the ext
+                content: file.data
+            });
+            await vscode.window.showTextDocument(document);
+        } else {
+            await fileEditor.showEditor(node);
+        }
     });
 
     actionHandler.registerEvent('appService.fileEditor.onDidSaveTextDocument', vscode.workspace.onDidSaveTextDocument, async function (this: IActionContext, doc: vscode.TextDocument): Promise<void> { await fileEditor.onDidSaveTextDocument(this, context.globalState, doc); });

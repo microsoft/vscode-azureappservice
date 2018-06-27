@@ -99,7 +99,7 @@
             },
             {
                 "command": "appService.OpenInPortal",
-                "title": "Open In Portal",
+                "title": "Open in Portal",
                 "category": "Azure App Service"
             },
             {
@@ -529,6 +529,11 @@
                     "command": "appService.Deploy",
                     "when": "explorerResourceIsFolder == true",
                     "group": "zzz_@appServiceDeployCommands"
+                },
+                {
+                    "command": "appService.Deploy",
+                    "when": "explorerResourceIsFolder == false && resourceExtname == .war",
+                    "group": "zzz_@appServiceDeployCommands"
                 }
             ],
             "editor/context": [
@@ -700,8 +705,9 @@
         "portfinder": "^1.0.13",
         "request": "^2.83.0",
         "request-promise": "^4.2.2",
-        "vscode-azureappservice": "~0.16.5",
+        "vscode-azureappservice": "~0.16.6",
         "vscode-azureextensionui": "~0.15.1",
+
         "vscode-azurekudu": "~0.1.6",
         "vscode-debugadapter": "^1.24.0",
         "vscode-debugprotocol": "^1.24.0",

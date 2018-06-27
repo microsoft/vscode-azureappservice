@@ -37,7 +37,11 @@ export async function startRemoteDebug(tree: AzureTreeDataProvider, node?: IAzur
 
         const publishCredential: User = await siteClient.getWebAppPublishCredential();
         const tunnelProxy: TunnelProxy = new TunnelProxy(portNumber, siteClient, publishCredential, ext.outputChannel);
-        await tunnelProxy.startProxy();
+        await callWithTelemetryAndErrorHandling('appService.remoteDebugStartProxy', ext.reporter, ext.outputChannel, async function (this: IActionContext): Promise<void> {
+            this.suppressErrorDisplay = true;
+            this.rethrowError = true;
+            await tunnelProxy.startProxy();
+        });
 
         remoteDebug.reportMessage('Attaching debugger...', progress);
 

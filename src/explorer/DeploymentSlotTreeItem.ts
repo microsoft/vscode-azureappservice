@@ -14,10 +14,12 @@ export class DeploymentSlotTreeItem extends SiteTreeItem {
     public readonly contextValue: string = DeploymentSlotTreeItem.contextValue;
     private readonly appSettingsNode: IAzureTreeItem;
     private readonly folderNode: IAzureTreeItem;
+    private readonly logFolderNode: IAzureTreeItem;
 
     constructor(client: SiteClient) {
         super(client);
         this.folderNode = new FolderTreeItem(this.client, 'Files', "/site/wwwroot", true);
+        this.logFolderNode = new FolderTreeItem(this.client, 'Log Files', '/LogFiles', true);
         this.appSettingsNode = new AppSettingsTreeItem(this.client);
     }
 
@@ -29,7 +31,7 @@ export class DeploymentSlotTreeItem extends SiteTreeItem {
     }
 
     public async loadMoreChildren(_node: IAzureParentNode<DeploymentSlotTreeItem>): Promise<IAzureTreeItem[]> {
-        return [this.folderNode, this.appSettingsNode];
+        return [this.folderNode, this.logFolderNode, this.appSettingsNode];
     }
 
     public pickTreeItem(expectedContextValue: string): IAzureTreeItem | undefined {
