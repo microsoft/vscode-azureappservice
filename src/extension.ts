@@ -180,11 +180,14 @@ export function activate(context: vscode.ExtensionContext): void {
         if (vscode.workspace.workspaceFolders) {
             deployConfig = vscode.workspace.getConfiguration(constants.extensionPrefix, vscode.workspace.workspaceFolders[0].uri).get(constants.configurationSettings.deploymentConfigurations);
             if (deployConfig && deployConfig.app && deployConfig.path) {
-
-                const pathExists: boolean = fs.exists(deployConfig.path);
-
-                fsPath = deployConfig.path;
-                nodeFromConfig = <IAzureNode<WebAppTreeItem>>await ext.tree.findNode(deployConfig.app);
+                const pathExists: boolean = await fs.pathExists(deployConfig.path);
+                nodeFromConfig = <IAzureNode<WebAppTreeItem>>await ext.tree.findNode(deployConfig.app); // resolves to undefined if can't be found
+                if (pathExists && nodeFromConfig) {
+                    fsPath = deployConfig.path;
+                } else {
+                    // if path or app cannot be found, delete old settings
+                    vscode.workspace.getConfiguration(constants.extensionPrefix, vscode.workspace.workspaceFolders[0].uri).update(constants.configurationSettings.deploymentConfigurations, undefined);
+                }
             }
         }
 
