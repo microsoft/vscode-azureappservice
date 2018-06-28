@@ -9,9 +9,8 @@ import * as fse from 'fs-extra';
 import * as opn from 'opn';
 import * as path from 'path';
 import { ExtensionContext, MessageItem, OutputChannel, Uri, window, workspace, WorkspaceConfiguration } from 'vscode';
-import { deleteSite, ILogStream, SiteClient, startStreamingLogs } from 'vscode-azureappservice';
-import * as appservice from 'vscode-azureappservice';
-import { IAzureNode, IAzureParentNode, IAzureParentTreeItem, IAzureQuickPickItem, IAzureTreeItem, IAzureUserInput, TelemetryProperties, UserCancelledError } from 'vscode-azureextensionui';
+import { deleteSite, deploy, ILogStream, SiteClient, startStreamingLogs } from 'vscode-azureappservice';
+import { DialogResponses, IAzureNode, IAzureParentNode, IAzureParentTreeItem, IAzureQuickPickItem, IAzureTreeItem, IAzureUserInput, TelemetryProperties, UserCancelledError } from 'vscode-azureextensionui';
 import * as constants from '../constants';
 import { ext } from '../extensionVariables';
 import * as util from '../util';
@@ -98,7 +97,7 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
     }
 
     public async deploy(
-        node: IAzureNode,
+        node: IAzureNode<SiteTreeItem>,
         fsPath: string | undefined,
         outputChannel: OutputChannel,
         ui: IAzureUserInput,
@@ -109,7 +108,7 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
         const correlationId = getRandomHexString(10);
         telemetryProperties.correlationId = correlationId;
         const siteConfig: WebSiteModels.SiteConfigResource = await this.client.getSiteConfig();
-        let deployConfig: { app: string, path: string } | undefined;
+        let deployConfig: { app: string, path: string, dontWarnAgain?: boolean } | undefined;
         if (workspace.workspaceFolders) {
             deployConfig = workspace.getConfiguration(constants.extensionPrefix, workspace.workspaceFolders[0].uri).get(constants.configurationSettings.deploymentConfigurations);
         }
@@ -130,12 +129,12 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
             }
         }
         cancelWebsiteValidation(this);
-        if (!deployConfig || !deployConfig.app || !deployConfig.path) {
+        if (!deployConfig || deployConfig && (!deployConfig.app || !deployConfig.path) && deployConfig.dontWarnAgain !== true) {
             await this.promptToSaveDeployConfigs(node, fsPath);
         }
 
         await node.runWithTemporaryDescription("Deploying...", async () => {
-            await appservice.deploy(this.client, <string>fsPath, outputChannel, ui, configurationSectionName, confirmDeployment, telemetryProperties);
+            await deploy(this.client, <string>fsPath, outputChannel, ui, configurationSectionName, confirmDeployment, telemetryProperties);
         });
         // Don't wait
         validateWebSite(correlationId, this, outputChannel).then(
@@ -176,14 +175,26 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
         }
     }
 
-    private async promptToSaveDeployConfigs(node: IAzureNode, fsPath: string): Promise<void> {
-        const result = await ext.ui.showWarningMessage('Save these deployment configurations for this project?', { title: 'Yes' });
-        if (result.title === 'Yes') {
-            workspace.getConfiguration(constants.extensionPrefix, Uri.file(fsPath)).update(constants.configurationSettings.deploymentConfigurations, {
-                app: node.id,
-                path: fsPath
-            });
+    private async promptToSaveDeployConfigs(node: IAzureNode<SiteTreeItem>, fsPath: string): Promise<void> {
+        const saveDeploymentConfig: string = `Always deploy the workspace "${fsPath}" to "${node.treeItem.client.fullName}"?`;
+        const neverShowAgain: MessageItem = { title: "Never" };
+        let result: MessageItem = DialogResponses.learnMore;
+        while (result === DialogResponses.learnMore) {
+            result = await ext.ui.showWarningMessage(saveDeploymentConfig, DialogResponses.yes, neverShowAgain, DialogResponses.skipForNow, DialogResponses.learnMore);
+            if (result === DialogResponses.yes) {
+                workspace.getConfiguration(constants.extensionPrefix, Uri.file(fsPath)).update(constants.configurationSettings.deploymentConfigurations, {
+                    app: node.id,
+                    path: fsPath
+                });
+            } else if (result === neverShowAgain) {
+                workspace.getConfiguration(constants.extensionPrefix, Uri.file(fsPath)).update(constants.configurationSettings.deploymentConfigurations, {
+                    dontShowAgain: true
+                });
+            } else if (result === DialogResponses.learnMore) {
+                opn('https://aka.ms/AA1pq88');
+            }
         }
+
     }
 }
 
