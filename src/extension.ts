@@ -194,7 +194,9 @@ export function activate(context: vscode.ExtensionContext): void {
                 if (deployConfig && deployConfig.app && deployConfig.path) {
                     const pathExists: boolean = await fs.pathExists(deployConfig.path);
                     nodeFromConfig = <IAzureNode<WebAppTreeItem>>await ext.tree.findNode(deployConfig.app); // resolves to undefined if app can't be found
+                    // tslint:disable-next-line:strict-boolean-expressions
                     if (pathExists && nodeFromConfig) {
+                        // tslint:disable-next-line:strict-boolean-expressions
                         if (!fsPath && (!node || node && node.id === nodeFromConfig.id)) {
                             /* only use the deployConfig in the following situation:
                             * if there is no path and no node then the entry point was the deploy button

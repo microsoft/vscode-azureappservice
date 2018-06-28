@@ -109,7 +109,7 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
         telemetryProperties.correlationId = correlationId;
         const siteConfig: WebSiteModels.SiteConfigResource = await this.client.getSiteConfig();
         let deployConfig: { app: string, path: string, dontWarnAgain?: boolean } | undefined;
-        if (workspace.workspaceFolders) {
+        if (workspace.workspaceFolders && workspace.workspaceFolders.length === 1) {
             deployConfig = workspace.getConfiguration(constants.extensionPrefix, workspace.workspaceFolders[0].uri).get(constants.configurationSettings.deploymentConfigurations);
         }
 
@@ -129,6 +129,7 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
             }
         }
         cancelWebsiteValidation(this);
+        // tslint:disable-next-line:strict-boolean-expressions
         if (!deployConfig || deployConfig && (!deployConfig.app || !deployConfig.path) && deployConfig.dontWarnAgain !== true) {
             await this.promptToSaveDeployConfigs(node, fsPath);
         }
@@ -191,6 +192,7 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
                     dontShowAgain: true
                 });
             } else if (result === DialogResponses.learnMore) {
+                // tslint:disable-next-line:no-unsafe-any
                 opn('https://aka.ms/AA1pq88');
             }
         }
