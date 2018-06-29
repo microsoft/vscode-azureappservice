@@ -5,6 +5,7 @@
 
 'use strict';
 
+import { SiteConfigResource } from 'azure-arm-website/lib/models';
 import { extname } from 'path';
 import * as vscode from 'vscode';
 import { AppSettingsTreeItem, AppSettingTreeItem, editScmType, getFile, IFileResult } from 'vscode-azureappservice';
@@ -14,6 +15,7 @@ import { disableRemoteDebug } from './commands/remoteDebug/disableRemoteDebug';
 import { startRemoteDebug } from './commands/remoteDebug/startRemoteDebug';
 import { swapSlots } from './commands/swapSlots';
 import { extensionPrefix } from './constants';
+import { runtimes } from './constants';
 import { DeploymentSlotsTreeItem } from './explorer/DeploymentSlotsTreeItem';
 import { DeploymentSlotTreeItem } from './explorer/DeploymentSlotTreeItem';
 import { FileEditor } from './explorer/editors/FileEditor';
@@ -158,12 +160,17 @@ export function activate(context: vscode.ExtensionContext): void {
             node = <IAzureParentNode>await tree.showNodePicker(AzureTreeDataProvider.subscriptionContextValue);
         }
 
-        const createdApp = <IAzureNode<WebAppTreeItem>>await node.createChild(this);
+        const createdApp = <IAzureNode<SiteTreeItem>>await node.createChild(this);
+        const siteConfig: SiteConfigResource = await createdApp.treeItem.client.getSiteConfig();
+        if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length === 1) {
+            if (siteConfig.linuxFxVersion) {
+                await createdApp.treeItem.enableScmDoBuildDuringDeploy(vscode.workspace.workspaceFolders[0].uri.fsPath, siteConfig.linuxFxVersion);
+            }
+        }
 
         // prompt user to deploy to newly created web app
         if (await vscode.window.showInformationMessage('Deploy to web app?', yesButton, noButton) === yesButton) {
             this.properties[deployingToWebApp] = 'true';
-
             await createdApp.treeItem.deploy(createdApp, undefined, outputChannel, ui, extensionPrefix, false, this.properties);
         } else {
             this.properties[deployingToWebApp] = 'false';
