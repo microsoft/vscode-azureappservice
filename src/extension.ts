@@ -315,12 +315,11 @@ export function activate(context: vscode.ExtensionContext): void {
                 const enabledLogging: string = `Enabled Logging for "${node.treeItem.client.fullName}"...`;
                 await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification, title: enablingLogging }, async (): Promise<void> => {
                     outputChannel.appendLine(enablingLogging);
-                    if (node) {
-                        // this shouldn't be neccessary, but ts believes node could be undefined
-                        await node.treeItem.enableHttpLogs();
-                    }
+                    // tslint:disable-next-line:no-non-null-assertion
+                    await node!.treeItem.enableHttpLogs();
                     await vscode.commands.executeCommand('appService.Restart', node);
                     vscode.window.showInformationMessage(enabledLogging);
+                    outputChannel.appendLine(enabledLogging);
                 });
 
             }
