@@ -104,11 +104,15 @@ export function activate(context: vscode.ExtensionContext): void {
         }
 
         const treeItem: SiteTreeItem = node.treeItem;
+        const startingApp: string = `Starting "${treeItem.client.fullName}"...`;
+        const startedApp: string = `"${treeItem.client.fullName}" has been started.`;
         await node.runWithTemporaryDescription("Starting...", async () => {
-            outputChannel.show();
-            outputChannel.appendLine(`Starting "${treeItem.client.fullName}"...`);
-            await treeItem.client.start();
-            outputChannel.appendLine(`"${treeItem.client.fullName}" has been started.`);
+            await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification, title: startingApp }, async (): Promise<void> => {
+                outputChannel.appendLine(startingApp);
+                await treeItem.client.start();
+                outputChannel.appendLine(startedApp);
+                vscode.window.showInformationMessage(startedApp);
+            });
         });
     });
     actionHandler.registerCommand('appService.Stop', async (node?: IAzureNode<SiteTreeItem>) => {
@@ -117,11 +121,15 @@ export function activate(context: vscode.ExtensionContext): void {
         }
 
         const treeItem: SiteTreeItem = node.treeItem;
+        const stoppingApp: string = `Stopping "${treeItem.client.fullName}"...`;
+        const stoppedApp: string = `"${treeItem.client.fullName}" has been stopped. App Service plan charges still apply.`;
         await node.runWithTemporaryDescription("Stopping...", async () => {
-            outputChannel.show();
-            outputChannel.appendLine(`Stopping "${treeItem.client.fullName}"...`);
-            await treeItem.client.stop();
-            outputChannel.appendLine(`"${treeItem.client.fullName}" has been stopped. App Service plan charges still apply.`);
+            await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification, title: stoppingApp }, async (): Promise<void> => {
+                outputChannel.appendLine(stoppingApp);
+                await treeItem.client.stop();
+                outputChannel.appendLine(stoppedApp);
+                vscode.window.showInformationMessage(stoppedApp);
+            });
         });
 
         await logPointsManager.onAppServiceSiteClosed(node.treeItem.client);
@@ -132,14 +140,18 @@ export function activate(context: vscode.ExtensionContext): void {
         }
 
         const treeItem: SiteTreeItem = node.treeItem;
+        const restartingApp: string = `Restarting "${treeItem.client.fullName}"...`;
+        const restartedApp: string = `"${treeItem.client.fullName}" has been restarted.`;
         await node.runWithTemporaryDescription("Restarting...", async () => {
-            outputChannel.show();
-            outputChannel.appendLine(`Restarting "${treeItem.client.fullName}"...`);
-            await treeItem.client.stop();
-            await treeItem.client.start();
-            // tslint:disable-next-line:no-non-null-assertion
-            await node!.refresh();
-            outputChannel.appendLine(`"${treeItem.client.fullName}" has been restarted.`);
+            await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification, title: restartingApp }, async (): Promise<void> => {
+                outputChannel.appendLine(restartingApp);
+                await treeItem.client.stop();
+                await treeItem.client.start();
+                // tslint:disable-next-line:no-non-null-assertion
+                await node!.refresh();
+                vscode.window.showInformationMessage(restartedApp);
+                outputChannel.appendLine(restartedApp);
+            });
         });
 
         await logPointsManager.onAppServiceSiteClosed(node.treeItem.client);
@@ -299,12 +311,20 @@ export function activate(context: vscode.ExtensionContext): void {
 
             if (!isEnabled) {
                 await ui.showWarningMessage(`Do you want to enable application logging for ${node.treeItem.client.fullName}? The web app will be restarted.`, { modal: true }, enableButton);
-                outputChannel.show();
-                outputChannel.appendLine(`Enabling Logging for "${node.treeItem.client.fullName}"...`);
-                await node.treeItem.enableHttpLogs();
-                await vscode.commands.executeCommand('appService.Restart', node);
+                const enablingLogging: string = `Enabling Logging for "${node.treeItem.client.fullName}"...`;
+                const enabledLogging: string = `Enabled Logging for "${node.treeItem.client.fullName}"...`;
+                await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification, title: enablingLogging }, async (): Promise<void> => {
+                    outputChannel.appendLine(enablingLogging);
+                    if (node) {
+                        // this shouldn't be neccessary, but ts believes node could be undefined
+                        await node.treeItem.enableHttpLogs();
+                    }
+                    await vscode.commands.executeCommand('appService.Restart', node);
+                    vscode.window.showInformationMessage(enabledLogging);
+                });
+
             }
-            // Otherwise connect to log stream anyways, users might see similar "log not enabled" message with how to enable link from the stream output.
+
             node.treeItem.logStream = await node.treeItem.connectToLogStream(context);
         }
     });
