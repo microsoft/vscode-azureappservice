@@ -9,13 +9,6 @@ import { IAzureQuickPickItem, TelemetryProperties, UserCancelledError } from 'vs
 import { extensionPrefix } from './constants';
 import { ext } from './extensionVariables';
 
-// Output channel for the extension
-const outputChannel = vscode.window.createOutputChannel("Azure App Service");
-
-export function getOutputChannel(): vscode.OutputChannel {
-    return outputChannel;
-}
-
 // Resource ID
 export function parseAzureResourceId(resourceId: string): { [key: string]: string } {
     const invalidIdErr = new Error('Invalid web app ID.');

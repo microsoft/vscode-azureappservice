@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { OutputChannel } from "vscode";
+import { ExtensionContext, OutputChannel } from "vscode";
 import { AzureTreeDataProvider, IAzureUserInput } from "vscode-azureextensionui";
 import TelemetryReporter from "vscode-extension-telemetry";
 
@@ -15,4 +15,5 @@ export namespace ext {
     export let outputChannel: OutputChannel;
     export let ui: IAzureUserInput;
     export let reporter: TelemetryReporter | undefined;
+    export let context: ExtensionContext;
 }

@@ -7,15 +7,15 @@ import { SiteConfigResource, User } from 'azure-arm-website/lib/models';
 import * as portfinder from 'portfinder';
 import * as vscode from 'vscode';
 import { SiteClient, TunnelProxy } from 'vscode-azureappservice';
-import { AzureTreeDataProvider, callWithTelemetryAndErrorHandling, IActionContext, IAzureNode } from 'vscode-azureextensionui';
+import { callWithTelemetryAndErrorHandling, IActionContext, IAzureNode } from 'vscode-azureextensionui';
 import { SiteTreeItem } from '../../explorer/SiteTreeItem';
 import { WebAppTreeItem } from '../../explorer/WebAppTreeItem';
 import { ext } from '../../extensionVariables';
 import * as remoteDebug from './remoteDebugCommon';
 
-export async function startRemoteDebug(tree: AzureTreeDataProvider, node?: IAzureNode<SiteTreeItem>): Promise<void> {
+export async function startRemoteDebug(node?: IAzureNode<SiteTreeItem>): Promise<void> {
     if (!node) {
-        node = <IAzureNode<SiteTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
+        node = <IAzureNode<SiteTreeItem>>await ext.tree.showNodePicker(WebAppTreeItem.contextValue);
     }
     const siteClient: SiteClient = node.treeItem.client;
 
@@ -36,8 +36,8 @@ export async function startRemoteDebug(tree: AzureTreeDataProvider, node?: IAzur
         remoteDebug.reportMessage('Starting tunnel proxy...', progress);
 
         const publishCredential: User = await siteClient.getWebAppPublishCredential();
-        const tunnelProxy: TunnelProxy = new TunnelProxy(portNumber, siteClient, publishCredential, ext.outputChannel);
-        await callWithTelemetryAndErrorHandling('appService.remoteDebugStartProxy', ext.reporter, ext.outputChannel, async function (this: IActionContext): Promise<void> {
+        const tunnelProxy: TunnelProxy = new TunnelProxy(portNumber, siteClient, publishCredential);
+        await callWithTelemetryAndErrorHandling('appService.remoteDebugStartProxy', async function (this: IActionContext): Promise<void> {
             this.suppressErrorDisplay = true;
             this.rethrowError = true;
             await tunnelProxy.startProxy();
@@ -45,7 +45,7 @@ export async function startRemoteDebug(tree: AzureTreeDataProvider, node?: IAzur
 
         remoteDebug.reportMessage('Attaching debugger...', progress);
 
-        await callWithTelemetryAndErrorHandling('appService.remoteDebugAttach', ext.reporter, ext.outputChannel, async function (this: IActionContext): Promise<void> {
+        await callWithTelemetryAndErrorHandling('appService.remoteDebugAttach', async function (this: IActionContext): Promise<void> {
             this.suppressErrorDisplay = true;
             this.rethrowError = true;
             await vscode.debug.startDebugging(undefined, debugConfig);

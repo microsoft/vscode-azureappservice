@@ -14,6 +14,7 @@ import { ISetLogpointResponse } from './structs/ISetLogpointResponse';
 import { ILogpoint } from './structs/Logpoint';
 import { LogpointsCollection } from './structs/LogpointsCollection';
 import { SiteClient } from 'vscode-azureappservice';
+import { ext } from '../extensionVariables';
 
 class DebugSessionManager {
     private _metadata: IDebugSessionMetaData;
@@ -148,7 +149,7 @@ export class LogPointsManager extends vscode.Disposable {
     private _debugSessionManagerMapping: { [key: string]: DebugSessionManager };
     private _siteStreamingLogOutputChannelMapping: { [siteName: string]: vscode.OutputChannel };
 
-    constructor(private _outputChannel: vscode.OutputChannel) {
+    constructor() {
         super(() => {
             this.cleanup();
         });
@@ -217,11 +218,11 @@ export class LogPointsManager extends vscode.Disposable {
         if (logpoint) {
             await debugSessionManager.removeLogpoint(logpoint);
             debugSessionManager.unregisterLogpoint(uri, logpoint);
-            this._outputChannel.appendLine(`Removed logpoint at line ${logpoint.line} in ${params.path}`);
+            ext.outputChannel.appendLine(`Removed logpoint at line ${logpoint.line} in ${params.path}`);
         } else {
             const newLogpoint = await debugSessionManager.addLogpoint(params.internalScriptId, line, column);
             debugSessionManager.registerLogpoint(uri, newLogpoint);
-            this._outputChannel.appendLine(`Added logpoint at line ${newLogpoint.line} in ${params.path}`);
+            ext.outputChannel.appendLine(`Added logpoint at line ${newLogpoint.line} in ${params.path}`);
         }
 
         return true;
@@ -234,8 +235,8 @@ export class LogPointsManager extends vscode.Disposable {
             return;
         }
         await debugSessionManager.kill();
-        this._outputChannel.show();
-        this._outputChannel.appendLine("The logpoints session has terminated because the App Service is stopped or restarted.");
+        ext.outputChannel.show();
+        ext.outputChannel.appendLine("The logpoints session has terminated because the App Service is stopped or restarted.");
     }
 
     public onStreamingLogOutputChannelCreated(client: SiteClient, outputChannel: vscode.OutputChannel): void {
@@ -290,8 +291,8 @@ export class LogPointsManager extends vscode.Disposable {
             if (streamingLogOutputChannel) {
                 streamingLogOutputChannel.show();
             } else {
-                this._outputChannel.show();
-                this._outputChannel.appendLine('Cannot find streaming log output channel.');
+                ext.outputChannel.show();
+                ext.outputChannel.appendLine('Cannot find streaming log output channel.');
             }
         }
     }

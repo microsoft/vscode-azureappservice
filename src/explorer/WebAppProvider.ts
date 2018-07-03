@@ -9,7 +9,6 @@ import { workspace, WorkspaceConfiguration } from 'vscode';
 import { createWebApp, SiteClient } from 'vscode-azureappservice';
 import { IActionContext, IAzureNode, IAzureTreeItem, IChildProvider, UserCancelledError } from 'vscode-azureextensionui';
 import { configurationSettings, extensionPrefix } from '../constants';
-import * as util from '../util';
 import { InvalidWebAppTreeItem } from './InvalidWebAppTreeItem';
 import { WebAppTreeItem } from './WebAppTreeItem';
 
@@ -55,7 +54,7 @@ export class WebAppProvider implements IChildProvider {
     public async createChild(node: IAzureNode<IAzureTreeItem>, showCreatingNode: (label: string) => void, actionContext: IActionContext): Promise<IAzureTreeItem> {
         const workspaceConfig: WorkspaceConfiguration = workspace.getConfiguration(extensionPrefix);
         const advancedCreation: boolean | undefined = workspaceConfig.get(configurationSettings.advancedCreation);
-        const newSite: Site | undefined = await createWebApp(util.getOutputChannel(), node.ui, actionContext, node.credentials, node.subscriptionId, node.subscriptionDisplayName, showCreatingNode, advancedCreation);
+        const newSite: Site | undefined = await createWebApp(actionContext, node.credentials, node.subscriptionId, node.subscriptionDisplayName, showCreatingNode, advancedCreation);
         if (newSite === undefined) {
             throw new UserCancelledError();
         } else {

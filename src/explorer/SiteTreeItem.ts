@@ -8,10 +8,10 @@ import { randomBytes } from 'crypto';
 import * as fse from 'fs-extra';
 import * as opn from 'opn';
 import * as path from 'path';
-import { ExtensionContext, MessageItem, OutputChannel, Uri, window, workspace, WorkspaceConfiguration } from 'vscode';
+import { MessageItem, OutputChannel, Uri, window, workspace, WorkspaceConfiguration } from 'vscode';
 import { deleteSite, ILogStream, SiteClient, startStreamingLogs } from 'vscode-azureappservice';
 import * as appservice from 'vscode-azureappservice';
-import { IAzureNode, IAzureParentNode, IAzureParentTreeItem, IAzureQuickPickItem, IAzureTreeItem, IAzureUserInput, TelemetryProperties, UserCancelledError } from 'vscode-azureextensionui';
+import { IAzureNode, IAzureParentNode, IAzureParentTreeItem, IAzureQuickPickItem, IAzureTreeItem, TelemetryProperties, UserCancelledError } from 'vscode-azureextensionui';
 import * as constants from '../constants';
 import { ext } from '../extensionVariables';
 import * as util from '../util';
@@ -63,8 +63,8 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
         opn(this.client.defaultHostUrl);
     }
 
-    public async deleteTreeItem(node: IAzureNode): Promise<void> {
-        await deleteSite(this.client, node.ui, util.getOutputChannel());
+    public async deleteTreeItem(_node: IAzureNode): Promise<void> {
+        await deleteSite(this.client);
     }
 
     public async isHttpLogsEnabled(): Promise<boolean> {
@@ -87,21 +87,19 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
         await this.client.updateLogsConfig(logsConfig);
     }
 
-    public async connectToLogStream(context: ExtensionContext): Promise<ILogStream> {
+    public async connectToLogStream(): Promise<ILogStream> {
         if (!this.logStreamOutputChannel) {
             const logStreamoutputChannel: OutputChannel = window.createOutputChannel(`${this.client.fullName} - Log Stream`);
-            context.subscriptions.push(logStreamoutputChannel);
+            ext.context.subscriptions.push(logStreamoutputChannel);
             this.logStreamOutputChannel = logStreamoutputChannel;
         }
         this.logStreamOutputChannel.show();
-        return await startStreamingLogs(this.client, ext.reporter, this.logStreamOutputChannel);
+        return await startStreamingLogs(this.client, this.logStreamOutputChannel);
     }
 
     public async deploy(
         node: IAzureNode,
         fsPath: string | undefined,
-        outputChannel: OutputChannel,
-        ui: IAzureUserInput,
         configurationSectionName: string,
         confirmDeployment: boolean = true,
         telemetryProperties: TelemetryProperties
@@ -129,11 +127,11 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
         cancelWebsiteValidation(this);
 
         await node.runWithTemporaryDescription("Deploying...", async () => {
-            await appservice.deploy(this.client, <string>fsPath, outputChannel, ui, configurationSectionName, confirmDeployment, telemetryProperties);
+            await appservice.deploy(this.client, <string>fsPath, configurationSectionName, confirmDeployment, telemetryProperties);
         });
 
         // Don't wait
-        validateWebSite(correlationId, this, outputChannel).then(
+        validateWebSite(correlationId, this).then(
             () => {
                 // ignore
             },
