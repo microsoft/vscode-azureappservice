@@ -7,8 +7,8 @@
 
 import { extname } from 'path';
 import * as vscode from 'vscode';
-import { AppSettingsTreeItem, AppSettingTreeItem, editScmType, getFile, IFileResult } from 'vscode-azureappservice';
-import { AzureActionHandler, AzureTreeDataProvider, AzureUserInput, IActionContext, IAzureNode, IAzureParentNode, IAzureUserInput, parseError } from 'vscode-azureextensionui';
+import { AppSettingsTreeItem, AppSettingTreeItem, editScmType, getFile, IFileResult, registerAppServiceExtensionVariables } from 'vscode-azureappservice';
+import { AzureTreeDataProvider, AzureUserInput, IActionContext, IAzureNode, IAzureParentNode, IAzureUserInput, parseError, registerCommand, registerEvent, registerUIExtensionVariables } from 'vscode-azureextensionui';
 import TelemetryReporter from 'vscode-extension-telemetry';
 import { disableRemoteDebug } from './commands/remoteDebug/disableRemoteDebug';
 import { startRemoteDebug } from './commands/remoteDebug/startRemoteDebug';
@@ -27,12 +27,15 @@ import { LogPointsManager } from './logPoints/LogPointsManager';
 import { LogPointsSessionWizard } from './logPoints/LogPointsSessionWizard';
 import { RemoteScriptDocumentProvider, RemoteScriptSchema } from './logPoints/remoteScriptDocumentProvider';
 import { LogpointsCollection } from './logPoints/structs/LogpointsCollection';
-import * as util from "./util";
 import { getPackageInfo, IPackageInfo } from './utils/IPackageInfo';
 
 // tslint:disable-next-line:export-name
 // tslint:disable-next-line:max-func-body-length
 export function activate(context: vscode.ExtensionContext): void {
+    registerUIExtensionVariables(ext);
+    registerAppServiceExtensionVariables(ext);
+    ext.context = context;
+
     const packageInfo: IPackageInfo | undefined = getPackageInfo(context);
     if (packageInfo) {
         ext.reporter = new TelemetryReporter(packageInfo.name, packageInfo.version, packageInfo.aiKey);
@@ -42,12 +45,11 @@ export function activate(context: vscode.ExtensionContext): void {
     const ui: IAzureUserInput = new AzureUserInput(context.globalState);
     ext.ui = ui;
 
-    const outputChannel = util.getOutputChannel();
-    ext.outputChannel = outputChannel;
-    context.subscriptions.push(outputChannel);
+    ext.outputChannel = vscode.window.createOutputChannel("Azure App Service");
+    context.subscriptions.push(ext.outputChannel);
 
     const webAppProvider: WebAppProvider = new WebAppProvider();
-    const tree = new AzureTreeDataProvider(webAppProvider, 'appService.LoadMore', ui, ext.reporter);
+    const tree = new AzureTreeDataProvider(webAppProvider, 'appService.LoadMore');
     ext.tree = tree;
     context.subscriptions.push(tree);
     context.subscriptions.push(vscode.window.registerTreeDataProvider('azureAppService', tree));
@@ -62,7 +64,7 @@ export function activate(context: vscode.ExtensionContext): void {
     const documentProvider = new RemoteScriptDocumentProvider();
     context.subscriptions.push(vscode.workspace.registerTextDocumentContentProvider(RemoteScriptSchema.schema, documentProvider));
 
-    const logPointsManager = new LogPointsManager(outputChannel);
+    const logPointsManager = new LogPointsManager();
     context.subscriptions.push(logPointsManager);
 
     const pathIcon = context.asAbsolutePath('resources/logpoint.svg');
@@ -78,18 +80,17 @@ export function activate(context: vscode.ExtensionContext): void {
     const yesButton: vscode.MessageItem = { title: 'Yes' };
     const noButton: vscode.MessageItem = { title: 'No', isCloseAffordance: true };
 
-    const actionHandler: AzureActionHandler = new AzureActionHandler(context, outputChannel, ext.reporter);
-    actionHandler.registerCommand('appService.Refresh', async (node?: IAzureNode) => await tree.refresh(node));
-    actionHandler.registerCommand('appService.selectSubscriptions', () => vscode.commands.executeCommand("azure-account.selectSubscriptions"));
-    actionHandler.registerCommand('appService.LoadMore', async (node: IAzureNode) => await tree.loadMore(node));
-    actionHandler.registerCommand('appService.Browse', async (node?: IAzureNode<SiteTreeItem>) => {
+    registerCommand('appService.Refresh', async (node?: IAzureNode) => await tree.refresh(node));
+    registerCommand('appService.selectSubscriptions', () => vscode.commands.executeCommand("azure-account.selectSubscriptions"));
+    registerCommand('appService.LoadMore', async (node: IAzureNode) => await tree.loadMore(node));
+    registerCommand('appService.Browse', async (node?: IAzureNode<SiteTreeItem>) => {
         if (!node) {
             node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
         }
 
         node.treeItem.browse();
     });
-    actionHandler.registerCommand('appService.OpenInPortal', async (node?: IAzureNode) => {
+    registerCommand('appService.OpenInPortal', async (node?: IAzureNode) => {
         if (!node) {
             node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
         }
@@ -98,7 +99,7 @@ export function activate(context: vscode.ExtensionContext): void {
         node.treeItem.contextValue === DeploymentSlotsTreeItem.contextValue ? node.openInPortal(`${node.parent!.id}/deploymentSlots`) : node.openInPortal();
         // the deep link for slots does not follow the conventional pattern of including its parent in the path name so this is how we extract the slot's id
     });
-    actionHandler.registerCommand('appService.Start', async (node?: IAzureNode<SiteTreeItem>) => {
+    registerCommand('appService.Start', async (node?: IAzureNode<SiteTreeItem>) => {
         if (!node) {
             node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
         }
@@ -108,14 +109,14 @@ export function activate(context: vscode.ExtensionContext): void {
         const startedApp: string = `"${treeItem.client.fullName}" has been started.`;
         await node.runWithTemporaryDescription("Starting...", async () => {
             await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification, title: startingApp }, async (): Promise<void> => {
-                outputChannel.appendLine(startingApp);
+                ext.outputChannel.appendLine(startingApp);
                 await treeItem.client.start();
-                outputChannel.appendLine(startedApp);
+                ext.outputChannel.appendLine(startedApp);
                 vscode.window.showInformationMessage(startedApp);
             });
         });
     });
-    actionHandler.registerCommand('appService.Stop', async (node?: IAzureNode<SiteTreeItem>) => {
+    registerCommand('appService.Stop', async (node?: IAzureNode<SiteTreeItem>) => {
         if (!node) {
             node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
         }
@@ -125,16 +126,16 @@ export function activate(context: vscode.ExtensionContext): void {
         const stoppedApp: string = `"${treeItem.client.fullName}" has been stopped. App Service plan charges still apply.`;
         await node.runWithTemporaryDescription("Stopping...", async () => {
             await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification, title: stoppingApp }, async (): Promise<void> => {
-                outputChannel.appendLine(stoppingApp);
+                ext.outputChannel.appendLine(stoppingApp);
                 await treeItem.client.stop();
-                outputChannel.appendLine(stoppedApp);
+                ext.outputChannel.appendLine(stoppedApp);
                 vscode.window.showInformationMessage(stoppedApp);
             });
         });
 
         await logPointsManager.onAppServiceSiteClosed(node.treeItem.client);
     });
-    actionHandler.registerCommand('appService.Restart', async (node?: IAzureNode<SiteTreeItem>) => {
+    registerCommand('appService.Restart', async (node?: IAzureNode<SiteTreeItem>) => {
         if (!node) {
             node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
         }
@@ -144,26 +145,26 @@ export function activate(context: vscode.ExtensionContext): void {
         const restartedApp: string = `"${treeItem.client.fullName}" has been restarted.`;
         await node.runWithTemporaryDescription("Restarting...", async () => {
             await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification, title: restartingApp }, async (): Promise<void> => {
-                outputChannel.appendLine(restartingApp);
+                ext.outputChannel.appendLine(restartingApp);
                 await treeItem.client.stop();
                 await treeItem.client.start();
                 // tslint:disable-next-line:no-non-null-assertion
                 await node!.refresh();
                 vscode.window.showInformationMessage(restartedApp);
-                outputChannel.appendLine(restartedApp);
+                ext.outputChannel.appendLine(restartedApp);
             });
         });
 
         await logPointsManager.onAppServiceSiteClosed(node.treeItem.client);
     });
-    actionHandler.registerCommand('appService.Delete', async (node?: IAzureNode<SiteTreeItem>) => {
+    registerCommand('appService.Delete', async (node?: IAzureNode<SiteTreeItem>) => {
         if (!node) {
             node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
         }
 
         await node.deleteNode();
     });
-    actionHandler.registerCommand('appService.CreateWebApp', async function (this: IActionContext, node?: IAzureParentNode): Promise<void> {
+    registerCommand('appService.CreateWebApp', async function (this: IActionContext, node?: IAzureParentNode): Promise<void> {
         const deployingToWebApp = 'deployingToWebApp';
 
         if (!node) {
@@ -176,12 +177,12 @@ export function activate(context: vscode.ExtensionContext): void {
         if (await vscode.window.showInformationMessage('Deploy to web app?', yesButton, noButton) === yesButton) {
             this.properties[deployingToWebApp] = 'true';
 
-            await createdApp.treeItem.deploy(createdApp, undefined, outputChannel, ui, extensionPrefix, false, this.properties);
+            await createdApp.treeItem.deploy(createdApp, undefined, extensionPrefix, false, this.properties);
         } else {
             this.properties[deployingToWebApp] = 'false';
         }
     });
-    actionHandler.registerCommand('appService.Deploy', async function (this: IActionContext, target?: vscode.Uri | IAzureNode<WebAppTreeItem> | undefined): Promise<void> {
+    registerCommand('appService.Deploy', async function (this: IActionContext, target?: vscode.Uri | IAzureNode<WebAppTreeItem> | undefined): Promise<void> {
         let node: IAzureNode<WebAppTreeItem> | undefined;
         const newNodes: IAzureNode<WebAppTreeItem>[] = [];
         let fsPath: string | undefined;
@@ -217,25 +218,25 @@ export function activate(context: vscode.ExtensionContext): void {
                     }
                 }
             }
-            await node.treeItem.deploy(node, fsPath, outputChannel, ui, extensionPrefix, confirmDeployment, this.properties);
+            await node.treeItem.deploy(node, fsPath, extensionPrefix, confirmDeployment, this.properties);
         } finally {
             onNodeCreatedFromQuickPickDisposable.dispose();
         }
     });
-    actionHandler.registerCommand('appService.ConfigureDeploymentSource', async (node?: IAzureNode<SiteTreeItem>) => {
+    registerCommand('appService.ConfigureDeploymentSource', async (node?: IAzureNode<SiteTreeItem>) => {
         if (!node) {
             node = <IAzureNode<SiteTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
         }
-        await editScmType(node.treeItem.client, node, outputChannel);
+        await editScmType(node.treeItem.client, node);
     });
-    actionHandler.registerCommand('appService.OpenVSTSCD', async (node?: IAzureNode<WebAppTreeItem>) => {
+    registerCommand('appService.OpenVSTSCD', async (node?: IAzureNode<WebAppTreeItem>) => {
         if (!node) {
             node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
         }
 
         node.treeItem.openCdInPortal(node);
     });
-    actionHandler.registerCommand('appService.DeploymentScript', async (node?: IAzureNode<WebAppTreeItem>) => {
+    registerCommand('appService.DeploymentScript', async (node?: IAzureNode<WebAppTreeItem>) => {
         if (!node) {
             node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
         }
@@ -246,7 +247,7 @@ export function activate(context: vscode.ExtensionContext): void {
             await node!.treeItem.generateDeploymentScript(node!);
         });
     });
-    actionHandler.registerCommand('appService.CreateSlot', async function (this: IActionContext, node?: IAzureParentNode<DeploymentSlotsTreeItem>): Promise<void> {
+    registerCommand('appService.CreateSlot', async function (this: IActionContext, node?: IAzureParentNode<DeploymentSlotsTreeItem>): Promise<void> {
         const deployingToDeploymentSlot = 'deployingToDeploymentSlot';
 
         if (!node) {
@@ -258,41 +259,41 @@ export function activate(context: vscode.ExtensionContext): void {
         // prompt user to deploy to newly created web app
         if (await vscode.window.showInformationMessage('Deploy to deployment slot?', yesButton, noButton) === yesButton) {
             this.properties[deployingToDeploymentSlot] = 'true';
-            await createdSlot.treeItem.deploy(createdSlot, undefined, outputChannel, ui, extensionPrefix, false, this.properties);
+            await createdSlot.treeItem.deploy(createdSlot, undefined, extensionPrefix, false, this.properties);
         } else {
             this.properties[deployingToDeploymentSlot] = 'false';
         }
     });
-    actionHandler.registerCommand('appService.SwapSlots', async (node: IAzureNode<DeploymentSlotTreeItem>) => await swapSlots(tree, node, outputChannel));
-    actionHandler.registerCommand('appService.appSettings.Add', async (node?: IAzureParentNode<AppSettingsTreeItem>) => {
+    registerCommand('appService.SwapSlots', async (node: IAzureNode<DeploymentSlotTreeItem>) => await swapSlots(node));
+    registerCommand('appService.appSettings.Add', async (node?: IAzureParentNode<AppSettingsTreeItem>) => {
         if (!node) {
             node = <IAzureParentNode<AppSettingsTreeItem>>await tree.showNodePicker(AppSettingsTreeItem.contextValue);
         }
 
         await node.createChild();
     });
-    actionHandler.registerCommand('appService.appSettings.Edit', async (node?: IAzureNode<AppSettingTreeItem>) => {
+    registerCommand('appService.appSettings.Edit', async (node?: IAzureNode<AppSettingTreeItem>) => {
         if (!node) {
             node = <IAzureNode<AppSettingTreeItem>>await tree.showNodePicker(AppSettingTreeItem.contextValue);
         }
 
         await node.treeItem.edit(node);
     });
-    actionHandler.registerCommand('appService.appSettings.Rename', async (node?: IAzureNode<AppSettingTreeItem>) => {
+    registerCommand('appService.appSettings.Rename', async (node?: IAzureNode<AppSettingTreeItem>) => {
         if (!node) {
             node = <IAzureNode<AppSettingTreeItem>>await tree.showNodePicker(AppSettingTreeItem.contextValue);
         }
 
         await node.treeItem.rename(node);
     });
-    actionHandler.registerCommand('appService.appSettings.Delete', async (node?: IAzureNode<AppSettingTreeItem>) => {
+    registerCommand('appService.appSettings.Delete', async (node?: IAzureNode<AppSettingTreeItem>) => {
         if (!node) {
             node = <IAzureNode<AppSettingTreeItem>>await tree.showNodePicker(AppSettingTreeItem.contextValue);
         }
 
         await node.deleteNode();
     });
-    actionHandler.registerCommand('appService.OpenLogStream', async (node?: IAzureNode<SiteTreeItem>) => {
+    registerCommand('appService.OpenLogStream', async (node?: IAzureNode<SiteTreeItem>) => {
         if (!node) {
             node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
         }
@@ -314,20 +315,20 @@ export function activate(context: vscode.ExtensionContext): void {
                 const enablingLogging: string = `Enabling Logging for "${node.treeItem.client.fullName}"...`;
                 const enabledLogging: string = `Enabled Logging for "${node.treeItem.client.fullName}"...`;
                 await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification, title: enablingLogging }, async (): Promise<void> => {
-                    outputChannel.appendLine(enablingLogging);
+                    ext.outputChannel.appendLine(enablingLogging);
                     // tslint:disable-next-line:no-non-null-assertion
                     await node!.treeItem.enableHttpLogs();
                     await vscode.commands.executeCommand('appService.Restart', node);
                     vscode.window.showInformationMessage(enabledLogging);
-                    outputChannel.appendLine(enabledLogging);
+                    ext.outputChannel.appendLine(enabledLogging);
                 });
 
             }
 
-            node.treeItem.logStream = await node.treeItem.connectToLogStream(context);
+            node.treeItem.logStream = await node.treeItem.connectToLogStream();
         }
     });
-    actionHandler.registerCommand('appService.StopLogStream', async (node?: IAzureNode<SiteTreeItem>) => {
+    registerCommand('appService.StopLogStream', async (node?: IAzureNode<SiteTreeItem>) => {
         if (!node) {
             node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
         }
@@ -338,23 +339,23 @@ export function activate(context: vscode.ExtensionContext): void {
             await vscode.window.showWarningMessage(`The log-streaming service for "${node.treeItem.label}" is already disconnected.`);
         }
     });
-    actionHandler.registerCommand('appService.StartLogPointsSession', async function (this: IActionContext, node?: IAzureNode<SiteTreeItem>): Promise<void> {
+    registerCommand('appService.StartLogPointsSession', async function (this: IActionContext, node?: IAzureNode<SiteTreeItem>): Promise<void> {
         if (node) {
-            const wizard = new LogPointsSessionWizard(logPointsManager, context, outputChannel, node, node.treeItem.client);
+            const wizard = new LogPointsSessionWizard(logPointsManager, context, ext.outputChannel, node, node.treeItem.client);
             await wizard.run(this.properties);
         }
     });
 
-    actionHandler.registerCommand('appService.LogPoints.Toggle', async (uri: vscode.Uri) => {
+    registerCommand('appService.LogPoints.Toggle', async (uri: vscode.Uri) => {
         await logPointsManager.toggleLogpoint(uri);
     });
 
-    actionHandler.registerCommand('appService.LogPoints.OpenScript', openScript);
+    registerCommand('appService.LogPoints.OpenScript', openScript);
 
-    actionHandler.registerCommand('appService.StartRemoteDebug', async (node?: IAzureNode<SiteTreeItem>) => startRemoteDebug(tree, node));
-    actionHandler.registerCommand('appService.DisableRemoteDebug', async (node?: IAzureNode<SiteTreeItem>) => disableRemoteDebug(tree, node));
+    registerCommand('appService.StartRemoteDebug', async (node?: IAzureNode<SiteTreeItem>) => startRemoteDebug(node));
+    registerCommand('appService.DisableRemoteDebug', async (node?: IAzureNode<SiteTreeItem>) => disableRemoteDebug(node));
 
-    actionHandler.registerCommand('appService.showFile', async (node: IAzureNode<FileTreeItem>) => {
+    registerCommand('appService.showFile', async (node: IAzureNode<FileTreeItem>) => {
         const logFiles: string = 'LogFiles/';
         // we don't want to let users save log files, so rather than using the FileEditor, just open an untitled document
         if (node.treeItem.path.startsWith(logFiles)) {
@@ -369,7 +370,7 @@ export function activate(context: vscode.ExtensionContext): void {
         }
     });
 
-    actionHandler.registerEvent('appService.fileEditor.onDidSaveTextDocument', vscode.workspace.onDidSaveTextDocument, async function (this: IActionContext, doc: vscode.TextDocument): Promise<void> { await fileEditor.onDidSaveTextDocument(this, context.globalState, doc); });
+    registerEvent('appService.fileEditor.onDidSaveTextDocument', vscode.workspace.onDidSaveTextDocument, async function (this: IActionContext, doc: vscode.TextDocument): Promise<void> { await fileEditor.onDidSaveTextDocument(this, context.globalState, doc); });
 }
 
 // tslint:disable-next-line:no-empty

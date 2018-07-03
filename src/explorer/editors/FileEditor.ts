@@ -8,12 +8,11 @@ import { Readable } from 'stream';
 import * as vscode from 'vscode';
 import { getFile, IFileResult, putFile } from 'vscode-azureappservice';
 import { BaseEditor, IAzureNode } from 'vscode-azureextensionui';
-import { getOutputChannel } from '../../util';
 import { FileTreeItem } from '../FileTreeItem';
 
 export class FileEditor extends BaseEditor<IAzureNode<FileTreeItem>> {
     constructor() {
-        super('appService.showSavePrompt', getOutputChannel());
+        super('appService.showSavePrompt');
     }
 
     public async getSaveConfirmationText(node: IAzureNode<FileTreeItem>): Promise<string> {

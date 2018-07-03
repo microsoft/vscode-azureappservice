@@ -8,10 +8,8 @@ import { RequestOptions } from 'https';
 import * as requestP from 'request-promise';
 import { URL } from 'url';
 import { isNumber } from 'util';
-import { OutputChannel } from 'vscode';
 import { callWithTelemetryAndErrorHandling, IActionContext } from 'vscode-azureextensionui';
 import { SiteTreeItem } from './explorer/SiteTreeItem';
-import { ext } from './extensionVariables';
 
 const requestPromise = <(options: RequestOptions | string | URL) => Promise<IncomingMessage>><Function>requestP;
 
@@ -45,13 +43,13 @@ export function cancelWebsiteValidation(siteTreeItem: SiteTreeItem): void {
     }
 }
 
-export async function validateWebSite(deploymentCorrelationId: string, siteTreeItem: SiteTreeItem, outputChannel: OutputChannel): Promise<void> {
+export async function validateWebSite(deploymentCorrelationId: string, siteTreeItem: SiteTreeItem): Promise<void> {
     cancelWebsiteValidation(siteTreeItem);
     const id = siteTreeItem.id;
     const cancellation: ICancellation = { canceled: false };
     cancellations.set(id, cancellation);
 
-    return callWithTelemetryAndErrorHandling('appService.validateWebSite', ext.reporter, outputChannel, async function (this: IActionContext): Promise<void> {
+    return callWithTelemetryAndErrorHandling('appService.validateWebSite', async function (this: IActionContext): Promise<void> {
         this.rethrowError = false;
         this.suppressErrorDisplay = true;
 
