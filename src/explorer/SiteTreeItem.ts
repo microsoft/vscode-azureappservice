@@ -74,7 +74,6 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
 
     public async enableHttpLogs(): Promise<void> {
         const logsConfig: WebSiteModels.SiteLogsConfig = {
-            location: this.client.location,
             httpLogs: {
                 fileSystem: {
                     enabled: true,

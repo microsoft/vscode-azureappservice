@@ -29,7 +29,7 @@ export class OpenStreamingLog extends WizardStep {
         }
 
         // Open streaming log
-        await siteTreeItem.connectToLogStream(this._wizard.extensionContext);
+        await siteTreeItem.connectToLogStream();
         this._wizard.logpointsManager.onStreamingLogOutputChannelCreated(siteTreeItem.client, siteTreeItem.logStreamOutputChannel!); // non-null behavior unknown. Should be handled by logPoints team
     }
 }
