@@ -142,33 +142,17 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
             });
     }
 
-    private async enableScmDoBuildDuringDeploy(fsPath: string, runtime: string): Promise<void> {
-        const yesButton: MessageItem = { title: 'Yes' };
-        const dontShowAgainButton: MessageItem = { title: "No, and don't show again" };
-        const learnMoreButton: MessageItem = { title: 'Learn More' };
+    public async enableScmDoBuildDuringDeploy(fsPath: string, runtime: string): Promise<void> {
         const zipIgnoreFolders: string[] = constants.getIgnoredFoldersForDeployment(runtime);
-        const buildDuringDeploy: string = `Would you like to configure your project for faster deployment?`;
-        let input: MessageItem | undefined = learnMoreButton;
-        while (input === learnMoreButton) {
-            input = await window.showInformationMessage(buildDuringDeploy, yesButton, dontShowAgainButton, learnMoreButton);
-            if (input === learnMoreButton) {
-                // tslint:disable-next-line:no-unsafe-any
-                opn('https://aka.ms/Kwwkbd');
-            }
+        let oldSettings: string[] | string | undefined = workspace.getConfiguration(constants.extensionPrefix, Uri.file(fsPath)).get(constants.configurationSettings.zipIgnorePattern);
+        if (!oldSettings) {
+            oldSettings = [];
+        } else if (typeof oldSettings === "string") {
+            oldSettings = [oldSettings];
+            // settings have to be an array to concat the proper zipIgnoreFolders
         }
-        if (input === yesButton) {
-            let oldSettings: string[] | string | undefined = workspace.getConfiguration(constants.extensionPrefix, Uri.file(fsPath)).get(constants.configurationSettings.zipIgnorePattern);
-            if (!oldSettings) {
-                oldSettings = [];
-            } else if (typeof oldSettings === "string") {
-                oldSettings = [oldSettings];
-                // settings have to be an array to concat the proper zipIgnoreFolders
-            }
-            workspace.getConfiguration(constants.extensionPrefix, Uri.file(fsPath)).update(constants.configurationSettings.zipIgnorePattern, oldSettings.concat(zipIgnoreFolders));
-            await fse.writeFile(path.join(fsPath, constants.deploymentFileName), constants.deploymentFile);
-        } else if (input === dontShowAgainButton) {
-            workspace.getConfiguration(constants.extensionPrefix, Uri.file(fsPath)).update(constants.configurationSettings.showBuildDuringDeployPrompt, false);
-        }
+        workspace.getConfiguration(constants.extensionPrefix, Uri.file(fsPath)).update(constants.configurationSettings.zipIgnorePattern, oldSettings.concat(zipIgnoreFolders));
+        await fse.writeFile(path.join(fsPath, constants.deploymentFileName), constants.deploymentFile);
     }
 }
 
