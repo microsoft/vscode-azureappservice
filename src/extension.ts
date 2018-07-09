@@ -108,12 +108,9 @@ export function activate(context: vscode.ExtensionContext): void {
         const startingApp: string = `Starting "${treeItem.client.fullName}"...`;
         const startedApp: string = `"${treeItem.client.fullName}" has been started.`;
         await node.runWithTemporaryDescription("Starting...", async () => {
-            await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification, title: startingApp }, async (): Promise<void> => {
-                ext.outputChannel.appendLine(startingApp);
-                await treeItem.client.start();
-                ext.outputChannel.appendLine(startedApp);
-                vscode.window.showInformationMessage(startedApp);
-            });
+            ext.outputChannel.appendLine(startingApp);
+            await treeItem.client.start();
+            ext.outputChannel.appendLine(startedApp);
         });
     });
     registerCommand('appService.Stop', async (node?: IAzureNode<SiteTreeItem>) => {
@@ -125,12 +122,9 @@ export function activate(context: vscode.ExtensionContext): void {
         const stoppingApp: string = `Stopping "${treeItem.client.fullName}"...`;
         const stoppedApp: string = `"${treeItem.client.fullName}" has been stopped. App Service plan charges still apply.`;
         await node.runWithTemporaryDescription("Stopping...", async () => {
-            await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification, title: stoppingApp }, async (): Promise<void> => {
-                ext.outputChannel.appendLine(stoppingApp);
-                await treeItem.client.stop();
-                ext.outputChannel.appendLine(stoppedApp);
-                vscode.window.showInformationMessage(stoppedApp);
-            });
+            ext.outputChannel.appendLine(stoppingApp);
+            await treeItem.client.stop();
+            ext.outputChannel.appendLine(stoppedApp);
         });
 
         await logPointsManager.onAppServiceSiteClosed(node.treeItem.client);
@@ -144,15 +138,12 @@ export function activate(context: vscode.ExtensionContext): void {
         const restartingApp: string = `Restarting "${treeItem.client.fullName}"...`;
         const restartedApp: string = `"${treeItem.client.fullName}" has been restarted.`;
         await node.runWithTemporaryDescription("Restarting...", async () => {
-            await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification, title: restartingApp }, async (): Promise<void> => {
-                ext.outputChannel.appendLine(restartingApp);
-                await treeItem.client.stop();
-                await treeItem.client.start();
-                // tslint:disable-next-line:no-non-null-assertion
-                await node!.refresh();
-                vscode.window.showInformationMessage(restartedApp);
-                ext.outputChannel.appendLine(restartedApp);
-            });
+            ext.outputChannel.appendLine(restartingApp);
+            await treeItem.client.stop();
+            await treeItem.client.start();
+            // tslint:disable-next-line:no-non-null-assertion
+            await node!.refresh();
+            ext.outputChannel.appendLine(restartedApp);
         });
 
         await logPointsManager.onAppServiceSiteClosed(node.treeItem.client);
