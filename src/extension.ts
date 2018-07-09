@@ -175,8 +175,9 @@ export function activate(context: vscode.ExtensionContext): void {
         const createdApp = <IAzureNode<WebAppTreeItem>>await node.createChild(this);
         createdApp.treeItem.client.getSiteConfig().then(
             (createdAppConfig: SiteConfigResource) => {
-                this.properties.os = createdAppConfig.kind ? createdAppConfig.kind : 'undefined';
+                this.properties.os = createdAppConfig.linuxFxVersion ? 'Linux' : 'Windows';
                 this.properties.runtime = createdAppConfig.linuxFxVersion ? createdAppConfig.linuxFxVersion : 'undefined';
+                this.properties.createdFromDeploy = 'false';
             },
             () => {
                 // ignore
@@ -225,7 +226,7 @@ export function activate(context: vscode.ExtensionContext): void {
                         confirmDeployment = false;
                         newApp.treeItem.client.getSiteConfig().then(
                             (createdAppConfig: SiteConfigResource) => {
-                                this.properties.os = createdAppConfig.kind ? createdAppConfig.kind : 'undefined';
+                                this.properties.os = createdAppConfig.linuxFxVersion ? 'Linux' : 'Windows';
                                 this.properties.runtime = createdAppConfig.linuxFxVersion ? createdAppConfig.linuxFxVersion : 'undefined';
                                 this.properties.createdFromDeploy = 'true';
                             },
