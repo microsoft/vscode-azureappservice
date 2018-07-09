@@ -6,14 +6,15 @@
 import { SiteConfigResource } from 'azure-arm-website/lib/models';
 import * as vscode from 'vscode';
 import { SiteClient } from 'vscode-azureappservice';
-import { AzureTreeDataProvider, IAzureNode } from 'vscode-azureextensionui';
+import { IAzureNode } from 'vscode-azureextensionui';
 import { SiteTreeItem } from '../../explorer/SiteTreeItem';
 import { WebAppTreeItem } from '../../explorer/WebAppTreeItem';
+import { ext } from '../../extensionVariables';
 import * as remoteDebug from './remoteDebugCommon';
 
-export async function disableRemoteDebug(tree: AzureTreeDataProvider, node?: IAzureNode<SiteTreeItem>): Promise<void> {
+export async function disableRemoteDebug(node?: IAzureNode<SiteTreeItem>): Promise<void> {
     if (!node) {
-        node = <IAzureNode<SiteTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
+        node = <IAzureNode<SiteTreeItem>>await ext.tree.showNodePicker(WebAppTreeItem.contextValue);
     }
     const siteClient: SiteClient = node.treeItem.client;
 

@@ -206,7 +206,6 @@ export class LogPointsDebugAdapter extends LoggingDebugSession {
 
     private getPublishCredential(): User {
         return {
-            location: undefined!, // non-null behavior unknown. Should be handled by logPoints team
             publishingUserName: this._publishingUsername!,
             publishingPassword: this._publishingPassword!
         };
