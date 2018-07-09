@@ -144,7 +144,7 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
         const dontShowAgainButton: MessageItem = { title: "No, and don't show again" };
         const learnMoreButton: MessageItem = { title: 'Learn More' };
         const zipIgnoreFolders: string[] = constants.getIgnoredFoldersForDeployment(runtime);
-        const buildDuringDeploy: string = `Would you like to update your workspace configuration to run npm install on the target server? This will improve deployment performance.`;
+        const buildDuringDeploy: string = `Would you like to update your workspace configuration to run npm install on the target server? This should improve deployment performance.`;
         let input: MessageItem | undefined = learnMoreButton;
         while (input === learnMoreButton) {
             input = await window.showInformationMessage(buildDuringDeploy, yesButton, dontShowAgainButton, learnMoreButton);
@@ -163,11 +163,15 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
             }
             workspace.getConfiguration(constants.extensionPrefix, Uri.file(fsPath)).update(constants.configurationSettings.zipIgnorePattern, oldSettings.concat(zipIgnoreFolders));
             await fse.writeFile(path.join(fsPath, constants.deploymentFileName), constants.deploymentFile);
+            telemetryProperties.enableScmInput = "Yes";
         } else if (input === dontShowAgainButton) {
             workspace.getConfiguration(constants.extensionPrefix, Uri.file(fsPath)).update(constants.configurationSettings.showBuildDuringDeployPrompt, false);
+            telemetryProperties.enableScmInput = "No, and don't show again";
         }
 
-        telemetryProperties.enableScmInput = input ? input.title : 'Canceled';
+        if (!telemetryProperties.enableScmInput) {
+            telemetryProperties.enableScmInput = "Canceled";
+        }
     }
 }
 

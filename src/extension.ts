@@ -173,9 +173,14 @@ export function activate(context: vscode.ExtensionContext): void {
         }
 
         const createdApp = <IAzureNode<WebAppTreeItem>>await node.createChild(this);
-        const createdAppConfig: SiteConfigResource = await createdApp.treeItem.client.getSiteConfig();
-        this.properties.os = createdAppConfig.kind ? createdAppConfig.kind : 'undefined';
-        this.properties.runtime = createdAppConfig.linuxFxVersion ? createdAppConfig.linuxFxVersion : 'undefined';
+        createdApp.treeItem.client.getSiteConfig().then(
+            (createdAppConfig: SiteConfigResource) => {
+                this.properties.os = createdAppConfig.kind ? createdAppConfig.kind : 'undefined';
+                this.properties.runtime = createdAppConfig.linuxFxVersion ? createdAppConfig.linuxFxVersion : 'undefined';
+            },
+            () => {
+                // ignore
+            });
         // prompt user to deploy to newly created web app
         if (await vscode.window.showInformationMessage('Deploy to web app?', yesButton, noButton) === yesButton) {
             this.properties[deployingToWebApp] = 'true';
@@ -218,6 +223,15 @@ export function activate(context: vscode.ExtensionContext): void {
                     if (newApp.id === node.id) {
                         // if the node selected for deployment is the same newly created nodes, stifle the confirmDeployment dialog
                         confirmDeployment = false;
+                        newApp.treeItem.client.getSiteConfig().then(
+                            (createdAppConfig: SiteConfigResource) => {
+                                this.properties.os = createdAppConfig.kind ? createdAppConfig.kind : 'undefined';
+                                this.properties.runtime = createdAppConfig.linuxFxVersion ? createdAppConfig.linuxFxVersion : 'undefined';
+                                this.properties.createdFromDeploy = 'true';
+                            },
+                            () => {
+                                // ignore
+                            });
                     }
                 }
             }
