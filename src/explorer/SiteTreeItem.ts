@@ -11,7 +11,7 @@ import * as path from 'path';
 import { MessageItem, OutputChannel, Uri, window, workspace, WorkspaceConfiguration, WorkspaceFolder } from 'vscode';
 import { deleteSite, ILogStream, SiteClient, startStreamingLogs } from 'vscode-azureappservice';
 import * as appservice from 'vscode-azureappservice';
-import { IAzureNode, IAzureParentNode, IAzureParentTreeItem, IAzureQuickPickItem, IAzureTreeItem, TelemetryProperties, UserCancelledError } from 'vscode-azureextensionui';
+import { DialogResponses, IAzureNode, IAzureParentNode, IAzureParentTreeItem, IAzureQuickPickItem, IAzureTreeItem, TelemetryProperties, UserCancelledError } from 'vscode-azureextensionui';
 import * as constants from '../constants';
 import { ext } from '../extensionVariables';
 import * as util from '../util';
