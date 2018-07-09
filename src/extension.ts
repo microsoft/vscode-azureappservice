@@ -173,9 +173,9 @@ export function activate(context: vscode.ExtensionContext): void {
         }
 
         const createdApp = <IAzureNode<WebAppTreeItem>>await node.createChild(this);
-        const createdAppConfigs: SiteConfigResource = await createdApp.treeItem.client.getSiteConfig();
-        this.properties.os = createdAppConfigs.kind ? createdAppConfigs.kind : 'undefined';
-        this.properties.runtime = createdAppConfigs.linuxFxVersion ? createdAppConfigs.linuxFxVersion : 'undefined';
+        const createdAppConfig: SiteConfigResource = await createdApp.treeItem.client.getSiteConfig();
+        this.properties.os = createdAppConfig.kind ? createdAppConfig.kind : 'undefined';
+        this.properties.runtime = createdAppConfig.linuxFxVersion ? createdAppConfig.linuxFxVersion : 'undefined';
         // prompt user to deploy to newly created web app
         if (await vscode.window.showInformationMessage('Deploy to web app?', yesButton, noButton) === yesButton) {
             this.properties[deployingToWebApp] = 'true';
