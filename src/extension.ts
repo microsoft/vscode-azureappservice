@@ -10,6 +10,7 @@ import * as vscode from 'vscode';
 import { AppSettingsTreeItem, AppSettingTreeItem, editScmType, getFile, IFileResult, registerAppServiceExtensionVariables } from 'vscode-azureappservice';
 import { AzureTreeDataProvider, AzureUserInput, IActionContext, IAzureNode, IAzureParentNode, IAzureUserInput, parseError, registerCommand, registerEvent, registerUIExtensionVariables } from 'vscode-azureextensionui';
 import TelemetryReporter from 'vscode-extension-telemetry';
+import { SiteConfigResource } from '../node_modules/azure-arm-website/lib/models';
 import { disableRemoteDebug } from './commands/remoteDebug/disableRemoteDebug';
 import { startRemoteDebug } from './commands/remoteDebug/startRemoteDebug';
 import { swapSlots } from './commands/swapSlots';
@@ -172,7 +173,9 @@ export function activate(context: vscode.ExtensionContext): void {
         }
 
         const createdApp = <IAzureNode<WebAppTreeItem>>await node.createChild(this);
-
+        const createdAppConfigs: SiteConfigResource = await createdApp.treeItem.client.getSiteConfig();
+        this.properties.os = createdAppConfigs.kind ? createdAppConfigs.kind : 'undefined';
+        this.properties.runtime = createdAppConfigs.linuxFxVersion ? createdAppConfigs.linuxFxVersion : 'undefined';
         // prompt user to deploy to newly created web app
         if (await vscode.window.showInformationMessage('Deploy to web app?', yesButton, noButton) === yesButton) {
             this.properties[deployingToWebApp] = 'true';

@@ -120,7 +120,7 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
             if (siteConfig.linuxFxVersion && siteConfig.linuxFxVersion.startsWith(constants.runtimes.node) && siteConfig.scmType === 'None' && !(await fse.pathExists(path.join(fsPath, constants.deploymentFileName)))) {
                 // check if web app has node runtime, is being zipdeployed, and if there is no .deployment file
                 // tslint:disable-next-line:no-unsafe-any
-                await this.enableScmDoBuildDuringDeploy(fsPath, constants.runtimes[siteConfig.linuxFxVersion.substring(0, siteConfig.linuxFxVersion.indexOf('|'))]);
+                await this.enableScmDoBuildDuringDeploy(fsPath, constants.runtimes[siteConfig.linuxFxVersion.substring(0, siteConfig.linuxFxVersion.indexOf('|'))], telemetryProperties);
             }
         }
         cancelWebsiteValidation(this);
@@ -139,12 +139,12 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
             });
     }
 
-    private async enableScmDoBuildDuringDeploy(fsPath: string, runtime: string): Promise<void> {
+    private async enableScmDoBuildDuringDeploy(fsPath: string, runtime: string, telemetryProperties: TelemetryProperties): Promise<void> {
         const yesButton: MessageItem = { title: 'Yes' };
         const dontShowAgainButton: MessageItem = { title: "No, and don't show again" };
         const learnMoreButton: MessageItem = { title: 'Learn More' };
         const zipIgnoreFolders: string[] = constants.getIgnoredFoldersForDeployment(runtime);
-        const buildDuringDeploy: string = `Would you like to configure your project for faster deployment?`;
+        const buildDuringDeploy: string = `Would you like to update your workspace configuration to run npm install on the target server? This will improve deployment performance.`;
         let input: MessageItem | undefined = learnMoreButton;
         while (input === learnMoreButton) {
             input = await window.showInformationMessage(buildDuringDeploy, yesButton, dontShowAgainButton, learnMoreButton);
@@ -166,6 +166,8 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
         } else if (input === dontShowAgainButton) {
             workspace.getConfiguration(constants.extensionPrefix, Uri.file(fsPath)).update(constants.configurationSettings.showBuildDuringDeployPrompt, false);
         }
+
+        telemetryProperties.enableScmInput = input ? input.title : 'Canceled';
     }
 }
 
