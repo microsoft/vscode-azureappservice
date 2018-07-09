@@ -131,6 +131,7 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
             if (currentWorkspace.uri.fsPath === fsPath || this.isSubpath(currentWorkspace.uri.fsPath, fsPath)) {
                 // only check the deployConfig if the deployed project is path of the currentWorkspace
                 const deployConfig: { app: string, subpath: string, dontWarnAgain?: boolean } | undefined = workspace.getConfiguration(constants.extensionPrefix, currentWorkspace.uri).get(constants.configurationSettings.deploymentConfigurations);
+                // tslint:disable-next-line:strict-boolean-expressions
                 if (!deployConfig || deployConfig && (!deployConfig.app || deployConfig.subpath === undefined) && deployConfig.dontWarnAgain !== true) {
                     // only prompt under the following conditions
                     // No deploy config was found
