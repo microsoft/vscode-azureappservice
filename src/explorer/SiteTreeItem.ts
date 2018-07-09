@@ -8,7 +8,7 @@ import { randomBytes } from 'crypto';
 import * as fse from 'fs-extra';
 import * as opn from 'opn';
 import * as path from 'path';
-import { ExtensionContext, MessageItem, OutputChannel, Uri, window, workspace, WorkspaceConfiguration } from 'vscode';
+import { ExtensionContext, MessageItem, OutputChannel, Uri, window, workspace, WorkspaceConfiguration, WorkspaceFolder } from 'vscode';
 import { deleteSite, deploy, ILogStream, SiteClient, startStreamingLogs } from 'vscode-azureappservice';
 import { DialogResponses, IAzureNode, IAzureParentNode, IAzureParentTreeItem, IAzureQuickPickItem, IAzureTreeItem, IAzureUserInput, TelemetryProperties, UserCancelledError } from 'vscode-azureextensionui';
 import * as constants from '../constants';
@@ -108,10 +108,6 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
         const correlationId = getRandomHexString(10);
         telemetryProperties.correlationId = correlationId;
         const siteConfig: WebSiteModels.SiteConfigResource = await this.client.getSiteConfig();
-        let deployConfig: { app: string, path: string, dontWarnAgain?: boolean } | undefined;
-        if (workspace.workspaceFolders && workspace.workspaceFolders.length === 1) {
-            deployConfig = workspace.getConfiguration(constants.extensionPrefix, workspace.workspaceFolders[0].uri).get(constants.configurationSettings.deploymentConfigurations);
-        }
 
         if (!fsPath) {
             if (siteConfig.linuxFxVersion && siteConfig.linuxFxVersion.toLowerCase().startsWith(constants.runtimes.tomcat)) {
@@ -130,8 +126,18 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
         }
         cancelWebsiteValidation(this);
         // tslint:disable-next-line:strict-boolean-expressions
-        if (!deployConfig || deployConfig && (!deployConfig.app || !deployConfig.path) && deployConfig.dontWarnAgain !== true) {
-            await this.promptToSaveDeployConfigs(node, fsPath);
+        if (workspace.workspaceFolders && workspace.workspaceFolders.length === 1) {
+            const currentWorkspace: WorkspaceFolder = workspace.workspaceFolders[0];
+            if (currentWorkspace.uri.fsPath === fsPath || this.isSubpath(currentWorkspace.uri.fsPath, fsPath)) {
+                // only check the deployConfig if the deployed project is path of the currentWorkspace
+                const deployConfig: { app: string, subpath: string, dontWarnAgain?: boolean } | undefined = workspace.getConfiguration(constants.extensionPrefix, currentWorkspace.uri).get(constants.configurationSettings.deploymentConfigurations);
+                if (!deployConfig || deployConfig && (!deployConfig.app || deployConfig.subpath === undefined) && deployConfig.dontWarnAgain !== true) {
+                    // only prompt under the following conditions
+                    // No deploy config was found
+                    // If the depolyConfig is corrupted AND dontWarnAgain is not true
+                    await this.promptToSaveDeployConfigs(node, currentWorkspace.uri.fsPath, fsPath);
+                }
+            }
         }
 
         await node.runWithTemporaryDescription("Deploying...", async () => {
@@ -176,7 +182,7 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
         }
     }
 
-    private async promptToSaveDeployConfigs(node: IAzureNode<SiteTreeItem>, fsPath: string): Promise<void> {
+    private async promptToSaveDeployConfigs(node: IAzureNode<SiteTreeItem>, currentWorkspacePath: string, fsPath: string): Promise<void> {
         const saveDeploymentConfig: string = `Always deploy the workspace "${fsPath}" to "${node.treeItem.client.fullName}"?`;
         const neverShowAgain: MessageItem = { title: "Never" };
         let result: MessageItem = DialogResponses.learnMore;
@@ -185,7 +191,7 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
             if (result === DialogResponses.yes) {
                 workspace.getConfiguration(constants.extensionPrefix, Uri.file(fsPath)).update(constants.configurationSettings.deploymentConfigurations, {
                     app: node.id,
-                    path: fsPath
+                    subpath: path.relative(currentWorkspacePath, fsPath)
                 });
             } else if (result === neverShowAgain) {
                 workspace.getConfiguration(constants.extensionPrefix, Uri.file(fsPath)).update(constants.configurationSettings.deploymentConfigurations, {
@@ -197,6 +203,11 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
             }
         }
 
+    }
+
+    private isSubpath(expectedParent: string, expectedChild: string): boolean {
+        const relativePath: string = path.relative(expectedParent, expectedChild);
+        return relativePath !== '' && !relativePath.startsWith('..') && relativePath !== expectedChild;
     }
 }
 

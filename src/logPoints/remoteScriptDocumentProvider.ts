@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import { Source } from 'vscode-debugadapter';
+import { Source } from 'vscode-debugadapter/lib/main';
 
 type KeyValuePair = {
     [key: string]: string;

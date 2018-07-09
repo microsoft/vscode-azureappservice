@@ -597,8 +597,12 @@
                 },
                 "appService.deploymentConfigurations": {
                     "scope": "resource",
-                    "type": "object",
-                    "description": "A workspace setting that will save deployment configurations so that upon clicking 'Deploy' no futher prompts are required from the user"
+                    "type": {
+                        "app": "string",
+                        "subpath": "string",
+                        "dontAskAgain": "boolean | undefined"
+                    },
+                    "description": "A workspace setting that will save deployment configurations so that upon clicking 'Deploy' no futher prompts are required from the user."
                 },
                 "appService.advancedCreation": {
                     "type": "boolean",
