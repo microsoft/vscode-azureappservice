@@ -211,9 +211,12 @@
         "viewsContainers": {
             "activitybar": [
                 {
-                    "id": "azure",
+                    "id": "azurereer",
                     "title": "Azure",
-                    "icon": "resources/azure.svg"
+                    "icon": "resources/azure.svg",
+                    "command": {
+                        "id": "workbench.view.azure"
+                    }
                 }
             ]
         },
@@ -543,6 +546,13 @@
                 }
             ]
         },
+        "keybindings": [
+            {
+                "command": "workbench.views.azure",
+                "key": "ctrl+shift+a",
+                "mac": "cmd+shift+a"
+            }
+        ],
         "configuration": {
             "title": "Azure App Service",
             "properties": {
