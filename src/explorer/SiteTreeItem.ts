@@ -164,7 +164,7 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
             workspace.getConfiguration(constants.extensionPrefix, Uri.file(fsPath)).update(constants.configurationSettings.zipIgnorePattern, oldSettings.concat(zipIgnoreFolders));
             await fse.writeFile(path.join(fsPath, constants.deploymentFileName), constants.deploymentFile);
             telemetryProperties.enableScmInput = "Yes";
-        } else if (input === dontShowAgainButton) {
+        } else {
             workspace.getConfiguration(constants.extensionPrefix, Uri.file(fsPath)).update(constants.configurationSettings.showBuildDuringDeployPrompt, false);
             telemetryProperties.enableScmInput = "No, and don't show again";
         }
