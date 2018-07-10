@@ -67,7 +67,7 @@
             },
             {
                 "command": "appService.CreateWebApp",
-                "title": "Create New Web App",
+                "title": "Create New Web App...",
                 "category": "Azure App Service",
                 "icon": {
                     "light": "resources/light/createAppSvc.svg",
@@ -76,7 +76,7 @@
             },
             {
                 "command": "appService.Deploy",
-                "title": "Deploy to Web App",
+                "title": "Deploy to Web App...",
                 "category": "Azure App Service",
                 "icon": {
                     "light": "resources/light/Deploy.svg",
@@ -124,7 +124,7 @@
             },
             {
                 "command": "appService.Delete",
-                "title": "Delete",
+                "title": "Delete...",
                 "category": "Azure App Service"
             },
             {
@@ -134,7 +134,7 @@
             },
             {
                 "command": "appService.ConfigureDeploymentSource",
-                "title": "Configure Deployment Source",
+                "title": "Configure Deployment Source...",
                 "category": "Azure App Service"
             },
             {
@@ -144,7 +144,7 @@
             },
             {
                 "command": "appService.SwapSlots",
-                "title": "Swap Deployment Slot",
+                "title": "Swap Deployment Slot...",
                 "category": "Azure App Service"
             },
             {
@@ -164,7 +164,7 @@
             },
             {
                 "command": "appService.appSettings.Delete",
-                "title": "Delete",
+                "title": "Delete...",
                 "category": "Azure App Service"
             },
             {
@@ -179,7 +179,7 @@
             },
             {
                 "command": "appService.CreateSlot",
-                "title": "Create New Deployment Slot",
+                "title": "Create New Deployment Slot...",
                 "category": "Azure App Service"
             },
             {
@@ -204,7 +204,7 @@
             },
             {
                 "command": "appService.LogPoints.Toggle",
-                "title": "Set or remove a logpoint",
+                "title": "Set or Remove a Logpoint",
                 "category": "Azure App Service"
             }
         ],
