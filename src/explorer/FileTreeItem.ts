@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { join } from 'path';
 import { SiteClient } from 'vscode-azureappservice';
 import { IAzureTreeItem } from 'vscode-azureextensionui';
 
@@ -15,4 +16,10 @@ export class FileTreeItem implements IAzureTreeItem {
     constructor(readonly client: SiteClient, readonly label: string, readonly path: string) {
     }
 
+    public get iconPath(): { light: string, dark: string } {
+        return {
+            light: join(__filename, '..', '..', '..', '..', 'resources', 'light', 'File_16x.svg'),
+            dark: join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'File_16x.svg')
+        };
+    }
 }
