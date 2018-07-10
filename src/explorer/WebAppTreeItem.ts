@@ -9,7 +9,7 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { AppSettingsTreeItem, AppSettingTreeItem, SiteClient } from 'vscode-azureappservice';
-import { IAzureNode, IAzureTreeItem } from 'vscode-azureextensionui';
+import { addExtensionUserAgent, IAzureNode, IAzureTreeItem } from 'vscode-azureextensionui';
 import { extensionPrefix } from '../constants';
 import { DeploymentSlotsNATreeItem, DeploymentSlotsTreeItem } from './DeploymentSlotsTreeItem';
 import { DeploymentSlotTreeItem } from './DeploymentSlotTreeItem';
@@ -71,6 +71,7 @@ export class WebAppTreeItem extends SiteTreeItem {
 
     public async generateDeploymentScript(node: IAzureNode): Promise<void> {
         const resourceClient = new ResourceManagementClient(node.credentials, node.subscriptionId);
+        addExtensionUserAgent(resourceClient);
         const tasks = Promise.all([
             resourceClient.resourceGroups.get(this.client.resourceGroup),
             this.client.getAppServicePlan(),
