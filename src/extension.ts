@@ -10,6 +10,7 @@ import * as vscode from 'vscode';
 import { AppSettingsTreeItem, AppSettingTreeItem, editScmType, getFile, IFileResult, registerAppServiceExtensionVariables } from 'vscode-azureappservice';
 import { AzureTreeDataProvider, AzureUserInput, IActionContext, IAzureNode, IAzureParentNode, IAzureUserInput, parseError, registerCommand, registerEvent, registerUIExtensionVariables } from 'vscode-azureextensionui';
 import TelemetryReporter from 'vscode-extension-telemetry';
+import { SiteConfigResource } from '../node_modules/azure-arm-website/lib/models';
 import { disableRemoteDebug } from './commands/remoteDebug/disableRemoteDebug';
 import { startRemoteDebug } from './commands/remoteDebug/startRemoteDebug';
 import { swapSlots } from './commands/swapSlots';
@@ -163,7 +164,14 @@ export function activate(context: vscode.ExtensionContext): void {
         }
 
         const createdApp = <IAzureNode<WebAppTreeItem>>await node.createChild(this);
-
+        createdApp.treeItem.client.getSiteConfig().then(
+            (createdAppConfig: SiteConfigResource) => {
+                this.properties.linuxFxVersion = createdAppConfig.linuxFxVersion ? createdAppConfig.linuxFxVersion : 'undefined';
+                this.properties.createdFromDeploy = 'false';
+            },
+            () => {
+                // ignore
+            });
         // prompt user to deploy to newly created web app
         if (await vscode.window.showInformationMessage('Deploy to web app?', yesButton, noButton) === yesButton) {
             this.properties[deployingToWebApp] = 'true';
@@ -206,6 +214,14 @@ export function activate(context: vscode.ExtensionContext): void {
                     if (newApp.id === node.id) {
                         // if the node selected for deployment is the same newly created nodes, stifle the confirmDeployment dialog
                         confirmDeployment = false;
+                        newApp.treeItem.client.getSiteConfig().then(
+                            (createdAppConfig: SiteConfigResource) => {
+                                this.properties.linuxFxVersion = createdAppConfig.linuxFxVersion ? createdAppConfig.linuxFxVersion : 'undefined';
+                                this.properties.createdFromDeploy = 'true';
+                            },
+                            () => {
+                                // ignore
+                            });
                     }
                 }
             }
