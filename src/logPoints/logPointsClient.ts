@@ -7,7 +7,7 @@ import * as child_process from 'child_process';
 import * as fs from "fs";
 import * as path from "path";
 import * as req from "request";
-import * as WebSiteModels from 'azure-arm-website/lib/models';
+import * as WebSiteModels from '../../node_modules/azure-arm-website/lib/models';
 import { CommandRunResult } from './structs/CommandRunResult';
 import { IAttachProcessRequest } from './structs/IAttachProcessRequest';
 import { IAttachProcessResponse } from './structs/IAttachProcessResponse';

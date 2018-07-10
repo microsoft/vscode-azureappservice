@@ -8,8 +8,8 @@ import {
     DebugSession, Event, InitializedEvent, Logger, logger,
     LoggingDebugSession, Source,
     TerminatedEvent, Thread
-} from 'vscode-debugadapter/lib/main';
-import { DebugProtocol } from 'vscode-debugprotocol/lib/debugProtocol';
+} from 'vscode-debugadapter';
+import { DebugProtocol } from 'vscode-debugprotocol';
 
 import { createDefaultClient } from './logPointsClient';
 import { CommandRunResult } from './structs/CommandRunResult';
