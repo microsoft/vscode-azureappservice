@@ -7,7 +7,7 @@ import WebSiteManagementClient = require('azure-arm-website');
 import { AppServicePlan, Site, WebAppCollection } from 'azure-arm-website/lib/models';
 import { workspace, WorkspaceConfiguration } from 'vscode';
 import { createWebApp, SiteClient } from 'vscode-azureappservice';
-import { IActionContext, IAzureNode, IAzureTreeItem, IChildProvider, UserCancelledError } from 'vscode-azureextensionui';
+import { addExtensionUserAgent, IActionContext, IAzureNode, IAzureTreeItem, IChildProvider, UserCancelledError } from 'vscode-azureextensionui';
 import { configurationSettings, extensionPrefix } from '../constants';
 import { InvalidWebAppTreeItem } from './InvalidWebAppTreeItem';
 import { WebAppTreeItem } from './WebAppTreeItem';
@@ -27,6 +27,7 @@ export class WebAppProvider implements IChildProvider {
         }
 
         const client: WebSiteManagementClient = new WebSiteManagementClient(node.credentials, node.subscriptionId);
+        addExtensionUserAgent(client);
         const webAppCollection: WebAppCollection = this._nextLink === undefined ?
             await client.webApps.list() :
             await client.webApps.listNext(this._nextLink);

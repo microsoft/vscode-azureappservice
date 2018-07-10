@@ -7,7 +7,7 @@ import WebSiteManagementClient = require('azure-arm-website');
 import { NameValuePair, ResourceNameAvailability, Site, WebAppCollection } from 'azure-arm-website/lib/models';
 import * as path from 'path';
 import { SiteClient } from 'vscode-azureappservice';
-import { IAzureNode, IAzureParentNode, IAzureParentTreeItem, IAzureQuickPickItem, IAzureTreeItem, UserCancelledError } from 'vscode-azureextensionui';
+import { addExtensionUserAgent, IAzureNode, IAzureParentNode, IAzureParentTreeItem, IAzureQuickPickItem, IAzureTreeItem, UserCancelledError } from 'vscode-azureextensionui';
 import { ext } from '../extensionVariables';
 import { DeploymentSlotTreeItem } from './DeploymentSlotTreeItem';
 import { SiteTreeItem } from './SiteTreeItem';
@@ -46,6 +46,7 @@ export class DeploymentSlotsTreeItem implements IAzureParentTreeItem {
         }
 
         const client: WebSiteManagementClient = new WebSiteManagementClient(node.credentials, node.subscriptionId);
+        addExtensionUserAgent(client);
         const webAppCollection: WebAppCollection = this._nextLink === undefined ?
             await client.webApps.listSlots(this.client.resourceGroup, this.client.siteName) :
             await client.webApps.listSlotsNext(this._nextLink);
@@ -57,6 +58,7 @@ export class DeploymentSlotsTreeItem implements IAzureParentTreeItem {
 
     public async createChild(node: IAzureParentNode<DeploymentSlotsTreeItem>, showCreatingNode: (label: string) => void): Promise<IAzureTreeItem> {
         const client: WebSiteManagementClient = new WebSiteManagementClient(node.credentials, node.subscriptionId);
+        addExtensionUserAgent(client);
         let slotName: string = await this.promptForSlotName(client);
         if (!slotName) {
             throw new UserCancelledError();
