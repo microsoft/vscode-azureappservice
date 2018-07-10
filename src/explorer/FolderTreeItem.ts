@@ -20,8 +20,8 @@ export class FolderTreeItem implements IAzureParentTreeItem {
 
     public get iconPath(): { light: string, dark: string } | undefined {
         return this.useIcon ? {
-            light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'files_Folder_Folder_16x.svg'),
-            dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'files_Folder_Folder_16x.svg')
+            light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'Folder_16x.svg'),
+            dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'Folder_16x.svg')
         } : undefined;
     }
 

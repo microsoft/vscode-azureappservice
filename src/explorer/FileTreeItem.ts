@@ -18,8 +18,8 @@ export class FileTreeItem implements IAzureTreeItem {
 
     public get iconPath(): { light: string, dark: string } {
         return {
-            light: join(__filename, '..', '..', '..', '..', 'resources', 'light', 'files_Document_Document_16x.svg'),
-            dark: join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'files_Document_Document_16x.svg')
+            light: join(__filename, '..', '..', '..', '..', 'resources', 'light', 'File_16x.svg'),
+            dark: join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'File_16x.svg')
         };
     }
 }
