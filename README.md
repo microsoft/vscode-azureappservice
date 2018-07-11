@@ -58,7 +58,7 @@ Check out this [deployment tutorial](https://code.visualstudio.com/tutorials/app
 ## Advanced Creation Configuration Settings
 
 * `appService.advancedCreation`
-  * Enables the full control `New Web App Create...` process.  If you don't want Resource Groups, App Service Plans, and WebsiteOS to be smart defaulted, then set this setting to `true`.
+  * Enables full control for `New Web App Create...`.  Set this to `true` to explicitly control more settings (i.e. App Service plan size) when creating web apps rather than using the defaults.
 
 ## Preview Features
 
