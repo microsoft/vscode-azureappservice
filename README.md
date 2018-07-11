@@ -25,6 +25,7 @@ Check out this [deployment tutorial](https://code.visualstudio.com/tutorials/app
   * To view a file, click on it in the explorer.
   * To edit, make edits in the editor and save it.  When prompted to upload the file, click 'Upload'.
   * CAUTION: Manually editing your Web App's files could cause unexpected behavior.
+* View a web app's log files
 
 ![Web App Log Stream](resources/WebApp_LogStream.png)
 
@@ -53,6 +54,11 @@ Check out this [deployment tutorial](https://code.visualstudio.com/tutorials/app
     * `SCM_DO_BUILD_DURING_DEPLOYMENT=true`
 
     ![Web App Log Stream](resources/Scm_Do_Build_During_Deployment.png)
+
+## Advanced Creation Configuration Settings
+
+* `appService.advancedCreation`
+  * Enables the full control `New Web App Create...` process.  If you don't want Resource Groups, App Service Plans, and WebsiteOS to be smart defaulted, then set this setting to `true`.
 
 ## Preview Features
 

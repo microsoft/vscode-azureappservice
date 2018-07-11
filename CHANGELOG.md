@@ -5,6 +5,7 @@ All notable changes to the "azure-appservice" extension will be documented in th
 ### Added
 - Remote file editting for Web Apps and slots (previously in preview)
 - Log file access for Web Apps and slots
+- Deployment defaults for a project workspace. The web app deployed to and the subpath deployed will be saved and used for consequent deployments.
 - Support for WAR deploy
 
 ### Changed
