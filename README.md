@@ -58,7 +58,7 @@ Check out this [deployment tutorial](https://code.visualstudio.com/tutorials/app
 ## Advanced Creation Configuration Settings
 
 * `appService.advancedCreation`
-  * Enables full control for `New Web App Create...`.  Set this to `true` to explicitly control more settings (i.e. App Service plan size) when creating web apps rather than using the defaults.
+  * Enables full control for `Create New Web App...`.  Set this to `true` to explicitly control more settings (i.e. App Service plan size) when creating web apps rather than using the defaults.
 
 ## Preview Features
 
