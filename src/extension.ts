@@ -211,7 +211,7 @@ export function activate(context: vscode.ExtensionContext): void {
                 const deployToWebAppId: string | undefined = vscode.workspace.getConfiguration(constants.extensionPrefix, activeWorkspace.uri).get(constants.configurationSettings.deployToWebAppId);
                 if (deployToWebAppId && deployToWebAppId !== constants.neverSaveDeploymentConfiguration) {
                     const deploySubpath: string | undefined = vscode.workspace.getConfiguration(constants.extensionPrefix, activeWorkspace.uri).get(constants.configurationSettings.deploySubpath);
-                    const deployPath: string = deploySubpath ? await join(activeWorkspace.uri.fsPath, deploySubpath) : activeWorkspace.uri.fsPath;
+                    const deployPath: string = deploySubpath ? join(activeWorkspace.uri.fsPath, deploySubpath) : activeWorkspace.uri.fsPath;
                     const pathExists: boolean = await fs.pathExists(deployPath);
                     const nodeFromConfig: IAzureNode<WebAppTreeItem> | undefined = <IAzureNode<WebAppTreeItem>>await ext.tree.findNode(deployToWebAppId); // resolves to undefined if app can't be found
                     // tslint:disable-next-line:strict-boolean-expressions
