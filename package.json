@@ -595,14 +595,10 @@
                     "default": false,
                     "description": "Enables remote debugging of a Web App. This experimental preview only supports node on Linux."
                 },
-                "appService.deploymentConfigurations": {
+                "appService.deployToWebAppId": {
                     "scope": "resource",
-                    "type": {
-                        "app": "string",
-                        "subpath": "string",
-                        "dontAskAgain": "boolean | undefined"
-                    },
-                    "description": "A workspace setting that will save deployment configurations so that upon clicking 'Deploy' no futher prompts are required from the user."
+                    "type": "string",
+                    "description": "A workspace setting that will save which the web app id that was deployed to.  Every consequent deployment will deploy to this web app."
                 },
                 "appService.advancedCreation": {
                     "type": "boolean",

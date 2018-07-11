@@ -15,6 +15,7 @@ import { DialogResponses, IAzureNode, IAzureParentNode, IAzureParentTreeItem, IA
 import * as constants from '../constants';
 import { ext } from '../extensionVariables';
 import * as util from '../util';
+import { isPathEqual, isSubpath } from '../utils/pathUtils';
 import { cancelWebsiteValidation, validateWebSite } from '../validateWebSite';
 
 export abstract class SiteTreeItem implements IAzureParentTreeItem {
@@ -126,14 +127,11 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
         // tslint:disable-next-line:strict-boolean-expressions
         if (workspace.workspaceFolders && workspace.workspaceFolders.length === 1) {
             const currentWorkspace: WorkspaceFolder = workspace.workspaceFolders[0];
-            if (currentWorkspace.uri.fsPath === fsPath || this.isSubpath(currentWorkspace.uri.fsPath, fsPath)) {
-                // only check the deployConfig if the deployed project is path of the currentWorkspace
-                const deployConfig: { app: string, subpath: string, dontWarnAgain?: boolean } | undefined = workspace.getConfiguration(constants.extensionPrefix, currentWorkspace.uri).get(constants.configurationSettings.deploymentConfigurations);
+            if (isPathEqual(currentWorkspace.uri.fsPath, fsPath) || isSubpath(currentWorkspace.uri.fsPath, fsPath)) {
+                // only check the deployConfig if the deployed project is either the current workspace or a subpath of the workspace
+                const deployToWebAppId: string | undefined = workspace.getConfiguration(constants.extensionPrefix, currentWorkspace.uri).get(constants.configurationSettings.deployToWebAppId);
                 // tslint:disable-next-line:strict-boolean-expressions
-                if (!deployConfig || deployConfig && (!deployConfig.app || deployConfig.subpath === undefined) && deployConfig.dontWarnAgain !== true) {
-                    // only prompt under the following conditions
-                    // No deploy config was found
-                    // If the depolyConfig is corrupted AND dontWarnAgain is not true
+                if (!deployToWebAppId) {
                     await this.promptToSaveDeployConfigs(node, currentWorkspace.uri.fsPath, fsPath);
                 }
             }
@@ -181,32 +179,20 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
         }
     }
 
-    private async promptToSaveDeployConfigs(node: IAzureNode<SiteTreeItem>, currentWorkspacePath: string, fsPath: string): Promise<void> {
-        const saveDeploymentConfig: string = `Always deploy the workspace "${fsPath}" to "${node.treeItem.client.fullName}"?`;
-        const neverShowAgain: MessageItem = { title: "Never" };
+    private async promptToSaveDeployConfigs(node: IAzureNode<SiteTreeItem>, activeWorkspacePath: string, deployedProjectPath: string): Promise<void> {
+        const saveDeploymentConfig: string = `Always deploy the workspace "${path.basename(activeWorkspacePath)}" to "${node.treeItem.client.fullName}"?`;
+        const neverSaveDeploymentConfiguration: MessageItem = { title: "Never" };
         let result: MessageItem = DialogResponses.learnMore;
-        while (result === DialogResponses.learnMore) {
-            result = await ext.ui.showWarningMessage(saveDeploymentConfig, DialogResponses.yes, neverShowAgain, DialogResponses.skipForNow, DialogResponses.learnMore);
-            if (result === DialogResponses.yes) {
-                workspace.getConfiguration(constants.extensionPrefix, Uri.file(fsPath)).update(constants.configurationSettings.deploymentConfigurations, {
-                    app: node.id,
-                    subpath: path.relative(currentWorkspacePath, fsPath)
-                });
-            } else if (result === neverShowAgain) {
-                workspace.getConfiguration(constants.extensionPrefix, Uri.file(fsPath)).update(constants.configurationSettings.deploymentConfigurations, {
-                    dontShowAgain: true
-                });
-            } else if (result === DialogResponses.learnMore) {
-                // tslint:disable-next-line:no-unsafe-any
-                opn('https://aka.ms/AA1pq88');
-            }
+        result = await ext.ui.showWarningMessage(saveDeploymentConfig, DialogResponses.yes, neverSaveDeploymentConfiguration, DialogResponses.skipForNow);
+        if (result === DialogResponses.yes) {
+            workspace.getConfiguration(constants.extensionPrefix, Uri.file(deployedProjectPath))
+                .update(constants.configurationSettings.deployToWebAppId, node.id);
+            workspace.getConfiguration(constants.extensionPrefix, Uri.file(deployedProjectPath))
+                .update(constants.configurationSettings.deploySubpath, path.relative(activeWorkspacePath, deployedProjectPath)); // '' is a falsey value
+        } else if (result === neverSaveDeploymentConfiguration) {
+            workspace.getConfiguration(constants.extensionPrefix, Uri.file(deployedProjectPath))
+                .update(constants.configurationSettings.deployToWebAppId, constants.neverSaveDeploymentConfiguration);
         }
-
-    }
-
-    private isSubpath(expectedParent: string, expectedChild: string): boolean {
-        const relativePath: string = path.relative(expectedParent, expectedChild);
-        return relativePath !== '' && !relativePath.startsWith('..') && relativePath !== expectedChild;
     }
 }
 

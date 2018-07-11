@@ -31,6 +31,7 @@ import { LogPointsSessionWizard } from './logPoints/LogPointsSessionWizard';
 import { RemoteScriptDocumentProvider, RemoteScriptSchema } from './logPoints/remoteScriptDocumentProvider';
 import { LogpointsCollection } from './logPoints/structs/LogpointsCollection';
 import { getPackageInfo, IPackageInfo } from './utils/IPackageInfo';
+import { isPathEqual } from './utils/pathUtils';
 
 // tslint:disable-next-line:export-name
 // tslint:disable-next-line:max-func-body-length
@@ -189,6 +190,7 @@ export function activate(context: vscode.ExtensionContext): void {
         const newNodes: IAzureNode<WebAppTreeItem>[] = [];
         let fsPath: string | undefined;
         let confirmDeployment: boolean = true;
+        this.properties.deployedWithConfigs = 'false';
         const onNodeCreatedFromQuickPickDisposable: vscode.Disposable = tree.onNodeCreate((newNode: IAzureNode<WebAppTreeItem>) => {
             // event is fired from azure-extensionui if node was created during deployment
             newNodes.push(newNode);
@@ -196,34 +198,43 @@ export function activate(context: vscode.ExtensionContext): void {
         try {
             if (target instanceof vscode.Uri) {
                 fsPath = target.fsPath;
+                this.properties.deploymentEntryPoint = constants.deploymentEntryPoint.fileExplorerContextMenu;
             } else {
+                this.properties.deploymentEntryPoint = target ? constants.deploymentEntryPoint.webAppContextMenu : constants.deploymentEntryPoint.deployButton;
                 node = target;
             }
 
+            // default deployment configuration logic starts here:
             if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length === 1) {
-                // only use the deployConfig is there is only one workspace opened
-                const deployConfig: { app: string, subpath: string } | undefined = vscode.workspace.getConfiguration(constants.extensionPrefix, vscode.workspace.workspaceFolders[0].uri).get(constants.configurationSettings.deploymentConfigurations);
-                if (deployConfig && deployConfig.app && deployConfig.subpath !== undefined) {
-                    const pathExists: boolean = await fs.pathExists(join(vscode.workspace.workspaceFolders[0].uri.fsPath, deployConfig.subpath));
-                    const nodeFromConfig: IAzureNode<WebAppTreeItem> | undefined = <IAzureNode<WebAppTreeItem>>await ext.tree.findNode(deployConfig.app); // resolves to undefined if app can't be found
+                // only use the deployToWebAppId is there is only one workspace opened
+                const activeWorkspace: vscode.WorkspaceFolder = vscode.workspace.workspaceFolders[0];
+                const deployToWebAppId: string | undefined = vscode.workspace.getConfiguration(constants.extensionPrefix, activeWorkspace.uri).get(constants.configurationSettings.deployToWebAppId);
+                if (deployToWebAppId && deployToWebAppId !== constants.neverSaveDeploymentConfiguration) {
+                    const deploySubpath: string | undefined = vscode.workspace.getConfiguration(constants.extensionPrefix, activeWorkspace.uri).get(constants.configurationSettings.deploySubpath);
+                    const deployPath: string = deploySubpath ? await join(activeWorkspace.uri.fsPath, deploySubpath) : activeWorkspace.uri.fsPath;
+                    const pathExists: boolean = await fs.pathExists(deployPath);
+                    const nodeFromConfig: IAzureNode<WebAppTreeItem> | undefined = <IAzureNode<WebAppTreeItem>>await ext.tree.findNode(deployToWebAppId); // resolves to undefined if app can't be found
                     // tslint:disable-next-line:strict-boolean-expressions
                     if (pathExists && nodeFromConfig) {
                         // tslint:disable-next-line:strict-boolean-expressions
-                        if (!fsPath && (!node || node && node.id === nodeFromConfig.id)) {
+                        if ((!fsPath || isPathEqual(fsPath, deployPath)) && (!node || node.id === nodeFromConfig.id)) {
                             /*
                             * only use the deployConfig in the following situation:
                             * if there is no fsPath and no node, then the entry point was the deploy button
-                            * if there is a target node and it matches the id in the deployConfig
+                            * if the target is a node and it matches the id in the deployConfig
+                            * if the target is a fsPath and it matches the deployPath
                             **/
-                            fsPath = join(vscode.workspace.workspaceFolders[0].uri.fsPath, deployConfig.subpath);
+                            fsPath = deployPath;
                             node = nodeFromConfig;
+                            this.properties.deployedWithConfigs = 'true';
                         }
                     } else {
                         // if path or app cannot be found, delete old settings and prompt user to save after deployment
-                        vscode.workspace.getConfiguration(constants.extensionPrefix, vscode.workspace.workspaceFolders[0].uri).update(constants.configurationSettings.deploymentConfigurations, undefined);
+                        vscode.workspace.getConfiguration(constants.extensionPrefix, vscode.workspace.workspaceFolders[0].uri).update(constants.configurationSettings.deployToWebAppId, undefined);
                     }
                 }
             }
+            // end of default deployment configuration logic
 
             if (!node) {
                 try {
