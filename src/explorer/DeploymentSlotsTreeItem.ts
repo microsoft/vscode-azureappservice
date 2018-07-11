@@ -156,6 +156,18 @@ export class DeploymentSlotsTreeItem implements IAzureParentTreeItem {
 
 }
 
+export class ScaleUpTreeItem implements IAzureTreeItem {
+    public readonly label: string = "Scale Up App Service Plan...";
+    public readonly contextValue: string = "ScaleUp";
+    public readonly commandId: string = 'appService.ScaleUp';
+
+    public readonly scaleUpId: string;
+
+    public constructor(scaleUpId: string) {
+        this.scaleUpId = scaleUpId;
+    }
+}
+
 export class DeploymentSlotsNATreeItem implements IAzureParentTreeItem {
     public static contextValue: string = "deploymentNASlots";
     public readonly label: string;
@@ -182,17 +194,5 @@ export class DeploymentSlotsNATreeItem implements IAzureParentTreeItem {
 
     public async loadMoreChildren(_node: IAzureNode): Promise<IAzureTreeItem[]> {
         return [new ScaleUpTreeItem(this.scaleUpId)];
-    }
-}
-
-export class ScaleUpTreeItem implements IAzureTreeItem {
-    public readonly label: string = "Scale Up App Service Plan...";
-    public readonly contextValue: string = "ScaleUp";
-    public readonly commandId: string = 'appService.ScaleUp';
-
-    public readonly scaleUpId: string;
-
-    public constructor(scaleUpId: string) {
-        this.scaleUpId = scaleUpId;
     }
 }
