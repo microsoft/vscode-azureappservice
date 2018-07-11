@@ -206,6 +206,11 @@
                 "command": "appService.LogPoints.Toggle",
                 "title": "Set or Remove a Logpoint",
                 "category": "Azure App Service"
+            },
+            {
+                "command": "appService.ScaleUp",
+                "title": "Scale Up App Service Plan...",
+                "category": "Azure App Service"
             }
         ],
         "viewsContainers": {
@@ -278,6 +283,10 @@
                 {
                     "command": "appService.DisableRemoteDebug",
                     "when": "config.appService.enableRemoteDebugging == true"
+                },
+                {
+                    "command": "appService.ScaleUp",
+                    "when": "never"
                 }
             ],
             "view/title": [
@@ -522,6 +531,10 @@
                     "command": "appService.appSettings.Delete",
                     "when": "view == azureAppService && viewItem == applicationSettingItem",
                     "group": "1_appSettingItemEdit@3"
+                },
+                {
+                    "command": "appService.ScaleUp",
+                    "when": "view == azureAppService && viewItem == deploymentNASlots"
                 }
             ],
             "explorer/context": [
