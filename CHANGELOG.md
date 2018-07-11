@@ -1,6 +1,19 @@
 # Change Log
 All notable changes to the "azure-appservice" extension will be documented in this file.
 
+## 0.9.0 - 2018-07-12
+### Added
+- Remote file access for Web Apps and slots (previously in preview)
+- Log Files for Web Apps and slots
+- Support for WAR deploy
+
+### Changed
+- Web app create has been redesigned to ----
+- Output window is no longer shown, but the output is still there.  Long running notifications have been implemented.
+- Minor text fixes
+
+### [Fixed](https://github.com/Microsoft/vscode-azureappservice/issues?utf8=%E2%9C%93&q=is%3Aissue+milestone%3A%220.9.0%22+label%3Abug+is%3Aclosed+)
+
 ## 0.8.1 - 2018-05-16
 ### [Fixed](https://github.com/Microsoft/vscode-azureappservice/issues?utf8=%E2%9C%93&q=is%3Aissue+milestone%3A%220.8.1%22+label%3Abug+is%3Aclosed+)
 - Remote debugging fails to attach if App Service tunnel is not ready
