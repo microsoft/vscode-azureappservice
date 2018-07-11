@@ -29,7 +29,8 @@ export class WebAppTreeItem extends SiteTreeItem {
     constructor(client: SiteClient, appServicePlan: AppServicePlan) {
         super(client);
         // tslint:disable-next-line:no-non-null-assertion
-        this.deploymentSlotsNode = appServicePlan.sku!.tier === 'Basic' ? new DeploymentSlotsNATreeItem() : new DeploymentSlotsTreeItem(this.client);
+        const tier: string = String(appServicePlan.sku!.tier);
+        this.deploymentSlotsNode = /^(basic|free)$/i.test(tier) ? new DeploymentSlotsNATreeItem(tier) : new DeploymentSlotsTreeItem(this.client);
         this.folderNode = new FolderTreeItem(this.client, 'Files', "/site/wwwroot", true);
         this.logFolderNode = new FolderTreeItem(this.client, 'Log Files', '/LogFiles', true);
         this.webJobsNode = new WebJobsTreeItem(this.client);
