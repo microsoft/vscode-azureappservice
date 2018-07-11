@@ -158,9 +158,13 @@ export class DeploymentSlotsTreeItem implements IAzureParentTreeItem {
 
 export class DeploymentSlotsNATreeItem implements IAzureParentTreeItem {
     public static contextValue: string = "deploymentNASlots";
-    public readonly label: string = 'Deployment Slots (N/A for Basic Service Plan)';
+    public readonly label: string;
     public readonly contextValue: string = DeploymentSlotsNATreeItem.contextValue;
     public readonly id: string = DeploymentSlotsNATreeItem.contextValue;
+
+    public constructor(tier: string) {
+        this.label = `Deployment Slots (N/A for ${tier} Service Plan)`;
+    }
 
     public get iconPath(): { light: string, dark: string } {
         return {
