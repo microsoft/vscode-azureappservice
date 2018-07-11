@@ -3,14 +3,15 @@ All notable changes to the "azure-appservice" extension will be documented in th
 
 ## 0.9.0 - 2018-07-12
 ### Added
-- Remote file access for Web Apps and slots (previously in preview)
-- Log Files for Web Apps and slots
+- Remote file editting for Web Apps and slots (previously in preview)
+- Log file access for Web Apps and slots
 - Support for WAR deploy
 
 ### Changed
-- Web app create has been redesigned to ----
-- Output window is no longer shown, but the output is still there.  Long running notifications have been implemented.
-- Minor text fixes
+- `Create New Web App...` has been redesigned to make smart defaults and have fewer prompts.
+    - If the previous creation experience is desired, change the VS Code user-setting `{appService.advancedCreation: true}`
+- Output window is no longer shown automatically.  Long running notifications have been implemented.
+- Minor text fixes.
 
 ### [Fixed](https://github.com/Microsoft/vscode-azureappservice/issues?utf8=%E2%9C%93&q=is%3Aissue+milestone%3A%220.9.0%22+label%3Abug+is%3Aclosed+)
 
