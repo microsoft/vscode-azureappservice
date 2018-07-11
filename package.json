@@ -598,7 +598,7 @@
                 "appService.deployToWebAppId": {
                     "scope": "resource",
                     "type": "string",
-                    "description": "A workspace setting that will save which the web app id that was deployed to.  Every consequent deployment will deploy to this web app."
+                    "description": "The default web application id to use when deploying.  Every consequent deployment will deploy to this web app or slot."
                 },
                 "appService.advancedCreation": {
                     "type": "boolean",

@@ -132,7 +132,7 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
                 const deployToWebAppId: string | undefined = workspace.getConfiguration(constants.extensionPrefix, currentWorkspace.uri).get(constants.configurationSettings.deployToWebAppId);
                 // tslint:disable-next-line:strict-boolean-expressions
                 if (!deployToWebAppId) {
-                    await this.promptToSaveDeployConfigs(node, currentWorkspace.uri.fsPath, fsPath);
+                    await this.promptToSaveDeployConfigs(node, currentWorkspace.uri.fsPath, fsPath, telemetryProperties);
                 }
             }
         }
@@ -179,7 +179,7 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
         }
     }
 
-    private async promptToSaveDeployConfigs(node: IAzureNode<SiteTreeItem>, activeWorkspacePath: string, deployedProjectPath: string): Promise<void> {
+    private async promptToSaveDeployConfigs(node: IAzureNode<SiteTreeItem>, activeWorkspacePath: string, deployedProjectPath: string, telemetryProperties: TelemetryProperties): Promise<void> {
         const saveDeploymentConfig: string = `Always deploy the workspace "${path.basename(activeWorkspacePath)}" to "${node.treeItem.client.fullName}"?`;
         const neverSaveDeploymentConfiguration: MessageItem = { title: "Never" };
         let result: MessageItem = DialogResponses.learnMore;
@@ -189,9 +189,14 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
                 .update(constants.configurationSettings.deployToWebAppId, node.id);
             workspace.getConfiguration(constants.extensionPrefix, Uri.file(deployedProjectPath))
                 .update(constants.configurationSettings.deploySubpath, path.relative(activeWorkspacePath, deployedProjectPath)); // '' is a falsey value
+            telemetryProperties.promptToSaveDeployConfigs = 'Yes';
         } else if (result === neverSaveDeploymentConfiguration) {
             workspace.getConfiguration(constants.extensionPrefix, Uri.file(deployedProjectPath))
                 .update(constants.configurationSettings.deployToWebAppId, constants.neverSaveDeploymentConfiguration);
+            telemetryProperties.promptToSaveDeployConfigs = 'Never';
+        }
+        if (!telemetryProperties.promptToSaveDeployConfigs) {
+            telemetryProperties.promptToSaveDeployConfigs = 'Skip for now';
         }
     }
 }
