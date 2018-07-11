@@ -129,10 +129,10 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
             const currentWorkspace: WorkspaceFolder = workspace.workspaceFolders[0];
             if (isPathEqual(currentWorkspace.uri.fsPath, fsPath) || isSubpath(currentWorkspace.uri.fsPath, fsPath)) {
                 // only check the deployConfig if the deployed project is either the current workspace or a subpath of the workspace
-                const deployToWebAppId: string | undefined = workspace.getConfiguration(constants.extensionPrefix, currentWorkspace.uri).get(constants.configurationSettings.deployToWebAppId);
+                const defaultWebAppToDeploy: string | undefined = workspace.getConfiguration(constants.extensionPrefix, currentWorkspace.uri).get(constants.configurationSettings.defaultWebAppToDeploy);
                 // tslint:disable-next-line:strict-boolean-expressions
-                if (!deployToWebAppId) {
-                    await this.promptToSaveDeployConfigs(node, currentWorkspace.uri.fsPath, fsPath, telemetryProperties);
+                if (!defaultWebAppToDeploy) {
+                    await this.promptToSaveDeployDefaults(node, currentWorkspace.uri.fsPath, fsPath, telemetryProperties);
                 }
             }
         }
@@ -179,23 +179,19 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
         }
     }
 
-    private async promptToSaveDeployConfigs(node: IAzureNode<SiteTreeItem>, activeWorkspacePath: string, deployedProjectPath: string, telemetryProperties: TelemetryProperties): Promise<void> {
-        const saveDeploymentConfig: string = `Always deploy the workspace "${path.basename(activeWorkspacePath)}" to "${node.treeItem.client.fullName}"?`;
+    private async promptToSaveDeployDefaults(node: IAzureNode<SiteTreeItem>, workspacePath: string, deployPath: string, telemetryProperties: TelemetryProperties): Promise<void> {
+        const saveDeploymentConfig: string = `Always deploy the workspace "${path.basename(workspacePath)}" to "${node.treeItem.client.fullName}"?`;
         const neverSaveDeploymentConfiguration: MessageItem = { title: "Never" };
-        let result: MessageItem = DialogResponses.learnMore;
-        result = await ext.ui.showWarningMessage(saveDeploymentConfig, DialogResponses.yes, neverSaveDeploymentConfiguration, DialogResponses.skipForNow);
+        const workspaceConfiguration: WorkspaceConfiguration = workspace.getConfiguration(constants.extensionPrefix, Uri.file(deployPath));
+        const result: MessageItem = await ext.ui.showWarningMessage(saveDeploymentConfig, DialogResponses.yes, neverSaveDeploymentConfiguration, DialogResponses.skipForNow);
         if (result === DialogResponses.yes) {
-            workspace.getConfiguration(constants.extensionPrefix, Uri.file(deployedProjectPath))
-                .update(constants.configurationSettings.deployToWebAppId, node.id);
-            workspace.getConfiguration(constants.extensionPrefix, Uri.file(deployedProjectPath))
-                .update(constants.configurationSettings.deploySubpath, path.relative(activeWorkspacePath, deployedProjectPath)); // '' is a falsey value
+            workspaceConfiguration.update(constants.configurationSettings.defaultWebAppToDeploy, node.id);
+            workspaceConfiguration.update(constants.configurationSettings.deploySubpath, path.relative(workspacePath, deployPath)); // '' is a falsey value
             telemetryProperties.promptToSaveDeployConfigs = 'Yes';
         } else if (result === neverSaveDeploymentConfiguration) {
-            workspace.getConfiguration(constants.extensionPrefix, Uri.file(deployedProjectPath))
-                .update(constants.configurationSettings.deployToWebAppId, constants.neverSaveDeploymentConfiguration);
+            workspaceConfiguration.update(constants.configurationSettings.defaultWebAppToDeploy, constants.none);
             telemetryProperties.promptToSaveDeployConfigs = 'Never';
-        }
-        if (!telemetryProperties.promptToSaveDeployConfigs) {
+        } else {
             telemetryProperties.promptToSaveDeployConfigs = 'Skip for now';
         }
     }

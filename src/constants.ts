@@ -6,7 +6,7 @@
 export const deploymentFileName: string = '.deployment';
 export const deploymentFile: string = `[config]
 SCM_DO_BUILD_DURING_DEPLOYMENT=true`;
-export const neverSaveDeploymentConfiguration: string = 'neverSaveDeploymentConfiguration';
+export const none: string = 'None';
 
 export const extensionPrefix: string = 'appService';
 export enum runtimes {
@@ -31,11 +31,5 @@ export enum configurationSettings {
     showBuildDuringDeployPrompt = 'showBuildDuringDeployPrompt',
     deploySubpath = 'deploySubpath',
     advancedCreation = 'advancedCreation',
-    deployToWebAppId = 'deployToWebAppId'
-}
-
-export enum deploymentEntryPoint {
-    deployButton = 'deployButton',
-    fileExplorerContextMenu = 'fileExplorerContextMenu',
-    webAppContextMenu = 'webAppContextMenu'
+    defaultWebAppToDeploy = 'defaultWebAppToDeploy'
 }

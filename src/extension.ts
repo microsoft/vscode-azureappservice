@@ -198,26 +198,26 @@ export function activate(context: vscode.ExtensionContext): void {
         try {
             if (target instanceof vscode.Uri) {
                 fsPath = target.fsPath;
-                this.properties.deploymentEntryPoint = constants.deploymentEntryPoint.fileExplorerContextMenu;
+                this.properties.deploymentEntryPoint = 'fileExplorerContextMenu';
             } else {
-                this.properties.deploymentEntryPoint = target ? constants.deploymentEntryPoint.webAppContextMenu : constants.deploymentEntryPoint.deployButton;
+                this.properties.deploymentEntryPoint = target ? 'webAppContextMenu' : 'deployButton';
                 node = target;
             }
 
             // default deployment configuration logic starts here:
             if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length === 1) {
-                // only use the deployToWebAppId is there is only one workspace opened
+                // only use the defaultWebAppToDeploy is there is only one workspace opened
                 const activeWorkspace: vscode.WorkspaceFolder = vscode.workspace.workspaceFolders[0];
-                const deployToWebAppId: string | undefined = vscode.workspace.getConfiguration(constants.extensionPrefix, activeWorkspace.uri).get(constants.configurationSettings.deployToWebAppId);
-                if (deployToWebAppId && deployToWebAppId !== constants.neverSaveDeploymentConfiguration) {
+                const defaultWebAppToDeploy: string | undefined = vscode.workspace.getConfiguration(constants.extensionPrefix, activeWorkspace.uri).get(constants.configurationSettings.defaultWebAppToDeploy);
+                if (defaultWebAppToDeploy && defaultWebAppToDeploy !== constants.none) {
                     const deploySubpath: string | undefined = vscode.workspace.getConfiguration(constants.extensionPrefix, activeWorkspace.uri).get(constants.configurationSettings.deploySubpath);
                     const deployPath: string = deploySubpath ? join(activeWorkspace.uri.fsPath, deploySubpath) : activeWorkspace.uri.fsPath;
                     const pathExists: boolean = await fs.pathExists(deployPath);
-                    const nodeFromConfig: IAzureNode<WebAppTreeItem> | undefined = <IAzureNode<WebAppTreeItem>>await ext.tree.findNode(deployToWebAppId); // resolves to undefined if app can't be found
+                    const nodeFromDefault: IAzureNode<WebAppTreeItem> | undefined = <IAzureNode<WebAppTreeItem>>await ext.tree.findNode(defaultWebAppToDeploy); // resolves to undefined if app can't be found
                     // tslint:disable-next-line:strict-boolean-expressions
-                    if (pathExists && nodeFromConfig) {
+                    if (pathExists && nodeFromDefault) {
                         // tslint:disable-next-line:strict-boolean-expressions
-                        if ((!fsPath || isPathEqual(fsPath, deployPath)) && (!node || node.id === nodeFromConfig.id)) {
+                        if ((!fsPath || isPathEqual(fsPath, deployPath)) && (!node || node.id === nodeFromDefault.id)) {
                             /*
                             * only use the deployConfig in the following situation:
                             * if there is no fsPath and no node, then the entry point was the deploy button
@@ -225,12 +225,12 @@ export function activate(context: vscode.ExtensionContext): void {
                             * if the target is a fsPath and it matches the deployPath
                             **/
                             fsPath = deployPath;
-                            node = nodeFromConfig;
+                            node = nodeFromDefault;
                             this.properties.deployedWithConfigs = 'true';
                         }
                     } else {
                         // if path or app cannot be found, delete old settings and prompt user to save after deployment
-                        vscode.workspace.getConfiguration(constants.extensionPrefix, vscode.workspace.workspaceFolders[0].uri).update(constants.configurationSettings.deployToWebAppId, undefined);
+                        vscode.workspace.getConfiguration(constants.extensionPrefix, activeWorkspace.uri).update(constants.configurationSettings.defaultWebAppToDeploy, undefined);
                     }
                 }
             }
