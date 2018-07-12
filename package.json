@@ -383,6 +383,16 @@
                     "group": "4_appServiceDiagnosticsCommands@2"
                 },
                 {
+                    "command": "appService.DeploymentScript",
+                    "when": "view == azureAppService && viewItem == appService",
+                    "group": "5_appServiceMiscCommands@1"
+                },
+                {
+                    "command": "appService.Refresh",
+                    "when": "view == azureAppService && viewItem == appService",
+                    "group": "6_appServiceRefreshCommands@1"
+                },
+                {
                     "command": "appService.StartLogPointsSession",
                     "when": "config.appService.logpoints == true && view == azureAppService && viewItem == appService",
                     "group": "4_appServiceDiagnosticsCommands@3"
@@ -396,11 +406,6 @@
                     "command": "appService.DisableRemoteDebug",
                     "when": "config.appService.enableRemoteDebugging == true && view == azureAppService && viewItem == appService",
                     "group": "5_appServiceRemoteDebugCommands@2"
-                },
-                {
-                    "command": "appService.DeploymentScript",
-                    "when": "view == azureAppService && viewItem == appService",
-                    "group": "6_appServiceMiscCommands@1"
                 },
                 {
                     "command": "appService.CreateSlot",
