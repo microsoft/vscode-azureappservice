@@ -297,7 +297,7 @@ export function activate(context: vscode.ExtensionContext): void {
         // prompt user to deploy to newly created web app
         if (await vscode.window.showInformationMessage('Deploy to deployment slot?', yesButton, noButton) === yesButton) {
             this.properties[deployingToDeploymentSlot] = 'true';
-            await createdSlot.treeItem.deploy(createdSlot, undefined, extensionPrefix, false, this.properties);
+            await vscode.commands.executeCommand('appService.Deploy', createdSlot);
         } else {
             this.properties[deployingToDeploymentSlot] = 'false';
         }

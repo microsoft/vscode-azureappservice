@@ -181,16 +181,16 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
 
     private async promptToSaveDeployDefaults(node: IAzureNode<SiteTreeItem>, workspacePath: string, deployPath: string, telemetryProperties: TelemetryProperties): Promise<void> {
         const saveDeploymentConfig: string = `Always deploy the workspace "${path.basename(workspacePath)}" to "${node.treeItem.client.fullName}"?`;
-        const neverSaveDeploymentConfiguration: MessageItem = { title: "Never" };
+        const dontShowAgain: MessageItem = { title: "Don't show again" };
         const workspaceConfiguration: WorkspaceConfiguration = workspace.getConfiguration(constants.extensionPrefix, Uri.file(deployPath));
-        const result: MessageItem = await ext.ui.showWarningMessage(saveDeploymentConfig, DialogResponses.yes, neverSaveDeploymentConfiguration, DialogResponses.skipForNow);
+        const result: MessageItem = await ext.ui.showWarningMessage(saveDeploymentConfig, DialogResponses.yes, dontShowAgain, DialogResponses.skipForNow);
         if (result === DialogResponses.yes) {
             workspaceConfiguration.update(constants.configurationSettings.defaultWebAppToDeploy, node.id);
             workspaceConfiguration.update(constants.configurationSettings.deploySubpath, path.relative(workspacePath, deployPath)); // '' is a falsey value
             telemetryProperties.promptToSaveDeployConfigs = 'Yes';
-        } else if (result === neverSaveDeploymentConfiguration) {
+        } else if (result === dontShowAgain) {
             workspaceConfiguration.update(constants.configurationSettings.defaultWebAppToDeploy, constants.none);
-            telemetryProperties.promptToSaveDeployConfigs = 'Never';
+            telemetryProperties.promptToSaveDeployConfigs = "Don't show again";
         } else {
             telemetryProperties.promptToSaveDeployConfigs = 'Skip for now';
         }
