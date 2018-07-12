@@ -6,6 +6,7 @@
 export const deploymentFileName: string = '.deployment';
 export const deploymentFile: string = `[config]
 SCM_DO_BUILD_DURING_DEPLOYMENT=true`;
+export const none: string = 'None';
 
 export const extensionPrefix: string = 'appService';
 export enum runtimes {
@@ -29,5 +30,6 @@ export enum configurationSettings {
     zipIgnorePattern = 'zipIgnorePattern',
     showBuildDuringDeployPrompt = 'showBuildDuringDeployPrompt',
     deploySubpath = 'deploySubpath',
-    advancedCreation = 'advancedCreation'
+    advancedCreation = 'advancedCreation',
+    defaultWebAppToDeploy = 'defaultWebAppToDeploy'
 }

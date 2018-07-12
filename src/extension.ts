@@ -5,6 +5,8 @@
 
 'use strict';
 
+import * as fs from 'fs-extra';
+import { join } from 'path';
 import { extname } from 'path';
 import * as vscode from 'vscode';
 import { AppSettingsTreeItem, AppSettingTreeItem, editScmType, getFile, IFileResult, registerAppServiceExtensionVariables } from 'vscode-azureappservice';
@@ -14,6 +16,7 @@ import { SiteConfigResource } from '../node_modules/azure-arm-website/lib/models
 import { disableRemoteDebug } from './commands/remoteDebug/disableRemoteDebug';
 import { startRemoteDebug } from './commands/remoteDebug/startRemoteDebug';
 import { swapSlots } from './commands/swapSlots';
+import * as constants from './constants';
 import { extensionPrefix } from './constants';
 import { DeploymentSlotsTreeItem } from './explorer/DeploymentSlotsTreeItem';
 import { DeploymentSlotTreeItem } from './explorer/DeploymentSlotTreeItem';
@@ -29,6 +32,7 @@ import { LogPointsSessionWizard } from './logPoints/LogPointsSessionWizard';
 import { RemoteScriptDocumentProvider, RemoteScriptSchema } from './logPoints/remoteScriptDocumentProvider';
 import { LogpointsCollection } from './logPoints/structs/LogpointsCollection';
 import { getPackageInfo, IPackageInfo } from './utils/IPackageInfo';
+import { isPathEqual } from './utils/pathUtils';
 
 // tslint:disable-next-line:export-name
 // tslint:disable-next-line:max-func-body-length
@@ -175,8 +179,7 @@ export function activate(context: vscode.ExtensionContext): void {
         // prompt user to deploy to newly created web app
         if (await vscode.window.showInformationMessage('Deploy to web app?', yesButton, noButton) === yesButton) {
             this.properties[deployingToWebApp] = 'true';
-
-            await createdApp.treeItem.deploy(createdApp, undefined, extensionPrefix, false, this.properties);
+            await vscode.commands.executeCommand('appService.Deploy', createdApp);
         } else {
             this.properties[deployingToWebApp] = 'false';
         }
@@ -186,6 +189,7 @@ export function activate(context: vscode.ExtensionContext): void {
         const newNodes: IAzureNode<WebAppTreeItem>[] = [];
         let fsPath: string | undefined;
         let confirmDeployment: boolean = true;
+        this.properties.deployedWithConfigs = 'false';
         const onNodeCreatedFromQuickPickDisposable: vscode.Disposable = tree.onNodeCreate((newNode: IAzureNode<WebAppTreeItem>) => {
             // event is fired from azure-extensionui if node was created during deployment
             newNodes.push(newNode);
@@ -193,9 +197,43 @@ export function activate(context: vscode.ExtensionContext): void {
         try {
             if (target instanceof vscode.Uri) {
                 fsPath = target.fsPath;
+                this.properties.deploymentEntryPoint = 'fileExplorerContextMenu';
             } else {
+                this.properties.deploymentEntryPoint = target ? 'webAppContextMenu' : 'deployButton';
                 node = target;
             }
+
+            // default deployment configuration logic starts here:
+            if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length === 1) {
+                // only use the defaultWebAppToDeploy is there is only one workspace opened
+                const activeWorkspace: vscode.WorkspaceFolder = vscode.workspace.workspaceFolders[0];
+                const defaultWebAppToDeploy: string | undefined = vscode.workspace.getConfiguration(constants.extensionPrefix, activeWorkspace.uri).get(constants.configurationSettings.defaultWebAppToDeploy);
+                if (defaultWebAppToDeploy && defaultWebAppToDeploy !== constants.none) {
+                    const deploySubpath: string | undefined = vscode.workspace.getConfiguration(constants.extensionPrefix, activeWorkspace.uri).get(constants.configurationSettings.deploySubpath);
+                    const deployPath: string = deploySubpath ? join(activeWorkspace.uri.fsPath, deploySubpath) : activeWorkspace.uri.fsPath;
+                    const pathExists: boolean = await fs.pathExists(deployPath);
+                    const nodeFromDefault: IAzureNode<WebAppTreeItem> | undefined = <IAzureNode<WebAppTreeItem>>await ext.tree.findNode(defaultWebAppToDeploy); // resolves to undefined if app can't be found
+                    // tslint:disable-next-line:strict-boolean-expressions
+                    if (pathExists && nodeFromDefault) {
+                        // tslint:disable-next-line:strict-boolean-expressions
+                        if ((!fsPath || isPathEqual(fsPath, deployPath)) && (!node || node.id === nodeFromDefault.id)) {
+                            /*
+                            * only use the deployConfig in the following situation:
+                            * if there is no fsPath and no node, then the entry point was the deploy button
+                            * if the target is a node and it matches the id in the deployConfig
+                            * if the target is a fsPath and it matches the deployPath
+                            **/
+                            fsPath = deployPath;
+                            node = nodeFromDefault;
+                            this.properties.deployedWithConfigs = 'true';
+                        }
+                    } else {
+                        // if path or app cannot be found, delete old settings and prompt user to save after deployment
+                        vscode.workspace.getConfiguration(constants.extensionPrefix, activeWorkspace.uri).update(constants.configurationSettings.defaultWebAppToDeploy, undefined);
+                    }
+                }
+            }
+            // end of default deployment configuration logic
 
             if (!node) {
                 try {
@@ -266,7 +304,7 @@ export function activate(context: vscode.ExtensionContext): void {
         // prompt user to deploy to newly created web app
         if (await vscode.window.showInformationMessage('Deploy to deployment slot?', yesButton, noButton) === yesButton) {
             this.properties[deployingToDeploymentSlot] = 'true';
-            await createdSlot.treeItem.deploy(createdSlot, undefined, extensionPrefix, false, this.properties);
+            await vscode.commands.executeCommand('appService.Deploy', createdSlot);
         } else {
             this.properties[deployingToDeploymentSlot] = 'false';
         }

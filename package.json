@@ -595,6 +595,11 @@
                     "default": false,
                     "description": "Enables remote debugging of a Web App. This experimental preview only supports node on Linux."
                 },
+                "appService.defaultWebAppToDeploy": {
+                    "scope": "resource",
+                    "type": "string",
+                    "description": "The default web app to use when deploying.  Every consequent deployment will deploy to this web app or slot."
+                },
                 "appService.advancedCreation": {
                     "type": "boolean",
                     "default": false,
