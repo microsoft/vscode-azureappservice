@@ -15,7 +15,7 @@ import { deploy } from './commands/deploy';
 import { disableRemoteDebug } from './commands/remoteDebug/disableRemoteDebug';
 import { startRemoteDebug } from './commands/remoteDebug/startRemoteDebug';
 import { swapSlots } from './commands/swapSlots';
-import { DeploymentSlotsTreeItem } from './explorer/DeploymentSlotsTreeItem';
+import { DeploymentSlotsNATreeItem, DeploymentSlotsTreeItem, ScaleUpTreeItem } from './explorer/DeploymentSlotsTreeItem';
 import { DeploymentSlotTreeItem } from './explorer/DeploymentSlotTreeItem';
 import { FileEditor } from './explorer/editors/FileEditor';
 import { FileTreeItem } from './explorer/FileTreeItem';
@@ -328,6 +328,9 @@ export function activate(context: vscode.ExtensionContext): void {
         } else {
             await fileEditor.showEditor(node);
         }
+    });
+    registerCommand('appService.ScaleUp', async (node: IAzureNode<DeploymentSlotsNATreeItem | ScaleUpTreeItem>) => {
+        node.openInPortal(node.treeItem.scaleUpId);
     });
 
     registerEvent('appService.fileEditor.onDidSaveTextDocument', vscode.workspace.onDidSaveTextDocument, async function (this: IActionContext, doc: vscode.TextDocument): Promise<void> { await fileEditor.onDidSaveTextDocument(this, context.globalState, doc); });
