@@ -175,13 +175,13 @@ export function activate(context: vscode.ExtensionContext): void {
         // prompt user to deploy to newly created web app
         if (await vscode.window.showInformationMessage('Deploy to web app?', yesButton, noButton) === yesButton) {
             this.properties[deployingToWebApp] = 'true';
-            await vscode.commands.executeCommand('appService.Deploy', createdApp);
+            await vscode.commands.executeCommand('appService.Deploy', createdApp, false);
         } else {
             this.properties[deployingToWebApp] = 'false';
         }
     });
-    registerCommand('appService.Deploy', async function (this: IActionContext, target?: vscode.Uri | IAzureNode<WebAppTreeItem> | undefined): Promise<void> {
-        await deploy(this, target);
+    registerCommand('appService.Deploy', async function (this: IActionContext, target?: vscode.Uri | IAzureNode<WebAppTreeItem> | undefined, confirmDeployment: boolean = true): Promise<void> {
+        await deploy(this, target, confirmDeployment);
     });
     registerCommand('appService.ConfigureDeploymentSource', async (node?: IAzureNode<SiteTreeItem>) => {
         if (!node) {
@@ -219,7 +219,7 @@ export function activate(context: vscode.ExtensionContext): void {
         // prompt user to deploy to newly created web app
         if (await vscode.window.showInformationMessage('Deploy to deployment slot?', yesButton, noButton) === yesButton) {
             this.properties[deployingToDeploymentSlot] = 'true';
-            await vscode.commands.executeCommand('appService.Deploy', createdSlot);
+            await vscode.commands.executeCommand('appService.Deploy', createdSlot, false);
         } else {
             this.properties[deployingToDeploymentSlot] = 'false';
         }
