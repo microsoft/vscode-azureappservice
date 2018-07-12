@@ -21,7 +21,7 @@ import { isPathEqual, isSubpath } from '../utils/pathUtils';
 import { cancelWebsiteValidation, validateWebSite } from '../validateWebSite';
 
 // tslint:disable-next-line:max-func-body-length cyclomatic-complexity
-export async function deploy(context: IActionContext, target?: vscode.Uri | IAzureNode<SiteTreeItem> | undefined, confirmDeployment: boolean = true): Promise<void> {
+export async function deploy(context: IActionContext, confirmDeployment: boolean, target?: vscode.Uri | IAzureNode<SiteTreeItem> | undefined): Promise<void> {
 
     let node: IAzureNode<SiteTreeItem> | undefined;
     const newNodes: IAzureNode<SiteTreeItem>[] = [];
