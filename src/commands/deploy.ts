@@ -11,7 +11,7 @@ import * as path from 'path';
 import { join } from 'path';
 import * as vscode from 'vscode';
 import * as appservice from 'vscode-azureappservice';
-import { IActionContext, IAzureNode, IAzureQuickPickItem, IAzureTreeItem, parseError, TelemetryProperties, UserCancelledError } from 'vscode-azureextensionui';
+import { DialogResponses, IActionContext, IAzureNode, IAzureQuickPickItem, IAzureTreeItem, parseError, TelemetryProperties, UserCancelledError } from 'vscode-azureextensionui';
 import * as constants from '../constants';
 import { SiteTreeItem } from '../explorer/SiteTreeItem';
 import { WebAppTreeItem } from '../explorer/WebAppTreeItem';
@@ -115,6 +115,15 @@ export async function deploy(context: IActionContext, target?: vscode.Uri | IAzu
             await node.treeItem.enableScmDoBuildDuringDeploy(fsPath, constants.runtimes[siteConfig.linuxFxVersion.substring(0, siteConfig.linuxFxVersion.indexOf('|'))], context.properties);
         }
     }
+
+    if (confirmDeployment && siteConfig.scmType !== constants.ScmType.LocalGit && siteConfig !== constants.ScmType.GitHub) {
+        const warning: string = `Are you sure you want to deploy to "${node.treeItem.client.fullName}"? This will overwrite any previous deployment and cannot be undone.`;
+        context.properties.cancelStep = 'confirmDestructiveDeployment';
+        const deployButton: vscode.MessageItem = { title: 'Deploy' };
+        await ext.ui.showWarningMessage(warning, { modal: true }, deployButton, DialogResponses.cancel);
+        context.properties.cancelStep = '';
+    }
+
     if (!defaultWebAppToDeploy && currentWorkspace && (isPathEqual(currentWorkspace.uri.fsPath, fsPath) || isSubpath(currentWorkspace.uri.fsPath, fsPath))) {
         // tslint:disable-next-line:no-floating-promises
         node.treeItem.promptToSaveDeployDefaults(node, currentWorkspace.uri.fsPath, fsPath, context.properties);
@@ -122,7 +131,7 @@ export async function deploy(context: IActionContext, target?: vscode.Uri | IAzu
     cancelWebsiteValidation(node.treeItem);
     await node.runWithTemporaryDescription("Deploying...", async () => {
         // tslint:disable-next-line:no-non-null-assertion
-        await appservice.deploy(node!.treeItem.client, <string>fsPath, constants.extensionPrefix, confirmDeployment, context.properties);
+        await appservice.deploy(node!.treeItem.client, <string>fsPath, constants.extensionPrefix, context.properties);
     });
     // Don't wait
     validateWebSite(correlationId, node.treeItem).then(
