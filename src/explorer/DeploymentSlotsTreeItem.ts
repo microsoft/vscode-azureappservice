@@ -156,14 +156,29 @@ export class DeploymentSlotsTreeItem implements IAzureParentTreeItem {
 
 }
 
+export class ScaleUpTreeItem implements IAzureTreeItem {
+    public readonly label: string = "Scale Up App Service Plan...";
+    public readonly contextValue: string = "ScaleUp";
+    public readonly commandId: string = 'appService.ScaleUp';
+
+    public readonly scaleUpId: string;
+
+    public constructor(scaleUpId: string) {
+        this.scaleUpId = scaleUpId;
+    }
+}
+
 export class DeploymentSlotsNATreeItem implements IAzureParentTreeItem {
     public static contextValue: string = "deploymentNASlots";
     public readonly label: string;
     public readonly contextValue: string = DeploymentSlotsNATreeItem.contextValue;
     public readonly id: string = DeploymentSlotsNATreeItem.contextValue;
 
-    public constructor(tier: string) {
+    public readonly scaleUpId: string;
+
+    public constructor(tier: string, planId: string) {
         this.label = `Deployment Slots (N/A for ${tier} Service Plan)`;
+        this.scaleUpId = `${planId}/pricingTier`;
     }
 
     public get iconPath(): { light: string, dark: string } {
@@ -178,7 +193,6 @@ export class DeploymentSlotsNATreeItem implements IAzureParentTreeItem {
     }
 
     public async loadMoreChildren(_node: IAzureNode): Promise<IAzureTreeItem[]> {
-        const id: string = 'NASlotWarning';
-        return [{ id: id, contextValue: id, label: "Make sure you're running with a Standard or Premium plan before adding a slot" }];
+        return [new ScaleUpTreeItem(this.scaleUpId)];
     }
 }
