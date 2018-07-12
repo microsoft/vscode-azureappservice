@@ -31,7 +31,7 @@ export class WebAppTreeItem extends SiteTreeItem {
         // tslint:disable-next-line:no-non-null-assertion
         const tier: string = String(appServicePlan.sku!.tier);
         // tslint:disable-next-line:no-non-null-assertion
-        this.deploymentSlotsNode = /^(basic|free)$/i.test(tier) ? new DeploymentSlotsNATreeItem(tier, appServicePlan.id!) : new DeploymentSlotsTreeItem(this.client);
+        this.deploymentSlotsNode = /^(basic|free|shared)$/i.test(tier) ? new DeploymentSlotsNATreeItem(tier, appServicePlan.id!) : new DeploymentSlotsTreeItem(this.client);
         this.folderNode = new FolderTreeItem(this.client, 'Files', "/site/wwwroot", true);
         this.logFolderNode = new FolderTreeItem(this.client, 'Log Files', '/LogFiles', true);
         this.webJobsNode = new WebJobsTreeItem(this.client);
