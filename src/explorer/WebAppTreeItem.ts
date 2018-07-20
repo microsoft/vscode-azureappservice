@@ -43,7 +43,7 @@ export class WebAppTreeItem extends SiteTreeItem {
     }
 
     public async loadMoreChildren(_parentNode: IAzureNode): Promise<IAzureTreeItem[]> {
-        const appServicePlan = await this.client.getAppServicePlan();
+        const appServicePlan: AppServicePlan = await this.client.getAppServicePlan();
         // tslint:disable-next-line:no-non-null-assertion
         const tier: string = String(appServicePlan.sku!.tier);
         // tslint:disable-next-line:no-non-null-assertion

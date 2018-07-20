@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import WebSiteManagementClient = require('azure-arm-website');
-import { AppServicePlan, Site, WebAppCollection } from 'azure-arm-website/lib/models';
+import { Site, WebAppCollection } from 'azure-arm-website/lib/models';
 import { workspace, WorkspaceConfiguration } from 'vscode';
 import { createWebApp, SiteClient } from 'vscode-azureappservice';
 import { addExtensionUserAgent, IActionContext, IAzureNode, IAzureTreeItem, IChildProvider, UserCancelledError } from 'vscode-azureextensionui';
@@ -40,8 +40,7 @@ export class WebAppProvider implements IChildProvider {
                 try {
                     const siteClient: SiteClient = new SiteClient(s, node);
                     if (!siteClient.isFunctionApp) {
-                        const appServicePlan: AppServicePlan = await siteClient.getAppServicePlan();
-                        treeItems.push(new WebAppTreeItem(siteClient, appServicePlan));
+                        treeItems.push(new WebAppTreeItem(siteClient));
                     }
                 } catch {
                     if (s.name) {
