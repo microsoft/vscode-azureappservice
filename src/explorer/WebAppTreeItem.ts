@@ -20,18 +20,14 @@ import { WebJobsTreeItem } from './WebJobsTreeItem';
 export class WebAppTreeItem extends SiteTreeItem {
     public static contextValue: string = extensionPrefix;
     public readonly contextValue: string = WebAppTreeItem.contextValue;
-    public readonly deploymentSlotsNode: IAzureTreeItem;
+    public deploymentSlotsNode: IAzureTreeItem;
     public readonly appSettingsNode: IAzureTreeItem;
     public readonly webJobsNode: IAzureTreeItem;
     public readonly folderNode: IAzureTreeItem;
     public readonly logFolderNode: IAzureTreeItem;
 
-    constructor(client: SiteClient, appServicePlan: AppServicePlan) {
+    constructor(client: SiteClient) {
         super(client);
-        // tslint:disable-next-line:no-non-null-assertion
-        const tier: string = String(appServicePlan.sku!.tier);
-        // tslint:disable-next-line:no-non-null-assertion
-        this.deploymentSlotsNode = /^(basic|free|shared)$/i.test(tier) ? new DeploymentSlotsNATreeItem(tier, appServicePlan.id!) : new DeploymentSlotsTreeItem(this.client);
         this.folderNode = new FolderTreeItem(this.client, 'Files', "/site/wwwroot", true);
         this.logFolderNode = new FolderTreeItem(this.client, 'Log Files', '/LogFiles', true);
         this.webJobsNode = new WebJobsTreeItem(this.client);
@@ -47,6 +43,11 @@ export class WebAppTreeItem extends SiteTreeItem {
     }
 
     public async loadMoreChildren(_parentNode: IAzureNode): Promise<IAzureTreeItem[]> {
+        const appServicePlan: AppServicePlan = await this.client.getAppServicePlan();
+        // tslint:disable-next-line:no-non-null-assertion
+        const tier: string = String(appServicePlan.sku!.tier);
+        // tslint:disable-next-line:no-non-null-assertion
+        this.deploymentSlotsNode = /^(basic|free|shared)$/i.test(tier) ? new DeploymentSlotsNATreeItem(tier, appServicePlan.id!) : new DeploymentSlotsTreeItem(this.client);
         return [this.deploymentSlotsNode, this.folderNode, this.logFolderNode, this.webJobsNode, this.appSettingsNode];
     }
 
