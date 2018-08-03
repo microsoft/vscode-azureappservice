@@ -45,7 +45,7 @@ export class DeploymentSlotsTreeItem implements IAzureParentTreeItem {
             this._nextLink = undefined;
         }
 
-        const client: WebSiteManagementClient = new WebSiteManagementClient(node.credentials, node.subscriptionId);
+        const client: WebSiteManagementClient = new WebSiteManagementClient(node.credentials, node.subscriptionId, node.environment.resourceManagerEndpointUrl);
         addExtensionUserAgent(client);
         const webAppCollection: WebAppCollection = this._nextLink === undefined ?
             await client.webApps.listSlots(this.client.resourceGroup, this.client.siteName) :
@@ -57,7 +57,7 @@ export class DeploymentSlotsTreeItem implements IAzureParentTreeItem {
     }
 
     public async createChild(node: IAzureParentNode<DeploymentSlotsTreeItem>, showCreatingNode: (label: string) => void): Promise<IAzureTreeItem> {
-        const client: WebSiteManagementClient = new WebSiteManagementClient(node.credentials, node.subscriptionId);
+        const client: WebSiteManagementClient = new WebSiteManagementClient(node.credentials, node.subscriptionId, node.environment.resourceManagerEndpointUrl);
         addExtensionUserAgent(client);
         let slotName: string = await this.promptForSlotName(client);
         if (!slotName) {
