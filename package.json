@@ -209,7 +209,7 @@
             },
             {
                 "command": "appService.ScaleUp",
-                "title": "Scale Up App Service Plan...",
+                "title": "Scale up App Service Plan...",
                 "category": "Azure App Service"
             }
         ],

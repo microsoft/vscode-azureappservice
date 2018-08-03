@@ -157,7 +157,7 @@ export class DeploymentSlotsTreeItem implements IAzureParentTreeItem {
 }
 
 export class ScaleUpTreeItem implements IAzureTreeItem {
-    public readonly label: string = "Scale Up App Service Plan...";
+    public readonly label: string = "Scale up App Service Plan...";
     public readonly contextValue: string = "ScaleUp";
     public readonly commandId: string = 'appService.ScaleUp';
 
