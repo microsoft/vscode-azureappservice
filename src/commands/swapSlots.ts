@@ -47,7 +47,7 @@ export async function swapSlots(sourceSlotNode: IAzureNode<DeploymentSlotTreeIte
     const targetSlotLabel: string = targetSlot ? targetSlot.client.slotName! : productionSlotLabel;
     ext.outputChannel.show(true);
     ext.outputChannel.appendLine(`Swapping "${targetSlotLabel}" with "${sourceSlotClient.slotName}"...`);
-    const client: WebSiteManagementClient = new WebSiteManagementClient(sourceSlotNode.credentials, sourceSlotNode.subscriptionId);
+    const client: WebSiteManagementClient = new WebSiteManagementClient(sourceSlotNode.credentials, sourceSlotNode.subscriptionId, sourceSlotNode.environment.resourceManagerEndpointUrl);
     addExtensionUserAgent(client);
     // if targetSlot was assigned undefined, the user selected 'production'
     if (!targetSlot) {
