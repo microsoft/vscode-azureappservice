@@ -29,6 +29,7 @@ import { LogPointsSessionWizard } from './logPoints/LogPointsSessionWizard';
 import { RemoteScriptDocumentProvider, RemoteScriptSchema } from './logPoints/remoteScriptDocumentProvider';
 import { LogpointsCollection } from './logPoints/structs/LogpointsCollection';
 import { getPackageInfo, IPackageInfo } from './utils/IPackageInfo';
+import { FolderTreeItem } from './explorer/FolderTreeItem';
 
 // tslint:disable-next-line:export-name
 // tslint:disable-next-line:max-func-body-length
@@ -334,6 +335,11 @@ export function activate(context: vscode.ExtensionContext): void {
     });
 
     registerEvent('appService.fileEditor.onDidSaveTextDocument', vscode.workspace.onDidSaveTextDocument, async function (this: IActionContext, doc: vscode.TextDocument): Promise<void> { await fileEditor.onDidSaveTextDocument(this, context.globalState, doc); });
+    registerCommand('appService.EnableLogging', async (node?: IAzureNode<FolderTreeItem>) => {
+        if (!node) {
+            ext.tree
+        }
+    });
 }
 
 // tslint:disable-next-line:no-empty
