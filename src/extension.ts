@@ -9,6 +9,7 @@ import { extname } from 'path';
 import * as vscode from 'vscode';
 import { AppSettingsTreeItem, AppSettingTreeItem, editScmType, getFile, IFileResult, registerAppServiceExtensionVariables } from 'vscode-azureappservice';
 import { AzureTreeDataProvider, AzureUserInput, IActionContext, IAzureNode, IAzureParentNode, IAzureUserInput, registerCommand, registerEvent, registerUIExtensionVariables } from 'vscode-azureextensionui';
+import { IAzureTreeItem } from 'vscode-azureextensionui';
 import TelemetryReporter from 'vscode-extension-telemetry';
 import { SiteConfigResource } from '../node_modules/azure-arm-website/lib/models';
 import { deploy } from './commands/deploy';
@@ -315,9 +316,9 @@ export function activate(context: vscode.ExtensionContext): void {
     });
 
     registerEvent('appService.fileEditor.onDidSaveTextDocument', vscode.workspace.onDidSaveTextDocument, async function (this: IActionContext, doc: vscode.TextDocument): Promise<void> { await fileEditor.onDidSaveTextDocument(this, context.globalState, doc); });
-    registerCommand('appService.EnableFileLogging', async (node?: IAzureNode<SiteTreeItem> | IAzureNode<FolderTreeItem>) => {
+    registerCommand('appService.EnableFileLogging', async (node?: IAzureNode<SiteTreeItem> | IAzureNode<FolderTreeItem> | IAzureParentNode<IAzureTreeItem>) => {
         if (!node) {
-            node = await ext.tree.showNodePicker(WebAppTreeItem.contextValue);
+            node = <IAzureNode<SiteTreeItem>>await ext.tree.showNodePicker(WebAppTreeItem.contextValue);
         }
 
         if (node.treeItem instanceof FolderTreeItem) {
@@ -325,7 +326,7 @@ export function activate(context: vscode.ExtensionContext): void {
             node = node.parent;
         }
 
-        await enableFileLogging(node);
+        await enableFileLogging(<IAzureNode<SiteTreeItem>>node);
     });
 }
 
