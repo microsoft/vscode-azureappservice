@@ -5,6 +5,7 @@
 
 // tslint:disable-next-line:no-require-imports
 import WebSiteManagementClient = require('azure-arm-website');
+import { ProgressLocation, window } from 'vscode';
 import { SiteClient } from 'vscode-azureappservice';
 import { addExtensionUserAgent, IAzureNode, IAzureQuickPickItem } from 'vscode-azureextensionui';
 import { DeploymentSlotTreeItem } from '../explorer/DeploymentSlotTreeItem';
@@ -44,18 +45,23 @@ export async function swapSlots(sourceSlotNode: IAzureNode<DeploymentSlotTreeIte
     const targetSlot: DeploymentSlotTreeItem | undefined = (await ext.ui.showQuickPick(otherSlots, quickPickOptions)).data;
 
     // tslint:disable-next-line:no-non-null-assertion
-    const targetSlotLabel: string = targetSlot ? targetSlot.client.slotName! : productionSlotLabel;
-    ext.outputChannel.show(true);
-    ext.outputChannel.appendLine(`Swapping "${targetSlotLabel}" with "${sourceSlotClient.slotName}"...`);
+    const targetSlotLabel: string = targetSlot ? targetSlot.client.fullName! : `${sourceSlotClient.siteName}-${productionSlotLabel}`;
+    const swappingSlots: string = `Swapping "${targetSlotLabel}" with "${sourceSlotClient.fullName}"...`;
+    const successfullySwapped: string = `Successfully swapped "${targetSlotLabel}" with "${sourceSlotClient.fullName}".`;
+    ext.outputChannel.appendLine(swappingSlots);
     const client: WebSiteManagementClient = new WebSiteManagementClient(sourceSlotNode.credentials, sourceSlotNode.subscriptionId, sourceSlotNode.environment.resourceManagerEndpointUrl);
     addExtensionUserAgent(client);
-    // if targetSlot was assigned undefined, the user selected 'production'
-    if (!targetSlot) {
-        // tslint:disable-next-line:no-non-null-assertion
-        await client.webApps.swapSlotWithProduction(sourceSlotClient.resourceGroup, sourceSlotClient.siteName, { targetSlot: sourceSlotClient.slotName!, preserveVnet: true });
-    } else {
-        // tslint:disable-next-line:no-non-null-assertion
-        await client.webApps.swapSlotSlot(sourceSlotClient.resourceGroup, sourceSlotClient.siteName, { targetSlot: targetSlot.client.slotName!, preserveVnet: true }, sourceSlotClient.slotName!);
-    }
-    ext.outputChannel.appendLine(`Successfully swapped "${targetSlotLabel}" with "${sourceSlotClient.slotName}".`);
+    await window.withProgress({ location: ProgressLocation.Notification, title: swappingSlots }, async () => {
+        // if targetSlot was assigned undefined, the user selected 'production'
+        if (!targetSlot) {
+            // tslint:disable-next-line:no-non-null-assertion
+            await client.webApps.swapSlotWithProduction(sourceSlotClient.resourceGroup, sourceSlotClient.siteName, { targetSlot: sourceSlotClient.slotName!, preserveVnet: true });
+        } else {
+            // tslint:disable-next-line:no-non-null-assertion
+            await client.webApps.swapSlotSlot(sourceSlotClient.resourceGroup, sourceSlotClient.siteName, { targetSlot: targetSlot.client.slotName!, preserveVnet: true }, sourceSlotClient.slotName!);
+        }
+        window.showInformationMessage(successfullySwapped);
+        ext.outputChannel.appendLine(successfullySwapped);
+    });
+
 }
