@@ -8,14 +8,14 @@
 import { extname } from 'path';
 import * as vscode from 'vscode';
 import { AppSettingsTreeItem, AppSettingTreeItem, editScmType, getFile, IFileResult, registerAppServiceExtensionVariables } from 'vscode-azureappservice';
-import { AzureTreeDataProvider, AzureUserInput, IActionContext, IAzureNode, IAzureParentNode, IAzureUserInput, parseError, registerCommand, registerEvent, registerUIExtensionVariables } from 'vscode-azureextensionui';
+import { AzureTreeDataProvider, AzureUserInput, IActionContext, IAzureNode, IAzureParentNode, IAzureUserInput, registerCommand, registerEvent, registerUIExtensionVariables } from 'vscode-azureextensionui';
 import TelemetryReporter from 'vscode-extension-telemetry';
 import { SiteConfigResource } from '../node_modules/azure-arm-website/lib/models';
+import { deploy } from './commands/deploy';
 import { disableRemoteDebug } from './commands/remoteDebug/disableRemoteDebug';
 import { startRemoteDebug } from './commands/remoteDebug/startRemoteDebug';
 import { swapSlots } from './commands/swapSlots';
-import { extensionPrefix } from './constants';
-import { DeploymentSlotsTreeItem } from './explorer/DeploymentSlotsTreeItem';
+import { DeploymentSlotsNATreeItem, DeploymentSlotsTreeItem, ScaleUpTreeItem } from './explorer/DeploymentSlotsTreeItem';
 import { DeploymentSlotTreeItem } from './explorer/DeploymentSlotTreeItem';
 import { FileEditor } from './explorer/editors/FileEditor';
 import { FileTreeItem } from './explorer/FileTreeItem';
@@ -175,60 +175,13 @@ export function activate(context: vscode.ExtensionContext): void {
         // prompt user to deploy to newly created web app
         if (await vscode.window.showInformationMessage('Deploy to web app?', yesButton, noButton) === yesButton) {
             this.properties[deployingToWebApp] = 'true';
-
-            await createdApp.treeItem.deploy(createdApp, undefined, extensionPrefix, false, this.properties);
+            await deploy(this, false, createdApp);
         } else {
             this.properties[deployingToWebApp] = 'false';
         }
     });
     registerCommand('appService.Deploy', async function (this: IActionContext, target?: vscode.Uri | IAzureNode<WebAppTreeItem> | undefined): Promise<void> {
-        let node: IAzureNode<WebAppTreeItem> | undefined;
-        const newNodes: IAzureNode<WebAppTreeItem>[] = [];
-        let fsPath: string | undefined;
-        let confirmDeployment: boolean = true;
-        const onNodeCreatedFromQuickPickDisposable: vscode.Disposable = tree.onNodeCreate((newNode: IAzureNode<WebAppTreeItem>) => {
-            // event is fired from azure-extensionui if node was created during deployment
-            newNodes.push(newNode);
-        });
-        try {
-            if (target instanceof vscode.Uri) {
-                fsPath = target.fsPath;
-            } else {
-                node = target;
-            }
-
-            if (!node) {
-                try {
-                    node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
-
-                } catch (err2) {
-                    if (parseError(err2).isUserCancelledError) {
-                        this.properties.cancelStep = `showNodePicker:${WebAppTreeItem.contextValue}`;
-                    }
-                    throw err2;
-                }
-            }
-
-            if (newNodes.length > 0) {
-                for (const newApp of newNodes) {
-                    if (newApp.id === node.id) {
-                        // if the node selected for deployment is the same newly created nodes, stifle the confirmDeployment dialog
-                        confirmDeployment = false;
-                        newApp.treeItem.client.getSiteConfig().then(
-                            (createdAppConfig: SiteConfigResource) => {
-                                this.properties.linuxFxVersion = createdAppConfig.linuxFxVersion ? createdAppConfig.linuxFxVersion : 'undefined';
-                                this.properties.createdFromDeploy = 'true';
-                            },
-                            () => {
-                                // ignore
-                            });
-                    }
-                }
-            }
-            await node.treeItem.deploy(node, fsPath, extensionPrefix, confirmDeployment, this.properties);
-        } finally {
-            onNodeCreatedFromQuickPickDisposable.dispose();
-        }
+        await deploy(this, true, target);
     });
     registerCommand('appService.ConfigureDeploymentSource', async (node?: IAzureNode<SiteTreeItem>) => {
         if (!node) {
@@ -266,7 +219,7 @@ export function activate(context: vscode.ExtensionContext): void {
         // prompt user to deploy to newly created web app
         if (await vscode.window.showInformationMessage('Deploy to deployment slot?', yesButton, noButton) === yesButton) {
             this.properties[deployingToDeploymentSlot] = 'true';
-            await createdSlot.treeItem.deploy(createdSlot, undefined, extensionPrefix, false, this.properties);
+            await deploy(this, false, createdSlot);
         } else {
             this.properties[deployingToDeploymentSlot] = 'false';
         }
@@ -375,6 +328,9 @@ export function activate(context: vscode.ExtensionContext): void {
         } else {
             await fileEditor.showEditor(node);
         }
+    });
+    registerCommand('appService.ScaleUp', async (node: IAzureNode<DeploymentSlotsNATreeItem | ScaleUpTreeItem>) => {
+        node.openInPortal(node.treeItem.scaleUpId);
     });
 
     registerEvent('appService.fileEditor.onDidSaveTextDocument', vscode.workspace.onDidSaveTextDocument, async function (this: IActionContext, doc: vscode.TextDocument): Promise<void> { await fileEditor.onDidSaveTextDocument(this, context.globalState, doc); });

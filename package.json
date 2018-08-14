@@ -2,7 +2,7 @@
     "name": "vscode-azureappservice",
     "displayName": "Azure App Service",
     "description": "An Azure App Service management extension for Visual Studio Code.",
-    "version": "0.8.2-alpha",
+    "version": "0.9.1-alpha",
     "publisher": "ms-azuretools",
     "icon": "resources/windows-azure-web-site.png",
     "aiKey": "AIF-d9b70cd4-b9f9-4d70-929b-a071c400b217",
@@ -206,6 +206,11 @@
                 "command": "appService.LogPoints.Toggle",
                 "title": "Set or Remove a Logpoint",
                 "category": "Azure App Service"
+            },
+            {
+                "command": "appService.ScaleUp",
+                "title": "Scale up App Service Plan...",
+                "category": "Azure App Service"
             }
         ],
         "viewsContainers": {
@@ -281,6 +286,10 @@
                 {
                     "command": "appService.DisableRemoteDebug",
                     "when": "config.appService.enableRemoteDebugging == true"
+                },
+                {
+                    "command": "appService.ScaleUp",
+                    "when": "never"
                 }
             ],
             "view/title": [
@@ -377,6 +386,16 @@
                     "group": "4_appServiceDiagnosticsCommands@2"
                 },
                 {
+                    "command": "appService.DeploymentScript",
+                    "when": "view == azureAppService && viewItem == appService",
+                    "group": "5_appServiceMiscCommands@1"
+                },
+                {
+                    "command": "appService.Refresh",
+                    "when": "view == azureAppService && viewItem == appService",
+                    "group": "6_appServiceRefreshCommands@1"
+                },
+                {
                     "command": "appService.StartLogPointsSession",
                     "when": "config.appService.logpoints == true && view == azureAppService && viewItem == appService",
                     "group": "4_appServiceDiagnosticsCommands@3"
@@ -390,11 +409,6 @@
                     "command": "appService.DisableRemoteDebug",
                     "when": "config.appService.enableRemoteDebugging == true && view == azureAppService && viewItem == appService",
                     "group": "5_appServiceRemoteDebugCommands@2"
-                },
-                {
-                    "command": "appService.DeploymentScript",
-                    "when": "view == azureAppService && viewItem == appService",
-                    "group": "6_appServiceMiscCommands@1"
                 },
                 {
                     "command": "appService.CreateSlot",
@@ -525,6 +539,10 @@
                     "command": "appService.appSettings.Delete",
                     "when": "view == azureAppService && viewItem == applicationSettingItem",
                     "group": "1_appSettingItemEdit@3"
+                },
+                {
+                    "command": "appService.ScaleUp",
+                    "when": "view == azureAppService && viewItem == deploymentNASlots"
                 }
             ],
             "explorer/context": [
@@ -604,6 +622,11 @@
                     "type": "boolean",
                     "default": false,
                     "description": "Enables remote debugging of a Web App. This experimental preview only supports node on Linux."
+                },
+                "appService.defaultWebAppToDeploy": {
+                    "scope": "resource",
+                    "type": "string",
+                    "description": "The default web app to use when deploying.  Every consequent deployment will deploy to this web app or slot."
                 },
                 "appService.advancedCreation": {
                     "type": "boolean",
@@ -715,12 +738,12 @@
         "portfinder": "^1.0.13",
         "request": "^2.83.0",
         "request-promise": "^4.2.2",
-        "vscode-azureappservice": "~0.18.0",
-        "vscode-azureextensionui": "~0.16.0",
-        "vscode-azurekudu": "~0.1.6",
+        "vscode-azureappservice": "^0.19.1",
+        "vscode-azureextensionui": "^0.16.5",
+        "vscode-azurekudu": "^0.1.8",
         "vscode-debugadapter": "^1.24.0",
         "vscode-debugprotocol": "^1.24.0",
-        "vscode-extension-telemetry": "^0.0.15"
+        "vscode-extension-telemetry": "^0.0.18"
     },
     "extensionDependencies": [
         "ms-vscode.azure-account"

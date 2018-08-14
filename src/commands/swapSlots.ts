@@ -6,7 +6,7 @@
 // tslint:disable-next-line:no-require-imports
 import WebSiteManagementClient = require('azure-arm-website');
 import { SiteClient } from 'vscode-azureappservice';
-import { IAzureNode, IAzureQuickPickItem } from 'vscode-azureextensionui';
+import { addExtensionUserAgent, IAzureNode, IAzureQuickPickItem } from 'vscode-azureextensionui';
 import { DeploymentSlotTreeItem } from '../explorer/DeploymentSlotTreeItem';
 import { ext } from '../extensionVariables';
 
@@ -47,7 +47,8 @@ export async function swapSlots(sourceSlotNode: IAzureNode<DeploymentSlotTreeIte
     const targetSlotLabel: string = targetSlot ? targetSlot.client.slotName! : productionSlotLabel;
     ext.outputChannel.show(true);
     ext.outputChannel.appendLine(`Swapping "${targetSlotLabel}" with "${sourceSlotClient.slotName}"...`);
-    const client: WebSiteManagementClient = new WebSiteManagementClient(sourceSlotNode.credentials, sourceSlotNode.subscriptionId);
+    const client: WebSiteManagementClient = new WebSiteManagementClient(sourceSlotNode.credentials, sourceSlotNode.subscriptionId, sourceSlotNode.environment.resourceManagerEndpointUrl);
+    addExtensionUserAgent(client);
     // if targetSlot was assigned undefined, the user selected 'production'
     if (!targetSlot) {
         // tslint:disable-next-line:no-non-null-assertion

@@ -7,7 +7,7 @@ import WebSiteManagementClient = require('azure-arm-website');
 import { NameValuePair, ResourceNameAvailability, Site, WebAppCollection } from 'azure-arm-website/lib/models';
 import * as path from 'path';
 import { SiteClient } from 'vscode-azureappservice';
-import { IAzureNode, IAzureParentNode, IAzureParentTreeItem, IAzureQuickPickItem, IAzureTreeItem, UserCancelledError } from 'vscode-azureextensionui';
+import { addExtensionUserAgent, IAzureNode, IAzureParentNode, IAzureParentTreeItem, IAzureQuickPickItem, IAzureTreeItem, UserCancelledError } from 'vscode-azureextensionui';
 import { ext } from '../extensionVariables';
 import { DeploymentSlotTreeItem } from './DeploymentSlotTreeItem';
 import { SiteTreeItem } from './SiteTreeItem';
@@ -45,7 +45,8 @@ export class DeploymentSlotsTreeItem implements IAzureParentTreeItem {
             this._nextLink = undefined;
         }
 
-        const client: WebSiteManagementClient = new WebSiteManagementClient(node.credentials, node.subscriptionId);
+        const client: WebSiteManagementClient = new WebSiteManagementClient(node.credentials, node.subscriptionId, node.environment.resourceManagerEndpointUrl);
+        addExtensionUserAgent(client);
         const webAppCollection: WebAppCollection = this._nextLink === undefined ?
             await client.webApps.listSlots(this.client.resourceGroup, this.client.siteName) :
             await client.webApps.listSlotsNext(this._nextLink);
@@ -56,7 +57,8 @@ export class DeploymentSlotsTreeItem implements IAzureParentTreeItem {
     }
 
     public async createChild(node: IAzureParentNode<DeploymentSlotsTreeItem>, showCreatingNode: (label: string) => void): Promise<IAzureTreeItem> {
-        const client: WebSiteManagementClient = new WebSiteManagementClient(node.credentials, node.subscriptionId);
+        const client: WebSiteManagementClient = new WebSiteManagementClient(node.credentials, node.subscriptionId, node.environment.resourceManagerEndpointUrl);
+        addExtensionUserAgent(client);
         let slotName: string = await this.promptForSlotName(client);
         if (!slotName) {
             throw new UserCancelledError();
@@ -154,11 +156,30 @@ export class DeploymentSlotsTreeItem implements IAzureParentTreeItem {
 
 }
 
+export class ScaleUpTreeItem implements IAzureTreeItem {
+    public readonly label: string = "Scale up App Service Plan...";
+    public readonly contextValue: string = "ScaleUp";
+    public readonly commandId: string = 'appService.ScaleUp';
+
+    public readonly scaleUpId: string;
+
+    public constructor(scaleUpId: string) {
+        this.scaleUpId = scaleUpId;
+    }
+}
+
 export class DeploymentSlotsNATreeItem implements IAzureParentTreeItem {
     public static contextValue: string = "deploymentNASlots";
-    public readonly label: string = 'Deployment Slots (N/A for Basic Service Plan)';
+    public readonly label: string;
     public readonly contextValue: string = DeploymentSlotsNATreeItem.contextValue;
     public readonly id: string = DeploymentSlotsNATreeItem.contextValue;
+
+    public readonly scaleUpId: string;
+
+    public constructor(tier: string, planId: string) {
+        this.label = `Deployment Slots (N/A for ${tier} Service Plan)`;
+        this.scaleUpId = `${planId}/pricingTier`;
+    }
 
     public get iconPath(): { light: string, dark: string } {
         return {
@@ -172,7 +193,6 @@ export class DeploymentSlotsNATreeItem implements IAzureParentTreeItem {
     }
 
     public async loadMoreChildren(_node: IAzureNode): Promise<IAzureTreeItem[]> {
-        const id: string = 'NASlotWarning';
-        return [{ id: id, contextValue: id, label: "Make sure you're running with a Standard or Premium plan before adding a slot" }];
+        return [new ScaleUpTreeItem(this.scaleUpId)];
     }
 }

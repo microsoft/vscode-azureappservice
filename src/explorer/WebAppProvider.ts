@@ -4,10 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import WebSiteManagementClient = require('azure-arm-website');
-import { AppServicePlan, Site, WebAppCollection } from 'azure-arm-website/lib/models';
+import { Site, WebAppCollection } from 'azure-arm-website/lib/models';
 import { workspace, WorkspaceConfiguration } from 'vscode';
 import { createWebApp, SiteClient } from 'vscode-azureappservice';
-import { IActionContext, IAzureNode, IAzureTreeItem, IChildProvider, UserCancelledError } from 'vscode-azureextensionui';
+import { addExtensionUserAgent, IActionContext, IAzureNode, IAzureTreeItem, IChildProvider, UserCancelledError } from 'vscode-azureextensionui';
 import { configurationSettings, extensionPrefix } from '../constants';
 import { InvalidWebAppTreeItem } from './InvalidWebAppTreeItem';
 import { WebAppTreeItem } from './WebAppTreeItem';
@@ -26,7 +26,8 @@ export class WebAppProvider implements IChildProvider {
             this._nextLink = undefined;
         }
 
-        const client: WebSiteManagementClient = new WebSiteManagementClient(node.credentials, node.subscriptionId);
+        const client: WebSiteManagementClient = new WebSiteManagementClient(node.credentials, node.subscriptionId, node.environment.resourceManagerEndpointUrl);
+        addExtensionUserAgent(client);
         const webAppCollection: WebAppCollection = this._nextLink === undefined ?
             await client.webApps.list() :
             await client.webApps.listNext(this._nextLink);
@@ -39,8 +40,7 @@ export class WebAppProvider implements IChildProvider {
                 try {
                     const siteClient: SiteClient = new SiteClient(s, node);
                     if (!siteClient.isFunctionApp) {
-                        const appServicePlan: AppServicePlan = await siteClient.getAppServicePlan();
-                        treeItems.push(new WebAppTreeItem(siteClient, appServicePlan));
+                        treeItems.push(new WebAppTreeItem(siteClient));
                     }
                 } catch {
                     if (s.name) {
@@ -59,8 +59,7 @@ export class WebAppProvider implements IChildProvider {
             throw new UserCancelledError();
         } else {
             const siteClient: SiteClient = new SiteClient(newSite, node);
-            const appServicePlan: AppServicePlan = await siteClient.getAppServicePlan();
-            return new WebAppTreeItem(siteClient, appServicePlan);
+            return new WebAppTreeItem(siteClient);
         }
     }
 }
