@@ -561,6 +561,13 @@
                 }
             ]
         },
+        "keybindings": [
+            {
+                "command": "workbench.view.extension.azure",
+                "key": "ctrl+shift+a",
+                "mac": "cmd+shift+a"
+            }
+        ],
         "configuration": {
             "title": "Azure App Service",
             "properties": {
