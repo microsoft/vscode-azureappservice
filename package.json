@@ -216,7 +216,7 @@
         "viewsContainers": {
             "activitybar": [
                 {
-                    "id": "azurereer",
+                    "id": "azure",
                     "title": "Azure",
                     "icon": "resources/azure.svg",
                     "command": {
@@ -566,7 +566,7 @@
         },
         "keybindings": [
             {
-                "command": "workbench.views.azure",
+                "command": "workbench.view.extension.azure",
                 "key": "ctrl+shift+a",
                 "mac": "cmd+shift+a"
             }
