@@ -500,12 +500,22 @@
                 },
                 {
                     "command": "appService.EnableFileLogging",
-                    "when": "view == azureAppService && viewItem == folder",
+                    "when": "view == azureAppService && viewItem == logFolder",
                     "group": "1_folderGeneralCommands@1"
                 },
                 {
                     "command": "appService.Refresh",
                     "when": "view == azureAppService && viewItem == folder",
+                    "group": "1_folderGeneralCommands@2"
+                },
+                {
+                    "command": "appService.Refresh",
+                    "when": "view == azureAppService && viewItem == subFolder",
+                    "group": "1_folderGeneralCommands@2"
+                },
+                {
+                    "command": "appService.Refresh",
+                    "when": "view == azureAppService && viewItem == logFolder",
                     "group": "1_folderGeneralCommands@2"
                 },
                 {

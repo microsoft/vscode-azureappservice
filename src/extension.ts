@@ -266,7 +266,14 @@ export function activate(context: vscode.ExtensionContext): void {
             node.treeItem.logStreamOutputChannel!.show();
             await vscode.window.showWarningMessage(`The log-streaming service for "${node.treeItem.client.fullName}" is already active.`);
         } else {
-            await enableFileLogging(node);
+            const isEnabled = await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async p => {
+                p.report({ message: 'Checking container diagnostics settings...' });
+                // tslint:disable-next-line:no-non-null-assertion
+                return await node!.treeItem.isHttpLogsEnabled();
+            });
+            if (!isEnabled) {
+                await enableFileLogging(node);
+            }
             node.treeItem.logStream = await node.treeItem.connectToLogStream();
         }
     });
@@ -325,8 +332,19 @@ export function activate(context: vscode.ExtensionContext): void {
             // If the entry point was the Files/Log Files node, pass the parent as that's where the logic lives
             node = node.parent;
         }
+        // tslint:disable-next-line:no-non-null-assertion
+        const siteTreeItem: SiteTreeItem = <SiteTreeItem>node!.treeItem;
+        const isEnabled = await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async p => {
+            p.report({ message: 'Checking container diagnostics settings...' });
+            return await siteTreeItem.isHttpLogsEnabled();
+        });
 
-        await enableFileLogging(<IAzureNode<SiteTreeItem>>node);
+        if (!isEnabled) {
+            await enableFileLogging(<IAzureNode<SiteTreeItem>>node);
+        } else {
+            // tslint:disable-next-line:no-non-null-assertion
+            vscode.window.showInformationMessage(`File logging has already been enabled for ${siteTreeItem.client.fullName}.`);
+        }
     });
 }
 
