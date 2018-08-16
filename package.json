@@ -552,6 +552,11 @@
                     "command": "appService.Deploy",
                     "when": "explorerResourceIsFolder == false && resourceExtname == .war",
                     "group": "zzz_@appServiceDeployCommands"
+                },
+                {
+                    "command": "appService.Deploy",
+                    "when": "explorerResourceIsFolder == false && resourceExtname == .jar",
+                    "group": "zzz_@appServiceDeployCommands"
                 }
             ],
             "editor/context": [

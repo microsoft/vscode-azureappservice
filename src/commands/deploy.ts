@@ -100,8 +100,10 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
     const siteConfig: WebSiteModels.SiteConfigResource = await node.treeItem.client.getSiteConfig();
 
     if (!fsPath) {
-        if (siteConfig.linuxFxVersion && siteConfig.linuxFxVersion.toLowerCase().startsWith(constants.runtimes.tomcat)) {
-            fsPath = await showWarQuickPick('Select the war file to deploy...', context.properties);
+        if (isJavaTomcatRuntime(siteConfig.linuxFxVersion)) {
+            fsPath = await showQuickPickByFileExtension('Select the war file to deploy...', 'war', context.properties);
+        } else if (isJavaSERuntime(siteConfig.linuxFxVersion)) {
+            fsPath = await showQuickPickByFileExtension('Select the jar file to deploy...', 'jar', context.properties);
         } else {
             fsPath = await util.showWorkspaceFoldersQuickPick("Select the folder to deploy", context.properties, constants.configurationSettings.deploySubpath);
         }
@@ -142,14 +144,25 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
         });
 }
 
+function isJavaTomcatRuntime(runtime: string | undefined): boolean {
+    return runtime !== undefined && runtime.toLowerCase().startsWith(constants.runtimes.tomcat);
+}
+
+function isJavaSERuntime(runtime: string | undefined): boolean {
+    return runtime !== undefined && runtime.toLowerCase().startsWith(constants.runtimes.javase);
+}
+
 function getRandomHexString(length: number): string {
     const buffer: Buffer = randomBytes(Math.ceil(length / 2));
     return buffer.toString('hex').slice(0, length);
 }
 
-async function showWarQuickPick(placeHolderString: string, telemetryProperties: TelemetryProperties): Promise<string> {
-    const warFiles: vscode.Uri[] = await vscode.workspace.findFiles('**/*.war');
-    const warQuickPickItems: IAzureQuickPickItem<string | undefined>[] = warFiles.map((uri: vscode.Uri) => {
+async function showQuickPickByFileExtension(placeHolderString: string, fileExtension: string, telemetryProperties: TelemetryProperties): Promise<string> {
+    if (!fileExtension || fileExtension.length === 0) {
+        throw new Error('The file extension is missing or invalid for filtering quick pick items.');
+    }
+    const files: vscode.Uri[] = await vscode.workspace.findFiles(`**/*.${fileExtension}`);
+    const quickPickItems: IAzureQuickPickItem<string | undefined>[] = files.map((uri: vscode.Uri) => {
         return {
             label: path.basename(uri.fsPath),
             description: uri.fsPath,
@@ -157,13 +170,13 @@ async function showWarQuickPick(placeHolderString: string, telemetryProperties: 
         };
     });
 
-    warQuickPickItems.push({ label: '$(package) Browse...', description: '', data: undefined });
+    quickPickItems.push({ label: '$(package) Browse...', description: '', data: undefined });
 
-    const warQuickPickOption = { placeHolder: placeHolderString };
-    const pickedItem = await vscode.window.showQuickPick(warQuickPickItems, warQuickPickOption);
+    const quickPickOption = { placeHolder: placeHolderString };
+    const pickedItem = await vscode.window.showQuickPick(quickPickItems, quickPickOption);
 
     if (!pickedItem) {
-        telemetryProperties.cancelStep = 'showWar';
+        telemetryProperties.cancelStep = `show${fileExtension}`;
         throw new UserCancelledError();
     } else if (!pickedItem.data) {
         const browseResult = await vscode.window.showOpenDialog({
@@ -171,11 +184,11 @@ async function showWarQuickPick(placeHolderString: string, telemetryProperties: 
             canSelectFolders: false,
             canSelectMany: false,
             defaultUri: vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri : undefined,
-            filters: { War: ['war'] }
+            filters: { Artifacts: [fileExtension] }
         });
 
         if (!browseResult) {
-            telemetryProperties.cancelStep = 'showWarBrowse';
+            telemetryProperties.cancelStep = `show${fileExtension}Browse`;
             throw new UserCancelledError();
         }
 
