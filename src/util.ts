@@ -83,6 +83,44 @@ export async function showWorkspaceFoldersQuickPick(placeHolderString: string, t
     }
 }
 
+export async function showQuickPickByFileExtension(telemetryProperties: TelemetryProperties, placeHolderString: string, fileExtension: string = '*'): Promise<string> {
+    const files: vscode.Uri[] = await vscode.workspace.findFiles(`**/*.${fileExtension}`);
+    const quickPickItems: IAzureQuickPickItem<string | undefined>[] = files.map((uri: vscode.Uri) => {
+        return {
+            label: path.basename(uri.fsPath),
+            description: uri.fsPath,
+            data: uri.fsPath
+        };
+    });
+
+    quickPickItems.push({ label: '$(package) Browse...', description: '', data: undefined });
+
+    const quickPickOption = { placeHolder: placeHolderString };
+    const pickedItem = await vscode.window.showQuickPick(quickPickItems, quickPickOption);
+
+    if (!pickedItem) {
+        telemetryProperties.cancelStep = `show${fileExtension}`;
+        throw new UserCancelledError();
+    } else if (!pickedItem.data) {
+        const browseResult = await vscode.window.showOpenDialog({
+            canSelectFiles: true,
+            canSelectFolders: false,
+            canSelectMany: false,
+            defaultUri: vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri : undefined,
+            filters: { Artifacts: [fileExtension] }
+        });
+
+        if (!browseResult) {
+            telemetryProperties.cancelStep = `show${fileExtension}Browse`;
+            throw new UserCancelledError();
+        }
+
+        return browseResult[0].fsPath;
+    } else {
+        return pickedItem.data;
+    }
+}
+
 export interface IQuickPickItemWithData<T> extends vscode.QuickPickItem {
     persistenceId?: string; // A unique key to identify this item items across sessions, used in persisting previous selections
     data?: T;

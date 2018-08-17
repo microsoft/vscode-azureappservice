@@ -14,7 +14,8 @@ export enum runtimes {
     php = 'php',
     dotnetcore = 'dotnetcore',
     ruby = 'ruby',
-    tomcat = 'tomcat'
+    tomcat = 'tomcat',
+    javase = 'java|8-jre8'
 }
 
 export function getIgnoredFoldersForDeployment(runtime: string): string[] {
