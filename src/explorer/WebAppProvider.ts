@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import WebSiteManagementClient = require('azure-arm-website');
+import { WebSiteManagementClient } from 'azure-arm-website';
 import { Site, WebAppCollection } from 'azure-arm-website/lib/models';
 import { workspace, WorkspaceConfiguration } from 'vscode';
 import { createWebApp, SiteClient } from 'vscode-azureappservice';
