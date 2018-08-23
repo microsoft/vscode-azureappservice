@@ -750,7 +750,7 @@
     },
     "dependencies": {
         "azure-arm-resource": "^3.0.0-preview",
-        "azure-arm-website": "^3.0.0-preview",
+        "azure-arm-website": "^4.0.0",
         "fs-extra": "^4.0.2",
         "opn": "^5.3.0",
         "portfinder": "^1.0.13",
