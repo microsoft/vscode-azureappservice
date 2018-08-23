@@ -9,9 +9,11 @@ import { extname } from 'path';
 import * as vscode from 'vscode';
 import { AppSettingsTreeItem, AppSettingTreeItem, editScmType, getFile, IFileResult, registerAppServiceExtensionVariables } from 'vscode-azureappservice';
 import { AzureTreeDataProvider, AzureUserInput, IActionContext, IAzureNode, IAzureParentNode, IAzureUserInput, registerCommand, registerEvent, registerUIExtensionVariables } from 'vscode-azureextensionui';
+import { IAzureTreeItem } from 'vscode-azureextensionui';
 import TelemetryReporter from 'vscode-extension-telemetry';
 import { SiteConfigResource } from '../node_modules/azure-arm-website/lib/models';
 import { deploy } from './commands/deploy';
+import { enableFileLogging } from './commands/enableFileLogging';
 import { disableRemoteDebug } from './commands/remoteDebug/disableRemoteDebug';
 import { startRemoteDebug } from './commands/remoteDebug/startRemoteDebug';
 import { swapSlots } from './commands/swapSlots';
@@ -19,6 +21,7 @@ import { DeploymentSlotsNATreeItem, DeploymentSlotsTreeItem, ScaleUpTreeItem } f
 import { DeploymentSlotTreeItem } from './explorer/DeploymentSlotTreeItem';
 import { FileEditor } from './explorer/editors/FileEditor';
 import { FileTreeItem } from './explorer/FileTreeItem';
+import { FolderTreeItem } from './explorer/FolderTreeItem';
 import { LoadedScriptsProvider, openScript } from './explorer/loadedScriptsExplorer';
 import { SiteTreeItem } from './explorer/SiteTreeItem';
 import { WebAppProvider } from './explorer/WebAppProvider';
@@ -263,28 +266,14 @@ export function activate(context: vscode.ExtensionContext): void {
             node.treeItem.logStreamOutputChannel!.show();
             await vscode.window.showWarningMessage(`The log-streaming service for "${node.treeItem.client.fullName}" is already active.`);
         } else {
-            const enableButton: vscode.MessageItem = { title: 'Yes' };
             const isEnabled = await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async p => {
                 p.report({ message: 'Checking container diagnostics settings...' });
                 // tslint:disable-next-line:no-non-null-assertion
                 return await node!.treeItem.isHttpLogsEnabled();
             });
-
             if (!isEnabled) {
-                await ui.showWarningMessage(`Do you want to enable application logging for ${node.treeItem.client.fullName}? The web app will be restarted.`, { modal: true }, enableButton);
-                const enablingLogging: string = `Enabling Logging for "${node.treeItem.client.fullName}"...`;
-                const enabledLogging: string = `Enabled Logging for "${node.treeItem.client.fullName}"...`;
-                await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification, title: enablingLogging }, async (): Promise<void> => {
-                    ext.outputChannel.appendLine(enablingLogging);
-                    // tslint:disable-next-line:no-non-null-assertion
-                    await node!.treeItem.enableHttpLogs();
-                    await vscode.commands.executeCommand('appService.Restart', node);
-                    vscode.window.showInformationMessage(enabledLogging);
-                    ext.outputChannel.appendLine(enabledLogging);
-                });
-
+                await enableFileLogging(node);
             }
-
             node.treeItem.logStream = await node.treeItem.connectToLogStream();
         }
     });
@@ -334,6 +323,29 @@ export function activate(context: vscode.ExtensionContext): void {
     });
 
     registerEvent('appService.fileEditor.onDidSaveTextDocument', vscode.workspace.onDidSaveTextDocument, async function (this: IActionContext, doc: vscode.TextDocument): Promise<void> { await fileEditor.onDidSaveTextDocument(this, context.globalState, doc); });
+    registerCommand('appService.EnableFileLogging', async (node?: IAzureNode<SiteTreeItem> | IAzureNode<FolderTreeItem> | IAzureParentNode<IAzureTreeItem>) => {
+        if (!node) {
+            node = <IAzureNode<SiteTreeItem>>await ext.tree.showNodePicker(WebAppTreeItem.contextValue);
+        }
+
+        if (node.treeItem instanceof FolderTreeItem) {
+            // If the entry point was the Files/Log Files node, pass the parent as that's where the logic lives
+            node = node.parent;
+        }
+        // tslint:disable-next-line:no-non-null-assertion
+        const siteTreeItem: SiteTreeItem = <SiteTreeItem>node!.treeItem;
+        const isEnabled = await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async p => {
+            p.report({ message: 'Checking container diagnostics settings...' });
+            return await siteTreeItem.isHttpLogsEnabled();
+        });
+
+        if (!isEnabled) {
+            await enableFileLogging(<IAzureNode<SiteTreeItem>>node);
+        } else {
+            // tslint:disable-next-line:no-non-null-assertion
+            vscode.window.showInformationMessage(`File logging has already been enabled for ${siteTreeItem.client.fullName}.`);
+        }
+    });
 }
 
 // tslint:disable-next-line:no-empty

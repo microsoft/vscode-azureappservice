@@ -12,17 +12,18 @@ import { FileTreeItem } from './FileTreeItem';
 
 export class FolderTreeItem implements IAzureParentTreeItem {
     public static contextValue: string = 'folder';
-    public readonly contextValue: string = FolderTreeItem.contextValue;
+    public readonly contextValue: string;
     public readonly childTypeLabel: string = 'files';
 
-    constructor(readonly client: SiteClient, readonly label: string, readonly folderPath: string, readonly useIcon: boolean = false) {
+    constructor(readonly client: SiteClient, readonly label: string, readonly folderPath: string, readonly subcontextValue?: string) {
+        this.contextValue = subcontextValue ? subcontextValue : FolderTreeItem.contextValue;
     }
 
     public get iconPath(): { light: string, dark: string } | undefined {
-        return this.useIcon ? {
+        return this.contextValue === 'subFolder' ? undefined : {
             light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'Folder_16x.svg'),
             dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'Folder_16x.svg')
-        } : undefined;
+        }; // no icons for subfolders
     }
 
     public hasMoreChildren(): boolean {
@@ -40,7 +41,7 @@ export class FolderTreeItem implements IAzureParentTreeItem {
                 // truncate the home of the path
                 // the substring starts at file.path.indexOf(home) because the path sometimes includes site/ or D:\
                 // the home.length + 1 is to account for the trailing slash, Linux uses / and Window uses \
-                new FolderTreeItem(this.client, file.name, file.path.substring(file.path.indexOf(home) + home.length + 1)) :
+                new FolderTreeItem(this.client, file.name, file.path.substring(file.path.indexOf(home) + home.length + 1), 'subFolder') :
                 new FileTreeItem(this.client, file.name, file.path.substring(file.path.indexOf(home) + home.length + 1));
         });
     }

@@ -28,8 +28,8 @@ export class WebAppTreeItem extends SiteTreeItem {
 
     constructor(client: SiteClient) {
         super(client);
-        this.folderNode = new FolderTreeItem(this.client, 'Files', "/site/wwwroot", true);
-        this.logFolderNode = new FolderTreeItem(this.client, 'Log Files', '/LogFiles', true);
+        this.folderNode = new FolderTreeItem(this.client, 'Files', "/site/wwwroot");
+        this.logFolderNode = new FolderTreeItem(this.client, 'Log Files', '/LogFiles', 'logFolder');
         this.webJobsNode = new WebJobsTreeItem(this.client);
         this.appSettingsNode = new AppSettingsTreeItem(this.client);
     }

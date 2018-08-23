@@ -52,6 +52,7 @@
         "onCommand:appService.StartRemoteDebug",
         "onCommand:appService.DisableRemoteDebug",
         "onCommand:appService.CreateSlot",
+        "onCommand:appService.EnableFileLogging",
         "onView:azureAppService"
     ],
     "main": "./out/src/extension",
@@ -210,6 +211,11 @@
             {
                 "command": "appService.ScaleUp",
                 "title": "Scale up App Service Plan...",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.EnableFileLogging",
+                "title": "Enable File Logging",
                 "category": "Azure App Service"
             }
         ],
@@ -493,9 +499,24 @@
                     "group": "5_appServiceRemoteDebugCommands@2"
                 },
                 {
+                    "command": "appService.EnableFileLogging",
+                    "when": "view == azureAppService && viewItem == logFolder",
+                    "group": "1_folderGeneralCommands@1"
+                },
+                {
                     "command": "appService.Refresh",
                     "when": "view == azureAppService && viewItem == folder",
-                    "group": "1_folderGeneralCommands@1"
+                    "group": "1_folderGeneralCommands@2"
+                },
+                {
+                    "command": "appService.Refresh",
+                    "when": "view == azureAppService && viewItem == subFolder",
+                    "group": "1_folderGeneralCommands@2"
+                },
+                {
+                    "command": "appService.Refresh",
+                    "when": "view == azureAppService && viewItem == logFolder",
+                    "group": "1_folderGeneralCommands@2"
                 },
                 {
                     "command": "appService.OpenInPortal",
