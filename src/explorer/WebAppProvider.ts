@@ -42,9 +42,9 @@ export class WebAppProvider implements IChildProvider {
                     if (!siteClient.isFunctionApp) {
                         treeItems.push(new WebAppTreeItem(siteClient));
                     }
-                } catch {
+                } catch (error) {
                     if (s.name) {
-                        treeItems.push(new InvalidWebAppTreeItem(s.name, 'Invalid'));
+                        treeItems.push(new InvalidWebAppTreeItem(s.name, error));
                     }
                 }
             }));
