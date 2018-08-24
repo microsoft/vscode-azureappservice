@@ -54,7 +54,7 @@ export class WebAppProvider implements IChildProvider {
     public async createChild(node: IAzureNode<IAzureTreeItem>, showCreatingNode: (label: string) => void, actionContext: IActionContext): Promise<IAzureTreeItem> {
         const workspaceConfig: WorkspaceConfiguration = workspace.getConfiguration(extensionPrefix);
         const advancedCreation: boolean | undefined = workspaceConfig.get(configurationSettings.advancedCreation);
-        const newSite: Site | undefined = await createWebApp(actionContext, node.credentials, node.subscriptionId, node.subscriptionDisplayName, showCreatingNode, advancedCreation);
+        const newSite: Site | undefined = await createWebApp(actionContext, node, showCreatingNode, advancedCreation);
         if (newSite === undefined) {
             throw new UserCancelledError();
         } else {

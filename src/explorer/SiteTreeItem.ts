@@ -7,8 +7,8 @@ import * as WebSiteModels from 'azure-arm-website/lib/models';
 import * as fse from 'fs-extra';
 import * as opn from 'opn';
 import * as path from 'path';
-import { MessageItem, OutputChannel, Uri, window, workspace, WorkspaceConfiguration } from 'vscode';
-import { deleteSite, ILogStream, SiteClient, startStreamingLogs } from 'vscode-azureappservice';
+import { MessageItem, Uri, window, workspace, WorkspaceConfiguration } from 'vscode';
+import { deleteSite, SiteClient } from 'vscode-azureappservice';
 import { DialogResponses, IAzureNode, IAzureParentNode, IAzureParentTreeItem, IAzureTreeItem, TelemetryProperties } from 'vscode-azureextensionui';
 import * as constants from '../constants';
 import { ext } from '../extensionVariables';
@@ -17,8 +17,6 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
     public abstract contextValue: string;
 
     public readonly client: SiteClient;
-    public logStream: ILogStream | undefined;
-    public logStreamOutputChannel: OutputChannel | undefined;
 
     private _state?: string;
 
@@ -34,6 +32,10 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
 
     public get description(): string | undefined {
         return this._state && this._state.toLowerCase() !== 'running' ? this._state : undefined;
+    }
+
+    public get logStreamLabel(): string {
+        return `${this.client.fullName} - Log Stream`;
     }
 
     public async refreshLabel(): Promise<void> {
@@ -80,16 +82,6 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
         };
 
         await this.client.updateLogsConfig(logsConfig);
-    }
-
-    public async connectToLogStream(): Promise<ILogStream> {
-        if (!this.logStreamOutputChannel) {
-            const logStreamoutputChannel: OutputChannel = window.createOutputChannel(`${this.client.fullName} - Log Stream`);
-            ext.context.subscriptions.push(logStreamoutputChannel);
-            this.logStreamOutputChannel = logStreamoutputChannel;
-        }
-        this.logStreamOutputChannel.show();
-        return await startStreamingLogs(this.client, this.logStreamOutputChannel);
     }
 
     public async enableScmDoBuildDuringDeploy(fsPath: string, runtime: string, telemetryProperties: TelemetryProperties): Promise<void> {
