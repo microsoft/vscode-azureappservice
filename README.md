@@ -1,6 +1,6 @@
 # Azure App Service for Visual Studio Code (Preview)
 
-[![Build Status](https://travis-ci.org/Microsoft/vscode-azureappservice.svg?branch=master)](https://travis-ci.org/Microsoft/vscode-azureappservice) [![Release Status](https://img.shields.io/github/tag/Microsoft/vscode-azureappservice.svg?label=prerelease&colorB=0e7fc0)](https://github.com/Microsoft/vscode-azureappservice/releases)
+[![Version](https://vsmarketplacebadge.apphb.com/version/ms-azuretools.vscode-azureappservice.svg)](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-azureappservice) [![Installs](https://vsmarketplacebadge.apphb.com/installs-short/ms-azuretools.vscode-azureappservice.svg)](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-azureappservice) [![Build Status](https://travis-ci.org/Microsoft/vscode-azureappservice.svg?branch=master)](https://travis-ci.org/Microsoft/vscode-azureappservice)
 
 App Service is Azure's fully-managed Platform as a Service (PaaS) that let's you deploy and scale web, mobile, and API apps. Use the Azure App Service extension for VS Code to quickly create, manage, and deploy your websites.
 
