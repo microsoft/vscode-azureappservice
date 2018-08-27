@@ -7,7 +7,7 @@
 
 import { extname } from 'path';
 import * as vscode from 'vscode';
-import { AppSettingsTreeItem, AppSettingTreeItem, editScmType, getFile, IFileResult, registerAppServiceExtensionVariables } from 'vscode-azureappservice';
+import { AppSettingsTreeItem, AppSettingTreeItem, editScmType, getFile, IFileResult, registerAppServiceExtensionVariables, startStreamingLogs, stopStreamingLogs } from 'vscode-azureappservice';
 import { AzureTreeDataProvider, AzureUserInput, IActionContext, IAzureNode, IAzureParentNode, IAzureUserInput, registerCommand, registerEvent, registerUIExtensionVariables } from 'vscode-azureextensionui';
 import { IAzureTreeItem } from 'vscode-azureextensionui';
 import TelemetryReporter from 'vscode-extension-telemetry';
@@ -261,32 +261,26 @@ export function activate(context: vscode.ExtensionContext): void {
             node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
         }
 
-        if (node.treeItem.logStream && node.treeItem.logStream.isConnected) {
-            // tslint:disable-next-line:no-non-null-assertion
-            node.treeItem.logStreamOutputChannel!.show();
-            await vscode.window.showWarningMessage(`The log-streaming service for "${node.treeItem.client.fullName}" is already active.`);
-        } else {
+        const verifyLoggingEnabled: () => Promise<void> = async (): Promise<void> => {
             const isEnabled = await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async p => {
                 p.report({ message: 'Checking container diagnostics settings...' });
                 // tslint:disable-next-line:no-non-null-assertion
                 return await node!.treeItem.isHttpLogsEnabled();
             });
             if (!isEnabled) {
-                await enableFileLogging(node);
+                // tslint:disable-next-line:no-non-null-assertion
+                await enableFileLogging(node!);
             }
-            node.treeItem.logStream = await node.treeItem.connectToLogStream();
-        }
+        };
+
+        await startStreamingLogs(node.treeItem.client, verifyLoggingEnabled, node.treeItem.logStreamLabel);
     });
     registerCommand('appService.StopLogStream', async (node?: IAzureNode<SiteTreeItem>) => {
         if (!node) {
             node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
         }
 
-        if (node.treeItem.logStream && node.treeItem.logStream.isConnected) {
-            node.treeItem.logStream.dispose();
-        } else {
-            await vscode.window.showWarningMessage(`The log-streaming service for "${node.treeItem.label}" is already disconnected.`);
-        }
+        await stopStreamingLogs(node.treeItem.client);
     });
     registerCommand('appService.StartLogPointsSession', async function (this: IActionContext, node?: IAzureNode<SiteTreeItem>): Promise<void> {
         if (node) {

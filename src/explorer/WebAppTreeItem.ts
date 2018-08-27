@@ -73,7 +73,7 @@ export class WebAppTreeItem extends SiteTreeItem {
     }
 
     public async generateDeploymentScript(node: IAzureNode): Promise<void> {
-        const resourceClient = new ResourceManagementClient(node.credentials, node.subscriptionId);
+        const resourceClient = new ResourceManagementClient(node.credentials, node.subscriptionId, node.environment.resourceManagerEndpointUrl);
         addExtensionUserAgent(resourceClient);
         const tasks = Promise.all([
             resourceClient.resourceGroups.get(this.client.resourceGroup),

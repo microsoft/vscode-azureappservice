@@ -7,6 +7,7 @@ import * as vscode from 'vscode';
 import { UserCancelledError } from 'vscode-azureextensionui';
 import { WizardStep } from '../../wizard';
 import { LogPointsSessionWizard } from '../LogPointsSessionWizard';
+import { ILogStream, startStreamingLogs } from 'vscode-azureappservice';
 
 export class OpenStreamingLog extends WizardStep {
     constructor(private _wizard: LogPointsSessionWizard) {
@@ -20,16 +21,18 @@ export class OpenStreamingLog extends WizardStep {
             throw new Error('Cannot locate a site to check logging stream availability.');
         }
 
-        const loggingEnabled = await siteTreeItem.isHttpLogsEnabled();
+        const verifyLoggingEnabled: () => Promise<void> = async (): Promise<void> => {
+            const loggingEnabled = await siteTreeItem.isHttpLogsEnabled();
 
-        // Only proceed if logging is enabled.
-        if (!loggingEnabled) {
-            vscode.window.showInformationMessage("Logpoints session require Streaming Log to start, which is not currently enabled. Please use \"View Streaming Log\" command to enable it.");
-            throw new UserCancelledError("Streaming log is not enabled.");
-        }
+            // Only proceed if logging is enabled.
+            if (!loggingEnabled) {
+                vscode.window.showInformationMessage("Logpoints session require Streaming Log to start, which is not currently enabled. Please use \"View Streaming Log\" command to enable it.");
+                throw new UserCancelledError("Streaming log is not enabled.");
+            }
+        };
 
         // Open streaming log
-        await siteTreeItem.connectToLogStream();
-        this._wizard.logpointsManager.onStreamingLogOutputChannelCreated(siteTreeItem.client, siteTreeItem.logStreamOutputChannel!); // non-null behavior unknown. Should be handled by logPoints team
+        const logStream: ILogStream = await startStreamingLogs(siteTreeItem.client, verifyLoggingEnabled, siteTreeItem.logStreamLabel);
+        this._wizard.logpointsManager.onStreamingLogOutputChannelCreated(siteTreeItem.client, logStream.outputChannel);
     }
 }
