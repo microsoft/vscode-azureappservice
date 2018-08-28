@@ -499,6 +499,11 @@
                     "group": "5_appServiceRemoteDebugCommands@2"
                 },
                 {
+                    "command": "appService.Refresh",
+                    "when": "view == azureAppService && viewItem == deploymentSlot",
+                    "group": "6_deploymentSlotRefreshCommands@1"
+                },
+                {
                     "command": "appService.EnableFileLogging",
                     "when": "view == azureAppService && viewItem == logFolder",
                     "group": "1_folderGeneralCommands@1"
