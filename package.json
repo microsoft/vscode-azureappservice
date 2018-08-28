@@ -484,6 +484,11 @@
                     "group": "4_deploymentSlotDiagnosticsCommands@2"
                 },
                 {
+                    "command": "appService.Refresh",
+                    "when": "view == azureAppService && viewItem == deploymentSlot",
+                    "group": "5_deploymentSlotRefreshCommands@1"
+                },
+                {
                     "command": "appService.StartLogPointsSession",
                     "when": "config.appService.logpoints == true && view == azureAppService && viewItem == deploymentSlot",
                     "group": "4_deploymentSlotDiagnosticsCommands@3"
