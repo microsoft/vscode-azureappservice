@@ -571,7 +571,7 @@
                 },
                 {
                     "command": "appService.Deploy",
-                    "when": "explorerResourceIsFolder == false && resourceExtname == .war",
+                    "when": "explorerResourceIsFolder == false && resourceExtname =~ /.[j|w]ar$/",
                     "group": "zzz_@appServiceDeployCommands"
                 }
             ],

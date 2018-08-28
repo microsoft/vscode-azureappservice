@@ -11,12 +11,13 @@ import * as path from 'path';
 import { join } from 'path';
 import * as vscode from 'vscode';
 import * as appservice from 'vscode-azureappservice';
-import { DialogResponses, IActionContext, IAzureNode, IAzureQuickPickItem, IAzureTreeItem, parseError, TelemetryProperties, UserCancelledError } from 'vscode-azureextensionui';
+import { DialogResponses, IActionContext, IAzureNode, IAzureTreeItem, parseError } from 'vscode-azureextensionui';
 import * as constants from '../constants';
 import { SiteTreeItem } from '../explorer/SiteTreeItem';
 import { WebAppTreeItem } from '../explorer/WebAppTreeItem';
 import { ext } from '../extensionVariables';
 import * as util from '../util';
+import * as javaUtil from '../utils/javaUtils';
 import { isPathEqual, isSubpath } from '../utils/pathUtils';
 import { cancelWebsiteValidation, validateWebSite } from '../validateWebSite';
 
@@ -100,8 +101,8 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
     const siteConfig: WebSiteModels.SiteConfigResource = await node.treeItem.client.getSiteConfig();
 
     if (!fsPath) {
-        if (siteConfig.linuxFxVersion && siteConfig.linuxFxVersion.toLowerCase().startsWith(constants.runtimes.tomcat)) {
-            fsPath = await showWarQuickPick('Select the war file to deploy...', context.properties);
+        if (javaUtil.isJavaRuntime(siteConfig.linuxFxVersion)) {
+            fsPath = await javaUtil.getJavaRuntimeTargetFile(siteConfig.linuxFxVersion, context.properties);
         } else {
             fsPath = await util.showWorkspaceFoldersQuickPick("Select the folder to deploy", context.properties, constants.configurationSettings.deploySubpath);
         }
@@ -145,42 +146,4 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
 function getRandomHexString(length: number): string {
     const buffer: Buffer = randomBytes(Math.ceil(length / 2));
     return buffer.toString('hex').slice(0, length);
-}
-
-async function showWarQuickPick(placeHolderString: string, telemetryProperties: TelemetryProperties): Promise<string> {
-    const warFiles: vscode.Uri[] = await vscode.workspace.findFiles('**/*.war');
-    const warQuickPickItems: IAzureQuickPickItem<string | undefined>[] = warFiles.map((uri: vscode.Uri) => {
-        return {
-            label: path.basename(uri.fsPath),
-            description: uri.fsPath,
-            data: uri.fsPath
-        };
-    });
-
-    warQuickPickItems.push({ label: '$(package) Browse...', description: '', data: undefined });
-
-    const warQuickPickOption = { placeHolder: placeHolderString };
-    const pickedItem = await vscode.window.showQuickPick(warQuickPickItems, warQuickPickOption);
-
-    if (!pickedItem) {
-        telemetryProperties.cancelStep = 'showWar';
-        throw new UserCancelledError();
-    } else if (!pickedItem.data) {
-        const browseResult = await vscode.window.showOpenDialog({
-            canSelectFiles: true,
-            canSelectFolders: false,
-            canSelectMany: false,
-            defaultUri: vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri : undefined,
-            filters: { War: ['war'] }
-        });
-
-        if (!browseResult) {
-            telemetryProperties.cancelStep = 'showWarBrowse';
-            throw new UserCancelledError();
-        }
-
-        return browseResult[0].fsPath;
-    } else {
-        return pickedItem.data;
-    }
 }
