@@ -7,7 +7,7 @@ import { WebSiteManagementClient } from 'azure-arm-website';
 import { Site, WebAppCollection } from 'azure-arm-website/lib/models';
 import { workspace, WorkspaceConfiguration } from 'vscode';
 import { createWebApp, SiteClient } from 'vscode-azureappservice';
-import { addExtensionUserAgent, IActionContext, IAzureNode, IAzureTreeItem, IChildProvider, UserCancelledError } from 'vscode-azureextensionui';
+import { addExtensionUserAgent, IActionContext, IAzureNode, IAzureTreeItem, IChildProvider, parseError, UserCancelledError } from 'vscode-azureextensionui';
 import { configurationSettings, extensionPrefix } from '../constants';
 import { InvalidWebAppTreeItem } from './InvalidWebAppTreeItem';
 import { WebAppTreeItem } from './WebAppTreeItem';
@@ -28,9 +28,22 @@ export class WebAppProvider implements IChildProvider {
 
         const client: WebSiteManagementClient = new WebSiteManagementClient(node.credentials, node.subscriptionId, node.environment.resourceManagerEndpointUrl);
         addExtensionUserAgent(client);
-        const webAppCollection: WebAppCollection = this._nextLink === undefined ?
-            await client.webApps.list() :
-            await client.webApps.listNext(this._nextLink);
+
+        let webAppCollection: WebAppCollection;
+        try {
+            webAppCollection = this._nextLink === undefined ?
+                await client.webApps.list() :
+                await client.webApps.listNext(this._nextLink);
+        } catch (error) {
+            if (parseError(error).errorType.toLowerCase() === 'notfound') {
+                // This error type means the 'Microsoft.Web' provider has not been registered in this subscription
+                // In that case, we know there are no web apps, so we can return an empty array
+                // (The provider will be registered automatically if the user creates a new web app)
+                return [];
+            } else {
+                throw error;
+            }
+        }
 
         this._nextLink = webAppCollection.nextLink;
 
