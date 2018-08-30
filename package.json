@@ -649,7 +649,7 @@
                 "appService.defaultWebAppToDeploy": {
                     "scope": "resource",
                     "type": "string",
-                    "description": "The default web app to use when deploying.  Every consequent deployment will deploy to this web app or slot."
+                    "description": "The default web app to use when deploying.  Every subsequent deployment will deploy to this web app or slot."
                 },
                 "appService.advancedCreation": {
                     "type": "boolean",
