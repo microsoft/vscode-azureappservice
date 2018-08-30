@@ -256,25 +256,7 @@ export function activate(context: vscode.ExtensionContext): void {
 
         await node.deleteNode();
     });
-    registerCommand('appService.OpenLogStream', async (node?: IAzureNode<SiteTreeItem>) => {
-        if (!node) {
-            node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
-        }
-
-        const verifyLoggingEnabled: () => Promise<void> = async (): Promise<void> => {
-            const isEnabled = await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async p => {
-                p.report({ message: 'Checking container diagnostics settings...' });
-                // tslint:disable-next-line:no-non-null-assertion
-                return await node!.treeItem.isHttpLogsEnabled();
-            });
-            if (!isEnabled) {
-                // tslint:disable-next-line:no-non-null-assertion
-                await enableFileLogging(node!);
-            }
-        };
-
-        await startStreamingLogs(node.treeItem.client, verifyLoggingEnabled, node.treeItem.logStreamLabel);
-    });
+    registerCommand('appService.OpenLogStream', startStreamingLogs);
     registerCommand('appService.StopLogStream', async (node?: IAzureNode<SiteTreeItem>) => {
         if (!node) {
             node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
