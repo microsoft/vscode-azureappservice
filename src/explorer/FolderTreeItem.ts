@@ -36,7 +36,14 @@ export class FolderTreeItem implements IAzureParentTreeItem {
         // response contains a body with a JSON parseable string
         const fileList: kuduFile[] = <kuduFile[]>JSON.parse(httpResponse.body);
         const home: string = 'home';
-        return fileList.map((file: kuduFile) => {
+        const filteredList: kuduFile[] = fileList.filter((file: kuduFile) => {
+            if (file.mime === 'text/xml' && file.name.includes('LogFiles-kudu-trace_pending.xml')) {
+                // this file is being accessed by Kudu and is not viewable
+                return false;
+            }
+            return true;
+        });
+        return filteredList.map((file: kuduFile) => {
             return file.mime === 'inode/directory' ?
                 // truncate the home of the path
                 // the substring starts at file.path.indexOf(home) because the path sometimes includes site/ or D:\
