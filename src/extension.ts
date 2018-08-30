@@ -137,19 +137,8 @@ export function activate(context: vscode.ExtensionContext): void {
         if (!node) {
             node = <IAzureNode<WebAppTreeItem>>await tree.showNodePicker(WebAppTreeItem.contextValue);
         }
-
-        const treeItem: SiteTreeItem = node.treeItem;
-        const restartingApp: string = `Restarting "${treeItem.client.fullName}"...`;
-        const restartedApp: string = `"${treeItem.client.fullName}" has been restarted.`;
-        await node.runWithTemporaryDescription("Restarting...", async () => {
-            ext.outputChannel.appendLine(restartingApp);
-            await treeItem.client.stop();
-            await treeItem.client.start();
-            // tslint:disable-next-line:no-non-null-assertion
-            await node!.refresh();
-            ext.outputChannel.appendLine(restartedApp);
-        });
-
+        await vscode.commands.executeCommand('appService.Stop', node);
+        await vscode.commands.executeCommand('appService.Start', node);
         await logPointsManager.onAppServiceSiteClosed(node.treeItem.client);
     });
     registerCommand('appService.Delete', async (node?: IAzureNode<SiteTreeItem>) => {
