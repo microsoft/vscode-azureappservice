@@ -10,6 +10,7 @@ import { pathExists } from 'fs-extra';
 import * as path from 'path';
 import { join } from 'path';
 import * as vscode from 'vscode';
+import { MessageItem } from 'vscode';
 import * as appservice from 'vscode-azureappservice';
 import { DialogResponses, IActionContext, IAzureNode, IAzureTreeItem, parseError } from 'vscode-azureextensionui';
 import * as constants from '../constants';
@@ -20,6 +21,7 @@ import * as util from '../util';
 import * as javaUtil from '../utils/javaUtils';
 import { isPathEqual, isSubpath } from '../utils/pathUtils';
 import { cancelWebsiteValidation, validateWebSite } from '../validateWebSite';
+import { startStreamingLogs } from './startStreamingLogs';
 
 // tslint:disable-next-line:max-func-body-length cyclomatic-complexity
 export async function deploy(context: IActionContext, confirmDeployment: boolean, target?: vscode.Uri | IAzureNode<SiteTreeItem> | undefined): Promise<void> {
@@ -79,6 +81,8 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
         }
     }
 
+    const treeItem: SiteTreeItem = node.treeItem;
+
     if (newNodes.length > 0) {
         for (const newApp of newNodes) {
             if (newApp.id === node.id) {
@@ -98,7 +102,7 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
 
     const correlationId = getRandomHexString(10);
     context.properties.correlationId = correlationId;
-    const siteConfig: WebSiteModels.SiteConfigResource = await node.treeItem.client.getSiteConfig();
+    const siteConfig: WebSiteModels.SiteConfigResource = await treeItem.client.getSiteConfig();
 
     if (!fsPath) {
         if (javaUtil.isJavaRuntime(siteConfig.linuxFxVersion)) {
@@ -112,12 +116,12 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
         if (siteConfig.linuxFxVersion && siteConfig.linuxFxVersion.startsWith(constants.runtimes.node) && siteConfig.scmType === 'None' && !(await pathExists(path.join(fsPath, constants.deploymentFileName)))) {
             // check if web app has node runtime, is being zipdeployed, and if there is no .deployment file
             // tslint:disable-next-line:no-unsafe-any
-            await node.treeItem.enableScmDoBuildDuringDeploy(fsPath, constants.runtimes[siteConfig.linuxFxVersion.substring(0, siteConfig.linuxFxVersion.indexOf('|'))], context.properties);
+            await treeItem.enableScmDoBuildDuringDeploy(fsPath, constants.runtimes[siteConfig.linuxFxVersion.substring(0, siteConfig.linuxFxVersion.indexOf('|'))], context.properties);
         }
     }
 
     if (confirmDeployment && siteConfig.scmType !== constants.ScmType.LocalGit && siteConfig !== constants.ScmType.GitHub) {
-        const warning: string = `Are you sure you want to deploy to "${node.treeItem.client.fullName}"? This will overwrite any previous deployment and cannot be undone.`;
+        const warning: string = `Are you sure you want to deploy to "${treeItem.client.fullName}"? This will overwrite any previous deployment and cannot be undone.`;
         context.properties.cancelStep = 'confirmDestructiveDeployment';
         const deployButton: vscode.MessageItem = { title: 'Deploy' };
         await ext.ui.showWarningMessage(warning, { modal: true }, deployButton, DialogResponses.cancel);
@@ -126,13 +130,30 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
 
     if (!defaultWebAppToDeploy && currentWorkspace && (isPathEqual(currentWorkspace.uri.fsPath, fsPath) || isSubpath(currentWorkspace.uri.fsPath, fsPath))) {
         // tslint:disable-next-line:no-floating-promises
-        node.treeItem.promptToSaveDeployDefaults(node, currentWorkspace.uri.fsPath, fsPath, context.properties);
+        treeItem.promptToSaveDeployDefaults(node, currentWorkspace.uri.fsPath, fsPath, context.properties);
     }
-    cancelWebsiteValidation(node.treeItem);
+    cancelWebsiteValidation(treeItem);
     await node.runWithTemporaryDescription("Deploying...", async () => {
-        // tslint:disable-next-line:no-non-null-assertion
-        await appservice.deploy(node!.treeItem.client, <string>fsPath, constants.extensionPrefix, context.properties);
+        await appservice.deploy(treeItem.client, <string>fsPath, constants.extensionPrefix, context.properties);
     });
+
+    const deployComplete: string = `Deployment to "${treeItem.client.fullName}" completed.`;
+    ext.outputChannel.appendLine(deployComplete);
+    const viewOutput: MessageItem = { title: 'View Output' };
+    const browseWebsite: MessageItem = { title: 'Browse Website' };
+    const streamLogs: MessageItem = { title: 'Stream Logs' };
+
+    // Don't wait
+    vscode.window.showInformationMessage(deployComplete, browseWebsite, streamLogs, viewOutput).then(async (result: MessageItem | undefined) => {
+        if (result === viewOutput) {
+            ext.outputChannel.show();
+        } else if (result === browseWebsite) {
+            treeItem.browse();
+        } else if (result === streamLogs) {
+            await startStreamingLogs(node);
+        }
+    });
+
     // Don't wait
     validateWebSite(correlationId, node.treeItem).then(
         () => {
