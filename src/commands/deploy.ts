@@ -58,6 +58,7 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
             } else {
                 // if defaultPath or defaultNode cannot be found or there was a mismatch, delete old settings and prompt to save next deployment
                 workspaceConfig.update(constants.configurationSettings.defaultWebAppToDeploy, undefined);
+                defaultWebAppToDeploy = undefined;
             }
         }
     }
@@ -119,22 +120,21 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
     if (confirmDeployment && siteConfig.scmType !== constants.ScmType.LocalGit && siteConfig !== constants.ScmType.GitHub) {
         const warning: string = `Are you sure you want to deploy to "${node.treeItem.client.fullName}"? This will overwrite any previous deployment and cannot be undone.`;
         context.properties.cancelStep = 'confirmDestructiveDeployment';
-        const deployButton: vscode.MessageItem = { title: 'Deploy' };
+        const items: vscode.MessageItem[] = [{ title: 'Deploy' }, DialogResponses.cancel];
         if (defaultWebAppToDeploy) {
-            const changeDefault: vscode.MessageItem = { title: 'Change default' };
-            const result: vscode.MessageItem = await ext.ui.showWarningMessage(warning, { modal: true }, deployButton, DialogResponses.cancel, changeDefault);
-            if (result.title === 'Change default') {
-                const localRootPath = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri.path : "";
-                const settingsPath = path.join(localRootPath, '.vscode', 'settings.json');
-                const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(settingsPath));
-                vscode.window.showTextDocument(doc);
-                const workspaceConfiguration: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration(constants.extensionPrefix, vscode.Uri.file(fsPath));
-                await workspaceConfiguration.update(constants.configurationSettings.defaultWebAppToDeploy, '');
-                await vscode.commands.executeCommand('appService.Deploy');
-                return;
-            }
-        } else {
-            await ext.ui.showWarningMessage(warning, { modal: true }, deployButton, DialogResponses.cancel);
+            items.push({ title: 'Reset default' });
+        }
+        const result: vscode.MessageItem = await ext.ui.showWarningMessage(warning, { modal: true }, ...items);
+        if (result.title === 'Reset default') {
+            // tslint:disable-next-line:no-non-null-assertion
+            const localRootPath = currentWorkspace!.uri.fsPath;
+            const settingsPath = path.join(localRootPath, '.vscode', 'settings.json');
+            const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(settingsPath));
+            vscode.window.showTextDocument(doc);
+            const workspaceConfiguration: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration(constants.extensionPrefix, vscode.Uri.file(fsPath));
+            await workspaceConfiguration.update(constants.configurationSettings.defaultWebAppToDeploy, '');
+            await vscode.commands.executeCommand('appService.Deploy');
+            return;
         }
         context.properties.cancelStep = '';
     }
