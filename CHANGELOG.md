@@ -1,7 +1,7 @@
 # Change Log
 All notable changes to the "azure-appservice" extension will be documented in this file.
 
-## 0.9.1 - 2018-08-06
+## 0.9.1 - 2018-09-06
 ### Added
 - Support for .jar deployment
 - Soverign account support
