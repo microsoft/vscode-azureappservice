@@ -4,7 +4,6 @@ All notable changes to the "azure-appservice" extension will be documented in th
 ## 0.9.1 - 2018-09-06
 ### Added
 - Support for .jar deployment
-- Soverign account support
 - Shortcut key for Azure View
 
 ### Fixed
