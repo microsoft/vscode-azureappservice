@@ -120,7 +120,26 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
         const warning: string = `Are you sure you want to deploy to "${node.treeItem.client.fullName}"? This will overwrite any previous deployment and cannot be undone.`;
         context.properties.cancelStep = 'confirmDestructiveDeployment';
         const deployButton: vscode.MessageItem = { title: 'Deploy' };
-        await ext.ui.showWarningMessage(warning, { modal: true }, deployButton, DialogResponses.cancel);
+        if (defaultWebAppToDeploy && defaultWebAppToDeploy !== constants.none) {
+            const changeDefault: vscode.MessageItem = { title: 'Change default' };
+            const result: vscode.MessageItem = await ext.ui.showWarningMessage(warning, { modal: true }, deployButton, DialogResponses.cancel, changeDefault);
+            if (result.title === 'Change default') {
+                const localRoot = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri.path : "";
+                //next line(s) should be CHANGED somehow (different OS, looks not healthy)
+                const settingsPath: string = localRoot.concat("\\.vscode\\settings.json");
+                const openPath = vscode.Uri.file(settingsPath);
+                vscode.workspace.openTextDocument(openPath).then(doc => {
+                    vscode.window.showTextDocument(doc);
+                });
+                const workspaceConfiguration: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration(constants.extensionPrefix, vscode.Uri.file(fsPath));
+                workspaceConfiguration.update(constants.configurationSettings.defaultWebAppToDeploy, '').then(async () => {
+                    await vscode.commands.executeCommand('appService.Deploy');
+                });
+                return;
+            }
+        } else {
+            await ext.ui.showWarningMessage(warning, { modal: true }, deployButton, DialogResponses.cancel);
+        }
         context.properties.cancelStep = '';
     }
 
