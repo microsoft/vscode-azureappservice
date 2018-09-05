@@ -121,18 +121,19 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
         const warning: string = `Are you sure you want to deploy to "${node.treeItem.client.fullName}"? This will overwrite any previous deployment and cannot be undone.`;
         context.properties.cancelStep = 'confirmDestructiveDeployment';
         const items: vscode.MessageItem[] = [{ title: 'Deploy' }, DialogResponses.cancel];
+        const resetDefault: vscode.MessageItem = { title: 'Reset default' };
         if (defaultWebAppToDeploy) {
-            items.push({ title: 'Reset default' });
+            items.push(resetDefault);
         }
         const result: vscode.MessageItem = await ext.ui.showWarningMessage(warning, { modal: true }, ...items);
-        if (result.title === 'Reset default') {
+        if (result === resetDefault) {
             // tslint:disable-next-line:no-non-null-assertion
             const localRootPath = currentWorkspace!.uri.fsPath;
             const settingsPath = path.join(localRootPath, '.vscode', 'settings.json');
             const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(settingsPath));
             vscode.window.showTextDocument(doc);
-            const workspaceConfiguration: vscode.WorkspaceConfiguration = vscode.workspace.getConfiguration(constants.extensionPrefix, vscode.Uri.file(fsPath));
-            await workspaceConfiguration.update(constants.configurationSettings.defaultWebAppToDeploy, '');
+            await workspaceConfig.update(constants.configurationSettings.defaultWebAppToDeploy, '');
+            // If resetDefault button was clicked we ask what and where to deploy again
             await vscode.commands.executeCommand('appService.Deploy');
             return;
         }
