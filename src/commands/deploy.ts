@@ -120,11 +120,12 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
     if (confirmDeployment && siteConfig.scmType !== constants.ScmType.LocalGit && siteConfig !== constants.ScmType.GitHub) {
         const warning: string = `Are you sure you want to deploy to "${node.treeItem.client.fullName}"? This will overwrite any previous deployment and cannot be undone.`;
         context.properties.cancelStep = 'confirmDestructiveDeployment';
-        const items: vscode.MessageItem[] = [{ title: 'Deploy' }, DialogResponses.cancel];
+        const items: vscode.MessageItem[] = [{ title: 'Deploy' }];
         const resetDefault: vscode.MessageItem = { title: 'Reset default' };
         if (defaultWebAppToDeploy) {
             items.push(resetDefault);
         }
+        items.push(DialogResponses.cancel);
         const result: vscode.MessageItem = await ext.ui.showWarningMessage(warning, { modal: true }, ...items);
         if (result === resetDefault) {
             // tslint:disable-next-line:no-non-null-assertion
