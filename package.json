@@ -426,7 +426,7 @@
                 {
                     "command": "appService.Refresh",
                     "when": "view == azureAppService && viewItem == deploymentSlots",
-                    "group": "1_deploymentSlotsGeneralCommands@3"
+                    "group": "2_deploymentSlotsGeneralCommands@1"
                 },
                 {
                     "command": "appService.OpenInPortal",
@@ -516,12 +516,12 @@
                 {
                     "command": "appService.Refresh",
                     "when": "view == azureAppService && viewItem == subFolder",
-                    "group": "1_folderGeneralCommands@2"
+                    "group": "1_subFolderRefreshCommands@1"
                 },
                 {
                     "command": "appService.Refresh",
                     "when": "view == azureAppService && viewItem == logFolder",
-                    "group": "1_folderGeneralCommands@2"
+                    "group": "2_folderGeneralCommands@1"
                 },
                 {
                     "command": "appService.OpenInPortal",
@@ -531,7 +531,7 @@
                 {
                     "command": "appService.Refresh",
                     "when": "view == azureAppService && viewItem == webJobs",
-                    "group": "1_webJobsGeneralCommands@2"
+                    "group": "2_webJobsGeneralCommands@1"
                 },
                 {
                     "command": "appService.appSettings.Add",
