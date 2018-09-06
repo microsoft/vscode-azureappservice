@@ -516,7 +516,7 @@
                 {
                     "command": "appService.Refresh",
                     "when": "view == azureAppService && viewItem == subFolder",
-                    "group": "1_folderGeneralCommands@1"
+                    "group": "1_subFolderRefreshCommands@1"
                 },
                 {
                     "command": "appService.Refresh",
