@@ -7,9 +7,9 @@ import * as path from 'path';
 import { SiteClient } from 'vscode-azureappservice';
 import { IAzureNode, IAzureParentTreeItem, IAzureTreeItem } from 'vscode-azureextensionui';
 
-export class ConnectionTreeItem implements IAzureParentTreeItem {
+export class ConnectionsTreeItem implements IAzureParentTreeItem {
     public static contextValue: string = 'Connections';
-    public readonly contextValue: string = ConnectionTreeItem.contextValue;
+    public readonly contextValue: string = ConnectionsTreeItem.contextValue;
     public readonly label: string = 'Connections';
 
     constructor(readonly client: SiteClient) {
@@ -24,7 +24,7 @@ export class ConnectionTreeItem implements IAzureParentTreeItem {
     }
 
     public async loadMoreChildren(_node: IAzureNode<IAzureTreeItem>, _clearCache: boolean): Promise<IAzureTreeItem[]> {
-        throw new Error('error');
+        throw new Error('Method not implemented.');
     }
 
     public hasMoreChildren(): boolean {

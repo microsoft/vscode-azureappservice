@@ -12,7 +12,7 @@ import { AppSettingsTreeItem, AppSettingTreeItem, SiteClient } from 'vscode-azur
 import { addExtensionUserAgent, IAzureNode, IAzureTreeItem } from 'vscode-azureextensionui';
 import * as constants from '../constants';
 import { extensionPrefix } from '../constants';
-import { ConnectionTreeItem } from './ConnectionTreeItem';
+import { ConnectionsTreeItem } from './ConnectionsTreeItem';
 import { DeploymentSlotsNATreeItem, DeploymentSlotsTreeItem } from './DeploymentSlotsTreeItem';
 import { DeploymentSlotTreeItem } from './DeploymentSlotTreeItem';
 import { FolderTreeItem } from './FolderTreeItem';
@@ -53,10 +53,9 @@ export class WebAppTreeItem extends SiteTreeItem {
         this.deploymentSlotsNode = /^(basic|free|shared)$/i.test(tier) ? new DeploymentSlotsNATreeItem(tier, appServicePlan.id!) : new DeploymentSlotsTreeItem(this.client);
         const nodes = [this.deploymentSlotsNode, this.folderNode, this.logFolderNode, this.webJobsNode, this.appSettingsNode];
         if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length === 1) {
-            const currentWorkspace = vscode.workspace.workspaceFolders[0];
-            const workspaceConfig = vscode.workspace.getConfiguration(constants.extensionPrefix, currentWorkspace.uri);
+            const workspaceConfig = vscode.workspace.getConfiguration(constants.extensionPrefix);
             if (workspaceConfig.get(constants.configurationSettings.enableConnectionsNode)) {
-                this.connectionsNode = new ConnectionTreeItem(this.client);
+                this.connectionsNode = new ConnectionsTreeItem(this.client);
                 nodes.push(this.connectionsNode);
             }
         }

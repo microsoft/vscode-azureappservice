@@ -655,11 +655,6 @@
                     "type": "boolean",
                     "default": false,
                     "description": "Enables the Advanced Web App Creation which will prompt for app name, location, website OS, runtime, resource group, and app service plan."
-                },
-                "appService.enableConnectionsNode": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Enables the Connections node that shows connected services."
                 }
             }
         },
