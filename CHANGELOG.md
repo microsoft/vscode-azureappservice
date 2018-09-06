@@ -9,9 +9,6 @@ All notable changes to the "azure-appservice" extension will be documented in th
 ### Fixed
 - [Bugs fixed](https://github.com/Microsoft/vscode-azureappservice/issues?utf8=%E2%9C%93&q=is%3Aissue+milestone%3A%220.9.1%22+label%3Abug+is%3Aclosed+)
 
-### Known Issues
-- Configuring deployment source to "GitHub" fails with error "The resource type 'sourceControls' could not be found...". As a workaround, you can make this change directly in the Portal. [#594](https://github.com/Microsoft/vscode-azureappservice/issues/594)
-
 ## 0.9.0 - 2018-07-12
 ### Added
 - View and edit remote files for Web Apps and slots (previously required a feature flag)
