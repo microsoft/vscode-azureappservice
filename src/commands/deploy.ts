@@ -60,6 +60,7 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
             } else {
                 // if defaultPath or defaultNode cannot be found or there was a mismatch, delete old settings and prompt to save next deployment
                 workspaceConfig.update(constants.configurationSettings.defaultWebAppToDeploy, undefined);
+                defaultWebAppToDeploy = undefined;
             }
         }
     }
@@ -123,8 +124,24 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
     if (confirmDeployment && siteConfig.scmType !== constants.ScmType.LocalGit && siteConfig !== constants.ScmType.GitHub) {
         const warning: string = `Are you sure you want to deploy to "${treeItem.client.fullName}"? This will overwrite any previous deployment and cannot be undone.`;
         context.properties.cancelStep = 'confirmDestructiveDeployment';
-        const deployButton: vscode.MessageItem = { title: 'Deploy' };
-        await ext.ui.showWarningMessage(warning, { modal: true }, deployButton, DialogResponses.cancel);
+        const items: vscode.MessageItem[] = [{ title: 'Deploy' }];
+        const resetDefault: vscode.MessageItem = { title: 'Reset default' };
+        if (defaultWebAppToDeploy) {
+            items.push(resetDefault);
+        }
+        items.push(DialogResponses.cancel);
+        const result: vscode.MessageItem = await ext.ui.showWarningMessage(warning, { modal: true }, ...items);
+        if (result === resetDefault) {
+            // tslint:disable-next-line:no-non-null-assertion
+            const localRootPath = currentWorkspace!.uri.fsPath;
+            const settingsPath = path.join(localRootPath, '.vscode', 'settings.json');
+            const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(settingsPath));
+            vscode.window.showTextDocument(doc);
+            await workspaceConfig.update(constants.configurationSettings.defaultWebAppToDeploy, '');
+            // If resetDefault button was clicked we ask what and where to deploy again
+            await vscode.commands.executeCommand('appService.Deploy');
+            return;
+        }
         context.properties.cancelStep = '';
     }
 
