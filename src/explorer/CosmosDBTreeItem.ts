@@ -9,7 +9,7 @@ import { IAzureNode, IAzureParentTreeItem, IAzureTreeItem } from 'vscode-azureex
 export class CosmosDBTreeItem implements IAzureParentTreeItem {
     public static contextValue: string = 'Connection';
     public readonly contextValue: string = CosmosDBTreeItem.contextValue;
-    public readonly label: string = 'CosmosDB';
+    public readonly label: string = 'Cosmos DB';
 
     constructor(readonly client: SiteClient) {
     }
