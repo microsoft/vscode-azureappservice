@@ -12,9 +12,10 @@ export class ConnectionsTreeItem implements IAzureParentTreeItem {
     public static contextValue: string = 'Connections';
     public readonly contextValue: string = ConnectionsTreeItem.contextValue;
     public readonly label: string = 'Connections';
-    public cosmosDBNode: IAzureTreeItem;
+    public readonly cosmosDBNode: IAzureTreeItem;
 
     constructor(readonly client: SiteClient) {
+        this.cosmosDBNode = new CosmosDBTreeItem(this.client);
     }
 
     public get iconPath(): { light: string, dark: string } {
@@ -26,7 +27,6 @@ export class ConnectionsTreeItem implements IAzureParentTreeItem {
     }
 
     public async loadMoreChildren(_node: IAzureNode<IAzureTreeItem>, _clearCache: boolean): Promise<IAzureTreeItem[]> {
-        this.cosmosDBNode = new CosmosDBTreeItem(this.client);
         return [this.cosmosDBNode];
     }
 

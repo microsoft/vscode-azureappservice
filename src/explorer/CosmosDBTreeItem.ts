@@ -7,7 +7,7 @@ import { SiteClient } from 'vscode-azureappservice';
 import { IAzureNode, IAzureParentTreeItem, IAzureTreeItem } from 'vscode-azureextensionui';
 
 export class CosmosDBTreeItem implements IAzureParentTreeItem {
-    public static contextValue: string = 'Connection';
+    public static contextValue: string = 'CosmosDBConnection';
     public readonly contextValue: string = CosmosDBTreeItem.contextValue;
     public readonly label: string = 'Cosmos DB';
 
