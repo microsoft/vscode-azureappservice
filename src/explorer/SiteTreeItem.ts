@@ -35,7 +35,7 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
     }
 
     public get logStreamLabel(): string {
-        return `${this.client.fullName} - Log Stream`;
+        return this.client.fullName;
     }
 
     public async refreshLabel(): Promise<void> {
