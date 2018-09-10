@@ -3,23 +3,22 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { join } from 'path';
 import { SiteClient } from 'vscode-azureappservice';
-import { IAzureTreeItem } from 'vscode-azureextensionui';
+import { IAzureNode, IAzureParentTreeItem, IAzureTreeItem } from 'vscode-azureextensionui';
 
-export class CosmosDBTreeItem implements IAzureTreeItem {
+export class CosmosDBTreeItem implements IAzureParentTreeItem {
     public static contextValue: string = 'Connection';
     public readonly contextValue: string = CosmosDBTreeItem.contextValue;
-    public readonly label: string = 'Connection';
+    public readonly label: string = 'CosmosDB';
 
     constructor(readonly client: SiteClient) {
     }
 
-    public get iconPath(): { light: string, dark: string } {
-        const iconName = 'CosmosDBAccount.svg';
-        return {
-            light: join(__filename, '..', '..', '..', '..', 'resources', 'light', iconName),
-            dark: join(__filename, '..', '..', '..', '..', 'resources', 'dark', iconName)
-        };
+    public async loadMoreChildren(_node: IAzureNode<IAzureTreeItem>, _clearCache: boolean): Promise<IAzureTreeItem[]> {
+        throw new Error('Method not implemented.');
+    }
+
+    public hasMoreChildren(): boolean {
+        return false;
     }
 }
