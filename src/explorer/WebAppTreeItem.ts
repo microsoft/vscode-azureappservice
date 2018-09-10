@@ -27,7 +27,7 @@ export class WebAppTreeItem extends SiteTreeItem {
     public readonly webJobsNode: IAzureTreeItem;
     public readonly folderNode: IAzureTreeItem;
     public readonly logFolderNode: IAzureTreeItem;
-    public connectionsNode: IAzureTreeItem | undefined;
+    public connectionsNode: IAzureTreeItem;
 
     constructor(client: SiteClient) {
         super(client);
@@ -35,11 +35,7 @@ export class WebAppTreeItem extends SiteTreeItem {
         this.logFolderNode = new FolderTreeItem(this.client, 'Log Files', '/LogFiles', 'logFolder');
         this.webJobsNode = new WebJobsTreeItem(this.client);
         this.appSettingsNode = new AppSettingsTreeItem(this.client);
-
-        const workspaceConfig = vscode.workspace.getConfiguration(constants.extensionPrefix);
-        if (workspaceConfig.get(constants.configurationSettings.enableConnectionsNode)) {
-            this.connectionsNode = new ConnectionsTreeItem(this.client);
-        }
+        this.connectionsNode = new ConnectionsTreeItem(this.client);
     }
 
     public get iconPath(): { light: string, dark: string } {
@@ -57,7 +53,8 @@ export class WebAppTreeItem extends SiteTreeItem {
         // tslint:disable-next-line:no-non-null-assertion
         this.deploymentSlotsNode = /^(basic|free|shared)$/i.test(tier) ? new DeploymentSlotsNATreeItem(tier, appServicePlan.id!) : new DeploymentSlotsTreeItem(this.client);
         const nodes = [this.deploymentSlotsNode, this.folderNode, this.logFolderNode, this.webJobsNode, this.appSettingsNode];
-        if (this.connectionsNode !== undefined) {
+        const workspaceConfig = vscode.workspace.getConfiguration(constants.extensionPrefix);
+        if (workspaceConfig.get(constants.configurationSettings.enableConnectionsNode)) {
             nodes.push(this.connectionsNode);
         }
         return nodes;
