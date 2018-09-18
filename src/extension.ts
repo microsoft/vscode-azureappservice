@@ -5,11 +5,12 @@
 
 'use strict';
 
+import * as opn from 'opn';
 import { extname } from 'path';
 import * as vscode from 'vscode';
 import { AppSettingsTreeItem, AppSettingTreeItem, editScmType, getFile, IFileResult, registerAppServiceExtensionVariables, stopStreamingLogs } from 'vscode-azureappservice';
-import { AzureTreeDataProvider, AzureUserInput, IActionContext, IAzureNode, IAzureParentNode, IAzureUserInput, registerCommand, registerEvent, registerUIExtensionVariables } from 'vscode-azureextensionui';
 import { IAzureTreeItem } from 'vscode-azureextensionui';
+import { AzureTreeDataProvider, AzureUserInput, IActionContext, IAzureNode, IAzureParentNode, IAzureUserInput, registerCommand, registerEvent, registerUIExtensionVariables } from 'vscode-azureextensionui';
 import TelemetryReporter from 'vscode-extension-telemetry';
 import { SiteConfigResource } from '../node_modules/azure-arm-website/lib/models';
 import { deploy } from './commands/deploy';
@@ -313,11 +314,12 @@ export function activate(context: vscode.ExtensionContext): void {
         }
     });
     registerCommand('appService.InstallCosmosDBExtension', async () => {
+        const commandToRun = 'extension.open';
         const listOfCommands = await vscode.commands.getCommands();
-        if (listOfCommands.find((x: string) => x === 'extension.open')) {
-            vscode.commands.executeCommand('extension.open', 'ms-azuretools.vscode-cosmosdb');
+        if (listOfCommands.find((x: string) => x === commandToRun)) {
+            vscode.commands.executeCommand(commandToRun, 'ms-azuretools.vscode-cosmosdb');
         } else {
-            vscode.commands.executeCommand('vscode.open', vscode.Uri.parse('https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-cosmosdb'));
+            opn('https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-cosmosdb');
         }
     });
 }

@@ -217,11 +217,6 @@
                 "command": "appService.EnableFileLogging",
                 "title": "Enable File Logging",
                 "category": "Azure App Service"
-            },
-            {
-                "command": "appService.InstallCosmosDBExtension",
-                "title": "Install Cosmos DB Extension",
-                "category": "Azure App Service"
             }
         ],
         "viewsContainers": {
@@ -297,6 +292,10 @@
                 },
                 {
                     "command": "appService.ScaleUp",
+                    "when": "never"
+                },
+                {
+                    "command": "appService.InstallCosmosDBExtension",
                     "when": "never"
                 }
             ],
