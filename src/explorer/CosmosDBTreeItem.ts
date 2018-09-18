@@ -20,8 +20,8 @@ export class CosmosDBTreeItem implements IAzureParentTreeItem {
         if (!cosmosDB) {
             return [{
                 contextValue: 'InstallcosmosDBExtension',
-                label: 'Install CosmosDB Extension...',
-                commandId: 'appService.OpenCosmosDBExtension',
+                label: 'Install Cosmos DB Extension...',
+                commandId: 'appService.InstallCosmosDBExtension',
                 isAncestorOf: () => { return false; }
             }];
         }

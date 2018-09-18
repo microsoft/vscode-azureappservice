@@ -312,7 +312,14 @@ export function activate(context: vscode.ExtensionContext): void {
             vscode.window.showInformationMessage(`File logging has already been enabled for ${siteTreeItem.client.fullName}.`);
         }
     });
-    registerCommand('appService.OpenCosmosDBExtension', () => vscode.commands.executeCommand('extension.open', 'ms-azuretools.vscode-cosmosdb'));
+    registerCommand('appService.InstallCosmosDBExtension', async () => {
+        const listOfCommands = await vscode.commands.getCommands();
+        if (listOfCommands.find((x: string) => x === 'extension.open')) {
+            vscode.commands.executeCommand('extension.open', 'ms-azuretools.vscode-cosmosdb');
+        } else {
+            vscode.commands.executeCommand('vscode.open', vscode.Uri.parse('https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-cosmosdb'));
+        }
+    });
 }
 
 // tslint:disable-next-line:no-empty
