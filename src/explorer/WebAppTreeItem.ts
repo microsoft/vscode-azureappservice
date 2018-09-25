@@ -54,7 +54,7 @@ export class WebAppTreeItem extends SiteTreeItem {
         this.deploymentSlotsNode = /^(basic|free|shared)$/i.test(tier) ? new DeploymentSlotsNATreeItem(tier, appServicePlan.id!) : new DeploymentSlotsTreeItem(this.client);
         const nodes = [this.deploymentSlotsNode, this.folderNode, this.logFolderNode, this.webJobsNode, this.appSettingsNode];
         const workspaceConfig = vscode.workspace.getConfiguration(constants.extensionPrefix);
-        if (workspaceConfig.get(constants.configurationSettings.enableConnectionsNode)) {
+        if (workspaceConfig.get(constants.configurationSettings.enableConnectionsNode) && workspaceConfig.get(constants.configurationSettings.defaultWebAppToDeploy) === this.id) {
             nodes.push(this.connectionsNode);
         }
         return nodes;
