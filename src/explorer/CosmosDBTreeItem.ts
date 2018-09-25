@@ -10,7 +10,7 @@ import { IAzureNode, IAzureParentTreeItem, IAzureTreeItem } from 'vscode-azureex
 export class CosmosDBTreeItem implements IAzureParentTreeItem {
     public static contextValue: string = 'CosmosDBConnection';
     public readonly contextValue: string = CosmosDBTreeItem.contextValue;
-    public readonly label: string = 'Cosmos DB';
+    public readonly label: string = 'CosmosDB';
 
     constructor(readonly client: SiteClient) {
     }
@@ -19,7 +19,7 @@ export class CosmosDBTreeItem implements IAzureParentTreeItem {
         const cosmosDB = vscode.extensions.getExtension('ms-azuretools.vscode-cosmosdb');
         if (!cosmosDB) {
             return [{
-                contextValue: 'InstallcosmosDBExtension',
+                contextValue: 'InstallCosmosDBExtension',
                 label: 'Install Cosmos DB Extension...',
                 commandId: 'appService.InstallCosmosDBExtension',
                 isAncestorOf: () => { return false; }
