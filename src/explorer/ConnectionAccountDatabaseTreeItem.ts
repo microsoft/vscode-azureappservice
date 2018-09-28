@@ -16,6 +16,7 @@ export class ConnectionAccountDatabaseTreeItem implements IAzureTreeItem {
     }
 
     private getLabel(id: string): string {
+        // tslint:disable-next-line:strict-boolean-expressions
         const items = this.parseCosmos(id) || this.parseAttached(id) || undefined;
         if (!items) {
             throw new Error('Id doesn\'t match any of known connection patterns');

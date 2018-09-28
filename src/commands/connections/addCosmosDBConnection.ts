@@ -14,18 +14,20 @@ export async function addCosmosDBConnection(node: IAzureNode<CosmosDBTreeItem>, 
         return;
     }
     const workspaceConfig = vscode.workspace.getConfiguration(constants.extensionPrefix);
-    const connections = workspaceConfig.get<IConnections[]>(constants.configurationSettings.connections, []);
-    let indx = connections.findIndex((x: IConnections) => x.webAppId === node.treeItem.client.id);
-    if (indx === -1) {
-        indx = connections.push(<IConnections>{}) - 1;
-        connections[indx].webAppId = node.treeItem.client.id;
+    const allConnections = workspaceConfig.get<IConnections[]>(constants.configurationSettings.connections, []);
+    let connectionsUnit = allConnections.find((x: IConnections) => x.webAppId === node.treeItem.client.id);
+
+    if (!connectionsUnit) {
+        connectionsUnit = <IConnections>{};
+        allConnections.push(connectionsUnit);
+        connectionsUnit.webAppId = node.treeItem.client.id;
     }
-    connections[indx].cosmosDB = connections[indx].cosmosDB || [];
-    // tslint:disable-next-line:no-non-null-assertion
-    if (!connections[indx].cosmosDB!.find((x: string) => x === connectionToAdd)) {
-        // tslint:disable-next-line:no-non-null-assertion
-        connections[indx].cosmosDB!.push(connectionToAdd);
-        workspaceConfig.update(constants.configurationSettings.connections, connections);
+
+    // tslint:disable-next-line:strict-boolean-expressions
+    connectionsUnit.cosmosDB = connectionsUnit.cosmosDB || [];
+    if (!connectionsUnit.cosmosDB.find((x: string) => x === connectionToAdd)) {
+        connectionsUnit.cosmosDB.push(connectionToAdd);
+        workspaceConfig.update(constants.configurationSettings.connections, allConnections);
         await node.refresh();
     }
 }

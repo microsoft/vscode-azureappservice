@@ -12,19 +12,17 @@ import { IConnections } from './IConnections';
 export async function deleteCosmosDBConnection(node: IAzureNode<ConnectionAccountDatabaseTreeItem>): Promise<void> {
     const connectionToDelete = node.treeItem.connectionId;
     const workspaceConfig = vscode.workspace.getConfiguration(constants.extensionPrefix);
-    const connections = workspaceConfig.get<IConnections[]>(constants.configurationSettings.connections, []);
-    let indx = connections.findIndex((x: IConnections) => x.webAppId === node.treeItem.client.id);
-    if (indx === -1) {
-        indx = connections.push(<IConnections>{}) - 1;
-        connections[indx].webAppId = node.treeItem.client.id;
-    }
-    connections[indx].cosmosDB = connections[indx].cosmosDB || [];
-    // tslint:disable-next-line:no-non-null-assertion
-    const indexToDelete = connections[indx].cosmosDB!.findIndex((x: string) => x === connectionToDelete);
+    const allConnections = workspaceConfig.get<IConnections[]>(constants.configurationSettings.connections, []);
+
+    let connectionsUnit = allConnections.find((x: IConnections) => x.webAppId === node.treeItem.client.id);
+    // tslint:disable-next-line:strict-boolean-expressions
+    connectionsUnit = connectionsUnit || <IConnections>{};
+    // tslint:disable-next-line:strict-boolean-expressions
+    connectionsUnit.cosmosDB = connectionsUnit.cosmosDB || [];
+    const indexToDelete = connectionsUnit.cosmosDB.findIndex((x: string) => x === connectionToDelete);
     if (indexToDelete > -1) {
-        // tslint:disable-next-line:no-non-null-assertion
-        connections[indx].cosmosDB!.splice(indexToDelete, 1);
-        workspaceConfig.update(constants.configurationSettings.connections, connections);
+        connectionsUnit.cosmosDB.splice(indexToDelete, 1);
+        workspaceConfig.update(constants.configurationSettings.connections, allConnections);
         // tslint:disable-next-line:no-non-null-assertion
         await node.parent!.refresh();
     }
