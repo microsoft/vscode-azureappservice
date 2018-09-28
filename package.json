@@ -222,6 +222,21 @@
                 "command": "appService.InstallCosmosDBExtension",
                 "title": "Install Cosmos DB Extension",
                 "category": "Azure App Service"
+            },
+            {
+                "command": "appService.revealConnection",
+                "title": "Reveal into Cosmos DB",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.AddCosmosDBConnection",
+                "title": "Add New Connection...",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.DeleteCosmosDBConnection",
+                "title": "Delete",
+                "category": "Azure App Service"
             }
         ],
         "viewsContainers": {
@@ -301,6 +316,18 @@
                 },
                 {
                     "command": "appService.InstallCosmosDBExtension",
+                    "when": "never"
+                },
+                {
+                    "command": "appService.revealConnection",
+                    "when": "never"
+                },
+                {
+                    "command": "appService.AddCosmosDBConnection",
+                    "when": "never"
+                },
+                {
+                    "command": "appService.DeleteCosmosDBConnection",
                     "when": "never"
                 }
             ],
@@ -575,6 +602,31 @@
                 {
                     "command": "appService.ScaleUp",
                     "when": "view == azureAppService && viewItem == deploymentNASlots"
+                },
+                {
+                    "command": "appService.Refresh",
+                    "when": "view == azureAppService && viewItem == сonnectionsTreeItem",
+                    "group": "1@1"
+                },
+                {
+                    "command": "appService.AddCosmosDBConnection",
+                    "when": "view == azureAppService && viewItem == сosmosDBConnection",
+                    "group": "1@1"
+                },
+                {
+                    "command": "appService.Refresh",
+                    "when": "view == azureAppService && viewItem == сosmosDBConnection",
+                    "group": "2@2"
+                },
+                {
+                    "command": "appService.revealConnection",
+                    "when": "view == azureAppService && viewItem == connectionAccountDatabase",
+                    "group": "1@1"
+                },
+                {
+                    "command": "appService.DeleteCosmosDBConnection",
+                    "when": "view == azureAppService && viewItem == connectionAccountDatabase",
+                    "group": "2@1"
                 }
             ],
             "explorer/context": [
@@ -664,6 +716,29 @@
                     "type": "boolean",
                     "default": false,
                     "description": "Enables the Advanced Web App Creation which will prompt for app name, location, website OS, runtime, resource group, and app service plan."
+                },
+                "appService.connections": {
+                    "type": "array",
+                    "description": "Array of web apps with list of all theirs connections",
+                    "items": {
+                        "type": "object",
+                        "description": "All connections of specific web app.",
+                        "additionalProperties": false,
+                        "properties": {
+                            "webAppId": {
+                                "type": "string",
+                                "description": "Web app identificator."
+                            },
+                            "cosmosDB": {
+                                "type": "array",
+                                "description": "Array of connections identificators.",
+                                "items": {
+                                    "type": "string",
+                                    "description": "Connection identificator"
+                                }
+                            }
+                        }
+                    }
                 }
             }
         },

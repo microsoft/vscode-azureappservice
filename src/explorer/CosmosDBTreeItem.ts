@@ -6,12 +6,14 @@
 import * as vscode from 'vscode';
 import { SiteClient } from 'vscode-azureappservice';
 import { IAzureNode, IAzureParentTreeItem, IAzureTreeItem } from 'vscode-azureextensionui';
+import { IConnections } from '../commands/connections/IConnections';
+import * as constants from '../constants';
+import { ConnectionAccountDatabaseTreeItem } from './ConnectionAccountDatabaseTreeItem';
 
 export class CosmosDBTreeItem implements IAzureParentTreeItem {
-    public static contextValue: string = 'CosmosDBConnection';
+    public static contextValue: string = 'сosmosDBConnection';
     public readonly contextValue: string = CosmosDBTreeItem.contextValue;
     public readonly label: string = 'Cosmos DB';
-
     constructor(readonly client: SiteClient) {
     }
 
@@ -19,13 +21,19 @@ export class CosmosDBTreeItem implements IAzureParentTreeItem {
         const cosmosDB = vscode.extensions.getExtension('ms-azuretools.vscode-cosmosdb');
         if (!cosmosDB) {
             return [{
-                contextValue: 'InstallcosmosDBExtension',
+                contextValue: 'InstallCosmosDBExtension',
                 label: 'Install Cosmos DB Extension...',
                 commandId: 'appService.InstallCosmosDBExtension',
                 isAncestorOf: () => { return false; }
             }];
         }
-        throw new Error('Method not implemented.');
+        const workspaceConfig = vscode.workspace.getConfiguration(constants.extensionPrefix);
+        const connections = workspaceConfig.get<IConnections[]>(constants.configurationSettings.connections, []);
+        const unit = connections.find((x: IConnections) => x.webAppId === this.client.id) || <IConnections>{};
+        unit.cosmosDB = unit.cosmosDB || [];
+        return unit.cosmosDB.map(connectionId => {
+            return new ConnectionAccountDatabaseTreeItem(this.client, connectionId);
+        });
     }
 
     public hasMoreChildren(): boolean {
