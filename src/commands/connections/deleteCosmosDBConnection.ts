@@ -26,6 +26,6 @@ export async function deleteCosmosDBConnection(node: IAzureNode<ConnectionAccoun
         connections[indx].cosmosDB!.splice(indexToDelete, 1);
         workspaceConfig.update(constants.configurationSettings.connections, connections);
         // tslint:disable-next-line:no-non-null-assertion
-        node.parent!.refresh();
+        await node.parent!.refresh();
     }
 }

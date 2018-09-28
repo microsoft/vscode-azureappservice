@@ -327,7 +327,7 @@ export function activate(context: vscode.ExtensionContext): void {
     });
     registerCommand('appService.AddCosmosDBConnection', async (node: IAzureNode<CosmosDBTreeItem>) => {
         const connectionToAdd = <string>await vscode.commands.executeCommand('cosmosDB.api.getDatabase');
-        addCosmosDBConnection(node, connectionToAdd);
+        await addCosmosDBConnection(node, connectionToAdd);
     });
     registerCommand('appService.DeleteCosmosDBConnection', deleteCosmosDBConnection);
 }

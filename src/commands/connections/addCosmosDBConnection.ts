@@ -26,6 +26,6 @@ export async function addCosmosDBConnection(node: IAzureNode<CosmosDBTreeItem>, 
         // tslint:disable-next-line:no-non-null-assertion
         connections[indx].cosmosDB!.push(connectionToAdd);
         workspaceConfig.update(constants.configurationSettings.connections, connections);
-        node.refresh();
+        await node.refresh();
     }
 }
