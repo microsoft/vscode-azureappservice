@@ -14,7 +14,7 @@ export async function addCosmosDBConnection(node: IAzureNode<CosmosDBTreeItem>, 
         return;
     }
     const workspaceConfig = vscode.workspace.getConfiguration(constants.extensionPrefix);
-    const connections = await workspaceConfig.get<IConnections[]>(constants.configurationSettings.connections, []);
+    const connections = workspaceConfig.get<IConnections[]>(constants.configurationSettings.connections, []);
     let indx = connections.findIndex((x: IConnections) => x.webAppId === node.treeItem.client.id);
     if (indx === -1) {
         indx = connections.push(<IConnections>{}) - 1;
