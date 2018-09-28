@@ -5,7 +5,6 @@
 
 import { SiteClient } from 'vscode-azureappservice';
 import { IAzureTreeItem } from 'vscode-azureextensionui';
-import { ErrorDestination } from 'vscode-debugadapter';
 
 export class ConnectionAccountDatabaseTreeItem implements IAzureTreeItem {
     public static contextValue: string = 'connectionAccountDatabase';
