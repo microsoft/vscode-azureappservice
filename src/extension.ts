@@ -13,7 +13,7 @@ import { AzureTreeDataProvider, AzureUserInput, IActionContext, IAzureNode, IAzu
 import TelemetryReporter from 'vscode-extension-telemetry';
 import { SiteConfigResource } from '../node_modules/azure-arm-website/lib/models';
 import { addCosmosDBConnection } from './commands/connections/addCosmosDBConnection';
-import { deleteCosmosDBConnection } from './commands/connections/deleteCosmosDBConnection';
+import { removeCosmosDBConnection } from './commands/connections/removeCosmosDBConnection';
 import { deploy } from './commands/deploy';
 import { enableFileLogging } from './commands/enableFileLogging';
 import { disableRemoteDebug } from './commands/remoteDebug/disableRemoteDebug';
@@ -325,7 +325,7 @@ export function activate(context: vscode.ExtensionContext): void {
         }
     });
     registerCommand('appService.AddCosmosDBConnection', addCosmosDBConnection);
-    registerCommand('appService.DeleteCosmosDBConnection', deleteCosmosDBConnection);
+    registerCommand('appService.RemoveCosmosDBConnection', removeCosmosDBConnection);
 }
 
 // tslint:disable-next-line:no-empty

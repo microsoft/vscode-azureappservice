@@ -21,9 +21,9 @@ export class CosmosDBTreeItem implements IAzureParentTreeItem {
         const cosmosDB = vscode.extensions.getExtension('ms-azuretools.vscode-cosmosdb');
         if (!cosmosDB) {
             return [{
+                commandId: 'appService.InstallCosmosDBExtension',
                 contextValue: 'InstallCosmosDBExtension',
                 label: 'Install Cosmos DB Extension...',
-                commandId: 'appService.InstallCosmosDBExtension',
                 isAncestorOf: () => { return false; }
             }];
         }
@@ -32,11 +32,12 @@ export class CosmosDBTreeItem implements IAzureParentTreeItem {
         // tslint:disable-next-line:strict-boolean-expressions
         const unit = connections.find((x: IConnections) => x.webAppId === this.client.id) || <IConnections>{};
         if (!unit.cosmosDB || unit.cosmosDB.length === 0) {
-            return [{
+            return [<IAzureTreeItem>{
+                client: this.client,
+                commandId: 'appService.AddCosmosDBConnection',
                 contextValue: 'AddCosmosDBConnection',
                 label: 'Add Cosmos DB Connection...',
-                commandId: 'appService.AddCosmosDBConnection',
-                isAncestorOf: () => { return false; }
+                parent: this
             }];
         }
         return unit.cosmosDB.map(connectionId => {

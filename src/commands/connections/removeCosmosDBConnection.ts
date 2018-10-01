@@ -9,7 +9,7 @@ import { IAzureNode } from 'vscode-azureextensionui';
 import * as constants from '../../constants';
 import { IConnections } from './IConnections';
 
-export async function deleteCosmosDBConnection(node: IAzureNode<CosmosDBDatabase>): Promise<void> {
+export async function removeCosmosDBConnection(node: IAzureNode<CosmosDBDatabase>): Promise<void> {
     const connectionToDelete = node.treeItem.connectionId;
     const workspaceConfig = vscode.workspace.getConfiguration(constants.extensionPrefix);
     const allConnections = workspaceConfig.get<IConnections[]>(constants.configurationSettings.connections, []);

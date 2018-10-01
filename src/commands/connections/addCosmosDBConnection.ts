@@ -29,6 +29,11 @@ export async function addCosmosDBConnection(node: IAzureNode<CosmosDBTreeItem>):
     if (!connectionsUnit.cosmosDB.find((x: string) => x === connectionToAdd)) {
         connectionsUnit.cosmosDB.push(connectionToAdd);
         workspaceConfig.update(constants.configurationSettings.connections, allConnections);
-        await node.refresh();
+        if (node.treeItem.contextValue === 'AddCosmosDBConnection') {
+            // tslint:disable-next-line:no-non-null-assertion
+            await node.parent!.refresh();
+        } else {
+            await node.refresh();
+        }
     }
 }

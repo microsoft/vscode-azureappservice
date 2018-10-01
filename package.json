@@ -234,7 +234,7 @@
                 "category": "Azure App Service"
             },
             {
-                "command": "appService.DeleteCosmosDBConnection",
+                "command": "appService.RemoveCosmosDBConnection",
                 "title": "Remove Connection",
                 "category": "Azure App Service"
             }
@@ -327,7 +327,7 @@
                     "when": "never"
                 },
                 {
-                    "command": "appService.DeleteCosmosDBConnection",
+                    "command": "appService.RemoveCosmosDBConnection",
                     "when": "never"
                 }
             ],
@@ -624,7 +624,7 @@
                     "group": "1@1"
                 },
                 {
-                    "command": "appService.DeleteCosmosDBConnection",
+                    "command": "appService.RemoveCosmosDBConnection",
                     "when": "view == azureAppService && viewItem == cosmosDBDatabase",
                     "group": "2@1"
                 }
@@ -737,7 +737,7 @@
                                 "description": "Array of Cosmos DB database ids.",
                                 "items": {
                                     "type": "string",
-                                    "description": "Connection identificator"
+                                    "description": "Connection id"
                                 }
                             }
                         }
