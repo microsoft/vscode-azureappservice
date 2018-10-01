@@ -9,14 +9,15 @@ import { IAzureNode } from 'vscode-azureextensionui';
 import * as constants from '../../constants';
 import { IConnections } from './IConnections';
 
-export async function addCosmosDBConnection(node: IAzureNode<CosmosDBTreeItem>, connectionToAdd: string): Promise<void> {
+export async function addCosmosDBConnection(node: IAzureNode<CosmosDBTreeItem>): Promise<void> {
+    const connectionToAdd = <string>await vscode.commands.executeCommand('cosmosDB.api.getDatabase');
     if (!connectionToAdd) {
         return;
     }
+
     const workspaceConfig = vscode.workspace.getConfiguration(constants.extensionPrefix);
     const allConnections = workspaceConfig.get<IConnections[]>(constants.configurationSettings.connections, []);
     let connectionsUnit = allConnections.find((x: IConnections) => x.webAppId === node.treeItem.client.id);
-
     if (!connectionsUnit) {
         connectionsUnit = <IConnections>{};
         allConnections.push(connectionsUnit);

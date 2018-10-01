@@ -225,7 +225,7 @@
             },
             {
                 "command": "appService.revealConnection",
-                "title": "Reveal into Cosmos DB",
+                "title": "Reveal in Cosmos DB extension",
                 "category": "Azure App Service"
             },
             {
@@ -235,7 +235,7 @@
             },
             {
                 "command": "appService.DeleteCosmosDBConnection",
-                "title": "Delete",
+                "title": "Remove Connection",
                 "category": "Azure App Service"
             }
         ],
@@ -605,27 +605,27 @@
                 },
                 {
                     "command": "appService.Refresh",
-                    "when": "view == azureAppService && viewItem == сonnectionsTreeItem",
+                    "when": "view == azureAppService && viewItem == connections",
                     "group": "1@1"
                 },
                 {
                     "command": "appService.AddCosmosDBConnection",
-                    "when": "view == azureAppService && viewItem == сosmosDBConnection",
+                    "when": "view == azureAppService && viewItem == сosmosDBConnections",
                     "group": "1@1"
                 },
                 {
                     "command": "appService.Refresh",
-                    "when": "view == azureAppService && viewItem == сosmosDBConnection",
+                    "when": "view == azureAppService && viewItem == сosmosDBConnections",
                     "group": "2@2"
                 },
                 {
                     "command": "appService.revealConnection",
-                    "when": "view == azureAppService && viewItem == connectionAccountDatabase",
+                    "when": "view == azureAppService && viewItem == cosmosDBDatabase",
                     "group": "1@1"
                 },
                 {
                     "command": "appService.DeleteCosmosDBConnection",
-                    "when": "view == azureAppService && viewItem == connectionAccountDatabase",
+                    "when": "view == azureAppService && viewItem == cosmosDBDatabase",
                     "group": "2@1"
                 }
             ],
@@ -720,6 +720,9 @@
                 "appService.connections": {
                     "type": "array",
                     "description": "Array of web apps with list of all theirs connections",
+                    "required": [
+                        "webAppId"
+                    ],
                     "items": {
                         "type": "object",
                         "description": "All connections of specific web app.",
@@ -727,11 +730,11 @@
                         "properties": {
                             "webAppId": {
                                 "type": "string",
-                                "description": "Web app identificator."
+                                "description": "Web app id."
                             },
                             "cosmosDB": {
                                 "type": "array",
-                                "description": "Array of connections identificators.",
+                                "description": "Array of Cosmos DB database ids.",
                                 "items": {
                                     "type": "string",
                                     "description": "Connection identificator"

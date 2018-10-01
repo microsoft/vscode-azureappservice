@@ -6,9 +6,9 @@
 import { SiteClient } from 'vscode-azureappservice';
 import { IAzureTreeItem } from 'vscode-azureextensionui';
 
-export class ConnectionAccountDatabaseTreeItem implements IAzureTreeItem {
-    public static contextValue: string = 'connectionAccountDatabase';
-    public readonly contextValue: string = ConnectionAccountDatabaseTreeItem.contextValue;
+export class CosmosDBDatabase implements IAzureTreeItem {
+    public static contextValue: string = 'cosmosDBDatabase';
+    public readonly contextValue: string = CosmosDBDatabase.contextValue;
     public readonly label: string;
 
     constructor(readonly client: SiteClient, readonly connectionId: string) {
@@ -16,10 +16,9 @@ export class ConnectionAccountDatabaseTreeItem implements IAzureTreeItem {
     }
 
     private getLabel(id: string): string {
-        // tslint:disable-next-line:strict-boolean-expressions
-        const items = this.parseCosmos(id) || this.parseAttached(id) || undefined;
+        const items = this.parseCosmos(id) || this.parseAttached(id);
         if (!items) {
-            throw new Error('Id doesn\'t match any of known connection patterns');
+            throw new Error('Failed to parse connection id');
         }
         return items[items.length - 1];
     }

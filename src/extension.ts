@@ -20,7 +20,6 @@ import { disableRemoteDebug } from './commands/remoteDebug/disableRemoteDebug';
 import { startRemoteDebug } from './commands/remoteDebug/startRemoteDebug';
 import { startStreamingLogs } from './commands/startStreamingLogs';
 import { swapSlots } from './commands/swapSlots';
-import { CosmosDBTreeItem } from './explorer/CosmosDBTreeItem';
 import { DeploymentSlotsNATreeItem, DeploymentSlotsTreeItem, ScaleUpTreeItem } from './explorer/DeploymentSlotsTreeItem';
 import { DeploymentSlotTreeItem } from './explorer/DeploymentSlotTreeItem';
 import { FileEditor } from './explorer/editors/FileEditor';
@@ -325,10 +324,7 @@ export function activate(context: vscode.ExtensionContext): void {
             opn('https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-cosmosdb');
         }
     });
-    registerCommand('appService.AddCosmosDBConnection', async (node: IAzureNode<CosmosDBTreeItem>) => {
-        const connectionToAdd = <string>await vscode.commands.executeCommand('cosmosDB.api.getDatabase');
-        await addCosmosDBConnection(node, connectionToAdd);
-    });
+    registerCommand('appService.AddCosmosDBConnection', addCosmosDBConnection);
     registerCommand('appService.DeleteCosmosDBConnection', deleteCosmosDBConnection);
 }
 

@@ -8,10 +8,10 @@ import { SiteClient } from 'vscode-azureappservice';
 import { IAzureNode, IAzureParentTreeItem, IAzureTreeItem } from 'vscode-azureextensionui';
 import { IConnections } from '../commands/connections/IConnections';
 import * as constants from '../constants';
-import { ConnectionAccountDatabaseTreeItem } from './ConnectionAccountDatabaseTreeItem';
+import { CosmosDBDatabase } from './CosmosDBDatabase';
 
 export class CosmosDBTreeItem implements IAzureParentTreeItem {
-    public static contextValue: string = 'сosmosDBConnection';
+    public static contextValue: string = 'сosmosDBConnections';
     public readonly contextValue: string = CosmosDBTreeItem.contextValue;
     public readonly label: string = 'Cosmos DB';
     constructor(readonly client: SiteClient) {
@@ -31,10 +31,16 @@ export class CosmosDBTreeItem implements IAzureParentTreeItem {
         const connections = workspaceConfig.get<IConnections[]>(constants.configurationSettings.connections, []);
         // tslint:disable-next-line:strict-boolean-expressions
         const unit = connections.find((x: IConnections) => x.webAppId === this.client.id) || <IConnections>{};
-        // tslint:disable-next-line:strict-boolean-expressions
-        unit.cosmosDB = unit.cosmosDB || [];
+        if (!unit.cosmosDB || unit.cosmosDB.length === 0) {
+            return [{
+                contextValue: 'AddCosmosDBConnection',
+                label: 'Add Cosmos DB Connection...',
+                commandId: 'appService.AddCosmosDBConnection',
+                isAncestorOf: () => { return false; }
+            }];
+        }
         return unit.cosmosDB.map(connectionId => {
-            return new ConnectionAccountDatabaseTreeItem(this.client, connectionId);
+            return new CosmosDBDatabase(this.client, connectionId);
         });
     }
 
