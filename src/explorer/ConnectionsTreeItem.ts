@@ -9,7 +9,7 @@ import { IAzureNode, IAzureParentTreeItem, IAzureTreeItem } from 'vscode-azureex
 import { CosmosDBTreeItem } from './CosmosDBTreeItem';
 
 export class ConnectionsTreeItem implements IAzureParentTreeItem {
-    public static contextValue: string = 'Connections';
+    public static contextValue: string = 'connections';
     public readonly contextValue: string = ConnectionsTreeItem.contextValue;
     public readonly label: string = 'Connections';
     public readonly cosmosDBNode: IAzureTreeItem;

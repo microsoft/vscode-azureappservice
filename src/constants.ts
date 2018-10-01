@@ -33,7 +33,8 @@ export enum configurationSettings {
     deploySubpath = 'deploySubpath',
     advancedCreation = 'advancedCreation',
     defaultWebAppToDeploy = 'defaultWebAppToDeploy',
-    enableConnectionsNode = 'enableConnectionsNode'
+    enableConnectionsNode = 'enableConnectionsNode',
+    connections = 'connections'
 }
 
 export enum ScmType {

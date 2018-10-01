@@ -6,12 +6,14 @@
 import * as vscode from 'vscode';
 import { SiteClient } from 'vscode-azureappservice';
 import { IAzureNode, IAzureParentTreeItem, IAzureTreeItem } from 'vscode-azureextensionui';
+import { IConnections } from '../commands/connections/IConnections';
+import * as constants from '../constants';
+import { CosmosDBDatabase } from './CosmosDBDatabase';
 
 export class CosmosDBTreeItem implements IAzureParentTreeItem {
-    public static contextValue: string = 'CosmosDBConnection';
+    public static contextValue: string = 'сosmosDBConnections';
     public readonly contextValue: string = CosmosDBTreeItem.contextValue;
     public readonly label: string = 'Cosmos DB';
-
     constructor(readonly client: SiteClient) {
     }
 
@@ -19,13 +21,28 @@ export class CosmosDBTreeItem implements IAzureParentTreeItem {
         const cosmosDB = vscode.extensions.getExtension('ms-azuretools.vscode-cosmosdb');
         if (!cosmosDB) {
             return [{
-                contextValue: 'InstallcosmosDBExtension',
-                label: 'Install Cosmos DB Extension...',
                 commandId: 'appService.InstallCosmosDBExtension',
+                contextValue: 'InstallCosmosDBExtension',
+                label: 'Install Cosmos DB Extension...',
                 isAncestorOf: () => { return false; }
             }];
         }
-        throw new Error('Method not implemented.');
+        const workspaceConfig = vscode.workspace.getConfiguration(constants.extensionPrefix);
+        const connections = workspaceConfig.get<IConnections[]>(constants.configurationSettings.connections, []);
+        // tslint:disable-next-line:strict-boolean-expressions
+        const unit = connections.find((x: IConnections) => x.webAppId === this.client.id) || <IConnections>{};
+        if (!unit.cosmosDB || unit.cosmosDB.length === 0) {
+            return [<IAzureTreeItem>{
+                client: this.client,
+                commandId: 'appService.AddCosmosDBConnection',
+                contextValue: 'AddCosmosDBConnection',
+                label: 'Add Cosmos DB Connection...',
+                parent: this
+            }];
+        }
+        return unit.cosmosDB.map(connectionId => {
+            return new CosmosDBDatabase(this.client, connectionId);
+        });
     }
 
     public hasMoreChildren(): boolean {

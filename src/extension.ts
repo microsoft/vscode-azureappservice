@@ -12,6 +12,8 @@ import { AppSettingsTreeItem, AppSettingTreeItem, editScmType, getFile, IFileRes
 import { AzureTreeDataProvider, AzureUserInput, IActionContext, IAzureNode, IAzureParentNode, IAzureTreeItem, IAzureUserInput, registerCommand, registerEvent, registerUIExtensionVariables } from 'vscode-azureextensionui';
 import TelemetryReporter from 'vscode-extension-telemetry';
 import { SiteConfigResource } from '../node_modules/azure-arm-website/lib/models';
+import { addCosmosDBConnection } from './commands/connections/addCosmosDBConnection';
+import { removeCosmosDBConnection } from './commands/connections/removeCosmosDBConnection';
 import { deploy } from './commands/deploy';
 import { enableFileLogging } from './commands/enableFileLogging';
 import { disableRemoteDebug } from './commands/remoteDebug/disableRemoteDebug';
@@ -322,6 +324,8 @@ export function activate(context: vscode.ExtensionContext): void {
             opn('https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-cosmosdb');
         }
     });
+    registerCommand('appService.AddCosmosDBConnection', addCosmosDBConnection);
+    registerCommand('appService.RemoveCosmosDBConnection', removeCosmosDBConnection);
 }
 
 // tslint:disable-next-line:no-empty
