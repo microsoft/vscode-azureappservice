@@ -35,5 +35,10 @@ export async function addCosmosDBConnection(node: IAzureNode<CosmosDBTreeItem>):
         } else {
             await node.refresh();
         }
+        const appSettingToAdd = <string>await vscode.commands.executeCommand('cosmosDB.api.getConnectionString', connectionToAdd);
+        await vscode.commands.executeCommand('appService.UpdateCosmosDBMongoAppSetting', connectionsUnit.webAppId, appSettingToAdd);
     }
 }
+
+//mongodb://account2:eRWEnR3bTuLkz66epi4szZIQws6IrZ3EmaIXe4flQukurANuvcZ7PSVv0ekxQMeiw8JvwlVFChU0Nl5cPKVZpA==@account2.documents.azure.com:10255/?ssl=true
+//mongodb://account2:eRWEnR3bTuLkz66epi4szZIQws6IrZ3EmaIXe4flQukurANuvcZ7PSVv0ekxQMeiw8JvwlVFChU0Nl5cPKVZpA==@account2.documents.azure.com:10255/?ssl=true
