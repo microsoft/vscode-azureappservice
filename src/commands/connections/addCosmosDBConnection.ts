@@ -5,11 +5,10 @@
 
 import { CosmosDBTreeItem } from 'src/explorer/CosmosDBTreeItem';
 import * as vscode from 'vscode';
-import { IAzureNode } from 'vscode-azureextensionui';
 import * as constants from '../../constants';
 import { IConnections } from './IConnections';
 
-export async function addCosmosDBConnection(node: IAzureNode<CosmosDBTreeItem>): Promise<void> {
+export async function addCosmosDBConnection(node: CosmosDBTreeItem): Promise<void> {
     const connectionToAdd = <string>await vscode.commands.executeCommand('cosmosDB.api.getDatabase');
     if (!connectionToAdd) {
         return;
@@ -17,11 +16,11 @@ export async function addCosmosDBConnection(node: IAzureNode<CosmosDBTreeItem>):
 
     const workspaceConfig = vscode.workspace.getConfiguration(constants.extensionPrefix);
     const allConnections = workspaceConfig.get<IConnections[]>(constants.configurationSettings.connections, []);
-    let connectionsUnit = allConnections.find((x: IConnections) => x.webAppId === node.treeItem.client.id);
+    let connectionsUnit = allConnections.find((x: IConnections) => x.webAppId === node.root.client.id);
     if (!connectionsUnit) {
         connectionsUnit = <IConnections>{};
         allConnections.push(connectionsUnit);
-        connectionsUnit.webAppId = node.treeItem.client.id;
+        connectionsUnit.webAppId = node.root.client.id;
     }
 
     // tslint:disable-next-line:strict-boolean-expressions
@@ -29,7 +28,7 @@ export async function addCosmosDBConnection(node: IAzureNode<CosmosDBTreeItem>):
     if (!connectionsUnit.cosmosDB.find((x: string) => x === connectionToAdd)) {
         connectionsUnit.cosmosDB.push(connectionToAdd);
         workspaceConfig.update(constants.configurationSettings.connections, allConnections);
-        if (node.treeItem.contextValue === 'AddCosmosDBConnection') {
+        if (node.contextValue === 'AddCosmosDBConnection') {
             // tslint:disable-next-line:no-non-null-assertion
             await node.parent!.refresh();
         } else {

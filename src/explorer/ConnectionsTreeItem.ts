@@ -4,18 +4,19 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as path from 'path';
-import { SiteClient } from 'vscode-azureappservice';
-import { IAzureNode, IAzureParentTreeItem, IAzureTreeItem } from 'vscode-azureextensionui';
+import { ISiteTreeRoot } from 'vscode-azureappservice';
+import { AzureParentTreeItem, AzureTreeItem } from 'vscode-azureextensionui';
 import { CosmosDBTreeItem } from './CosmosDBTreeItem';
 
-export class ConnectionsTreeItem implements IAzureParentTreeItem {
+export class ConnectionsTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     public static contextValue: string = 'connections';
     public readonly contextValue: string = ConnectionsTreeItem.contextValue;
     public readonly label: string = 'Connections';
-    public readonly cosmosDBNode: IAzureTreeItem;
+    public readonly cosmosDBNode: CosmosDBTreeItem;
 
-    constructor(readonly client: SiteClient) {
-        this.cosmosDBNode = new CosmosDBTreeItem(this.client);
+    constructor(parent: AzureParentTreeItem) {
+        super(parent);
+        this.cosmosDBNode = new CosmosDBTreeItem(this);
     }
 
     public get iconPath(): { light: string, dark: string } {
@@ -26,11 +27,11 @@ export class ConnectionsTreeItem implements IAzureParentTreeItem {
         };
     }
 
-    public async loadMoreChildren(_node: IAzureNode<IAzureTreeItem>, _clearCache: boolean): Promise<IAzureTreeItem[]> {
+    public async loadMoreChildrenImpl(_clearCache: boolean): Promise<AzureTreeItem<ISiteTreeRoot>[]> {
         return [this.cosmosDBNode];
     }
 
-    public hasMoreChildren(): boolean {
+    public hasMoreChildrenImpl(): boolean {
         return false;
     }
 }

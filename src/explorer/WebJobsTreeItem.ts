@@ -4,16 +4,14 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as path from 'path';
-import { getKuduClient, SiteClient } from 'vscode-azureappservice';
-import { IAzureParentTreeItem, IAzureTreeItem } from 'vscode-azureextensionui';
+import { getKuduClient, ISiteTreeRoot } from 'vscode-azureappservice';
+import { AzureParentTreeItem, AzureTreeItem, GenericTreeItem } from 'vscode-azureextensionui';
 
-export class WebJobsTreeItem implements IAzureParentTreeItem {
+export class WebJobsTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     public static contextValue: string = 'webJobs';
     public readonly label: string = 'WebJobs';
     public readonly contextValue: string = WebJobsTreeItem.contextValue;
     public readonly childTypeLabel: string = 'Web Job';
-    constructor(readonly client: SiteClient) {
-    }
 
     public get id(): string {
         return 'webJobs';
@@ -26,17 +24,17 @@ export class WebJobsTreeItem implements IAzureParentTreeItem {
         };
     }
 
-    public hasMoreChildren(): boolean {
+    public hasMoreChildrenImpl(): boolean {
         return false;
     }
 
-    public async loadMoreChildren(): Promise<IAzureTreeItem[]> {
-        const kuduClient = await getKuduClient(this.client);
+    public async loadMoreChildrenImpl(_clearCache: boolean): Promise<AzureTreeItem<ISiteTreeRoot>[]> {
+        const kuduClient = await getKuduClient(this.root.client);
 
         const jobList: webJob[] = <webJob[]>await kuduClient.jobs.listAllJobs();
 
         return jobList.map((job: webJob) => {
-            return { id: job.name, label: job.name, contextValue: 'webJob' };
+            return new GenericTreeItem<ISiteTreeRoot>(this, { id: job.name, label: job.name, contextValue: 'webJob' });
         });
     }
 }

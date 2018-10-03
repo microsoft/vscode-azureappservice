@@ -8,26 +8,30 @@ import * as fse from 'fs-extra';
 import * as opn from 'opn';
 import * as path from 'path';
 import { MessageItem, Uri, window, workspace, WorkspaceConfiguration } from 'vscode';
-import { deleteSite, SiteClient } from 'vscode-azureappservice';
-import { DialogResponses, IAzureNode, IAzureParentNode, IAzureParentTreeItem, IAzureTreeItem, TelemetryProperties } from 'vscode-azureextensionui';
+import { deleteSite, ISiteTreeRoot, SiteClient } from 'vscode-azureappservice';
+import { AzureParentTreeItem, AzureTreeItem, DialogResponses, TelemetryProperties } from 'vscode-azureextensionui';
 import * as constants from '../constants';
 import { ext } from '../extensionVariables';
 
-export abstract class SiteTreeItem implements IAzureParentTreeItem {
+export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     public abstract contextValue: string;
 
-    public readonly client: SiteClient;
-
+    private readonly _root: ISiteTreeRoot;
     private _state?: string;
 
-    constructor(client: SiteClient) {
-        this.client = client;
+    constructor(parent: AzureParentTreeItem, client: SiteClient) {
+        super(parent);
+        this._root = Object.assign({}, parent.root, { client });
         this._state = client.initialState;
+    }
+
+    public get root(): ISiteTreeRoot {
+        return this._root;
     }
 
     public get label(): string {
         // tslint:disable-next-line:no-non-null-assertion
-        return this.client.isSlot ? this.client.slotName! : this.client.siteName;
+        return this.root.client.isSlot ? this.root.client.slotName! : this.root.client.siteName;
     }
 
     public get description(): string | undefined {
@@ -35,38 +39,38 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
     }
 
     public get logStreamLabel(): string {
-        return this.client.fullName;
+        return this.root.client.fullName;
     }
 
     public async refreshLabel(): Promise<void> {
         try {
-            this._state = await this.client.getState();
+            this._state = await this.root.client.getState();
         } catch {
             this._state = 'Unknown';
         }
     }
 
-    public hasMoreChildren(): boolean {
+    public hasMoreChildrenImpl(): boolean {
         return false;
     }
 
-    public abstract loadMoreChildren(node: IAzureParentNode): Promise<IAzureTreeItem[]>;
+    public abstract loadMoreChildrenImpl(clearCache: boolean): Promise<AzureTreeItem<ISiteTreeRoot>[]>;
 
     public get id(): string {
-        return this.client.id;
+        return this.root.client.id;
     }
 
     public browse(): void {
         // tslint:disable-next-line:no-unsafe-any
-        opn(this.client.defaultHostUrl);
+        opn(this.root.client.defaultHostUrl);
     }
 
-    public async deleteTreeItem(_node: IAzureNode): Promise<void> {
-        await deleteSite(this.client);
+    public async deleteTreeItemImpl(): Promise<void> {
+        await deleteSite(this.root.client);
     }
 
     public async isHttpLogsEnabled(): Promise<boolean> {
-        const logsConfig: WebSiteModels.SiteLogsConfig = await this.client.getLogsConfig();
+        const logsConfig: WebSiteModels.SiteLogsConfig = await this.root.client.getLogsConfig();
         return !!(logsConfig.httpLogs && logsConfig.httpLogs.fileSystem && logsConfig.httpLogs.fileSystem.enabled);
     }
 
@@ -81,7 +85,7 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
             }
         };
 
-        await this.client.updateLogsConfig(logsConfig);
+        await this.root.client.updateLogsConfig(logsConfig);
     }
 
     public async enableScmDoBuildDuringDeploy(fsPath: string, runtime: string, telemetryProperties: TelemetryProperties): Promise<void> {
@@ -119,13 +123,13 @@ export abstract class SiteTreeItem implements IAzureParentTreeItem {
         }
     }
 
-    public async promptToSaveDeployDefaults(node: IAzureNode<SiteTreeItem>, workspacePath: string, deployPath: string, telemetryProperties: TelemetryProperties): Promise<void> {
-        const saveDeploymentConfig: string = `Always deploy the workspace "${path.basename(workspacePath)}" to "${node.treeItem.client.fullName}"?`;
+    public async promptToSaveDeployDefaults(workspacePath: string, deployPath: string, telemetryProperties: TelemetryProperties): Promise<void> {
+        const saveDeploymentConfig: string = `Always deploy the workspace "${path.basename(workspacePath)}" to "${this.root.client.fullName}"?`;
         const dontShowAgain: MessageItem = { title: "Don't show again" };
         const workspaceConfiguration: WorkspaceConfiguration = workspace.getConfiguration(constants.extensionPrefix, Uri.file(deployPath));
         const result: MessageItem = await ext.ui.showWarningMessage(saveDeploymentConfig, DialogResponses.yes, dontShowAgain, DialogResponses.skipForNow);
         if (result === DialogResponses.yes) {
-            workspaceConfiguration.update(constants.configurationSettings.defaultWebAppToDeploy, node.id);
+            workspaceConfiguration.update(constants.configurationSettings.defaultWebAppToDeploy, this.fullId);
             workspaceConfiguration.update(constants.configurationSettings.deploySubpath, path.relative(workspacePath, deployPath)); // '' is a falsey value
             telemetryProperties.promptToSaveDeployConfigs = 'Yes';
         } else if (result === dontShowAgain) {

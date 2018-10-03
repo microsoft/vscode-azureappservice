@@ -5,12 +5,13 @@
 
 import { Site } from 'azure-arm-website/lib/models';
 import * as vscode from 'vscode';
-import { IAzureNode, IAzureParentNode, IAzureTreeItem, UserCancelledError } from 'vscode-azureextensionui';
+import { UserCancelledError } from 'vscode-azureextensionui';
 import { DeploymentSlotsTreeItem } from '../../explorer/DeploymentSlotsTreeItem';
 import { SiteTreeItem } from '../../explorer/SiteTreeItem';
 import * as util from '../../util';
 import { WizardStep } from '../../wizard';
 import { LogPointsSessionWizard } from '../LogPointsSessionWizard';
+import { WebAppTreeItem } from '../../explorer/WebAppTreeItem';
 
 export class PromptSlotSelection extends WizardStep {
     constructor(private _wizard: LogPointsSessionWizard, readonly site: Site) {
@@ -61,29 +62,11 @@ export class PromptSlotSelection extends WizardStep {
      * Returns all the deployment slots and the production slot.
      */
     private async getDeploymentSlotsTreeItems(): Promise<SiteTreeItem[]> {
-        const appServiceTreeItem = <IAzureParentNode<SiteTreeItem>>this._wizard.uiTreeItem;
-        const result = await appServiceTreeItem.getCachedChildren();
-
-        let deploymentSlotsCategoryNode: IAzureParentNode<IAzureTreeItem> | undefined;
-        if (!result || result.length <= 0) {
-            throw new Error('Cannot find any tree node under the App Service node.');
+        let result: SiteTreeItem[] = [this._wizard.uiTreeItem];
+        if (this._wizard.uiTreeItem instanceof WebAppTreeItem && this._wizard.uiTreeItem.deploymentSlotsNode instanceof DeploymentSlotsTreeItem) {
+            result = result.concat(<SiteTreeItem[]>await this._wizard.uiTreeItem.deploymentSlotsNode.getCachedChildren());
         }
 
-        result.forEach((treeNode: IAzureNode<IAzureTreeItem>) => {
-            if (treeNode.treeItem instanceof DeploymentSlotsTreeItem) {
-                deploymentSlotsCategoryNode = <IAzureParentNode<IAzureTreeItem>>treeNode;
-            }
-        });
-
-        if (!deploymentSlotsCategoryNode) {
-            throw new Error('Cannot find the Deployment Slots tree node');
-        }
-
-        const deploymentSlotTreeNodes = await deploymentSlotsCategoryNode.getCachedChildren();
-        const deploymentSlotTreeItems = deploymentSlotTreeNodes.map((node: IAzureNode<SiteTreeItem>) => {
-            return node.treeItem;
-        });
-
-        return [this._wizard.uiTreeItem.treeItem].concat(deploymentSlotTreeItems);
+        return result;
     }
 }

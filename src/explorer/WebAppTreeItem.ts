@@ -8,8 +8,8 @@ import { AppServicePlan } from 'azure-arm-website/lib/models';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { AppSettingsTreeItem, AppSettingTreeItem, SiteClient } from 'vscode-azureappservice';
-import { addExtensionUserAgent, IAzureNode, IAzureTreeItem } from 'vscode-azureextensionui';
+import { AppSettingsTreeItem, AppSettingTreeItem, ISiteTreeRoot, SiteClient } from 'vscode-azureappservice';
+import { AzureParentTreeItem, AzureTreeItem, createAzureClient } from 'vscode-azureextensionui';
 import * as constants from '../constants';
 import { extensionPrefix } from '../constants';
 import { ConnectionsTreeItem } from './ConnectionsTreeItem';
@@ -22,20 +22,20 @@ import { WebJobsTreeItem } from './WebJobsTreeItem';
 export class WebAppTreeItem extends SiteTreeItem {
     public static contextValue: string = extensionPrefix;
     public readonly contextValue: string = WebAppTreeItem.contextValue;
-    public deploymentSlotsNode: IAzureTreeItem;
-    public readonly appSettingsNode: IAzureTreeItem;
-    public readonly webJobsNode: IAzureTreeItem;
-    public readonly folderNode: IAzureTreeItem;
-    public readonly logFolderNode: IAzureTreeItem;
-    public connectionsNode: IAzureTreeItem;
+    public deploymentSlotsNode: DeploymentSlotsTreeItem | DeploymentSlotsNATreeItem;
+    public readonly appSettingsNode: AppSettingsTreeItem;
+    public readonly webJobsNode: WebJobsTreeItem;
+    public readonly folderNode: FolderTreeItem;
+    public readonly logFolderNode: FolderTreeItem;
+    public readonly connectionsNode: ConnectionsTreeItem;
 
-    constructor(client: SiteClient) {
-        super(client);
-        this.folderNode = new FolderTreeItem(this.client, 'Files', "/site/wwwroot");
-        this.logFolderNode = new FolderTreeItem(this.client, 'Log Files', '/LogFiles', 'logFolder');
-        this.webJobsNode = new WebJobsTreeItem(this.client);
-        this.appSettingsNode = new AppSettingsTreeItem(this.client);
-        this.connectionsNode = new ConnectionsTreeItem(this.client);
+    constructor(parent: AzureParentTreeItem, client: SiteClient) {
+        super(parent, client);
+        this.folderNode = new FolderTreeItem(this, 'Files', "/site/wwwroot");
+        this.logFolderNode = new FolderTreeItem(this, 'Log Files', '/LogFiles', 'logFolder');
+        this.webJobsNode = new WebJobsTreeItem(this);
+        this.appSettingsNode = new AppSettingsTreeItem(this);
+        this.connectionsNode = new ConnectionsTreeItem(this);
     }
 
     public get iconPath(): { light: string, dark: string } {
@@ -46,13 +46,12 @@ export class WebAppTreeItem extends SiteTreeItem {
         };
     }
 
-    public async loadMoreChildren(_parentNode: IAzureNode): Promise<IAzureTreeItem[]> {
-        const appServicePlan: AppServicePlan = await this.client.getAppServicePlan();
+    public async loadMoreChildrenImpl(_clearCache: boolean): Promise<AzureTreeItem<ISiteTreeRoot>[]> {
+        const asp: AppServicePlan | undefined = await this.root.client.getAppServicePlan();
+        const tier: string | undefined = asp && asp.sku && asp.sku.tier;
         // tslint:disable-next-line:no-non-null-assertion
-        const tier: string = String(appServicePlan.sku!.tier);
-        // tslint:disable-next-line:no-non-null-assertion
-        this.deploymentSlotsNode = /^(basic|free|shared)$/i.test(tier) ? new DeploymentSlotsNATreeItem(tier, appServicePlan.id!) : new DeploymentSlotsTreeItem(this.client);
-        const nodes = [this.deploymentSlotsNode, this.folderNode, this.logFolderNode, this.webJobsNode, this.appSettingsNode];
+        this.deploymentSlotsNode = tier && /^(basic|free|shared)$/i.test(tier) ? new DeploymentSlotsNATreeItem(this, tier, asp!.id!) : new DeploymentSlotsTreeItem(this);
+        const nodes: AzureTreeItem<ISiteTreeRoot>[] = [this.deploymentSlotsNode, this.folderNode, this.logFolderNode, this.webJobsNode, this.appSettingsNode];
         const workspaceConfig = vscode.workspace.getConfiguration(constants.extensionPrefix);
         if (workspaceConfig.get(constants.configurationSettings.enableConnectionsNode)) {
             nodes.push(this.connectionsNode);
@@ -60,7 +59,7 @@ export class WebAppTreeItem extends SiteTreeItem {
         return nodes;
     }
 
-    public pickTreeItem(expectedContextValue: string): IAzureTreeItem | undefined {
+    public pickTreeItemImpl(expectedContextValue: string): AzureTreeItem<ISiteTreeRoot> | undefined {
         switch (expectedContextValue) {
             case DeploymentSlotsTreeItem.contextValue:
             case DeploymentSlotTreeItem.contextValue:
@@ -77,18 +76,17 @@ export class WebAppTreeItem extends SiteTreeItem {
         }
     }
 
-    public openCdInPortal(node: IAzureNode): void {
-        node.openInPortal(`${this.client.id}/vstscd`);
+    public openCdInPortal(): void {
+        this.openInPortal(`${this.root.client.id}/vstscd`);
     }
 
-    public async generateDeploymentScript(node: IAzureNode): Promise<void> {
-        const resourceClient = new ResourceManagementClient(node.credentials, node.subscriptionId, node.environment.resourceManagerEndpointUrl);
-        addExtensionUserAgent(resourceClient);
+    public async generateDeploymentScript(): Promise<void> {
+        const resourceClient: ResourceManagementClient = createAzureClient(this.root, ResourceManagementClient);
         const tasks = Promise.all([
-            resourceClient.resourceGroups.get(this.client.resourceGroup),
-            this.client.getAppServicePlan(),
-            this.client.getSiteConfig(),
-            this.client.listApplicationSettings()
+            resourceClient.resourceGroups.get(this.root.client.resourceGroup),
+            this.root.client.getAppServicePlan(),
+            this.root.client.getSiteConfig(),
+            this.root.client.listApplicationSettings()
         ]);
 
         const taskResults = await tasks;
@@ -130,12 +128,12 @@ export class WebAppTreeItem extends SiteTreeItem {
         }
 
         // tslint:disable:no-non-null-assertion
-        script = script.replace('%SUBSCRIPTION_NAME%', node.subscriptionDisplayName)
+        script = script.replace('%SUBSCRIPTION_NAME%', this.root.subscriptionDisplayName)
             .replace('%RG_NAME%', rg.name!)
             .replace('%LOCATION%', rg.location)
-            .replace('%PLAN_NAME%', plan.name!)
-            .replace('%PLAN_SKU%', plan.sku!.name!)
-            .replace('%SITE_NAME%', this.client.siteName);
+            .replace('%PLAN_NAME%', plan!.name!)
+            .replace('%PLAN_SKU%', plan!.sku!.name!)
+            .replace('%SITE_NAME%', this.root.client.siteName);
         // tslint:enable:no-non-null-assertion
 
         const doc = await vscode.workspace.openTextDocument({ language: 'shellscript', content: script });

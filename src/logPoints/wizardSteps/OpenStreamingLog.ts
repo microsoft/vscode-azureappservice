@@ -32,7 +32,7 @@ export class OpenStreamingLog extends WizardStep {
         };
 
         // Open streaming log
-        const logStream: ILogStream = await startStreamingLogs(siteTreeItem.client, verifyLoggingEnabled, siteTreeItem.logStreamLabel);
-        this._wizard.logpointsManager.onStreamingLogOutputChannelCreated(siteTreeItem.client, logStream.outputChannel);
+        const logStream: ILogStream = await startStreamingLogs(siteTreeItem.root.client, verifyLoggingEnabled, siteTreeItem.logStreamLabel);
+        this._wizard.logpointsManager.onStreamingLogOutputChannelCreated(siteTreeItem.root.client, logStream.outputChannel);
     }
 }

@@ -7,17 +7,17 @@ import { SiteConfigResource, User } from 'azure-arm-website/lib/models';
 import * as portfinder from 'portfinder';
 import * as vscode from 'vscode';
 import { SiteClient, TunnelProxy } from 'vscode-azureappservice';
-import { callWithTelemetryAndErrorHandling, IActionContext, IAzureNode } from 'vscode-azureextensionui';
+import { callWithTelemetryAndErrorHandling, IActionContext } from 'vscode-azureextensionui';
 import { SiteTreeItem } from '../../explorer/SiteTreeItem';
 import { WebAppTreeItem } from '../../explorer/WebAppTreeItem';
 import { ext } from '../../extensionVariables';
 import * as remoteDebug from './remoteDebugCommon';
 
-export async function startRemoteDebug(node?: IAzureNode<SiteTreeItem>): Promise<void> {
+export async function startRemoteDebug(node?: SiteTreeItem): Promise<void> {
     if (!node) {
-        node = <IAzureNode<SiteTreeItem>>await ext.tree.showNodePicker(WebAppTreeItem.contextValue);
+        node = <SiteTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue);
     }
-    const siteClient: SiteClient = node.treeItem.client;
+    const siteClient: SiteClient = node.root.client;
 
     await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async (progress: vscode.Progress<{}>): Promise<void> => {
         remoteDebug.reportMessage('Fetching site configuration...', progress);

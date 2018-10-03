@@ -4,16 +4,17 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { join } from 'path';
-import { SiteClient } from 'vscode-azureappservice';
-import { IAzureTreeItem } from 'vscode-azureextensionui';
+import { ISiteTreeRoot } from 'vscode-azureappservice';
+import { AzureParentTreeItem, AzureTreeItem } from 'vscode-azureextensionui';
 
-export class FileTreeItem implements IAzureTreeItem {
+export class FileTreeItem extends AzureTreeItem<ISiteTreeRoot> {
     public static contextValue: string = 'file';
     public readonly contextValue: string = FileTreeItem.contextValue;
     public readonly commandId: string = 'appService.showFile';
     public etag: string | undefined; // cannot create etag on creation due to Kudu API calls
 
-    constructor(readonly client: SiteClient, readonly label: string, readonly path: string) {
+    constructor(parent: AzureParentTreeItem, readonly label: string, readonly path: string) {
+        super(parent);
     }
 
     public get iconPath(): { light: string, dark: string } {
