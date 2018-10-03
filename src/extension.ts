@@ -329,7 +329,7 @@ export function activate(context: vscode.ExtensionContext): void {
             // tslint:disable-next-line:no-non-null-assertion
             const parentNode = node.parent!;
             await parentNode.createChild();
-            parentNode.refresh();
+            await parentNode.refresh();
         } else {
             await node.createChild();
         }
@@ -337,8 +337,8 @@ export function activate(context: vscode.ExtensionContext): void {
     registerCommand('appService.RemoveCosmosDBConnection', async (node: IAzureNode<CosmosDBDatabase>) => {
         // tslint:disable-next-line:no-non-null-assertion
         const parentNode = <IAzureParentNode<CosmosDBTreeItem>>node.parent!;
-        parentNode.treeItem.deleteTreeItem(node);
-        parentNode.refresh();
+        await parentNode.treeItem.deleteTreeItem(node);
+        await parentNode.refresh();
     });
 }
 

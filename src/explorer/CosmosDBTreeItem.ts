@@ -33,7 +33,7 @@ export class CosmosDBTreeItem implements IAzureParentTreeItem {
         }
         const workspaceConfig = vscode.workspace.getConfiguration(constants.extensionPrefix);
         const connections = workspaceConfig.get<IConnections[]>(constants.configurationSettings.connections, []);
-        // tslint:disable-next-line:strict-boole an-expressions
+        // tslint:disable-next-line:strict-boolean-expressions
         const unit = connections.find((x: IConnections) => x.webAppId === this.client.id) || <IConnections>{};
         if (!unit.cosmosDB || unit.cosmosDB.length === 0) {
             return [<IAzureTreeItem>{
