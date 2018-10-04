@@ -56,7 +56,8 @@ export class CosmosDBTreeItem implements IAzureParentTreeItem {
             connections.push(connectionUnit);
             connectionUnit.webAppId = node.treeItem.client.id;
             connectionUnit.cosmosDB = connectionToAdd;
-            workspaceConfig.update(constants.configurationSettings.connections, connections); showCreatingNode("");
+            workspaceConfig.update(constants.configurationSettings.connections, connections);
+            showCreatingNode("");
             return new CosmosDBDatabase(this.client, connectionToAdd);
         }
         throw new Error("Impossible to have more than one connection!");
