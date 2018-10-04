@@ -5,13 +5,12 @@
 
 import { Site } from 'azure-arm-website/lib/models';
 import * as vscode from 'vscode';
-import { UserCancelledError } from 'vscode-azureextensionui';
+import { UserCancelledError, AzureTreeItem } from 'vscode-azureextensionui';
 import { DeploymentSlotsTreeItem } from '../../explorer/DeploymentSlotsTreeItem';
 import { SiteTreeItem } from '../../explorer/SiteTreeItem';
 import * as util from '../../util';
 import { WizardStep } from '../../wizard';
 import { LogPointsSessionWizard } from '../LogPointsSessionWizard';
-import { WebAppTreeItem } from '../../explorer/WebAppTreeItem';
 
 export class PromptSlotSelection extends WizardStep {
     constructor(private _wizard: LogPointsSessionWizard, readonly site: Site) {
@@ -62,11 +61,25 @@ export class PromptSlotSelection extends WizardStep {
      * Returns all the deployment slots and the production slot.
      */
     private async getDeploymentSlotsTreeItems(): Promise<SiteTreeItem[]> {
-        let result: SiteTreeItem[] = [this._wizard.uiTreeItem];
-        if (this._wizard.uiTreeItem instanceof WebAppTreeItem && this._wizard.uiTreeItem.deploymentSlotsNode instanceof DeploymentSlotsTreeItem) {
-            result = result.concat(<SiteTreeItem[]>await this._wizard.uiTreeItem.deploymentSlotsNode.getCachedChildren());
+        const result = await this._wizard.uiTreeItem.getCachedChildren();
+
+        let deploymentSlotsCategoryNode: DeploymentSlotsTreeItem | undefined;
+        if (!result || result.length <= 0) {
+            throw new Error('Cannot find any tree node under the App Service node.');
         }
 
-        return result;
+        result.forEach((treeNode: AzureTreeItem) => {
+            if (treeNode instanceof DeploymentSlotsTreeItem) {
+                deploymentSlotsCategoryNode = treeNode;
+            }
+        });
+
+        if (!deploymentSlotsCategoryNode) {
+            throw new Error('Cannot find the Deployment Slots tree node');
+        }
+
+        const deploymentSlotTreeNodes = <SiteTreeItem[]>await deploymentSlotsCategoryNode.getCachedChildren();
+
+        return [this._wizard.uiTreeItem].concat(deploymentSlotTreeNodes);
     }
 }
