@@ -609,14 +609,9 @@
                     "group": "1@1"
                 },
                 {
-                    "command": "appService.AddCosmosDBConnection",
-                    "when": "view == azureAppService && viewItem == сosmosDBConnections",
-                    "group": "1@1"
-                },
-                {
                     "command": "appService.Refresh",
                     "when": "view == azureAppService && viewItem == сosmosDBConnections",
-                    "group": "2@2"
+                    "group": "1@1"
                 },
                 {
                     "command": "appService.revealConnection",
@@ -719,13 +714,14 @@
                 },
                 "appService.connections": {
                     "type": "array",
-                    "description": "Array of web apps with list of all theirs connections",
+                    "description": "Array of web apps with its connection",
                     "required": [
-                        "webAppId"
+                        "webAppId",
+                        "cosmosDB"
                     ],
                     "items": {
                         "type": "object",
-                        "description": "All connections of specific web app.",
+                        "description": "Connection of specific web app.",
                         "additionalProperties": false,
                         "properties": {
                             "webAppId": {
@@ -733,12 +729,8 @@
                                 "description": "Web app id."
                             },
                             "cosmosDB": {
-                                "type": "array",
-                                "description": "Array of Cosmos DB database ids.",
-                                "items": {
-                                    "type": "string",
-                                    "description": "Connection id"
-                                }
+                                "type": "string",
+                                "description": "Cosmos DB database id."
                             }
                         }
                     }

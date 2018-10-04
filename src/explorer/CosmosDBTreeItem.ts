@@ -9,11 +9,6 @@ import { IAzureNode, IAzureParentNode, IAzureParentTreeItem, IAzureTreeItem, Use
 import * as constants from '../constants';
 import { CosmosDBDatabase } from './CosmosDBDatabase';
 
-interface IConnections {
-    webAppId: string;
-    cosmosDB?: string[];
-}
-
 export class CosmosDBTreeItem implements IAzureParentTreeItem {
     public static contextValue: string = 'сosmosDBConnections';
     public readonly contextValue: string = CosmosDBTreeItem.contextValue;
@@ -32,10 +27,10 @@ export class CosmosDBTreeItem implements IAzureParentTreeItem {
             }];
         }
         const workspaceConfig = vscode.workspace.getConfiguration(constants.extensionPrefix);
-        const connections = workspaceConfig.get<IConnections[]>(constants.configurationSettings.connections, []);
+        const connections = workspaceConfig.get<IConnection[]>(constants.configurationSettings.connections, []);
         // tslint:disable-next-line:strict-boolean-expressions
-        const unit = connections.find((x: IConnections) => x.webAppId === this.client.id) || <IConnections>{};
-        if (!unit.cosmosDB || unit.cosmosDB.length === 0) {
+        const unit = connections.find((x: IConnection) => x.webAppId === this.client.id) || <IConnection>{};
+        if (!unit.cosmosDB) {
             return [<IAzureTreeItem>{
                 client: this.client,
                 commandId: 'appService.AddCosmosDBConnection',
@@ -44,9 +39,7 @@ export class CosmosDBTreeItem implements IAzureParentTreeItem {
                 parent: this
             }];
         }
-        return unit.cosmosDB.map(connectionId => {
-            return new CosmosDBDatabase(this.client, connectionId);
-        });
+        return [new CosmosDBDatabase(this.client, unit.cosmosDB)];
     }
 
     public async createChild(node: IAzureParentNode<CosmosDBTreeItem>, showCreatingNode: (label: string) => void): Promise<IAzureTreeItem> {
@@ -56,38 +49,17 @@ export class CosmosDBTreeItem implements IAzureParentTreeItem {
         }
 
         const workspaceConfig = vscode.workspace.getConfiguration(constants.extensionPrefix);
-        const allConnections = workspaceConfig.get<IConnections[]>(constants.configurationSettings.connections, []);
-        let connectionsUnit = allConnections.find((x: IConnections) => x.webAppId === node.treeItem.client.id);
-        if (!connectionsUnit) {
-            connectionsUnit = <IConnections>{};
-            allConnections.push(connectionsUnit);
-            connectionsUnit.webAppId = node.treeItem.client.id;
+        const connections = workspaceConfig.get<IConnection[]>(constants.configurationSettings.connections, []);
+        let connectionUnit = connections.find((x: IConnection) => x.webAppId === node.treeItem.client.id);
+        if (!connectionUnit) {
+            connectionUnit = <IConnection>{};
+            connections.push(connectionUnit);
+            connectionUnit.webAppId = node.treeItem.client.id;
+            connectionUnit.cosmosDB = connectionToAdd;
+            workspaceConfig.update(constants.configurationSettings.connections, connections); showCreatingNode("");
+            return new CosmosDBDatabase(this.client, connectionToAdd);
         }
-
-        // tslint:disable-next-line:strict-boolean-expressions
-        connectionsUnit.cosmosDB = connectionsUnit.cosmosDB || [];
-        if (!connectionsUnit.cosmosDB.find((x: string) => x === connectionToAdd)) {
-            connectionsUnit.cosmosDB.push(connectionToAdd);
-            workspaceConfig.update(constants.configurationSettings.connections, allConnections);
-        }
-
-        showCreatingNode("");
-        return new CosmosDBDatabase(this.client, connectionToAdd);
-    }
-
-    public async deleteTreeItem(_node: IAzureNode<CosmosDBDatabase>): Promise<void> {
-        const connectionToDelete = _node.treeItem.connectionId;
-        const workspaceConfig = vscode.workspace.getConfiguration(constants.extensionPrefix);
-        const allConnections = workspaceConfig.get<IConnections[]>(constants.configurationSettings.connections, []);
-
-        const connectionsUnit = allConnections.find((x: IConnections) => x.webAppId === _node.treeItem.client.id);
-        if (connectionsUnit && connectionsUnit.cosmosDB) {
-            const indexToDelete = connectionsUnit.cosmosDB.findIndex((x: string) => x === connectionToDelete);
-            if (indexToDelete > -1) {
-                connectionsUnit.cosmosDB.splice(indexToDelete, 1);
-                workspaceConfig.update(constants.configurationSettings.connections, allConnections);
-            }
-        }
+        throw new Error("Impossible to have more than one connection!");
     }
 
     public hasMoreChildren(): boolean {

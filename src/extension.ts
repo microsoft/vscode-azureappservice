@@ -19,7 +19,6 @@ import { startRemoteDebug } from './commands/remoteDebug/startRemoteDebug';
 import { startStreamingLogs } from './commands/startStreamingLogs';
 import { swapSlots } from './commands/swapSlots';
 import { CosmosDBDatabase } from './explorer/CosmosDBDatabase';
-import { CosmosDBTreeItem } from './explorer/CosmosDBTreeItem';
 import { DeploymentSlotsNATreeItem, DeploymentSlotsTreeItem, ScaleUpTreeItem } from './explorer/DeploymentSlotsTreeItem';
 import { DeploymentSlotTreeItem } from './explorer/DeploymentSlotTreeItem';
 import { FileEditor } from './explorer/editors/FileEditor';
@@ -324,21 +323,15 @@ export function activate(context: vscode.ExtensionContext): void {
             opn('https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-cosmosdb');
         }
     });
-    registerCommand('appService.AddCosmosDBConnection', async (node: IAzureParentNode<CosmosDBTreeItem>) => {
-        if (node.treeItem.contextValue === 'AddCosmosDBConnection') {
-            // tslint:disable-next-line:no-non-null-assertion
-            const parentNode = node.parent!;
-            await parentNode.createChild();
-            await tree.refresh(parentNode);
-        } else {
-            await node.createChild();
-        }
+    registerCommand('appService.AddCosmosDBConnection', async (node: IAzureParentNode) => {
+        // tslint:disable-next-line:no-non-null-assertion
+        const parentNode = node.parent!;
+        await parentNode.createChild();
+        await tree.refresh(parentNode);
     });
     registerCommand('appService.RemoveCosmosDBConnection', async (node: IAzureNode<CosmosDBDatabase>) => {
-        // tslint:disable-next-line:no-non-null-assertion
-        const parentNode = <IAzureParentNode<CosmosDBTreeItem>>node.parent!;
-        await parentNode.treeItem.deleteTreeItem(node);
-        await tree.refresh(parentNode);
+        await node.treeItem.deleteTreeItem();
+        await tree.refresh(node.parent);
     });
 }
 
