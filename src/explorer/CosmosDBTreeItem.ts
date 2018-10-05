@@ -58,6 +58,8 @@ export class CosmosDBTreeItem implements IAzureParentTreeItem {
             connectionUnit.cosmosDB = connectionToAdd;
             workspaceConfig.update(constants.configurationSettings.connections, connections);
             showCreatingNode("");
+            const appSettingToAdd = <string>await vscode.commands.executeCommand('cosmosDB.api.getConnectionString', connectionToAdd);
+            await vscode.commands.executeCommand('appService.UpdateCosmosDBMongoAppSetting', connectionUnit.webAppId, appSettingToAdd);
             return new CosmosDBDatabase(this.client, connectionToAdd);
         }
         throw new Error("Impossible to have more than one connection!");
