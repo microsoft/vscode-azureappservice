@@ -333,12 +333,17 @@ export function activate(context: vscode.ExtensionContext): void {
         await node.treeItem.deleteTreeItem();
         await tree.refresh(node.parent);
     });
-    registerCommand('appService.UpdateCosmosDBMongoAppSetting', async (webAppId: string, value: string) => {
-        const res = webAppId + String("/application");
-        const appset = <IAzureNode<AppSettingsTreeItem>>await tree.findNode(res);
-        appset.treeItem.editSettingItem('MONGO_URL', 'MONGO_URL', value);
+    registerCommand('appService.UpdateCosmosDBMongoAppSetting', async (webAppId: string, mongoConnectionString: string) => {
+        const appSettId = webAppId + String('/application');
+        const appSett = <IAzureNode<AppSettingsTreeItem> | undefined>await tree.findNode(appSettId);
+        if (appSett === undefined) {
+            throw new Error('Couldn\'t find the settings tree item in Cosmos DB with provided Id.');
+        }
+        const targetSett = 'MONGO_URL';
+        // Next line works correctly with azuretools 0.22.5 and above.
+        await appSett.treeItem.editSettingItem(targetSett, targetSett, mongoConnectionString);
         // tslint:disable-next-line:no-non-null-assertion
-        await appset.parent!.refresh();
+        await appSett.parent!.refresh();
     });
 }
 
