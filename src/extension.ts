@@ -336,8 +336,8 @@ export function activate(context: vscode.ExtensionContext): void {
     registerCommand('appService.UpdateCosmosDBMongoAppSetting', async (webAppId: string, mongoConnectionString: string) => {
         const appSettId = webAppId + String('/application');
         const appSett = <IAzureNode<AppSettingsTreeItem> | undefined>await tree.findNode(appSettId);
-        if (appSett === undefined) {
-            throw new Error('Couldn\'t find the settings tree item in Cosmos DB with provided Id.');
+        if (!appSett) {
+            throw new Error(`Couldn't find the application setting in Cosmos DB with provided Id: ${appSettId}`);
         }
         const targetSett = 'MONGO_URL';
         // Next line works correctly with azuretools 0.22.5 and above.
