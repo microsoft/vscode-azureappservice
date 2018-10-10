@@ -47,9 +47,9 @@ export async function swapSlots(sourceSlotNode: DeploymentSlotTreeItem | undefin
     const targetSlotLabel: string = targetSlot ? targetSlot.root.client.fullName! : `${sourceSlotClient.siteName}-${productionSlotLabel}`;
     const swappingSlots: string = `Swapping "${targetSlotLabel}" with "${sourceSlotClient.fullName}"...`;
     const successfullySwapped: string = `Successfully swapped "${targetSlotLabel}" with "${sourceSlotClient.fullName}".`;
-    ext.outputChannel.appendLine(swappingSlots);
     const client: WebSiteManagementClient = createAzureClient(sourceSlotNode.root, WebSiteManagementClient);
-    await window.withProgress({ location: ProgressLocation.Notification, title: swappingSlots }, async () => {
+    await window.withProgress({ location: ProgressLocation.Notification, title: swappingSlots }, async (progress) => {
+        ext.outputChannel.appendLine(swappingSlots);
         // if targetSlot was assigned undefined, the user selected 'production'
         if (!targetSlot) {
             // tslint:disable-next-line:no-non-null-assertion
@@ -58,7 +58,7 @@ export async function swapSlots(sourceSlotNode: DeploymentSlotTreeItem | undefin
             // tslint:disable-next-line:no-non-null-assertion
             await client.webApps.swapSlotSlot(sourceSlotClient.resourceGroup, sourceSlotClient.siteName, { targetSlot: targetSlot.root.client.slotName!, preserveVnet: true }, sourceSlotClient.slotName!);
         }
-        window.showInformationMessage(successfullySwapped);
+        progress.report({ message: successfullySwapped });
         ext.outputChannel.appendLine(successfullySwapped);
     });
 

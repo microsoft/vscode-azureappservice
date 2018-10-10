@@ -12,12 +12,12 @@ export async function enableFileLogging(node: SiteTreeItem): Promise<void> {
     await ext.ui.showWarningMessage(`Do you want to enable file logging for ${node.root.client.fullName}? The web app will be restarted.`, { modal: true }, DialogResponses.yes);
     const enablingLogging: string = `Enabling Logging for "${node.root.client.fullName}"...`;
     const enabledLogging: string = `Enabled Logging for "${node.root.client.fullName}".`;
-    await window.withProgress({ location: ProgressLocation.Notification, title: enablingLogging }, async (): Promise<void> => {
+    await window.withProgress({ location: ProgressLocation.Notification, title: enablingLogging }, async (progress): Promise<void> => {
         ext.outputChannel.appendLine(enablingLogging);
         // tslint:disable-next-line:no-non-null-assertion
         await node.enableHttpLogs();
         await commands.executeCommand('appService.Restart', node);
-        window.showInformationMessage(enabledLogging);
+        progress.report({ message: enabledLogging });
         ext.outputChannel.appendLine(enabledLogging);
     });
 }
