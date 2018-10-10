@@ -6,24 +6,18 @@
 import { WebSiteManagementClient } from 'azure-arm-website';
 import { NameValuePair, ResourceNameAvailability, Site, WebAppCollection } from 'azure-arm-website/lib/models';
 import * as path from 'path';
-import { SiteClient } from 'vscode-azureappservice';
-import { addExtensionUserAgent, IAzureNode, IAzureParentNode, IAzureParentTreeItem, IAzureQuickPickItem, IAzureTreeItem, UserCancelledError } from 'vscode-azureextensionui';
+import { ISiteTreeRoot, SiteClient } from 'vscode-azureappservice';
+import { AzureParentTreeItem, AzureTreeItem, createAzureClient, IAzureQuickPickItem, UserCancelledError } from 'vscode-azureextensionui';
 import { ext } from '../extensionVariables';
 import { DeploymentSlotTreeItem } from './DeploymentSlotTreeItem';
-import { SiteTreeItem } from './SiteTreeItem';
 
-export class DeploymentSlotsTreeItem implements IAzureParentTreeItem {
+export class DeploymentSlotsTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     public static contextValue: string = 'deploymentSlots';
     public readonly contextValue: string = DeploymentSlotsTreeItem.contextValue;
     public readonly label: string = 'Deployment Slots';
     public readonly childTypeLabel: string = 'Deployment Slot';
-    public readonly client: SiteClient;
 
     private _nextLink: string | undefined;
-
-    constructor(client: SiteClient) {
-        this.client = client;
-    }
 
     public get iconPath(): { light: string, dark: string } {
         return {
@@ -33,32 +27,30 @@ export class DeploymentSlotsTreeItem implements IAzureParentTreeItem {
     }
 
     public get id(): string {
-        return `${this.client.id}/slots`;
+        return `${this.root.client.id}/slots`;
     }
 
-    public hasMoreChildren(): boolean {
+    public hasMoreChildrenImpl(): boolean {
         return this._nextLink !== undefined;
     }
 
-    public async loadMoreChildren(node: IAzureNode, clearCache: boolean): Promise<IAzureTreeItem[]> {
+    public async loadMoreChildrenImpl(clearCache: boolean): Promise<AzureTreeItem<ISiteTreeRoot>[]> {
         if (clearCache) {
             this._nextLink = undefined;
         }
 
-        const client: WebSiteManagementClient = new WebSiteManagementClient(node.credentials, node.subscriptionId, node.environment.resourceManagerEndpointUrl);
-        addExtensionUserAgent(client);
+        const client: WebSiteManagementClient = createAzureClient(this.root, WebSiteManagementClient);
         const webAppCollection: WebAppCollection = this._nextLink === undefined ?
-            await client.webApps.listSlots(this.client.resourceGroup, this.client.siteName) :
+            await client.webApps.listSlots(this.root.client.resourceGroup, this.root.client.siteName) :
             await client.webApps.listSlotsNext(this._nextLink);
 
         this._nextLink = webAppCollection.nextLink;
 
-        return webAppCollection.map((s: Site) => new DeploymentSlotTreeItem(new SiteClient(s, node)));
+        return webAppCollection.map((s: Site) => new DeploymentSlotTreeItem(this, new SiteClient(s, this.root)));
     }
 
-    public async createChild(node: IAzureParentNode<DeploymentSlotsTreeItem>, showCreatingNode: (label: string) => void): Promise<IAzureTreeItem> {
-        const client: WebSiteManagementClient = new WebSiteManagementClient(node.credentials, node.subscriptionId, node.environment.resourceManagerEndpointUrl);
-        addExtensionUserAgent(client);
+    public async createChildImpl(showCreatingTreeItem: (label: string) => void): Promise<AzureTreeItem<ISiteTreeRoot>> {
+        const client: WebSiteManagementClient = createAzureClient(this.root, WebSiteManagementClient);
         let slotName: string = await this.promptForSlotName(client);
         if (!slotName) {
             throw new UserCancelledError();
@@ -67,26 +59,26 @@ export class DeploymentSlotsTreeItem implements IAzureParentTreeItem {
         slotName = slotName.trim();
         const newDeploymentSlot: Site = {
             name: slotName,
-            kind: this.client.kind,
-            location: this.client.location,
-            serverFarmId: this.client.serverFarmId,
+            kind: this.root.client.kind,
+            location: this.root.client.location,
+            serverFarmId: this.root.client.serverFarmId,
             siteConfig: {
                 appSettings: [] // neccesary to have clean appSettings; by default it copies the production's slot
             }
         };
 
-        const configurationSource: SiteClient | undefined = await this.chooseConfigurationSource(node);
+        const configurationSource: SiteClient | undefined = await this.chooseConfigurationSource();
         if (!!configurationSource) {
             const appSettings = await this.parseAppSettings(configurationSource);
             // tslint:disable-next-line:no-non-null-assertion
             newDeploymentSlot.siteConfig!.appSettings = appSettings;
         }
 
-        showCreatingNode(slotName);
+        showCreatingTreeItem(slotName);
 
         // if user has more slots than the service plan allows, Azure will respond with an error
-        const newSite: Site = await client.webApps.createOrUpdateSlot(this.client.resourceGroup, this.client.siteName, newDeploymentSlot, slotName);
-        return new DeploymentSlotTreeItem(new SiteClient(newSite, node));
+        const newSite: Site = await client.webApps.createOrUpdateSlot(this.root.client.resourceGroup, this.root.client.siteName, newDeploymentSlot, slotName);
+        return new DeploymentSlotTreeItem(this, new SiteClient(newSite, this.root));
     }
 
     private async promptForSlotName(client: WebSiteManagementClient): Promise<string> {
@@ -100,7 +92,7 @@ export class DeploymentSlotsTreeItem implements IAzureParentTreeItem {
                     return `The slot name "${value}" is not available.`;
                 }
 
-                const nameAvailability: ResourceNameAvailability = await client.checkNameAvailability(`${this.client.siteName}-${value}`, 'Slot');
+                const nameAvailability: ResourceNameAvailability = await client.checkNameAvailability(`${this.root.client.siteName}-${value}`, 'Slot');
                 if (!nameAvailability.nameAvailable) {
                     return nameAvailability.message;
                 }
@@ -110,16 +102,15 @@ export class DeploymentSlotsTreeItem implements IAzureParentTreeItem {
         });
     }
 
-    private async chooseConfigurationSource(node: IAzureParentNode<DeploymentSlotsTreeItem>): Promise<SiteClient | undefined> {
-        const deploymentSlots: IAzureNode[] = await node.getCachedChildren();
+    private async chooseConfigurationSource(): Promise<SiteClient | undefined> {
+        const deploymentSlots: DeploymentSlotTreeItem[] = <DeploymentSlotTreeItem[]>await this.getCachedChildren();
         const configurationSources: IAzureQuickPickItem<SiteClient | undefined>[] = [{
             label: "Don't clone configuration from an existing slot",
             description: '',
             data: undefined
         }];
 
-        // tslint:disable-next-line:no-non-null-assertion
-        const prodSiteClient: SiteClient = (<SiteTreeItem>node.parent!.treeItem).client;
+        const prodSiteClient: SiteClient = this.root.client;
         // add the production slot itself
         configurationSources.push({
             // tslint:disable-next-line:no-non-null-assertion
@@ -130,7 +121,7 @@ export class DeploymentSlotsTreeItem implements IAzureParentTreeItem {
 
         // add the web app's current deployment slots
         for (const slot of deploymentSlots) {
-            const slotSiteClient: SiteClient = (<SiteTreeItem>slot.treeItem).client;
+            const slotSiteClient: SiteClient = slot.root.client;
             configurationSources.push({
                 label: slotSiteClient.fullName,
                 description: '',
@@ -156,19 +147,20 @@ export class DeploymentSlotsTreeItem implements IAzureParentTreeItem {
 
 }
 
-export class ScaleUpTreeItem implements IAzureTreeItem {
+export class ScaleUpTreeItem extends AzureTreeItem<ISiteTreeRoot> {
     public readonly label: string = "Scale up App Service Plan...";
     public readonly contextValue: string = "ScaleUp";
     public readonly commandId: string = 'appService.ScaleUp';
 
     public readonly scaleUpId: string;
 
-    public constructor(scaleUpId: string) {
+    public constructor(parent: AzureParentTreeItem, scaleUpId: string) {
+        super(parent);
         this.scaleUpId = scaleUpId;
     }
 }
 
-export class DeploymentSlotsNATreeItem implements IAzureParentTreeItem {
+export class DeploymentSlotsNATreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     public static contextValue: string = "deploymentNASlots";
     public readonly label: string;
     public readonly contextValue: string = DeploymentSlotsNATreeItem.contextValue;
@@ -176,7 +168,8 @@ export class DeploymentSlotsNATreeItem implements IAzureParentTreeItem {
 
     public readonly scaleUpId: string;
 
-    public constructor(tier: string, planId: string) {
+    public constructor(parent: AzureParentTreeItem, tier: string, planId: string) {
+        super(parent);
         this.label = `Deployment Slots (N/A for ${tier} Service Plan)`;
         this.scaleUpId = `${planId}/pricingTier`;
     }
@@ -188,11 +181,11 @@ export class DeploymentSlotsNATreeItem implements IAzureParentTreeItem {
         };
     }
 
-    public hasMoreChildren(): boolean {
+    public hasMoreChildrenImpl(): boolean {
         return false;
     }
 
-    public async loadMoreChildren(_node: IAzureNode): Promise<IAzureTreeItem[]> {
-        return [new ScaleUpTreeItem(this.scaleUpId)];
+    public async loadMoreChildrenImpl(_clearCache: boolean): Promise<AzureTreeItem<ISiteTreeRoot>[]> {
+        return [new ScaleUpTreeItem(this, this.scaleUpId)];
     }
 }

@@ -6,17 +6,16 @@
 import { SiteConfigResource } from 'azure-arm-website/lib/models';
 import * as vscode from 'vscode';
 import { SiteClient } from 'vscode-azureappservice';
-import { IAzureNode } from 'vscode-azureextensionui';
 import { SiteTreeItem } from '../../explorer/SiteTreeItem';
 import { WebAppTreeItem } from '../../explorer/WebAppTreeItem';
 import { ext } from '../../extensionVariables';
 import * as remoteDebug from './remoteDebugCommon';
 
-export async function disableRemoteDebug(node?: IAzureNode<SiteTreeItem>): Promise<void> {
+export async function disableRemoteDebug(node?: SiteTreeItem): Promise<void> {
     if (!node) {
-        node = <IAzureNode<SiteTreeItem>>await ext.tree.showNodePicker(WebAppTreeItem.contextValue);
+        node = <SiteTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue);
     }
-    const siteClient: SiteClient = node.treeItem.client;
+    const siteClient: SiteClient = node.root.client;
 
     const confirmMessage: string = 'The app configuration will be updated to disable remote debugging and restarted. Would you like to continue?';
     const noopMessage: string = 'The app is not configured for debugging.';

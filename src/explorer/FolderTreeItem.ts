@@ -5,17 +5,18 @@
 
 import { IncomingMessage } from 'http';
 import * as path from 'path';
-import { getKuduClient, SiteClient } from 'vscode-azureappservice';
-import { IAzureParentTreeItem, IAzureTreeItem } from 'vscode-azureextensionui';
+import { getKuduClient, ISiteTreeRoot } from 'vscode-azureappservice';
+import { AzureParentTreeItem, AzureTreeItem } from 'vscode-azureextensionui';
 import KuduClient from 'vscode-azurekudu';
 import { FileTreeItem } from './FileTreeItem';
 
-export class FolderTreeItem implements IAzureParentTreeItem {
+export class FolderTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     public static contextValue: string = 'folder';
     public readonly contextValue: string;
     public readonly childTypeLabel: string = 'files';
 
-    constructor(readonly client: SiteClient, readonly label: string, readonly folderPath: string, readonly subcontextValue?: string) {
+    constructor(parent: AzureParentTreeItem, readonly label: string, readonly folderPath: string, readonly subcontextValue?: string) {
+        super(parent);
         this.contextValue = subcontextValue ? subcontextValue : FolderTreeItem.contextValue;
     }
 
@@ -26,12 +27,12 @@ export class FolderTreeItem implements IAzureParentTreeItem {
         }; // no icons for subfolders
     }
 
-    public hasMoreChildren(): boolean {
+    public hasMoreChildrenImpl(): boolean {
         return false;
     }
 
-    public async loadMoreChildren(): Promise<IAzureTreeItem[]> {
-        const kuduClient: KuduClient = await getKuduClient(this.client);
+    public async loadMoreChildrenImpl(_clearCache: boolean): Promise<AzureTreeItem<ISiteTreeRoot>[]> {
+        const kuduClient: KuduClient = await getKuduClient(this.root.client);
         const httpResponse: kuduIncomingMessage = <kuduIncomingMessage>(await kuduClient.vfs.getItemWithHttpOperationResponse(this.folderPath)).response;
         // response contains a body with a JSON parseable string
         const fileList: kuduFile[] = <kuduFile[]>JSON.parse(httpResponse.body);
@@ -48,8 +49,8 @@ export class FolderTreeItem implements IAzureParentTreeItem {
                 // truncate the home of the path
                 // the substring starts at file.path.indexOf(home) because the path sometimes includes site/ or D:\
                 // the home.length + 1 is to account for the trailing slash, Linux uses / and Window uses \
-                new FolderTreeItem(this.client, file.name, file.path.substring(file.path.indexOf(home) + home.length + 1), 'subFolder') :
-                new FileTreeItem(this.client, file.name, file.path.substring(file.path.indexOf(home) + home.length + 1));
+                new FolderTreeItem(this, file.name, file.path.substring(file.path.indexOf(home) + home.length + 1), 'subFolder') :
+                new FileTreeItem(this, file.name, file.path.substring(file.path.indexOf(home) + home.length + 1));
         });
     }
 }

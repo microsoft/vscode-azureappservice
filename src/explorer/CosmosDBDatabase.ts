@@ -3,15 +3,16 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { SiteClient } from 'vscode-azureappservice';
-import { IAzureTreeItem } from 'vscode-azureextensionui';
+import { ISiteTreeRoot } from 'vscode-azureappservice';
+import { AzureParentTreeItem, AzureTreeItem } from 'vscode-azureextensionui';
 
-export class CosmosDBDatabase implements IAzureTreeItem {
+export class CosmosDBDatabase extends AzureTreeItem<ISiteTreeRoot> {
     public static contextValue: string = 'cosmosDBDatabase';
     public readonly contextValue: string = CosmosDBDatabase.contextValue;
     public readonly label: string;
 
-    constructor(readonly client: SiteClient, readonly connectionId: string) {
+    constructor(parent: AzureParentTreeItem, readonly connectionId: string) {
+        super(parent);
         this.label = this.getLabel(connectionId);
     }
 

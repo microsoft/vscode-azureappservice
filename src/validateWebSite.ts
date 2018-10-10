@@ -36,16 +36,16 @@ interface ICancellation {
 const cancellations = new Map<string, ICancellation>();
 
 export function cancelWebsiteValidation(siteTreeItem: SiteTreeItem): void {
-    const cancellation = cancellations.get(siteTreeItem.id);
+    const cancellation = cancellations.get(siteTreeItem.fullId);
     if (cancellation) {
-        cancellations.delete(siteTreeItem.id);
+        cancellations.delete(siteTreeItem.fullId);
         cancellation.canceled = true;
     }
 }
 
 export async function validateWebSite(deploymentCorrelationId: string, siteTreeItem: SiteTreeItem): Promise<void> {
     cancelWebsiteValidation(siteTreeItem);
-    const id = siteTreeItem.id;
+    const id = siteTreeItem.fullId;
     const cancellation: ICancellation = { canceled: false };
     cancellations.set(id, cancellation);
 
@@ -58,7 +58,7 @@ export async function validateWebSite(deploymentCorrelationId: string, siteTreeI
 
         let pollingIntervalMs = initialPollingIntervalMs;
         const start = Date.now();
-        const uri = siteTreeItem.client.defaultHostUrl;
+        const uri = siteTreeItem.root.client.defaultHostUrl;
         const options: {} = {
             method: 'GET',
             uri: uri,

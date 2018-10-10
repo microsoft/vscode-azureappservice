@@ -7,40 +7,40 @@ import * as fs from 'fs';
 import { Readable } from 'stream';
 import * as vscode from 'vscode';
 import { getFile, IFileResult, putFile } from 'vscode-azureappservice';
-import { BaseEditor, IAzureNode } from 'vscode-azureextensionui';
+import { BaseEditor } from 'vscode-azureextensionui';
 import { FileTreeItem } from '../FileTreeItem';
 
-export class FileEditor extends BaseEditor<IAzureNode<FileTreeItem>> {
+export class FileEditor extends BaseEditor<FileTreeItem> {
     constructor() {
         super('appService.showSavePrompt');
     }
 
-    public async getSaveConfirmationText(node: IAzureNode<FileTreeItem>): Promise<string> {
-        return `Saving '${node.treeItem.label}' will update the file "${node.treeItem.label}" in "${node.treeItem.client.fullName}".`;
+    public async getSaveConfirmationText(node: FileTreeItem): Promise<string> {
+        return `Saving '${node.label}' will update the file "${node.label}" in "${node.root.client.fullName}".`;
     }
 
-    public async getFilename(node: IAzureNode<FileTreeItem>): Promise<string> {
-        return node.treeItem.label;
+    public async getFilename(node: FileTreeItem): Promise<string> {
+        return node.label;
     }
 
-    public async getData(node: IAzureNode<FileTreeItem>): Promise<string> {
-        const result: IFileResult = await getFile(node.treeItem.client, node.treeItem.path);
-        node.treeItem.etag = result.etag;
+    public async getData(node: FileTreeItem): Promise<string> {
+        const result: IFileResult = await getFile(node.root.client, node.path);
+        node.etag = result.etag;
         return result.data;
     }
 
-    public async getSize(_node: IAzureNode<FileTreeItem>): Promise<number> {
+    public async getSize(_node: FileTreeItem): Promise<number> {
         // this is not implemented for Azure App Services
         return 0;
     }
 
-    public async updateData(node: IAzureNode<FileTreeItem>): Promise<string> {
+    public async updateData(node: FileTreeItem): Promise<string> {
         if (!vscode.window.activeTextEditor) {
             throw new Error('Cannot update file after it has been closed.');
         }
         const localFile: Readable = fs.createReadStream(vscode.window.activeTextEditor.document.uri.fsPath);
         // tslint:disable-next-line:no-non-null-assertion
-        node.treeItem.etag = await putFile(node.treeItem.client, localFile, node.treeItem.path, node.treeItem.etag!);
+        node.etag = await putFile(node.root.client, localFile, node.path, node.etag!);
         return await this.getData(node);
     }
 }

@@ -36,7 +36,7 @@ export class GetUnoccupiedInstance extends WizardStep {
             return a.name!.localeCompare(b.name!); // non-null behavior unknown. Should be handled by logPoints team
         });
 
-        const startSessionRequest: IStartSessionRequest = { username: this._wizard.uiTreeItem.userId };
+        const startSessionRequest: IStartSessionRequest = { username: this._wizard.uiTreeItem.root.userId };
 
         for (const instance of instances) {
             let result: CommandRunResult<IStartSessionResponse> | undefined;
