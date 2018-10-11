@@ -237,6 +237,11 @@
                 "command": "appService.RemoveCosmosDBConnection",
                 "title": "Remove Connection",
                 "category": "Azure App Service"
+            },
+            {
+                "command": "appService.appSettings.Update",
+                "title": "Update App Settings",
+                "category": "Azure App Service"
             }
         ],
         "viewsContainers": {
@@ -328,6 +333,10 @@
                 },
                 {
                     "command": "appService.RemoveCosmosDBConnection",
+                    "when": "never"
+                },
+                {
+                    "command": "appService.appSettings.Update",
                     "when": "never"
                 }
             ],
@@ -714,14 +723,13 @@
                 },
                 "appService.connections": {
                     "type": "array",
-                    "description": "Array of web apps with its connection",
+                    "description": "Array of web apps with its connections",
                     "required": [
-                        "webAppId",
-                        "cosmosDB"
+                        "webAppId"
                     ],
                     "items": {
                         "type": "object",
-                        "description": "Connection of specific web app.",
+                        "description": "Connections of specific web app.",
                         "additionalProperties": false,
                         "properties": {
                             "webAppId": {
@@ -729,8 +737,12 @@
                                 "description": "Web app id."
                             },
                             "cosmosDB": {
-                                "type": "string",
-                                "description": "Cosmos DB database id."
+                                "type": "array",
+                                "description": "Array of Cosmos DB database ids.",
+                                "items": {
+                                    "type": "string",
+                                    "description": "Connection id"
+                                }
                             }
                         }
                     }
@@ -840,12 +852,12 @@
         "portfinder": "^1.0.13",
         "request": "^2.83.0",
         "request-promise": "^4.2.2",
-        "vscode-azureappservice": "^0.22.0",
-        "vscode-azureextensionui": "^0.17.0",
+        "vscode-azureappservice": "^0.23.0",
+        "vscode-azureextensionui": "^0.18.1",
         "vscode-azurekudu": "^0.1.8",
         "vscode-debugadapter": "^1.24.0",
         "vscode-debugprotocol": "^1.24.0",
-        "vscode-extension-telemetry": "^0.0.18"
+        "vscode-extension-telemetry": "^0.0.22"
     },
     "extensionDependencies": [
         "ms-vscode.azure-account"

@@ -7,27 +7,25 @@ import { WebSiteManagementClient } from 'azure-arm-website';
 import { Site, WebAppCollection } from 'azure-arm-website/lib/models';
 import { workspace, WorkspaceConfiguration } from 'vscode';
 import { createWebApp, SiteClient } from 'vscode-azureappservice';
-import { addExtensionUserAgent, IActionContext, IAzureNode, IAzureTreeItem, IChildProvider, parseError, UserCancelledError } from 'vscode-azureextensionui';
+import { AzureTreeItem, createAzureClient, createTreeItemsWithErrorHandling, IActionContext, parseError, SubscriptionTreeItem, UserCancelledError } from 'vscode-azureextensionui';
 import { configurationSettings, extensionPrefix } from '../constants';
-import { InvalidWebAppTreeItem } from './InvalidWebAppTreeItem';
 import { WebAppTreeItem } from './WebAppTreeItem';
 
-export class WebAppProvider implements IChildProvider {
+export class WebAppProvider extends SubscriptionTreeItem {
     public readonly childTypeLabel: string = 'Web App';
 
     private _nextLink: string | undefined;
 
-    public hasMoreChildren(): boolean {
+    public hasMoreChildrenImpl(): boolean {
         return this._nextLink !== undefined;
     }
 
-    public async loadMoreChildren(node: IAzureNode, clearCache: boolean): Promise<IAzureTreeItem[]> {
+    public async loadMoreChildrenImpl(clearCache: boolean): Promise<AzureTreeItem[]> {
         if (clearCache) {
             this._nextLink = undefined;
         }
 
-        const client: WebSiteManagementClient = new WebSiteManagementClient(node.credentials, node.subscriptionId, node.environment.resourceManagerEndpointUrl);
-        addExtensionUserAgent(client);
+        const client: WebSiteManagementClient = createAzureClient(this.root, WebSiteManagementClient);
 
         let webAppCollection: WebAppCollection;
         try {
@@ -47,32 +45,29 @@ export class WebAppProvider implements IChildProvider {
 
         this._nextLink = webAppCollection.nextLink;
 
-        const treeItems: IAzureTreeItem[] = [];
-        await Promise.all(webAppCollection
-            .map(async (s: Site) => {
-                try {
-                    const siteClient: SiteClient = new SiteClient(s, node);
-                    if (!siteClient.isFunctionApp) {
-                        treeItems.push(new WebAppTreeItem(siteClient));
-                    }
-                } catch (error) {
-                    if (s.name) {
-                        treeItems.push(new InvalidWebAppTreeItem(s.name, error));
-                    }
-                }
-            }));
-        return treeItems;
+        return await createTreeItemsWithErrorHandling(
+            this,
+            webAppCollection,
+            'invalidAppService',
+            (s: Site) => {
+                const siteClient: SiteClient = new SiteClient(s, this.root);
+                return siteClient.isFunctionApp ? undefined : new WebAppTreeItem(this, siteClient);
+            },
+            (s: Site) => {
+                return s.name;
+            }
+        );
     }
 
-    public async createChild(node: IAzureNode<IAzureTreeItem>, showCreatingNode: (label: string) => void, actionContext: IActionContext): Promise<IAzureTreeItem> {
+    public async createChildImpl(showCreatingTreeItem: (label: string) => void, actionContext: IActionContext): Promise<AzureTreeItem> {
         const workspaceConfig: WorkspaceConfiguration = workspace.getConfiguration(extensionPrefix);
         const advancedCreation: boolean | undefined = workspaceConfig.get(configurationSettings.advancedCreation);
-        const newSite: Site | undefined = await createWebApp(actionContext, node, { advancedCreation }, showCreatingNode);
+        const newSite: Site | undefined = await createWebApp(actionContext, this.root, { advancedCreation }, showCreatingTreeItem);
         if (newSite === undefined) {
             throw new UserCancelledError();
         } else {
-            const siteClient: SiteClient = new SiteClient(newSite, node);
-            return new WebAppTreeItem(siteClient);
+            const siteClient: SiteClient = new SiteClient(newSite, this.root);
+            return new WebAppTreeItem(this, siteClient);
         }
     }
 }

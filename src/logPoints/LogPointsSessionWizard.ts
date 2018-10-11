@@ -8,7 +8,6 @@ import * as vscode from 'vscode';
 import { UserCancelledError } from 'vscode-azureextensionui';
 import { WizardBase } from '../wizard';
 import { createDefaultClient } from './logPointsClient';
-import { IAzureNode } from 'vscode-azureextensionui';
 import { SiteTreeItem } from '../explorer/SiteTreeItem';
 import { LogPointsManager } from './LogPointsManager';
 import { ActivateSite } from './wizardSteps/ActivateSite';
@@ -39,14 +38,14 @@ export class LogPointsSessionWizard extends WizardBase {
         public logpointsManager: LogPointsManager,
         public extensionContext: vscode.ExtensionContext,
         output: vscode.OutputChannel,
-        public readonly uiTreeItem: IAzureNode<SiteTreeItem>,
+        public readonly uiTreeItem: SiteTreeItem,
         public readonly client: SiteClient
     ) {
         super(output);
     }
 
     public get selectedDeploymentSlot(): SiteClient | undefined {
-        return this.selectedDeploymentSlotTreeItem ? this.selectedDeploymentSlotTreeItem.client : undefined;
+        return this.selectedDeploymentSlotTreeItem ? this.selectedDeploymentSlotTreeItem.root.client : undefined;
     }
 
     public get lastUsedPublishCredential(): User {
@@ -70,7 +69,7 @@ export class LogPointsSessionWizard extends WizardBase {
     protected initSteps(): void {
         this.steps.push(new EligibilityCheck(this));
         if (this.client.isSlot) {
-            this.selectedDeploymentSlotTreeItem = this.uiTreeItem.treeItem;
+            this.selectedDeploymentSlotTreeItem = this.uiTreeItem;
         } else {
             this.steps.push(new PromptSlotSelection(this, this.client));
         }

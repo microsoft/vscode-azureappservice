@@ -4,68 +4,73 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import { SiteClient } from 'vscode-azureappservice';
-import { IAzureNode, IAzureParentNode, IAzureParentTreeItem, IAzureTreeItem, UserCancelledError } from 'vscode-azureextensionui';
+import { ISiteTreeRoot } from 'vscode-azureappservice';
+import { AzureParentTreeItem, AzureTreeItem, GenericTreeItem, UserCancelledError } from 'vscode-azureextensionui';
 import * as constants from '../constants';
+import { IConnections } from '../utils/IConnections';
 import { CosmosDBDatabase } from './CosmosDBDatabase';
 
-export class CosmosDBTreeItem implements IAzureParentTreeItem {
+export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     public static contextValue: string = 'сosmosDBConnections';
     public readonly contextValue: string = CosmosDBTreeItem.contextValue;
     public readonly label: string = 'Cosmos DB';
-    constructor(readonly client: SiteClient) {
-    }
 
-    public async loadMoreChildren(_node: IAzureNode<IAzureTreeItem>, _clearCache: boolean): Promise<IAzureTreeItem[]> {
+    public async loadMoreChildrenImpl(_clearCache: boolean): Promise<AzureTreeItem<ISiteTreeRoot>[]> {
         const cosmosDB = vscode.extensions.getExtension('ms-azuretools.vscode-cosmosdb');
         if (!cosmosDB) {
-            return [{
+            return [new GenericTreeItem(this, {
                 commandId: 'appService.InstallCosmosDBExtension',
                 contextValue: 'InstallCosmosDBExtension',
-                label: 'Install Cosmos DB Extension...',
-                isAncestorOf: () => { return false; }
-            }];
+                label: 'Install Cosmos DB Extension...'
+            })];
         }
         const workspaceConfig = vscode.workspace.getConfiguration(constants.extensionPrefix);
-        const connections = workspaceConfig.get<IConnection[]>(constants.configurationSettings.connections, []);
+        const connections = workspaceConfig.get<IConnections[]>(constants.configurationSettings.connections, []);
         // tslint:disable-next-line:strict-boolean-expressions
-        const unit = connections.find((x: IConnection) => x.webAppId === this.client.id) || <IConnection>{};
-        if (!unit.cosmosDB) {
-            return [<IAzureTreeItem>{
-                client: this.client,
+        const unit = connections.find((x: IConnections) => x.webAppId === this.root.client.id) || <IConnections>{};
+        if (!unit.cosmosDB || unit.cosmosDB.length === 0) {
+            return [new GenericTreeItem(this, {
                 commandId: 'appService.AddCosmosDBConnection',
                 contextValue: 'AddCosmosDBConnection',
-                label: 'Add Cosmos DB Connection...',
-                parent: this
-            }];
+                label: 'Add Cosmos DB Connection...'
+            })];
         }
-        return [new CosmosDBDatabase(this.client, unit.cosmosDB)];
+        return unit.cosmosDB.map(connectionId => {
+            return new CosmosDBDatabase(this, connectionId);
+        });
     }
 
-    public async createChild(node: IAzureParentNode<CosmosDBTreeItem>, showCreatingNode: (label: string) => void): Promise<IAzureTreeItem> {
+    public async createChildImpl(showCreatingTreeItem: (label: string) => void): Promise<AzureTreeItem<ISiteTreeRoot>> {
         const connectionToAdd = <string>await vscode.commands.executeCommand('cosmosDB.api.getDatabase');
         if (!connectionToAdd) {
             throw new UserCancelledError();
         }
 
         const workspaceConfig = vscode.workspace.getConfiguration(constants.extensionPrefix);
-        const connections = workspaceConfig.get<IConnection[]>(constants.configurationSettings.connections, []);
-        let connectionUnit = connections.find((x: IConnection) => x.webAppId === node.treeItem.client.id);
-        if (!connectionUnit) {
-            connectionUnit = <IConnection>{};
-            connections.push(connectionUnit);
-            connectionUnit.webAppId = node.treeItem.client.id;
-            connectionUnit.cosmosDB = connectionToAdd;
-            workspaceConfig.update(constants.configurationSettings.connections, connections);
-            showCreatingNode("");
-            const appSettingToAdd = <string>await vscode.commands.executeCommand('cosmosDB.api.getConnectionString', connectionToAdd);
-            await vscode.commands.executeCommand('appService.UpdateCosmosDBMongoAppSetting', connectionUnit.webAppId, appSettingToAdd);
-            return new CosmosDBDatabase(this.client, connectionToAdd);
+        const connections = workspaceConfig.get<IConnections[]>(constants.configurationSettings.connections, []);
+        let connectionsUnit = connections.find((x: IConnections) => x.webAppId === this.root.client.id);
+        if (!connectionsUnit) {
+            connectionsUnit = <IConnections>{};
+            connections.push(connectionsUnit);
+            connectionsUnit.webAppId = this.root.client.id;
         }
-        throw new Error("Impossible to have more than one connection for one web app!");
+        // tslint:disable-next-line:strict-boolean-expressions
+        connectionsUnit.cosmosDB = connectionsUnit.cosmosDB || [];
+        if (connectionsUnit.cosmosDB.length === 0) {
+            connectionsUnit.cosmosDB.push(connectionToAdd);
+            workspaceConfig.update(constants.configurationSettings.connections, connections);
+            showCreatingTreeItem('');
+
+            const appSettingsToUpdate = "MONGO_URL";
+            const connectionStringValue = (<string>await vscode.commands.executeCommand('cosmosDB.api.getConnectionString', connectionToAdd));
+            await vscode.commands.executeCommand('appService.appSettings.Update', connectionsUnit.webAppId, appSettingsToUpdate, connectionStringValue);
+
+            return new CosmosDBDatabase(this, connectionToAdd);
+        }
+        throw new Error("Impossible to have more than one CosmosDB connection for one web app!");
     }
 
-    public hasMoreChildren(): boolean {
+    public hasMoreChildrenImpl(): boolean {
         return false;
     }
 }

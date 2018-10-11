@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-interface IConnection {
+export interface IConnections {
     webAppId: string;
-    cosmosDB: string;
+    cosmosDB?: string[];
 }

@@ -4,26 +4,35 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import { SiteClient } from 'vscode-azureappservice';
-import { IAzureTreeItem } from 'vscode-azureextensionui';
-import * as constants from './../constants';
+import { ISiteTreeRoot } from 'vscode-azureappservice';
+import { AzureParentTreeItem, AzureTreeItem } from 'vscode-azureextensionui';
+import * as constants from '../constants';
+import { IConnections } from '../utils/IConnections';
 
-export class CosmosDBDatabase implements IAzureTreeItem {
+export class CosmosDBDatabase extends AzureTreeItem<ISiteTreeRoot> {
     public static contextValue: string = 'cosmosDBDatabase';
     public readonly contextValue: string = CosmosDBDatabase.contextValue;
     public readonly label: string;
 
-    constructor(readonly client: SiteClient, readonly connectionId: string) {
+    constructor(parent: AzureParentTreeItem, readonly connectionId: string) {
+        super(parent);
         this.label = this.getLabel(connectionId);
     }
 
     public async deleteTreeItem(): Promise<void> {
+        const connectionToDelete = this.connectionId;
         const workspaceConfig = vscode.workspace.getConfiguration(constants.extensionPrefix);
-        const connections = workspaceConfig.get<IConnection[]>(constants.configurationSettings.connections, []);
-        const indexToDelete = connections.findIndex((x: IConnection) => x.webAppId === this.client.id);
-        if (indexToDelete > -1) {
-            connections.splice(indexToDelete, 1);
-            workspaceConfig.update(constants.configurationSettings.connections, connections);
+        const connections = workspaceConfig.get<IConnections[]>(constants.configurationSettings.connections, []);
+
+        const connectionsUnit = connections.find((x: IConnections) => x.webAppId === this.root.client.id);
+        if (connectionsUnit && connectionsUnit.cosmosDB) {
+            const indexToDelete = connectionsUnit.cosmosDB.findIndex((x: string) => x === connectionToDelete);
+            if (indexToDelete > -1) {
+                connectionsUnit.cosmosDB.splice(indexToDelete, 1);
+                workspaceConfig.update(constants.configurationSettings.connections, connections);
+                // tslint:disable-next-line:no-non-null-assertion
+                await this.parent!.refresh();
+            }
         }
     }
 

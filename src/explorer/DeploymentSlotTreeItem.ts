@@ -4,23 +4,23 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as path from 'path';
-import { AppSettingsTreeItem, SiteClient } from 'vscode-azureappservice';
-import { IAzureParentNode, IAzureTreeItem } from 'vscode-azureextensionui';
+import { AppSettingsTreeItem, ISiteTreeRoot, SiteClient } from 'vscode-azureappservice';
+import { AzureParentTreeItem, AzureTreeItem } from 'vscode-azureextensionui';
 import { FolderTreeItem } from './FolderTreeItem';
 import { SiteTreeItem } from './SiteTreeItem';
 
 export class DeploymentSlotTreeItem extends SiteTreeItem {
     public static contextValue: string = 'deploymentSlot';
     public readonly contextValue: string = DeploymentSlotTreeItem.contextValue;
-    private readonly appSettingsNode: IAzureTreeItem;
-    private readonly folderNode: IAzureTreeItem;
-    private readonly logFolderNode: IAzureTreeItem;
+    private readonly appSettingsNode: AppSettingsTreeItem;
+    private readonly folderNode: FolderTreeItem;
+    private readonly logFolderNode: FolderTreeItem;
 
-    constructor(client: SiteClient) {
-        super(client);
-        this.folderNode = new FolderTreeItem(this.client, 'Files', "/site/wwwroot");
-        this.logFolderNode = new FolderTreeItem(this.client, 'Log Files', '/LogFiles', 'logFolder');
-        this.appSettingsNode = new AppSettingsTreeItem(this.client);
+    constructor(parent: AzureParentTreeItem, client: SiteClient) {
+        super(parent, client);
+        this.folderNode = new FolderTreeItem(this, 'Files', "/site/wwwroot");
+        this.logFolderNode = new FolderTreeItem(this, 'Log Files', '/LogFiles', 'logFolder');
+        this.appSettingsNode = new AppSettingsTreeItem(this);
     }
 
     public get iconPath(): { light: string, dark: string } {
@@ -30,11 +30,11 @@ export class DeploymentSlotTreeItem extends SiteTreeItem {
         };
     }
 
-    public async loadMoreChildren(_node: IAzureParentNode<DeploymentSlotTreeItem>): Promise<IAzureTreeItem[]> {
+    public async loadMoreChildrenImpl(_clearCache: boolean): Promise<AzureParentTreeItem<ISiteTreeRoot>[]> {
         return [this.folderNode, this.logFolderNode, this.appSettingsNode];
     }
 
-    public pickTreeItem(expectedContextValue: string): IAzureTreeItem | undefined {
+    public pickTreeItemImpl(expectedContextValue: string): AzureTreeItem<ISiteTreeRoot> | undefined {
         switch (expectedContextValue) {
             case AppSettingsTreeItem.contextValue:
                 return this.appSettingsNode;
