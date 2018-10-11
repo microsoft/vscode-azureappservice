@@ -330,8 +330,8 @@ export function activate(context: vscode.ExtensionContext): void {
         await node.deleteTreeItem();
         await tree.refresh(node.parent);
     });
-    registerCommand('appService.appSettings.Update', async (webAppId: string, appSettingsToUpdate, value: string) => {
-        const appSettItem = <AppSettingsTreeItem>await tree.findTreeItem(webAppId + String('/application'));
+    registerCommand('appService.appSettings.Update', async (webAppId: string, appSettingsToUpdate: string, value: string) => {
+        const appSettItem = <AppSettingsTreeItem | undefined>await tree.findTreeItem(webAppId + String('/application'));
         if (!appSettItem) {
             throw new Error(`Couldn't find the aplication settings for web app with provided Id: ${webAppId}`);
         }
