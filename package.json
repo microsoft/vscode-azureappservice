@@ -237,6 +237,11 @@
                 "command": "appService.RemoveCosmosDBConnection",
                 "title": "Remove Connection",
                 "category": "Azure App Service"
+            },
+            {
+                "command": "appService.appSettings.Update",
+                "title": "Update App Settings",
+                "category": "Azure App Service"
             }
         ],
         "viewsContainers": {
@@ -328,6 +333,10 @@
                 },
                 {
                     "command": "appService.RemoveCosmosDBConnection",
+                    "when": "never"
+                },
+                {
+                    "command": "appService.appSettings.Update",
                     "when": "never"
                 }
             ],
@@ -609,14 +618,9 @@
                     "group": "1@1"
                 },
                 {
-                    "command": "appService.AddCosmosDBConnection",
-                    "when": "view == azureAppService && viewItem == сosmosDBConnections",
-                    "group": "1@1"
-                },
-                {
                     "command": "appService.Refresh",
                     "when": "view == azureAppService && viewItem == сosmosDBConnections",
-                    "group": "2@2"
+                    "group": "1@1"
                 },
                 {
                     "command": "appService.revealConnection",
@@ -719,13 +723,13 @@
                 },
                 "appService.connections": {
                     "type": "array",
-                    "description": "Array of web apps with list of all theirs connections",
+                    "description": "Array of web apps with its connections",
                     "required": [
                         "webAppId"
                     ],
                     "items": {
                         "type": "object",
-                        "description": "All connections of specific web app.",
+                        "description": "Connections of specific web app.",
                         "additionalProperties": false,
                         "properties": {
                             "webAppId": {
