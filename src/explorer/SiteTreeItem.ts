@@ -42,7 +42,7 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         return this.root.client.fullName;
     }
 
-    public async refreshLabel(): Promise<void> {
+    public async refreshLabelImpl(): Promise<void> {
         try {
             this._state = await this.root.client.getState();
         } catch {
