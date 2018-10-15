@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as path from 'path';
 import * as vscode from 'vscode';
 import { ISiteTreeRoot } from 'vscode-azureappservice';
 import { AzureParentTreeItem, AzureTreeItem, GenericTreeItem } from 'vscode-azureextensionui';
@@ -14,6 +15,13 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     public static contextValue: string = 'сosmosDBConnections';
     public readonly contextValue: string = CosmosDBTreeItem.contextValue;
     public readonly label: string = 'Cosmos DB';
+
+    public get iconPath(): string | vscode.Uri | { light: string | vscode.Uri; dark: string | vscode.Uri } {
+        return {
+            light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'CosmosDBAccount.svg'),
+            dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'CosmosDBAccount.svg')
+        };
+    }
 
     public async loadMoreChildrenImpl(_clearCache: boolean): Promise<AzureTreeItem<ISiteTreeRoot>[]> {
         const cosmosDB = vscode.extensions.getExtension('ms-azuretools.vscode-cosmosdb');

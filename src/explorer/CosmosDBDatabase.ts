@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as path from 'path';
+import * as vscode from 'vscode';
 import { ISiteTreeRoot } from 'vscode-azureappservice';
 import { AzureParentTreeItem, AzureTreeItem } from 'vscode-azureextensionui';
 
@@ -14,6 +16,13 @@ export class CosmosDBDatabase extends AzureTreeItem<ISiteTreeRoot> {
     constructor(parent: AzureParentTreeItem, readonly connectionId: string) {
         super(parent);
         this.label = CosmosDBDatabase.getLabel(connectionId);
+    }
+
+    public get iconPath(): string | vscode.Uri | { light: string | vscode.Uri; dark: string | vscode.Uri } {
+        return {
+            light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'Database.svg'),
+            dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'Database.svg')
+        };
     }
 
     // tslint:disable-next-line:function-name
