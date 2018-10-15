@@ -5,6 +5,7 @@
 
 'use strict';
 
+import { SiteConfigResource } from 'azure-arm-website/lib/models';
 import * as opn from 'opn';
 import { extname } from 'path';
 import * as vscode from 'vscode';
@@ -35,7 +36,6 @@ import { LogPointsSessionWizard } from './logPoints/LogPointsSessionWizard';
 import { RemoteScriptDocumentProvider, RemoteScriptSchema } from './logPoints/remoteScriptDocumentProvider';
 import { LogpointsCollection } from './logPoints/structs/LogpointsCollection';
 import { getPackageInfo, IPackageInfo } from './utils/IPackageInfo';
-import { SiteConfigResource } from 'azure-arm-website/lib/models';
 
 // tslint:disable-next-line:export-name
 // tslint:disable-next-line:max-func-body-length
