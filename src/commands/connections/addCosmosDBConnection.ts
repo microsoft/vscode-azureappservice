@@ -54,7 +54,7 @@ export async function addCosmosDBConnection(node: CosmosDBTreeItem): Promise<voi
         // Don't wait
         vscode.window.showInformationMessage(`Database "${CosmosDBDatabase.getLabel(connectionToAdd)}" connected to Web App "${node.root.client.fullName}". Created "${appSettingsToUpdate}" App Setting.`, ok, showDatabase).then(async (result: vscode.MessageItem | undefined) => {
             if (result === showDatabase) {
-                vscode.commands.executeCommand('appService.revealConnection');
+                vscode.commands.executeCommand('cosmosDB.api.revealTreeItem', connectionToAdd);
             }
         });
     }

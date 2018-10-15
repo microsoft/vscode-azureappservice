@@ -11,7 +11,6 @@ import * as vscode from 'vscode';
 import { AppSettingsTreeItem, AppSettingTreeItem, editScmType, getFile, IFileResult, registerAppServiceExtensionVariables, SiteClient, stopStreamingLogs } from 'vscode-azureappservice';
 import { AzureParentTreeItem, AzureTreeDataProvider, AzureTreeItem, AzureUserInput, IActionContext, IAzureUserInput, registerCommand, registerEvent, registerUIExtensionVariables, SubscriptionTreeItem } from 'vscode-azureextensionui';
 import TelemetryReporter from 'vscode-extension-telemetry';
-import { SiteConfigResource } from '../node_modules/azure-arm-website/lib/models';
 import { addCosmosDBConnection } from './commands/connections/addCosmosDBConnection';
 import { removeCosmosDBConnection } from './commands/connections/removeCosmosDBConnection';
 import { deploy } from './commands/deploy';
@@ -36,6 +35,7 @@ import { LogPointsSessionWizard } from './logPoints/LogPointsSessionWizard';
 import { RemoteScriptDocumentProvider, RemoteScriptSchema } from './logPoints/remoteScriptDocumentProvider';
 import { LogpointsCollection } from './logPoints/structs/LogpointsCollection';
 import { getPackageInfo, IPackageInfo } from './utils/IPackageInfo';
+import { SiteConfigResource } from 'azure-arm-website/lib/models';
 
 // tslint:disable-next-line:export-name
 // tslint:disable-next-line:max-func-body-length
@@ -324,7 +324,7 @@ export function activate(context: vscode.ExtensionContext): void {
     });
     registerCommand('appService.AddCosmosDBConnection', addCosmosDBConnection);
     registerCommand('appService.RemoveCosmosDBConnection', removeCosmosDBConnection);
-    registerCommand('appService.RevealConnection', async (node: CosmosDBDatabase) => vscode.commands.executeCommand('cosmosDB.revealTreeItem', node.connectionId));
+    registerCommand('appService.RevealConnection', async (node: CosmosDBDatabase) => vscode.commands.executeCommand('cosmosDB.api.revealTreeItem', node.connectionId));
 }
 
 // tslint:disable-next-line:no-empty
