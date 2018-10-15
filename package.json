@@ -224,7 +224,7 @@
                 "category": "Azure App Service"
             },
             {
-                "command": "appService.revealConnection",
+                "command": "appService.RevealConnection",
                 "title": "Reveal in Cosmos DB extension",
                 "category": "Azure App Service"
             },
@@ -319,7 +319,7 @@
                     "when": "never"
                 },
                 {
-                    "command": "appService.revealConnection",
+                    "command": "appService.RevealConnection",
                     "when": "never"
                 },
                 {
@@ -619,7 +619,7 @@
                     "group": "2@2"
                 },
                 {
-                    "command": "appService.revealConnection",
+                    "command": "appService.RevealConnection",
                     "when": "view == azureAppService && viewItem == cosmosDBDatabase",
                     "group": "1@1"
                 },

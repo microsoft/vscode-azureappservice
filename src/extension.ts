@@ -5,13 +5,13 @@
 
 'use strict';
 
+import { SiteConfigResource } from 'azure-arm-website/lib/models';
 import * as opn from 'opn';
 import { extname } from 'path';
 import * as vscode from 'vscode';
 import { AppSettingsTreeItem, AppSettingTreeItem, editScmType, getFile, IFileResult, registerAppServiceExtensionVariables, SiteClient, stopStreamingLogs } from 'vscode-azureappservice';
 import { AzureParentTreeItem, AzureTreeDataProvider, AzureTreeItem, AzureUserInput, IActionContext, IAzureUserInput, registerCommand, registerEvent, registerUIExtensionVariables, SubscriptionTreeItem } from 'vscode-azureextensionui';
 import TelemetryReporter from 'vscode-extension-telemetry';
-import { SiteConfigResource } from '../node_modules/azure-arm-website/lib/models';
 import { addCosmosDBConnection } from './commands/connections/addCosmosDBConnection';
 import { removeCosmosDBConnection } from './commands/connections/removeCosmosDBConnection';
 import { deploy } from './commands/deploy';
@@ -20,6 +20,7 @@ import { disableRemoteDebug } from './commands/remoteDebug/disableRemoteDebug';
 import { startRemoteDebug } from './commands/remoteDebug/startRemoteDebug';
 import { startStreamingLogs } from './commands/startStreamingLogs';
 import { swapSlots } from './commands/swapSlots';
+import { CosmosDBDatabase } from './explorer/CosmosDBDatabase';
 import { DeploymentSlotsNATreeItem, DeploymentSlotsTreeItem, ScaleUpTreeItem } from './explorer/DeploymentSlotsTreeItem';
 import { DeploymentSlotTreeItem } from './explorer/DeploymentSlotTreeItem';
 import { FileEditor } from './explorer/editors/FileEditor';
@@ -323,9 +324,7 @@ export function activate(context: vscode.ExtensionContext): void {
     });
     registerCommand('appService.AddCosmosDBConnection', addCosmosDBConnection);
     registerCommand('appService.RemoveCosmosDBConnection', removeCosmosDBConnection);
-    registerCommand('appService.revealConnection', () => {
-        throw new Error('Not implemented yet.');
-    });
+    registerCommand('appService.RevealConnection', async (node: CosmosDBDatabase) => vscode.commands.executeCommand('cosmosDB.api.revealTreeItem', node.connectionId));
 }
 
 // tslint:disable-next-line:no-empty
