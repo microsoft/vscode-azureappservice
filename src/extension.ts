@@ -323,6 +323,9 @@ export function activate(context: vscode.ExtensionContext): void {
     });
     registerCommand('appService.AddCosmosDBConnection', addCosmosDBConnection);
     registerCommand('appService.RemoveCosmosDBConnection', removeCosmosDBConnection);
+    registerCommand('appService.revealConnection', () => {
+        throw new Error('Not implemented yet.');
+    });
 }
 
 // tslint:disable-next-line:no-empty
