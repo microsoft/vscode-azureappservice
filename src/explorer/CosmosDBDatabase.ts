@@ -13,10 +13,11 @@ export class CosmosDBDatabase extends AzureTreeItem<ISiteTreeRoot> {
 
     constructor(parent: AzureParentTreeItem, readonly connectionId: string) {
         super(parent);
-        this.label = this.getLabel(connectionId);
+        this.label = CosmosDBDatabase.getLabel(connectionId);
     }
 
-    private getLabel(id: string): string {
+    // tslint:disable-next-line:function-name
+    public static getLabel(id: string): string {
         const items = this.parseCosmos(id) || this.parseAttached(id);
         if (!items) {
             throw new Error('Failed to parse connection id');
@@ -24,7 +25,8 @@ export class CosmosDBDatabase extends AzureTreeItem<ISiteTreeRoot> {
         return items[items.length - 1];
     }
 
-    private parseCosmos(id: string): RegExpMatchArray | undefined {
+    // tslint:disable-next-line:function-name
+    public static parseCosmos(id: string): RegExpMatchArray | undefined {
         const matches: RegExpMatchArray | null = id.match('subscriptions\/(.*)resourceGroups\/(.*)providers\/(.*)databaseAccounts\/(.*)');
         if (matches === null || matches.length < 5) {
             return undefined;
@@ -32,7 +34,8 @@ export class CosmosDBDatabase extends AzureTreeItem<ISiteTreeRoot> {
         return matches;
     }
 
-    private parseAttached(id: string): RegExpMatchArray | undefined {
+    // tslint:disable-next-line:function-name
+    public static parseAttached(id: string): RegExpMatchArray | undefined {
         const matches: RegExpMatchArray | null = id.match('cosmosDBAttachedAccounts\/(.*)');
         if (matches === null || matches.length < 2) {
             return undefined;
