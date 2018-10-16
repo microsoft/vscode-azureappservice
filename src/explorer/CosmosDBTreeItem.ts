@@ -74,7 +74,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
 
             const appSettingsToUpdate = "MONGO_URL";
             const connectionStringValue = (<string>await vscode.commands.executeCommand('cosmosDB.api.getConnectionString', connectionToAdd));
-            updateWebAppSetting(connectionsUnit.webAppId, appSettingsToUpdate, connectionStringValue);
+            await updateWebAppSetting(connectionsUnit.webAppId, appSettingsToUpdate, connectionStringValue);
 
             if (this.contextValue === 'AddCosmosDBConnection') {
                 // tslint:disable-next-line:no-non-null-assertion
