@@ -12,8 +12,6 @@ import { AppSettingsTreeItem, AppSettingTreeItem, editScmType, getFile, IFileRes
 import { AzureParentTreeItem, AzureTreeDataProvider, AzureTreeItem, AzureUserInput, IActionContext, IAzureUserInput, registerCommand, registerEvent, registerUIExtensionVariables, SubscriptionTreeItem } from 'vscode-azureextensionui';
 import TelemetryReporter from 'vscode-extension-telemetry';
 import { SiteConfigResource } from '../node_modules/azure-arm-website/lib/models';
-import { addCosmosDBConnection } from './commands/connections/addCosmosDBConnection';
-import { removeCosmosDBConnection } from './commands/connections/removeCosmosDBConnection';
 import { deploy } from './commands/deploy';
 import { enableFileLogging } from './commands/enableFileLogging';
 import { disableRemoteDebug } from './commands/remoteDebug/disableRemoteDebug';
@@ -322,9 +320,17 @@ export function activate(context: vscode.ExtensionContext): void {
             opn('https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-cosmosdb');
         }
     });
-    registerCommand('appService.AddCosmosDBConnection', addCosmosDBConnection);
-    registerCommand('appService.RemoveCosmosDBConnection', removeCosmosDBConnection);
-    registerCommand('appService.RevealConnection', async (node: CosmosDBDatabase) => vscode.commands.executeCommand('cosmosDB.revealTreeItem', node.connectionId));
+    registerCommand('appService.AddCosmosDBConnection', async (node: AzureTreeItem) => {
+        // tslint:disable-next-line:no-non-null-assertion
+        const parentNode = node.parent!;
+        await parentNode.createChild();
+        await tree.refresh(parentNode);
+    });
+    registerCommand('appService.RemoveCosmosDBConnection', async (node: CosmosDBDatabase) => {
+        await node.deleteTreeItem();
+        await tree.refresh(node.parent);
+    });
+    registerCommand('appService.RevealConnection', async (node: CosmosDBDatabase) => vscode.commands.executeCommand('cosmosDB.api.revealTreeItem', node.connectionId));
 }
 
 // tslint:disable-next-line:no-empty
