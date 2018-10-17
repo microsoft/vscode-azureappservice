@@ -76,14 +76,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
             const connectionStringValue = (<string>await vscode.commands.executeCommand('cosmosDB.api.getConnectionString', connectionToAdd));
             await updateWebAppSetting(connectionsUnit.webAppId, appSettingsToUpdate, connectionStringValue);
 
-            if (this.contextValue === 'AddCosmosDBConnection') {
-                // tslint:disable-next-line:no-non-null-assertion
-                await this.parent!.refresh();
-            } else {
-                await this.refresh();
-            }
-
-            const ok: vscode.MessageItem = { title: 'Ok' };
+            const ok: vscode.MessageItem = { title: 'OK' };
             const showDatabase: vscode.MessageItem = { title: 'Show Database' };
             // Don't wait
             vscode.window.showInformationMessage(`Database "${createdDatabase.label}" connected to Web App "${this.root.client.fullName}". Created "${appSettingsToUpdate}" App Setting.`, ok, showDatabase).then(async (result: vscode.MessageItem | undefined) => {
@@ -94,7 +87,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
 
             return createdDatabase;
         }
-        throw new Error("Impossible to have more than one CosmosDB connection for one web app!");
+        throw new UserCancelledError();
     }
 
     public hasMoreChildrenImpl(): boolean {

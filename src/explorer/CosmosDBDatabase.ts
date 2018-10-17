@@ -6,16 +6,18 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { ISiteTreeRoot } from 'vscode-azureappservice';
-import { AzureParentTreeItem, AzureTreeItem } from 'vscode-azureextensionui';
+import { AzureTreeItem } from 'vscode-azureextensionui';
 import { IConnections } from '../../src/commands/connections/IConnections';
 import * as constants from '../constants';
+import { CosmosDBTreeItem } from './CosmosDBTreeItem';
 
 export class CosmosDBDatabase extends AzureTreeItem<ISiteTreeRoot> {
     public static contextValue: string = 'cosmosDBDatabase';
     public readonly contextValue: string = CosmosDBDatabase.contextValue;
     public readonly label: string;
+    public readonly parent: CosmosDBTreeItem;
 
-    constructor(parent: AzureParentTreeItem, readonly connectionId: string) {
+    constructor(parent: CosmosDBTreeItem, readonly connectionId: string) {
         super(parent);
         this.label = this.getLabel(connectionId);
     }
@@ -27,7 +29,7 @@ export class CosmosDBDatabase extends AzureTreeItem<ISiteTreeRoot> {
         };
     }
 
-    public async deleteTreeItem(): Promise<void> {
+    public async deleteTreeItemImpl(): Promise<void> {
         const connectionToDelete = this.connectionId;
         const workspaceConfig = vscode.workspace.getConfiguration(constants.extensionPrefix);
         const connections = workspaceConfig.get<IConnections[]>(constants.configurationSettings.connections, []);
@@ -37,8 +39,6 @@ export class CosmosDBDatabase extends AzureTreeItem<ISiteTreeRoot> {
             if (indexToDelete > -1) {
                 connectionsUnit.cosmosDB.splice(indexToDelete, 1);
                 workspaceConfig.update(constants.configurationSettings.connections, connections);
-                // tslint:disable-next-line:no-non-null-assertion
-                await this.parent!.refresh();
             }
         }
     }
