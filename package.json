@@ -229,6 +229,11 @@
                 "category": "Azure App Service"
             },
             {
+                "command": "appService.AddCosmosDBConnection",
+                "title": "Add New Connection...",
+                "category": "Azure App Service"
+            },
+            {
                 "command": "appService.RemoveCosmosDBConnection",
                 "title": "Remove Connection",
                 "category": "Azure App Service"
@@ -315,6 +320,10 @@
                 },
                 {
                     "command": "appService.RevealConnection",
+                    "when": "never"
+                },
+                {
+                    "command": "appService.AddCosmosDBConnection",
                     "when": "never"
                 },
                 {
@@ -600,9 +609,14 @@
                     "group": "1@1"
                 },
                 {
-                    "command": "appService.Refresh",
+                    "command": "appService.AddCosmosDBConnection",
                     "when": "view == azureAppService && viewItem == сosmosDBConnections",
                     "group": "1@1"
+                },
+                {
+                    "command": "appService.Refresh",
+                    "when": "view == azureAppService && viewItem == сosmosDBConnections",
+                    "group": "2@2"
                 },
                 {
                     "command": "appService.RevealConnection",
