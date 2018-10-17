@@ -719,13 +719,13 @@
                 },
                 "appService.connections": {
                     "type": "array",
-                    "description": "Array of web apps with list of all theirs connections",
+                    "description": "Array of web apps with its connections",
                     "required": [
                         "webAppId"
                     ],
                     "items": {
                         "type": "object",
-                        "description": "All connections of specific web app.",
+                        "description": "Connections of specific web app.",
                         "additionalProperties": false,
                         "properties": {
                             "webAppId": {
