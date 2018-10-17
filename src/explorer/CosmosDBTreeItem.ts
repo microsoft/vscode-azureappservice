@@ -10,12 +10,18 @@ import { AzureParentTreeItem, AzureTreeItem, GenericTreeItem, UserCancelledError
 import { IConnections } from '../../src/commands/connections/IConnections';
 import { updateWebAppSetting } from '../../src/commands/connections/updateWebAppSettings';
 import * as constants from '../constants';
+import { ConnectionsTreeItem } from './ConnectionsTreeItem';
 import { CosmosDBDatabase } from './CosmosDBDatabase';
 
 export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     public static contextValue: string = 'сosmosDBConnections';
     public readonly contextValue: string = CosmosDBTreeItem.contextValue;
     public readonly label: string = 'Cosmos DB';
+    public readonly parent: ConnectionsTreeItem;
+
+    constructor(parent: ConnectionsTreeItem) {
+        super(parent);
+    }
 
     public get iconPath(): string | vscode.Uri | { light: string | vscode.Uri; dark: string | vscode.Uri } {
         return {
@@ -74,7 +80,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
 
             const appSettingsToUpdate = "MONGO_URL";
             const connectionStringValue = (<string>await vscode.commands.executeCommand('cosmosDB.api.getConnectionString', connectionToAdd));
-            await updateWebAppSetting(connectionsUnit.webAppId, appSettingsToUpdate, connectionStringValue);
+            await updateWebAppSetting(this.parent.parent.appSettingsNode, appSettingsToUpdate, connectionStringValue);
 
             const ok: vscode.MessageItem = { title: 'OK' };
             const showDatabase: vscode.MessageItem = { title: 'Show Database' };
@@ -87,7 +93,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
 
             return createdDatabase;
         }
-        throw new UserCancelledError();
+        throw new Error(`Connection with id "${connectionToAdd}" is already attached.`);
     }
 
     public hasMoreChildrenImpl(): boolean {

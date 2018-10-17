@@ -3,15 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { WebAppTreeItem } from "src/explorer/WebAppTreeItem";
-import { ext } from "../../extensionVariables";
+import { AppSettingsTreeItem } from "vscode-azureappservice";
 
-export async function updateWebAppSetting(webAppId: string, appSettingToUpdate: string, value: string): Promise<void> {
-    const webApp = <WebAppTreeItem | undefined>await ext.tree.findTreeItem(webAppId);
-    if (!webApp) {
-        throw new Error(`Couldn't find the web app with provided Id: ${webAppId}`);
-    }
-    const appSettItem = webApp.appSettingsNode;
+export async function updateWebAppSetting(appSettItem: AppSettingsTreeItem, appSettingToUpdate: string, value: string): Promise<void> {
     await appSettItem.editSettingItem(appSettingToUpdate, appSettingToUpdate, value);
     await appSettItem.refresh();
 }
