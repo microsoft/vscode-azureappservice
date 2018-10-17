@@ -8,7 +8,6 @@ import * as vscode from 'vscode';
 import { ISiteTreeRoot } from 'vscode-azureappservice';
 import { AzureParentTreeItem, AzureTreeItem, GenericTreeItem, UserCancelledError } from 'vscode-azureextensionui';
 import { IConnections } from '../../src/commands/connections/IConnections';
-import { updateWebAppSetting } from '../../src/commands/connections/updateWebAppSettings';
 import * as constants from '../constants';
 import { ConnectionsTreeItem } from './ConnectionsTreeItem';
 import { CosmosDBDatabase } from './CosmosDBDatabase';
@@ -78,14 +77,16 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
             const createdDatabase = new CosmosDBDatabase(this, connectionToAdd);
             showCreatingTreeItem(createdDatabase.label);
 
-            const appSettingsToUpdate = "MONGO_URL";
+            const appSettingToUpdate = "MONGO_URL";
             const connectionStringValue = (<string>await vscode.commands.executeCommand('cosmosDB.api.getConnectionString', connectionToAdd));
-            await updateWebAppSetting(this.parent.parent.appSettingsNode, appSettingsToUpdate, connectionStringValue);
+            const appSettingsNode = this.parent.parent.appSettingsNode;
+            await appSettingsNode.editSettingItem(appSettingToUpdate, appSettingToUpdate, connectionStringValue);
+            await appSettingsNode.refresh();
 
             const ok: vscode.MessageItem = { title: 'OK' };
             const showDatabase: vscode.MessageItem = { title: 'Show Database' };
             // Don't wait
-            vscode.window.showInformationMessage(`Database "${createdDatabase.label}" connected to Web App "${this.root.client.fullName}". Created "${appSettingsToUpdate}" App Setting.`, ok, showDatabase).then(async (result: vscode.MessageItem | undefined) => {
+            vscode.window.showInformationMessage(`Database "${createdDatabase.label}" connected to Web App "${this.root.client.fullName}". Created "${appSettingToUpdate}" App Setting.`, ok, showDatabase).then(async (result: vscode.MessageItem | undefined) => {
                 if (result === showDatabase) {
                     vscode.commands.executeCommand('appService.RevealConnection', createdDatabase);
                 }
