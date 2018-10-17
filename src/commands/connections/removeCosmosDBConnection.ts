@@ -3,24 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { CosmosDBDatabase } from 'src/explorer/CosmosDBDatabase';
-import * as vscode from 'vscode';
-import * as constants from '../../constants';
-import { IConnections } from './IConnections';
+import { CosmosDBDatabase } from '../../explorer/CosmosDBDatabase';
+import { ext } from "../../extensionVariables";
 
 export async function removeCosmosDBConnection(node: CosmosDBDatabase): Promise<void> {
-    const connectionToDelete = node.connectionId;
-    const workspaceConfig = vscode.workspace.getConfiguration(constants.extensionPrefix);
-    const allConnections = workspaceConfig.get<IConnections[]>(constants.configurationSettings.connections, []);
-
-    const connectionsUnit = allConnections.find((x: IConnections) => x.webAppId === node.root.client.id);
-    if (connectionsUnit && connectionsUnit.cosmosDB) {
-        const indexToDelete = connectionsUnit.cosmosDB.findIndex((x: string) => x === connectionToDelete);
-        if (indexToDelete > -1) {
-            connectionsUnit.cosmosDB.splice(indexToDelete, 1);
-            workspaceConfig.update(constants.configurationSettings.connections, allConnections);
-            // tslint:disable-next-line:no-non-null-assertion
-            await node.parent!.refresh();
-        }
-    }
+    await node.deleteTreeItem();
+    await ext.tree.refresh(node.parent);
 }

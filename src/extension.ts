@@ -5,13 +5,13 @@
 
 'use strict';
 
-import { SiteConfigResource } from 'azure-arm-website/lib/models';
 import * as opn from 'opn';
 import { extname } from 'path';
 import * as vscode from 'vscode';
 import { AppSettingsTreeItem, AppSettingTreeItem, editScmType, getFile, IFileResult, registerAppServiceExtensionVariables, SiteClient, stopStreamingLogs } from 'vscode-azureappservice';
 import { AzureParentTreeItem, AzureTreeDataProvider, AzureTreeItem, AzureUserInput, IActionContext, IAzureUserInput, registerCommand, registerEvent, registerUIExtensionVariables, SubscriptionTreeItem } from 'vscode-azureextensionui';
 import TelemetryReporter from 'vscode-extension-telemetry';
+import { SiteConfigResource } from '../node_modules/azure-arm-website/lib/models';
 import { addCosmosDBConnection } from './commands/connections/addCosmosDBConnection';
 import { removeCosmosDBConnection } from './commands/connections/removeCosmosDBConnection';
 import { deploy } from './commands/deploy';

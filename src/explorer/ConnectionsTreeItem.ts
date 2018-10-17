@@ -7,14 +7,16 @@ import * as path from 'path';
 import { ISiteTreeRoot } from 'vscode-azureappservice';
 import { AzureParentTreeItem, AzureTreeItem } from 'vscode-azureextensionui';
 import { CosmosDBTreeItem } from './CosmosDBTreeItem';
+import { WebAppTreeItem } from './WebAppTreeItem';
 
 export class ConnectionsTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     public static contextValue: string = 'connections';
     public readonly contextValue: string = ConnectionsTreeItem.contextValue;
-    public readonly label: string = 'Connections';
     public readonly cosmosDBNode: CosmosDBTreeItem;
+    public readonly label: string = 'Connections';
+    public readonly parent: WebAppTreeItem;
 
-    constructor(parent: AzureParentTreeItem) {
+    constructor(parent: WebAppTreeItem) {
         super(parent);
         this.cosmosDBNode = new CosmosDBTreeItem(this);
     }
