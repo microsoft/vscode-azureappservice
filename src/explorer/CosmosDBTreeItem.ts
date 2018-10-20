@@ -9,6 +9,7 @@ import { ISiteTreeRoot } from 'vscode-azureappservice';
 import { AzureParentTreeItem, AzureTreeItem, GenericTreeItem, UserCancelledError } from 'vscode-azureextensionui';
 import { IConnections } from '../../src/commands/connections/IConnections';
 import * as constants from '../constants';
+import { ext } from '../extensionVariables';
 import { ConnectionsTreeItem } from './ConnectionsTreeItem';
 import { CosmosDBDatabase } from './CosmosDBDatabase';
 
@@ -55,7 +56,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     }
 
     public async createChildImpl(showCreatingTreeItem: (label: string) => void): Promise<AzureTreeItem<ISiteTreeRoot>> {
-        const connectionToAdd = <string>await vscode.commands.executeCommand('cosmosDB.api.getDatabase');
+        const connectionToAdd = await ext.cosmosAPI.getDatabase();
         if (!connectionToAdd) {
             throw new UserCancelledError();
         }
@@ -78,7 +79,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
             showCreatingTreeItem(createdDatabase.label);
 
             const appSettingToUpdate = "MONGO_URL";
-            const connectionStringValue = (<string>await vscode.commands.executeCommand('cosmosDB.api.getConnectionString', connectionToAdd));
+            const connectionStringValue = await ext.cosmosAPI.getConnectionString(connectionToAdd);
             const appSettingsNode = this.parent.parent.appSettingsNode;
             await appSettingsNode.editSettingItem(appSettingToUpdate, appSettingToUpdate, connectionStringValue);
             await appSettingsNode.refresh();

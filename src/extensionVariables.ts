@@ -6,6 +6,7 @@
 import { ExtensionContext, OutputChannel } from "vscode";
 import { AzureTreeDataProvider, IAzureUserInput } from "vscode-azureextensionui";
 import TelemetryReporter from "vscode-extension-telemetry";
+import { VscodeCosmos } from "./vscode-cosmos.api";
 
 /**
  * Namespace for common variables used throughout the extension. They must be initialized in the activate() method of extension.ts
@@ -16,4 +17,5 @@ export namespace ext {
     export let ui: IAzureUserInput;
     export let reporter: TelemetryReporter | undefined;
     export let context: ExtensionContext;
+    export let cosmosAPI: VscodeCosmos;
 }
