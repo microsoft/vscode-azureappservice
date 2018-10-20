@@ -80,7 +80,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
             const connectionStringValue = (<string>await vscode.commands.executeCommand('cosmosDB.api.getConnectionString', connectionToAdd));
 
             let appSettingToUpdate: string;
-            if (connectionStringValue.match(/^mongodb(\+srv)?:\/\/[^\/]*/)) {
+            if (!connectionStringValue || connectionStringValue.match(/^mongodb(\+srv)?:\/\/[^\/]*/)) {
                 appSettingToUpdate = "MONGO_URL";
             } else {
                 appSettingToUpdate = "DOCDBSQL_URL";
