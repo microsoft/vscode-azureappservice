@@ -10,6 +10,7 @@
             true,
             "allow-string",
             "allow-undefined-union",
+            "allow-null-union",
             "allow-mix"
         ],
         "completed-docs": [
@@ -48,7 +49,7 @@
             false,
             "single"
         ],
-        "radix": false,
+        "radix": false
     },
     "linterOptions": {
         "exclude": [
