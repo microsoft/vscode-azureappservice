@@ -47,7 +47,8 @@
         "quotemark": [
             false,
             "single"
-        ]
+        ],
+        "radix": false,
     },
     "linterOptions": {
         "exclude": [
