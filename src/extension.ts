@@ -36,7 +36,6 @@ import { LogPointsSessionWizard } from './logPoints/LogPointsSessionWizard';
 import { RemoteScriptDocumentProvider, RemoteScriptSchema } from './logPoints/remoteScriptDocumentProvider';
 import { LogpointsCollection } from './logPoints/structs/LogpointsCollection';
 import { getPackageInfo, IPackageInfo } from './utils/IPackageInfo';
-import { VscodeCosmos } from './vscode-cosmos.api';
 
 // tslint:disable-next-line:export-name
 // tslint:disable-next-line:max-func-body-length
@@ -44,11 +43,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     registerUIExtensionVariables(ext);
     registerAppServiceExtensionVariables(ext);
     ext.context = context;
-
-    const cosmosExtension = vscode.extensions.getExtension('ms-azuretools.vscode-cosmosdb');
-    if (cosmosExtension) {
-        ext.cosmosAPI = <VscodeCosmos>await cosmosExtension.activate();
-    }
 
     const packageInfo: IPackageInfo | undefined = getPackageInfo(context);
     if (packageInfo) {
