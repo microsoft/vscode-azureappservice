@@ -72,27 +72,39 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         // tslint:disable-next-line:strict-boolean-expressions
         connectionsUnit.cosmosDB = connectionsUnit.cosmosDB || [];
         if (!connectionsUnit.cosmosDB.find((x: string) => x === connectionToAdd)) {
+            const connectionStringValue = (<string>await vscode.commands.executeCommand('cosmosDB.api.getConnectionString', connectionToAdd));
+
+            let allSettingsNames: string;
+            const appSettingsToCreate = new Map<string, string>();
+            if (/^mongo/i.test(connectionStringValue)) {
+                appSettingsToCreate.set('MONGO_URL', connectionStringValue);
+
+                allSettingsNames = '"MONGO_URL"';
+            } else {
+                const parsedConnection = connectionStringValue.match(/^AccountEndpoint=(.*);AccountKey=(.*);Database=(.*)$/);
+                if (parsedConnection === null) {
+                    throw new Error(`Can't parse provided connection string: ${connectionStringValue}. Should match the next pattern: AccountEndpoint=...;AccountKey=...;Database=...`);
+                }
+                appSettingsToCreate.set('COSMOS_ENDPOINT', parsedConnection[1]);
+                appSettingsToCreate.set('COSMOS_MASTER_KEY', parsedConnection[2]);
+                appSettingsToCreate.set('COSMOS_DATABASE_ID', parsedConnection[3]);
+
+                allSettingsNames = '"COSMOS_ENDPOINT", "COSMOS_MASTER_KEY", "COSMOS_DATABASE_ID"';
+            }
+
+            const appSettingsNode = this.parent.parent.appSettingsNode;
+            appSettingsToCreate.forEach(async (value, appSetting) => appSettingsNode.editSettingItem(appSetting, appSetting, value));
+            await appSettingsNode.refresh();
+
             connectionsUnit.cosmosDB.push(connectionToAdd);
             workspaceConfig.update(constants.configurationSettings.connections, allConnections);
             const createdDatabase = new CosmosDBDatabase(this, connectionToAdd);
             showCreatingTreeItem(createdDatabase.label);
 
-            const connectionStringValue = (<string>await vscode.commands.executeCommand('cosmosDB.api.getConnectionString', connectionToAdd));
-
-            let appSettingToUpdate: string;
-            if (connectionStringValue.match(/^mongodb(\+srv)?:\/\/[^\/]*/) !== null) {
-                appSettingToUpdate = "MONGO_URL";
-            } else {
-                appSettingToUpdate = "DOCDBSQL_URL";
-            }
-            const appSettingsNode = this.parent.parent.appSettingsNode;
-            await appSettingsNode.editSettingItem(appSettingToUpdate, appSettingToUpdate, connectionStringValue);
-            await appSettingsNode.refresh();
-
             const ok: vscode.MessageItem = { title: 'OK' };
             const showDatabase: vscode.MessageItem = { title: 'Show Database' };
             // Don't wait
-            vscode.window.showInformationMessage(`Database "${createdDatabase.label}" connected to Web App "${this.root.client.fullName}". Created "${appSettingToUpdate}" App Setting.`, ok, showDatabase).then(async (result: vscode.MessageItem | undefined) => {
+            vscode.window.showInformationMessage(`Database "${createdDatabase.label}" connected to Web App "${this.root.client.fullName}". Created ${allSettingsNames} App Settings.`, ok, showDatabase).then(async (result: vscode.MessageItem | undefined) => {
                 if (result === showDatabase) {
                     vscode.commands.executeCommand('appService.RevealConnection', createdDatabase);
                 }
