@@ -42,7 +42,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         }
 
         if (ext.cosmosAPI === undefined) {
-            ext.cosmosAPI = await <VscodeCosmos>cosmosDB.exports;
+            ext.cosmosAPI = <VscodeCosmos>cosmosDB.exports;
         }
 
         const workspaceConfig = vscode.workspace.getConfiguration(constants.extensionPrefix);
