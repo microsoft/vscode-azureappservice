@@ -9,8 +9,7 @@ import * as opn from 'opn';
 import { extname } from 'path';
 import * as vscode from 'vscode';
 import { AppSettingsTreeItem, AppSettingTreeItem, editScmType, getFile, IFileResult, registerAppServiceExtensionVariables, SiteClient, stopStreamingLogs } from 'vscode-azureappservice';
-import { AzureParentTreeItem, AzureTreeDataProvider, AzureTreeItem, AzureUserInput, IActionContext, IAzureUserInput, registerCommand, registerEvent, registerUIExtensionVariables, SubscriptionTreeItem } from 'vscode-azureextensionui';
-import TelemetryReporter from 'vscode-extension-telemetry';
+import { AzureParentTreeItem, AzureTreeDataProvider, AzureTreeItem, AzureUserInput, createTelemetryReporter, IActionContext, IAzureUserInput, registerCommand, registerEvent, registerUIExtensionVariables, SubscriptionTreeItem } from 'vscode-azureextensionui';
 import { SiteConfigResource } from '../node_modules/azure-arm-website/lib/models';
 import { addCosmosDBConnection } from './commands/connections/addCosmosDBConnection';
 import { removeCosmosDBConnection } from './commands/connections/removeCosmosDBConnection';
@@ -35,7 +34,6 @@ import { LogPointsManager } from './logPoints/LogPointsManager';
 import { LogPointsSessionWizard } from './logPoints/LogPointsSessionWizard';
 import { RemoteScriptDocumentProvider, RemoteScriptSchema } from './logPoints/remoteScriptDocumentProvider';
 import { LogpointsCollection } from './logPoints/structs/LogpointsCollection';
-import { getPackageInfo, IPackageInfo } from './utils/IPackageInfo';
 
 // tslint:disable-next-line:export-name
 // tslint:disable-next-line:max-func-body-length
@@ -43,12 +41,7 @@ export function activate(context: vscode.ExtensionContext): void {
     registerUIExtensionVariables(ext);
     registerAppServiceExtensionVariables(ext);
     ext.context = context;
-
-    const packageInfo: IPackageInfo | undefined = getPackageInfo(context);
-    if (packageInfo) {
-        ext.reporter = new TelemetryReporter(packageInfo.name, packageInfo.version, packageInfo.aiKey);
-        context.subscriptions.push(ext.reporter);
-    }
+    ext.reporter = createTelemetryReporter(context);
 
     const ui: IAzureUserInput = new AzureUserInput(context.globalState);
     ext.ui = ui;
