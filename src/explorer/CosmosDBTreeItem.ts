@@ -77,8 +77,9 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
             const allSettingsNames: string[] = [];
             const appSettingsToCreate = new Map<string, string>();
             if (/^mongo/i.test(connectionStringValue)) {
-                allSettingsNames.push('MONGO_URL');
-                appSettingsToCreate.set(allSettingsNames[0], connectionStringValue);
+                const mongoURLAppSetting = 'MONGO_URL';
+                allSettingsNames.push(mongoURLAppSetting);
+                appSettingsToCreate.set(mongoURLAppSetting, connectionStringValue);
             } else {
                 const endpoint = connectionStringValue.match(/(?:^|;)AccountEndpoint=([^;]+)(?:$|;)/);
                 const masterKey = connectionStringValue.match(/(?:^|;)AccountKey=([^;]+)(?:$|;)/);
@@ -86,12 +87,15 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
                 if (endpoint === null || masterKey === null || databaseId === null) {
                     throw new Error(`Failed to parse connection string.`);
                 }
-                allSettingsNames.push('COSMOS_ENDPOINT');
-                appSettingsToCreate.set(allSettingsNames[0], endpoint[1]);
-                allSettingsNames.push('COSMOS_MASTER_KEY');
-                appSettingsToCreate.set(allSettingsNames[1], masterKey[1]);
-                allSettingsNames.push('COSMOS_DATABASE_ID');
-                appSettingsToCreate.set(allSettingsNames[2], databaseId[1]);
+                const endpointAppSetting = 'COSMOS_ENDPOINT';
+                allSettingsNames.push(endpointAppSetting);
+                appSettingsToCreate.set(endpointAppSetting, endpoint[1]);
+                const masterKeyAppSetting = 'COSMOS_MASTER_KEY';
+                allSettingsNames.push(masterKeyAppSetting);
+                appSettingsToCreate.set(masterKeyAppSetting, masterKey[1]);
+                const databaseIdAppSetting = 'COSMOS_DATABASE_ID';
+                allSettingsNames.push(databaseIdAppSetting);
+                appSettingsToCreate.set(databaseIdAppSetting, databaseId[1]);
             }
 
             const appSettingsNode = this.parent.parent.appSettingsNode;
