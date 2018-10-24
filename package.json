@@ -329,6 +329,10 @@
                 {
                     "command": "appService.RemoveCosmosDBConnection",
                     "when": "never"
+                },
+                {
+                    "command": "appService.appSettings.Delete",
+                    "when": "never"
                 }
             ],
             "view/title": [
