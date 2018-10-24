@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as path from 'path';
-import { VscodeCosmos } from 'src/vscode-cosmos.api';
+import { VSCodeCosmosDB } from 'src/vscode-cosmos.api';
 import * as vscode from 'vscode';
 import { ISiteTreeRoot } from 'vscode-azureappservice';
 import { AzureParentTreeItem, AzureTreeItem, GenericTreeItem, UserCancelledError } from 'vscode-azureextensionui';
@@ -42,7 +42,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         }
 
         if (ext.cosmosAPI === undefined) {
-            ext.cosmosAPI = <VscodeCosmos>cosmosDB.exports;
+            ext.cosmosAPI = <VSCodeCosmosDB>cosmosDB.exports;
         }
 
         const workspaceConfig = vscode.workspace.getConfiguration(constants.extensionPrefix);
