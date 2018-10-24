@@ -74,22 +74,24 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         if (!connectionsUnit.cosmosDB.find((x: string) => x === connectionToAdd)) {
             const connectionStringValue = (<string>await vscode.commands.executeCommand('cosmosDB.api.getConnectionString', connectionToAdd));
 
-            let allSettingsNames: string;
+            const allSettingsNames: string[] = [];
             const appSettingsToCreate = new Map<string, string>();
             if (/^mongo/i.test(connectionStringValue)) {
-                appSettingsToCreate.set('MONGO_URL', connectionStringValue);
-
-                allSettingsNames = '"MONGO_URL"';
+                allSettingsNames.push('MONGO_URL');
+                appSettingsToCreate.set(allSettingsNames[0], connectionStringValue);
             } else {
-                const parsedConnection = connectionStringValue.match(/^AccountEndpoint=(.*);AccountKey=(.*);Database=(.*)$/);
-                if (parsedConnection === null) {
-                    throw new Error(`Can't parse provided connection string: ${connectionStringValue}. Should match the next pattern: AccountEndpoint=...;AccountKey=...;Database=...`);
+                const endpoint = connectionStringValue.match(/(?:^|;)AccountEndpoint=([^;]+)(?:$|;)/);
+                const masterKey = connectionStringValue.match(/(?:^|;)AccountKey=([^;]+)(?:$|;)/);
+                const databaseId = connectionStringValue.match(/(?:^|;)Database=([^;]+)(?:$|;)/);
+                if (endpoint === null || masterKey === null || databaseId === null) {
+                    throw new Error(`Failed to parse connection string.`);
                 }
-                appSettingsToCreate.set('COSMOS_ENDPOINT', parsedConnection[1]);
-                appSettingsToCreate.set('COSMOS_MASTER_KEY', parsedConnection[2]);
-                appSettingsToCreate.set('COSMOS_DATABASE_ID', parsedConnection[3]);
-
-                allSettingsNames = '"COSMOS_ENDPOINT", "COSMOS_MASTER_KEY", "COSMOS_DATABASE_ID"';
+                allSettingsNames.push('COSMOS_ENDPOINT');
+                appSettingsToCreate.set(allSettingsNames[0], endpoint[1]);
+                allSettingsNames.push('COSMOS_MASTER_KEY');
+                appSettingsToCreate.set(allSettingsNames[1], masterKey[1]);
+                allSettingsNames.push('COSMOS_DATABASE_ID');
+                appSettingsToCreate.set(allSettingsNames[2], databaseId[1]);
             }
 
             const appSettingsNode = this.parent.parent.appSettingsNode;
@@ -104,7 +106,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
             const ok: vscode.MessageItem = { title: 'OK' };
             const showDatabase: vscode.MessageItem = { title: 'Show Database' };
             // Don't wait
-            vscode.window.showInformationMessage(`Database "${createdDatabase.label}" connected to Web App "${this.root.client.fullName}". Created ${allSettingsNames} App Settings.`, ok, showDatabase).then(async (result: vscode.MessageItem | undefined) => {
+            vscode.window.showInformationMessage(`Database "${createdDatabase.label}" connected to Web App "${this.root.client.fullName}". Created ${allSettingsNames.map((s) => `"${s}"`).join(', ')} App Settings.`, ok, showDatabase).then(async (result: vscode.MessageItem | undefined) => {
                 if (result === showDatabase) {
                     vscode.commands.executeCommand('appService.RevealConnection', createdDatabase);
                 }
