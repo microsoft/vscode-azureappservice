@@ -6,9 +6,10 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { ISiteTreeRoot } from 'vscode-azureappservice';
-import { AzureParentTreeItem, AzureTreeItem, GenericTreeItem, UserCancelledError } from 'vscode-azureextensionui';
+import { AzureParentTreeItem, AzureTreeItem, DialogResponses, GenericTreeItem, UserCancelledError } from 'vscode-azureextensionui';
 import { IConnections } from '../../src/commands/connections/IConnections';
 import * as constants from '../constants';
+import { ext } from '../extensionVariables';
 import { ConnectionsTreeItem } from './ConnectionsTreeItem';
 import { CosmosDBDatabase } from './CosmosDBDatabase';
 
@@ -99,6 +100,17 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
             }
 
             const appSettingsNode = this.parent.parent.appSettingsNode;
+            const allExistedAppSettings = await appSettingsNode.ensureSettings();
+            const settingsToOverwrite = allSettingsNames.filter((s: string) => { return allExistedAppSettings.properties && allExistedAppSettings.properties[s]; });
+            if (settingsToOverwrite.length > 0) {
+                const warning: string = `This will overwrite your existing ${settingsToOverwrite.map((s) => `"${s}"`).join(', ')} Application Setting${settingsToOverwrite.length > 1 ? "s" : ""}. Are you sure you want to make this connection?`;
+                const items: vscode.MessageItem[] = [DialogResponses.yes, DialogResponses.cancel];
+                const result: vscode.MessageItem = await ext.ui.showWarningMessage(warning, { modal: true }, ...items);
+                if (result === DialogResponses.cancel) {
+                    throw new UserCancelledError();
+                }
+            }
+
             appSettingsToCreate.forEach(async (value, appSetting) => appSettingsNode.editSettingItem(appSetting, appSetting, value));
             await appSettingsNode.refresh();
 
