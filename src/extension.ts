@@ -26,6 +26,7 @@ import { FileEditor } from './explorer/editors/FileEditor';
 import { FileTreeItem } from './explorer/FileTreeItem';
 import { FolderTreeItem } from './explorer/FolderTreeItem';
 import { LoadedScriptsProvider, openScript } from './explorer/loadedScriptsExplorer';
+import { LogStreamTreeItem } from './explorer/LogStreamTreeItem';
 import { SiteTreeItem } from './explorer/SiteTreeItem';
 import { WebAppProvider } from './explorer/WebAppProvider';
 import { WebAppTreeItem } from './explorer/WebAppTreeItem';
@@ -248,6 +249,11 @@ export function activate(context: vscode.ExtensionContext): void {
         }
 
         await stopStreamingLogs(node.root.client);
+        if (node.contextValue === LogStreamTreeItem.contextValue) {
+            // don't wait for this refresh
+            // tslint:disable-next-line:no-floating-promises
+            node.refresh();
+        }
     });
     registerCommand('appService.StartLogPointsSession', async function (this: IActionContext, node?: SiteTreeItem): Promise<void> {
         if (node) {

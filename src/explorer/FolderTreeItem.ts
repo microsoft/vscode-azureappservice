@@ -9,6 +9,7 @@ import { getKuduClient, ISiteTreeRoot } from 'vscode-azureappservice';
 import { AzureParentTreeItem, AzureTreeItem } from 'vscode-azureextensionui';
 import KuduClient from 'vscode-azurekudu';
 import { FileTreeItem } from './FileTreeItem';
+import { LogStreamTreeItem } from './LogStreamTreeItem';
 
 export class FolderTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     public static contextValue: string = 'folder';
@@ -44,7 +45,7 @@ export class FolderTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
             }
             return true;
         });
-        return filteredList.map((file: kuduFile) => {
+        const children: (FolderTreeItem | FileTreeItem | LogStreamTreeItem)[] = filteredList.map((file: kuduFile) => {
             return file.mime === 'inode/directory' ?
                 // truncate the home of the path
                 // the substring starts at file.path.indexOf(home) because the path sometimes includes site/ or D:\
@@ -52,6 +53,12 @@ export class FolderTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
                 new FolderTreeItem(this, file.name, file.path.substring(file.path.indexOf(home) + home.length + 1), 'subFolder') :
                 new FileTreeItem(this, file.name, file.path.substring(file.path.indexOf(home) + home.length + 1));
         });
+
+        if (this.contextValue === 'logFolder') {
+            children.unshift(new LogStreamTreeItem(this));
+        }
+
+        return children;
     }
 }
 

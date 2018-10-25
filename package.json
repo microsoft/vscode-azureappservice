@@ -627,6 +627,11 @@
                     "command": "appService.RemoveCosmosDBConnection",
                     "when": "view == azureAppService && viewItem == cosmosDBDatabase",
                     "group": "2@1"
+                },
+                {
+                    "command": "appService.Refresh",
+                    "when": "view == azureAppService && viewItem == logstream",
+                    "group": "1@1"
                 }
             ],
             "explorer/context": [
