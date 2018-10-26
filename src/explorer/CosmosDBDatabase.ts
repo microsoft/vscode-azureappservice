@@ -7,8 +7,6 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { ISiteTreeRoot } from 'vscode-azureappservice';
 import { AzureTreeItem } from 'vscode-azureextensionui';
-import { IConnections } from '../../src/commands/connections/IConnections';
-import * as constants from '../constants';
 import { CosmosDBTreeItem } from './CosmosDBTreeItem';
 
 export class CosmosDBDatabase extends AzureTreeItem<ISiteTreeRoot> {
@@ -30,38 +28,21 @@ export class CosmosDBDatabase extends AzureTreeItem<ISiteTreeRoot> {
     }
 
     public async deleteTreeItemImpl(): Promise<void> {
-        const connectionToDelete = this.connectionId;
-        const workspaceConfig = vscode.workspace.getConfiguration(constants.extensionPrefix);
-        const connections = workspaceConfig.get<IConnections[]>(constants.configurationSettings.connections, []);
-        const connectionsUnit = connections.find((x: IConnections) => x.webAppId === this.root.client.id);
-        if (connectionsUnit && connectionsUnit.cosmosDB) {
-            const indexToDelete = connectionsUnit.cosmosDB.findIndex((x: string) => x === connectionToDelete);
-            if (indexToDelete > -1) {
-                connectionsUnit.cosmosDB.splice(indexToDelete, 1);
-                workspaceConfig.update(constants.configurationSettings.connections, connections);
-            }
-        }
+        throw new Error('Not implemented yet!');
     }
 
     private getLabel(id: string): string {
-        const items = this.parseCosmos(id) || this.parseAttached(id);
+        const items = this.parseMongoWithPassword(id);
         if (!items) {
             throw new Error('Failed to parse connection id');
         }
-        return items[items.length - 1];
+        return items[items.length - 2] + String("/") + items[items.length - 1];
     }
 
-    private parseCosmos(id: string): RegExpMatchArray | undefined {
-        const matches: RegExpMatchArray | null = id.match('subscriptions\/(.*)resourceGroups\/(.*)providers\/(.*)databaseAccounts\/(.*)');
-        if (matches === null || matches.length < 5) {
-            return undefined;
-        }
-        return matches;
-    }
-
-    private parseAttached(id: string): RegExpMatchArray | undefined {
-        const matches: RegExpMatchArray | null = id.match('cosmosDBAttachedAccounts\/(.*)');
-        if (matches === null || matches.length < 2) {
+    private parseMongoWithPassword(id: string): RegExpMatchArray | undefined {
+        const regExp = /([a-zA-Z]+:\/\/[^@]*)@([^/\. "$*<>:|?\/]*)[^\/]*\/?([^/?]+)?/;
+        const matches: RegExpMatchArray | null = id.match(regExp);
+        if (matches === null || matches.length !== 4) {
             return undefined;
         }
         return matches;

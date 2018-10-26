@@ -13,6 +13,13 @@ import { ConnectionsTreeItem } from './ConnectionsTreeItem';
 import { CosmosDBDatabase } from './CosmosDBDatabase';
 
 export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
+
+    public get iconPath(): string | vscode.Uri | { light: string | vscode.Uri; dark: string | vscode.Uri } {
+        return {
+            light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'CosmosDBAccount.svg'),
+            dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'CosmosDBAccount.svg')
+        };
+    }
     public static contextValue: string = 'сosmosDBConnections';
     public readonly contextValue: string = CosmosDBTreeItem.contextValue;
     public readonly label: string = 'Cosmos DB';
@@ -20,13 +27,6 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
 
     constructor(parent: ConnectionsTreeItem) {
         super(parent);
-    }
-
-    public get iconPath(): string | vscode.Uri | { light: string | vscode.Uri; dark: string | vscode.Uri } {
-        return {
-            light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'CosmosDBAccount.svg'),
-            dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'CosmosDBAccount.svg')
-        };
     }
 
     public async loadMoreChildrenImpl(_clearCache: boolean): Promise<AzureTreeItem<ISiteTreeRoot>[]> {
@@ -38,20 +38,38 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
                 label: 'Install Cosmos DB Extension...'
             })];
         }
-        const workspaceConfig = vscode.workspace.getConfiguration(constants.extensionPrefix);
-        const connections = workspaceConfig.get<IConnections[]>(constants.configurationSettings.connections, []);
-        // tslint:disable-next-line:strict-boolean-expressions
-        const unit = connections.find((x: IConnections) => x.webAppId === this.root.client.id) || <IConnections>{};
-        if (!unit.cosmosDB || unit.cosmosDB.length === 0) {
+
+        const connectionStrings: string[] = [];
+        const appSettingsNode = this.parent.parent.appSettingsNode;
+        const allAppSettings = await appSettingsNode.ensureSettings();
+        if (allAppSettings.properties) {
+            const dictionary: { [key: string]: string } = allAppSettings.properties;
+            Object.keys(dictionary).forEach((key) => {
+                connectionStrings.push(dictionary[key]);
+            });
+        }
+
+        const allConnectionItems = connectionStrings.map(connectionId => {
+            try {
+                return new CosmosDBDatabase(this, connectionId);
+            } catch {
+                return undefined;
+            }
+        });
+
+        const cosmosDBConnectionItems = allConnectionItems.filter((item: CosmosDBDatabase | undefined) => {
+            return item ? true : false;
+        });
+
+        if (cosmosDBConnectionItems.length === 0) {
             return [new GenericTreeItem(this, {
                 commandId: 'appService.AddCosmosDBConnection',
                 contextValue: 'AddCosmosDBConnection',
                 label: 'Add Cosmos DB Connection...'
             })];
         }
-        return unit.cosmosDB.map(connectionId => {
-            return new CosmosDBDatabase(this, connectionId);
-        });
+
+        return <CosmosDBDatabase[]>cosmosDBConnectionItems;
     }
 
     public async createChildImpl(showCreatingTreeItem: (label: string) => void): Promise<AzureTreeItem<ISiteTreeRoot>> {
