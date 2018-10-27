@@ -71,7 +71,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
                 }
             }
 
-            if (treeItems.length) {
+            if (treeItems.length > 0) {
                 return treeItems;
             }
         }
