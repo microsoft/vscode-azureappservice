@@ -47,7 +47,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         // tslint:disable-next-line:strict-boolean-expressions
         const appSettings = (await this.root.client.listApplicationSettings()).properties || {};
         Object.keys(appSettings).forEach((key) => {
-            if (/^mongo/i.test(appSettings[key])) {
+            if (/^mongodb[^:]*:\/\//i.test(appSettings[key])) {
                 mongoAppSettingsKeys.push(key);
             }
         });
@@ -73,14 +73,14 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
 
     public async createChildImpl(showCreatingTreeItem: (label: string) => void): Promise<AzureTreeItem<ISiteTreeRoot>> {
         const databaseToAdd = await ext.cosmosAPI.pickDatabase();
-        if (!databaseToAdd || !databaseToAdd.connectionString) {
+        if (!databaseToAdd) {
             throw new UserCancelledError();
         }
-        // tslint:disable-next-line:strict-boolean-expressions
-        const appSettings = await this.root.client.listApplicationSettings() || {};
+        const appSettings = await this.root.client.listApplicationSettings();
         const appSettingKeyToAdd: string = await ext.ui.showInputBox({
             prompt: 'Enter new connection setting key',
-            validateInput: (v?: string): string | undefined => validateAppSettingKey(appSettings, v)
+            validateInput: (v?: string): string | undefined => validateAppSettingKey(appSettings, v),
+            value: "MONGO_URL"
         });
         // tslint:disable-next-line:strict-boolean-expressions
         appSettings.properties = appSettings.properties || {};
@@ -94,7 +94,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         const ok: vscode.MessageItem = { title: 'OK' };
         const showDatabase: vscode.MessageItem = { title: 'Show Database' };
         // Don't wait
-        vscode.window.showInformationMessage(`Database "${createdDatabase.label}" connected to Web App "${this.root.client.fullName}". Created "${appSettingKeyToAdd}" App Settings.`, ok, showDatabase).then(async (result: vscode.MessageItem | undefined) => {
+        vscode.window.showInformationMessage(`Database "${createdDatabase.label}" connected to web app "${this.root.client.fullName}". Created "${appSettingKeyToAdd}" app settings.`, ok, showDatabase).then(async (result: vscode.MessageItem | undefined) => {
             if (result === showDatabase) {
                 // tslint:disable-next-line:no-non-null-assertion
                 await ext.cosmosAPI.revealTreeItem(createdDatabase.cosmosDBDatabase.treeItemId!);
