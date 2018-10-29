@@ -45,7 +45,7 @@ export class FolderTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
             }
             return true;
         });
-        const children: (FolderTreeItem | FileTreeItem | LogStreamTreeItem)[] = filteredList.map((file: kuduFile) => {
+        const children: AzureTreeItem<ISiteTreeRoot>[] = filteredList.map((file: kuduFile) => {
             return file.mime === 'inode/directory' ?
                 // truncate the home of the path
                 // the substring starts at file.path.indexOf(home) because the path sometimes includes site/ or D:\
@@ -53,11 +53,9 @@ export class FolderTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
                 new FolderTreeItem(this, file.name, file.path.substring(file.path.indexOf(home) + home.length + 1), 'subFolder') :
                 new FileTreeItem(this, file.name, file.path.substring(file.path.indexOf(home) + home.length + 1));
         });
-
         if (this.contextValue === 'logFolder') {
             children.unshift(new LogStreamTreeItem(this));
         }
-
         return children;
     }
 }

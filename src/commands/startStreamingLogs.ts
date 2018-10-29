@@ -5,6 +5,7 @@
 
 import * as vscode from 'vscode';
 import * as appservice from 'vscode-azureappservice';
+import { ILogStream } from 'vscode-azureappservice';
 import { LogStreamTreeItem } from '../explorer/LogStreamTreeItem';
 import { SiteTreeItem } from "../explorer/SiteTreeItem";
 import { WebAppTreeItem } from '../explorer/WebAppTreeItem';
@@ -13,32 +14,30 @@ import { enableFileLogging } from './enableFileLogging';
 
 export async function startStreamingLogs(node?: SiteTreeItem | LogStreamTreeItem): Promise<void> {
     let logStreamTreeItem: LogStreamTreeItem | undefined;
-    let webAppTreeItem: WebAppTreeItem;
+    let siteTreeItem: SiteTreeItem;
 
     if (!node) {
-        webAppTreeItem = <WebAppTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue);
-    } else if (node.contextValue === LogStreamTreeItem.contextValue) {
-        logStreamTreeItem = <LogStreamTreeItem>node;
-        // tslint:disable-next-line:no-non-null-assertion
-        webAppTreeItem = <WebAppTreeItem>node.parent!.parent;
+        siteTreeItem = <WebAppTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue);
+    } else if (node instanceof LogStreamTreeItem) {
+        logStreamTreeItem = node;
+        siteTreeItem = <SiteTreeItem>node.parent.parent;
     } else {
-        webAppTreeItem = <WebAppTreeItem>node;
+        siteTreeItem = <SiteTreeItem>node;
     }
 
     const verifyLoggingEnabled: () => Promise<void> = async (): Promise<void> => {
         const isEnabled = await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async p => {
             p.report({ message: 'Checking container diagnostics settings...' });
-            return await webAppTreeItem.isHttpLogsEnabled();
+            return await siteTreeItem.isHttpLogsEnabled();
         });
         if (!isEnabled) {
-            await enableFileLogging(webAppTreeItem);
+            await enableFileLogging(siteTreeItem);
         }
     };
 
-    await appservice.startStreamingLogs(webAppTreeItem.root.client, verifyLoggingEnabled, webAppTreeItem.logStreamLabel);
+    const logStream: ILogStream = await appservice.startStreamingLogs(siteTreeItem.root.client, verifyLoggingEnabled, siteTreeItem.logStreamLabel);
     if (logStreamTreeItem) {
-        // don't wait for this refresh
-        // tslint:disable-next-line:no-floating-promises
-        logStreamTreeItem.refresh();
+        logStreamTreeItem.logStream = logStream;
+        await logStreamTreeItem.refresh();
     }
 }

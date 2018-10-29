@@ -249,10 +249,15 @@ export function activate(context: vscode.ExtensionContext): void {
         }
 
         await stopStreamingLogs(node.root.client);
-        if (node.contextValue === LogStreamTreeItem.contextValue) {
-            // don't wait for this refresh
-            // tslint:disable-next-line:no-floating-promises
-            node.refresh();
+        if (node instanceof LogStreamTreeItem) {
+            await node.refresh();
+        }
+    });
+    registerCommand('appService.ShowLogStream', async (node: LogStreamTreeItem) => {
+        if (node.logStream) {
+            node.logStream.outputChannel.show();
+        } else {
+            await node.refresh();
         }
     });
     registerCommand('appService.StartLogPointsSession', async function (this: IActionContext, node?: SiteTreeItem): Promise<void> {
