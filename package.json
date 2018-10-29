@@ -624,12 +624,12 @@
                 },
                 {
                     "command": "appService.RevealConnection",
-                    "when": "view == azureAppService && viewItem == cosmosDBDatabase",
+                    "when": "view == azureAppService && viewItem == cosmosDBConnection",
                     "group": "1@1"
                 },
                 {
                     "command": "appService.RemoveCosmosDBConnection",
-                    "when": "view == azureAppService && viewItem == cosmosDBDatabase",
+                    "when": "view == azureAppService && viewItem == cosmosDBConnection",
                     "group": "2@1"
                 }
             ],
@@ -846,13 +846,13 @@
     },
     "dependencies": {
         "azure-arm-resource": "^3.0.0-preview",
-        "azure-arm-website": "^4.0.0",
+        "azure-arm-website": "^5.3.0",
         "fs-extra": "^4.0.2",
         "opn": "^5.3.0",
         "portfinder": "^1.0.13",
         "request": "^2.83.0",
         "request-promise": "^4.2.2",
-        "vscode-azureappservice": "^0.23.0",
+        "vscode-azureappservice": "^0.24.1",
         "vscode-azureextensionui": "^0.18.1",
         "vscode-azurekudu": "^0.1.8",
         "vscode-debugadapter": "^1.24.0",

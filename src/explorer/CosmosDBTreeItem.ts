@@ -4,13 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as path from 'path';
+import { VSCodeCosmosDB } from 'src/vscode-cosmos.api';
 import * as vscode from 'vscode';
-import { ISiteTreeRoot } from 'vscode-azureappservice';
+import { ISiteTreeRoot, validateAppSettingKey } from 'vscode-azureappservice';
 import { AzureParentTreeItem, AzureTreeItem, GenericTreeItem, UserCancelledError } from 'vscode-azureextensionui';
-import { IConnections } from '../../src/commands/connections/IConnections';
-import * as constants from '../constants';
+import { ext } from '../extensionVariables';
 import { ConnectionsTreeItem } from './ConnectionsTreeItem';
-import { CosmosDBDatabase } from './CosmosDBDatabase';
+import { CosmosDBConnection } from './CosmosDBConnection';
 
 export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     public static contextValue: string = 'сosmosDBConnections';
@@ -38,87 +38,70 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
                 label: 'Install Cosmos DB Extension...'
             })];
         }
-        const workspaceConfig = vscode.workspace.getConfiguration(constants.extensionPrefix);
-        const connections = workspaceConfig.get<IConnections[]>(constants.configurationSettings.connections, []);
-        // tslint:disable-next-line:strict-boolean-expressions
-        const unit = connections.find((x: IConnections) => x.webAppId === this.root.client.id) || <IConnections>{};
-        if (!unit.cosmosDB || unit.cosmosDB.length === 0) {
-            return [new GenericTreeItem(this, {
-                commandId: 'appService.AddCosmosDBConnection',
-                contextValue: 'AddCosmosDBConnection',
-                label: 'Add Cosmos DB Connection...'
-            })];
+
+        if (ext.cosmosAPI === undefined) {
+            ext.cosmosAPI = <VSCodeCosmosDB>cosmosDB.exports;
         }
-        return unit.cosmosDB.map(connectionId => {
-            return new CosmosDBDatabase(this, connectionId);
+
+        const mongoAppSettingsKeys: string[] = [];
+        // tslint:disable-next-line:strict-boolean-expressions
+        const appSettings = (await this.root.client.listApplicationSettings()).properties || {};
+        Object.keys(appSettings).forEach((key) => {
+            if (/^mongodb[^:]*:\/\//i.test(appSettings[key])) {
+                mongoAppSettingsKeys.push(key);
+            }
         });
+
+        const treeItems: CosmosDBConnection[] = [];
+        for (const key of mongoAppSettingsKeys) {
+            const cosmosDBDatabase = await ext.cosmosAPI.getDatabase({ connectionString: appSettings[key] });
+            if (cosmosDBDatabase) {
+                treeItems.push(new CosmosDBConnection(this, cosmosDBDatabase, key));
+            }
+        }
+
+        if (treeItems.length > 0) {
+            return treeItems;
+        }
+
+        return [new GenericTreeItem(this, {
+            commandId: 'appService.AddCosmosDBConnection',
+            contextValue: 'AddCosmosDBConnection',
+            label: 'Add Cosmos DB Connection...'
+        })];
     }
 
     public async createChildImpl(showCreatingTreeItem: (label: string) => void): Promise<AzureTreeItem<ISiteTreeRoot>> {
-        const connectionToAdd = <string>await vscode.commands.executeCommand('cosmosDB.api.getDatabase');
-        if (!connectionToAdd) {
+        const databaseToAdd = await ext.cosmosAPI.pickDatabase();
+        if (!databaseToAdd) {
             throw new UserCancelledError();
         }
-
-        const workspaceConfig = vscode.workspace.getConfiguration(constants.extensionPrefix);
-        const allConnections = workspaceConfig.get<IConnections[]>(constants.configurationSettings.connections, []);
-        let connectionsUnit = allConnections.find((x: IConnections) => x.webAppId === this.root.client.id);
-        if (!connectionsUnit) {
-            connectionsUnit = <IConnections>{};
-            allConnections.push(connectionsUnit);
-            connectionsUnit.webAppId = this.root.client.id;
-        }
-
+        const appSettings = await this.root.client.listApplicationSettings();
+        const appSettingKeyToAdd: string = await ext.ui.showInputBox({
+            prompt: 'Enter new connection setting key',
+            validateInput: (v?: string): string | undefined => validateAppSettingKey(appSettings, v),
+            value: "MONGO_URL"
+        });
         // tslint:disable-next-line:strict-boolean-expressions
-        connectionsUnit.cosmosDB = connectionsUnit.cosmosDB || [];
-        if (!connectionsUnit.cosmosDB.find((x: string) => x === connectionToAdd)) {
-            const connectionStringValue = (<string>await vscode.commands.executeCommand('cosmosDB.api.getConnectionString', connectionToAdd));
+        appSettings.properties = appSettings.properties || {};
+        appSettings.properties[appSettingKeyToAdd] = databaseToAdd.connectionString;
+        await this.root.client.updateApplicationSettings(appSettings);
+        await this.parent.parent.appSettingsNode.refresh();
 
-            const allSettingsNames: string[] = [];
-            const appSettingsToCreate = new Map<string, string>();
-            if (/^mongo/i.test(connectionStringValue)) {
-                const mongoURLAppSetting = 'MONGO_URL';
-                allSettingsNames.push(mongoURLAppSetting);
-                appSettingsToCreate.set(mongoURLAppSetting, connectionStringValue);
-            } else {
-                const endpoint = connectionStringValue.match(/(?:^|;)AccountEndpoint=([^;]+)(?:$|;)/);
-                const masterKey = connectionStringValue.match(/(?:^|;)AccountKey=([^;]+)(?:$|;)/);
-                const databaseId = connectionStringValue.match(/(?:^|;)Database=([^;]+)(?:$|;)/);
-                if (endpoint === null || masterKey === null || databaseId === null) {
-                    throw new Error(`Failed to parse connection string.`);
-                }
-                const endpointAppSetting = 'COSMOS_ENDPOINT';
-                allSettingsNames.push(endpointAppSetting);
-                appSettingsToCreate.set(endpointAppSetting, endpoint[1]);
-                const masterKeyAppSetting = 'COSMOS_MASTER_KEY';
-                allSettingsNames.push(masterKeyAppSetting);
-                appSettingsToCreate.set(masterKeyAppSetting, masterKey[1]);
-                const databaseIdAppSetting = 'COSMOS_DATABASE_ID';
-                allSettingsNames.push(databaseIdAppSetting);
-                appSettingsToCreate.set(databaseIdAppSetting, databaseId[1]);
+        const createdDatabase = new CosmosDBConnection(this, databaseToAdd, appSettingKeyToAdd);
+        showCreatingTreeItem(createdDatabase.label);
+
+        const ok: vscode.MessageItem = { title: 'OK' };
+        const showDatabase: vscode.MessageItem = { title: 'Show Database' };
+        // Don't wait
+        vscode.window.showInformationMessage(`Database "${createdDatabase.label}" connected to web app "${this.root.client.fullName}". Created "${appSettingKeyToAdd}" app settings.`, ok, showDatabase).then(async (result: vscode.MessageItem | undefined) => {
+            if (result === showDatabase) {
+                // tslint:disable-next-line:no-non-null-assertion
+                await ext.cosmosAPI.revealTreeItem(createdDatabase.cosmosDBDatabase.treeItemId!);
             }
+        });
 
-            const appSettingsNode = this.parent.parent.appSettingsNode;
-            appSettingsToCreate.forEach(async (value, appSetting) => appSettingsNode.editSettingItem(appSetting, appSetting, value));
-            await appSettingsNode.refresh();
-
-            connectionsUnit.cosmosDB.push(connectionToAdd);
-            workspaceConfig.update(constants.configurationSettings.connections, allConnections);
-            const createdDatabase = new CosmosDBDatabase(this, connectionToAdd);
-            showCreatingTreeItem(createdDatabase.label);
-
-            const ok: vscode.MessageItem = { title: 'OK' };
-            const showDatabase: vscode.MessageItem = { title: 'Show Database' };
-            // Don't wait
-            vscode.window.showInformationMessage(`Database "${createdDatabase.label}" connected to Web App "${this.root.client.fullName}". Created ${allSettingsNames.map((s) => `"${s}"`).join(', ')} App Settings.`, ok, showDatabase).then(async (result: vscode.MessageItem | undefined) => {
-                if (result === showDatabase) {
-                    vscode.commands.executeCommand('appService.RevealConnection', createdDatabase);
-                }
-            });
-
-            return createdDatabase;
-        }
-        throw new Error(`Connection with id "${connectionToAdd}" is already attached.`);
+        return createdDatabase;
     }
 
     public hasMoreChildrenImpl(): boolean {
