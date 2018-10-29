@@ -624,12 +624,12 @@
                 },
                 {
                     "command": "appService.RevealConnection",
-                    "when": "view == azureAppService && viewItem == cosmosDBDatabase",
+                    "when": "view == azureAppService && viewItem == cosmosDBConnection",
                     "group": "1@1"
                 },
                 {
                     "command": "appService.RemoveCosmosDBConnection",
-                    "when": "view == azureAppService && viewItem == cosmosDBDatabase",
+                    "when": "view == azureAppService && viewItem == cosmosDBConnection",
                     "group": "2@1"
                 }
             ],

@@ -7,18 +7,18 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { ISiteTreeRoot } from 'vscode-azureappservice';
 import { AzureTreeItem } from 'vscode-azureextensionui';
-import { CosmosDBItem } from '../vscode-cosmos.api';
+import { CosmosDBDatabase } from '../vscode-cosmos.api';
 import { CosmosDBTreeItem } from './CosmosDBTreeItem';
 
-export class CosmosDBDatabase extends AzureTreeItem<ISiteTreeRoot> {
-    public static contextValue: string = 'cosmosDBDatabase';
-    public readonly contextValue: string = CosmosDBDatabase.contextValue;
+export class CosmosDBConnection extends AzureTreeItem<ISiteTreeRoot> {
+    public static contextValue: string = 'cosmosDBConnection';
+    public readonly contextValue: string = CosmosDBConnection.contextValue;
     public readonly label: string;
     public readonly parent: CosmosDBTreeItem;
 
-    constructor(parent: CosmosDBTreeItem, readonly cosmosDBItem: CosmosDBItem, readonly appSettingName: string) {
+    constructor(parent: CosmosDBTreeItem, readonly cosmosDBDatabase: CosmosDBDatabase, readonly appSettingName: string) {
         super(parent);
-        this.label = `${cosmosDBItem.accountName}/${cosmosDBItem.databaseName}`;
+        this.label = `${cosmosDBDatabase.accountName}/${cosmosDBDatabase.databaseName}`;
     }
 
     public get iconPath(): string | vscode.Uri | { light: string | vscode.Uri; dark: string | vscode.Uri } {

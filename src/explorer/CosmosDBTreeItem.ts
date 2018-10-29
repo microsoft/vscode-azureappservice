@@ -6,11 +6,11 @@
 import * as path from 'path';
 import { VSCodeCosmosDB } from 'src/vscode-cosmos.api';
 import * as vscode from 'vscode';
-import { ISiteTreeRoot, validateNewKeyInput } from 'vscode-azureappservice';
+import { ISiteTreeRoot, validateAppSettingKey } from 'vscode-azureappservice';
 import { AzureParentTreeItem, AzureTreeItem, GenericTreeItem, UserCancelledError } from 'vscode-azureextensionui';
 import { ext } from '../extensionVariables';
 import { ConnectionsTreeItem } from './ConnectionsTreeItem';
-import { CosmosDBDatabase } from './CosmosDBDatabase';
+import { CosmosDBConnection } from './CosmosDBConnection';
 
 export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     public static contextValue: string = 'сosmosDBConnections';
@@ -52,11 +52,11 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
             }
         });
 
-        const treeItems: CosmosDBDatabase[] = [];
+        const treeItems: CosmosDBConnection[] = [];
         for (const key of mongoAppSettingsKeys) {
-            const cosmosDBItem = await ext.cosmosAPI.getDatabase({ connectionString: appSettings[key] });
-            if (cosmosDBItem) {
-                treeItems.push(new CosmosDBDatabase(this, cosmosDBItem, key));
+            const cosmosDBDatabase = await ext.cosmosAPI.getDatabase({ connectionString: appSettings[key] });
+            if (cosmosDBDatabase) {
+                treeItems.push(new CosmosDBConnection(this, cosmosDBDatabase, key));
             }
         }
 
@@ -80,7 +80,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         const appSettings = await this.root.client.listApplicationSettings() || {};
         const appSettingKeyToAdd: string = await ext.ui.showInputBox({
             prompt: 'Enter new connection setting key',
-            validateInput: (v?: string): string | undefined => validateNewKeyInput(appSettings, v)
+            validateInput: (v?: string): string | undefined => validateAppSettingKey(appSettings, v)
         });
         // tslint:disable-next-line:strict-boolean-expressions
         appSettings.properties = appSettings.properties || {};
@@ -88,7 +88,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         await this.root.client.updateApplicationSettings(appSettings);
         await this.parent.parent.appSettingsNode.refresh();
 
-        const createdDatabase = new CosmosDBDatabase(this, databaseToAdd, appSettingKeyToAdd);
+        const createdDatabase = new CosmosDBConnection(this, databaseToAdd, appSettingKeyToAdd);
         showCreatingTreeItem(createdDatabase.label);
 
         const ok: vscode.MessageItem = { title: 'OK' };
@@ -97,7 +97,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         vscode.window.showInformationMessage(`Database "${createdDatabase.label}" connected to Web App "${this.root.client.fullName}". Created "${appSettingKeyToAdd}" App Settings.`, ok, showDatabase).then(async (result: vscode.MessageItem | undefined) => {
             if (result === showDatabase) {
                 // tslint:disable-next-line:no-non-null-assertion
-                await ext.cosmosAPI.revealTreeItem(createdDatabase.cosmosDBItem.treeItemId!);
+                await ext.cosmosAPI.revealTreeItem(createdDatabase.cosmosDBDatabase.treeItemId!);
             }
         });
 

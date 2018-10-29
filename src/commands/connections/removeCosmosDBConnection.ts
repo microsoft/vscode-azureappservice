@@ -3,10 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { CosmosDBDatabase } from '../../explorer/CosmosDBDatabase';
+import { CosmosDBConnection } from '../../explorer/CosmosDBConnection';
 import { ext } from "../../extensionVariables";
 
-export async function removeCosmosDBConnection(node: CosmosDBDatabase): Promise<void> {
+export async function removeCosmosDBConnection(node: CosmosDBConnection): Promise<void> {
     await node.deleteTreeItem();
     await ext.tree.refresh(node.parent);
 }
