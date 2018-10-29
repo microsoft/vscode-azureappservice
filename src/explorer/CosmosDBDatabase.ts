@@ -26,7 +26,7 @@ export class CosmosDBDatabase extends AzureTreeItem<ISiteTreeRoot> {
     constructor(parent: CosmosDBTreeItem, readonly cosmosDBItem: CosmosDBItem, readonly appSettingName: string) {
         super(parent);
         if (cosmosDBItem.accountName && cosmosDBItem.databaseName) {
-            this.label = cosmosDBItem.accountName + String("/") + cosmosDBItem.databaseName;
+            this.label = `${cosmosDBItem.accountName}/${cosmosDBItem.databaseName}`;
         } else {
             throw new Error("Couldn't get correct database from CosmosDB.");
         }

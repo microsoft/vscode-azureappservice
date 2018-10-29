@@ -6,7 +6,7 @@
 import * as path from 'path';
 import { CosmosDBItem, VSCodeCosmosDB } from 'src/vscode-cosmos.api';
 import * as vscode from 'vscode';
-import { ISiteTreeRoot } from 'vscode-azureappservice';
+import { AppSettingTreeItem, ISiteTreeRoot } from 'vscode-azureappservice';
 import { AzureParentTreeItem, AzureTreeItem, GenericTreeItem, UserCancelledError } from 'vscode-azureextensionui';
 import { ext } from '../extensionVariables';
 import { ConnectionsTreeItem } from './ConnectionsTreeItem';
@@ -85,37 +85,18 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
 
     public async createChildImpl(showCreatingTreeItem: (label: string) => void): Promise<AzureTreeItem<ISiteTreeRoot>> {
         const databaseToAdd = await ext.cosmosAPI.pickDatabase();
-        const appSettingToAddKey = 'MONGO_URL';  // On the top picker asks for the name of connection
 
         if (!databaseToAdd || !databaseToAdd.connectionString) {
             throw new UserCancelledError();
         }
 
-        const connectionStringToAdd = databaseToAdd.connectionString;
-        const allAppSettings = await this.root.client.listApplicationSettings();
-        if (allAppSettings.properties) {
-            const dictionary = allAppSettings.properties;
-            const objectDictionary = Object.keys(dictionary);
-            const foundConnection = objectDictionary.find(key => {
-                if (dictionary[key] === connectionStringToAdd) {
-                    return true;
-                }
-                return false;
-            });
-
-            if (foundConnection) {
-                throw new Error(`This Connection is already attached with "${objectDictionary[foundConnection]}" App Settings Name.`);
-            }
-        }
-
-        const createdDatabase = new CosmosDBDatabase(this, databaseToAdd, appSettingToAddKey);
-
         const appSettingsNode = this.parent.parent.appSettingsNode;
-        await appSettingsNode.editSettingItem(appSettingToAddKey, appSettingToAddKey, connectionStringToAdd);
-        await appSettingsNode.refresh();
+        const appSettingKeyToAdd = (<AppSettingTreeItem>await appSettingsNode.createChild(databaseToAdd.connectionString)).id;
+
+        const createdDatabase = new CosmosDBDatabase(this, databaseToAdd, appSettingKeyToAdd);
         showCreatingTreeItem(createdDatabase.label);
 
-        const allAppSettingsToAddKeys: string[] = [appSettingToAddKey];
+        const allAppSettingsToAddKeys: string[] = [appSettingKeyToAdd];
         const ok: vscode.MessageItem = { title: 'OK' };
         const showDatabase: vscode.MessageItem = { title: 'Show Database' };
         // Don't wait
