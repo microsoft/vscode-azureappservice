@@ -15,6 +15,7 @@ import { extensionPrefix } from '../constants';
 import { ConnectionsTreeItem } from './ConnectionsTreeItem';
 import { DeploymentSlotsNATreeItem, DeploymentSlotsTreeItem } from './DeploymentSlotsTreeItem';
 import { DeploymentSlotTreeItem } from './DeploymentSlotTreeItem';
+import { DeploymentsTreeItem } from './DeploymentsTreeItem';
 import { FolderTreeItem } from './FolderTreeItem';
 import { SiteTreeItem } from './SiteTreeItem';
 import { WebJobsTreeItem } from './WebJobsTreeItem';
@@ -28,6 +29,7 @@ export class WebAppTreeItem extends SiteTreeItem {
     public readonly folderNode: FolderTreeItem;
     public readonly logFolderNode: FolderTreeItem;
     public readonly connectionsNode: ConnectionsTreeItem;
+    public readonly deploymentsNode: DeploymentsTreeItem;
 
     constructor(parent: AzureParentTreeItem, client: SiteClient) {
         super(parent, client);
@@ -36,6 +38,7 @@ export class WebAppTreeItem extends SiteTreeItem {
         this.webJobsNode = new WebJobsTreeItem(this);
         this.appSettingsNode = new AppSettingsTreeItem(this);
         this.connectionsNode = new ConnectionsTreeItem(this);
+        this.deploymentsNode = new DeploymentsTreeItem(this);
     }
 
     public get iconPath(): { light: string, dark: string } {
@@ -51,7 +54,7 @@ export class WebAppTreeItem extends SiteTreeItem {
         const tier: string | undefined = asp && asp.sku && asp.sku.tier;
         // tslint:disable-next-line:no-non-null-assertion
         this.deploymentSlotsNode = tier && /^(basic|free|shared)$/i.test(tier) ? new DeploymentSlotsNATreeItem(this, tier, asp!.id!) : new DeploymentSlotsTreeItem(this);
-        const nodes: AzureTreeItem<ISiteTreeRoot>[] = [this.deploymentSlotsNode, this.folderNode, this.logFolderNode, this.webJobsNode, this.appSettingsNode];
+        const nodes: AzureTreeItem<ISiteTreeRoot>[] = [this.deploymentSlotsNode, this.folderNode, this.logFolderNode, this.webJobsNode, this.appSettingsNode, this.deploymentsNode];
         const workspaceConfig = vscode.workspace.getConfiguration(constants.extensionPrefix);
         if (workspaceConfig.get(constants.configurationSettings.enableConnectionsNode)) {
             nodes.push(this.connectionsNode);
@@ -71,6 +74,8 @@ export class WebAppTreeItem extends SiteTreeItem {
                 return this.folderNode;
             case WebJobsTreeItem.contextValue:
                 return this.webJobsNode;
+            case DeploymentsTreeItem.contextValue:
+                return this.deploymentsNode;
             default:
                 return undefined;
         }
