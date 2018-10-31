@@ -253,13 +253,6 @@ export function activate(context: vscode.ExtensionContext): void {
             await node.refresh();
         }
     });
-    registerCommand('appService.ShowLogStream', async (node: LogStreamTreeItem) => {
-        if (node.logStream) {
-            node.logStream.outputChannel.show();
-        } else {
-            await node.refresh();
-        }
-    });
     registerCommand('appService.StartLogPointsSession', async function (this: IActionContext, node?: SiteTreeItem): Promise<void> {
         if (node) {
             const wizard = new LogPointsSessionWizard(logPointsManager, context, ext.outputChannel, node, node.root.client);

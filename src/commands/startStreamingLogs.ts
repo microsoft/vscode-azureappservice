@@ -5,7 +5,6 @@
 
 import * as vscode from 'vscode';
 import * as appservice from 'vscode-azureappservice';
-import { ILogStream } from 'vscode-azureappservice';
 import { LogStreamTreeItem } from '../explorer/LogStreamTreeItem';
 import { SiteTreeItem } from "../explorer/SiteTreeItem";
 import { WebAppTreeItem } from '../explorer/WebAppTreeItem';
@@ -13,13 +12,11 @@ import { ext } from '../extensionVariables';
 import { enableFileLogging } from './enableFileLogging';
 
 export async function startStreamingLogs(node?: SiteTreeItem | LogStreamTreeItem): Promise<void> {
-    let logStreamTreeItem: LogStreamTreeItem | undefined;
     let siteTreeItem: SiteTreeItem;
 
     if (!node) {
         siteTreeItem = <WebAppTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue);
     } else if (node instanceof LogStreamTreeItem) {
-        logStreamTreeItem = node;
         siteTreeItem = <SiteTreeItem>node.parent.parent;
     } else {
         siteTreeItem = <SiteTreeItem>node;
@@ -35,9 +32,5 @@ export async function startStreamingLogs(node?: SiteTreeItem | LogStreamTreeItem
         }
     };
 
-    const logStream: ILogStream = await appservice.startStreamingLogs(siteTreeItem.root.client, verifyLoggingEnabled, siteTreeItem.logStreamLabel);
-    if (logStreamTreeItem) {
-        logStreamTreeItem.logStream = logStream;
-        await logStreamTreeItem.refresh();
-    }
+    await appservice.startStreamingLogs(siteTreeItem.root.client, verifyLoggingEnabled, siteTreeItem.logStreamLabel);
 }

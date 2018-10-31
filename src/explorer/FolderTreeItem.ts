@@ -19,15 +19,6 @@ export class FolderTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     constructor(parent: AzureParentTreeItem, readonly label: string, readonly folderPath: string, readonly subcontextValue?: string) {
         super(parent);
         this.contextValue = subcontextValue ? subcontextValue : FolderTreeItem.contextValue;
-        this.compareChildrenImpl = (ti1: AzureTreeItem<ISiteTreeRoot>, ti2: AzureTreeItem<ISiteTreeRoot>) => {
-            if (!(ti1 instanceof LogStreamTreeItem) && ti2 instanceof LogStreamTreeItem) {
-                return 1;
-            }
-            if (ti1 instanceof LogStreamTreeItem && !(ti2 instanceof LogStreamTreeItem)) {
-                return -1;
-            }
-            return ti1.label.localeCompare(ti2.label);
-        };
     }
 
     public get iconPath(): { light: string, dark: string } | undefined {
@@ -66,6 +57,16 @@ export class FolderTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
             children.unshift(new LogStreamTreeItem(this));
         }
         return children;
+    }
+
+    public compareChildrenImpl(ti1: AzureTreeItem<ISiteTreeRoot>, ti2: AzureTreeItem<ISiteTreeRoot>): number {
+        if (!(ti1 instanceof LogStreamTreeItem) && ti2 instanceof LogStreamTreeItem) {
+            return 1;
+        }
+        if (ti1 instanceof LogStreamTreeItem && !(ti2 instanceof LogStreamTreeItem)) {
+            return -1;
+        }
+        return ti1.label.localeCompare(ti2.label);
     }
 }
 
