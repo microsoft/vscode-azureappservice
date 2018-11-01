@@ -32,7 +32,7 @@ export class WebAppTreeItem extends SiteTreeItem {
     constructor(parent: AzureParentTreeItem, client: SiteClient) {
         super(parent, client);
         this.folderNode = new FolderTreeItem(this, 'Files', "/site/wwwroot");
-        this.logFolderNode = new FolderTreeItem(this, 'Log Files', '/LogFiles', 'logFolder');
+        this.logFolderNode = new FolderTreeItem(this, 'Logs', '/LogFiles', 'logFolder');
         this.webJobsNode = new WebJobsTreeItem(this);
         this.appSettingsNode = new AppSettingsTreeItem(this);
         this.connectionsNode = new ConnectionsTreeItem(this);

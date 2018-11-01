@@ -5,27 +5,32 @@
 
 import * as vscode from 'vscode';
 import * as appservice from 'vscode-azureappservice';
+import { LogStreamTreeItem } from '../explorer/LogStreamTreeItem';
 import { SiteTreeItem } from "../explorer/SiteTreeItem";
 import { WebAppTreeItem } from '../explorer/WebAppTreeItem';
 import { ext } from '../extensionVariables';
 import { enableFileLogging } from './enableFileLogging';
 
-export async function startStreamingLogs(node?: SiteTreeItem): Promise<void> {
+export async function startStreamingLogs(node?: SiteTreeItem | LogStreamTreeItem): Promise<void> {
+    let siteTreeItem: SiteTreeItem;
+
     if (!node) {
-        node = <WebAppTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue);
+        siteTreeItem = <WebAppTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue);
+    } else if (node instanceof LogStreamTreeItem) {
+        siteTreeItem = <SiteTreeItem>node.parent.parent;
+    } else {
+        siteTreeItem = node;
     }
 
     const verifyLoggingEnabled: () => Promise<void> = async (): Promise<void> => {
         const isEnabled = await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async p => {
             p.report({ message: 'Checking container diagnostics settings...' });
-            // tslint:disable-next-line:no-non-null-assertion
-            return await node!.isHttpLogsEnabled();
+            return await siteTreeItem.isHttpLogsEnabled();
         });
         if (!isEnabled) {
-            // tslint:disable-next-line:no-non-null-assertion
-            await enableFileLogging(node!);
+            await enableFileLogging(siteTreeItem);
         }
     };
 
-    await appservice.startStreamingLogs(node.root.client, verifyLoggingEnabled, node.logStreamLabel);
+    await appservice.startStreamingLogs(siteTreeItem.root.client, verifyLoggingEnabled, siteTreeItem.logStreamLabel);
 }
