@@ -237,6 +237,11 @@
                 "command": "appService.RemoveCosmosDBConnection",
                 "title": "Remove Connection",
                 "category": "Azure App Service"
+            },
+            {
+                "command": "appService.RedeployDeployment",
+                "title": "Redeploy Deployment",
+                "category": "Azure App Service"
             }
         ],
         "viewsContainers": {
@@ -630,6 +635,31 @@
                 {
                     "command": "appService.RemoveCosmosDBConnection",
                     "when": "view == azureAppService && viewItem == cosmosDBConnection",
+                    "group": "2@1"
+                },
+                {
+                    "command": "appService.OpenInPortal",
+                    "when": "view == azureAppService && viewItem == deployments",
+                    "group": "1@1"
+                },
+                {
+                    "command": "appService.Refresh",
+                    "when": "view == azureAppService && viewItem == deployments",
+                    "group": "2@1"
+                },
+                {
+                    "command": "appService.RedeployDeployment",
+                    "when": "view == azureAppService && viewItem == deployment",
+                    "group": "1@1"
+                },
+                {
+                    "command": "appService.OpenInPortal",
+                    "when": "view == azureAppService && viewItem == deployment",
+                    "group": "1@2"
+                },
+                {
+                    "command": "appService.Refresh",
+                    "when": "view == azureAppService && viewItem == deployment",
                     "group": "2@1"
                 }
             ],

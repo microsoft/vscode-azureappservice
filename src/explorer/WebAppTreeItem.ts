@@ -13,9 +13,9 @@ import { AzureParentTreeItem, AzureTreeItem, createAzureClient } from 'vscode-az
 import * as constants from '../constants';
 import { extensionPrefix } from '../constants';
 import { ConnectionsTreeItem } from './ConnectionsTreeItem';
+import { DeploymentsTreeItem } from './Deployments/DeploymentsTreeItem';
 import { DeploymentSlotsNATreeItem, DeploymentSlotsTreeItem } from './DeploymentSlotsTreeItem';
 import { DeploymentSlotTreeItem } from './DeploymentSlotTreeItem';
-import { DeploymentsTreeItem } from './DeploymentsTreeItem';
 import { FolderTreeItem } from './FolderTreeItem';
 import { SiteTreeItem } from './SiteTreeItem';
 import { WebJobsTreeItem } from './WebJobsTreeItem';

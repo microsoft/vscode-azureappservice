@@ -20,6 +20,9 @@ import { startRemoteDebug } from './commands/remoteDebug/startRemoteDebug';
 import { startStreamingLogs } from './commands/startStreamingLogs';
 import { swapSlots } from './commands/swapSlots';
 import { CosmosDBConnection } from './explorer/CosmosDBConnection';
+import { ConnectToGitHubTreeItem } from './explorer/Deployments/DeploymentsTreeItem';
+import { DeploymentTreeItem } from './explorer/Deployments/DeploymentTreeItem';
+import { LogEntryTreeItem } from './explorer/Deployments/LogEntryTreeItem';
 import { DeploymentSlotsNATreeItem, DeploymentSlotsTreeItem, ScaleUpTreeItem } from './explorer/DeploymentSlotsTreeItem';
 import { DeploymentSlotTreeItem } from './explorer/DeploymentSlotTreeItem';
 import { FileEditor } from './explorer/editors/FileEditor';
@@ -171,7 +174,10 @@ export function activate(context: vscode.ExtensionContext): void {
     registerCommand('appService.Deploy', async function (this: IActionContext, target?: vscode.Uri | WebAppTreeItem | undefined): Promise<void> {
         await deploy(this, true, target);
     });
-    registerCommand('appService.ConfigureDeploymentSource', async (node?: SiteTreeItem) => {
+    registerCommand('appService.ConfigureDeploymentSource', async (node?: SiteTreeItem | ConnectToGitHubTreeItem) => {
+        if (node instanceof ConnectToGitHubTreeItem) {
+            node = node.parent.parent;
+        }
         if (!node) {
             node = <SiteTreeItem>await tree.showTreeItemPicker(WebAppTreeItem.contextValue);
         }
@@ -318,6 +324,8 @@ export function activate(context: vscode.ExtensionContext): void {
     registerCommand('appService.AddCosmosDBConnection', addCosmosDBConnection);
     registerCommand('appService.RemoveCosmosDBConnection', removeCosmosDBConnection);
     registerCommand('appService.RevealConnection', async (node: CosmosDBConnection) => ext.cosmosAPI.revealTreeItem(node.cosmosDBDatabase.treeItemId));
+    registerCommand('appService.getDeploymentLog', async (node: LogEntryTreeItem) => await node.getDeploymentLog());
+    registerCommand('appService.RedeployDeployment', async (node: DeploymentTreeItem) => await node.redeployDeployment());
 }
 
 // tslint:disable-next-line:no-empty
