@@ -19,7 +19,7 @@ export async function startStreamingLogs(node?: SiteTreeItem | LogStreamTreeItem
     } else if (node instanceof LogStreamTreeItem) {
         siteTreeItem = <SiteTreeItem>node.parent.parent;
     } else {
-        siteTreeItem = <SiteTreeItem>node;
+        siteTreeItem = node;
     }
 
     const verifyLoggingEnabled: () => Promise<void> = async (): Promise<void> => {

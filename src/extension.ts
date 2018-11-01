@@ -249,9 +249,6 @@ export function activate(context: vscode.ExtensionContext): void {
         }
 
         await stopStreamingLogs(node.root.client);
-        if (node instanceof LogStreamTreeItem) {
-            await node.refresh();
-        }
     });
     registerCommand('appService.StartLogPointsSession', async function (this: IActionContext, node?: SiteTreeItem): Promise<void> {
         if (node) {
