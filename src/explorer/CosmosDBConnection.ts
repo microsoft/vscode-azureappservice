@@ -34,30 +34,32 @@ export class CosmosDBConnection extends AzureTreeItem<ISiteTreeRoot> {
 
         const appSettings = await this.root.client.listApplicationSettings();
         // tslint:disable-next-line:strict-boolean-expressions
-        const properties = appSettings.properties || {};
-        const keysToDelete: string[] = [];
-        Object.keys(properties).forEach((key) => {
-            if (properties[key] === valueToDelete) {
-                keysToDelete.push(key);
-            }
-        });
+        const properties = appSettings.properties;
+        if (properties) {
+            const keysToDelete: string[] = [];
+            Object.keys(properties).forEach((key) => {
+                if (properties[key] === valueToDelete) {
+                    keysToDelete.push(key);
+                }
+            });
 
-        if (keysToDelete.length > 0) {
-            const warning: string = `This will delete your existing ${keysToDelete.map((s) => `"${s}"`).join(', ')} Application Setting${keysToDelete.length > 1 ? "s" : ""}. Are you sure you want to delete this connection?`;
-            const items: vscode.MessageItem[] = [DialogResponses.yes, DialogResponses.cancel];
-            const result: vscode.MessageItem = await ext.ui.showWarningMessage(warning, { modal: true }, ...items);
-            if (result === DialogResponses.cancel) {
-                throw new UserCancelledError();
+            if (keysToDelete.length > 0) {
+                const warning: string = `This will delete your existing ${keysToDelete.map((s) => `"${s}"`).join(', ')} Application Setting${keysToDelete.length > 1 ? "s" : ""}. Are you sure you want to delete this connection?`;
+                const items: vscode.MessageItem[] = [DialogResponses.yes, DialogResponses.cancel];
+                const result: vscode.MessageItem = await ext.ui.showWarningMessage(warning, { modal: true }, ...items);
+                if (result === DialogResponses.cancel) {
+                    throw new UserCancelledError();
+                }
             }
+            const propertiesToSave: { [propertyname: string]: string } = {};
+            Object.keys(properties).forEach((key) => {
+                if (!keysToDelete.find((str) => { return str === key; })) {
+                    propertiesToSave[key] = properties[key];
+                }
+            });
+            appSettings.properties = propertiesToSave;
+            await this.root.client.updateApplicationSettings(appSettings);
+            await this.parent.parent.parent.appSettingsNode.refresh();
         }
-        const propertiesToSave: { [propertyname: string]: string } = {};
-        Object.keys(properties).forEach((key) => {
-            if (!keysToDelete.find((str) => { return str === key; })) {
-                propertiesToSave[key] = properties[key];
-            }
-        });
-        appSettings.properties = propertiesToSave;
-        await this.root.client.updateApplicationSettings(appSettings);
-        await this.parent.parent.parent.appSettingsNode.refresh();
     }
 }
