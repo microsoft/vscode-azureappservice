@@ -3,8 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ExtensionContext, OutputChannel } from "vscode";
-import { AzureTreeDataProvider, IAzureUserInput, ITelemetryReporter } from "vscode-azureextensionui";
+import { ExtensionContext, OutputChannel, TreeView } from "vscode";
+import { AzureTreeDataProvider, AzureTreeItem, IAzureUserInput, ISubscriptionRoot, ITelemetryReporter } from "vscode-azureextensionui";
 import { VSCodeCosmosDB } from "./vscode-cosmos.api";
 
 /**
@@ -17,4 +17,5 @@ export namespace ext {
     export let reporter: ITelemetryReporter;
     export let context: ExtensionContext;
     export let cosmosAPI: VSCodeCosmosDB;
+    export let treeView: TreeView<AzureTreeItem<ISubscriptionRoot>>;
 }
