@@ -44,11 +44,13 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         }
 
         const mongoAppSettingsKeys: string[] = [];
+        const usedValue: { [key: string]: boolean } = {};
         // tslint:disable-next-line:strict-boolean-expressions
         const appSettings = (await this.root.client.listApplicationSettings()).properties || {};
         Object.keys(appSettings).forEach((key) => {
-            if (/^mongodb[^:]*:\/\//i.test(appSettings[key])) {
+            if (/^mongodb[^:]*:\/\//i.test(appSettings[key]) && !usedValue[appSettings[key]]) {
                 mongoAppSettingsKeys.push(key);
+                usedValue[appSettings[key]] = true;
             }
         });
 
