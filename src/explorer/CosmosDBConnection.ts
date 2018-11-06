@@ -21,7 +21,6 @@ export class CosmosDBConnection extends AzureTreeItem<ISiteTreeRoot> {
         this.label = CosmosDBConnection.makeLabel(cosmosDBDatabase);
     }
 
-    // tslint:disable-next-line:function-name
     public static makeLabel(cosmosDBDatabase: CosmosDBDatabase): string {
         return `${cosmosDBDatabase.accountName}/${cosmosDBDatabase.databaseName}`;
     }
