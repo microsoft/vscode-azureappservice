@@ -53,7 +53,6 @@ export class CosmosDBConnection extends AzureTreeItem<ISiteTreeRoot> {
             keysToDelete.forEach((key) => {
                 delete properties[key];
             });
-            appSettings.properties = properties;
             await this.root.client.updateApplicationSettings(appSettings);
             await this.parent.parent.parent.appSettingsNode.refresh();
         }
