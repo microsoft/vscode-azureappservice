@@ -17,6 +17,12 @@
             false,
             "classes"
         ],
+        "function-name": [
+            true,
+            {
+                "static-method-regex": "^[a-z][a-zA-Z_\\d]+$"
+            }
+        ],
         "import-name": false,
         "max-line-length": [
             false,

@@ -53,10 +53,15 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         });
 
         const treeItems: CosmosDBConnection[] = [];
+        const usedLabels: { [key: string]: boolean } = {};
         for (const key of mongoAppSettingsKeys) {
             const cosmosDBDatabase = await ext.cosmosAPI.getDatabase({ connectionString: appSettings[key] });
             if (cosmosDBDatabase) {
-                treeItems.push(new CosmosDBConnection(this, cosmosDBDatabase, key));
+                const label = CosmosDBConnection.makeLabel(cosmosDBDatabase);
+                if (!usedLabels[label]) {
+                    usedLabels[label] = true;
+                    treeItems.push(new CosmosDBConnection(this, cosmosDBDatabase, key));
+                }
             }
         }
 
