@@ -53,8 +53,9 @@ export function activate(context: vscode.ExtensionContext): void {
     const tree = new AzureTreeDataProvider(WebAppProvider, 'appService.LoadMore');
     ext.tree = tree;
     context.subscriptions.push(tree);
-    context.subscriptions.push(vscode.window.registerTreeDataProvider('azureAppService', tree));
+
     ext.treeView = vscode.window.createTreeView('azureAppService', { treeDataProvider: tree });
+    context.subscriptions.push(ext.treeView);
 
     const fileEditor: FileEditor = new FileEditor();
     context.subscriptions.push(fileEditor);

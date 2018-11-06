@@ -639,12 +639,12 @@
                 {
                     "command": "appService.RevealConnectionInAppSettings",
                     "when": "view == azureAppService && viewItem == cosmosDBConnection",
-                    "group": "2@1"
+                    "group": "1@2"
                 },
                 {
                     "command": "appService.RemoveCosmosDBConnection",
                     "when": "view == azureAppService && viewItem == cosmosDBConnection",
-                    "group": "3@1"
+                    "group": "2@1"
                 }
             ],
             "explorer/context": [

@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { ExtensionContext, OutputChannel, TreeView } from "vscode";
-import { AzureTreeDataProvider, AzureTreeItem, IAzureUserInput, ISubscriptionRoot, ITelemetryReporter } from "vscode-azureextensionui";
+import { AzureTreeDataProvider, AzureTreeItem, IAzureUserInput, ITelemetryReporter } from "vscode-azureextensionui";
 import { VSCodeCosmosDB } from "./vscode-cosmos.api";
 
 /**
@@ -17,5 +17,5 @@ export namespace ext {
     export let reporter: ITelemetryReporter;
     export let context: ExtensionContext;
     export let cosmosAPI: VSCodeCosmosDB;
-    export let treeView: TreeView<AzureTreeItem<ISubscriptionRoot>>;
+    export let treeView: TreeView<AzureTreeItem>;
 }
