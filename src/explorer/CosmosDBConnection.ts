@@ -18,7 +18,12 @@ export class CosmosDBConnection extends AzureTreeItem<ISiteTreeRoot> {
 
     constructor(parent: CosmosDBTreeItem, readonly cosmosDBDatabase: CosmosDBDatabase, readonly appSettingName: string) {
         super(parent);
-        this.label = `${cosmosDBDatabase.accountName}/${cosmosDBDatabase.databaseName}`;
+        this.label = CosmosDBConnection.makeLabel(cosmosDBDatabase);
+    }
+
+    // tslint:disable-next-line:function-name
+    public static makeLabel(cosmosDBDatabase: CosmosDBDatabase): string {
+        return `${cosmosDBDatabase.accountName}/${cosmosDBDatabase.databaseName}`;
     }
 
     public get iconPath(): string | vscode.Uri | { light: string | vscode.Uri; dark: string | vscode.Uri } {
