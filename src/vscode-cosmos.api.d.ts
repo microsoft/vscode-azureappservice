@@ -19,7 +19,6 @@ export interface VSCodeCosmosDB {
 
     /**
      *  Traverses the CosmosDB tree with a quick pick at each level. Goes until find item with database-level context value. Returns the CosmosDBDatabase object based on picked db.
-     *  Returns undefined(not UserCancelledError) because it's VS Code pattern and we follow it in the "official" API
      */
     pickDatabase(): Promise<CosmosDBDatabase | undefined>;
 
