@@ -33,7 +33,6 @@ export class CosmosDBConnection extends AzureTreeItem<ISiteTreeRoot> {
         const valueToDelete = this.cosmosDBDatabase.connectionString;
 
         const appSettings = await this.root.client.listApplicationSettings();
-        // tslint:disable-next-line:strict-boolean-expressions
         const properties = appSettings.properties;
         if (properties) {
             const keysToDelete: string[] = [];
@@ -44,20 +43,17 @@ export class CosmosDBConnection extends AzureTreeItem<ISiteTreeRoot> {
             });
 
             if (keysToDelete.length > 0) {
-                const warning: string = `This will delete your existing ${keysToDelete.map((s) => `"${s}"`).join(', ')} Application Setting${keysToDelete.length > 1 ? "s" : ""}. Are you sure you want to delete this connection?`;
-                const items: vscode.MessageItem[] = [DialogResponses.yes, DialogResponses.cancel];
+                const warning: string = `Are you sure you want to remove connection "${this.label}"? This will delete the following application settings: ${keysToDelete.map((s) => `"${s}"`).join(', ')}.`;
+                const items: vscode.MessageItem[] = [DialogResponses.deleteResponse, DialogResponses.cancel];
                 const result: vscode.MessageItem = await ext.ui.showWarningMessage(warning, { modal: true }, ...items);
                 if (result === DialogResponses.cancel) {
                     throw new UserCancelledError();
                 }
             }
-            const propertiesToSave: { [propertyname: string]: string } = {};
-            Object.keys(properties).forEach((key) => {
-                if (!keysToDelete.find((str) => { return str === key; })) {
-                    propertiesToSave[key] = properties[key];
-                }
+            keysToDelete.forEach((key) => {
+                delete properties[key];
             });
-            appSettings.properties = propertiesToSave;
+            appSettings.properties = properties;
             await this.root.client.updateApplicationSettings(appSettings);
             await this.parent.parent.parent.appSettingsNode.refresh();
         }

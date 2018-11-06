@@ -6,22 +6,16 @@
 export interface CosmosDBDatabase {
     accountName: string
     connectionString: string
-    databaseName: string
     treeItemId: string
+    databaseName: string
 }
 
 export interface VSCodeCosmosDB {
     /**
-     * Attach database as Attached Database Account and returns the CosmosDBDatabase object of it
-     * @param connectionString The database connection string
-     */
-    attachDatabase(databaseInfo: { connectionString: string }): Promise<CosmosDBDatabase | undefined>;
-
-    /**
      * Finds the database in CosmosDB and returns CosmosDBDatabase object or undefined if can't find
-     * @param searchCriteria The database connection string
+     * @param detectionData The database connection string
      */
-    getDatabase(searchCriteria: { connectionString: string }): Promise<CosmosDBDatabase | undefined>;
+    getDatabase(detectionData: { connectionString: string }): Promise<CosmosDBDatabase | undefined>;
 
     /**
      *  Traverses the CosmosDB tree with a quick pick at each level. Goes until find item with database-level context value. Returns the CosmosDBDatabase object based on picked db.
@@ -30,8 +24,8 @@ export interface VSCodeCosmosDB {
     pickDatabase(): Promise<CosmosDBDatabase | undefined>;
 
     /**
-     * Reveal tree item in the CosmosDB explorer by its id, returns undefined if couldn't find the item
+     * Reveal tree item in the CosmosDB explorer by its id
      * @param treeItemId The id of the CosmosDB tree item
      */
-    revealTreeItem(treeItemId: string): Promise<boolean>;
+    revealTreeItem(treeItemId: string): Promise<void>;
 }
