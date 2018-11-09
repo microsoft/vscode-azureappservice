@@ -7,7 +7,7 @@ import * as path from 'path';
 import { CosmosDBExtensionApi, DatabaseTreeItem, PickTreeItemOptions } from 'src/vscode-cosmos.api';
 import * as vscode from 'vscode';
 import { ISiteTreeRoot, validateAppSettingKey } from 'vscode-azureappservice';
-import { AzureParentTreeItem, AzureTreeItem, GenericTreeItem, UserCancelledError } from 'vscode-azureextensionui';
+import { AzureParentTreeItem, AzureTreeItem, GenericTreeItem, parseError, UserCancelledError } from 'vscode-azureextensionui';
 import { ext } from '../extensionVariables';
 import { ConnectionsTreeItem } from './ConnectionsTreeItem';
 import { CosmosDBConnection } from './CosmosDBConnection';
@@ -66,11 +66,11 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
                 }
             } catch (error) {
                 const item: DatabaseTreeItem = {
-                    hostName: error.message,
+                    hostName: parseError(error).message,
                     port: '',
                     connectionString: appSettings[key],
                     databaseName: '',
-                    reveal: () => Promise.resolve()
+                    reveal: async () => Promise.resolve()
                 };
                 treeItems.push(new CosmosDBConnection(this, item, key));
             }
