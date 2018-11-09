@@ -52,7 +52,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
             }
         });
 
-        const treeItems: AzureTreeItem<ISiteTreeRoot>[] = [];
+        const treeItems: CosmosDBConnection[] = [];
         const usedLabels: { [key: string]: boolean } = {};
         for (const key of mongoAppSettingsKeys) {
             try {
