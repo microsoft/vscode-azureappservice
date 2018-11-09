@@ -5,7 +5,7 @@
 
 import { ExtensionContext, OutputChannel } from "vscode";
 import { AzureTreeDataProvider, IAzureUserInput, ITelemetryReporter } from "vscode-azureextensionui";
-import { VSCodeCosmosDB } from "./vscode-cosmos.api";
+import { CosmosDBExtensionApi } from "./vscode-cosmos.api";
 
 /**
  * Namespace for common variables used throughout the extension. They must be initialized in the activate() method of extension.ts
@@ -16,5 +16,5 @@ export namespace ext {
     export let ui: IAzureUserInput;
     export let reporter: ITelemetryReporter;
     export let context: ExtensionContext;
-    export let cosmosAPI: VSCodeCosmosDB;
+    export let cosmosAPI: CosmosDBExtensionApi;
 }

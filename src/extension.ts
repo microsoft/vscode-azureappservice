@@ -317,7 +317,7 @@ export function activate(context: vscode.ExtensionContext): void {
     });
     registerCommand('appService.AddCosmosDBConnection', addCosmosDBConnection);
     registerCommand('appService.RemoveCosmosDBConnection', removeCosmosDBConnection);
-    registerCommand('appService.RevealConnection', async (node: CosmosDBConnection) => await ext.cosmosAPI.revealTreeItem(node.cosmosDBDatabase.treeItemId));
+    registerCommand('appService.RevealConnection', async (node: CosmosDBConnection) => await node.databaseTreeItem.reveal());
 }
 
 // tslint:disable-next-line:no-empty

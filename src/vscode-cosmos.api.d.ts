@@ -3,28 +3,69 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-export interface CosmosDBDatabase {
-    accountName: string
-    connectionString: string
-    treeItemId: string
-    databaseName: string
+
+export interface CosmosDBExtensionApi {
+    /**
+     * Finds the first matching item in the Cosmos DB tree, or otherwise returns undefined.
+     * NOTE: The item may not actually be loaded/attached in the tree until 'reveal' is called.
+     *
+     * @param query The query object to use for the find
+     * @param options Configures the behavior of the find
+     */
+    findTreeItem(query: TreeItemQuery): Promise<DatabaseTreeItem | undefined>;
+
+    /**
+     * Prompts the user to pick an item from the Cosmos DB tree
+     *
+     * @param options Configures the behavior of the tree item picker
+     */
+    pickTreeItem(options: PickTreeItemOptions & { resourceType: 'DatabaseAccount' }): Promise<AccountTreeItem | undefined>;
+    pickTreeItem(options: PickTreeItemOptions & { resourceType: 'Database' }): Promise<DatabaseTreeItem | undefined>;
 }
 
-export interface VSCodeCosmosDB {
+export interface CosmosDBTreeItem {
     /**
-     * Finds the database in CosmosDB and returns CosmosDBDatabase object or undefined if can't find
-     * @param detectionData The database connection string
+     * Reveals the item in the tree. This may result in loading more Cosmos DB tree items or manually attaching by connection string.
      */
-    getDatabase(detectionData: { connectionString: string }): Promise<CosmosDBDatabase | undefined>;
+    reveal(): Promise<void>;
+}
+
+export interface AccountTreeItem extends CosmosDBTreeItem {
+    hostName: string;
+    port: string;
+    connectionString: string;
 
     /**
-     *  Traverses the CosmosDB tree with a quick pick at each level. Goes until find item with database-level context value. Returns the CosmosDBDatabase object based on picked db.
+     * Data specific to Azure or undefined if the resource is not in Azure.
      */
-    pickDatabase(): Promise<CosmosDBDatabase | undefined>;
+    azureData?: {
+        accountName: string;
+    }
+}
+
+export interface DatabaseTreeItem extends AccountTreeItem {
+    databaseName: string;
+}
+
+export type CosmosDBResourceType = 'DatabaseAccount' | 'Database';
+
+export type CosmosDBApiType = 'Mongo' | 'SQL' | 'Graph' | 'Table';
+
+export interface PickTreeItemOptions {
+    /**
+     * The resource type of the picked item
+     */
+    resourceType: CosmosDBResourceType;
 
     /**
-     * Reveal tree item in the CosmosDB explorer by its id
-     * @param treeItemId The id of the CosmosDB tree item
+     * An array of the API types that can be picked, or undefined if all API types are allowed
      */
-    revealTreeItem(treeItemId: string): Promise<void>;
+    apiType?: CosmosDBApiType[];
+}
+
+export interface TreeItemQuery {
+    /**
+     * An account or database connection string
+     */
+    connectionString: string;
 }
