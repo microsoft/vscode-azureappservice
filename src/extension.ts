@@ -13,6 +13,7 @@ import { AzureParentTreeItem, AzureTreeDataProvider, AzureTreeItem, AzureUserInp
 import { SiteConfigResource } from '../node_modules/azure-arm-website/lib/models';
 import { addCosmosDBConnection } from './commands/connections/addCosmosDBConnection';
 import { removeCosmosDBConnection } from './commands/connections/removeCosmosDBConnection';
+import { revealConnectionInAppSettings } from './commands/connections/revealConnectionInAppSettings';
 import { deploy } from './commands/deploy';
 import { enableFileLogging } from './commands/enableFileLogging';
 import { disableRemoteDebug } from './commands/remoteDebug/disableRemoteDebug';
@@ -52,7 +53,9 @@ export function activate(context: vscode.ExtensionContext): void {
     const tree = new AzureTreeDataProvider(WebAppProvider, 'appService.LoadMore');
     ext.tree = tree;
     context.subscriptions.push(tree);
-    context.subscriptions.push(vscode.window.registerTreeDataProvider('azureAppService', tree));
+
+    ext.treeView = vscode.window.createTreeView('azureAppService', { treeDataProvider: tree });
+    context.subscriptions.push(ext.treeView);
 
     const fileEditor: FileEditor = new FileEditor();
     context.subscriptions.push(fileEditor);
@@ -317,7 +320,8 @@ export function activate(context: vscode.ExtensionContext): void {
     });
     registerCommand('appService.AddCosmosDBConnection', addCosmosDBConnection);
     registerCommand('appService.RemoveCosmosDBConnection', removeCosmosDBConnection);
-    registerCommand('appService.RevealConnection', async (node: CosmosDBConnection) => await ext.cosmosAPI.revealTreeItem(node.cosmosDBDatabase.treeItemId));
+    registerCommand('appService.RevealConnection', async (node: CosmosDBConnection) => ext.cosmosAPI.revealTreeItem(node.cosmosDBDatabase.treeItemId));
+    registerCommand('appService.RevealConnectionInAppSettings', revealConnectionInAppSettings);
 }
 
 // tslint:disable-next-line:no-empty

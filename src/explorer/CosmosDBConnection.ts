@@ -17,7 +17,7 @@ export class CosmosDBConnection extends AzureTreeItem<ISiteTreeRoot> {
     public readonly label: string;
     public readonly parent: CosmosDBTreeItem;
 
-    constructor(parent: CosmosDBTreeItem, readonly cosmosDBDatabase: CosmosDBDatabase, readonly appSettingName: string) {
+    constructor(parent: CosmosDBTreeItem, readonly cosmosDBDatabase: CosmosDBDatabase, readonly appSettingKey: string) {
         super(parent);
         this.label = CosmosDBConnection.makeLabel(cosmosDBDatabase);
     }
