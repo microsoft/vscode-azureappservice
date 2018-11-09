@@ -53,10 +53,15 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         });
 
         const treeItems: CosmosDBConnection[] = [];
+        const usedLabels: { [key: string]: boolean } = {};
         for (const key of mongoAppSettingsKeys) {
             const cosmosDBDatabase = await ext.cosmosAPI.getDatabase({ connectionString: appSettings[key] });
             if (cosmosDBDatabase) {
-                treeItems.push(new CosmosDBConnection(this, cosmosDBDatabase, key));
+                const label = CosmosDBConnection.makeLabel(cosmosDBDatabase);
+                if (!usedLabels[label]) {
+                    usedLabels[label] = true;
+                    treeItems.push(new CosmosDBConnection(this, cosmosDBDatabase, key));
+                }
             }
         }
 
@@ -96,8 +101,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         // Don't wait
         vscode.window.showInformationMessage(`Database "${createdDatabase.label}" connected to web app "${this.root.client.fullName}". Created "${appSettingKeyToAdd}" app settings.`, ok, showDatabase).then(async (result: vscode.MessageItem | undefined) => {
             if (result === showDatabase) {
-                // tslint:disable-next-line:no-non-null-assertion
-                await ext.cosmosAPI.revealTreeItem(createdDatabase.cosmosDBDatabase.treeItemId!);
+                await ext.cosmosAPI.revealTreeItem(createdDatabase.cosmosDBDatabase.treeItemId);
             }
         });
 
