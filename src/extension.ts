@@ -13,6 +13,7 @@ import { AzureParentTreeItem, AzureTreeDataProvider, AzureTreeItem, AzureUserInp
 import { SiteConfigResource } from '../node_modules/azure-arm-website/lib/models';
 import { addCosmosDBConnection } from './commands/connections/addCosmosDBConnection';
 import { removeCosmosDBConnection } from './commands/connections/removeCosmosDBConnection';
+import { revealConnectionInAppSettings } from './commands/connections/revealConnectionInAppSettings';
 import { deploy } from './commands/deploy';
 import { enableFileLogging } from './commands/enableFileLogging';
 import { disableRemoteDebug } from './commands/remoteDebug/disableRemoteDebug';
@@ -320,6 +321,7 @@ export function activate(context: vscode.ExtensionContext): void {
     registerCommand('appService.AddCosmosDBConnection', addCosmosDBConnection);
     registerCommand('appService.RemoveCosmosDBConnection', removeCosmosDBConnection);
     registerCommand('appService.RevealConnection', async (node: CosmosDBConnection) => await node.databaseTreeItem.reveal());
+    registerCommand('appService.RevealConnectionInAppSettings', revealConnectionInAppSettings);
 }
 
 // tslint:disable-next-line:no-empty
