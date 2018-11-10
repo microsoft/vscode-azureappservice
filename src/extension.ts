@@ -8,7 +8,8 @@
 import * as opn from 'opn';
 import { extname } from 'path';
 import * as vscode from 'vscode';
-import { AppSettingsTreeItem, AppSettingTreeItem, editScmType, getFile, IFileResult, registerAppServiceExtensionVariables, SiteClient, stopStreamingLogs } from 'vscode-azureappservice';
+import { AppSettingsTreeItem, AppSettingTreeItem, editScmType, getFile, IFileResult, ISiteTreeRoot, registerAppServiceExtensionVariables, SiteClient, stopStreamingLogs } from 'vscode-azureappservice';
+import { ScmType } from 'vscode-azureappservice/lib/ScmType';
 import { AzureParentTreeItem, AzureTreeDataProvider, AzureTreeItem, AzureUserInput, createTelemetryReporter, IActionContext, IAzureUserInput, registerCommand, registerEvent, registerUIExtensionVariables, SubscriptionTreeItem } from 'vscode-azureextensionui';
 import { SiteConfigResource } from '../node_modules/azure-arm-website/lib/models';
 import { addCosmosDBConnection } from './commands/connections/addCosmosDBConnection';
@@ -20,9 +21,8 @@ import { startRemoteDebug } from './commands/remoteDebug/startRemoteDebug';
 import { startStreamingLogs } from './commands/startStreamingLogs';
 import { swapSlots } from './commands/swapSlots';
 import { CosmosDBConnection } from './explorer/CosmosDBConnection';
-import { ConnectToGitHubTreeItem } from './explorer/Deployments/DeploymentsTreeItem';
+import { ConnectToGitHubTreeItem, DeploymentsTreeItem } from './explorer/Deployments/DeploymentsTreeItem';
 import { DeploymentTreeItem } from './explorer/Deployments/DeploymentTreeItem';
-import { LogEntryTreeItem } from './explorer/Deployments/LogEntryTreeItem';
 import { DeploymentSlotsNATreeItem, DeploymentSlotsTreeItem, ScaleUpTreeItem } from './explorer/DeploymentSlotsTreeItem';
 import { DeploymentSlotTreeItem } from './explorer/DeploymentSlotTreeItem';
 import { FileEditor } from './explorer/editors/FileEditor';
@@ -93,14 +93,24 @@ export function activate(context: vscode.ExtensionContext): void {
 
         node.browse();
     });
-    registerCommand('appService.OpenInPortal', async (node?: AzureTreeItem) => {
+    registerCommand('appService.OpenInPortal', async (node?: AzureTreeItem<ISiteTreeRoot>) => {
         if (!node) {
             node = <WebAppTreeItem>await tree.showTreeItemPicker(WebAppTreeItem.contextValue);
         }
 
-        // tslint:disable-next-line:no-non-null-assertion
-        node.contextValue === DeploymentSlotsTreeItem.contextValue ? node.openInPortal(`${node.parent!.fullId}/deploymentSlots`) : node.openInPortal();
-        // the deep link for slots does not follow the conventional pattern of including its parent in the path name so this is how we extract the slot's id
+        switch (node.contextValue) {
+            // the deep link for slots does not follow the conventional pattern of including its parent in the path name so this is how we extract the slot's id
+            case DeploymentSlotsTreeItem.contextValue:
+                // tslint:disable-next-line:no-non-null-assertion
+                node.openInPortal(`${node.parent!.fullId}/deploymentSlots`);
+                return;
+            case DeploymentsTreeItem.contextValueConnected:
+                node.openInPortal(`${node.root.client.id}/vstscd`);
+                return;
+            default:
+                node.openInPortal();
+                return;
+        }
     });
     registerCommand('appService.Start', async (node?: SiteTreeItem) => {
         if (!node) {
@@ -174,13 +184,11 @@ export function activate(context: vscode.ExtensionContext): void {
     registerCommand('appService.Deploy', async function (this: IActionContext, target?: vscode.Uri | WebAppTreeItem | undefined): Promise<void> {
         await deploy(this, true, target);
     });
-    registerCommand('appService.ConfigureDeploymentSource', async (node?: SiteTreeItem | ConnectToGitHubTreeItem) => {
-        if (node instanceof ConnectToGitHubTreeItem) {
-            node = node.parent.parent;
-        }
+    registerCommand('appService.ConfigureDeploymentSource', async (node?: SiteTreeItem) => {
         if (!node) {
             node = <SiteTreeItem>await tree.showTreeItemPicker(WebAppTreeItem.contextValue);
         }
+
         await editScmType(node.root.client, node);
     });
     registerCommand('appService.OpenVSTSCD', async (node?: WebAppTreeItem) => {
@@ -324,8 +332,20 @@ export function activate(context: vscode.ExtensionContext): void {
     registerCommand('appService.AddCosmosDBConnection', addCosmosDBConnection);
     registerCommand('appService.RemoveCosmosDBConnection', removeCosmosDBConnection);
     registerCommand('appService.RevealConnection', async (node: CosmosDBConnection) => ext.cosmosAPI.revealTreeItem(node.cosmosDBDatabase.treeItemId));
-    registerCommand('appService.getDeploymentLog', async (node: LogEntryTreeItem) => await node.getDeploymentLog());
-    registerCommand('appService.RedeployDeployment', async (node: DeploymentTreeItem) => await node.redeployDeployment());
+    registerCommand('appService.ShowDeploymentLogs', async (node: DeploymentTreeItem) => {
+        const parsedLogs: string = await node.getDeploymentLogs();
+        const document: vscode.TextDocument = await vscode.workspace.openTextDocument({
+            content: parsedLogs
+        });
+        await vscode.window.showTextDocument(document);
+    });
+    registerCommand('appService.Redeploy', async (node: DeploymentTreeItem) => await node.redeployDeployment());
+    registerCommand('appService.DisconnectRepo', async (node: DeploymentsTreeItem) => await node.disconnectRepo());
+    registerCommand('appService.ConnectToGitHub', async (node: ConnectToGitHubTreeItem) => {
+        const siteTreeItem: SiteTreeItem = node.parent.parent;
+        await editScmType(siteTreeItem.root.client, siteTreeItem, ScmType.GitHub);
+        await node.parent.refresh();
+    });
 }
 
 // tslint:disable-next-line:no-empty

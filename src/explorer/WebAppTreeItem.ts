@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { ResourceManagementClient } from 'azure-arm-resource';
-import { AppServicePlan } from 'azure-arm-website/lib/models';
+import { AppServicePlan, SiteConfig } from 'azure-arm-website/lib/models';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as vscode from 'vscode';
@@ -29,7 +29,7 @@ export class WebAppTreeItem extends SiteTreeItem {
     public readonly folderNode: FolderTreeItem;
     public readonly logFolderNode: FolderTreeItem;
     public readonly connectionsNode: ConnectionsTreeItem;
-    public readonly deploymentsNode: DeploymentsTreeItem;
+    public deploymentsNode: DeploymentsTreeItem;
 
     constructor(parent: AzureParentTreeItem, client: SiteClient) {
         super(parent, client);
@@ -38,7 +38,6 @@ export class WebAppTreeItem extends SiteTreeItem {
         this.webJobsNode = new WebJobsTreeItem(this);
         this.appSettingsNode = new AppSettingsTreeItem(this);
         this.connectionsNode = new ConnectionsTreeItem(this);
-        this.deploymentsNode = new DeploymentsTreeItem(this);
     }
 
     public get iconPath(): { light: string, dark: string } {
@@ -52,6 +51,8 @@ export class WebAppTreeItem extends SiteTreeItem {
     public async loadMoreChildrenImpl(_clearCache: boolean): Promise<AzureTreeItem<ISiteTreeRoot>[]> {
         const asp: AppServicePlan | undefined = await this.root.client.getAppServicePlan();
         const tier: string | undefined = asp && asp.sku && asp.sku.tier;
+        const siteConfig: SiteConfig = await this.root.client.getSiteConfig();
+        this.deploymentsNode = new DeploymentsTreeItem(this, siteConfig);
         // tslint:disable-next-line:no-non-null-assertion
         this.deploymentSlotsNode = tier && /^(basic|free|shared)$/i.test(tier) ? new DeploymentSlotsNATreeItem(this, tier, asp!.id!) : new DeploymentSlotsTreeItem(this);
         const nodes: AzureTreeItem<ISiteTreeRoot>[] = [this.deploymentSlotsNode, this.folderNode, this.logFolderNode, this.webJobsNode, this.appSettingsNode, this.deploymentsNode];
@@ -74,7 +75,8 @@ export class WebAppTreeItem extends SiteTreeItem {
                 return this.folderNode;
             case WebJobsTreeItem.contextValue:
                 return this.webJobsNode;
-            case DeploymentsTreeItem.contextValue:
+            case DeploymentsTreeItem.contextValueConnected:
+            case DeploymentsTreeItem.contextValueUnconnected:
                 return this.deploymentsNode;
             default:
                 return undefined;
