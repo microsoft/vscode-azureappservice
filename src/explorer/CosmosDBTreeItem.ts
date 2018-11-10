@@ -63,6 +63,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
                 if (databaseTreeItem) {
                     const label = CosmosDBConnection.makeLabel(databaseTreeItem);
                     if (!usedLabels[label]) {
+                        usedLabels[label] = true;
                         return new CosmosDBConnection(this, databaseTreeItem, key);
                     }
                 }
