@@ -4,10 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as path from 'path';
-import { VSCodeCosmosDB } from 'src/vscode-cosmos.api';
 import * as vscode from 'vscode';
 import { ISiteTreeRoot, validateAppSettingKey } from 'vscode-azureappservice';
-import { AzureParentTreeItem, AzureTreeItem, GenericTreeItem, UserCancelledError } from 'vscode-azureextensionui';
+import { AzureParentTreeItem, AzureTreeItem, createTreeItemsWithErrorHandling, GenericTreeItem, UserCancelledError } from 'vscode-azureextensionui';
+import { AzureExtensionApiProvider } from 'vscode-azureextensionui/api';
 import { ext } from '../extensionVariables';
 import { ConnectionsTreeItem } from './ConnectionsTreeItem';
 import { CosmosDBConnection } from './CosmosDBConnection';
@@ -40,7 +40,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         }
 
         if (ext.cosmosAPI === undefined) {
-            ext.cosmosAPI = <VSCodeCosmosDB>cosmosDB.exports;
+            ext.cosmosAPI = (<AzureExtensionApiProvider>cosmosDB.exports).getApi('^1.0.0');
         }
 
         const mongoAppSettingsKeys: string[] = [];
@@ -52,18 +52,24 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
             }
         });
 
-        const treeItems: CosmosDBConnection[] = [];
         const usedLabels: { [key: string]: boolean } = {};
-        for (const key of mongoAppSettingsKeys) {
-            const cosmosDBDatabase = await ext.cosmosAPI.getDatabase({ connectionString: appSettings[key] });
-            if (cosmosDBDatabase) {
-                const label = CosmosDBConnection.makeLabel(cosmosDBDatabase);
-                if (!usedLabels[label]) {
-                    usedLabels[label] = true;
-                    treeItems.push(new CosmosDBConnection(this, cosmosDBDatabase, key));
+        const treeItems = await createTreeItemsWithErrorHandling(
+            this,
+            mongoAppSettingsKeys,
+            'invalidCosmosDBConnection',
+            async (key: string) => {
+                const databaseTreeItem = await ext.cosmosAPI.findTreeItem({ connectionString: appSettings[key] });
+                if (databaseTreeItem) {
+                    const label = CosmosDBConnection.makeLabel(databaseTreeItem);
+                    if (!usedLabels[label]) {
+                        usedLabels[label] = true;
+                        return new CosmosDBConnection(this, databaseTreeItem, key);
+                    }
                 }
-            }
-        }
+                return undefined;
+            },
+            (key: string) => key
+        );
 
         if (treeItems.length > 0) {
             return treeItems;
@@ -77,7 +83,10 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     }
 
     public async createChildImpl(showCreatingTreeItem: (label: string) => void): Promise<AzureTreeItem<ISiteTreeRoot>> {
-        const databaseToAdd = await ext.cosmosAPI.pickDatabase();
+        const databaseToAdd = await ext.cosmosAPI.pickTreeItem({
+            resourceType: 'Database',
+            apiType: ['Mongo']
+        });
         if (!databaseToAdd) {
             throw new UserCancelledError();
         }
@@ -97,11 +106,11 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         showCreatingTreeItem(createdDatabase.label);
 
         const ok: vscode.MessageItem = { title: 'OK' };
-        const showDatabase: vscode.MessageItem = { title: 'Show Database' };
+        const revealDatabase: vscode.MessageItem = { title: 'Reveal Database' };
         // Don't wait
-        vscode.window.showInformationMessage(`Database "${createdDatabase.label}" connected to web app "${this.root.client.fullName}". Created "${appSettingKeyToAdd}" app settings.`, ok, showDatabase).then(async (result: vscode.MessageItem | undefined) => {
-            if (result === showDatabase) {
-                await ext.cosmosAPI.revealTreeItem(createdDatabase.cosmosDBDatabase.treeItemId);
+        vscode.window.showInformationMessage(`Database "${createdDatabase.label}" connected to web app "${this.root.client.fullName}". Created "${appSettingKeyToAdd}" application settings.`, ok, revealDatabase).then(async (result: vscode.MessageItem | undefined) => {
+            if (result === revealDatabase) {
+                await createdDatabase.databaseTreeItem.reveal();
             }
         });
 
