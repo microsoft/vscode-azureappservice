@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as path from 'path';
-import { PickTreeItemOptions } from 'src/vscode-cosmos.api';
 import * as vscode from 'vscode';
 import { ISiteTreeRoot, validateAppSettingKey } from 'vscode-azureappservice';
 import { AzureParentTreeItem, AzureTreeItem, createTreeItemsWithErrorHandling, GenericTreeItem, UserCancelledError } from 'vscode-azureextensionui';
@@ -69,9 +68,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
                 }
                 return undefined;
             },
-            (key: string) => {
-                return `Can't create connection for "${key}" application setting`;
-            }
+            (key: string) => key
         );
 
         if (treeItems.length > 0) {
@@ -86,11 +83,10 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     }
 
     public async createChildImpl(showCreatingTreeItem: (label: string) => void): Promise<AzureTreeItem<ISiteTreeRoot>> {
-        const options: PickTreeItemOptions & { resourceType: 'Database' } = {
+        const databaseToAdd = await ext.cosmosAPI.pickTreeItem({
             resourceType: 'Database',
             apiType: ['Mongo']
-        };
-        const databaseToAdd = await ext.cosmosAPI.pickTreeItem(options);
+        });
         if (!databaseToAdd) {
             throw new UserCancelledError();
         }
