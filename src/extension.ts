@@ -39,8 +39,6 @@ import { LogpointsCollection } from './logPoints/structs/LogpointsCollection';
 // tslint:disable-next-line:export-name
 // tslint:disable-next-line:max-func-body-length
 export function activate(context: vscode.ExtensionContext): void {
-    registerUIExtensionVariables(ext);
-    registerAppServiceExtensionVariables(ext);
     ext.context = context;
     ext.reporter = createTelemetryReporter(context);
 
@@ -49,6 +47,9 @@ export function activate(context: vscode.ExtensionContext): void {
 
     ext.outputChannel = vscode.window.createOutputChannel("Azure App Service");
     context.subscriptions.push(ext.outputChannel);
+
+    registerUIExtensionVariables(ext);
+    registerAppServiceExtensionVariables(ext);
 
     const tree = new AzureTreeDataProvider(WebAppProvider, 'appService.LoadMore');
     ext.tree = tree;
