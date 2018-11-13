@@ -8,7 +8,7 @@
 import * as opn from 'opn';
 import { extname } from 'path';
 import * as vscode from 'vscode';
-import { AppSettingsTreeItem, AppSettingTreeItem, editScmType, getFile, IFileResult, ISiteTreeRoot, registerAppServiceExtensionVariables, SiteClient, stopStreamingLogs } from 'vscode-azureappservice';
+import { AppSettingsTreeItem, AppSettingTreeItem, ConnectToGitHubTreeItem, DeploymentsTreeItem, DeploymentTreeItem, editScmType, getFile, IFileResult, ISiteTreeRoot, registerAppServiceExtensionVariables, SiteClient, stopStreamingLogs } from 'vscode-azureappservice';
 import { ScmType } from 'vscode-azureappservice/lib/ScmType';
 import { AzureParentTreeItem, AzureTreeDataProvider, AzureTreeItem, AzureUserInput, createTelemetryReporter, IActionContext, IAzureUserInput, registerCommand, registerEvent, registerUIExtensionVariables, SubscriptionTreeItem } from 'vscode-azureextensionui';
 import { SiteConfigResource } from '../node_modules/azure-arm-website/lib/models';
@@ -21,8 +21,6 @@ import { startRemoteDebug } from './commands/remoteDebug/startRemoteDebug';
 import { startStreamingLogs } from './commands/startStreamingLogs';
 import { swapSlots } from './commands/swapSlots';
 import { CosmosDBConnection } from './explorer/CosmosDBConnection';
-import { ConnectToGitHubTreeItem, DeploymentsTreeItem } from './explorer/Deployments/DeploymentsTreeItem';
-import { DeploymentTreeItem } from './explorer/Deployments/DeploymentTreeItem';
 import { DeploymentSlotsNATreeItem, DeploymentSlotsTreeItem, ScaleUpTreeItem } from './explorer/DeploymentSlotsTreeItem';
 import { DeploymentSlotTreeItem } from './explorer/DeploymentSlotTreeItem';
 import { FileEditor } from './explorer/editors/FileEditor';
