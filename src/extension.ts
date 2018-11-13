@@ -175,11 +175,11 @@ export function activate(context: vscode.ExtensionContext): void {
     registerCommand('appService.Deploy', async function (this: IActionContext, target?: vscode.Uri | WebAppTreeItem | undefined): Promise<void> {
         await deploy(this, true, target);
     });
-    registerCommand('appService.ConfigureDeploymentSource', async (node?: SiteTreeItem) => {
+    registerCommand('appService.ConfigureDeploymentSource', async function (this: IActionContext, node?: SiteTreeItem): Promise<void> {
         if (!node) {
             node = <SiteTreeItem>await tree.showTreeItemPicker(WebAppTreeItem.contextValue);
         }
-        await editScmType(node.root.client, node);
+        await editScmType(node.root.client, node, this);
     });
     registerCommand('appService.OpenVSTSCD', async (node?: WebAppTreeItem) => {
         if (!node) {
