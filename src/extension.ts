@@ -39,8 +39,6 @@ import { LogpointsCollection } from './logPoints/structs/LogpointsCollection';
 // tslint:disable-next-line:export-name
 // tslint:disable-next-line:max-func-body-length
 export function activate(context: vscode.ExtensionContext): void {
-    registerUIExtensionVariables(ext);
-    registerAppServiceExtensionVariables(ext);
     ext.context = context;
     ext.reporter = createTelemetryReporter(context);
 
@@ -49,6 +47,9 @@ export function activate(context: vscode.ExtensionContext): void {
 
     ext.outputChannel = vscode.window.createOutputChannel("Azure App Service");
     context.subscriptions.push(ext.outputChannel);
+
+    registerUIExtensionVariables(ext);
+    registerAppServiceExtensionVariables(ext);
 
     const tree = new AzureTreeDataProvider(WebAppProvider, 'appService.LoadMore');
     ext.tree = tree;
@@ -174,11 +175,11 @@ export function activate(context: vscode.ExtensionContext): void {
     registerCommand('appService.Deploy', async function (this: IActionContext, target?: vscode.Uri | WebAppTreeItem | undefined): Promise<void> {
         await deploy(this, true, target);
     });
-    registerCommand('appService.ConfigureDeploymentSource', async (node?: SiteTreeItem) => {
+    registerCommand('appService.ConfigureDeploymentSource', async function (this: IActionContext, node?: SiteTreeItem): Promise<void> {
         if (!node) {
             node = <SiteTreeItem>await tree.showTreeItemPicker(WebAppTreeItem.contextValue);
         }
-        await editScmType(node.root.client, node);
+        await editScmType(node.root.client, node, this);
     });
     registerCommand('appService.OpenVSTSCD', async (node?: WebAppTreeItem) => {
         if (!node) {
