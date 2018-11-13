@@ -105,7 +105,7 @@ export function activate(context: vscode.ExtensionContext): void {
                 // tslint:disable-next-line:no-non-null-assertion
                 node.openInPortal(`${node.parent!.fullId}/deploymentSlots`);
                 return;
-            // the deep link for "Deployment Center" and "Deployments" do not follow the conventional pattern of including its parent in the path name
+            // the deep link for "Deployments" do not follow the conventional pattern of including its parent in the path name so we need to pass the "Deployment Center" url directly
             case DeploymentsTreeItem.contextValueConnected:
             case DeploymentsTreeItem.contextValueUnconnected:
                 node.openInPortal(`${node.root.client.id}/vstscd`);
