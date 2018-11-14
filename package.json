@@ -700,11 +700,6 @@
                     "group": "1@2"
                 },
                 {
-                    "command": "appService.Refresh",
-                    "when": "view == azureAppService && viewItem == deployment",
-                    "group": "2@1"
-                },
-                {
                     "command": "appService.ViewDeploymentLogs",
                     "when": "view == azureAppService && viewItem == deployment",
                     "group": "inline"
