@@ -13,6 +13,7 @@ import { AzureParentTreeItem, AzureTreeDataProvider, AzureTreeItem, AzureUserInp
 import { SiteConfigResource } from '../node_modules/azure-arm-website/lib/models';
 import { addCosmosDBConnection } from './commands/connections/addCosmosDBConnection';
 import { removeCosmosDBConnection } from './commands/connections/removeCosmosDBConnection';
+import { revealConnectionInAppSettings } from './commands/connections/revealConnectionInAppSettings';
 import { deploy } from './commands/deploy';
 import { connectToGitHub } from './commands/deployments/connectToGitHub';
 import { disconnectRepo } from './commands/deployments/disconnectRepo';
