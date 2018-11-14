@@ -8,7 +8,7 @@ import { AppServicePlan, SiteConfig } from 'azure-arm-website/lib/models';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { AppSettingsTreeItem, AppSettingTreeItem, DeploymentsTreeItem, ISiteTreeRoot, SiteClient } from 'vscode-azureappservice';
+import { AppSettingsTreeItem, AppSettingTreeItem, DeploymentsTreeItem, DeploymentTreeItem, ISiteTreeRoot, SiteClient } from 'vscode-azureappservice';
 import { AzureParentTreeItem, AzureTreeItem, createAzureClient } from 'vscode-azureextensionui';
 import * as constants from '../constants';
 import { extensionPrefix } from '../constants';
@@ -76,8 +76,10 @@ export class WebAppTreeItem extends SiteTreeItem {
                 return this.webJobsNode;
             case DeploymentsTreeItem.contextValueConnected:
             case DeploymentsTreeItem.contextValueUnconnected:
+            case DeploymentTreeItem.contextValue:
                 return this.deploymentsNode;
             default:
+
                 return undefined;
         }
     }

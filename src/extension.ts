@@ -8,13 +8,16 @@
 import * as opn from 'opn';
 import { extname } from 'path';
 import * as vscode from 'vscode';
-import { AppSettingsTreeItem, AppSettingTreeItem, DeploymentsTreeItem, DeploymentTreeItem, editScmType, getFile, IFileResult, ISiteTreeRoot, registerAppServiceExtensionVariables, SiteClient, stopStreamingLogs } from 'vscode-azureappservice';
+import { AppSettingsTreeItem, AppSettingTreeItem, DeploymentsTreeItem, editScmType, getFile, IFileResult, ISiteTreeRoot, registerAppServiceExtensionVariables, SiteClient, stopStreamingLogs } from 'vscode-azureappservice';
 import { AzureParentTreeItem, AzureTreeDataProvider, AzureTreeItem, AzureUserInput, createTelemetryReporter, IActionContext, IAzureUserInput, registerCommand, registerEvent, registerUIExtensionVariables, SubscriptionTreeItem } from 'vscode-azureextensionui';
 import { SiteConfigResource } from '../node_modules/azure-arm-website/lib/models';
 import { addCosmosDBConnection } from './commands/connections/addCosmosDBConnection';
 import { removeCosmosDBConnection } from './commands/connections/removeCosmosDBConnection';
-import { connectToGitHub } from './commands/connectToGitHub';
 import { deploy } from './commands/deploy';
+import { connectToGitHub } from './commands/deployments/connectToGitHub';
+import { disconnectRepo } from './commands/deployments/disconnectRepo';
+import { redeployDeployment } from './commands/deployments/redeployDeployment';
+import { viewDeploymentLogs } from './commands/deployments/viewDeploymentLogs';
 import { enableFileLogging } from './commands/enableFileLogging';
 import { disableRemoteDebug } from './commands/remoteDebug/disableRemoteDebug';
 import { startRemoteDebug } from './commands/remoteDebug/startRemoteDebug';
@@ -334,10 +337,10 @@ export function activate(context: vscode.ExtensionContext): void {
     registerCommand('appService.AddCosmosDBConnection', addCosmosDBConnection);
     registerCommand('appService.RemoveCosmosDBConnection', removeCosmosDBConnection);
     registerCommand('appService.RevealConnection', async (node: CosmosDBConnection) => ext.cosmosAPI.revealTreeItem(node.cosmosDBDatabase.treeItemId));
-    registerCommand('appService.ShowDeploymentLogs', async (node: DeploymentTreeItem) => await node.showDeploymentLogs());
-    registerCommand('appService.Redeploy', async (node: DeploymentTreeItem) => await node.redeployDeployment());
-    registerCommand('appService.DisconnectRepo', async function (this: IActionContext, node: DeploymentsTreeItem): Promise<void> { await node.disconnectRepo(this); });
-    registerCommand('appService.ConnectToGitHub', async function (this: IActionContext, node: AzureTreeItem<ISiteTreeRoot>): Promise<void> { await connectToGitHub(node, this); });
+    registerCommand('appService.ViewDeploymentLogs', viewDeploymentLogs);
+    registerCommand('appService.Redeploy', redeployDeployment);
+    registerCommand('appService.DisconnectRepo', disconnectRepo);
+    registerCommand('appService.ConnectToGitHub', connectToGitHub);
 }
 
 // tslint:disable-next-line:no-empty
