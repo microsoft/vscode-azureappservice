@@ -336,8 +336,8 @@ export function activate(context: vscode.ExtensionContext): void {
     });
     registerCommand('appService.AddCosmosDBConnection', addCosmosDBConnection);
     registerCommand('appService.RemoveCosmosDBConnection', removeCosmosDBConnection);
-    registerCommand('appService.RevealConnection', async (node: CosmosDBConnection) => ext.cosmosAPI.revealTreeItem(node.cosmosDBDatabase.treeItemId));
-    registerCommand('appService.ViewDeploymentLogs', viewDeploymentLogs);
+    registerCommand('appService.RevealConnection', async (node: CosmosDBConnection) => await node.cosmosExtensionItem.reveal());
+    registerCommand('appService.RevealConnectionInAppSettings', revealConnectionInAppSettings); registerCommand('appService.ViewDeploymentLogs', viewDeploymentLogs);
     registerCommand('appService.Redeploy', redeployDeployment);
     registerCommand('appService.DisconnectRepo', disconnectRepo);
     registerCommand('appService.ConnectToGitHub', connectToGitHub);

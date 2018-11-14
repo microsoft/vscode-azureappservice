@@ -8,7 +8,7 @@ import * as vscode from 'vscode';
 import { ISiteTreeRoot } from 'vscode-azureappservice';
 import { AzureTreeItem, DialogResponses, UserCancelledError } from 'vscode-azureextensionui';
 import { ext } from '../extensionVariables';
-import { DatabaseTreeItem } from '../vscode-cosmos.api';
+import { DatabaseAccountTreeItem, DatabaseTreeItem } from '../vscode-cosmos.api';
 import { CosmosDBTreeItem } from './CosmosDBTreeItem';
 
 export class CosmosDBConnection extends AzureTreeItem<ISiteTreeRoot> {
@@ -17,13 +17,25 @@ export class CosmosDBConnection extends AzureTreeItem<ISiteTreeRoot> {
     public readonly label: string;
     public readonly parent: CosmosDBTreeItem;
 
-    constructor(parent: CosmosDBTreeItem, readonly databaseTreeItem: DatabaseTreeItem, readonly appSettingKey: string) {
+    constructor(parent: CosmosDBTreeItem, readonly cosmosExtensionItem: DatabaseAccountTreeItem | DatabaseTreeItem, readonly appSettingKey: string) {
         super(parent);
-        this.label = CosmosDBConnection.makeLabel(databaseTreeItem);
+        this.label = CosmosDBConnection.makeLabel(cosmosExtensionItem);
     }
 
-    public static makeLabel(databaseTreeItem: DatabaseTreeItem): string {
-        return `${databaseTreeItem.azureData ? databaseTreeItem.azureData.accountName : `${databaseTreeItem.hostName}:${databaseTreeItem.port}`}/${databaseTreeItem.databaseName}`;
+    public static makeLabel(cosmosExtensionItem: DatabaseAccountTreeItem | DatabaseTreeItem): string {
+        let label: string;
+        if (cosmosExtensionItem.azureData) {
+            label = cosmosExtensionItem.azureData.accountName;
+        } else {
+            label = `${cosmosExtensionItem.hostName}:${cosmosExtensionItem.port}`;
+        }
+
+        const dbName: string | undefined = (<DatabaseTreeItem>cosmosExtensionItem).databaseName;
+        if (dbName) {
+            label += `/${dbName}`;
+        }
+
+        return label;
     }
 
     public get iconPath(): string | vscode.Uri | { light: string | vscode.Uri; dark: string | vscode.Uri } {
@@ -34,7 +46,7 @@ export class CosmosDBConnection extends AzureTreeItem<ISiteTreeRoot> {
     }
 
     public async deleteTreeItemImpl(): Promise<void> {
-        const valueToDelete = this.databaseTreeItem.connectionString;
+        const valueToDelete = this.cosmosExtensionItem.connectionString;
 
         const appSettings = await this.root.client.listApplicationSettings();
         const properties = appSettings.properties;
