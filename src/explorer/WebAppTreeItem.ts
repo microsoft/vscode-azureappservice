@@ -28,7 +28,7 @@ export class WebAppTreeItem extends SiteTreeItem {
     public readonly folderNode: FolderTreeItem;
     public readonly logFolderNode: FolderTreeItem;
     public readonly connectionsNode: ConnectionsTreeItem;
-    public deploymentsNode: DeploymentsTreeItem;
+    public deploymentsNode: DeploymentsTreeItem | undefined;
 
     constructor(parent: AzureParentTreeItem, client: SiteClient) {
         super(parent, client);
