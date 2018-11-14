@@ -110,7 +110,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         // Don't wait
         vscode.window.showInformationMessage(`Database "${createdDatabase.label}" connected to web app "${this.root.client.fullName}". Created "${appSettingKeyToAdd}" application settings.`, ok, revealDatabase).then(async (result: vscode.MessageItem | undefined) => {
             if (result === revealDatabase) {
-                await createdDatabase.databaseTreeItem.reveal();
+                await createdDatabase.cosmosExtensionItem.reveal();
             }
         });
 
