@@ -4,11 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { ResourceManagementClient } from 'azure-arm-resource';
-import { AppServicePlan } from 'azure-arm-website/lib/models';
+import { AppServicePlan, SiteConfig } from 'azure-arm-website/lib/models';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { AppSettingsTreeItem, AppSettingTreeItem, ISiteTreeRoot, SiteClient } from 'vscode-azureappservice';
+import { AppSettingsTreeItem, AppSettingTreeItem, DeploymentsTreeItem, DeploymentTreeItem, ISiteTreeRoot, SiteClient } from 'vscode-azureappservice';
 import { AzureParentTreeItem, AzureTreeItem, createAzureClient } from 'vscode-azureextensionui';
 import * as constants from '../constants';
 import { extensionPrefix } from '../constants';
@@ -28,6 +28,7 @@ export class WebAppTreeItem extends SiteTreeItem {
     public readonly folderNode: FolderTreeItem;
     public readonly logFolderNode: FolderTreeItem;
     public readonly connectionsNode: ConnectionsTreeItem;
+    public deploymentsNode: DeploymentsTreeItem | undefined;
 
     constructor(parent: AzureParentTreeItem, client: SiteClient) {
         super(parent, client);
@@ -49,9 +50,11 @@ export class WebAppTreeItem extends SiteTreeItem {
     public async loadMoreChildrenImpl(_clearCache: boolean): Promise<AzureTreeItem<ISiteTreeRoot>[]> {
         const asp: AppServicePlan | undefined = await this.root.client.getAppServicePlan();
         const tier: string | undefined = asp && asp.sku && asp.sku.tier;
+        const siteConfig: SiteConfig = await this.root.client.getSiteConfig();
+        this.deploymentsNode = new DeploymentsTreeItem(this, siteConfig);
         // tslint:disable-next-line:no-non-null-assertion
         this.deploymentSlotsNode = tier && /^(basic|free|shared)$/i.test(tier) ? new DeploymentSlotsNATreeItem(this, tier, asp!.id!) : new DeploymentSlotsTreeItem(this);
-        const nodes: AzureTreeItem<ISiteTreeRoot>[] = [this.deploymentSlotsNode, this.folderNode, this.logFolderNode, this.webJobsNode, this.appSettingsNode];
+        const nodes: AzureTreeItem<ISiteTreeRoot>[] = [this.deploymentSlotsNode, this.folderNode, this.logFolderNode, this.webJobsNode, this.appSettingsNode, this.deploymentsNode];
         const workspaceConfig = vscode.workspace.getConfiguration(constants.extensionPrefix);
         if (workspaceConfig.get(constants.configurationSettings.enableConnectionsNode)) {
             nodes.push(this.connectionsNode);
@@ -71,7 +74,12 @@ export class WebAppTreeItem extends SiteTreeItem {
                 return this.folderNode;
             case WebJobsTreeItem.contextValue:
                 return this.webJobsNode;
+            case DeploymentsTreeItem.contextValueConnected:
+            case DeploymentsTreeItem.contextValueUnconnected:
+            case DeploymentTreeItem.contextValue:
+                return this.deploymentsNode;
             default:
+
                 return undefined;
         }
     }

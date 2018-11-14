@@ -8,13 +8,17 @@
 import * as opn from 'opn';
 import { extname } from 'path';
 import * as vscode from 'vscode';
-import { AppSettingsTreeItem, AppSettingTreeItem, editScmType, getFile, IFileResult, registerAppServiceExtensionVariables, SiteClient, stopStreamingLogs } from 'vscode-azureappservice';
+import { AppSettingsTreeItem, AppSettingTreeItem, DeploymentsTreeItem, editScmType, getFile, IFileResult, ISiteTreeRoot, registerAppServiceExtensionVariables, SiteClient, stopStreamingLogs } from 'vscode-azureappservice';
 import { AzureParentTreeItem, AzureTreeDataProvider, AzureTreeItem, AzureUserInput, createTelemetryReporter, IActionContext, IAzureUserInput, registerCommand, registerEvent, registerUIExtensionVariables, SubscriptionTreeItem } from 'vscode-azureextensionui';
 import { SiteConfigResource } from '../node_modules/azure-arm-website/lib/models';
 import { addCosmosDBConnection } from './commands/connections/addCosmosDBConnection';
 import { removeCosmosDBConnection } from './commands/connections/removeCosmosDBConnection';
 import { revealConnectionInAppSettings } from './commands/connections/revealConnectionInAppSettings';
 import { deploy } from './commands/deploy';
+import { connectToGitHub } from './commands/deployments/connectToGitHub';
+import { disconnectRepo } from './commands/deployments/disconnectRepo';
+import { redeployDeployment } from './commands/deployments/redeployDeployment';
+import { viewDeploymentLogs } from './commands/deployments/viewDeploymentLogs';
 import { enableFileLogging } from './commands/enableFileLogging';
 import { disableRemoteDebug } from './commands/remoteDebug/disableRemoteDebug';
 import { startRemoteDebug } from './commands/remoteDebug/startRemoteDebug';
@@ -94,14 +98,26 @@ export function activate(context: vscode.ExtensionContext): void {
 
         node.browse();
     });
-    registerCommand('appService.OpenInPortal', async (node?: AzureTreeItem) => {
+    registerCommand('appService.OpenInPortal', async (node?: AzureTreeItem<ISiteTreeRoot>) => {
         if (!node) {
             node = <WebAppTreeItem>await tree.showTreeItemPicker(WebAppTreeItem.contextValue);
         }
 
-        // tslint:disable-next-line:no-non-null-assertion
-        node.contextValue === DeploymentSlotsTreeItem.contextValue ? node.openInPortal(`${node.parent!.fullId}/deploymentSlots`) : node.openInPortal();
-        // the deep link for slots does not follow the conventional pattern of including its parent in the path name so this is how we extract the slot's id
+        switch (node.contextValue) {
+            // the deep link for slots does not follow the conventional pattern of including its parent in the path name so this is how we extract the slot's id
+            case DeploymentSlotsTreeItem.contextValue:
+                // tslint:disable-next-line:no-non-null-assertion
+                node.openInPortal(`${node.parent!.fullId}/deploymentSlots`);
+                return;
+            // the deep link for "Deployments" do not follow the conventional pattern of including its parent in the path name so we need to pass the "Deployment Center" url directly
+            case DeploymentsTreeItem.contextValueConnected:
+            case DeploymentsTreeItem.contextValueUnconnected:
+                node.openInPortal(`${node.root.client.id}/vstscd`);
+                return;
+            default:
+                node.openInPortal();
+                return;
+        }
     });
     registerCommand('appService.Start', async (node?: SiteTreeItem) => {
         if (!node) {
@@ -322,7 +338,10 @@ export function activate(context: vscode.ExtensionContext): void {
     registerCommand('appService.AddCosmosDBConnection', addCosmosDBConnection);
     registerCommand('appService.RemoveCosmosDBConnection', removeCosmosDBConnection);
     registerCommand('appService.RevealConnection', async (node: CosmosDBConnection) => await node.cosmosExtensionItem.reveal());
-    registerCommand('appService.RevealConnectionInAppSettings', revealConnectionInAppSettings);
+    registerCommand('appService.RevealConnectionInAppSettings', revealConnectionInAppSettings); registerCommand('appService.ViewDeploymentLogs', viewDeploymentLogs);
+    registerCommand('appService.Redeploy', redeployDeployment);
+    registerCommand('appService.DisconnectRepo', disconnectRepo);
+    registerCommand('appService.ConnectToGitHub', connectToGitHub);
 }
 
 // tslint:disable-next-line:no-empty

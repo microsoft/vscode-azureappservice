@@ -53,6 +53,10 @@
         "onCommand:appService.DisableRemoteDebug",
         "onCommand:appService.CreateSlot",
         "onCommand:appService.EnableFileLogging",
+        "onCommand:appService.ViewDeploymentLogs",
+        "onCommand:appService.Redeploy",
+        "onCommand:appService.DisconnectRepo",
+        "onCommand:appService.ConnectToGitHub",
         "onView:azureAppService"
     ],
     "main": "./out/src/extension",
@@ -236,6 +240,30 @@
             {
                 "command": "appService.RemoveCosmosDBConnection",
                 "title": "Remove Connection",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.Redeploy",
+                "title": "Redeploy",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.ViewDeploymentLogs",
+                "title": "View Deployment Logs",
+                "category": "Azure App Service",
+                "icon": {
+                    "light": "resources/light/Log_16x.svg",
+                    "dark": "resources/dark/Log_16x.svg"
+                }
+            },
+            {
+                "command": "appService.ConnectToGitHub",
+                "title": "Connect to GitHub Repository",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.DisconnectRepo",
+                "title": "Disconnect from Repo",
                 "category": "Azure App Service"
             },
             {
@@ -645,6 +673,36 @@
                     "command": "appService.RemoveCosmosDBConnection",
                     "when": "view == azureAppService && viewItem == cosmosDBConnection",
                     "group": "2@1"
+                },
+                {
+                    "command": "appService.OpenInPortal",
+                    "when": "view == azureAppService && viewItem =~ /^deployments(C|Unc)onnected$/",
+                    "group": "1@1"
+                },
+                {
+                    "command": "appService.DisconnectRepo",
+                    "when": "view == azureAppService && viewItem == deploymentsConnected",
+                    "group": "1@2"
+                },
+                {
+                    "command": "appService.Refresh",
+                    "when": "view == azureAppService && viewItem =~ /^deployments(C|Unc)onnected$/",
+                    "group": "2@1"
+                },
+                {
+                    "command": "appService.Redeploy",
+                    "when": "view == azureAppService && viewItem == deployment",
+                    "group": "1@1"
+                },
+                {
+                    "command": "appService.OpenInPortal",
+                    "when": "view == azureAppService && viewItem == deployment",
+                    "group": "1@2"
+                },
+                {
+                    "command": "appService.ViewDeploymentLogs",
+                    "when": "view == azureAppService && viewItem == deployment",
+                    "group": "inline"
                 }
             ],
             "explorer/context": [
@@ -869,7 +927,7 @@
         "portfinder": "^1.0.13",
         "request": "^2.83.0",
         "request-promise": "^4.2.2",
-        "vscode-azureappservice": "^0.25.0",
+        "vscode-azureappservice": "^0.25.1",
         "vscode-azureextensionui": "^0.19.0",
         "vscode-azurekudu": "^0.1.8",
         "vscode-debugadapter": "^1.24.0",
