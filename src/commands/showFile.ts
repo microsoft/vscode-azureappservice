@@ -9,6 +9,7 @@ import { FileEditor } from "../explorer/editors/FileEditor";
 import { FileTreeItem } from "../explorer/FileTreeItem";
 
 export async function showFile(node: FileTreeItem, fileEditor: FileEditor): Promise<void> {
+    // tslint:disable-next-line:strict-boolean-expressions
     if (!node.lastClick || node.lastClick + node.clickLatency < Date.now()) {
         // because users are used to double-clicking to open files, this prevents a user from opening the same file twice
 
