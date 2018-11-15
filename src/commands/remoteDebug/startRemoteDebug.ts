@@ -13,15 +13,34 @@ import { WebAppTreeItem } from '../../explorer/WebAppTreeItem';
 import { ext } from '../../extensionVariables';
 import * as remoteDebug from './remoteDebugCommon';
 
-export async function startRemoteDebug(node?: SiteTreeItem): Promise<void> {
+let isRemoteDebugging = false;
+
+export async function startRemoteDebug(actionContext: IActionContext, node?: SiteTreeItem): Promise<void> {
+    if (isRemoteDebugging) {
+        throw new Error('Azure Remote Debugging is already started.');
+    }
+
+    isRemoteDebugging = true;
+    try {
+        await startRemoteDebugInternal(actionContext, node);
+    } catch (error) {
+        isRemoteDebugging = false;
+        throw error;
+    }
+}
+
+async function startRemoteDebugInternal(actionContext: IActionContext, node?: SiteTreeItem): Promise<void> {
     if (!node) {
         node = <SiteTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue);
     }
     const siteClient: SiteClient = node.root.client;
 
-    await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async (progress: vscode.Progress<{}>): Promise<void> => {
+    await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification }, async (progress: vscode.Progress<{}>): Promise<void> => {
         remoteDebug.reportMessage('Fetching site configuration...', progress);
         const siteConfig: SiteConfigResource = await siteClient.getSiteConfig();
+
+        // Add the image version to the telemetry for this action
+        actionContext.properties.linuxFxVersion = siteConfig.linuxFxVersion;
 
         remoteDebug.checkForRemoteDebugSupport(siteConfig);
         const debugConfig: vscode.DebugConfiguration = await getDebugConfiguration();
@@ -55,13 +74,15 @@ export async function startRemoteDebug(node?: SiteTreeItem): Promise<void> {
 
         const terminateDebugListener: vscode.Disposable = vscode.debug.onDidTerminateDebugSession(async (event: vscode.DebugSession) => {
             if (event.name === debugConfig.name) {
+                isRemoteDebugging = false;
+
                 if (tunnelProxy !== undefined) {
                     tunnelProxy.dispose();
                 }
                 terminateDebugListener.dispose();
 
                 const confirmDisableMessage: string = 'Leaving the app in debugging mode may cause performance issues. Would you like to disable debugging for this app? The app will be restarted.';
-                await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async (innerProgress: vscode.Progress<{}>): Promise<void> => {
+                await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification }, async (innerProgress: vscode.Progress<{}>): Promise<void> => {
                     await remoteDebug.setRemoteDebug(false, confirmDisableMessage, undefined, siteClient, siteConfig, innerProgress);
                 });
             }
