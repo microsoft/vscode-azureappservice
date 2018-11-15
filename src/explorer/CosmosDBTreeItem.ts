@@ -3,12 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { StringDictionary } from 'azure-arm-website/lib/models';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { ISiteTreeRoot, validateAppSettingKey } from 'vscode-azureappservice';
 import { AzureParentTreeItem, AzureTreeItem, createTreeItemsWithErrorHandling, GenericTreeItem, UserCancelledError } from 'vscode-azureextensionui';
 import { AzureExtensionApiProvider } from 'vscode-azureextensionui/api';
 import { ext } from '../extensionVariables';
+import { DatabaseTreeItem } from '../vscode-cosmos.api';
 import { ConnectionsTreeItem } from './ConnectionsTreeItem';
 import { CosmosDBConnection } from './CosmosDBConnection';
 
@@ -17,6 +19,10 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     public readonly contextValue: string = CosmosDBTreeItem.contextValue;
     public readonly label: string = 'Cosmos DB';
     public readonly parent: ConnectionsTreeItem;
+
+    private readonly _endpointSuffix: string = 'ENDPOINT';
+    private readonly _keySuffix: string = 'MASTER_KEY';
+    private readonly _databaseSuffix: string = 'DATABASE_ID';
 
     constructor(parent: ConnectionsTreeItem) {
         super(parent);
@@ -43,32 +49,28 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
             ext.cosmosAPI = (<AzureExtensionApiProvider>cosmosDB.exports).getApi('^1.0.0');
         }
 
-        const mongoAppSettingsKeys: string[] = [];
         // tslint:disable-next-line:strict-boolean-expressions
         const appSettings = (await this.root.client.listApplicationSettings()).properties || {};
-        Object.keys(appSettings).forEach((key) => {
-            if (/^mongodb[^:]*:\/\//i.test(appSettings[key])) {
-                mongoAppSettingsKeys.push(key);
-            }
-        });
-
+        const connections: IDetectedConnection[] = this.detectMongoConnections(appSettings).concat(this.detectDocDBConnections(appSettings));
         const usedLabels: { [key: string]: boolean } = {};
         const treeItems = await createTreeItemsWithErrorHandling(
             this,
-            mongoAppSettingsKeys,
+            connections,
             'invalidCosmosDBConnection',
-            async (key: string) => {
-                const databaseTreeItem = await ext.cosmosAPI.findTreeItem({ connectionString: appSettings[key] });
+            async (c: IDetectedConnection) => {
+                const databaseTreeItem = await ext.cosmosAPI.findTreeItem({
+                    connectionString: c.connectionString
+                });
                 if (databaseTreeItem) {
                     const label = CosmosDBConnection.makeLabel(databaseTreeItem);
                     if (!usedLabels[label]) {
                         usedLabels[label] = true;
-                        return new CosmosDBConnection(this, databaseTreeItem, key);
+                        return new CosmosDBConnection(this, databaseTreeItem, c.key);
                     }
                 }
                 return undefined;
             },
-            (key: string) => key
+            (c: IDetectedConnection) => c.key
         );
 
         if (treeItems.length > 0) {
@@ -84,31 +86,31 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
 
     public async createChildImpl(showCreatingTreeItem: (label: string) => void): Promise<AzureTreeItem<ISiteTreeRoot>> {
         const databaseToAdd = await ext.cosmosAPI.pickTreeItem({
-            resourceType: 'Database',
-            apiType: ['Mongo']
+            resourceType: 'Database'
         });
         if (!databaseToAdd) {
             throw new UserCancelledError();
         }
         const appSettings = await this.root.client.listApplicationSettings();
-        const appSettingKeyToAdd: string = await ext.ui.showInputBox({
-            prompt: 'Enter new connection setting key',
-            validateInput: (v?: string): string | undefined => validateAppSettingKey(appSettings, v),
-            value: "MONGO_URL"
-        });
+        const newAppSettings: Map<string, string> = databaseToAdd.docDBData ? await this.promptForDocDBAppSettings(appSettings, databaseToAdd) : await this.promptForMongoAppSettings(appSettings, databaseToAdd);
+
         // tslint:disable-next-line:strict-boolean-expressions
         appSettings.properties = appSettings.properties || {};
-        appSettings.properties[appSettingKeyToAdd] = databaseToAdd.connectionString;
+        for (const [k, v] of newAppSettings) {
+            appSettings.properties[k] = v;
+        }
+
         await this.root.client.updateApplicationSettings(appSettings);
         await this.parent.parent.appSettingsNode.refresh();
 
-        const createdDatabase = new CosmosDBConnection(this, databaseToAdd, appSettingKeyToAdd);
+        const createdDatabase = new CosmosDBConnection(this, databaseToAdd, newAppSettings.keys()[0]);
         showCreatingTreeItem(createdDatabase.label);
 
         const ok: vscode.MessageItem = { title: 'OK' };
         const revealDatabase: vscode.MessageItem = { title: 'Reveal Database' };
+        const message: string = `Database "${createdDatabase.label}" connected to web app "${this.root.client.fullName}". Created the following application settings: "${Array.from(newAppSettings.keys()).join(', ')}".`;
         // Don't wait
-        vscode.window.showInformationMessage(`Database "${createdDatabase.label}" connected to web app "${this.root.client.fullName}". Created "${appSettingKeyToAdd}" application settings.`, ok, revealDatabase).then(async (result: vscode.MessageItem | undefined) => {
+        vscode.window.showInformationMessage(message, ok, revealDatabase).then(async (result: vscode.MessageItem | undefined) => {
             if (result === revealDatabase) {
                 await createdDatabase.cosmosExtensionItem.reveal();
             }
@@ -120,4 +122,80 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     public hasMoreChildrenImpl(): boolean {
         return false;
     }
+
+    private detectMongoConnections(appSettings: StringDictionary): IDetectedConnection[] {
+        const result: IDetectedConnection[] = [];
+        for (const key of Object.keys(appSettings)) {
+            const value = appSettings[key];
+            if (/^mongodb[^:]*:\/\//i.test(value)) {
+                result.push({
+                    key: key,
+                    connectionString: appSettings[key]
+                });
+            }
+        }
+        return result;
+    }
+
+    private detectDocDBConnections(appSettings: StringDictionary): IDetectedConnection[] {
+        const result: IDetectedConnection[] = [];
+        const regexp = new RegExp(`(.+_)${this._endpointSuffix}`, 'i');
+        for (const key of Object.keys(appSettings)) {
+            const match = key && key.match(regexp);
+            if (match) {
+                const prefix = match[1];
+                const documentEndpoint: string | undefined = appSettings[prefix + this._endpointSuffix];
+                const masterKey: string | undefined = appSettings[prefix + this._keySuffix];
+                const databaseName: string | undefined = appSettings[prefix + this._databaseSuffix];
+
+                if (documentEndpoint && masterKey) {
+                    result.push({
+                        key: key,
+                        connectionString: `AccountEndpoint=${documentEndpoint};AccountKey=${masterKey};Database=${databaseName}`
+                    });
+                }
+            }
+        }
+
+        return result;
+    }
+
+    private async promptForMongoAppSettings(appSettings: StringDictionary, database: DatabaseTreeItem): Promise<Map<string, string>> {
+        const prompt: string = 'Enter new connection setting key';
+        const defaultKey: string = 'MONGO_URL';
+
+        const appSettingKey: string = await ext.ui.showInputBox({
+            prompt,
+            validateInput: (v?: string): string | undefined => validateAppSettingKey(appSettings, v),
+            value: defaultKey
+        });
+
+        return new Map([[appSettingKey, database.connectionString]]);
+    }
+
+    private async promptForDocDBAppSettings(appSettings: StringDictionary, database: DatabaseTreeItem): Promise<Map<string, string>> {
+        const prompt: string = 'Enter new connection setting prefix';
+        const defaultPrefix: string = 'AZURE_COSMOS_';
+
+        const appSettingPrefix: string = await ext.ui.showInputBox({
+            prompt,
+            validateInput: (v?: string): string | undefined => {
+                return validateAppSettingKey(appSettings, v + this._endpointSuffix) || validateAppSettingKey(appSettings, v + this._keySuffix) || validateAppSettingKey(appSettings, v + this._databaseSuffix);
+            },
+            value: defaultPrefix
+        });
+
+        return new Map([
+            // tslint:disable-next-line:no-non-null-assertion
+            [appSettingPrefix + this._endpointSuffix, database.docDBData!.documentEndpoint],
+            // tslint:disable-next-line:no-non-null-assertion
+            [appSettingPrefix + this._keySuffix, database.docDBData!.masterKey],
+            [appSettingPrefix + this._databaseSuffix, database.databaseName]
+        ]);
+    }
+}
+
+interface IDetectedConnection {
+    key: string;
+    connectionString: string;
 }
