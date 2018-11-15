@@ -12,6 +12,8 @@ export class FileTreeItem extends AzureTreeItem<ISiteTreeRoot> {
     public readonly contextValue: string = FileTreeItem.contextValue;
     public readonly commandId: string = 'appService.showFile';
     public etag: string | undefined; // cannot create etag on creation due to Kudu API calls
+    public lastClick: number | undefined;
+    public clickLatency: number = 500; // ms delay to prevent users from spam clicking a file
 
     constructor(parent: AzureParentTreeItem, readonly label: string, readonly path: string) {
         super(parent);
