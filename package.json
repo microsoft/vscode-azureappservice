@@ -786,7 +786,7 @@
                 "appService.defaultWebAppToDeploy": {
                     "scope": "resource",
                     "type": "string",
-                    "description": "The default web app to use when deploying.  Every subsequent deployment of this project will deploy to this web app or slot.  The web app is represented with its full Azure id string.  Can be disabled by setting to \"None\""
+                    "description": "The default web app to use when deploying represented by its full Azure id.  Every subsequent deployment of this workspace will deploy to this web app or slot. Can be disabled by setting to \"None\""
                 },
                 "appService.advancedCreation": {
                     "type": "boolean",
