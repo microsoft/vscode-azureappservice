@@ -7,9 +7,11 @@ import { CosmosDBConnection } from '../../explorer/CosmosDBConnection';
 import { ext } from "../../extensionVariables";
 
 export async function revealConnectionInAppSettings(node: CosmosDBConnection): Promise<void> {
-    const nodeToReveal = await ext.tree.findTreeItem(`${node.parent.parent.parent.appSettingsNode.fullId}/${node.appSettingKey}`);
+    // Ideally this reveals all appSettingKeys, but for now just reveal the first one
+    const firstKey: string = node.appSettingKeys[0];
+    const nodeToReveal = await ext.tree.findTreeItem(`${node.parent.parent.parent.appSettingsNode.fullId}/${firstKey}`);
     if (!nodeToReveal) {
-        throw new Error(`Failed to find app setting with "${node.appSettingKey}" key.`);
+        throw new Error(`Failed to find app setting with key "${firstKey}".`);
     }
     await ext.treeView.reveal(nodeToReveal);
 }

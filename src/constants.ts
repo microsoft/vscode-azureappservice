@@ -33,7 +33,6 @@ export enum configurationSettings {
     deploySubpath = 'deploySubpath',
     advancedCreation = 'advancedCreation',
     defaultWebAppToDeploy = 'defaultWebAppToDeploy',
-    enableConnectionsNode = 'enableConnectionsNode',
     connections = 'connections'
 }
 

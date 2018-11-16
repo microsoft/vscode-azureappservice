@@ -10,7 +10,6 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { AppSettingsTreeItem, AppSettingTreeItem, DeploymentsTreeItem, DeploymentTreeItem, ISiteTreeRoot, SiteClient } from 'vscode-azureappservice';
 import { AzureParentTreeItem, AzureTreeItem, createAzureClient } from 'vscode-azureextensionui';
-import * as constants from '../constants';
 import { extensionPrefix } from '../constants';
 import { ConnectionsTreeItem } from './ConnectionsTreeItem';
 import { DeploymentSlotsNATreeItem, DeploymentSlotsTreeItem } from './DeploymentSlotsTreeItem';
@@ -54,12 +53,7 @@ export class WebAppTreeItem extends SiteTreeItem {
         this.deploymentsNode = new DeploymentsTreeItem(this, siteConfig);
         // tslint:disable-next-line:no-non-null-assertion
         this.deploymentSlotsNode = tier && /^(basic|free|shared)$/i.test(tier) ? new DeploymentSlotsNATreeItem(this, tier, asp!.id!) : new DeploymentSlotsTreeItem(this);
-        const nodes: AzureTreeItem<ISiteTreeRoot>[] = [this.deploymentSlotsNode, this.folderNode, this.logFolderNode, this.webJobsNode, this.appSettingsNode, this.deploymentsNode];
-        const workspaceConfig = vscode.workspace.getConfiguration(constants.extensionPrefix);
-        if (workspaceConfig.get(constants.configurationSettings.enableConnectionsNode)) {
-            nodes.push(this.connectionsNode);
-        }
-        return nodes;
+        return [this.deploymentSlotsNode, this.folderNode, this.logFolderNode, this.webJobsNode, this.appSettingsNode, this.deploymentsNode, this.connectionsNode];
     }
 
     public pickTreeItemImpl(expectedContextValue: string): AzureTreeItem<ISiteTreeRoot> | undefined {
