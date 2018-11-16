@@ -111,11 +111,15 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
         }
     }
     workspaceConfig = vscode.workspace.getConfiguration(constants.extensionPrefix, vscode.Uri.file(fsPath));
-    if (workspaceConfig.get(constants.configurationSettings.showBuildDuringDeployPrompt)) {
-        if (siteConfig.linuxFxVersion && siteConfig.linuxFxVersion.startsWith(constants.runtimes.node) && siteConfig.scmType === 'None' && !(await pathExists(path.join(fsPath, constants.deploymentFileName)))) {
-            // check if web app has node runtime, is being zipdeployed, and if there is no .deployment file
-            // tslint:disable-next-line:no-unsafe-any
-            await node.enableScmDoBuildDuringDeploy(fsPath, constants.runtimes[siteConfig.linuxFxVersion.substring(0, siteConfig.linuxFxVersion.indexOf('|'))], context.properties);
+    if (currentWorkspace && (isPathEqual(currentWorkspace.uri.fsPath, fsPath) || isSubpath(currentWorkspace.uri.fsPath, fsPath))) {
+        // currentWorkspace is only set if there is one active workspace
+        // only check enableScmDoBuildDuringDeploy if currentWorkspace matches the workspace being deployed as a user can "Browse" to a different project
+        if (workspaceConfig.get(constants.configurationSettings.showBuildDuringDeployPrompt)) {
+            if (siteConfig.linuxFxVersion && siteConfig.linuxFxVersion.startsWith(constants.runtimes.node) && siteConfig.scmType === 'None' && !(await pathExists(path.join(fsPath, constants.deploymentFileName)))) {
+                // check if web app has node runtime, is being zipdeployed, and if there is no .deployment file
+                // tslint:disable-next-line:no-unsafe-any
+                await node.enableScmDoBuildDuringDeploy(fsPath, constants.runtimes[siteConfig.linuxFxVersion.substring(0, siteConfig.linuxFxVersion.indexOf('|'))], context.properties);
+            }
         }
     }
 
