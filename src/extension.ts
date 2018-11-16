@@ -285,20 +285,7 @@ export function activate(context: vscode.ExtensionContext): void {
     registerCommand('appService.StartRemoteDebug', async (node?: SiteTreeItem) => startRemoteDebug(node));
     registerCommand('appService.DisableRemoteDebug', async (node?: SiteTreeItem) => disableRemoteDebug(node));
 
-    registerCommand('appService.showFile', async (node: FileTreeItem) => {
-        const logFiles: string = 'LogFiles/';
-        // we don't want to let users save log files, so rather than using the FileEditor, just open an untitled document
-        if (node.path.startsWith(logFiles)) {
-            const file: IFileResult = await getFile(node.root.client, node.path);
-            const document: vscode.TextDocument = await vscode.workspace.openTextDocument({
-                language: extname(node.path).substring(1), // remove the prepending dot of the ext
-                content: file.data
-            });
-            await vscode.window.showTextDocument(document);
-        } else {
-            await fileEditor.showEditor(node);
-        }
-    });
+    registerCommand('appService.showFile', async (node: FileTreeItem) => { await showFile(node, fileEditor); }, 500);
     registerCommand('appService.ScaleUp', async (node: DeploymentSlotsNATreeItem | ScaleUpTreeItem) => {
         node.openInPortal(node.scaleUpId);
     });
