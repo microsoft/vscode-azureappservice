@@ -15,8 +15,9 @@ import { ConnectionsTreeItem } from './ConnectionsTreeItem';
 import { CosmosDBConnection } from './CosmosDBConnection';
 
 export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
-    public static contextValue: string = 'сosmosDBConnections';
-    public readonly contextValue: string = CosmosDBTreeItem.contextValue;
+    public static contextValueInstalled: string = 'сosmosDBConnections';
+    public static contextValueNotInstalled: string = 'сosmosDBNotInstalled';
+    public readonly contextValue: string;
     public readonly label: string = 'Cosmos DB';
     public readonly parent: ConnectionsTreeItem;
 
@@ -24,8 +25,18 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     private readonly _keySuffix: string = '_MASTER_KEY';
     private readonly _databaseSuffix: string = '_DATABASE_ID';
 
+    private _cosmosDBApiProvider: AzureExtensionApiProvider | undefined;
+
     constructor(parent: ConnectionsTreeItem) {
         super(parent);
+
+        const cosmosDB = vscode.extensions.getExtension('ms-azuretools.vscode-cosmosdb');
+        if (cosmosDB) {
+            this.contextValue = CosmosDBTreeItem.contextValueInstalled;
+            this._cosmosDBApiProvider = <AzureExtensionApiProvider>cosmosDB.exports;
+        } else {
+            this.contextValue = CosmosDBTreeItem.contextValueNotInstalled;
+        }
     }
 
     public get iconPath(): string | vscode.Uri | { light: string | vscode.Uri; dark: string | vscode.Uri } {
@@ -36,8 +47,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     }
 
     public async loadMoreChildrenImpl(_clearCache: boolean): Promise<AzureTreeItem<ISiteTreeRoot>[]> {
-        const cosmosDB = vscode.extensions.getExtension('ms-azuretools.vscode-cosmosdb');
-        if (!cosmosDB) {
+        if (!this._cosmosDBApiProvider) {
             return [new GenericTreeItem(this, {
                 commandId: 'appService.InstallCosmosDBExtension',
                 contextValue: 'InstallCosmosDBExtension',
@@ -46,7 +56,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         }
 
         if (ext.cosmosAPI === undefined) {
-            ext.cosmosAPI = (<AzureExtensionApiProvider>cosmosDB.exports).getApi('^1.0.0');
+            ext.cosmosAPI = this._cosmosDBApiProvider.getApi('^1.0.0');
         }
 
         // tslint:disable-next-line:strict-boolean-expressions
