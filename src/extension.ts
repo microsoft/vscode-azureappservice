@@ -6,9 +6,8 @@
 'use strict';
 
 import * as opn from 'opn';
-import { extname } from 'path';
 import * as vscode from 'vscode';
-import { AppSettingsTreeItem, AppSettingTreeItem, DeploymentsTreeItem, editScmType, getFile, IFileResult, ISiteTreeRoot, registerAppServiceExtensionVariables, SiteClient, stopStreamingLogs } from 'vscode-azureappservice';
+import { AppSettingsTreeItem, AppSettingTreeItem, DeploymentsTreeItem, editScmType, ISiteTreeRoot, registerAppServiceExtensionVariables, SiteClient, stopStreamingLogs } from 'vscode-azureappservice';
 import { AzureParentTreeItem, AzureTreeDataProvider, AzureTreeItem, AzureUserInput, createTelemetryReporter, IActionContext, IAzureUserInput, registerCommand, registerEvent, registerUIExtensionVariables, SubscriptionTreeItem } from 'vscode-azureextensionui';
 import { SiteConfigResource } from '../node_modules/azure-arm-website/lib/models';
 import { addCosmosDBConnection } from './commands/connections/addCosmosDBConnection';
@@ -22,6 +21,7 @@ import { viewDeploymentLogs } from './commands/deployments/viewDeploymentLogs';
 import { enableFileLogging } from './commands/enableFileLogging';
 import { disableRemoteDebug } from './commands/remoteDebug/disableRemoteDebug';
 import { startRemoteDebug } from './commands/remoteDebug/startRemoteDebug';
+import { showFile } from './commands/showFile';
 import { startStreamingLogs } from './commands/startStreamingLogs';
 import { swapSlots } from './commands/swapSlots';
 import { CosmosDBConnection } from './explorer/CosmosDBConnection';
@@ -285,20 +285,7 @@ export function activate(context: vscode.ExtensionContext): void {
     registerCommand('appService.StartRemoteDebug', async (node?: SiteTreeItem) => startRemoteDebug(node));
     registerCommand('appService.DisableRemoteDebug', async (node?: SiteTreeItem) => disableRemoteDebug(node));
 
-    registerCommand('appService.showFile', async (node: FileTreeItem) => {
-        const logFiles: string = 'LogFiles/';
-        // we don't want to let users save log files, so rather than using the FileEditor, just open an untitled document
-        if (node.path.startsWith(logFiles)) {
-            const file: IFileResult = await getFile(node.root.client, node.path);
-            const document: vscode.TextDocument = await vscode.workspace.openTextDocument({
-                language: extname(node.path).substring(1), // remove the prepending dot of the ext
-                content: file.data
-            });
-            await vscode.window.showTextDocument(document);
-        } else {
-            await fileEditor.showEditor(node);
-        }
-    });
+    registerCommand('appService.showFile', async (node: FileTreeItem) => { await showFile(node, fileEditor); });
     registerCommand('appService.ScaleUp', async (node: DeploymentSlotsNATreeItem | ScaleUpTreeItem) => {
         node.openInPortal(node.scaleUpId);
     });
