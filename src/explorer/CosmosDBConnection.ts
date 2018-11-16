@@ -17,9 +17,14 @@ export class CosmosDBConnection extends AzureTreeItem<ISiteTreeRoot> {
     public readonly label: string;
     public readonly parent: CosmosDBTreeItem;
 
-    constructor(parent: CosmosDBTreeItem, readonly cosmosExtensionItem: DatabaseAccountTreeItem | DatabaseTreeItem, readonly appSettingKey: string) {
+    constructor(parent: CosmosDBTreeItem, readonly cosmosExtensionItem: DatabaseAccountTreeItem | DatabaseTreeItem, readonly appSettingKeys: string[]) {
         super(parent);
         this.label = CosmosDBConnection.makeLabel(cosmosExtensionItem);
+    }
+
+    public get id(): string {
+        // App setting keys have to be unique within a web app, so use that for the id. (As opposed to app setting values, which do not have to be unique)
+        return this.appSettingKeys[0];
     }
 
     public static makeLabel(cosmosExtensionItem: DatabaseAccountTreeItem | DatabaseTreeItem): string {
@@ -46,27 +51,16 @@ export class CosmosDBConnection extends AzureTreeItem<ISiteTreeRoot> {
     }
 
     public async deleteTreeItemImpl(): Promise<void> {
-        const valueToDelete = this.cosmosExtensionItem.connectionString;
-
         const appSettings = await this.root.client.listApplicationSettings();
         const properties = appSettings.properties;
         if (properties) {
-            const keysToDelete: string[] = [];
-            Object.keys(properties).forEach((key) => {
-                if (properties[key] === valueToDelete) {
-                    keysToDelete.push(key);
-                }
-            });
-
-            if (keysToDelete.length > 0) {
-                const warning: string = `Are you sure you want to remove connection "${this.label}"? This will delete the following application settings: ${keysToDelete.map((s) => `"${s}"`).join(', ')}.`;
-                const items: vscode.MessageItem[] = [DialogResponses.deleteResponse, DialogResponses.cancel];
-                const result: vscode.MessageItem = await ext.ui.showWarningMessage(warning, { modal: true }, ...items);
-                if (result === DialogResponses.cancel) {
-                    throw new UserCancelledError();
-                }
+            const warning: string = `Are you sure you want to remove connection "${this.label}"? This will delete the following application settings: ${this.appSettingKeys.map((s) => `"${s}"`).join(', ')}.`;
+            const items: vscode.MessageItem[] = [DialogResponses.deleteResponse, DialogResponses.cancel];
+            const result: vscode.MessageItem = await ext.ui.showWarningMessage(warning, { modal: true }, ...items);
+            if (result === DialogResponses.cancel) {
+                throw new UserCancelledError();
             }
-            keysToDelete.forEach((key) => {
+            this.appSettingKeys.forEach((key) => {
                 delete properties[key];
             });
             await this.root.client.updateApplicationSettings(appSettings);
