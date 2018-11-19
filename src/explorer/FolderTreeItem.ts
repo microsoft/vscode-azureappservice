@@ -22,10 +22,10 @@ export class FolderTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     }
 
     public get iconPath(): { light: string, dark: string } | undefined {
-        return this.contextValue === 'subFolder' ? undefined : {
+        return {
             light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'Folder_16x.svg'),
             dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'Folder_16x.svg')
-        }; // no icons for subfolders
+        };
     }
 
     public hasMoreChildrenImpl(): boolean {
@@ -60,13 +60,24 @@ export class FolderTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     }
 
     public compareChildrenImpl(ti1: AzureTreeItem<ISiteTreeRoot>, ti2: AzureTreeItem<ISiteTreeRoot>): number {
-        if (!(ti1 instanceof LogStreamTreeItem) && ti2 instanceof LogStreamTreeItem) {
-            return 1;
+        let result: number | undefined = instanceOfCompare(ti1, ti2, LogStreamTreeItem);
+
+        if (result === undefined) {
+            result = instanceOfCompare(ti1, ti2, FolderTreeItem);
         }
-        if (ti1 instanceof LogStreamTreeItem && !(ti2 instanceof LogStreamTreeItem)) {
-            return -1;
-        }
-        return ti1.label.localeCompare(ti2.label);
+
+        return result === undefined ? ti1.label.localeCompare(ti2.label) : result;
+    }
+}
+
+// tslint:disable-next-line:no-any
+function instanceOfCompare<T>(ti1: AzureTreeItem, ti2: AzureTreeItem, type1: new (...args: any[]) => T): number | undefined {
+    if (!(ti1 instanceof type1) && ti2 instanceof type1) {
+        return 1;
+    } else if (ti1 instanceof type1 && !(ti2 instanceof type1)) {
+        return -1;
+    } else {
+        return undefined;
     }
 }
 
