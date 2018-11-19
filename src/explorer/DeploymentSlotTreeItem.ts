@@ -23,7 +23,6 @@ export class DeploymentSlotTreeItem extends SiteTreeItem {
         this.folderNode = new FolderTreeItem(this, 'Files', "/site/wwwroot");
         this.logFolderNode = new FolderTreeItem(this, 'Logs', '/LogFiles', 'logFolder');
         this.appSettingsNode = new AppSettingsTreeItem(this);
-
     }
 
     public get iconPath(): { light: string, dark: string } {
