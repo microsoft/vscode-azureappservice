@@ -143,9 +143,13 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     }
 
     private detectDocDBConnections(appSettings: { [propertyName: string]: string }): IDetectedConnection[] {
+        const connectionStringEndpointPrefix = 'AccountEndpoint=';
+        const connectionStringKeyPrefix = 'AccountKey=';
+
         const result: IDetectedConnection[] = [];
         const regexp = new RegExp(`(.+)${this._endpointSuffix}`, 'i');
         for (const key of Object.keys(appSettings)) {
+            // First, check for connection string split up into multiple app settings (endpoint, key, and optional database id)
             const match = key && key.match(regexp);
             if (match) {
                 const prefix = match[1];
@@ -156,7 +160,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
 
                 if (documentEndpoint && masterKey) {
                     const keys: string[] = [endpointKey, keyKey];
-                    let connectionString = `AccountEndpoint=${documentEndpoint};AccountKey=${masterKey};`;
+                    let connectionString = `${connectionStringEndpointPrefix}${documentEndpoint};${connectionStringKeyPrefix}${masterKey};`;
 
                     const databaseKey = prefix + this._databaseSuffix;
                     if (Object.keys(appSettings).find((k) => k === databaseKey)) {
@@ -165,6 +169,15 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
                     }
 
                     result.push({ keys, connectionString });
+                }
+            } else {
+                // Second, check for connection string as one app setting
+                const regExp1 = new RegExp(connectionStringEndpointPrefix, 'i');
+                const regExp2 = new RegExp(connectionStringKeyPrefix, 'i');
+
+                const value: string = appSettings[key];
+                if (regExp1.test(value) && regExp2.test(value)) {
+                    result.push({ keys: [key], connectionString: value });
                 }
             }
         }
