@@ -11,13 +11,6 @@ import { FolderTreeItem } from './FolderTreeItem';
 import { SiteTreeItem } from './SiteTreeItem';
 
 export class DeploymentSlotTreeItem extends SiteTreeItem {
-
-    public get iconPath(): { light: string, dark: string } {
-        return {
-            light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'DeploymentSlot_color.svg'),
-            dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'DeploymentSlot_color.svg')
-        };
-    }
     public static contextValue: string = 'deploymentSlot';
     public readonly contextValue: string = DeploymentSlotTreeItem.contextValue;
     public deploymentsNode: DeploymentsTreeItem | undefined;
@@ -31,6 +24,13 @@ export class DeploymentSlotTreeItem extends SiteTreeItem {
         this.logFolderNode = new FolderTreeItem(this, 'Logs', '/LogFiles', 'logFolder');
         this.appSettingsNode = new AppSettingsTreeItem(this);
 
+    }
+
+    public get iconPath(): { light: string, dark: string } {
+        return {
+            light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'DeploymentSlot_color.svg'),
+            dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'DeploymentSlot_color.svg')
+        };
     }
 
     public async loadMoreChildrenImpl(_clearCache: boolean): Promise<AzureParentTreeItem<ISiteTreeRoot>[]> {
