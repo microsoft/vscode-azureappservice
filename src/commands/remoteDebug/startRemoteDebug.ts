@@ -17,7 +17,7 @@ let isRemoteDebugging = false;
 
 export async function startRemoteDebug(actionContext: IActionContext, node?: SiteTreeItem): Promise<void> {
     if (isRemoteDebugging) {
-        throw new Error('Azure Remote Debugging is already started.');
+        throw new Error('Azure Remote Debugging is currently starting or already started.');
     }
 
     isRemoteDebugging = true;
