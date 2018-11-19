@@ -285,7 +285,7 @@ export function activate(context: vscode.ExtensionContext): void {
     registerCommand('appService.StartRemoteDebug', async (node?: SiteTreeItem) => startRemoteDebug(node));
     registerCommand('appService.DisableRemoteDebug', async (node?: SiteTreeItem) => disableRemoteDebug(node));
 
-    registerCommand('appService.showFile', async (node: FileTreeItem) => { await showFile(node, fileEditor); });
+    registerCommand('appService.showFile', async (node: FileTreeItem) => { await showFile(node, fileEditor); }, 500);
     registerCommand('appService.ScaleUp', async (node: DeploymentSlotsNATreeItem | ScaleUpTreeItem) => {
         node.openInPortal(node.scaleUpId);
     });
