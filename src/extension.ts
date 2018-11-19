@@ -5,10 +5,14 @@
 
 'use strict';
 
+const loadStartTime: number = Date.now();
+let loadEndTime: number;
+
 import * as opn from 'opn';
 import * as vscode from 'vscode';
 import { AppSettingsTreeItem, AppSettingTreeItem, DeploymentsTreeItem, editScmType, ISiteTreeRoot, registerAppServiceExtensionVariables, SiteClient, stopStreamingLogs } from 'vscode-azureappservice';
-import { AzureParentTreeItem, AzureTreeDataProvider, AzureTreeItem, AzureUserInput, createTelemetryReporter, IActionContext, IAzureUserInput, registerCommand, registerEvent, registerUIExtensionVariables, SubscriptionTreeItem } from 'vscode-azureextensionui';
+import { AzureParentTreeItem, AzureTreeDataProvider, AzureTreeItem, AzureUserInput, callWithTelemetryAndErrorHandling, createApiProvider, createTelemetryReporter, IActionContext, IAzureUserInput, registerCommand, registerEvent, registerUIExtensionVariables, SubscriptionTreeItem } from 'vscode-azureextensionui';
+import { AzureExtensionApiProvider } from 'vscode-azureextensionui/api';
 import { SiteConfigResource } from '../node_modules/azure-arm-website/lib/models';
 import { addCosmosDBConnection } from './commands/connections/addCosmosDBConnection';
 import { removeCosmosDBConnection } from './commands/connections/removeCosmosDBConnection';
@@ -42,7 +46,7 @@ import { LogpointsCollection } from './logPoints/structs/LogpointsCollection';
 
 // tslint:disable-next-line:export-name
 // tslint:disable-next-line:max-func-body-length
-export function activate(context: vscode.ExtensionContext): void {
+export async function activate(context: vscode.ExtensionContext): Promise<AzureExtensionApiProvider> {
     ext.context = context;
     ext.reporter = createTelemetryReporter(context);
 
@@ -55,282 +59,292 @@ export function activate(context: vscode.ExtensionContext): void {
     registerUIExtensionVariables(ext);
     registerAppServiceExtensionVariables(ext);
 
-    const tree = new AzureTreeDataProvider(WebAppProvider, 'appService.LoadMore');
-    ext.tree = tree;
-    context.subscriptions.push(tree);
+    // tslint:disable-next-line:max-func-body-length
+    await callWithTelemetryAndErrorHandling('appService.activate', async function (this: IActionContext): Promise<void> {
+        this.properties.isActivationEvent = 'true';
+        this.measurements.mainFileLoad = (loadEndTime - loadStartTime) / 1000;
 
-    ext.treeView = vscode.window.createTreeView('azureAppService', { treeDataProvider: tree });
-    context.subscriptions.push(ext.treeView);
+        const tree = new AzureTreeDataProvider(WebAppProvider, 'appService.LoadMore');
+        ext.tree = tree;
+        context.subscriptions.push(tree);
 
-    const fileEditor: FileEditor = new FileEditor();
-    context.subscriptions.push(fileEditor);
+        ext.treeView = vscode.window.createTreeView('azureAppService', { treeDataProvider: tree });
+        context.subscriptions.push(ext.treeView);
 
-    // loaded scripts
-    const provider = new LoadedScriptsProvider(context);
-    context.subscriptions.push(vscode.window.registerTreeDataProvider('appservice.loadedScriptsExplorer.jsLogpoints', provider));
+        const fileEditor: FileEditor = new FileEditor();
+        context.subscriptions.push(fileEditor);
 
-    const documentProvider = new RemoteScriptDocumentProvider();
-    context.subscriptions.push(vscode.workspace.registerTextDocumentContentProvider(RemoteScriptSchema.schema, documentProvider));
+        // loaded scripts
+        const provider = new LoadedScriptsProvider(context);
+        context.subscriptions.push(vscode.window.registerTreeDataProvider('appservice.loadedScriptsExplorer.jsLogpoints', provider));
 
-    const logPointsManager = new LogPointsManager();
-    context.subscriptions.push(logPointsManager);
+        const documentProvider = new RemoteScriptDocumentProvider();
+        context.subscriptions.push(vscode.workspace.registerTextDocumentContentProvider(RemoteScriptSchema.schema, documentProvider));
 
-    const pathIcon = context.asAbsolutePath('resources/logpoint.svg');
-    const logpointDecorationType = vscode.window.createTextEditorDecorationType({
-        gutterIconPath: pathIcon,
-        overviewRulerLane: vscode.OverviewRulerLane.Full,
-        overviewRulerColor: "rgba(21, 126, 251, 0.7)"
-    });
-    context.subscriptions.push(logpointDecorationType);
+        const logPointsManager = new LogPointsManager();
+        context.subscriptions.push(logPointsManager);
 
-    LogpointsCollection.TextEditorDecorationType = logpointDecorationType;
-
-    const yesButton: vscode.MessageItem = { title: 'Yes' };
-    const noButton: vscode.MessageItem = { title: 'No', isCloseAffordance: true };
-
-    registerCommand('appService.Refresh', async (node?: AzureTreeItem) => await tree.refresh(node));
-    registerCommand('appService.selectSubscriptions', () => vscode.commands.executeCommand("azure-account.selectSubscriptions"));
-    registerCommand('appService.LoadMore', async (node: AzureTreeItem) => await tree.loadMore(node));
-    registerCommand('appService.Browse', async (node?: SiteTreeItem) => {
-        if (!node) {
-            node = <WebAppTreeItem>await tree.showTreeItemPicker(WebAppTreeItem.contextValue);
-        }
-
-        node.browse();
-    });
-    registerCommand('appService.OpenInPortal', async (node?: AzureTreeItem<ISiteTreeRoot>) => {
-        if (!node) {
-            node = <WebAppTreeItem>await tree.showTreeItemPicker(WebAppTreeItem.contextValue);
-        }
-
-        switch (node.contextValue) {
-            // the deep link for slots does not follow the conventional pattern of including its parent in the path name so this is how we extract the slot's id
-            case DeploymentSlotsTreeItem.contextValue:
-                // tslint:disable-next-line:no-non-null-assertion
-                node.openInPortal(`${node.parent!.fullId}/deploymentSlots`);
-                return;
-            // the deep link for "Deployments" do not follow the conventional pattern of including its parent in the path name so we need to pass the "Deployment Center" url directly
-            case DeploymentsTreeItem.contextValueConnected:
-            case DeploymentsTreeItem.contextValueUnconnected:
-                node.openInPortal(`${node.root.client.id}/vstscd`);
-                return;
-            default:
-                node.openInPortal();
-                return;
-        }
-    });
-    registerCommand('appService.Start', async (node?: SiteTreeItem) => {
-        if (!node) {
-            node = <WebAppTreeItem>await tree.showTreeItemPicker(WebAppTreeItem.contextValue);
-        }
-
-        const client: SiteClient = node.root.client;
-        const startingApp: string = `Starting "${client.fullName}"...`;
-        const startedApp: string = `"${client.fullName}" has been started.`;
-        await node.runWithTemporaryDescription("Starting...", async () => {
-            ext.outputChannel.appendLine(startingApp);
-            await client.start();
-            ext.outputChannel.appendLine(startedApp);
+        const pathIcon = context.asAbsolutePath('resources/logpoint.svg');
+        const logpointDecorationType = vscode.window.createTextEditorDecorationType({
+            gutterIconPath: pathIcon,
+            overviewRulerLane: vscode.OverviewRulerLane.Full,
+            overviewRulerColor: "rgba(21, 126, 251, 0.7)"
         });
-    });
-    registerCommand('appService.Stop', async (node?: SiteTreeItem) => {
-        if (!node) {
-            node = <WebAppTreeItem>await tree.showTreeItemPicker(WebAppTreeItem.contextValue);
-        }
+        context.subscriptions.push(logpointDecorationType);
 
-        const client: SiteClient = node.root.client;
-        const stoppingApp: string = `Stopping "${client.fullName}"...`;
-        const stoppedApp: string = `"${client.fullName}" has been stopped. App Service plan charges still apply.`;
-        await node.runWithTemporaryDescription("Stopping...", async () => {
-            ext.outputChannel.appendLine(stoppingApp);
-            await client.stop();
-            ext.outputChannel.appendLine(stoppedApp);
+        LogpointsCollection.TextEditorDecorationType = logpointDecorationType;
+
+        const yesButton: vscode.MessageItem = { title: 'Yes' };
+        const noButton: vscode.MessageItem = { title: 'No', isCloseAffordance: true };
+
+        registerCommand('appService.Refresh', async (node?: AzureTreeItem) => await tree.refresh(node));
+        registerCommand('appService.selectSubscriptions', () => vscode.commands.executeCommand("azure-account.selectSubscriptions"));
+        registerCommand('appService.LoadMore', async (node: AzureTreeItem) => await tree.loadMore(node));
+        registerCommand('appService.Browse', async (node?: SiteTreeItem) => {
+            if (!node) {
+                node = <WebAppTreeItem>await tree.showTreeItemPicker(WebAppTreeItem.contextValue);
+            }
+
+            node.browse();
         });
+        registerCommand('appService.OpenInPortal', async (node?: AzureTreeItem<ISiteTreeRoot>) => {
+            if (!node) {
+                node = <WebAppTreeItem>await tree.showTreeItemPicker(WebAppTreeItem.contextValue);
+            }
 
-        await logPointsManager.onAppServiceSiteClosed(client);
-    });
-    registerCommand('appService.Restart', async (node?: SiteTreeItem) => {
-        if (!node) {
-            node = <WebAppTreeItem>await tree.showTreeItemPicker(WebAppTreeItem.contextValue);
-        }
-        await vscode.commands.executeCommand('appService.Stop', node);
-        await vscode.commands.executeCommand('appService.Start', node);
-        await logPointsManager.onAppServiceSiteClosed(node.root.client);
-    });
-    registerCommand('appService.Delete', async (node?: SiteTreeItem) => {
-        if (!node) {
-            node = <WebAppTreeItem>await tree.showTreeItemPicker(WebAppTreeItem.contextValue);
-        }
+            switch (node.contextValue) {
+                // the deep link for slots does not follow the conventional pattern of including its parent in the path name so this is how we extract the slot's id
+                case DeploymentSlotsTreeItem.contextValue:
+                    // tslint:disable-next-line:no-non-null-assertion
+                    node.openInPortal(`${node.parent!.fullId}/deploymentSlots`);
+                    return;
+                // the deep link for "Deployments" do not follow the conventional pattern of including its parent in the path name so we need to pass the "Deployment Center" url directly
+                case DeploymentsTreeItem.contextValueConnected:
+                case DeploymentsTreeItem.contextValueUnconnected:
+                    node.openInPortal(`${node.root.client.id}/vstscd`);
+                    return;
+                default:
+                    node.openInPortal();
+                    return;
+            }
+        });
+        registerCommand('appService.Start', async (node?: SiteTreeItem) => {
+            if (!node) {
+                node = <WebAppTreeItem>await tree.showTreeItemPicker(WebAppTreeItem.contextValue);
+            }
 
-        await node.deleteTreeItem();
-    });
-    registerCommand('appService.CreateWebApp', async function (this: IActionContext, node?: AzureParentTreeItem): Promise<void> {
-        const deployingToWebApp = 'deployingToWebApp';
-
-        if (!node) {
-            node = <AzureParentTreeItem>await tree.showTreeItemPicker(SubscriptionTreeItem.contextValue);
-        }
-
-        const createdApp = <WebAppTreeItem>await node.createChild(this);
-        createdApp.root.client.getSiteConfig().then(
-            (createdAppConfig: SiteConfigResource) => {
-                this.properties.linuxFxVersion = createdAppConfig.linuxFxVersion ? createdAppConfig.linuxFxVersion : 'undefined';
-                this.properties.createdFromDeploy = 'false';
-            },
-            () => {
-                // ignore
+            const client: SiteClient = node.root.client;
+            const startingApp: string = `Starting "${client.fullName}"...`;
+            const startedApp: string = `"${client.fullName}" has been started.`;
+            await node.runWithTemporaryDescription("Starting...", async () => {
+                ext.outputChannel.appendLine(startingApp);
+                await client.start();
+                ext.outputChannel.appendLine(startedApp);
             });
-        // prompt user to deploy to newly created web app
-        if (await vscode.window.showInformationMessage('Deploy to web app?', yesButton, noButton) === yesButton) {
-            this.properties[deployingToWebApp] = 'true';
-            await deploy(this, false, createdApp);
-        } else {
-            this.properties[deployingToWebApp] = 'false';
-        }
-    });
-    registerCommand('appService.Deploy', async function (this: IActionContext, target?: vscode.Uri | WebAppTreeItem | undefined): Promise<void> {
-        await deploy(this, true, target);
-    });
-    registerCommand('appService.ConfigureDeploymentSource', async function (this: IActionContext, node?: SiteTreeItem): Promise<void> {
-        if (!node) {
-            node = <SiteTreeItem>await tree.showTreeItemPicker(WebAppTreeItem.contextValue);
-        }
-        await editScmType(node.root.client, node, this);
-    });
-    registerCommand('appService.OpenVSTSCD', async (node?: WebAppTreeItem) => {
-        if (!node) {
-            node = <WebAppTreeItem>await tree.showTreeItemPicker(WebAppTreeItem.contextValue);
-        }
-
-        node.openCdInPortal();
-    });
-    registerCommand('appService.DeploymentScript', async (node?: WebAppTreeItem) => {
-        if (!node) {
-            node = <WebAppTreeItem>await tree.showTreeItemPicker(WebAppTreeItem.contextValue);
-        }
-
-        await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async p => {
-            p.report({ message: 'Generating script...' });
-            // tslint:disable-next-line:no-non-null-assertion
-            await node!.generateDeploymentScript();
         });
-    });
-    registerCommand('appService.CreateSlot', async function (this: IActionContext, node?: DeploymentSlotsTreeItem): Promise<void> {
-        const deployingToDeploymentSlot = 'deployingToDeploymentSlot';
+        registerCommand('appService.Stop', async (node?: SiteTreeItem) => {
+            if (!node) {
+                node = <WebAppTreeItem>await tree.showTreeItemPicker(WebAppTreeItem.contextValue);
+            }
 
-        if (!node) {
-            node = <DeploymentSlotsTreeItem>await tree.showTreeItemPicker(DeploymentSlotsTreeItem.contextValue);
-        }
+            const client: SiteClient = node.root.client;
+            const stoppingApp: string = `Stopping "${client.fullName}"...`;
+            const stoppedApp: string = `"${client.fullName}" has been stopped. App Service plan charges still apply.`;
+            await node.runWithTemporaryDescription("Stopping...", async () => {
+                ext.outputChannel.appendLine(stoppingApp);
+                await client.stop();
+                ext.outputChannel.appendLine(stoppedApp);
+            });
 
-        const createdSlot = <SiteTreeItem>await node.createChild(this);
+            await logPointsManager.onAppServiceSiteClosed(client);
+        });
+        registerCommand('appService.Restart', async (node?: SiteTreeItem) => {
+            if (!node) {
+                node = <WebAppTreeItem>await tree.showTreeItemPicker(WebAppTreeItem.contextValue);
+            }
+            await vscode.commands.executeCommand('appService.Stop', node);
+            await vscode.commands.executeCommand('appService.Start', node);
+            await logPointsManager.onAppServiceSiteClosed(node.root.client);
+        });
+        registerCommand('appService.Delete', async (node?: SiteTreeItem) => {
+            if (!node) {
+                node = <WebAppTreeItem>await tree.showTreeItemPicker(WebAppTreeItem.contextValue);
+            }
 
-        // prompt user to deploy to newly created web app
-        if (await vscode.window.showInformationMessage('Deploy to deployment slot?', yesButton, noButton) === yesButton) {
-            this.properties[deployingToDeploymentSlot] = 'true';
-            await deploy(this, false, createdSlot);
-        } else {
-            this.properties[deployingToDeploymentSlot] = 'false';
-        }
-    });
-    registerCommand('appService.SwapSlots', async (node: DeploymentSlotTreeItem) => await swapSlots(node));
-    registerCommand('appService.appSettings.Add', async (node?: AppSettingsTreeItem) => {
-        if (!node) {
-            node = <AppSettingsTreeItem>await tree.showTreeItemPicker(AppSettingsTreeItem.contextValue);
-        }
+            await node.deleteTreeItem();
+        });
+        registerCommand('appService.CreateWebApp', async function (this: IActionContext, node?: AzureParentTreeItem): Promise<void> {
+            const deployingToWebApp = 'deployingToWebApp';
 
-        await node.createChild();
-    });
-    registerCommand('appService.appSettings.Edit', async (node?: AppSettingTreeItem) => {
-        if (!node) {
-            node = <AppSettingTreeItem>await tree.showTreeItemPicker(AppSettingTreeItem.contextValue);
-        }
+            if (!node) {
+                node = <AzureParentTreeItem>await tree.showTreeItemPicker(SubscriptionTreeItem.contextValue);
+            }
 
-        await node.edit();
-    });
-    registerCommand('appService.appSettings.Rename', async (node?: AppSettingTreeItem) => {
-        if (!node) {
-            node = <AppSettingTreeItem>await tree.showTreeItemPicker(AppSettingTreeItem.contextValue);
-        }
+            const createdApp = <WebAppTreeItem>await node.createChild(this);
+            createdApp.root.client.getSiteConfig().then(
+                (createdAppConfig: SiteConfigResource) => {
+                    this.properties.linuxFxVersion = createdAppConfig.linuxFxVersion ? createdAppConfig.linuxFxVersion : 'undefined';
+                    this.properties.createdFromDeploy = 'false';
+                },
+                () => {
+                    // ignore
+                });
+            // prompt user to deploy to newly created web app
+            if (await vscode.window.showInformationMessage('Deploy to web app?', yesButton, noButton) === yesButton) {
+                this.properties[deployingToWebApp] = 'true';
+                await deploy(this, false, createdApp);
+            } else {
+                this.properties[deployingToWebApp] = 'false';
+            }
+        });
+        registerCommand('appService.Deploy', async function (this: IActionContext, target?: vscode.Uri | WebAppTreeItem | undefined): Promise<void> {
+            await deploy(this, true, target);
+        });
+        registerCommand('appService.ConfigureDeploymentSource', async function (this: IActionContext, node?: SiteTreeItem): Promise<void> {
+            if (!node) {
+                node = <SiteTreeItem>await tree.showTreeItemPicker(WebAppTreeItem.contextValue);
+            }
+            await editScmType(node.root.client, node, this);
+        });
+        registerCommand('appService.OpenVSTSCD', async (node?: WebAppTreeItem) => {
+            if (!node) {
+                node = <WebAppTreeItem>await tree.showTreeItemPicker(WebAppTreeItem.contextValue);
+            }
 
-        await node.rename();
-    });
-    registerCommand('appService.appSettings.Delete', async (node?: AppSettingTreeItem) => {
-        if (!node) {
-            node = <AppSettingTreeItem>await tree.showTreeItemPicker(AppSettingTreeItem.contextValue);
-        }
+            node.openCdInPortal();
+        });
+        registerCommand('appService.DeploymentScript', async (node?: WebAppTreeItem) => {
+            if (!node) {
+                node = <WebAppTreeItem>await tree.showTreeItemPicker(WebAppTreeItem.contextValue);
+            }
 
-        await node.deleteTreeItem();
-    });
-    registerCommand('appService.OpenLogStream', startStreamingLogs);
-    registerCommand('appService.StopLogStream', async (node?: SiteTreeItem) => {
-        if (!node) {
-            node = <WebAppTreeItem>await tree.showTreeItemPicker(WebAppTreeItem.contextValue);
-        }
+            await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async p => {
+                p.report({ message: 'Generating script...' });
+                // tslint:disable-next-line:no-non-null-assertion
+                await node!.generateDeploymentScript();
+            });
+        });
+        registerCommand('appService.CreateSlot', async function (this: IActionContext, node?: DeploymentSlotsTreeItem): Promise<void> {
+            const deployingToDeploymentSlot = 'deployingToDeploymentSlot';
 
-        await stopStreamingLogs(node.root.client);
-    });
-    registerCommand('appService.StartLogPointsSession', async function (this: IActionContext, node?: SiteTreeItem): Promise<void> {
-        if (node) {
-            const wizard = new LogPointsSessionWizard(logPointsManager, context, ext.outputChannel, node, node.root.client);
-            await wizard.run(this.properties);
-        }
-    });
+            if (!node) {
+                node = <DeploymentSlotsTreeItem>await tree.showTreeItemPicker(DeploymentSlotsTreeItem.contextValue);
+            }
 
-    registerCommand('appService.LogPoints.Toggle', async (uri: vscode.Uri) => {
-        await logPointsManager.toggleLogpoint(uri);
-    });
+            const createdSlot = <SiteTreeItem>await node.createChild(this);
 
-    registerCommand('appService.LogPoints.OpenScript', openScript);
+            // prompt user to deploy to newly created web app
+            if (await vscode.window.showInformationMessage('Deploy to deployment slot?', yesButton, noButton) === yesButton) {
+                this.properties[deployingToDeploymentSlot] = 'true';
+                await deploy(this, false, createdSlot);
+            } else {
+                this.properties[deployingToDeploymentSlot] = 'false';
+            }
+        });
+        registerCommand('appService.SwapSlots', async (node: DeploymentSlotTreeItem) => await swapSlots(node));
+        registerCommand('appService.appSettings.Add', async (node?: AppSettingsTreeItem) => {
+            if (!node) {
+                node = <AppSettingsTreeItem>await tree.showTreeItemPicker(AppSettingsTreeItem.contextValue);
+            }
 
-    registerCommand('appService.StartRemoteDebug', async (node?: SiteTreeItem) => startRemoteDebug(node));
-    registerCommand('appService.DisableRemoteDebug', async (node?: SiteTreeItem) => disableRemoteDebug(node));
+            await node.createChild();
+        });
+        registerCommand('appService.appSettings.Edit', async (node?: AppSettingTreeItem) => {
+            if (!node) {
+                node = <AppSettingTreeItem>await tree.showTreeItemPicker(AppSettingTreeItem.contextValue);
+            }
 
-    registerCommand('appService.showFile', async (node: FileTreeItem) => { await showFile(node, fileEditor); }, 500);
-    registerCommand('appService.ScaleUp', async (node: DeploymentSlotsNATreeItem | ScaleUpTreeItem) => {
-        node.openInPortal(node.scaleUpId);
-    });
+            await node.edit();
+        });
+        registerCommand('appService.appSettings.Rename', async (node?: AppSettingTreeItem) => {
+            if (!node) {
+                node = <AppSettingTreeItem>await tree.showTreeItemPicker(AppSettingTreeItem.contextValue);
+            }
 
-    registerEvent('appService.fileEditor.onDidSaveTextDocument', vscode.workspace.onDidSaveTextDocument, async function (this: IActionContext, doc: vscode.TextDocument): Promise<void> { await fileEditor.onDidSaveTextDocument(this, context.globalState, doc); });
-    registerCommand('appService.EnableFileLogging', async (node?: SiteTreeItem | FolderTreeItem) => {
-        if (!node) {
-            node = <SiteTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue);
-        }
+            await node.rename();
+        });
+        registerCommand('appService.appSettings.Delete', async (node?: AppSettingTreeItem) => {
+            if (!node) {
+                node = <AppSettingTreeItem>await tree.showTreeItemPicker(AppSettingTreeItem.contextValue);
+            }
 
-        if (node instanceof FolderTreeItem) {
-            // If the entry point was the Files/Log Files node, pass the parent as that's where the logic lives
-            node = <SiteTreeItem>node.parent;
-        }
-        const isEnabled = await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async p => {
-            p.report({ message: 'Checking container diagnostics settings...' });
-            return await (<SiteTreeItem>node).isHttpLogsEnabled();
+            await node.deleteTreeItem();
+        });
+        registerCommand('appService.OpenLogStream', startStreamingLogs);
+        registerCommand('appService.StopLogStream', async (node?: SiteTreeItem) => {
+            if (!node) {
+                node = <WebAppTreeItem>await tree.showTreeItemPicker(WebAppTreeItem.contextValue);
+            }
+
+            await stopStreamingLogs(node.root.client);
+        });
+        registerCommand('appService.StartLogPointsSession', async function (this: IActionContext, node?: SiteTreeItem): Promise<void> {
+            if (node) {
+                const wizard = new LogPointsSessionWizard(logPointsManager, context, ext.outputChannel, node, node.root.client);
+                await wizard.run(this.properties);
+            }
         });
 
-        if (!isEnabled) {
-            await enableFileLogging(<SiteTreeItem>node);
-        } else {
-            // tslint:disable-next-line:no-non-null-assertion
-            vscode.window.showInformationMessage(`File logging has already been enabled for ${node.root.client.fullName}.`);
-        }
+        registerCommand('appService.LogPoints.Toggle', async (uri: vscode.Uri) => {
+            await logPointsManager.toggleLogpoint(uri);
+        });
+
+        registerCommand('appService.LogPoints.OpenScript', openScript);
+
+        registerCommand('appService.StartRemoteDebug', async (node?: SiteTreeItem) => startRemoteDebug(node));
+        registerCommand('appService.DisableRemoteDebug', async (node?: SiteTreeItem) => disableRemoteDebug(node));
+
+        registerCommand('appService.showFile', async (node: FileTreeItem) => { await showFile(node, fileEditor); }, 500);
+        registerCommand('appService.ScaleUp', async (node: DeploymentSlotsNATreeItem | ScaleUpTreeItem) => {
+            node.openInPortal(node.scaleUpId);
+        });
+
+        registerEvent('appService.fileEditor.onDidSaveTextDocument', vscode.workspace.onDidSaveTextDocument, async function (this: IActionContext, doc: vscode.TextDocument): Promise<void> { await fileEditor.onDidSaveTextDocument(this, context.globalState, doc); });
+        registerCommand('appService.EnableFileLogging', async (node?: SiteTreeItem | FolderTreeItem) => {
+            if (!node) {
+                node = <SiteTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue);
+            }
+
+            if (node instanceof FolderTreeItem) {
+                // If the entry point was the Files/Log Files node, pass the parent as that's where the logic lives
+                node = <SiteTreeItem>node.parent;
+            }
+            const isEnabled = await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async p => {
+                p.report({ message: 'Checking container diagnostics settings...' });
+                return await (<SiteTreeItem>node).isHttpLogsEnabled();
+            });
+
+            if (!isEnabled) {
+                await enableFileLogging(<SiteTreeItem>node);
+            } else {
+                // tslint:disable-next-line:no-non-null-assertion
+                vscode.window.showInformationMessage(`File logging has already been enabled for ${node.root.client.fullName}.`);
+            }
+        });
+        registerCommand('appService.InstallCosmosDBExtension', async () => {
+            const commandToRun = 'extension.open';
+            const listOfCommands = await vscode.commands.getCommands();
+            if (listOfCommands.find((x: string) => x === commandToRun)) {
+                vscode.commands.executeCommand(commandToRun, 'ms-azuretools.vscode-cosmosdb');
+            } else {
+                // tslint:disable-next-line:no-unsafe-any
+                opn('https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-cosmosdb');
+            }
+        });
+        registerCommand('appService.AddCosmosDBConnection', addCosmosDBConnection);
+        registerCommand('appService.RemoveCosmosDBConnection', removeCosmosDBConnection);
+        registerCommand('appService.RevealConnection', async (node: CosmosDBConnection) => await node.cosmosExtensionItem.reveal());
+        registerCommand('appService.RevealConnectionInAppSettings', revealConnectionInAppSettings); registerCommand('appService.ViewDeploymentLogs', viewDeploymentLogs);
+        registerCommand('appService.Redeploy', redeployDeployment);
+        registerCommand('appService.DisconnectRepo', disconnectRepo);
+        registerCommand('appService.ConnectToGitHub', connectToGitHub);
     });
-    registerCommand('appService.InstallCosmosDBExtension', async () => {
-        const commandToRun = 'extension.open';
-        const listOfCommands = await vscode.commands.getCommands();
-        if (listOfCommands.find((x: string) => x === commandToRun)) {
-            vscode.commands.executeCommand(commandToRun, 'ms-azuretools.vscode-cosmosdb');
-        } else {
-            // tslint:disable-next-line:no-unsafe-any
-            opn('https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-cosmosdb');
-        }
-    });
-    registerCommand('appService.AddCosmosDBConnection', addCosmosDBConnection);
-    registerCommand('appService.RemoveCosmosDBConnection', removeCosmosDBConnection);
-    registerCommand('appService.RevealConnection', async (node: CosmosDBConnection) => await node.cosmosExtensionItem.reveal());
-    registerCommand('appService.RevealConnectionInAppSettings', revealConnectionInAppSettings); registerCommand('appService.ViewDeploymentLogs', viewDeploymentLogs);
-    registerCommand('appService.Redeploy', redeployDeployment);
-    registerCommand('appService.DisconnectRepo', disconnectRepo);
-    registerCommand('appService.ConnectToGitHub', connectToGitHub);
+
+    return createApiProvider([]);
 }
 
 // tslint:disable-next-line:no-empty
 export function deactivate(): void {
 }
+
+loadEndTime = Date.now();
