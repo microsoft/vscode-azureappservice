@@ -8,13 +8,27 @@ import * as fse from 'fs-extra';
 import * as opn from 'opn';
 import * as path from 'path';
 import { MessageItem, Uri, window, workspace, WorkspaceConfiguration } from 'vscode';
-import { deleteSite, ISiteTreeRoot, SiteClient } from 'vscode-azureappservice';
+import { AppSettingsTreeItem, AppSettingTreeItem, deleteSite, DeploymentsTreeItem, DeploymentTreeItem, ISiteTreeRoot, SiteClient } from 'vscode-azureappservice';
 import { AzureParentTreeItem, AzureTreeItem, DialogResponses, TelemetryProperties } from 'vscode-azureextensionui';
 import * as constants from '../constants';
 import { ext } from '../extensionVariables';
+import { ConnectionsTreeItem } from './ConnectionsTreeItem';
+import { CosmosDBConnection } from './CosmosDBConnection';
+import { CosmosDBTreeItem } from './CosmosDBTreeItem';
+import { FolderTreeItem } from './FolderTreeItem';
+import { WebJobsTreeItem } from './WebJobsTreeItem';
 
 export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
-    public abstract contextValue: string;
+    public readonly abstract contextValue: string;
+    public readonly abstract label: string;
+
+    public readonly appSettingsNode: AppSettingsTreeItem;
+    public deploymentsNode: DeploymentsTreeItem | undefined;
+
+    private readonly _connectionsNode: ConnectionsTreeItem;
+    private readonly _folderNode: FolderTreeItem;
+    private readonly _logFolderNode: FolderTreeItem;
+    private readonly _webJobsNode: WebJobsTreeItem;
 
     private readonly _root: ISiteTreeRoot;
     private _state?: string;
@@ -23,15 +37,16 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         super(parent);
         this._root = Object.assign({}, parent.root, { client });
         this._state = client.initialState;
+
+        this.appSettingsNode = new AppSettingsTreeItem(this);
+        this._connectionsNode = new ConnectionsTreeItem(this);
+        this._folderNode = new FolderTreeItem(this, 'Files', "/site/wwwroot");
+        this._logFolderNode = new FolderTreeItem(this, 'Logs', '/LogFiles', 'logFolder');
+        this._webJobsNode = new WebJobsTreeItem(this);
     }
 
     public get root(): ISiteTreeRoot {
         return this._root;
-    }
-
-    public get label(): string {
-        // tslint:disable-next-line:no-non-null-assertion
-        return this.root.client.isSlot ? this.root.client.slotName! : this.root.client.siteName;
     }
 
     public get description(): string | undefined {
@@ -54,8 +69,6 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         return false;
     }
 
-    public abstract loadMoreChildrenImpl(clearCache: boolean): Promise<AzureTreeItem<ISiteTreeRoot>[]>;
-
     public get id(): string {
         return this.root.client.id;
     }
@@ -63,6 +76,35 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     public browse(): void {
         // tslint:disable-next-line:no-unsafe-any
         opn(this.root.client.defaultHostUrl);
+    }
+
+    public async loadMoreChildrenImpl(_clearCache: boolean): Promise<AzureTreeItem<ISiteTreeRoot>[]> {
+        const siteConfig: WebSiteModels.SiteConfig = await this.root.client.getSiteConfig();
+        this.deploymentsNode = new DeploymentsTreeItem(this, siteConfig);
+        return [this.appSettingsNode, this._connectionsNode, this.deploymentsNode, this._folderNode, this._logFolderNode, this._webJobsNode];
+    }
+
+    public pickTreeItemImpl(expectedContextValue: string): AzureTreeItem<ISiteTreeRoot> | undefined {
+        switch (expectedContextValue) {
+            case AppSettingsTreeItem.contextValue:
+            case AppSettingTreeItem.contextValue:
+                return this.appSettingsNode;
+            case ConnectionsTreeItem.contextValue:
+            case CosmosDBTreeItem.contextValueInstalled:
+            case CosmosDBTreeItem.contextValueNotInstalled:
+            case CosmosDBConnection.contextValue:
+                return this._connectionsNode;
+            case DeploymentsTreeItem.contextValueConnected:
+            case DeploymentsTreeItem.contextValueUnconnected:
+            case DeploymentTreeItem.contextValue:
+                return this.deploymentsNode;
+            case FolderTreeItem.contextValue:
+                return this._folderNode;
+            case WebJobsTreeItem.contextValue:
+                return this._webJobsNode;
+            default:
+                return undefined;
+        }
     }
 
     public async deleteTreeItemImpl(): Promise<void> {

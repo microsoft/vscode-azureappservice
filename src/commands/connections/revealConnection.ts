@@ -6,11 +6,10 @@
 import { CosmosDBConnection } from '../../explorer/CosmosDBConnection';
 import { ext } from "../../extensionVariables";
 
-export async function removeCosmosDBConnection(node?: CosmosDBConnection): Promise<void> {
+export async function revealConnection(node?: CosmosDBConnection): Promise<void> {
     if (!node) {
         node = <CosmosDBConnection>await ext.tree.showTreeItemPicker(CosmosDBConnection.contextValue);
     }
 
-    await node.deleteTreeItem();
-    await ext.tree.refresh(node.parent);
+    await node.cosmosExtensionItem.reveal();
 }
