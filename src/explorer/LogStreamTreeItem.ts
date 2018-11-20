@@ -13,7 +13,7 @@ export class LogStreamTreeItem extends AzureTreeItem<ISiteTreeRoot> {
     public readonly contextValue: string = LogStreamTreeItem.contextValue;
     public parent: FolderTreeItem;
     public commandId: string = 'appService.OpenLogStream';
-    public label: string = 'Connect to log stream...';
+    public label: string = 'Connect to Log Stream...';
 
     constructor(parent: FolderTreeItem) {
         super(parent);
