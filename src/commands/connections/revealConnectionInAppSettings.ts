@@ -6,7 +6,11 @@
 import { CosmosDBConnection } from '../../explorer/CosmosDBConnection';
 import { ext } from "../../extensionVariables";
 
-export async function revealConnectionInAppSettings(node: CosmosDBConnection): Promise<void> {
+export async function revealConnectionInAppSettings(node?: CosmosDBConnection): Promise<void> {
+    if (!node) {
+        node = <CosmosDBConnection>await ext.tree.showTreeItemPicker(CosmosDBConnection.contextValue);
+    }
+
     // Ideally this reveals all appSettingKeys, but for now just reveal the first one
     const firstKey: string = node.appSettingKeys[0];
     const nodeToReveal = await ext.tree.findTreeItem(`${node.parent.parent.parent.appSettingsNode.fullId}/${firstKey}`);

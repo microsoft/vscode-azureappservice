@@ -7,7 +7,11 @@ import { AzureParentTreeItem, AzureTreeItem } from 'vscode-azureextensionui';
 import { CosmosDBTreeItem } from '../../explorer/CosmosDBTreeItem';
 import { ext } from "../../extensionVariables";
 
-export async function addCosmosDBConnection(node: AzureTreeItem): Promise<void> {
+export async function addCosmosDBConnection(node?: AzureTreeItem): Promise<void> {
+    if (!node) {
+        node = <CosmosDBTreeItem>await ext.tree.showTreeItemPicker([CosmosDBTreeItem.contextValueNotInstalled, CosmosDBTreeItem.contextValueInstalled]);
+    }
+
     let cosmosDBTreeItem: AzureParentTreeItem;
     if (node instanceof CosmosDBTreeItem) {
         cosmosDBTreeItem = node;

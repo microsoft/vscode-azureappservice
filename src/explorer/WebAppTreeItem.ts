@@ -4,38 +4,24 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { ResourceManagementClient } from 'azure-arm-resource';
-import { AppServicePlan, SiteConfig } from 'azure-arm-website/lib/models';
+import { AppServicePlan } from 'azure-arm-website/lib/models';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { AppSettingsTreeItem, AppSettingTreeItem, DeploymentsTreeItem, DeploymentTreeItem, ISiteTreeRoot, SiteClient } from 'vscode-azureappservice';
-import { AzureParentTreeItem, AzureTreeItem, createAzureClient } from 'vscode-azureextensionui';
+import { ISiteTreeRoot } from 'vscode-azureappservice';
+import { AzureTreeItem, createAzureClient } from 'vscode-azureextensionui';
 import { extensionPrefix } from '../constants';
-import { ConnectionsTreeItem } from './ConnectionsTreeItem';
 import { DeploymentSlotsNATreeItem, DeploymentSlotsTreeItem } from './DeploymentSlotsTreeItem';
 import { DeploymentSlotTreeItem } from './DeploymentSlotTreeItem';
-import { FolderTreeItem } from './FolderTreeItem';
 import { SiteTreeItem } from './SiteTreeItem';
-import { WebJobsTreeItem } from './WebJobsTreeItem';
 
 export class WebAppTreeItem extends SiteTreeItem {
     public static contextValue: string = extensionPrefix;
     public readonly contextValue: string = WebAppTreeItem.contextValue;
     public deploymentSlotsNode: DeploymentSlotsTreeItem | DeploymentSlotsNATreeItem;
-    public readonly appSettingsNode: AppSettingsTreeItem;
-    public readonly webJobsNode: WebJobsTreeItem;
-    public readonly folderNode: FolderTreeItem;
-    public readonly logFolderNode: FolderTreeItem;
-    public readonly connectionsNode: ConnectionsTreeItem;
-    public deploymentsNode: DeploymentsTreeItem | undefined;
 
-    constructor(parent: AzureParentTreeItem, client: SiteClient) {
-        super(parent, client);
-        this.folderNode = new FolderTreeItem(this, 'Files', "/site/wwwroot");
-        this.logFolderNode = new FolderTreeItem(this, 'Logs', '/LogFiles', 'logFolder');
-        this.webJobsNode = new WebJobsTreeItem(this);
-        this.appSettingsNode = new AppSettingsTreeItem(this);
-        this.connectionsNode = new ConnectionsTreeItem(this);
+    public get label(): string {
+        return this.root.client.siteName;
     }
 
     public get iconPath(): { light: string, dark: string } {
@@ -46,14 +32,12 @@ export class WebAppTreeItem extends SiteTreeItem {
         };
     }
 
-    public async loadMoreChildrenImpl(_clearCache: boolean): Promise<AzureTreeItem<ISiteTreeRoot>[]> {
+    public async loadMoreChildrenImpl(clearCache: boolean): Promise<AzureTreeItem<ISiteTreeRoot>[]> {
         const asp: AppServicePlan | undefined = await this.root.client.getAppServicePlan();
         const tier: string | undefined = asp && asp.sku && asp.sku.tier;
-        const siteConfig: SiteConfig = await this.root.client.getSiteConfig();
-        this.deploymentsNode = new DeploymentsTreeItem(this, siteConfig);
         // tslint:disable-next-line:no-non-null-assertion
         this.deploymentSlotsNode = tier && /^(basic|free|shared)$/i.test(tier) ? new DeploymentSlotsNATreeItem(this, tier, asp!.id!) : new DeploymentSlotsTreeItem(this);
-        return [this.deploymentSlotsNode, this.folderNode, this.logFolderNode, this.webJobsNode, this.appSettingsNode, this.deploymentsNode, this.connectionsNode];
+        return (await super.loadMoreChildrenImpl(clearCache)).concat(this.deploymentSlotsNode);
     }
 
     public pickTreeItemImpl(expectedContextValue: string): AzureTreeItem<ISiteTreeRoot> | undefined {
@@ -61,20 +45,8 @@ export class WebAppTreeItem extends SiteTreeItem {
             case DeploymentSlotsTreeItem.contextValue:
             case DeploymentSlotTreeItem.contextValue:
                 return this.deploymentSlotsNode;
-            case AppSettingsTreeItem.contextValue:
-            case AppSettingTreeItem.contextValue:
-                return this.appSettingsNode;
-            case FolderTreeItem.contextValue:
-                return this.folderNode;
-            case WebJobsTreeItem.contextValue:
-                return this.webJobsNode;
-            case DeploymentsTreeItem.contextValueConnected:
-            case DeploymentsTreeItem.contextValueUnconnected:
-            case DeploymentTreeItem.contextValue:
-                return this.deploymentsNode;
             default:
-
-                return undefined;
+                return super.pickTreeItemImpl(expectedContextValue);
         }
     }
 

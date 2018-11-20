@@ -10,33 +10,31 @@ import { ISiteTreeRoot, validateAppSettingKey } from 'vscode-azureappservice';
 import { AzureParentTreeItem, AzureTreeItem, createTreeItemsWithErrorHandling, GenericTreeItem, UserCancelledError } from 'vscode-azureextensionui';
 import { AzureExtensionApiProvider } from 'vscode-azureextensionui/api';
 import { ext } from '../extensionVariables';
-import { DatabaseTreeItem } from '../vscode-cosmos.api';
+import { CosmosDBExtensionApi, DatabaseTreeItem } from '../vscode-cosmos.api';
 import { ConnectionsTreeItem } from './ConnectionsTreeItem';
 import { CosmosDBConnection } from './CosmosDBConnection';
 
 export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     public static contextValueInstalled: string = 'сosmosDBConnections';
     public static contextValueNotInstalled: string = 'сosmosDBNotInstalled';
-    public readonly contextValue: string;
     public readonly label: string = 'Cosmos DB';
+    public readonly childTypeLabel: string = 'Connection';
     public readonly parent: ConnectionsTreeItem;
 
     private readonly _endpointSuffix: string = '_ENDPOINT';
     private readonly _keySuffix: string = '_MASTER_KEY';
     private readonly _databaseSuffix: string = '_DATABASE_ID';
 
-    private _cosmosDBApiProvider: AzureExtensionApiProvider | undefined;
+    private _cosmosDBExtension: vscode.Extension<AzureExtensionApiProvider | undefined> | undefined;
+    private _cosmosDBApi: CosmosDBExtensionApi | undefined;
 
     constructor(parent: ConnectionsTreeItem) {
         super(parent);
+        this._cosmosDBExtension = vscode.extensions.getExtension('ms-azuretools.vscode-cosmosdb');
+    }
 
-        const cosmosDB = vscode.extensions.getExtension('ms-azuretools.vscode-cosmosdb');
-        if (cosmosDB) {
-            this.contextValue = CosmosDBTreeItem.contextValueInstalled;
-            this._cosmosDBApiProvider = <AzureExtensionApiProvider>cosmosDB.exports;
-        } else {
-            this.contextValue = CosmosDBTreeItem.contextValueNotInstalled;
-        }
+    public get contextValue(): string {
+        return this._cosmosDBExtension ? CosmosDBTreeItem.contextValueInstalled : CosmosDBTreeItem.contextValueNotInstalled;
     }
 
     public get iconPath(): string | vscode.Uri | { light: string | vscode.Uri; dark: string | vscode.Uri } {
@@ -47,7 +45,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     }
 
     public async loadMoreChildrenImpl(_clearCache: boolean): Promise<AzureTreeItem<ISiteTreeRoot>[]> {
-        if (!this._cosmosDBApiProvider) {
+        if (!this._cosmosDBExtension) {
             return [new GenericTreeItem(this, {
                 commandId: 'appService.InstallCosmosDBExtension',
                 contextValue: 'InstallCosmosDBExtension',
@@ -55,10 +53,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
             })];
         }
 
-        if (ext.cosmosAPI === undefined) {
-            ext.cosmosAPI = this._cosmosDBApiProvider.getApi('^1.0.0');
-        }
-
+        const cosmosDBApi = await this.getCosmosDBApi();
         // tslint:disable-next-line:strict-boolean-expressions
         const appSettings = (await this.root.client.listApplicationSettings()).properties || {};
         const connections: IDetectedConnection[] = this.detectMongoConnections(appSettings).concat(this.detectDocDBConnections(appSettings));
@@ -67,7 +62,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
             connections,
             'invalidCosmosDBConnection',
             async (c: IDetectedConnection) => {
-                const databaseTreeItem = await ext.cosmosAPI.findTreeItem({
+                const databaseTreeItem = await cosmosDBApi.findTreeItem({
                     connectionString: c.connectionString
                 });
                 return databaseTreeItem ? new CosmosDBConnection(this, databaseTreeItem, c.keys) : undefined;
@@ -87,7 +82,8 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     }
 
     public async createChildImpl(showCreatingTreeItem: (label: string) => void): Promise<AzureTreeItem<ISiteTreeRoot>> {
-        const databaseToAdd = await ext.cosmosAPI.pickTreeItem({
+        const cosmosDBApi = await this.getCosmosDBApi();
+        const databaseToAdd = await cosmosDBApi.pickTreeItem({
             resourceType: 'Database'
         });
         if (!databaseToAdd) {
@@ -126,6 +122,24 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
 
     public hasMoreChildrenImpl(): boolean {
         return false;
+    }
+
+    private async getCosmosDBApi(): Promise<CosmosDBExtensionApi> {
+        if (this._cosmosDBApi) {
+            return this._cosmosDBApi;
+        } else if (this._cosmosDBExtension) {
+            if (!this._cosmosDBExtension.isActive) {
+                await this._cosmosDBExtension.activate();
+            }
+
+            // The Cosmos DB extension just recently added support for 'AzureExtensionApiProvider' so we should do an additional check just to makes sure it's defined
+            if (this._cosmosDBExtension.exports) {
+                this._cosmosDBApi = this._cosmosDBExtension.exports.getApi<CosmosDBExtensionApi>('^1.0.0');
+                return this._cosmosDBApi;
+            }
+        }
+
+        throw new Error('You must have the "Cosmos DB" extension installed to perform this operation.');
     }
 
     private detectMongoConnections(appSettings: { [propertyName: string]: string }): IDetectedConnection[] {
