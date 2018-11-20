@@ -71,10 +71,10 @@ export class FolderTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
 }
 
 // tslint:disable-next-line:no-any
-function instanceOfCompare<T>(ti1: AzureTreeItem, ti2: AzureTreeItem, type1: new (...args: any[]) => T): number | undefined {
-    if (!(ti1 instanceof type1) && ti2 instanceof type1) {
+function instanceOfCompare<T>(ti1: AzureTreeItem, ti2: AzureTreeItem, typeToCompare: new (...args: any[]) => T): number | undefined {
+    if (!(ti1 instanceof typeToCompare) && ti2 instanceof typeToCompare) {
         return 1;
-    } else if (ti1 instanceof type1 && !(ti2 instanceof type1)) {
+    } else if (ti1 instanceof typeToCompare && !(ti2 instanceof typeToCompare)) {
         return -1;
     } else {
         return undefined;
