@@ -26,6 +26,8 @@ Check out this [deployment tutorial](https://code.visualstudio.com/tutorials/app
   * To edit, make edits in the editor and save it.  When prompted to upload the file, click 'Upload'.
   * CAUTION: Manually editing your Web App's files could cause unexpected behavior.
 * View a web app's log files
+* View current and previous git deployments
+* Connect web apps to Cosmos databases via Connections
 
 ![Web App Log Stream](resources/WebApp_LogStream.png)
 
