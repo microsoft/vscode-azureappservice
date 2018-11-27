@@ -8,6 +8,7 @@ import { Site, WebAppCollection } from 'azure-arm-website/lib/models';
 import * as path from 'path';
 import { createSlot, ISiteTreeRoot, SiteClient } from 'vscode-azureappservice';
 import { AzureParentTreeItem, AzureTreeItem, createAzureClient } from 'vscode-azureextensionui';
+import { resourcesPath } from '../constants';
 import { DeploymentSlotTreeItem } from './DeploymentSlotTreeItem';
 
 export class DeploymentSlotsTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
@@ -20,8 +21,8 @@ export class DeploymentSlotsTreeItem extends AzureParentTreeItem<ISiteTreeRoot> 
 
     public get iconPath(): { light: string, dark: string } {
         return {
-            light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'DeploymentSlots_color.svg'),
-            dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'DeploymentSlots_color.svg')
+            light: path.join(resourcesPath, 'light', 'DeploymentSlots_color.svg'),
+            dark: path.join(resourcesPath, 'dark', 'DeploymentSlots_color.svg')
         };
     }
 
@@ -84,8 +85,8 @@ export class DeploymentSlotsNATreeItem extends AzureParentTreeItem<ISiteTreeRoot
 
     public get iconPath(): { light: string, dark: string } {
         return {
-            light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'DeploymentSlots_grayscale.svg'),
-            dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'DeploymentSlots_grayscale.svg')
+            light: path.join(resourcesPath, 'light', 'DeploymentSlots_grayscale.svg'),
+            dark: path.join(resourcesPath, 'dark', 'DeploymentSlots_grayscale.svg')
         };
     }
 

@@ -5,9 +5,6 @@
 
 'use strict';
 
-const loadStartTime: number = Date.now();
-let loadEndTime: number;
-
 import * as opn from 'opn';
 import * as vscode from 'vscode';
 import { AppSettingsTreeItem, AppSettingTreeItem, DeploymentsTreeItem, editScmType, ISiteTreeRoot, registerAppServiceExtensionVariables, SiteClient, stopStreamingLogs } from 'vscode-azureappservice';
@@ -49,7 +46,12 @@ import { LogpointsCollection } from './logPoints/structs/LogpointsCollection';
 
 // tslint:disable-next-line:export-name
 // tslint:disable-next-line:max-func-body-length
-export async function activate(context: vscode.ExtensionContext): Promise<AzureExtensionApiProvider> {
+export async function activateInternal(
+    context: vscode.ExtensionContext,
+    perfStats: {
+        loadStartTime: number, loadEndTime: number
+    }
+): Promise<AzureExtensionApiProvider> {
     ext.context = context;
     ext.reporter = createTelemetryReporter(context);
 
@@ -65,7 +67,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<AzureE
     // tslint:disable-next-line:max-func-body-length
     await callWithTelemetryAndErrorHandling('appService.activate', async function (this: IActionContext): Promise<void> {
         this.properties.isActivationEvent = 'true';
-        this.measurements.mainFileLoad = (loadEndTime - loadStartTime) / 1000;
+        this.measurements.mainFileLoad = (perfStats.loadEndTime - perfStats.loadStartTime) / 1000;
 
         const tree = new AzureTreeDataProvider(WebAppProvider, 'appService.LoadMore');
         ext.tree = tree;
@@ -351,7 +353,5 @@ export async function activate(context: vscode.ExtensionContext): Promise<AzureE
 }
 
 // tslint:disable-next-line:no-empty
-export function deactivate(): void {
+export function deactivateInternal(): void {
 }
-
-loadEndTime = Date.now();

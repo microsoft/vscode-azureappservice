@@ -1,6 +1,7 @@
+# This file excludes files during npm pack
 .vscode/**
 .vscode-test/**
-out/test/**
+out/**
 test/**
 src/**
 **/*.map
@@ -11,3 +12,20 @@ tslint.json
 .github/**
 test-results.xml
 .azure-pipelines/**
+
+.azure-pipelines/**
+.github/**
+.vscode/**
+build/**
+node_modules/**
+out/**
+src/**
+test/**
+dist/test/**
+testOutput/**
+typings/**
+**/*.ts
+gulp*
+webpack.config*
+stats.json
+*.tgz

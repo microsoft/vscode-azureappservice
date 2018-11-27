@@ -6,6 +6,7 @@
 import { join } from 'path';
 import { ISiteTreeRoot } from 'vscode-azureappservice';
 import { AzureParentTreeItem, AzureTreeItem } from 'vscode-azureextensionui';
+import { resourcesPath } from '../constants';
 
 export class FileTreeItem extends AzureTreeItem<ISiteTreeRoot> {
     public static contextValue: string = 'file';
@@ -19,8 +20,8 @@ export class FileTreeItem extends AzureTreeItem<ISiteTreeRoot> {
 
     public get iconPath(): { light: string, dark: string } {
         return {
-            light: join(__filename, '..', '..', '..', '..', 'resources', 'light', 'File_16x.svg'),
-            dark: join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'File_16x.svg')
+            light: join(resourcesPath, 'light', 'File_16x.svg'),
+            dark: join(resourcesPath, 'dark', 'File_16x.svg')
         };
     }
 }

@@ -292,3 +292,5 @@ out
 *.vsix
 .vscode-test
 test-results.xml
+dist
+stats.json
