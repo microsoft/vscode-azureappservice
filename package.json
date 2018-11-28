@@ -697,12 +697,12 @@
                 {
                     "command": "appService.Deploy",
                     "when": "explorerResourceIsFolder == true",
-                    "group": "zzz_deploy@1"
+                    "group": "zzz_azuretools_deploy@1"
                 },
                 {
                     "command": "appService.Deploy",
                     "when": "explorerResourceIsFolder == false && resourceExtname =~ /.[j|w]ar$/",
-                    "group": "zzz_deploy@1"
+                    "group": "zzz_azuretools_deploy@1"
                 }
             ],
             "editor/context": [
