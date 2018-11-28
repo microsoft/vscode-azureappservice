@@ -6,7 +6,7 @@ All notable changes to the "azure-appservice" extension will be documented in th
 - Deployments node for Web Apps that are connected to a GitHub or LocalGit repository
   - View deployment logs
   - Redeploy previous deployments
-- CosmosDB Connections: Leverage CosmosDB Extension (https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-cosmosdb) to effortlessly connect databases to web apps
+- CosmosDB Connections: Leverage [CosmosDB Extension](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-cosmosdb) to effortlessly connect databases to web apps
 - Option to reset "appsService.defaultWebAppToDeploy" setting when confirming deployments
 - "Connect to Log Stream" node within "Logs"
 
