@@ -4,11 +4,18 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as path from 'path';
+import { SiteClient } from 'vscode-azureappservice';
+import { DeploymentSlotsTreeItem } from './DeploymentSlotsTreeItem';
 import { SiteTreeItem } from './SiteTreeItem';
 
 export class DeploymentSlotTreeItem extends SiteTreeItem {
     public static contextValue: string = 'deploymentSlot';
     public readonly contextValue: string = DeploymentSlotTreeItem.contextValue;
+    public readonly parent: DeploymentSlotsTreeItem;
+
+    public constructor(parent: DeploymentSlotsTreeItem, client: SiteClient) {
+        super(parent, client);
+    }
 
     public get label(): string {
         // tslint:disable-next-line:no-non-null-assertion
