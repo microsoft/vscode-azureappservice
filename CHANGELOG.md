@@ -1,7 +1,7 @@
 # Change Log
 All notable changes to the "azure-appservice" extension will be documented in this file.
 
-## 0.10.0 - 2018-11-28
+## 0.10.0 - 2018-11-30
 ### Added
 - Deployments node for Web Apps that are connected to a GitHub or LocalGit repository
   - View deployment logs
