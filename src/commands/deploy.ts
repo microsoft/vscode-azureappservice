@@ -116,11 +116,10 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
         // only check enableScmDoBuildDuringDeploy if currentWorkspace matches the workspace being deployed as a user can "Browse" to a different project
         if (workspaceConfig.get(constants.configurationSettings.showBuildDuringDeployPrompt)) {
             //check if node is being zipdeployed and that there is no .deployment file
-            // tslint:disable-next-line:no-unsafe-any
             if (siteConfig.linuxFxVersion && siteConfig.scmType === 'None' && !(await pathExists(path.join(fsPath, constants.deploymentFileName)))) {
                 if (siteConfig.linuxFxVersion.startsWith(constants.runtimes.node)) {
                     // if it is node, prompt the user (as we can break them)
-                    await node.promptScmDoBuildDeploy(fsPath, constants.runtimes[siteConfig.linuxFxVersion.substring(0, siteConfig.linuxFxVersion.indexOf('|'))], context.properties);
+                    await node.promptScmDoBuildDeploy(fsPath, constants.runtimes[constants.runtimes.node], context.properties);
                 } else if (siteConfig.linuxFxVersion.startsWith(constants.runtimes.python)) {
                     // if it is a python app, enable it for them as it does not work without build during deploy
                     await node.enableScmDoBuildDuringDeploy(fsPath, constants.runtimes.python);
