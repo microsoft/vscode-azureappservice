@@ -130,11 +130,10 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         await this.root.client.updateLogsConfig(logsConfig);
     }
 
-    public async enableScmDoBuildDuringDeploy(fsPath: string, runtime: string, telemetryProperties: TelemetryProperties): Promise<void> {
+    public async promptScmDoBuildDeploy(fsPath: string, runtime: string, telemetryProperties: TelemetryProperties): Promise<void> {
         const yesButton: MessageItem = { title: 'Yes' };
         const dontShowAgainButton: MessageItem = { title: "No, and don't show again" };
         const learnMoreButton: MessageItem = { title: 'Learn More' };
-        const zipIgnoreFolders: string[] = constants.getIgnoredFoldersForDeployment(runtime);
         const buildDuringDeploy: string = `Would you like to update your workspace configuration to run npm install on the target server? This should improve deployment performance.`;
         let input: MessageItem | undefined = learnMoreButton;
         while (input === learnMoreButton) {
@@ -145,15 +144,7 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
             }
         }
         if (input === yesButton) {
-            let oldSettings: string[] | string | undefined = workspace.getConfiguration(constants.extensionPrefix, Uri.file(fsPath)).get(constants.configurationSettings.zipIgnorePattern);
-            if (!oldSettings) {
-                oldSettings = [];
-            } else if (typeof oldSettings === "string") {
-                oldSettings = [oldSettings];
-                // settings have to be an array to concat the proper zipIgnoreFolders
-            }
-            workspace.getConfiguration(constants.extensionPrefix, Uri.file(fsPath)).update(constants.configurationSettings.zipIgnorePattern, oldSettings.concat(zipIgnoreFolders));
-            await fse.writeFile(path.join(fsPath, constants.deploymentFileName), constants.deploymentFile);
+            await this.enableScmDoBuildDuringDeploy(fsPath, runtime);
             telemetryProperties.enableScmInput = "Yes";
         } else {
             workspace.getConfiguration(constants.extensionPrefix, Uri.file(fsPath)).update(constants.configurationSettings.showBuildDuringDeployPrompt, false);
@@ -163,6 +154,19 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         if (!telemetryProperties.enableScmInput) {
             telemetryProperties.enableScmInput = "Canceled";
         }
+    }
+
+    public async enableScmDoBuildDuringDeploy(fsPath: string, runtime: string): Promise<void> {
+        const zipIgnoreFolders: string[] = constants.getIgnoredFoldersForDeployment(runtime);
+        let oldSettings: string[] | string | undefined = workspace.getConfiguration(constants.extensionPrefix, Uri.file(fsPath)).get(constants.configurationSettings.zipIgnorePattern);
+        if (!oldSettings) {
+            oldSettings = [];
+        } else if (typeof oldSettings === "string") {
+            oldSettings = [oldSettings];
+            // settings have to be an array to concat the proper zipIgnoreFolders
+        }
+        workspace.getConfiguration(constants.extensionPrefix, Uri.file(fsPath)).update(constants.configurationSettings.zipIgnorePattern, oldSettings.concat(zipIgnoreFolders));
+        await fse.writeFile(path.join(fsPath, constants.deploymentFileName), constants.deploymentFile);
     }
 
     public async promptToSaveDeployDefaults(workspacePath: string, deployPath: string, telemetryProperties: TelemetryProperties): Promise<void> {

@@ -15,13 +15,16 @@ export enum runtimes {
     dotnetcore = 'dotnetcore',
     ruby = 'ruby',
     tomcat = 'tomcat',
-    javase = 'java|8-jre8'
+    javase = 'java|8-jre8',
+    python = 'python'
 }
 
 export function getIgnoredFoldersForDeployment(runtime: string): string[] {
     switch (runtime) {
         case runtimes.node:
             return ['node_modules{,/**}'];
+        case runtimes.python:
+            return ['.env', '.Python', 'env/{,/**}', 'build{,/**}', 'dist{,/**}'];
         default:
             return [];
     }
