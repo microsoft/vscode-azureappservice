@@ -806,6 +806,11 @@
                             }
                         }
                     }
+                },
+                "appService.obfuscateAppSettingValues": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Disables showing \"Application Setting\" values in the Azure App Services Extension tree view."
                 }
             }
         },

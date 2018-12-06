@@ -38,7 +38,7 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         this._root = Object.assign({}, parent.root, { client });
         this._state = client.initialState;
 
-        this.appSettingsNode = new AppSettingsTreeItem(this);
+        this.appSettingsNode = new AppSettingsTreeItem(this, `appService.obfuscateAppSettingValues`);
         this._connectionsNode = new ConnectionsTreeItem(this);
         this._folderNode = new FolderTreeItem(this, 'Files', "/site/wwwroot");
         this._logFolderNode = new FolderTreeItem(this, 'Logs', '/LogFiles', 'logFolder');
