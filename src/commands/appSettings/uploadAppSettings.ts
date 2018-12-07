@@ -10,12 +10,7 @@ import { envFileName } from "../../constants";
 import { ext } from "../../extensionVariables";
 import * as workspaceUtil from '../../utils/workspace';
 import { confirmOverwriteSettings } from "./confirmOverwriteSettings";
-
-export interface ILocalAppSettings {
-    IsEncrypted?: boolean;
-    Values?: { [key: string]: string };
-    ConnectionStrings?: { [key: string]: string };
-}
+import { IEnvironmentVariables } from "./getEnvironmentVariables";
 
 export async function uploadAppSettings(node?: AppSettingsTreeItem): Promise<void> {
     const message: string = 'Select the local settings file to upload.';
@@ -30,7 +25,7 @@ export async function uploadAppSettings(node?: AppSettingsTreeItem): Promise<voi
     await node.runWithTemporaryDescription('Uploading...', async () => {
         ext.outputChannel.show(true);
         ext.outputChannel.appendLine(`Uploading settings to "${client.fullName}"...`);
-        const env: ILocalAppSettings = <ILocalAppSettings>await fse.readJson(envPath);
+        const env: IEnvironmentVariables = <IEnvironmentVariables>await fse.readFile(envPath);
         if (env.Values) {
             const remoteSettings: WebSiteManagementModels.StringDictionary = await client.listApplicationSettings();
             if (!remoteSettings.properties) {

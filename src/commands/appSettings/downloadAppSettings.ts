@@ -11,13 +11,7 @@ import { envFileName } from "../../constants";
 import { ext } from "../../extensionVariables";
 import * as workspaceUtil from '../../utils/workspace';
 import { confirmOverwriteSettings } from "./confirmOverwriteSettings";
-import { getLocalSettings } from './getLocalSettings';
-
-export interface ILocalAppSettings {
-    IsEncrypted?: boolean;
-    Values?: { [key: string]: string };
-    ConnectionStrings?: { [key: string]: string };
-}
+import { getEnvironmentVariables, IEnvironmentVariables } from './getEnvironmentVariables';
 
 export async function downloadAppSettings(node?: AppSettingsTreeItem): Promise<void> {
     if (!node) {
@@ -27,12 +21,12 @@ export async function downloadAppSettings(node?: AppSettingsTreeItem): Promise<v
     const client: SiteClient = node.root.client;
 
     const message: string = 'Select the destination file for your downloaded settings.';
-    const envPath: string = await workspaceUtil.selectWorkspaceFile(ext.ui, message, () => envFileName);
-    const envUri: vscode.Uri = vscode.Uri.file(envPath);
+    const envVarPath: string = await workspaceUtil.selectWorkspaceFile(ext.ui, message, () => envFileName);
+    const envVarUri: vscode.Uri = vscode.Uri.file(envVarPath);
 
     await node.runWithTemporaryDescription('Downloading...', async () => {
         ext.outputChannel.appendLine(`Downloading settings from "${client.fullName}"...`);
-        const localSettings: ILocalAppSettings = await getLocalSettings(envPath, true /* allowOverwrite */);
+        const localSettings: IEnvironmentVariables = await getEnvironmentVariables(envVarPath, true /* allowOverwrite */);
 
         if (!localSettings.Values) {
             localSettings.Values = {};
@@ -43,10 +37,10 @@ export async function downloadAppSettings(node?: AppSettingsTreeItem): Promise<v
             await confirmOverwriteSettings(remoteSettings.properties, localSettings.Values, envFileName);
         }
 
-        await fse.ensureFile(envPath);
-        await fse.writeJson(envPath, localSettings, { spaces: 2 });
+        await fse.ensureFile(envVarPath);
+        await fse.writeJson(envVarPath, localSettings, { spaces: 2 });
     });
 
-    const doc: vscode.TextDocument = await vscode.workspace.openTextDocument(envUri);
+    const doc: vscode.TextDocument = await vscode.workspace.openTextDocument(envVarUri);
     await vscode.window.showTextDocument(doc);
 }

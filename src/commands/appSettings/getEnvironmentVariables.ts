@@ -7,18 +7,16 @@ import { MessageItem } from 'vscode';
 import { DialogResponses, parseError } from 'vscode-azureextensionui';
 import { ext } from "../../extensionVariables";
 
-export interface ILocalAppSettings {
-    IsEncrypted?: boolean;
+export interface IEnvironmentVariables {
     Values?: { [key: string]: string };
-    ConnectionStrings?: { [key: string]: string };
 }
 
-export async function getLocalSettings(localSettingsPath: string, allowOverwrite: boolean = false): Promise<ILocalAppSettings> {
+export async function getEnvironmentVariables(localSettingsPath: string, allowOverwrite: boolean = false): Promise<IEnvironmentVariables> {
     if (await fse.pathExists(localSettingsPath)) {
         const data: string = (await fse.readFile(localSettingsPath)).toString();
         if (/[^\s]/.test(data)) {
             try {
-                return <ILocalAppSettings>JSON.parse(data);
+                return <IEnvironmentVariables>JSON.parse(data);
             } catch (error) {
                 if (allowOverwrite) {
                     const message: string = `Failed to parse local settings: ${parseError(error).message}. Overwrite?`;
@@ -33,7 +31,10 @@ export async function getLocalSettings(localSettingsPath: string, allowOverwrite
     }
 
     return {
-        IsEncrypted: false,
         Values: {}
     };
+}
+
+async function parseEnvironmentFile(data: string) {
+
 }
