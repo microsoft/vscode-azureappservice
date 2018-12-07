@@ -41,3 +41,5 @@ export enum ScmType {
     LocalGit = 'LocalGit',
     GitHub = 'GitHub'
 }
+
+export const envFileName: string = '.env';
