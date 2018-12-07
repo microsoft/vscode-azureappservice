@@ -21,7 +21,7 @@ export async function getLocalSettings(localSettingsPath: string, allowOverwrite
                 return <ILocalAppSettings>JSON.parse(data);
             } catch (error) {
                 if (allowOverwrite) {
-                    const message: string = `Failed to parse local settings: ${parseError(error).message}. Overwrite?`);
+                    const message: string = `Failed to parse local settings: ${parseError(error).message}. Overwrite?`;
                     const overwriteButton: MessageItem = { title: 'Overwrite' };
                     // Overwrite is the only button and cancel automatically throws, so no need to check result
                     await ext.ui.showWarningMessage(message, { modal: true }, overwriteButton, DialogResponses.cancel);

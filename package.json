@@ -47,6 +47,8 @@
         "onCommand:appService.appSettings.Edit",
         "onCommand:appService.appSettings.Rename",
         "onCommand:appService.appSettings.Delete",
+        "onCommand:appService.appSettings.DownloadAppSetings",
+        "onCommand:appService.appSettings.UploadAppSettings",
         "onCommand:appService.OpenLogStream",
         "onCommand:appService.StopLogStream",
         "onCommand:appService.StartRemoteDebug",
@@ -174,6 +176,16 @@
             {
                 "command": "appService.appSettings.Delete",
                 "title": "Delete...",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.appSettings.DownloadAppSettings",
+                "title": "Download AppSettings",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.appSettings.UploadAppSettings",
+                "title": "Upload AppSettings",
                 "category": "Azure App Service"
             },
             {
@@ -612,6 +624,16 @@
                     "command": "appService.Refresh",
                     "when": "view == azureAppService && viewItem == applicationSettings",
                     "group": "2_appSettingsGeneral@1"
+                },
+                {
+                    "command": "appService.appSettings.DownloadAppSettings",
+                    "when": "view == azureAppService && viewItem == applicationSettings",
+                    "group": "1_appSettingEnv@1"
+                },
+                {
+                    "command": "appService.appSettings.UploadAppSettings",
+                    "when": "view == azureAppService && viewItem == applicationSettings",
+                    "group": "1_appSettingEnv@2"
                 },
                 {
                     "command": "appService.appSettings.Edit",
