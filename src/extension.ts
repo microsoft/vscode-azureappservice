@@ -29,6 +29,7 @@ import { startRemoteDebug } from './commands/remoteDebug/startRemoteDebug';
 import { showFile } from './commands/showFile';
 import { startStreamingLogs } from './commands/startStreamingLogs';
 import { swapSlots } from './commands/swapSlots';
+import { toggleValueVisability } from './commands/toggleValueVisability';
 import { DeploymentSlotsNATreeItem, DeploymentSlotsTreeItem, ScaleUpTreeItem } from './explorer/DeploymentSlotsTreeItem';
 import { DeploymentSlotTreeItem } from './explorer/DeploymentSlotTreeItem';
 import { FileEditor } from './explorer/editors/FileEditor';
@@ -339,6 +340,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<AzureE
         registerCommand('appService.Redeploy', redeployDeployment);
         registerCommand('appService.DisconnectRepo', disconnectRepo);
         registerCommand('appService.ConnectToGitHub', connectToGitHub);
+        registerCommand('appService.toggleValueVisability', toggleValueVisability, 250);
     });
 
     return createApiProvider([]);

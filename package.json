@@ -274,6 +274,11 @@
                 "command": "appService.RevealConnectionInAppSettings",
                 "title": "Reveal in Application Settings",
                 "category": "Azure App Service"
+            },
+            {
+                "command": "appService.toggleValueVisability",
+                "title": "Reveal App Settings",
+                "category": "Azure App Service"
             }
         ],
         "viewsContainers": {
@@ -357,6 +362,10 @@
                 },
                 {
                     "command": "appService.appSettings.Delete",
+                    "when": "never"
+                },
+                {
+                    "command": "appService.toggleValueVisability",
                     "when": "never"
                 }
             ],
@@ -806,11 +815,6 @@
                             }
                         }
                     }
-                },
-                "appService.obfuscateAppSettingValues": {
-                    "type": "boolean",
-                    "default": true,
-                    "description": "Disables showing \"Application Setting\" values in the Azure App Services Extension tree view."
                 }
             }
         },
