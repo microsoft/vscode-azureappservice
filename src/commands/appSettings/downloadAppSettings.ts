@@ -4,14 +4,16 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { WebSiteManagementModels } from "azure-arm-website";
+import { DotenvParseOutput } from "dotenv";
 import * as fse from 'fs-extra';
+import * as os from 'os';
 import * as vscode from 'vscode';
 import { AppSettingsTreeItem, SiteClient } from "vscode-azureappservice";
 import { envFileName } from "../../constants";
 import { ext } from "../../extensionVariables";
 import * as workspaceUtil from '../../utils/workspace';
 import { confirmOverwriteSettings } from "./confirmOverwriteSettings";
-import { getEnvironmentVariables, IEnvironmentVariables } from './getEnvironmentVariables';
+import { getLocalEnvironmentVariables } from './getLocalEnvironmentVariables';
 
 export async function downloadAppSettings(node?: AppSettingsTreeItem): Promise<void> {
     if (!node) {
@@ -26,21 +28,27 @@ export async function downloadAppSettings(node?: AppSettingsTreeItem): Promise<v
 
     await node.runWithTemporaryDescription('Downloading...', async () => {
         ext.outputChannel.appendLine(`Downloading settings from "${client.fullName}"...`);
-        const localSettings: IEnvironmentVariables = await getEnvironmentVariables(envVarPath, true /* allowOverwrite */);
-
-        if (!localSettings.Values) {
-            localSettings.Values = {};
-        }
-
-        const remoteSettings: WebSiteManagementModels.StringDictionary = await client.listApplicationSettings();
-        if (remoteSettings.properties) {
-            await confirmOverwriteSettings(remoteSettings.properties, localSettings.Values, envFileName);
+        const localEnvVariables: DotenvParseOutput = await getLocalEnvironmentVariables(envVarPath, true /* allowOverwrite */);
+        const remoteEnvVariables: WebSiteManagementModels.StringDictionary = await client.listApplicationSettings();
+        if (remoteEnvVariables.properties) {
+            await confirmOverwriteSettings(remoteEnvVariables.properties, localEnvVariables, envFileName);
         }
 
         await fse.ensureFile(envVarPath);
-        await fse.writeJson(envVarPath, localSettings, { spaces: 2 });
+        await fse.writeFile(envVarPath, convertAppSettingsToEnvVariables(remoteEnvVariables.properties));
     });
 
     const doc: vscode.TextDocument = await vscode.workspace.openTextDocument(envVarUri);
     await vscode.window.showTextDocument(doc);
+}
+
+export function convertAppSettingsToEnvVariables(appSettings: { [propertyName: string]: string } | undefined): string {
+    let envData: string = '';
+    if (appSettings) {
+        for (const property of Object.keys(appSettings)) {
+            envData += `${property}=${appSettings[property]}`;
+            envData += os.EOL;
+        }
+    }
+    return envData;
 }
