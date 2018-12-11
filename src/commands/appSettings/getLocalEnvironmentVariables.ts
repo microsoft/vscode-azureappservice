@@ -11,18 +11,16 @@ import { ext } from "../../extensionVariables";
 export async function getLocalEnvironmentVariables(localSettingsPath: string, allowOverwrite: boolean = false): Promise<dotenv.DotenvParseOutput> {
     if (await fse.pathExists(localSettingsPath)) {
         const data: string = (await fse.readFile(localSettingsPath)).toString();
-        if (/[^\s]/.test(data)) {
-            try {
-                return dotenv.parse(data);
-            } catch (error) {
-                if (allowOverwrite) {
-                    const message: string = `Failed to parse local settings: ${parseError(error).message}. Overwrite?`;
-                    const overwriteButton: MessageItem = { title: 'Overwrite' };
-                    // Overwrite is the only button and cancel automatically throws, so no need to check result
-                    await ext.ui.showWarningMessage(message, { modal: true }, overwriteButton, DialogResponses.cancel);
-                } else {
-                    throw error;
-                }
+        try {
+            return dotenv.parse(data);
+        } catch (error) {
+            if (allowOverwrite) {
+                const message: string = `Failed to parse local environment: ${parseError(error).message}. Overwrite?`;
+                const overwriteButton: MessageItem = { title: 'Overwrite' };
+                // Overwrite is the only button and cancel automatically throws, so no need to check result
+                await ext.ui.showWarningMessage(message, { modal: true }, overwriteButton, DialogResponses.cancel);
+            } else {
+                throw error;
             }
         }
     }

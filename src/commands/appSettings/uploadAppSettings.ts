@@ -10,9 +10,10 @@ import { envFileName } from "../../constants";
 import { ext } from "../../extensionVariables";
 import * as workspaceUtil from '../../utils/workspace';
 import { confirmOverwriteSettings } from "./confirmOverwriteSettings";
+import { getLocalEnvironmentVariables } from "./getLocalEnvironmentVariables";
 
 export async function uploadAppSettings(node?: AppSettingsTreeItem): Promise<void> {
-    const message: string = 'Select the local settings file to upload.';
+    const message: string = 'Select the local .env file to upload.';
     const envPath: string = await workspaceUtil.selectWorkspaceFile(ext.ui, message, () => envFileName);
 
     if (!node) {
@@ -23,18 +24,18 @@ export async function uploadAppSettings(node?: AppSettingsTreeItem): Promise<voi
 
     await node.runWithTemporaryDescription('Uploading...', async () => {
         ext.outputChannel.appendLine(`Uploading settings to "${client.fullName}"...`);
-        const env: dotenv.DotenvParseOutput = await dotenv.parse(envPath);
-        if (env) {
+        const localEnvVariables: dotenv.DotenvParseOutput = await getLocalEnvironmentVariables(envPath);
+        if (localEnvVariables) {
             const remoteSettings: WebSiteManagementModels.StringDictionary = await client.listApplicationSettings();
             if (!remoteSettings.properties) {
                 remoteSettings.properties = {};
             }
 
-            await confirmOverwriteSettings(env, remoteSettings.properties, client.fullName);
-
+            await confirmOverwriteSettings(localEnvVariables, remoteSettings.properties, client.fullName);
             await client.updateApplicationSettings(remoteSettings);
+
         } else {
-            throw new Error(`No settings found in "${envFileName}".`);
+            throw new Error(`No enviroment variables found in "${envFileName}".`);
         }
     });
 }

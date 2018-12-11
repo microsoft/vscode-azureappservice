@@ -35,7 +35,7 @@ export async function downloadAppSettings(node?: AppSettingsTreeItem): Promise<v
         }
 
         await fse.ensureFile(envVarPath);
-        await fse.writeFile(envVarPath, convertAppSettingsToEnvVariables(remoteEnvVariables.properties));
+        await fse.writeFile(envVarPath, convertAppSettingsToEnvVariables(localEnvVariables));
     });
 
     const doc: vscode.TextDocument = await vscode.workspace.openTextDocument(envVarUri);
