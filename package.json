@@ -276,8 +276,8 @@
                 "category": "Azure App Service"
             },
             {
-                "command": "appService.toggleValueVisability",
-                "title": "Reveal App Settings",
+                "command": "appService.toggleValueVisibility",
+                "title": "Toggle App Value Visibility",
                 "category": "Azure App Service"
             }
         ],
@@ -365,7 +365,7 @@
                     "when": "never"
                 },
                 {
-                    "command": "appService.toggleValueVisability",
+                    "command": "appService.toggleValueVisibility",
                     "when": "never"
                 }
             ],
