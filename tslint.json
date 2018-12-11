@@ -30,6 +30,7 @@
         ],
         "missing-jsdoc": false,
         "no-multiline-string": false,
+        "no-single-line-block-comment": false,
         "no-parameter-properties": false,
         "no-relative-imports": false,
         "no-require-imports": false,

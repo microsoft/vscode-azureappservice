@@ -7,20 +7,6 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { IAzureQuickPickItem, IAzureUserInput } from 'vscode-azureextensionui';
 
-export async function selectWorkspaceFolder(ui: IAzureUserInput, placeHolder: string, getSubPath?: (f: vscode.WorkspaceFolder) => string | undefined): Promise<string> {
-    return await selectWorkspaceItem(
-        ui,
-        placeHolder,
-        {
-            canSelectFiles: false,
-            canSelectFolders: true,
-            canSelectMany: false,
-            defaultUri: vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0 ? vscode.workspace.workspaceFolders[0].uri : undefined,
-            openLabel: 'Select'
-        },
-        getSubPath);
-}
-
 export async function selectWorkspaceFile(ui: IAzureUserInput, placeHolder: string, getSubPath?: (f: vscode.WorkspaceFolder) => string | undefined): Promise<string> {
     let defaultUri: vscode.Uri | undefined;
     if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0 && getSubPath) {

@@ -25,7 +25,7 @@ export async function uploadAppSettings(node?: AppSettingsTreeItem): Promise<voi
     await node.runWithTemporaryDescription('Uploading...', async () => {
         ext.outputChannel.appendLine(`Uploading settings to "${client.fullName}"...`);
         const localEnvVariables: dotenv.DotenvParseOutput = await getLocalEnvironmentVariables(envPath);
-        if (localEnvVariables) {
+        if (Object.keys(localEnvVariables).length > 0) {
             const remoteSettings: WebSiteManagementModels.StringDictionary = await client.listApplicationSettings();
             if (!remoteSettings.properties) {
                 remoteSettings.properties = {};
