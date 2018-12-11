@@ -912,6 +912,7 @@
         "test": "gulp test"
     },
     "devDependencies": {
+        "@types/dotenv": "^6.1.0",
         "@types/fs-extra": "^4.0.5",
         "@types/mocha": "^5.2.5",
         "@types/node": "^8.0.51",
@@ -930,7 +931,6 @@
         "vsce": "^1.37.5"
     },
     "dependencies": {
-        "@types/dotenv": "^6.1.0",
         "azure-arm-resource": "^3.0.0-preview",
         "azure-arm-website": "^5.3.0",
         "dotenv": "^6.2.0",
