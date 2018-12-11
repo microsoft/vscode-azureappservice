@@ -35,18 +35,18 @@ export async function downloadAppSettings(node?: AppSettingsTreeItem): Promise<v
         }
 
         await fse.ensureFile(envVarPath);
-        await fse.writeFile(envVarPath, convertAppSettingsToEnvVariables(localEnvVariables));
+        await fse.writeFile(envVarPath, convertAppSettingsToEnvVariables(localEnvVariables, client.fullName));
     });
 
     const doc: vscode.TextDocument = await vscode.workspace.openTextDocument(envVarUri);
     await vscode.window.showTextDocument(doc);
 }
 
-export function convertAppSettingsToEnvVariables(appSettings: { [propertyName: string]: string } | undefined): string {
-    let envData: string = '';
+export function convertAppSettingsToEnvVariables(appSettings: { [propertyName: string]: string } | undefined, appName: string): string {
+    let envData: string = `# Imported Application Settings from ${appName}${os.EOL}`;
     if (appSettings) {
         for (const property of Object.keys(appSettings)) {
-            envData += `${property}=${appSettings[property]}`;
+            envData += `${property}="${appSettings[property]}"`;
             envData += os.EOL;
         }
     }

@@ -272,8 +272,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<AzureE
 
             await node.deleteTreeItem();
         });
-        registerCommand('appService.appSettings.DownloadAppSettings', downloadAppSettings);
-        registerCommand('appService.appSettings.UploadAppSettings', uploadAppSettings);
+        registerCommand('appService.appSettings.Download', downloadAppSettings);
+        registerCommand('appService.appSettings.Upload', uploadAppSettings);
         registerCommand('appService.OpenLogStream', startStreamingLogs);
         registerCommand('appService.StopLogStream', async (node?: SiteTreeItem) => {
             if (!node) {
