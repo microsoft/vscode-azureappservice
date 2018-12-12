@@ -278,7 +278,11 @@
             {
                 "command": "appService.toggleValueVisibility",
                 "title": "Toggle App Value Visibility",
-                "category": "Azure App Service"
+                "category": "Azure App Service",
+                "icon": {
+                    "light": "resources/light/Visible_Visible_16x.svg",
+                    "dark": "resources/dark/Visible_Visible_16x.svg"
+                }
             }
         ],
         "viewsContainers": {
@@ -636,6 +640,11 @@
                     "command": "appService.appSettings.Delete",
                     "when": "view == azureAppService && viewItem == applicationSettingItem",
                     "group": "1_appSettingItemEdit@3"
+                },
+                {
+                    "command": "appService.toggleValueVisibility",
+                    "when": "view == azureAppService && viewItem == applicationSettingItem",
+                    "group": "inline"
                 },
                 {
                     "command": "appService.ScaleUp",
