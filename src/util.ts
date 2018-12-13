@@ -6,8 +6,6 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { IAzureQuickPickItem, TelemetryProperties, UserCancelledError } from 'vscode-azureextensionui';
-import { extensionPrefix } from './constants';
-import { ext } from './extensionVariables';
 
 // Resource ID
 export function parseAzureResourceId(resourceId: string): { [key: string]: string } {
@@ -36,51 +34,6 @@ export function parseAzureResourceId(resourceId: string): { [key: string]: strin
     }
 
     return result;
-}
-
-export async function showWorkspaceFoldersQuickPick(placeHolderString: string, telemetryProperties: TelemetryProperties, subPathSetting: string | undefined): Promise<string> {
-    const folderQuickPickItems: IAzureQuickPickItem<string | undefined>[] = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders.map((value) => {
-        {
-            let fsPath: string = value.uri.fsPath;
-            if (subPathSetting) {
-                const subpath: string | undefined = vscode.workspace.getConfiguration(extensionPrefix, value.uri).get(subPathSetting);
-                if (subpath) {
-                    fsPath = path.join(fsPath, subpath);
-                }
-            }
-
-            return {
-                label: path.basename(fsPath),
-                description: fsPath,
-                data: fsPath
-            };
-        }
-    }) : [];
-
-    folderQuickPickItems.push({ label: '$(file-directory) Browse...', description: '', data: undefined });
-
-    const folderQuickPickOption = { placeHolder: placeHolderString };
-    telemetryProperties.cancelStep = 'showWorkspaceFolders';
-    const pickedItem = await ext.ui.showQuickPick(folderQuickPickItems, folderQuickPickOption);
-    telemetryProperties.cancelStep = '';
-
-    if (!pickedItem.data) {
-        const browseResult = await vscode.window.showOpenDialog({
-            canSelectFiles: false,
-            canSelectFolders: true,
-            canSelectMany: false,
-            defaultUri: vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri : undefined
-        });
-
-        if (!browseResult) {
-            telemetryProperties.cancelStep = 'showWorkspaceFoldersBrowse';
-            throw new UserCancelledError();
-        }
-
-        return browseResult[0].fsPath;
-    } else {
-        return pickedItem.data;
-    }
 }
 
 export async function showQuickPickByFileExtension(telemetryProperties: TelemetryProperties, placeHolderString: string, fileExtension: string = '*'): Promise<string> {

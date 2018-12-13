@@ -12,7 +12,6 @@ import { AppSettingsTreeItem, SiteClient } from "vscode-azureappservice";
 import { envFileName } from "../../constants";
 import { ext } from "../../extensionVariables";
 import * as workspaceUtil from '../../utils/workspace';
-import { confirmOverwriteSettings } from "./confirmOverwriteSettings";
 import { getLocalEnvironmentVariables } from './getLocalEnvironmentVariables';
 
 export async function downloadAppSettings(node?: AppSettingsTreeItem): Promise<void> {
@@ -31,7 +30,7 @@ export async function downloadAppSettings(node?: AppSettingsTreeItem): Promise<v
         const localEnvVariables: DotenvParseOutput = await getLocalEnvironmentVariables(envVarPath, true /* allowOverwrite */);
         const remoteEnvVariables: WebSiteManagementModels.StringDictionary = await client.listApplicationSettings();
         if (remoteEnvVariables.properties) {
-            await confirmOverwriteSettings(remoteEnvVariables.properties, localEnvVariables, envFileName);
+            await node.confirmOverwriteSettings(remoteEnvVariables.properties, localEnvVariables, envFileName);
         }
 
         await fse.ensureFile(envVarPath);
@@ -42,13 +41,11 @@ export async function downloadAppSettings(node?: AppSettingsTreeItem): Promise<v
     await vscode.window.showTextDocument(doc);
 }
 
-export function convertAppSettingsToEnvVariables(appSettings: { [propertyName: string]: string } | undefined, appName: string): string {
+export function convertAppSettingsToEnvVariables(appSettings: { [propertyName: string]: string }, appName: string): string {
     let envData: string = `# Imported Application Settings from ${appName}${os.EOL}`;
-    if (appSettings) {
-        for (const property of Object.keys(appSettings)) {
-            envData += `${property}="${appSettings[property]}"`;
-            envData += os.EOL;
-        }
+    for (const property of Object.keys(appSettings)) {
+        envData += `${property}="${appSettings[property]}"`;
+        envData += os.EOL;
     }
     return envData;
 }

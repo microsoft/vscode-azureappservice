@@ -5,23 +5,28 @@
 
 import { WebSiteManagementModels } from "azure-arm-website";
 import * as dotenv from 'dotenv';
+import { Uri } from "vscode";
 import { AppSettingsTreeItem, SiteClient } from "vscode-azureappservice";
 import { envFileName } from "../../constants";
 import { ext } from "../../extensionVariables";
 import * as workspaceUtil from '../../utils/workspace';
-import { confirmOverwriteSettings } from "./confirmOverwriteSettings";
 import { getLocalEnvironmentVariables } from "./getLocalEnvironmentVariables";
 
-export async function uploadAppSettings(node?: AppSettingsTreeItem): Promise<void> {
+export async function uploadAppSettings(target?: Uri | AppSettingsTreeItem | undefined): Promise<void> {
     const message: string = 'Select the local .env file to upload.';
-    const envPath: string = await workspaceUtil.selectWorkspaceFile(ext.ui, message, () => envFileName);
+    let node: AppSettingsTreeItem | undefined;
+    let envPath: string;
+    if (target instanceof Uri) {
+        envPath = target.fsPath;
+    } else {
+        node = target;
+        envPath = await workspaceUtil.selectWorkspaceFile(ext.ui, message, () => envFileName);
 
+    }
     if (!node) {
         node = <AppSettingsTreeItem>await ext.tree.showTreeItemPicker(AppSettingsTreeItem.contextValue);
     }
-
     const client: SiteClient = node.root.client;
-
     await node.runWithTemporaryDescription('Uploading...', async () => {
         ext.outputChannel.appendLine(`Uploading settings to "${client.fullName}"...`);
         const localEnvVariables: dotenv.DotenvParseOutput = await getLocalEnvironmentVariables(envPath);
@@ -31,7 +36,7 @@ export async function uploadAppSettings(node?: AppSettingsTreeItem): Promise<voi
                 remoteSettings.properties = {};
             }
 
-            await confirmOverwriteSettings(localEnvVariables, remoteSettings.properties, client.fullName);
+            await node.confirmOverwriteSettings(localEnvVariables, remoteSettings.properties, client.fullName);
             await client.updateApplicationSettings(remoteSettings);
 
         } else {

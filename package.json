@@ -725,6 +725,11 @@
                     "command": "appService.Deploy",
                     "when": "explorerResourceIsFolder == false && resourceExtname =~ /.[j|w]ar$/",
                     "group": "zzz_azuretools_deploy@1"
+                },
+                {
+                    "command": "appService.appSettings.Upload",
+                    "when": "resourceFilename == .env",
+                    "group": "zzz_azuretools_appsettings@1"
                 }
             ],
             "editor/context": [

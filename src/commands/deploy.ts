@@ -17,9 +17,9 @@ import * as constants from '../constants';
 import { SiteTreeItem } from '../explorer/SiteTreeItem';
 import { WebAppTreeItem } from '../explorer/WebAppTreeItem';
 import { ext } from '../extensionVariables';
-import * as util from '../util';
 import * as javaUtil from '../utils/javaUtils';
 import { isPathEqual, isSubpath } from '../utils/pathUtils';
+import * as workspaceUtil from '../utils/workspace';
 import { cancelWebsiteValidation, validateWebSite } from '../validateWebSite';
 import { startStreamingLogs } from './startStreamingLogs';
 
@@ -107,7 +107,7 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
         if (javaUtil.isJavaRuntime(siteConfig.linuxFxVersion)) {
             fsPath = await javaUtil.getJavaRuntimeTargetFile(siteConfig.linuxFxVersion, context.properties);
         } else {
-            fsPath = await util.showWorkspaceFoldersQuickPick("Select the folder to deploy", context.properties, constants.configurationSettings.deploySubpath);
+            fsPath = await workspaceUtil.showWorkspaceFoldersQuickPick("Select the folder to deploy", context.properties, constants.configurationSettings.deploySubpath);
         }
     }
     workspaceConfig = vscode.workspace.getConfiguration(constants.extensionPrefix, vscode.Uri.file(fsPath));
