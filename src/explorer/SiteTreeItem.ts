@@ -81,7 +81,7 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
 
     public async loadMoreChildrenImpl(_clearCache: boolean): Promise<AzureTreeItem<ISiteTreeRoot>[]> {
         const siteConfig: WebSiteModels.SiteConfig = await this.root.client.getSiteConfig();
-        this.deploymentsNode = new DeploymentsTreeItem(this, siteConfig);
+        this.deploymentsNode = new DeploymentsTreeItem(this, siteConfig, 'appService.ConnectToGitHub');
         return [this.appSettingsNode, this._connectionsNode, this.deploymentsNode, this._folderNode, this._logFolderNode, this._webJobsNode];
     }
 
