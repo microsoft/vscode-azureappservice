@@ -10,6 +10,7 @@ import * as path from 'path';
 import { MessageItem, Uri, window, workspace, WorkspaceConfiguration } from 'vscode';
 import { AppSettingsTreeItem, AppSettingTreeItem, deleteSite, DeploymentsTreeItem, DeploymentTreeItem, ISiteTreeRoot, SiteClient } from 'vscode-azureappservice';
 import { AzureParentTreeItem, AzureTreeItem, DialogResponses, TelemetryProperties } from 'vscode-azureextensionui';
+import { toggleValueVisibilityCommandId } from '../constants';
 import * as constants from '../constants';
 import { ext } from '../extensionVariables';
 import { ConnectionsTreeItem } from './ConnectionsTreeItem';
@@ -38,7 +39,7 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         this._root = Object.assign({}, parent.root, { client });
         this._state = client.initialState;
 
-        this.appSettingsNode = new AppSettingsTreeItem(this);
+        this.appSettingsNode = new AppSettingsTreeItem(this, toggleValueVisibilityCommandId);
         this._connectionsNode = new ConnectionsTreeItem(this);
         this._folderNode = new FolderTreeItem(this, 'Files', "/site/wwwroot");
         this._logFolderNode = new FolderTreeItem(this, 'Logs', '/LogFiles', 'logFolder');

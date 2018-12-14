@@ -43,3 +43,4 @@ export enum ScmType {
 }
 
 export const envFileName: string = '.env';
+export const toggleValueVisibilityCommandId: string = 'appService.toggleValueVisibility';

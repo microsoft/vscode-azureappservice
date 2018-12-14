@@ -286,6 +286,15 @@
                 "command": "appService.RevealConnectionInAppSettings",
                 "title": "Reveal in Application Settings",
                 "category": "Azure App Service"
+            },
+            {
+                "command": "appService.toggleValueVisibility",
+                "title": "Toggle App Value Visibility",
+                "category": "Azure App Service",
+                "icon": {
+                    "light": "resources/light/Visible_Visible_16x.svg",
+                    "dark": "resources/dark/Visible_Visible_16x.svg"
+                }
             }
         ],
         "viewsContainers": {
@@ -369,6 +378,10 @@
                 },
                 {
                     "command": "appService.appSettings.Delete",
+                    "when": "never"
+                },
+                {
+                    "command": "appService.toggleValueVisibility",
                     "when": "never"
                 }
             ],
@@ -649,6 +662,11 @@
                     "command": "appService.appSettings.Delete",
                     "when": "view == azureAppService && viewItem == applicationSettingItem",
                     "group": "1_appSettingItemEdit@3"
+                },
+                {
+                    "command": "appService.toggleValueVisibility",
+                    "when": "view == azureAppService && viewItem == applicationSettingItem",
+                    "group": "inline"
                 },
                 {
                     "command": "appService.ScaleUp",
@@ -946,7 +964,7 @@
         "portfinder": "^1.0.13",
         "request": "^2.83.0",
         "request-promise": "^4.2.2",
-        "vscode-azureappservice": "^0.26.0",
+        "vscode-azureappservice": "^0.27.0",
         "vscode-azureextensionui": "^0.19.2",
         "vscode-azurekudu": "^0.1.8",
         "vscode-debugadapter": "^1.24.0",
