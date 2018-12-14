@@ -4,12 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as path from 'path';
-import { extensionPrefix } from 'src/constants';
-import { ext } from 'src/extensionVariables';
 import * as vscode from 'vscode';
-import { IAzureQuickPickItem, IAzureUserInput, TelemetryProperties, UserCancelledError } from 'vscode-azureextensionui';
+import { IAzureQuickPickItem, TelemetryProperties } from 'vscode-azureextensionui';
+import { extensionPrefix } from '../constants';
+import { ext } from '../extensionVariables';
 
-export async function selectWorkspaceFile(ui: IAzureUserInput, placeHolder: string, getSubPath?: (f: vscode.WorkspaceFolder) => string | undefined): Promise<string> {
+export async function selectWorkspaceFile(placeHolder: string, getSubPath?: (f: vscode.WorkspaceFolder) => string | undefined): Promise<string> {
     let defaultUri: vscode.Uri | undefined;
     if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0 && getSubPath) {
         const firstFolder: vscode.WorkspaceFolder = vscode.workspace.workspaceFolders[0];
@@ -20,7 +20,6 @@ export async function selectWorkspaceFile(ui: IAzureUserInput, placeHolder: stri
     }
 
     return await selectWorkspaceItem(
-        ui,
         placeHolder,
         {
             canSelectFiles: true,
@@ -32,7 +31,7 @@ export async function selectWorkspaceFile(ui: IAzureUserInput, placeHolder: stri
         getSubPath);
 }
 
-export async function selectWorkspaceItem(ui: IAzureUserInput, placeHolder: string, options: vscode.OpenDialogOptions, getSubPath?: (f: vscode.WorkspaceFolder) => string | undefined): Promise<string> {
+export async function selectWorkspaceItem(placeHolder: string, options: vscode.OpenDialogOptions, getSubPath?: (f: vscode.WorkspaceFolder) => string | undefined): Promise<string> {
     let folder: IAzureQuickPickItem<string | undefined> | undefined;
     if (vscode.workspace.workspaceFolders) {
         const folderPicks: IAzureQuickPickItem<string | undefined>[] = vscode.workspace.workspaceFolders.map((f: vscode.WorkspaceFolder) => {
@@ -46,53 +45,28 @@ export async function selectWorkspaceItem(ui: IAzureUserInput, placeHolder: stri
         });
 
         folderPicks.push({ label: '$(file-directory) Browse...', description: '', data: undefined });
-        folder = await ui.showQuickPick(folderPicks, { placeHolder });
+        folder = await ext.ui.showQuickPick(folderPicks, { placeHolder });
     }
 
-    return folder && folder.data ? folder.data : (await ui.showOpenDialog(options))[0].fsPath;
+    return folder && folder.data ? folder.data : (await ext.ui.showOpenDialog(options))[0].fsPath;
 }
 
 export async function showWorkspaceFoldersQuickPick(placeHolderString: string, telemetryProperties: TelemetryProperties, subPathSetting: string | undefined): Promise<string> {
-    const folderQuickPickItems: IAzureQuickPickItem<string | undefined>[] = vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders.map((value) => {
-        {
-            let fsPath: string = value.uri.fsPath;
-            if (subPathSetting) {
-                const subpath: string | undefined = vscode.workspace.getConfiguration(extensionPrefix, value.uri).get(subPathSetting);
-                if (subpath) {
-                    fsPath = path.join(fsPath, subpath);
-                }
-            }
-
-            return {
-                label: path.basename(fsPath),
-                description: fsPath,
-                data: fsPath
-            };
-        }
-    }) : [];
-
-    folderQuickPickItems.push({ label: '$(file-directory) Browse...', description: '', data: undefined });
-
-    const folderQuickPickOption = { placeHolder: placeHolderString };
     telemetryProperties.cancelStep = 'showWorkspaceFolders';
-    const pickedItem = await ext.ui.showQuickPick(folderQuickPickItems, folderQuickPickOption);
-    telemetryProperties.cancelStep = '';
-
-    if (!pickedItem.data) {
-        const browseResult = await vscode.window.showOpenDialog({
+    return await selectWorkspaceItem(
+        placeHolderString,
+        {
             canSelectFiles: false,
             canSelectFolders: true,
             canSelectMany: false,
             defaultUri: vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri : undefined
-        });
-
-        if (!browseResult) {
-            telemetryProperties.cancelStep = 'showWorkspaceFoldersBrowse';
-            throw new UserCancelledError();
+        },
+        (f: vscode.WorkspaceFolder): string | undefined => {
+            if (subPathSetting) {
+                return vscode.workspace.getConfiguration(extensionPrefix, f.uri).get(subPathSetting);
+            }
+            return;
         }
 
-        return browseResult[0].fsPath;
-    } else {
-        return pickedItem.data;
-    }
+    );
 }

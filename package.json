@@ -180,12 +180,12 @@
             },
             {
                 "command": "appService.appSettings.Download",
-                "title": "Download Remote Settings",
+                "title": "Download Remote Settings...",
                 "category": "Azure App Service"
             },
             {
                 "command": "appService.appSettings.Upload",
-                "title": "Upload Local Settings",
+                "title": "Upload Local Settings...",
                 "category": "Azure App Service"
             },
             {
