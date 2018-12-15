@@ -2,7 +2,7 @@
     "name": "vscode-azureappservice",
     "displayName": "Azure App Service",
     "description": "An Azure App Service management extension for Visual Studio Code.",
-    "version": "0.10.0",
+    "version": "0.10.1-alpha",
     "publisher": "ms-azuretools",
     "icon": "resources/windows-azure-web-site.png",
     "aiKey": "AIF-d9b70cd4-b9f9-4d70-929b-a071c400b217",
@@ -274,6 +274,15 @@
                 "command": "appService.RevealConnectionInAppSettings",
                 "title": "Reveal in Application Settings",
                 "category": "Azure App Service"
+            },
+            {
+                "command": "appService.toggleValueVisibility",
+                "title": "Toggle App Value Visibility",
+                "category": "Azure App Service",
+                "icon": {
+                    "light": "resources/light/Visible_Visible_16x.svg",
+                    "dark": "resources/dark/Visible_Visible_16x.svg"
+                }
             }
         ],
         "viewsContainers": {
@@ -357,6 +366,10 @@
                 },
                 {
                     "command": "appService.appSettings.Delete",
+                    "when": "never"
+                },
+                {
+                    "command": "appService.toggleValueVisibility",
                     "when": "never"
                 }
             ],
@@ -629,6 +642,11 @@
                     "group": "1_appSettingItemEdit@3"
                 },
                 {
+                    "command": "appService.toggleValueVisibility",
+                    "when": "view == azureAppService && viewItem == applicationSettingItem",
+                    "group": "inline"
+                },
+                {
                     "command": "appService.ScaleUp",
                     "when": "view == azureAppService && viewItem == deploymentNASlots"
                 },
@@ -891,21 +909,23 @@
     },
     "devDependencies": {
         "@types/fs-extra": "^4.0.5",
+        "@types/gulp": "^4.0.5",
         "@types/mocha": "^5.2.5",
         "@types/node": "^8.0.51",
         "@types/request": "^2.0.3",
         "@types/request-promise": "4.1.41",
         "glob": "^7.1.3",
-        "gulp": "^3.9.1",
+        "gulp": "^4.0.0",
         "gulp-decompress": "^2.0.2",
         "gulp-download": "^0.0.1",
         "mocha": "^5.2.0",
         "mocha-junit-reporter": "^1.18.0",
+        "ts-node": "^7.0.1",
         "tslint": "^5.7.0",
         "tslint-microsoft-contrib": "5.0.1",
         "typescript": "^2.0.3",
-        "vscode": "^1.0.0",
-        "vsce": "^1.37.5"
+        "vsce": "^1.37.5",
+        "vscode": "^1.0.0"
     },
     "dependencies": {
         "azure-arm-resource": "^3.0.0-preview",
@@ -915,7 +935,7 @@
         "portfinder": "^1.0.13",
         "request": "^2.83.0",
         "request-promise": "^4.2.2",
-        "vscode-azureappservice": "^0.25.6",
+        "vscode-azureappservice": "^0.27.0",
         "vscode-azureextensionui": "^0.19.2",
         "vscode-azurekudu": "^0.1.8",
         "vscode-debugadapter": "^1.24.0",
