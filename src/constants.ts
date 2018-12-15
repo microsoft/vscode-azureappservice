@@ -24,7 +24,7 @@ export function getIgnoredFoldersForDeployment(runtime: string): string[] {
         case runtimes.node:
             return ['node_modules{,/**}'];
         case runtimes.python:
-            return ['.env', '.Python', 'env/{,/**}', 'build{,/**}', 'dist{,/**}'];
+            return ['.env', 'env/{,/**}', 'build{,/**}', 'dist{,/**}'];
         default:
             return [];
     }
