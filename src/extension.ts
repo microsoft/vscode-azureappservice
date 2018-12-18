@@ -14,6 +14,8 @@ import { AppSettingsTreeItem, AppSettingTreeItem, DeploymentsTreeItem, editScmTy
 import { AzureParentTreeItem, AzureTreeDataProvider, AzureTreeItem, AzureUserInput, callWithTelemetryAndErrorHandling, createApiProvider, createTelemetryReporter, IActionContext, IAzureUserInput, registerCommand, registerEvent, registerUIExtensionVariables, SubscriptionTreeItem } from 'vscode-azureextensionui';
 import { AzureExtensionApiProvider } from 'vscode-azureextensionui/api';
 import { SiteConfigResource } from '../node_modules/azure-arm-website/lib/models';
+import { downloadAppSettings } from './commands/appSettings/downloadAppSettings';
+import { uploadAppSettings } from './commands/appSettings/uploadAppSettings';
 import { addCosmosDBConnection } from './commands/connections/addCosmosDBConnection';
 import { removeCosmosDBConnection } from './commands/connections/removeCosmosDBConnection';
 import { revealConnection } from './commands/connections/revealConnection';
@@ -271,6 +273,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<AzureE
 
             await node.deleteTreeItem();
         });
+        registerCommand('appService.appSettings.Download', downloadAppSettings);
+        registerCommand('appService.appSettings.Upload', uploadAppSettings);
         registerCommand('appService.OpenLogStream', startStreamingLogs);
         registerCommand('appService.StopLogStream', async (node?: SiteTreeItem) => {
             if (!node) {

@@ -47,6 +47,8 @@
         "onCommand:appService.appSettings.Edit",
         "onCommand:appService.appSettings.Rename",
         "onCommand:appService.appSettings.Delete",
+        "onCommand:appService.appSettings.Download",
+        "onCommand:appService.appSettings.Upload",
         "onCommand:appService.OpenLogStream",
         "onCommand:appService.StopLogStream",
         "onCommand:appService.StartRemoteDebug",
@@ -174,6 +176,16 @@
             {
                 "command": "appService.appSettings.Delete",
                 "title": "Delete...",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.appSettings.Download",
+                "title": "Download Remote Settings...",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.appSettings.Upload",
+                "title": "Upload Local Settings...",
                 "category": "Azure App Service"
             },
             {
@@ -627,6 +639,16 @@
                     "group": "2_appSettingsGeneral@1"
                 },
                 {
+                    "command": "appService.appSettings.Download",
+                    "when": "view == azureAppService && viewItem == applicationSettings",
+                    "group": "1_appSettingEnv@1"
+                },
+                {
+                    "command": "appService.appSettings.Upload",
+                    "when": "view == azureAppService && viewItem == applicationSettings",
+                    "group": "1_appSettingEnv@2"
+                },
+                {
                     "command": "appService.appSettings.Edit",
                     "when": "view == azureAppService && viewItem == applicationSettingItem",
                     "group": "1_appSettingItemEdit@1"
@@ -721,6 +743,11 @@
                     "command": "appService.Deploy",
                     "when": "explorerResourceIsFolder == false && resourceExtname =~ /.[j|w]ar$/",
                     "group": "zzz_azuretools_deploy@1"
+                },
+                {
+                    "command": "appService.appSettings.Upload",
+                    "when": "resourceFilename == .env",
+                    "group": "zzz_azuretools_appsettings@1"
                 }
             ],
             "editor/context": [
@@ -908,6 +935,7 @@
         "test": "gulp test"
     },
     "devDependencies": {
+        "@types/dotenv": "^6.1.0",
         "@types/fs-extra": "^4.0.5",
         "@types/gulp": "^4.0.5",
         "@types/mocha": "^5.2.5",
@@ -930,6 +958,7 @@
     "dependencies": {
         "azure-arm-resource": "^3.0.0-preview",
         "azure-arm-website": "^5.3.0",
+        "dotenv": "^6.2.0",
         "fs-extra": "^4.0.2",
         "opn": "^5.3.0",
         "portfinder": "^1.0.13",

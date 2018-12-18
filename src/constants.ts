@@ -42,4 +42,5 @@ export enum ScmType {
     GitHub = 'GitHub'
 }
 
+export const envFileName: string = '.env';
 export const toggleValueVisibilityCommandId: string = 'appService.toggleValueVisibility';
