@@ -39,7 +39,7 @@ export async function downloadAppSettings(node?: AppSettingsTreeItem): Promise<v
         await fse.writeFile(envVarPath, convertAppSettingsToEnvVariables(localEnvVariables, client.fullName));
     });
 
-    const input: string | undefined = await window.showInformationMessage(`Downloaded settings from "${client.fullName}".  View settings file?`, 'Open file');
+    const input: string | undefined = await window.showInformationMessage(`Downloaded settings from "${client.fullName}".  View settings file?`, 'View file');
     if (!input) {
         throw new UserCancelledError();
     }
