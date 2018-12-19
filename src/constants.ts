@@ -19,17 +19,6 @@ export enum runtimes {
     python = 'python'
 }
 
-export function getIgnoredFoldersForDeployment(runtime: string): string[] {
-    switch (runtime) {
-        case runtimes.node:
-            return ['node_modules{,/**}'];
-        case runtimes.python:
-            return ['.env', 'env/{,/**}', 'build{,/**}', 'dist{,/**}'];
-        default:
-            return [];
-    }
-}
-
 export enum configurationSettings {
     zipIgnorePattern = 'zipIgnorePattern',
     showBuildDuringDeployPrompt = 'showBuildDuringDeployPrompt',

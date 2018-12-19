@@ -10,7 +10,7 @@ import * as path from 'path';
 import { MessageItem, Uri, window, workspace, WorkspaceConfiguration } from 'vscode';
 import { AppSettingsTreeItem, AppSettingTreeItem, deleteSite, DeploymentsTreeItem, DeploymentTreeItem, ISiteTreeRoot, SiteClient } from 'vscode-azureappservice';
 import { AzureParentTreeItem, AzureTreeItem, DialogResponses, TelemetryProperties } from 'vscode-azureextensionui';
-import { toggleValueVisibilityCommandId } from '../constants';
+import { runtimes, toggleValueVisibilityCommandId } from '../constants';
 import * as constants from '../constants';
 import { ext } from '../extensionVariables';
 import { ConnectionsTreeItem } from './ConnectionsTreeItem';
@@ -135,7 +135,7 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         const yesButton: MessageItem = { title: 'Yes' };
         const dontShowAgainButton: MessageItem = { title: "No, and don't show again" };
         const learnMoreButton: MessageItem = { title: 'Learn More' };
-        const buildDuringDeploy: string = `Would you like to update your workspace configuration to run npm install on the target server? This should improve deployment performance.`;
+        const buildDuringDeploy: string = `Would you like to update your workspace configuration to run build commands on the target server? This should improve deployment performance.`;
         let input: MessageItem | undefined = learnMoreButton;
         while (input === learnMoreButton) {
             input = await window.showInformationMessage(buildDuringDeploy, yesButton, dontShowAgainButton, learnMoreButton);
@@ -158,7 +158,7 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     }
 
     public async enableScmDoBuildDuringDeploy(fsPath: string, runtime: string): Promise<void> {
-        const zipIgnoreFolders: string[] = constants.getIgnoredFoldersForDeployment(runtime);
+        const zipIgnoreFolders: string[] = this.getIgnoredFoldersForDeployment(runtime);
         let oldSettings: string[] | string | undefined = workspace.getConfiguration(constants.extensionPrefix, Uri.file(fsPath)).get(constants.configurationSettings.zipIgnorePattern);
         if (!oldSettings) {
             oldSettings = [];
@@ -166,7 +166,16 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
             oldSettings = [oldSettings];
             // settings have to be an array to concat the proper zipIgnoreFolders
         }
-        workspace.getConfiguration(constants.extensionPrefix, Uri.file(fsPath)).update(constants.configurationSettings.zipIgnorePattern, oldSettings.concat(zipIgnoreFolders));
+        const newSettings: string[] = oldSettings;
+        for (const folder of zipIgnoreFolders) {
+            const globIndex: number = folder.indexOf('{,/**}');
+            // remove the glob pattern to verify the folder exists within the project
+            const nonGlobFolder: string = globIndex < 0 ? folder : folder.substring(0, globIndex);
+            if (oldSettings.indexOf(folder) < 0 && await fse.pathExists(path.join(fsPath, nonGlobFolder))) {
+                newSettings.push(folder);
+            }
+        }
+        workspace.getConfiguration(constants.extensionPrefix, Uri.file(fsPath)).update(constants.configurationSettings.zipIgnorePattern, newSettings);
         await fse.writeFile(path.join(fsPath, constants.deploymentFileName), constants.deploymentFile);
     }
 
@@ -184,6 +193,17 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
             telemetryProperties.promptToSaveDeployConfigs = "Don't show again";
         } else {
             telemetryProperties.promptToSaveDeployConfigs = 'Skip for now';
+        }
+    }
+
+    private getIgnoredFoldersForDeployment(runtime: string): string[] {
+        switch (runtime) {
+            case runtimes.node:
+                return ['node_modules{,/**}'];
+            case runtimes.python:
+                return ['env/{,/**}', 'venv{,/**}', 'lib{,/**}', 'lib64{,/**}'];
+            default:
+                return [];
         }
     }
 }
