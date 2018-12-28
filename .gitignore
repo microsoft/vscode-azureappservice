@@ -292,3 +292,4 @@ out
 *.vsix
 .vscode-test
 test-results.xml
+.env

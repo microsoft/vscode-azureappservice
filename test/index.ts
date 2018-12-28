@@ -15,6 +15,8 @@
 // to report the results back to the caller. When the tests are finished, return
 // a possible error to the callback or null if none.
 
+// tslint:disable-next-line:no-var-requires
+import * as dotenv from "dotenv";
 import testRunner = require('vscode/lib/testrunner');
 
 const options: { [key: string]: string | boolean | number } = {
@@ -35,6 +37,14 @@ const options: { [key: string]: string | boolean | number } = {
 // }
 //
 // See https://github.com/mochajs/mocha/wiki/Using-mocha-programmatically#set-options for all available options
+
+// For local testing, dotenv will load in the local .env file.  Change the path variable to the absolute path of the .env file.
+const localEnvVars: dotenv.DotenvConfigOutput | undefined = dotenv.config({ path: undefined });
+if (localEnvVars) {
+    for (const option of Object.keys(localEnvVars)) {
+        options[option] = localEnvVars[option];
+    }
+}
 
 for (const envVar of Object.keys(process.env)) {
     const match: RegExpMatchArray | null = envVar.match(/^mocha_(.+)/i);

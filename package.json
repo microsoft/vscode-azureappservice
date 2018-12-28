@@ -953,7 +953,8 @@
         "tslint-microsoft-contrib": "5.0.1",
         "typescript": "^2.0.3",
         "vsce": "^1.37.5",
-        "vscode": "^1.0.0"
+        "vscode": "^1.0.0",
+        "vscode-azureextensiondev": "^0.1.1"
     },
     "dependencies": {
         "azure-arm-resource": "^3.0.0-preview",
