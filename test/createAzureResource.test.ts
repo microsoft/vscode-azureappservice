@@ -20,7 +20,7 @@ suite('Create Azure Resources', async function (this: ISuiteCallbackContext): Pr
     const resourceGroupsToDelete: string[] = [];
     const testAccount: TestAzureAccount = new TestAzureAccount();
     // tslint:disable-next-line:no-backbone-get-set-outside-model
-    const advancedCreationSetting: boolean | undefined = <boolean>await vscode.workspace.getConfiguration(constants.extensionPrefix).get('advancedCreation');
+    const advancedCreationSetting: boolean | undefined = <boolean>vscode.workspace.getConfiguration(constants.extensionPrefix).get('advancedCreation');
 
     suiteSetup(async function (this: IHookCallbackContext): Promise<void> {
         if (!longRunningTestsEnabled) {

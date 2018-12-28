@@ -40,8 +40,10 @@ const options: { [key: string]: string | boolean | number } = {
 
 // For local testing, dotenv will load in the local .env file.  Change the path variable to the absolute path of the .env file.
 const localEnvVars: dotenv.DotenvConfigOutput | undefined = dotenv.config({ path: undefined });
+// tslint:disable-next-line:strict-boolean-expressions
 if (localEnvVars) {
     for (const option of Object.keys(localEnvVars)) {
+        // tslint:disable-next-line:no-unsafe-any
         options[option] = localEnvVars[option];
     }
 }
