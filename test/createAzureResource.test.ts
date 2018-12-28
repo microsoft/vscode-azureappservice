@@ -6,13 +6,13 @@
 import * as assert from 'assert';
 import { ResourceManagementClient } from 'azure-arm-resource';
 import { WebSiteManagementClient, WebSiteManagementModels } from 'azure-arm-website';
+import * as crypto from "crypto";
 import { IHookCallbackContext, ISuiteCallbackContext } from 'mocha';
 import * as vscode from 'vscode';
 import { AzureTreeDataProvider, DialogResponses, TestAzureAccount, TestUserInput } from 'vscode-azureextensionui';
 import * as constants from '../src/constants';
 import { WebAppProvider } from '../src/explorer/WebAppProvider';
 import { ext } from '../src/extensionVariables';
-import * as fsUtil from '../src/utils/fs';
 import { longRunningTestsEnabled } from './global.test';
 
 suite('Create Azure Resources', async function (this: ISuiteCallbackContext): Promise<void> {
@@ -53,7 +53,7 @@ suite('Create Azure Resources', async function (this: ISuiteCallbackContext): Pr
     });
 
     test('Create and Delete New Web App (Basic)', async () => {
-        const appName: string = fsUtil.getRandomHexString().toLowerCase();
+        const appName: string = getRandomHexString().toLowerCase();
         await vscode.workspace.getConfiguration(constants.extensionPrefix).update('advancedCreation', false, vscode.ConfigurationTarget.Global);
         const testInputs: string[] = [appName, 'Linux', 'Node.js 10.10 (LTS - Recommended for new apps)'];
         ext.ui = new TestUserInput(testInputs);
@@ -71,7 +71,7 @@ suite('Create Azure Resources', async function (this: ISuiteCallbackContext): Pr
     });
 
     test('Create and Delete New Web App (Advanced)', async () => {
-        const resourceName: string = fsUtil.getRandomHexString().toLowerCase();
+        const resourceName: string = getRandomHexString().toLowerCase();
         resourceGroupsToDelete.push(resourceName);
         await vscode.workspace.getConfiguration(constants.extensionPrefix).update('advancedCreation', true, vscode.ConfigurationTarget.Global);
 
@@ -96,4 +96,9 @@ function getWebsiteManagementClient(testAccount: TestAzureAccount): WebSiteManag
 
 function getResourceManagementClient(testAccount: TestAzureAccount): ResourceManagementClient {
     return new ResourceManagementClient(testAccount.getSubscriptionCredentials(), testAccount.getSubscriptionId());
+}
+
+function getRandomHexString(length: number = 10): string {
+    const buffer: Buffer = crypto.randomBytes(Math.ceil(length / 2));
+    return buffer.toString('hex').slice(0, length);
 }
