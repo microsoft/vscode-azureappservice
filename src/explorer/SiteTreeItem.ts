@@ -198,7 +198,7 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
             case runtimes.node:
                 return ['node_modules{,/**}'];
             case runtimes.python:
-                return ['env/{,/**}', 'venv{,/**}', 'lib{,/**}', 'lib64{,/**}'];
+                return ['.env{,/**}', '.venv{,/**}', 'env{,/**}', 'venv{,/**}', 'ENV{,/**}', 'env.bak{,/**}', 'venv.bak{,/**}', 'lib{,/**}', 'lib64{,/**}'];
             default:
                 return [];
         }
