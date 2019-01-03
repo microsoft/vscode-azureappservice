@@ -15,7 +15,6 @@
 // to report the results back to the caller. When the tests are finished, return
 // a possible error to the callback or null if none.
 
-// tslint:disable-next-line:no-var-requires
 import * as dotenv from "dotenv";
 import testRunner = require('vscode/lib/testrunner');
 
