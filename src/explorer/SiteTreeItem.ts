@@ -168,10 +168,7 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         }
         const newSettings: string[] = oldSettings;
         for (const folder of zipIgnoreFolders) {
-            const globIndex: number = folder.indexOf('{,/**}');
-            // remove the glob pattern to verify the folder exists within the project
-            const nonGlobFolder: string = globIndex < 0 ? folder : folder.substring(0, globIndex);
-            if (oldSettings.indexOf(folder) < 0 && await fse.pathExists(path.join(fsPath, nonGlobFolder))) {
+            if (oldSettings.indexOf(folder) < 0) {
                 newSettings.push(folder);
             }
         }
