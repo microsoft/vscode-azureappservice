@@ -78,3 +78,7 @@ export interface IQuickPickItemWithData<T> extends vscode.QuickPickItem {
     persistenceId?: string; // A unique key to identify this item items across sessions, used in persisting previous selections
     data?: T;
 }
+
+export async function delay(delayMs: number): Promise<void> {
+    await new Promise<void>((resolve: () => void): void => { setTimeout(resolve, delayMs); });
+}

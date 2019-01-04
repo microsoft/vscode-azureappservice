@@ -17,6 +17,7 @@ import * as constants from '../constants';
 import { SiteTreeItem } from '../explorer/SiteTreeItem';
 import { WebAppTreeItem } from '../explorer/WebAppTreeItem';
 import { ext } from '../extensionVariables';
+import { delay } from '../util';
 import * as javaUtil from '../utils/javaUtils';
 import { isPathEqual, isSubpath } from '../utils/pathUtils';
 import * as workspaceUtil from '../utils/workspace';
@@ -163,6 +164,9 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
     const browseWebsite: MessageItem = { title: 'Browse Website' };
     const streamLogs: MessageItem = { title: 'Stream Logs' };
 
+    // referring to this issue https://github.com/Microsoft/vscode-azureappservice/issues/644
+    // waiting 10 seconds is a temporary stop gap and should be changed
+    await delay(10000);
     // Don't wait
     vscode.window.showInformationMessage(deployComplete, browseWebsite, streamLogs, viewOutput).then(async (result: MessageItem | undefined) => {
         if (result === viewOutput) {
