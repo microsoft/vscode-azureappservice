@@ -198,7 +198,10 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
             case runtimes.node:
                 return ['node_modules{,/**}'];
             case runtimes.python:
-                return ['.env{,/**}', '.venv{,/**}', 'env{,/**}', 'venv{,/**}', 'ENV{,/**}', 'env.bak{,/**}', 'venv.bak{,/**}', 'lib{,/**}', 'lib64{,/**}'];
+                // list of Python distribution/packaging and environments are pulled from here https://github.com/github/gitignore/blob/master/Python.gitignore
+                return ['.Python', 'build{,/**}', 'develop-eggs{,/**}', 'dist{,/**}', 'downloads{,/**}', 'eggs{,/**}', '.eggs{,/**}', 'lib{,/**}', 'lib64{,/**}', 'parts{,/**}', 'sdist{,/**}', 'var{,/**}',
+                    'wheels{,/**}', 'share/python-wheels{,/**}', '*.egg-info{,/**}', '.installed.cfg', '*.egg', 'MANIFEST',
+                    '.env{,/**}', '.venv{,/**}', 'env{,/**}', 'venv{,/**}', 'ENV{,/**}', 'env.bak{,/**}', 'venv.bak{,/**}'];
             default:
                 return [];
         }
