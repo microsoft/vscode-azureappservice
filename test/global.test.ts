@@ -13,4 +13,5 @@ export let longRunningTestsEnabled: boolean = !/^(false|0)?$/i.test(process.env.
 suiteSetup(async function (this: IHookCallbackContext): Promise<void> {
     this.timeout(120 * 1000);
     await vscode.commands.executeCommand('appService.Refresh'); // activate the extension before tests begin
+    // ("I made meaningful changes!!");
 });
