@@ -22,7 +22,7 @@ Once you are signed into your Azure account and you have your app open in Visual
 Studio Code, click the deploy button in the Azure App Service explorer - it's
 the blue up arrow - to deploy your app.
 
-![image](https://user-images.githubusercontent.com/1186948/50742590-49250000-11c2-11e9-85ff-c5f4c9352e3c.png)
+<img src="https://user-images.githubusercontent.com/1186948/50742590-49250000-11c2-11e9-85ff-c5f4c9352e3c.png" width="400">
 
 > Tip: Be sure that your application is listening on the port provided by the PORT environment variable: `process.env.PORT`
 
@@ -34,11 +34,11 @@ the blue up arrow - to deploy your app.
 
 Click **Yes** when prompted to update your configuration to run `npm install` on the target server.
 
-![image](https://user-images.githubusercontent.com/1186948/50742595-63f77480-11c2-11e9-9268-b8522ce9a12b.png)
+<img src="https://user-images.githubusercontent.com/1186948/50742595-63f77480-11c2-11e9-9268-b8522ce9a12b.png" width="400">
 
 Once the deployment starts, you're prompted to update your workspace so that all subsequent deploys automatically deploy to the same App Service Web App. Choose **Yes** to ensure your changes are deployed to the correct app.
 
-![image](https://user-images.githubusercontent.com/1186948/50742599-75408100-11c2-11e9-98a4-588a62000e7a.png)
+<img src="https://user-images.githubusercontent.com/1186948/50742599-75408100-11c2-11e9-98a4-588a62000e7a.png" width="400">
 
 Once the deployment completes, click **Browse Website** in the prompt to view your freshly deployed website. It may take a few seconds for the deployment to complete.
 
@@ -49,7 +49,7 @@ Once the deployment completes, click **Browse Website** in the prompt to view yo
 1. In the Azure App Service explorer, expand the app then expand **Logs**
 2. Click on **Connect to Log Steam…**
 
-![image](https://user-images.githubusercontent.com/1186948/50742611-999c5d80-11c2-11e9-83bb-1fed9749d5f8.png)
+<img src="https://user-images.githubusercontent.com/1186948/50742611-999c5d80-11c2-11e9-83bb-1fed9749d5f8.png" width="400">
 
 3. Choose **Yes** when prompted to enable logging and restart the app
     > File logging is disabled by default for performance reasons
@@ -58,14 +58,9 @@ Once the deployment completes, click **Browse Website** in the prompt to view yo
 ```
 Connecting to log stream...
 2019-01-06T07:36:52  Welcome, you are now connected to log-streaming service.
-
 2019-01-06 07:37:08.038 INFO  - Starting container for site
-
-2019-01-06 07:37:08.041 INFO  - docker run -d -p 17718:8080 --name mahernaexpress_0 -e WEBSITE_NODE_DEFAULT_VERSION=10.1 -e APPSETTING_WEBSITE_NODE_DEFAULT_VERSION=10.1 -e WEBSITE_SITE_NAME=mahernaexpress -e WEBSITE_AUTH_ENABLED=False -e WEBSITE_ROLE_INSTANCE_ID=0 -e WEBSITE_INSTANCE_ID=fdf16651aa2fbfc170eb6501ab185d0f8713128bcf03e300a01021ca65a756c5 -e HTTP_LOGGING_ENABLED=1 appsvc/node:10.1_1811192149
-
 2019-01-06 07:37:33.273 INFO  - Container mahernaexpress_0 for site mahernaexpress initialized successfully.
 ```
-
 
 ## Advanced Creation Configuration Settings
 
