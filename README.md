@@ -6,6 +6,9 @@ App Service is Azure's fully-managed Platform as a Service (PaaS) that let's you
 deploy and scale web, mobile, and API apps. Use the Azure App Service extension
 for VS Code to quickly create, manage, and deploy your websites.
 
+Visit the [wiki](https://github.com/Microsoft/vscode-azureappservice/wiki) for
+information on advanced features such as Remote Debugging.
+
 ## Installation
 
 1. Download and install the Azure App Service extension for Visual Studio Code
@@ -22,7 +25,7 @@ Once you are signed into your Azure account and you have your app open in Visual
 Studio Code, click the deploy button in the Azure App Service explorer - it's
 the blue up arrow - to deploy your app.
 
-<img src="https://user-images.githubusercontent.com/1186948/50742590-49250000-11c2-11e9-85ff-c5f4c9352e3c.png" width="400">
+<img src="https://user-images.githubusercontent.com/1186948/50742590-49250000-11c2-11e9-85ff-c5f4c9352e3c.png" width="300">
 
 > Tip: Be sure that your application is listening on the port provided by the PORT environment variable: `process.env.PORT`
 
@@ -42,7 +45,22 @@ Once the deployment starts, you're prompted to update your workspace so that all
 
 Once the deployment completes, click **Browse Website** in the prompt to view your freshly deployed website. It may take a few seconds for the deployment to complete.
 
-## Setup GitHub Deployments
+## Setup GitHub Deployment
+
+Configure App Service to automatically deploy your GitHub repository when changes are pushed. With this setup, you can also rollback to previous commits if something goes wrong.
+
+1. Create a new app in App Service
+    > Click the "+" icon in the explorer to create a new app without deploying your current workspace
+2. In the Azure App Service explorer, expand the app then expand **Deployments**
+3. Click **Connect to a GitHub repository...**
+4. Authorize Azure to access your GitHub organization by clicking **Go to Portal** in the notification
+5. Click on "GitHub" (**1** in the screenshot below) then click **Authorize** (**2** in the screenshot below)
+
+![image](https://user-images.githubusercontent.com/1186948/50780847-d450d500-1258-11e9-9601-25e1c5a28e8a.png)
+
+Once authorized, close the browser window, return to Visual Studio Code, and click **Connect to a GitHub repository...** in the explorer again. From here, choose the organization, repository, and branch you want to deploy.
+
+It will take some time while Azure configures the necessary hooks and does an initial deployment. Once configuration and deployment are complete, use the **Deployments** node to quickly verify the status of your deployments, view the deployment logs, or rollback to a previous commit.
 
 ## View Your Application Logs
 
@@ -70,10 +88,6 @@ Connecting to log stream...
 ## Known Issues
 
 * Local Git deployment may fail with large commits
-
-## Requirements
-
-All you need is an Azure Subscription to get started. If you don't have one, [click here](https://azure.microsoft.com/en-us/free/) for a free subscription with $200 in Azure credits!
 
 ## Contributing
 
