@@ -36,7 +36,7 @@ export class WebAppTreeItem extends SiteTreeItem {
         const asp: AppServicePlan | undefined = await this.root.client.getAppServicePlan();
         const tier: string | undefined = asp && asp.sku && asp.sku.tier;
         // tslint:disable-next-line:no-non-null-assertion
-        this.deploymentSlotsNode = tier && /^(basic|free|shared)$/i.test(tier) ? new DeploymentSlotsNATreeItem(this, tier, asp!.id!) : new DeploymentSlotsTreeItem(this);
+        this.deploymentSlotsNode = tier && /^(basic|free|shared)$/i.test(tier) ? new DeploymentSlotsNATreeItem(this, asp!.id!) : new DeploymentSlotsTreeItem(this);
         return (await super.loadMoreChildrenImpl(clearCache)).concat(this.deploymentSlotsNode);
     }
 
