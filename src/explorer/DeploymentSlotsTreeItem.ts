@@ -78,7 +78,7 @@ export class DeploymentSlotsNATreeItem extends AzureParentTreeItem<ISiteTreeRoot
 
     public constructor(parent: AzureParentTreeItem, planId: string) {
         super(parent);
-        this.label = `Deployment Slots`;
+        this.label = 'Deployment Slots';
         this.scaleUpId = `${planId}/pricingTier`;
     }
 
