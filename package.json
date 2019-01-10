@@ -245,7 +245,7 @@
             },
             {
                 "command": "appService.RevealConnection",
-                "title": "Reveal in Cosmos DB extension",
+                "title": "Reveal in Cosmos DB Extension",
                 "category": "Azure App Service"
             },
             {
