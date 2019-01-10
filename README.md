@@ -44,6 +44,12 @@ Check out this [deployment tutorial](https://code.visualstudio.com/tutorials/app
 
 ### Zip Deploy Configuration Settings
 
+* `appService.deploySubpath`
+  * The default subpath of a workspace folder to use when deploying.
+
+* `appService.preDeployTask`
+  * The name of the task to run before deploying.
+
 * `appService.zipGlobPattern`
   * Uses a glob pattern to define which files to be included in the deployment. The default value is '**/*'.
 
