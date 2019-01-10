@@ -56,7 +56,7 @@ export class DeploymentSlotsTreeItem extends AzureParentTreeItem<ISiteTreeRoot> 
 }
 
 export class ScaleUpTreeItem extends AzureTreeItem<ISiteTreeRoot> {
-    public readonly label: string = "Scale up App Service Plan...";
+    public readonly label: string = "Scale up to a production plan to enable slots...";
     public readonly contextValue: string = "ScaleUp";
     public readonly commandId: string = 'appService.ScaleUp';
 
@@ -76,9 +76,9 @@ export class DeploymentSlotsNATreeItem extends AzureParentTreeItem<ISiteTreeRoot
 
     public readonly scaleUpId: string;
 
-    public constructor(parent: AzureParentTreeItem, tier: string, planId: string) {
+    public constructor(parent: AzureParentTreeItem, planId: string) {
         super(parent);
-        this.label = `Deployment Slots (N/A for ${tier} Service Plan)`;
+        this.label = 'Deployment Slots';
         this.scaleUpId = `${planId}/pricingTier`;
     }
 
