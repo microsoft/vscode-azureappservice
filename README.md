@@ -17,7 +17,7 @@ information on advanced features such as Remote Debugging.
 3. Once complete, you'll see an Azure icon in the Activity Bar
     > If your activity bar is hidden, you won't be able to access the extension. Show the Activity Bar by clicking View > Appearance > Show Activity Bar
 4. Sign in to your Azure Account by clicking Sign in to Azure…
-    >  If you don't already have an Azure Account, click "Create a Free Azure Account" or you can [try Azure for free](https://code.visualstudio.com/tryappservice/) for an hour
+    >  If you don't already have an Azure Account, click "Create a Free Azure Account" or you can [try Azure for free](https://code.visualstudio.com/tryappservice/?utm_source=appservice-extension) for an hour
 
 ## Deploy your first Node.js app to Azure
 
