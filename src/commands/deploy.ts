@@ -156,6 +156,12 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
         // tslint:disable-next-line:no-floating-promises
         node.promptToSaveDeployDefaults(currentWorkspace.uri.fsPath, fsPath, context.properties);
     }
+
+    const preDeployResult: appservice.IPreDeployTaskResult = await appservice.runPreDeployTask(context, fsPath, siteConfig.scmType, constants.extensionPrefix);
+    if (preDeployResult.failedToFindTask) {
+        throw new Error(`Failed to find pre-deploy task "${preDeployResult.taskName}". Modify your tasks or the setting "${constants.extensionPrefix}.preDeployTask".`);
+    }
+
     cancelWebsiteValidation(node);
     await node.runWithTemporaryDescription("Deploying...", async () => {
         // tslint:disable-next-line:no-non-null-assertion
