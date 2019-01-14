@@ -6,22 +6,21 @@ App Service is Azure's fully-managed Platform as a Service (PaaS) that let's you
 deploy and scale web, mobile, and API apps. Use the Azure App Service extension
 for VS Code to quickly create, manage, and deploy your websites.
 
-Visit the [wiki](https://github.com/Microsoft/vscode-azureappservice/wiki) for
-information on advanced features such as Remote Debugging.
+**Visit the [wiki](https://github.com/Microsoft/vscode-azureappservice/wiki) more information about Azure App Service and how to use the advanced features of the extension.**
 
 ## Installation
 
-1. Download and install the Azure App Service extension for Visual Studio Code
-    > If you're interested in deploying single page web apps or progressive web apps (something without an express server), install the [Azure Storage extension](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-azurestorage)
+1. Download and install the [Azure App Service extension](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-azureappservice) for Visual Studio Code
+    > If you're interested in deploying single page web apps or progressive web apps (something **without** an express server), install the [Azure Storage extension](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-azurestorage)
 2. Wait for the extension to finish installing then reload Visual Studio Code when prompted
 3. Once complete, you'll see an Azure icon in the Activity Bar
     > If your activity bar is hidden, you won't be able to access the extension. Show the Activity Bar by clicking View > Appearance > Show Activity Bar
 4. Sign in to your Azure Account by clicking Sign in to Azure…
-    >  If you don't already have an Azure Account, click "Create a Free Azure Account" or you can [try Azure for free](https://code.visualstudio.com/tryappservice/?utm_source=appservice-extension) for an hour
+    >  If you don't already have an Azure Account, click "Create a Free Azure Account" or you can [try Azure for free](https://code.visualstudio.com/tryappservice/?utm_source=appservice-extension)
 
 ## Deploy your first Node.js app to Azure
 
-Once you are signed into your Azure account and you have your app open in Visual
+Once you are signed in to your Azure account and you have your app open in Visual
 Studio Code, click the deploy button in the Azure App Service explorer - it's
 the blue up arrow - to deploy your app.
 
@@ -45,6 +44,24 @@ Once the deployment starts, you're prompted to update your workspace so that all
 
 Once the deployment completes, click **Browse Website** in the prompt to view your freshly deployed website. It may take a few seconds for the deployment to complete.
 
+## Stream Your Application Logs
+
+1. In the Azure App Service explorer, expand the app then expand **Logs**
+2. Click on **Connect to Log Steam...**
+
+<img src="https://user-images.githubusercontent.com/1186948/51132977-961f5c80-17e8-11e9-9190-ada10f88967b.png" width="300">
+
+3. Choose **Yes** when prompted to enable logging and restart the app
+    > File logging is disabled by default and will automatically be disabled within 24 hours
+4. The Visual Studio Code output window opens with a connection to the log stream
+
+```
+Connecting to log stream...
+2019-01-06T07:36:52  Welcome, you are now connected to log-streaming service.
+2019-01-06 07:37:08.038 INFO  - Starting container for site
+2019-01-06 07:37:33.273 INFO  - Container mahernaexpress_0 for site mahernaexpress initialized successfully.
+```
+
 ## Setup GitHub Deployment
 
 Configure App Service to automatically deploy your GitHub repository when changes are pushed. With this setup, you can also rollback to previous commits if something goes wrong.
@@ -61,24 +78,6 @@ Configure App Service to automatically deploy your GitHub repository when change
 Once authorized, close the browser window, return to Visual Studio Code, and click **Connect to a GitHub repository...** in the explorer again. From here, choose the organization, repository, and branch you want to deploy.
 
 It will take some time while Azure configures the necessary hooks and does an initial deployment. Once configuration and deployment are complete, use the **Deployments** node to quickly verify the status of your deployments, view the deployment logs, or rollback to a previous commit.
-
-## View Your Application Logs
-
-1. In the Azure App Service explorer, expand the app then expand **Logs**
-2. Click on **Connect to Log Steam…**
-
-<img src="https://user-images.githubusercontent.com/1186948/50742611-999c5d80-11c2-11e9-83bb-1fed9749d5f8.png" width="400">
-
-3. Choose **Yes** when prompted to enable logging and restart the app
-    > File logging is disabled by default for performance reasons
-4. The Visual Studio Code output window opens with a connection to the log stream
-
-```
-Connecting to log stream...
-2019-01-06T07:36:52  Welcome, you are now connected to log-streaming service.
-2019-01-06 07:37:08.038 INFO  - Starting container for site
-2019-01-06 07:37:33.273 INFO  - Container mahernaexpress_0 for site mahernaexpress initialized successfully.
-```
 
 ## Advanced Creation Configuration Settings
 
