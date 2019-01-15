@@ -1,6 +1,18 @@
 # Change Log
 All notable changes to the "azure-appservice" extension will be documented in this file.
 
+## 0.11.0 - 2019-01-16
+### Added
+- App settings are hidden by default and can be revealed by clicking on it in the explorer pane
+- Download remote app settings as `.env` file
+- Upload local `.env` to remote apps's settings
+- Smarter Python defaults for faster, more reliable deployments
+- Workspace setting for `appService.preDeployTask`
+    - `appService.preDeployTask` will run task defined in `task.json` prior to deployment
+
+### Fixed
+- [Bugs fixed](https://github.com/Microsoft/vscode-azureappservice/issues?utf8=%E2%9C%93&q=is%3Aissue+milestone%3A%220.11.0%22+label%3Abug+is%3Aclosed+)
+
 ## 0.10.0 - 2018-11-28
 ### Added
 - Deployments node for Web Apps that are connected to a GitHub or LocalGit repository
