@@ -6,7 +6,7 @@ App Service is Azure's fully-managed Platform as a Service (PaaS) that let's you
 deploy and scale web, mobile, and API apps. Use the Azure App Service extension
 for VS Code to quickly create, manage, and deploy your websites.
 
-**Visit the [wiki](https://github.com/Microsoft/vscode-azureappservice/wiki) more information about Azure App Service and how to use the advanced features of the extension.**
+**Visit the [wiki](https://github.com/Microsoft/vscode-azureappservice/wiki) for more information about Azure App Service and how to use the advanced features of the extension.**
 
 ## Installation
 
@@ -24,7 +24,7 @@ Once you are signed in to your Azure account and you have your app open in Visua
 Studio Code, click the deploy button in the Azure App Service explorer - it's
 the blue up arrow - to deploy your app.
 
-<img src="https://user-images.githubusercontent.com/1186948/50742590-49250000-11c2-11e9-85ff-c5f4c9352e3c.png" width="300">
+![Deploy button](resources/deploy-button.png)
 
 > Tip: Be sure that your application is listening on the port provided by the PORT environment variable: `process.env.PORT`
 
@@ -36,11 +36,11 @@ the blue up arrow - to deploy your app.
 
 Click **Yes** when prompted to update your configuration to run `npm install` on the target server.
 
-<img src="https://user-images.githubusercontent.com/1186948/50742595-63f77480-11c2-11e9-9268-b8522ce9a12b.png" width="400">
+![Update build notification](resources/update-build-notification.png)
 
 Once the deployment starts, you're prompted to update your workspace so that all subsequent deploys automatically deploy to the same App Service Web App. Choose **Yes** to ensure your changes are deployed to the correct app.
 
-<img src="https://user-images.githubusercontent.com/1186948/50742599-75408100-11c2-11e9-98a4-588a62000e7a.png" width="400">
+![Always deploy notification](resources/always-deploy-notification.png)
 
 Once the deployment completes, click **Browse Website** in the prompt to view your freshly deployed website. It may take a few seconds for the deployment to complete.
 
@@ -49,7 +49,7 @@ Once the deployment completes, click **Browse Website** in the prompt to view yo
 1. In the Azure App Service explorer, expand the app then expand **Logs**
 2. Click on **Connect to Log Steam...**
 
-<img src="https://user-images.githubusercontent.com/1186948/51132977-961f5c80-17e8-11e9-9190-ada10f88967b.png" width="300">
+![Connect to logstream](resources/connect-logstream.png)
 
 3. Choose **Yes** when prompted to enable logging and restart the app
     > File logging is disabled by default and will automatically be disabled within 24 hours
