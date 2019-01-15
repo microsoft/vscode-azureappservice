@@ -62,23 +62,6 @@ Connecting to log stream...
 2019-01-06 07:37:33.273 INFO  - Container mahernaexpress_0 for site mahernaexpress initialized successfully.
 ```
 
-## Setup GitHub Deployment
-
-Configure App Service to automatically deploy your GitHub repository when changes are pushed. With this setup, you can also rollback to previous commits if something goes wrong.
-
-1. Create a new app in App Service
-    > Click the "+" icon in the explorer to create a new app without deploying your current workspace
-2. In the Azure App Service explorer, expand the app then expand **Deployments**
-3. Click **Connect to a GitHub repository...**
-4. Authorize Azure to access your GitHub organization by clicking **Go to Portal** in the notification
-5. Click on "GitHub" (**1** in the screenshot below) then click **Authorize** (**2** in the screenshot below)
-
-![image](https://user-images.githubusercontent.com/1186948/50780847-d450d500-1258-11e9-9601-25e1c5a28e8a.png)
-
-Once authorized, close the browser window, return to Visual Studio Code, and click **Connect to a GitHub repository...** in the explorer again. From here, choose the organization, repository, and branch you want to deploy.
-
-It will take some time while Azure configures the necessary hooks and does an initial deployment. Once configuration and deployment are complete, use the **Deployments** node to quickly verify the status of your deployments, view the deployment logs, or rollback to a previous commit.
-
 ## Advanced Creation Configuration Settings
 
 * `appService.advancedCreation`
