@@ -26,7 +26,7 @@ the blue up arrow - to deploy your app.
 
 ![Deploy button](resources/deploy-button.png)
 
-> Tip: Be sure that your application is listening on the port provided by the PORT environment variable: `process.env.PORT`
+> Tip: Be sure that your application is listening on the port provided by the PORT environment variable: `server.listen(process.env.PORT)`
 
 1. Choose **Create New App**
 2. Type a globally unique name for your Web App and press Enter. Valid characters for an app name are 'a-z', '0-9', and '-'
