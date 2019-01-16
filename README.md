@@ -31,18 +31,17 @@ the blue up arrow - to deploy your app.
 1. Choose **Create New App**
 2. Type a globally unique name for your Web App and press Enter. Valid characters for an app name are 'a-z', '0-9', and '-'
 3. Choose your **Node.js version**, LTS is recommended
-    > The notification shows each resource that's created to host your app. Once completed, click **View Output** to open the output channel and see the detailed resources required
-4. Choose the directory that you currently have open
+4. Select your current workspace if you have your app open already or browse to the directory containing your application code
 
 Click **Yes** when prompted to update your configuration to run `npm install` on the target server.
 
 ![Update build notification](resources/update-build-notification.png)
 
-Once the deployment starts, you're prompted to update your workspace so that all subsequent deploys automatically deploy to the same App Service Web App. Choose **Yes** to ensure your changes are deployed to the correct app.
+Once the deployment starts, you're prompted to update your workspace so that subsequent deploys from this workspace automatically deploy to the same App Service web app. Choose **Yes** to ensure your changes are deployed to the correct app - you can change this later by editing your workspace settings (in `.vscode/settings.json`).
 
 ![Always deploy notification](resources/always-deploy-notification.png)
 
-Once the deployment completes, click **Browse Website** in the prompt to view your freshly deployed website. It may take a few seconds for the deployment to complete.
+Once the deployment completes, click **Browse Website** in the prompt to view your freshly deployed website.
 
 ## Stream Your Application Logs
 
