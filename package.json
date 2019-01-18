@@ -969,6 +969,7 @@
         "typescript": "^2.0.3",
         "vsce": "^1.37.5",
         "vscode": "^1.0.0",
+        "vscode-azureextensiondev": "0.1.2",
         "webpack": "^4.25.1",
         "webpack-cli": "^3.1.2"
     },
@@ -982,7 +983,6 @@
         "request": "^2.83.0",
         "request-promise": "^4.2.2",
         "vscode-azureappservice": "^0.28.1",
-        "vscode-azureextensiondev": "file:../vscode-azuretools/dev/vscode-azureextensiondev-0.1.2.tgz",
         "vscode-azureextensionui": "^0.19.5",
         "vscode-azurekudu": "^0.1.8",
         "vscode-debugadapter": "^1.24.0",

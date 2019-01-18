@@ -5,9 +5,9 @@
 
 import * as path from 'path';
 import { SiteClient } from 'vscode-azureappservice';
+import { resourcesPath } from '../constants';
 import { DeploymentSlotsTreeItem } from './DeploymentSlotsTreeItem';
 import { SiteTreeItem } from './SiteTreeItem';
-import { resourcesPath } from '../constants';
 
 export class DeploymentSlotTreeItem extends SiteTreeItem {
     public static contextValue: string = 'deploymentSlot';

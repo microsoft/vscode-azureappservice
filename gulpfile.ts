@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-// tslint:disable:no-console
+// tslint:disable:no-console promise-function-async
 
 import * as cp from 'child_process';
 import * as fse from 'fs-extra';
@@ -37,6 +37,7 @@ function installAzureAccount(): Promise<void> {
     const extensionPath = path.join(os.homedir(), `.vscode/extensions/ms-vscode.azure-account-${version}`);
     const existingExtensions = glob.sync(extensionPath.replace(version, '*'));
     if (existingExtensions.length === 0) {
+        // tslint:disable:  no-unsafe-any
         // tslint:disable-next-line:no-http-string
         return download(`http://ms-vscode.gallery.vsassets.io/_apis/public/gallery/publisher/ms-vscode/extension/azure-account/${version}/assetbyname/Microsoft.VisualStudio.Services.VSIXPackage`)
             .pipe(decompress({
@@ -47,6 +48,7 @@ function installAzureAccount(): Promise<void> {
                 }
             }))
             .pipe(gulp.dest(extensionPath));
+        // tslint:enable: no-unsafe-any
     } else {
         console.log('Azure Account extension already installed.');
         return Promise.resolve();
@@ -65,6 +67,8 @@ function spawn(command: string, args: string[], options: {}): cp.ChildProcess {
     return cp.spawn(command, args, options);
 }
 
+// tslint:disable: no-unsafe-any
 exports['webpack-dev'] = () => webpack('development');
 exports['webpack-prod'] = () => webpack('production');
 exports.test = gulp.series(installAzureAccount, test);
+// tslint:enable: no-unsafe-any
