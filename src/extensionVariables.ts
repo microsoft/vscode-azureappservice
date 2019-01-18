@@ -7,7 +7,7 @@ import { ExtensionContext, OutputChannel, TreeView } from "vscode";
 import { AzureTreeDataProvider, AzureTreeItem, IAzureUserInput, ITelemetryReporter } from "vscode-azureextensionui";
 
 /**
- * Namespace for common variables used throughout the extension. They must be initialized in the activate() method of extension.ts
+ * Namespace for common variables used throughout the extension. They must be initialized in the activate() method of main.ts
  */
 export namespace ext {
     export let tree: AzureTreeDataProvider;
