@@ -9,11 +9,9 @@ import { WebSiteManagementClient, WebSiteManagementModels } from 'azure-arm-webs
 import * as crypto from "crypto";
 import { IHookCallbackContext, ISuiteCallbackContext } from 'mocha';
 import * as vscode from 'vscode';
-import { AzureTreeDataProvider, DialogResponses, TestAzureAccount, TestUserInput } from 'vscode-azureextensionui';
-import * as constants from '../src/constants';
-import { WebAppProvider } from '../src/explorer/WebAppProvider';
-import { ext } from '../src/extensionVariables';
 import { longRunningTestsEnabled } from './global.test';
+
+import { AzureTreeDataProvider, constants, DialogResponses, ext, TestAzureAccount, TestUserInput, WebAppProvider } from '../extension.bundle';
 
 suite('Create Azure Resources', async function (this: ISuiteCallbackContext): Promise<void> {
     this.timeout(1200 * 1000);
