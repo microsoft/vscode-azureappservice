@@ -1,4 +1,4 @@
-# These files are excluded during npm pack
+# These files are excluded during vsce package
 .vscode/**
 .vscode-test/**
 out/**
