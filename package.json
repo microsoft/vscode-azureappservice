@@ -938,10 +938,10 @@
         "package": "vsce package",
         "lint": "tslint --project tsconfig.json -t verbose",
         "postinstall": "node ./node_modules/vscode/bin/install",
-        "pretest": "npm run build && npm run webpack",
+        "pretest": "npm run webpack-prod",
         "test": "gulp test",
         "webpack": "npm run build && gulp webpack-dev",
-        "webpack-prod": "gulp webpack-prod",
+        "webpack-prod": "npm run build && gulp webpack-prod",
         "webpack-profile": "webpack --profile --json --mode production > webpack-stats.json && echo Use http://webpack.github.io/analyse to analyze the stats"
     },
     "devDependencies": {
