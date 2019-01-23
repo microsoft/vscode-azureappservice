@@ -6,6 +6,7 @@
 import * as path from 'path';
 import { ISiteTreeRoot } from 'vscode-azureappservice';
 import { AzureTreeItem } from 'vscode-azureextensionui';
+import { resourcesPath } from '../constants';
 import { FolderTreeItem } from './FolderTreeItem';
 
 export class LogStreamTreeItem extends AzureTreeItem<ISiteTreeRoot> {
@@ -21,8 +22,8 @@ export class LogStreamTreeItem extends AzureTreeItem<ISiteTreeRoot> {
 
     public get iconPath(): { light: string, dark: string } {
         return {
-            light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'StartLog.svg'),
-            dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'StartLog.svg')
+            light: path.join(resourcesPath, 'light', 'StartLog.svg'),
+            dark: path.join(resourcesPath, 'dark', 'StartLog.svg')
         };
     }
 }

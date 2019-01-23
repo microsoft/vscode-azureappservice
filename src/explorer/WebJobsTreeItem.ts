@@ -6,6 +6,7 @@
 import * as path from 'path';
 import { getKuduClient, ISiteTreeRoot } from 'vscode-azureappservice';
 import { AzureParentTreeItem, AzureTreeItem, GenericTreeItem } from 'vscode-azureextensionui';
+import { resourcesPath } from '../constants';
 
 export class WebJobsTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     public static contextValue: string = 'webJobs';
@@ -19,8 +20,8 @@ export class WebJobsTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
 
     public get iconPath(): { light: string, dark: string } {
         return {
-            light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'WebJobs_color.svg'),
-            dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'WebJobs_color.svg')
+            light: path.join(resourcesPath, 'light', 'WebJobs_color.svg'),
+            dark: path.join(resourcesPath, 'dark', 'WebJobs_color.svg')
         };
     }
 
