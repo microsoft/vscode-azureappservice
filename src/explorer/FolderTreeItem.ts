@@ -8,6 +8,7 @@ import * as path from 'path';
 import { getKuduClient, ISiteTreeRoot } from 'vscode-azureappservice';
 import { AzureParentTreeItem, AzureTreeItem } from 'vscode-azureextensionui';
 import KuduClient from 'vscode-azurekudu';
+import { resourcesPath } from '../constants';
 import { FileTreeItem } from './FileTreeItem';
 import { LogStreamTreeItem } from './LogStreamTreeItem';
 
@@ -23,8 +24,8 @@ export class FolderTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
 
     public get iconPath(): { light: string, dark: string } | undefined {
         return {
-            light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'Folder_16x.svg'),
-            dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'Folder_16x.svg')
+            light: path.join(resourcesPath, 'light', 'Folder_16x.svg'),
+            dark: path.join(resourcesPath, 'dark', 'Folder_16x.svg')
         };
     }
 

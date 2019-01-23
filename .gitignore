@@ -293,3 +293,5 @@ out
 .vscode-test
 test-results.xml
 .env
+dist
+stats.json

@@ -7,6 +7,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { ISiteTreeRoot } from 'vscode-azureappservice';
 import { AzureTreeItem, DialogResponses, UserCancelledError } from 'vscode-azureextensionui';
+import { resourcesPath } from '../constants';
 import { ext } from '../extensionVariables';
 import { DatabaseAccountTreeItem, DatabaseTreeItem } from '../vscode-cosmos.api';
 import { CosmosDBTreeItem } from './CosmosDBTreeItem';
@@ -45,8 +46,8 @@ export class CosmosDBConnection extends AzureTreeItem<ISiteTreeRoot> {
 
     public get iconPath(): string | vscode.Uri | { light: string | vscode.Uri; dark: string | vscode.Uri } {
         return {
-            light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'Database.svg'),
-            dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'Database.svg')
+            light: path.join(resourcesPath, 'light', 'Database.svg'),
+            dark: path.join(resourcesPath, 'dark', 'Database.svg')
         };
     }
 

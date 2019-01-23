@@ -9,6 +9,7 @@ import * as vscode from 'vscode';
 import { ISiteTreeRoot, validateAppSettingKey } from 'vscode-azureappservice';
 import { AzureParentTreeItem, AzureTreeItem, createTreeItemsWithErrorHandling, GenericTreeItem, UserCancelledError } from 'vscode-azureextensionui';
 import { AzureExtensionApiProvider } from 'vscode-azureextensionui/api';
+import { resourcesPath } from '../constants';
 import { ext } from '../extensionVariables';
 import { CosmosDBExtensionApi, DatabaseTreeItem } from '../vscode-cosmos.api';
 import { ConnectionsTreeItem } from './ConnectionsTreeItem';
@@ -39,8 +40,8 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
 
     public get iconPath(): string | vscode.Uri | { light: string | vscode.Uri; dark: string | vscode.Uri } {
         return {
-            light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'CosmosDBAccount.svg'),
-            dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'CosmosDBAccount.svg')
+            light: path.join(resourcesPath, 'light', 'CosmosDBAccount.svg'),
+            dark: path.join(resourcesPath, 'dark', 'CosmosDBAccount.svg')
         };
     }
 

@@ -78,7 +78,7 @@ export abstract class WizardBase {
         return this._steps;
     }
 
-    public findStepOfType<T extends WizardStep>(stepTypeConstructor: { new(...args: {}[]): T }, isOptional?: boolean): T {
+    public findStepOfType<T extends WizardStep>(stepTypeConstructor: new (...args: {}[]) => T, isOptional?: boolean): T {
         return <T>this.findStep(
             step => step instanceof stepTypeConstructor,
             isOptional ? undefined : `The Wizard should have had a ${stepTypeConstructor.name} step`);

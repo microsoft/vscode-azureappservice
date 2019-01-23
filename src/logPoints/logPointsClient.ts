@@ -26,6 +26,7 @@ import { ISetLogpointRequest } from './structs/ISetLogpointRequest';
 import { ISetLogpointResponse } from './structs/ISetLogpointResponse';
 import { IStartSessionRequest } from './structs/IStartSessionRequest';
 import { IStartSessionResponse } from './structs/IStartSessionResponse';
+import { resourcesPath } from '../constants';
 
 export interface ILogPointsDebuggerClient {
     call<ResponseType>(siteName: string, affinityValue: string, publishCredential: WebSiteModels.User, command: string): Promise<CommandRunResult<ResponseType>>;
@@ -197,7 +198,7 @@ export class KuduLogPointsDebuggerClient extends LogPointsDebuggerClientBase imp
                 'Content-Type': 'multipart/form-data'
             },
             auth: KuduLogPointsDebuggerClient.getAuth(publishCredential),
-            body: fs.createReadStream(path.join(__dirname, '../../../resources/ssh-client.zip'))
+            body: fs.createReadStream(path.join(resourcesPath, 'ssh-client.zip'))
         };
 
         return new Promise<void>((resolve, reject) => {

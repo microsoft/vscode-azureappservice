@@ -5,6 +5,7 @@
 
 import * as path from 'path';
 import { SiteClient } from 'vscode-azureappservice';
+import { resourcesPath } from '../constants';
 import { DeploymentSlotsTreeItem } from './DeploymentSlotsTreeItem';
 import { SiteTreeItem } from './SiteTreeItem';
 
@@ -24,8 +25,8 @@ export class DeploymentSlotTreeItem extends SiteTreeItem {
 
     public get iconPath(): { light: string, dark: string } {
         return {
-            light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'DeploymentSlot_color.svg'),
-            dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'DeploymentSlot_color.svg')
+            light: path.join(resourcesPath, 'light', 'DeploymentSlot_color.svg'),
+            dark: path.join(resourcesPath, 'dark', 'DeploymentSlot_color.svg')
         };
     }
 }
