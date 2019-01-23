@@ -1,4 +1,4 @@
-# This file excludes files during npm pack
+# These files are excluded during npm pack
 .vscode/**
 .vscode-test/**
 out/**
@@ -12,15 +12,8 @@ tslint.json
 .github/**
 test-results.xml
 .azure-pipelines/**
-
-.azure-pipelines/**
-.github/**
-.vscode/**
 build/**
 node_modules/**
-out/**
-src/**
-test/**
 dist/test/**
 testOutput/**
 typings/**
