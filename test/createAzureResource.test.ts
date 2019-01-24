@@ -8,13 +8,8 @@ import { ResourceManagementClient } from 'azure-arm-resource';
 import { WebSiteManagementClient, WebSiteManagementModels } from 'azure-arm-website';
 import { IHookCallbackContext, ISuiteCallbackContext } from 'mocha';
 import * as vscode from 'vscode';
-import { ILinuxRuntimeStack, SiteRuntimeStep } from 'vscode-azureappservice';
-import { AzureTreeDataProvider, DialogResponses, TestAzureAccount, TestUserInput } from 'vscode-azureextensionui';
-import * as constants from '../src/constants';
-import { WebAppProvider } from '../src/explorer/WebAppProvider';
-import { ext } from '../src/extensionVariables';
 import { deleteDefaultResourceGroup, longRunningTestsEnabled } from './global.test';
-import { getRandomHexString } from '../src/utils/randomUtils';
+import { AzureTreeDataProvider, constants, DialogResponses, ext, getRandomHexString, ILinuxRuntimeStack, SiteRuntimeStep, TestAzureAccount, TestUserInput, WebAppProvider } from '../extension.bundle';
 
 suite('Create Azure Resources', async function (this: ISuiteCallbackContext): Promise<void> {
     this.timeout(1200 * 1000);

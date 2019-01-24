@@ -3,6 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as path from 'path';
+
+export const resourcesPath = path.join(__dirname, '..', 'resources'); // (relative to dist folder)
+
 export const deploymentFileName: string = '.deployment';
 export const deploymentFile: string = `[config]
 SCM_DO_BUILD_DURING_DEPLOYMENT=true`;
@@ -15,16 +19,8 @@ export enum runtimes {
     dotnetcore = 'dotnetcore',
     ruby = 'ruby',
     tomcat = 'tomcat',
-    javase = 'java|8-jre8'
-}
-
-export function getIgnoredFoldersForDeployment(runtime: string): string[] {
-    switch (runtime) {
-        case runtimes.node:
-            return ['node_modules{,/**}'];
-        default:
-            return [];
-    }
+    javase = 'java|8-jre8',
+    python = 'python'
 }
 
 export enum configurationSettings {

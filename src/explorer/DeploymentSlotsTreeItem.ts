@@ -8,6 +8,7 @@ import { Site, WebAppCollection } from 'azure-arm-website/lib/models';
 import * as path from 'path';
 import { createSlot, ISiteTreeRoot, SiteClient } from 'vscode-azureappservice';
 import { AzureParentTreeItem, AzureTreeItem, createAzureClient } from 'vscode-azureextensionui';
+import { resourcesPath } from '../constants';
 import { DeploymentSlotTreeItem } from './DeploymentSlotTreeItem';
 
 export class DeploymentSlotsTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
@@ -20,8 +21,8 @@ export class DeploymentSlotsTreeItem extends AzureParentTreeItem<ISiteTreeRoot> 
 
     public get iconPath(): { light: string, dark: string } {
         return {
-            light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'DeploymentSlots_color.svg'),
-            dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'DeploymentSlots_color.svg')
+            light: path.join(resourcesPath, 'light', 'DeploymentSlots_color.svg'),
+            dark: path.join(resourcesPath, 'dark', 'DeploymentSlots_color.svg')
         };
     }
 
@@ -56,7 +57,7 @@ export class DeploymentSlotsTreeItem extends AzureParentTreeItem<ISiteTreeRoot> 
 }
 
 export class ScaleUpTreeItem extends AzureTreeItem<ISiteTreeRoot> {
-    public readonly label: string = "Scale up App Service Plan...";
+    public readonly label: string = "Scale up to a production plan to enable slots...";
     public readonly contextValue: string = "ScaleUp";
     public readonly commandId: string = 'appService.ScaleUp';
 
@@ -76,16 +77,16 @@ export class DeploymentSlotsNATreeItem extends AzureParentTreeItem<ISiteTreeRoot
 
     public readonly scaleUpId: string;
 
-    public constructor(parent: AzureParentTreeItem, tier: string, planId: string) {
+    public constructor(parent: AzureParentTreeItem, planId: string) {
         super(parent);
-        this.label = `Deployment Slots (N/A for ${tier} Service Plan)`;
+        this.label = 'Deployment Slots';
         this.scaleUpId = `${planId}/pricingTier`;
     }
 
     public get iconPath(): { light: string, dark: string } {
         return {
-            light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', 'DeploymentSlots_grayscale.svg'),
-            dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', 'DeploymentSlots_grayscale.svg')
+            light: path.join(resourcesPath, 'light', 'DeploymentSlots_grayscale.svg'),
+            dark: path.join(resourcesPath, 'dark', 'DeploymentSlots_grayscale.svg')
         };
     }
 

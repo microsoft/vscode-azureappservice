@@ -6,6 +6,7 @@
 import * as path from 'path';
 import { ISiteTreeRoot } from 'vscode-azureappservice';
 import { AzureParentTreeItem, AzureTreeItem } from 'vscode-azureextensionui';
+import { resourcesPath } from '../constants';
 import { CosmosDBConnection } from './CosmosDBConnection';
 import { CosmosDBTreeItem } from './CosmosDBTreeItem';
 import { SiteTreeItem } from './SiteTreeItem';
@@ -26,8 +27,8 @@ export class ConnectionsTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     public get iconPath(): { light: string, dark: string } {
         const iconName = 'Connections_16x.svg';
         return {
-            light: path.join(__filename, '..', '..', '..', '..', 'resources', 'light', iconName),
-            dark: path.join(__filename, '..', '..', '..', '..', 'resources', 'dark', iconName)
+            light: path.join(resourcesPath, 'light', iconName),
+            dark: path.join(resourcesPath, 'dark', iconName)
         };
     }
 
