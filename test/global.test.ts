@@ -10,6 +10,7 @@ import { ext } from '../src/extensionVariables';
 
 // tslint:disable-next-line:strict-boolean-expressions export-name
 export let longRunningTestsEnabled: boolean = !/^(false|0)?$/i.test(process.env.ENABLE_LONG_RUNNING_TESTS || '');
+export let deleteDefaultResourceGroup: boolean = !/^(false|0)?$/i.test(process.env.DELETE_DEFAULT_RESOURCE_GROUP || '');
 
 // Runs before all tests
 suiteSetup(async function (this: IHookCallbackContext): Promise<void> {

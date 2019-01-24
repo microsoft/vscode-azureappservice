@@ -6,21 +6,28 @@
 import * as assert from 'assert';
 import { ResourceManagementClient } from 'azure-arm-resource';
 import { WebSiteManagementClient, WebSiteManagementModels } from 'azure-arm-website';
-import * as crypto from "crypto";
 import { IHookCallbackContext, ISuiteCallbackContext } from 'mocha';
 import * as vscode from 'vscode';
+import { ILinuxRuntimeStack, SiteRuntimeStep } from 'vscode-azureappservice';
 import { AzureTreeDataProvider, DialogResponses, TestAzureAccount, TestUserInput } from 'vscode-azureextensionui';
 import * as constants from '../src/constants';
 import { WebAppProvider } from '../src/explorer/WebAppProvider';
 import { ext } from '../src/extensionVariables';
-import { longRunningTestsEnabled } from './global.test';
+import { deleteDefaultResourceGroup, longRunningTestsEnabled } from './global.test';
+import { getRandomHexString } from '../src/utils/randomUtils';
 
 suite('Create Azure Resources', async function (this: ISuiteCallbackContext): Promise<void> {
     this.timeout(1200 * 1000);
     const resourceGroupsToDelete: string[] = [];
     const testAccount: TestAzureAccount = new TestAzureAccount();
     // tslint:disable-next-line:no-backbone-get-set-outside-model
-    const advancedCreationSetting: boolean | undefined = <boolean>vscode.workspace.getConfiguration(constants.extensionPrefix).get('advancedCreation');
+    const oldAdvancedCreationSetting: boolean | undefined = <boolean>vscode.workspace.getConfiguration(constants.extensionPrefix).get('advancedCreation');
+    const runtimeLTS: ILinuxRuntimeStack | undefined = new SiteRuntimeStep().getLinuxRuntimeStack().find((runtime: ILinuxRuntimeStack) => {
+        return runtime.displayName.includes('LTS - Recommended for new apps');
+    });
+    if (!runtimeLTS) {
+        throw new Error('No LTS runtime was found.');
+    }
 
     suiteSetup(async function (this: IHookCallbackContext): Promise<void> {
         if (!longRunningTestsEnabled) {
@@ -36,7 +43,7 @@ suite('Create Azure Resources', async function (this: ISuiteCallbackContext): Pr
         if (!longRunningTestsEnabled) {
             this.skip();
         }
-        await vscode.workspace.getConfiguration(constants.extensionPrefix).update('advancedCreation', advancedCreationSetting, vscode.ConfigurationTarget.Global);
+        await vscode.workspace.getConfiguration(constants.extensionPrefix).update('advancedCreation', oldAdvancedCreationSetting, vscode.ConfigurationTarget.Global);
         this.timeout(1200 * 1000);
         const client: ResourceManagementClient = getResourceManagementClient(testAccount);
         for (const resourceGroup of resourceGroupsToDelete) {
@@ -55,7 +62,7 @@ suite('Create Azure Resources', async function (this: ISuiteCallbackContext): Pr
     test('Create and Delete New Web App (Basic)', async () => {
         const appName: string = getRandomHexString().toLowerCase();
         await vscode.workspace.getConfiguration(constants.extensionPrefix).update('advancedCreation', false, vscode.ConfigurationTarget.Global);
-        const testInputs: string[] = [appName, 'Linux', 'Node.js 10.10 (LTS - Recommended for new apps)'];
+        const testInputs: string[] = [appName, 'Linux', runtimeLTS.displayName];
         ext.ui = new TestUserInput(testInputs);
 
         await vscode.commands.executeCommand('appService.CreateWebApp');
@@ -63,6 +70,9 @@ suite('Create Azure Resources', async function (this: ISuiteCallbackContext): Pr
         const defaultRgName: string = 'appsvc_rg_linux_centralus';
         const createdApp: WebSiteManagementModels.Site = await client.webApps.get(defaultRgName, appName);
         assert.ok(createdApp);
+        if (deleteDefaultResourceGroup) {
+            resourceGroupsToDelete.push(defaultRgName);
+        }
 
         ext.ui = new TestUserInput([appName, DialogResponses.deleteResponse.title, DialogResponses.yes.title]);
         await vscode.commands.executeCommand('appService.Delete');
@@ -72,16 +82,15 @@ suite('Create Azure Resources', async function (this: ISuiteCallbackContext): Pr
 
     test('Create and Delete New Web App (Advanced)', async () => {
         const resourceName: string = getRandomHexString().toLowerCase();
-        resourceGroupsToDelete.push(resourceName);
         await vscode.workspace.getConfiguration(constants.extensionPrefix).update('advancedCreation', true, vscode.ConfigurationTarget.Global);
-
-        const testInputs: string[] = [resourceName, '$(plus) Create new resource group', resourceName, 'Linux', 'Node.js 10.10 (LTS - Recommended for new apps)', '$(plus) Create new App Service plan', resourceName, 'B1', 'West US'];
+        const testInputs: string[] = [resourceName, '$(plus) Create new resource group', resourceName, 'Linux', runtimeLTS.displayName, '$(plus) Create new App Service plan', resourceName, 'B1', 'West US'];
         ext.ui = new TestUserInput(testInputs);
 
         await vscode.commands.executeCommand('appService.CreateWebApp');
         const client: WebSiteManagementClient = getWebsiteManagementClient(testAccount);
         const createdApp: WebSiteManagementModels.Site = await client.webApps.get(resourceName, resourceName);
         assert.ok(createdApp);
+        resourceGroupsToDelete.push(resourceName);
 
         ext.ui = new TestUserInput([resourceName, DialogResponses.deleteResponse.title, DialogResponses.yes.title]);
         await vscode.commands.executeCommand('appService.Delete');
@@ -96,9 +105,4 @@ function getWebsiteManagementClient(testAccount: TestAzureAccount): WebSiteManag
 
 function getResourceManagementClient(testAccount: TestAzureAccount): ResourceManagementClient {
     return new ResourceManagementClient(testAccount.getSubscriptionCredentials(), testAccount.getSubscriptionId());
-}
-
-function getRandomHexString(length: number = 10): string {
-    const buffer: Buffer = crypto.randomBytes(Math.ceil(length / 2));
-    return buffer.toString('hex').slice(0, length);
 }
