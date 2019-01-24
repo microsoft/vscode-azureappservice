@@ -23,4 +23,3 @@ export { constants };
 export { AzureTreeDataProvider, DialogResponses, TestAzureAccount, TestUserInput } from 'vscode-azureextensionui';
 export { WebAppProvider } from './src/explorer/WebAppProvider';
 export { getRandomHexString } from './src/utils/randomUtils';
-export { ILinuxRuntimeStack, SiteRuntimeStep } from 'vscode-azureappservice';
