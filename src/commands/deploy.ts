@@ -137,6 +137,9 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
             items.push(resetDefault);
         }
         items.push(DialogResponses.cancel);
+
+        // a temporary workaround for this issue: https://github.com/Microsoft/vscode-azureappservice/issues/844
+        await new Promise((resolve) => setTimeout(resolve, 500));
         const result: vscode.MessageItem = await ext.ui.showWarningMessage(warning, { modal: true }, ...items);
         if (result === resetDefault) {
             // tslint:disable-next-line:no-non-null-assertion
