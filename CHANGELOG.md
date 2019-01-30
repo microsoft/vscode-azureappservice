@@ -1,6 +1,10 @@
 # Change Log
 All notable changes to the "azure-appservice" extension will be documented in this file.
 
+## 0.10.0 - 2019-01-30
+### Added
+* Significantly improved startup and installation performance by packaging with webpack
+
 ## 0.11.0 - 2019-01-16
 ### Added
 - App settings are hidden by default and can be revealed by clicking on it in the explorer pane
