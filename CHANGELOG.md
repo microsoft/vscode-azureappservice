@@ -3,7 +3,7 @@ All notable changes to the "azure-appservice" extension will be documented in th
 
 ## 0.10.0 - 2019-01-30
 ### Added
-* Significantly improved startup and installation performance by packaging with webpack
+* Significantly improved startup and installation performance
 
 ## 0.11.0 - 2019-01-16
 ### Added
