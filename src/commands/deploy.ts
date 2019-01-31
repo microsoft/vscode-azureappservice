@@ -20,7 +20,7 @@ import { ext } from '../extensionVariables';
 import * as javaUtil from '../utils/javaUtils';
 import { isPathEqual, isSubpath } from '../utils/pathUtils';
 import * as workspaceUtil from '../utils/workspace';
-import { cancelWebsiteValidation, validateWebSite } from '../validateWebSite';
+import { cancelWebsiteValidation, delay, validateWebSite } from '../validateWebSite';
 import { startStreamingLogs } from './startStreamingLogs';
 
 // tslint:disable-next-line:max-func-body-length cyclomatic-complexity
@@ -137,6 +137,9 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
             items.push(resetDefault);
         }
         items.push(DialogResponses.cancel);
+
+        // a temporary workaround for this issue: https://github.com/Microsoft/vscode-azureappservice/issues/844
+        await delay(500);
         const result: vscode.MessageItem = await ext.ui.showWarningMessage(warning, { modal: true }, ...items);
         if (result === resetDefault) {
             // tslint:disable-next-line:no-non-null-assertion
