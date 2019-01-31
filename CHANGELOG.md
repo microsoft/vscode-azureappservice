@@ -1,7 +1,7 @@
 # Change Log
 All notable changes to the "azure-appservice" extension will be documented in this file.
 
-## 0.10.0 - 2019-01-30
+## 0.12.0 - 2019-01-31
 ### Added
 * Significantly improved startup and installation performance
 
