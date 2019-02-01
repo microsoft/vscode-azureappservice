@@ -43,6 +43,7 @@ import { LogPointsManager } from './logPoints/LogPointsManager';
 import { LogPointsSessionWizard } from './logPoints/LogPointsSessionWizard';
 import { RemoteScriptDocumentProvider, RemoteScriptSchema } from './logPoints/remoteScriptDocumentProvider';
 import { LogpointsCollection } from './logPoints/structs/LogpointsCollection';
+import { viewCommitInGitHub } from './commands/deployments/viewCommitInGitHub';
 
 // tslint:disable-next-line:export-name
 // tslint:disable-next-line:max-func-body-length
@@ -347,6 +348,7 @@ export async function activateInternal(
         registerCommand('appService.DisconnectRepo', disconnectRepo);
         registerCommand('appService.ConnectToGitHub', connectToGitHub);
         registerCommand(toggleValueVisibilityCommandId, async (node: AppSettingTreeItem) => { await node.toggleValueVisibility(); }, 250);
+        registerCommand('appService.ViewCommitInGitHub', viewCommitInGitHub);
     });
 
     return createApiProvider([]);

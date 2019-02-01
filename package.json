@@ -57,6 +57,7 @@
         "onCommand:appService.EnableFileLogging",
         "onCommand:appService.ViewDeploymentLogs",
         "onCommand:appService.Redeploy",
+        "onCommand:appService.ViewCommitInGitHub",
         "onCommand:appService.DisconnectRepo",
         "onCommand:appService.ConnectToGitHub",
         "onCommand:appService.AddCosmosDBConnection",
@@ -271,6 +272,11 @@
                     "light": "resources/light/Log_16x.svg",
                     "dark": "resources/dark/Log_16x.svg"
                 }
+            },
+            {
+                "command": "appService.ViewCommitInGitHub",
+                "title": "View Commit in GitHub",
+                "category": "Azure App Service"
             },
             {
                 "command": "appService.ConnectToGitHub",
@@ -723,9 +729,14 @@
                     "group": "1@1"
                 },
                 {
-                    "command": "appService.OpenInPortal",
+                    "command": "appService.ViewCommitInGitHub",
                     "when": "view == azureAppService && viewItem == deployment",
                     "group": "1@2"
+                },
+                {
+                    "command": "appService.OpenInPortal",
+                    "when": "view == azureAppService && viewItem == deployment",
+                    "group": "1@3"
                 },
                 {
                     "command": "appService.ViewDeploymentLogs",
