@@ -45,7 +45,6 @@ import { LogPointsSessionWizard } from './logPoints/LogPointsSessionWizard';
 import { RemoteScriptDocumentProvider, RemoteScriptSchema } from './logPoints/remoteScriptDocumentProvider';
 import { LogpointsCollection } from './logPoints/structs/LogpointsCollection';
 
-
 // tslint:disable-next-line:export-name
 // tslint:disable-next-line:max-func-body-length
 export async function activateInternal(
@@ -260,8 +259,6 @@ export async function activateInternal(
             if (!node) {
                 node = <AppSettingTreeItem>await tree.showTreeItemPicker(AppSettingTreeItem.contextValue);
             }
-            const configNames = await node.root.client.listSlotConfigurationNames();
-            console.log(configNames)
             await node.edit();
         });
         registerCommand('appService.appSettings.Rename', async (node?: AppSettingTreeItem) => {
