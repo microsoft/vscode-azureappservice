@@ -49,6 +49,7 @@
         "onCommand:appService.appSettings.Delete",
         "onCommand:appService.appSettings.Download",
         "onCommand:appService.appSettings.Upload",
+        "onCommand:appService.appSettings.ToggleSlotSetting",
         "onCommand:appService.OpenLogStream",
         "onCommand:appService.StopLogStream",
         "onCommand:appService.StartRemoteDebug",
@@ -186,6 +187,11 @@
             {
                 "command": "appService.appSettings.Upload",
                 "title": "Upload Local Settings...",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.appSettings.ToggleSlotSetting",
+                "title": "Toggle as Slot Setting",
                 "category": "Azure App Service"
             },
             {
@@ -662,6 +668,11 @@
                     "command": "appService.appSettings.Delete",
                     "when": "view == azureAppService && viewItem == applicationSettingItem",
                     "group": "1_appSettingItemEdit@3"
+                },
+                {
+                    "command": "appService.appSettings.ToggleSlotSetting",
+                    "when": "view == azureAppService && viewItem == applicationSettingItem",
+                    "group": "1_appSettingItemEdit@4"
                 },
                 {
                     "command": "appService.toggleValueVisibility",

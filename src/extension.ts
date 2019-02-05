@@ -12,6 +12,7 @@ import { AppSettingsTreeItem, AppSettingTreeItem, DeploymentsTreeItem, editScmTy
 import { AzureParentTreeItem, AzureTreeDataProvider, AzureTreeItem, AzureUserInput, callWithTelemetryAndErrorHandling, createApiProvider, createTelemetryReporter, IActionContext, IAzureUserInput, registerCommand, registerEvent, registerUIExtensionVariables, SubscriptionTreeItem } from 'vscode-azureextensionui';
 import { AzureExtensionApiProvider } from 'vscode-azureextensionui/api';
 import { downloadAppSettings } from './commands/appSettings/downloadAppSettings';
+import { toggleSlotSetting } from './commands/appSettings/toggleSlotSetting';
 import { uploadAppSettings } from './commands/appSettings/uploadAppSettings';
 import { addCosmosDBConnection } from './commands/connections/addCosmosDBConnection';
 import { removeCosmosDBConnection } from './commands/connections/removeCosmosDBConnection';
@@ -43,6 +44,7 @@ import { LogPointsManager } from './logPoints/LogPointsManager';
 import { LogPointsSessionWizard } from './logPoints/LogPointsSessionWizard';
 import { RemoteScriptDocumentProvider, RemoteScriptSchema } from './logPoints/remoteScriptDocumentProvider';
 import { LogpointsCollection } from './logPoints/structs/LogpointsCollection';
+
 
 // tslint:disable-next-line:export-name
 // tslint:disable-next-line:max-func-body-length
@@ -258,7 +260,8 @@ export async function activateInternal(
             if (!node) {
                 node = <AppSettingTreeItem>await tree.showTreeItemPicker(AppSettingTreeItem.contextValue);
             }
-
+            const configNames = await node.root.client.listSlotConfigurationNames();
+            console.log(configNames)
             await node.edit();
         });
         registerCommand('appService.appSettings.Rename', async (node?: AppSettingTreeItem) => {
@@ -277,6 +280,7 @@ export async function activateInternal(
         });
         registerCommand('appService.appSettings.Download', downloadAppSettings);
         registerCommand('appService.appSettings.Upload', uploadAppSettings);
+        registerCommand('appService.appSettings.ToggleSlotSetting', toggleSlotSetting);
         registerCommand('appService.OpenLogStream', startStreamingLogs);
         registerCommand('appService.StopLogStream', async (node?: SiteTreeItem) => {
             if (!node) {
