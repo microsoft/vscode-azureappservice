@@ -10,8 +10,6 @@
 // See https://github.com/Microsoft/vscode-azuretools/wiki/webpack for guidance
 
 const process = require('process');
-const webpack = require('webpack');
-const StringReplacePlugin = require("string-replace-webpack-plugin");
 const dev = require("vscode-azureextensiondev");
 
 let DEBUG_WEBPACK = !!process.env.DEBUG_WEBPACK;
