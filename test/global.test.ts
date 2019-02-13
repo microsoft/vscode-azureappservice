@@ -9,7 +9,7 @@ import { TestOutputChannel } from 'vscode-azureextensiondev';
 
 import { ext } from '../extension.bundle';
 
-// tslint:disable-next-line:strict-boolean-expressions
+// tslint:disable-next-line:strict-boolean-expressions export-name
 export let longRunningTestsEnabled: boolean = !/^(false|0)?$/i.test(process.env.ENABLE_LONG_RUNNING_TESTS || '');
 
 // Runs before all tests
