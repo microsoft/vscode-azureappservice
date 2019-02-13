@@ -1,6 +1,13 @@
 # Change Log
 All notable changes to the "azure-appservice" extension will be documented in this file.
 
+## 0.12.0 - 2019-01-31
+### Added
+* Significantly improved startup and installation performance
+
+### Fixed
+- [Bugs fixed](https://github.com/Microsoft/vscode-azureappservice/issues?utf8=%E2%9C%93&q=is%3Aissue+milestone%3A%220.12.0%22+label%3Abug+is%3Aclosed+)
+
 ## 0.11.0 - 2019-01-16
 ### Added
 - App settings are hidden by default and can be revealed by clicking on it in the explorer pane

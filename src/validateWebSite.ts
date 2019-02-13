@@ -102,6 +102,6 @@ export async function validateWebSite(deploymentCorrelationId: string, siteTreeI
     });
 }
 
-async function delay(delayMs: number): Promise<void> {
+export async function delay(delayMs: number): Promise<void> {
     await new Promise<void>((resolve: () => void): void => { setTimeout(resolve, delayMs); });
 }

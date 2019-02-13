@@ -20,7 +20,7 @@ import * as javaUtil from '../utils/javaUtils';
 import { isPathEqual, isSubpath } from '../utils/pathUtils';
 import { getRandomHexString } from "../utils/randomUtils";
 import * as workspaceUtil from '../utils/workspace';
-import { cancelWebsiteValidation, validateWebSite } from '../validateWebSite';
+import { cancelWebsiteValidation, delay, validateWebSite } from '../validateWebSite';
 import { startStreamingLogs } from './startStreamingLogs';
 
 // tslint:disable-next-line:max-func-body-length cyclomatic-complexity
@@ -137,6 +137,9 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
             items.push(resetDefault);
         }
         items.push(DialogResponses.cancel);
+
+        // a temporary workaround for this issue: https://github.com/Microsoft/vscode-azureappservice/issues/844
+        await delay(500);
         const result: vscode.MessageItem = await ext.ui.showWarningMessage(warning, { modal: true }, ...items);
         if (result === resetDefault) {
             // tslint:disable-next-line:no-non-null-assertion
@@ -157,10 +160,7 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
         node.promptToSaveDeployDefaults(currentWorkspace.uri.fsPath, fsPath, context.properties);
     }
 
-    const preDeployResult: appservice.IPreDeployTaskResult = await appservice.runPreDeployTask(context, fsPath, siteConfig.scmType, constants.extensionPrefix);
-    if (preDeployResult.failedToFindTask) {
-        throw new Error(`Failed to find pre-deploy task "${preDeployResult.taskName}". Modify your tasks or the setting "${constants.extensionPrefix}.preDeployTask".`);
-    }
+    await appservice.runPreDeployTask(context, fsPath, siteConfig.scmType, constants.extensionPrefix);
 
     cancelWebsiteValidation(node);
     await node.runWithTemporaryDescription("Deploying...", async () => {

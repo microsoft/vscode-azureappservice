@@ -12,6 +12,7 @@ import { AppSettingsTreeItem, AppSettingTreeItem, DeploymentsTreeItem, editScmTy
 import { AzureParentTreeItem, AzureTreeDataProvider, AzureTreeItem, AzureUserInput, callWithTelemetryAndErrorHandling, createApiProvider, createTelemetryReporter, IActionContext, IAzureUserInput, registerCommand, registerEvent, registerUIExtensionVariables, SubscriptionTreeItem } from 'vscode-azureextensionui';
 import { AzureExtensionApiProvider } from 'vscode-azureextensionui/api';
 import { downloadAppSettings } from './commands/appSettings/downloadAppSettings';
+import { toggleSlotSetting } from './commands/appSettings/toggleSlotSetting';
 import { uploadAppSettings } from './commands/appSettings/uploadAppSettings';
 import { addCosmosDBConnection } from './commands/connections/addCosmosDBConnection';
 import { removeCosmosDBConnection } from './commands/connections/removeCosmosDBConnection';
@@ -256,7 +257,6 @@ export async function activateInternal(
             if (!node) {
                 node = <AppSettingTreeItem>await ext.tree.showTreeItemPicker(AppSettingTreeItem.contextValue);
             }
-
             await node.edit();
         });
         registerCommand('appService.appSettings.Rename', async (node?: AppSettingTreeItem) => {
@@ -275,6 +275,7 @@ export async function activateInternal(
         });
         registerCommand('appService.appSettings.Download', downloadAppSettings);
         registerCommand('appService.appSettings.Upload', uploadAppSettings);
+        registerCommand('appService.appSettings.ToggleSlotSetting', toggleSlotSetting);
         registerCommand('appService.OpenLogStream', startStreamingLogs);
         registerCommand('appService.StopLogStream', async (node?: SiteTreeItem) => {
             if (!node) {
