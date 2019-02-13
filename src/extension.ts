@@ -179,8 +179,6 @@ export async function activateInternal(
             await node.deleteTreeItem();
         });
         registerCommand('appService.CreateWebApp', async function (this: IActionContext, node?: AzureParentTreeItem): Promise<void> {
-            const deployingToWebApp = 'deployingToWebApp';
-
             if (!node) {
                 node = <AzureParentTreeItem>await ext.tree.showTreeItemPicker(SubscriptionTreeItem.contextValue);
             }
@@ -198,10 +196,7 @@ export async function activateInternal(
             vscode.window.showInformationMessage('Deploy to web app?', yesButton, noButton).then(
                 async (input: vscode.MessageItem) => {
                     if (input === yesButton) {
-                        this.properties[deployingToWebApp] = 'true';
                         await deploy(this, false, createdApp);
-                    } else {
-                        this.properties[deployingToWebApp] = 'false';
                     }
                 });
         });

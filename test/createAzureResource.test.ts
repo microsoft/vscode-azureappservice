@@ -9,7 +9,7 @@ import { WebSiteManagementClient, WebSiteManagementModels } from 'azure-arm-webs
 import { IHookCallbackContext, ISuiteCallbackContext } from 'mocha';
 import * as vscode from 'vscode';
 import { AzureTreeDataProvider, constants, DialogResponses, ext, getRandomHexString, TestAzureAccount, TestUserInput, WebAppProvider } from '../extension.bundle';
-import { longRunningTestsEnabled, protectDefaultResources } from './global.test';
+import { longRunningTestsEnabled } from './global.test';
 
 suite('Create Azure Resources', async function (this: ISuiteCallbackContext): Promise<void> {
     this.timeout(1200 * 1000);
@@ -47,28 +47,6 @@ suite('Create Azure Resources', async function (this: ISuiteCallbackContext): Pr
             }
         }
         ext.tree.dispose();
-    });
-
-    test('Create and Delete New Web App (Basic)', async () => {
-        const appName: string = getRandomHexString().toLowerCase();
-        const defaultRgName: string = 'appsvc_rg_linux_centralus';
-        await vscode.workspace.getConfiguration(constants.extensionPrefix).update('advancedCreation', false, vscode.ConfigurationTarget.Global);
-        const testInputs: (string | RegExp)[] = [appName, 'Linux', regExpLTS];
-        ext.ui = new TestUserInput(testInputs);
-
-        if (!protectDefaultResources) {
-            resourceGroupsToDelete.push(defaultRgName);
-        }
-        await vscode.commands.executeCommand('appService.CreateWebApp');
-        const client: WebSiteManagementClient = getWebsiteManagementClient(testAccount);
-
-        const createdApp: WebSiteManagementModels.Site = await client.webApps.get(defaultRgName, appName);
-        assert.ok(createdApp);
-
-        ext.ui = new TestUserInput([appName, DialogResponses.deleteResponse.title, DialogResponses.yes.title]);
-        await vscode.commands.executeCommand('appService.Delete');
-        const deletedApp: WebSiteManagementModels.Site | undefined = await client.webApps.get(defaultRgName, appName);
-        assert.ifError(deletedApp); // if app was deleted, get() returns null.  assert.ifError throws if the value passed is not null/undefined
     });
 
     test('Create and Delete New Web App (Advanced)', async () => {

@@ -11,8 +11,6 @@ import { ext } from '../extension.bundle';
 
 // tslint:disable-next-line:strict-boolean-expressions
 export let longRunningTestsEnabled: boolean = !/^(false|0)?$/i.test(process.env.ENABLE_LONG_RUNNING_TESTS || '');
-// tslint:disable-next-line:strict-boolean-expressions
-export let protectDefaultResources: boolean = !/^(false|0)?$/i.test(process.env.PROTECT_DEFAULT_RESOURCES || '');
 
 // Runs before all tests
 suiteSetup(async function (this: IHookCallbackContext): Promise<void> {
