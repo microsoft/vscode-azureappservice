@@ -5,7 +5,6 @@
 
 import * as WebSiteModels from 'azure-arm-website/lib/models';
 import { SiteConfigResource } from 'azure-arm-website/lib/models';
-import { randomBytes } from 'crypto';
 import { pathExists } from 'fs-extra';
 import * as path from 'path';
 import { join } from 'path';
@@ -19,6 +18,7 @@ import { WebAppTreeItem } from '../explorer/WebAppTreeItem';
 import { ext } from '../extensionVariables';
 import * as javaUtil from '../utils/javaUtils';
 import { isPathEqual, isSubpath } from '../utils/pathUtils';
+import { getRandomHexString } from "../utils/randomUtils";
 import * as workspaceUtil from '../utils/workspace';
 import { cancelWebsiteValidation, delay, validateWebSite } from '../validateWebSite';
 import { startStreamingLogs } from './startStreamingLogs';
@@ -99,7 +99,7 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
         }
     }
 
-    const correlationId = getRandomHexString(10);
+    const correlationId = getRandomHexString();
     context.properties.correlationId = correlationId;
     const siteConfig: WebSiteModels.SiteConfigResource = await node.root.client.getSiteConfig();
 
@@ -194,9 +194,4 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
         () => {
             // ignore
         });
-}
-
-function getRandomHexString(length: number): string {
-    const buffer: Buffer = randomBytes(Math.ceil(length / 2));
-    return buffer.toString('hex').slice(0, length);
 }
