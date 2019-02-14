@@ -212,7 +212,7 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         }
 
         // add .vscode to the ignorePattern since it will never be needed for deployment
-        ignoredFolders.push('.vscode{,/**}')
+        ignoredFolders.push('.vscode{,/**}');
         return ignoredFolders;
     }
 }
