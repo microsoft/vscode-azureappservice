@@ -20,6 +20,6 @@ export { activateInternal, deactivateInternal } from './src/extension';
 export { ext } from './src/extensionVariables';
 import * as constants from './src/constants';
 export { constants };
-export { AzureTreeDataProvider, DialogResponses, TestAzureAccount, TestUserInput } from 'vscode-azureextensionui';
+export * from 'vscode-azureextensionui';
 export { WebAppProvider } from './src/explorer/WebAppProvider';
 export { getRandomHexString } from './src/utils/randomUtils';
