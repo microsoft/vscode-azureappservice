@@ -194,20 +194,25 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     }
 
     private getIgnoredFoldersForDeployment(runtime: string): string[] {
+        let ignoredFolders: string[];
         switch (runtime) {
             case runtimes.node:
-                return ['node_modules{,/**}'];
+                ignoredFolders = ['node_modules{,/**}'];
             case runtimes.python:
                 // list of Python ignorables are pulled from here https://github.com/github/gitignore/blob/master/Python.gitignore
                 // Byte-compiled / optimized / DLL files
-                return ['__pycache__{,/**}', '*.py[cod]', '*$py.class',
+                ignoredFolders = ['__pycache__{,/**}', '*.py[cod]', '*$py.class',
                     // Distribution / packaging
                     '.Python{,/**}', 'build{,/**}', 'develop-eggs{,/**}', 'dist{,/**}', 'downloads{,/**}', 'eggs{,/**}', '.eggs{,/**}', 'lib{,/**}', 'lib64{,/**}', 'parts{,/**}', 'sdist{,/**}', 'var{,/**}',
                     'wheels{,/**}', 'share/python-wheels{,/**}', '*.egg-info{,/**}', '.installed.cfg', '*.egg', 'MANIFEST',
                     // Environments
                     '.env{,/**}', '.venv{,/**}', 'env{,/**}', 'venv{,/**}', 'ENV{,/**}', 'env.bak{,/**}', 'venv.bak{,/**}'];
             default:
-                return [];
+                ignoredFolders = [];
         }
+
+        // add .vscode to the ignorePattern since it will never be needed for deployment
+        ignoredFolders.push('.vscode{,/**}')
+        return ignoredFolders;
     }
 }
