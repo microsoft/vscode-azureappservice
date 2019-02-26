@@ -15,11 +15,46 @@ export function reportMessage(message: string, progress: vscode.Progress<{}>): v
     progress.report({ message: message });
 }
 
-export function checkForRemoteDebugSupport(siteConfig: SiteConfigResource): void {
-    // So far only node on linux is supported
-    if (!siteConfig.linuxFxVersion || !siteConfig.linuxFxVersion.toLowerCase().startsWith('node')) {
-        throw new Error('Azure Remote Debugging is currently only supported for node on Linux.');
+export function checkForRemoteDebugSupport(siteConfig: SiteConfigResource, actionContext: IActionContext): void {
+    // We read siteConfig.linuxFxVersion to find the image version:
+    //   If the app is running Windows, it will be empty
+    //   If the app is running a blessed Linux image, it will contain the language and version, e.g. "NODE|8.11"
+    //   If the app is running a custom Docker image, it will contain the Docker registry information, e.g. "DOCKER|repo.azurecr.io/image:tag"
+
+    if (siteConfig.linuxFxVersion) {
+        let version = siteConfig.linuxFxVersion.toLowerCase();
+
+        // Docker images will contain registry information that shouldn't be included in telemetry, so remove that information
+        if (version.startsWith('docker')) {
+            version = 'docker';
+        }
+
+        // Add the version to telemtry for this action
+        actionContext.properties.linuxFxVersion = version;
+
+        if (version.startsWith('node')) {
+            const splitVersion = version.split('|');
+            if (splitVersion.length > 1 && isNodeVersionSupported(splitVersion[1])) {
+                // Node version is supported, so return successfully
+                return;
+            }
+        }
     }
+
+    throw new Error('Azure Remote Debugging is currently only supported for Node.js version >= 8.11 on Linux.');
+}
+
+// Remote debugging is currently only supported for Node.js >= 8.11
+function isNodeVersionSupported(nodeVersion: string): boolean {
+    const splitNodeVersion = nodeVersion.split('.');
+    if (splitNodeVersion.length < 2) {
+        return false;
+    }
+
+    const major = Number(splitNodeVersion[0]) || 0;
+    const minor = Number(splitNodeVersion[1]) || 0;
+
+    return (major > 8 || (major === 8 && minor >= 11));
 }
 
 export async function setRemoteDebug(isRemoteDebuggingToBeEnabled: boolean, confirmMessage: string, noopMessage: string | undefined, siteClient: SiteClient, siteConfig: SiteConfigResource, progress: vscode.Progress<{}>): Promise<void> {

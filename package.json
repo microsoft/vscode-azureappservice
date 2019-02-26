@@ -368,11 +368,11 @@
                 },
                 {
                     "command": "appService.StartRemoteDebug",
-                    "when": "config.appService.enableRemoteDebugging == true"
+                    "when": "never"
                 },
                 {
                     "command": "appService.DisableRemoteDebug",
-                    "when": "config.appService.enableRemoteDebugging == true"
+                    "when": "never"
                 },
                 {
                     "command": "appService.ScaleUp",
@@ -501,12 +501,12 @@
                 },
                 {
                     "command": "appService.StartRemoteDebug",
-                    "when": "config.appService.enableRemoteDebugging == true && view == azureAppService && viewItem == appService",
+                    "when": "view == azureAppService && viewItem == appService",
                     "group": "5_appServiceRemoteDebugCommands@1"
                 },
                 {
                     "command": "appService.DisableRemoteDebug",
-                    "when": "config.appService.enableRemoteDebugging == true && view == azureAppService && viewItem == appService",
+                    "when": "view == azureAppService && viewItem == appService",
                     "group": "5_appServiceRemoteDebugCommands@2"
                 },
                 {
@@ -586,12 +586,12 @@
                 },
                 {
                     "command": "appService.StartRemoteDebug",
-                    "when": "config.appService.enableRemoteDebugging == true && view == azureAppService && viewItem == deploymentSlot",
+                    "when": "view == azureAppService && viewItem == deploymentSlot",
                     "group": "5_appServiceRemoteDebugCommands@1"
                 },
                 {
                     "command": "appService.DisableRemoteDebug",
-                    "when": "config.appService.enableRemoteDebugging == true && view == azureAppService && viewItem == deploymentSlot",
+                    "when": "view == azureAppService && viewItem == deploymentSlot",
                     "group": "5_appServiceRemoteDebugCommands@2"
                 },
                 {
@@ -821,11 +821,6 @@
                     "scope": "resource",
                     "type": "string",
                     "description": "The default subpath of a workspace folder to use when deploying."
-                },
-                "appService.enableRemoteDebugging": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Enables remote debugging of a Web App. This experimental preview only supports node on Linux."
                 },
                 "appService.defaultWebAppToDeploy": {
                     "scope": "resource",

@@ -23,3 +23,4 @@ export { constants };
 export * from 'vscode-azureextensionui';
 export { WebAppProvider } from './src/explorer/WebAppProvider';
 export { getRandomHexString } from './src/utils/randomUtils';
+export { checkForRemoteDebugSupport } from './src/commands/remoteDebug/remoteDebugCommon';
