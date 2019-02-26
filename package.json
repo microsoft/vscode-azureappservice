@@ -367,14 +367,6 @@
                     "when": "never"
                 },
                 {
-                    "command": "appService.StartRemoteDebug",
-                    "when": "never"
-                },
-                {
-                    "command": "appService.DisableRemoteDebug",
-                    "when": "never"
-                },
-                {
                     "command": "appService.ScaleUp",
                     "when": "never"
                 },
