@@ -32,6 +32,7 @@ suite('checkForRemoteDebugSupport', () => {
         // bad node versions
         assert.throws(() => { checkForRemoteDebugSupport({ linuxFxVersion: 'NODE' }, actionContext); }, Error);
         assert.throws(() => { checkForRemoteDebugSupport({ linuxFxVersion: 'node|9' }, actionContext); }, Error);
+        assert.throws(() => { checkForRemoteDebugSupport({ linuxFxVersion: 'node|not.number' }, actionContext); }, Error);
         assert.throws(() => { checkForRemoteDebugSupport({ linuxFxVersion: 'NODE|6.12' }, actionContext); }, Error);
         assert.throws(() => { checkForRemoteDebugSupport({ linuxFxVersion: 'node|8.10' }, actionContext); }, Error);
     });

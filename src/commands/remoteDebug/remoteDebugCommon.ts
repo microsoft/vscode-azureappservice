@@ -51,8 +51,8 @@ function isNodeVersionSupported(nodeVersion: string): boolean {
         return false;
     }
 
-    const major = Number(splitNodeVersion[0]) || 0;
-    const minor = Number(splitNodeVersion[1]) || 0;
+    const major = +splitNodeVersion[0];
+    const minor = +splitNodeVersion[1];
 
     return (major > 8 || (major === 8 && minor >= 11));
 }
