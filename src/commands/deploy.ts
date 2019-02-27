@@ -165,7 +165,7 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
     cancelWebsiteValidation(node);
     await node.runWithTemporaryDescription("Deploying...", async () => {
         // tslint:disable-next-line:no-non-null-assertion
-        await appservice.deploy(node!.root.client, <string>fsPath, constants.extensionPrefix, context.properties);
+        await appservice.deploy(node!.root.client, <string>fsPath, context);
     });
 
     const deployComplete: string = `Deployment to "${node.root.client.fullName}" completed.`;
