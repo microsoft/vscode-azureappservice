@@ -117,10 +117,11 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
         if (workspaceConfig.get(constants.configurationSettings.showBuildDuringDeployPrompt)) {
             //check if node is being zipdeployed and that there is no .deployment file
             if (siteConfig.linuxFxVersion && siteConfig.scmType === 'None' && !(await pathExists(path.join(fsPath, constants.deploymentFileName)))) {
-                if (siteConfig.linuxFxVersion.startsWith(constants.runtimes.node)) {
+                const linuxFxVersion: string = siteConfig.linuxFxVersion.toLowerCase();
+                if (linuxFxVersion.startsWith(constants.runtimes.node)) {
                     // if it is node or python, prompt the user (as we can break them)
                     await node.promptScmDoBuildDeploy(fsPath, constants.runtimes.node, context.properties);
-                } else if (siteConfig.linuxFxVersion.startsWith(constants.runtimes.python)) {
+                } else if (linuxFxVersion.startsWith(constants.runtimes.python)) {
                     await node.promptScmDoBuildDeploy(fsPath, constants.runtimes.python, context.properties);
                 }
 
