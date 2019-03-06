@@ -1,6 +1,14 @@
 # Change Log
 All notable changes to the "azure-appservice" extension will be documented in this file.
 
+## 0.13.0 - 2019-03-07
+### Added
+- Remote debugging support for Node.js on Linux (previously required a feature flag)
+- Automatically recommend Java runtimes when applicable
+
+### Fixed
+- [Bugs fixed](https://github.com/Microsoft/vscode-azureappservice/issues?utf8=%E2%9C%93&q=is%3Aissue+milestone%3A%220.13.0%22+label%3Abug+is%3Aclosed+)
+
 ## 0.12.0 - 2019-01-31
 ### Added
 * Significantly improved startup and installation performance
