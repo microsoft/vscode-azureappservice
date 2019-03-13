@@ -10,15 +10,13 @@
 // See https://github.com/Microsoft/vscode-azuretools/wiki/webpack for guidance
 
 const process = require('process');
-const webpack = require('webpack');
-const StringReplacePlugin = require("string-replace-webpack-plugin");
 const dev = require("vscode-azureextensiondev");
 
-let DEBUG_WEBPACK = !!process.env.DEBUG_WEBPACK;
+let DEBUG_WEBPACK = !/^(false|0)?$/i.test(process.env.DEBUG_WEBPACK || '');
 
 let config = dev.getDefaultWebpackConfig({
     projectRoot: __dirname,
-    verbosity: DEBUG_WEBPACK ? 'normal' : 'debug',
+    verbosity: DEBUG_WEBPACK ? 'debug' : 'normal',
     externals:
     {
         // Fix "Module not found" errors in ./node_modules/websocket/lib/{BufferUtil,Validation}.js

@@ -2,7 +2,7 @@
     "name": "vscode-azureappservice",
     "displayName": "Azure App Service",
     "description": "An Azure App Service management extension for Visual Studio Code.",
-    "version": "0.12.0",
+    "version": "0.13.1-alpha",
     "publisher": "ms-azuretools",
     "icon": "resources/windows-azure-web-site.png",
     "aiKey": "AIF-d9b70cd4-b9f9-4d70-929b-a071c400b217",
@@ -49,6 +49,7 @@
         "onCommand:appService.appSettings.Delete",
         "onCommand:appService.appSettings.Download",
         "onCommand:appService.appSettings.Upload",
+        "onCommand:appService.appSettings.ToggleSlotSetting",
         "onCommand:appService.OpenLogStream",
         "onCommand:appService.StopLogStream",
         "onCommand:appService.StartRemoteDebug",
@@ -187,6 +188,11 @@
             {
                 "command": "appService.appSettings.Upload",
                 "title": "Upload Local Settings...",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.appSettings.ToggleSlotSetting",
+                "title": "Toggle as Slot Setting",
                 "category": "Azure App Service"
             },
             {
@@ -367,14 +373,6 @@
                     "when": "never"
                 },
                 {
-                    "command": "appService.StartRemoteDebug",
-                    "when": "config.appService.enableRemoteDebugging == true"
-                },
-                {
-                    "command": "appService.DisableRemoteDebug",
-                    "when": "config.appService.enableRemoteDebugging == true"
-                },
-                {
                     "command": "appService.ScaleUp",
                     "when": "never"
                 },
@@ -501,12 +499,12 @@
                 },
                 {
                     "command": "appService.StartRemoteDebug",
-                    "when": "config.appService.enableRemoteDebugging == true && view == azureAppService && viewItem == appService",
+                    "when": "view == azureAppService && viewItem == appService",
                     "group": "5_appServiceRemoteDebugCommands@1"
                 },
                 {
                     "command": "appService.DisableRemoteDebug",
-                    "when": "config.appService.enableRemoteDebugging == true && view == azureAppService && viewItem == appService",
+                    "when": "view == azureAppService && viewItem == appService",
                     "group": "5_appServiceRemoteDebugCommands@2"
                 },
                 {
@@ -586,12 +584,12 @@
                 },
                 {
                     "command": "appService.StartRemoteDebug",
-                    "when": "config.appService.enableRemoteDebugging == true && view == azureAppService && viewItem == deploymentSlot",
+                    "when": "view == azureAppService && viewItem == deploymentSlot",
                     "group": "5_appServiceRemoteDebugCommands@1"
                 },
                 {
                     "command": "appService.DisableRemoteDebug",
-                    "when": "config.appService.enableRemoteDebugging == true && view == azureAppService && viewItem == deploymentSlot",
+                    "when": "view == azureAppService && viewItem == deploymentSlot",
                     "group": "5_appServiceRemoteDebugCommands@2"
                 },
                 {
@@ -668,6 +666,11 @@
                     "command": "appService.appSettings.Delete",
                     "when": "view == azureAppService && viewItem == applicationSettingItem",
                     "group": "1_appSettingItemEdit@3"
+                },
+                {
+                    "command": "appService.appSettings.ToggleSlotSetting",
+                    "when": "view == azureAppService && viewItem == applicationSettingItem",
+                    "group": "1_appSettingItemEdit@4"
                 },
                 {
                     "command": "appService.toggleValueVisibility",
@@ -822,11 +825,6 @@
                     "type": "string",
                     "description": "The default subpath of a workspace folder to use when deploying."
                 },
-                "appService.enableRemoteDebugging": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Enables remote debugging of a Web App. This experimental preview only supports node on Linux."
-                },
                 "appService.defaultWebAppToDeploy": {
                     "scope": "resource",
                     "type": "string",
@@ -963,20 +961,17 @@
         "@types/node": "^8.0.51",
         "@types/request": "^2.0.3",
         "@types/request-promise": "4.1.41",
-        "file-loader": "^3.0.1",
         "gulp": "^4.0.0",
         "mocha": "^5.2.0",
         "mocha-junit-reporter": "^1.18.0",
         "mocha-multi-reporters": "^1.1.7",
-        "string-replace-webpack-plugin": "^0.1.3",
-        "ts-loader": "^5.3.0",
         "ts-node": "^7.0.1",
         "tslint": "^5.7.0",
         "tslint-microsoft-contrib": "5.0.1",
-        "typescript": "^3.2.4",
-        "vsce": "^1.37.5",
-        "vscode": "^1.0.0",
-        "vscode-azureextensiondev": "0.1.3",
+        "typescript": "^3.3.1",
+        "vsce": "^1.55.0",
+        "vscode": "^1.1.28",
+        "vscode-azureextensiondev": "0.1.8",
         "webpack": "^4.25.1",
         "webpack-cli": "^3.1.2"
     },
@@ -989,8 +984,8 @@
         "portfinder": "^1.0.13",
         "request": "^2.83.0",
         "request-promise": "^4.2.2",
-        "vscode-azureappservice": "^0.29.0",
-        "vscode-azureextensionui": "^0.20.0",
+        "vscode-azureappservice": "^0.31.5",
+        "vscode-azureextensionui": "^0.20.4",
         "vscode-azurekudu": "^0.1.8",
         "vscode-debugadapter": "^1.24.0",
         "vscode-debugprotocol": "^1.24.0"

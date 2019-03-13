@@ -29,6 +29,7 @@
             140
         ],
         "missing-jsdoc": false,
+        "no-backbone-get-set-outside-model": false,
         "no-multiline-string": false,
         "no-single-line-block-comment": false,
         "no-parameter-properties": false,

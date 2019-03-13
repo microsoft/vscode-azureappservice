@@ -25,10 +25,7 @@ export async function disableRemoteDebug(actionContext: IActionContext, node?: S
         remoteDebug.reportMessage('Fetching site configuration...', progress);
         const siteConfig: SiteConfigResource = await siteClient.getSiteConfig();
 
-        // Add the image version to the telemetry for this action
-        actionContext.properties.linuxFxVersion = siteConfig.linuxFxVersion;
-
-        remoteDebug.checkForRemoteDebugSupport(siteConfig);
+        remoteDebug.checkForRemoteDebugSupport(siteConfig, actionContext);
         await remoteDebug.setRemoteDebug(false, confirmMessage, noopMessage, siteClient, siteConfig, progress);
     });
 }

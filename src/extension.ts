@@ -12,6 +12,7 @@ import { AppSettingsTreeItem, AppSettingTreeItem, DeploymentsTreeItem, editScmTy
 import { AzureParentTreeItem, AzureTreeDataProvider, AzureTreeItem, AzureUserInput, callWithTelemetryAndErrorHandling, createApiProvider, createTelemetryReporter, IActionContext, IAzureUserInput, registerCommand, registerEvent, registerUIExtensionVariables, SubscriptionTreeItem } from 'vscode-azureextensionui';
 import { AzureExtensionApiProvider } from 'vscode-azureextensionui/api';
 import { downloadAppSettings } from './commands/appSettings/downloadAppSettings';
+import { toggleSlotSetting } from './commands/appSettings/toggleSlotSetting';
 import { uploadAppSettings } from './commands/appSettings/uploadAppSettings';
 import { addCosmosDBConnection } from './commands/connections/addCosmosDBConnection';
 import { removeCosmosDBConnection } from './commands/connections/removeCosmosDBConnection';
@@ -103,19 +104,19 @@ export async function activateInternal(
         const yesButton: vscode.MessageItem = { title: 'Yes' };
         const noButton: vscode.MessageItem = { title: 'No', isCloseAffordance: true };
 
-        registerCommand('appService.Refresh', async (node?: AzureTreeItem) => await tree.refresh(node));
+        registerCommand('appService.Refresh', async (node?: AzureTreeItem) => await ext.tree.refresh(node));
         registerCommand('appService.selectSubscriptions', () => vscode.commands.executeCommand("azure-account.selectSubscriptions"));
-        registerCommand('appService.LoadMore', async (node: AzureTreeItem) => await tree.loadMore(node));
+        registerCommand('appService.LoadMore', async (node: AzureTreeItem) => await ext.tree.loadMore(node));
         registerCommand('appService.Browse', async (node?: SiteTreeItem) => {
             if (!node) {
-                node = <WebAppTreeItem>await tree.showTreeItemPicker(WebAppTreeItem.contextValue);
+                node = <WebAppTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue);
             }
 
             node.browse();
         });
         registerCommand('appService.OpenInPortal', async (node?: AzureTreeItem<ISiteTreeRoot>) => {
             if (!node) {
-                node = <WebAppTreeItem>await tree.showTreeItemPicker(WebAppTreeItem.contextValue);
+                node = <WebAppTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue);
             }
 
             switch (node.contextValue) {
@@ -136,7 +137,7 @@ export async function activateInternal(
         });
         registerCommand('appService.Start', async (node?: SiteTreeItem) => {
             if (!node) {
-                node = <WebAppTreeItem>await tree.showTreeItemPicker(WebAppTreeItem.contextValue);
+                node = <WebAppTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue);
             }
 
             const client: SiteClient = node.root.client;
@@ -150,7 +151,7 @@ export async function activateInternal(
         });
         registerCommand('appService.Stop', async (node?: SiteTreeItem) => {
             if (!node) {
-                node = <WebAppTreeItem>await tree.showTreeItemPicker(WebAppTreeItem.contextValue);
+                node = <WebAppTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue);
             }
 
             const client: SiteClient = node.root.client;
@@ -166,7 +167,7 @@ export async function activateInternal(
         });
         registerCommand('appService.Restart', async (node?: SiteTreeItem) => {
             if (!node) {
-                node = <WebAppTreeItem>await tree.showTreeItemPicker(WebAppTreeItem.contextValue);
+                node = <WebAppTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue);
             }
             await vscode.commands.executeCommand('appService.Stop', node);
             await vscode.commands.executeCommand('appService.Start', node);
@@ -174,16 +175,14 @@ export async function activateInternal(
         });
         registerCommand('appService.Delete', async (node?: SiteTreeItem) => {
             if (!node) {
-                node = <WebAppTreeItem>await tree.showTreeItemPicker(WebAppTreeItem.contextValue);
+                node = <WebAppTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue);
             }
 
             await node.deleteTreeItem();
         });
         registerCommand('appService.CreateWebApp', async function (this: IActionContext, node?: AzureParentTreeItem): Promise<void> {
-            const deployingToWebApp = 'deployingToWebApp';
-
             if (!node) {
-                node = <AzureParentTreeItem>await tree.showTreeItemPicker(SubscriptionTreeItem.contextValue);
+                node = <AzureParentTreeItem>await ext.tree.showTreeItemPicker(SubscriptionTreeItem.contextValue);
             }
 
             const createdApp = <WebAppTreeItem>await node.createChild(this);
@@ -196,32 +195,32 @@ export async function activateInternal(
                     // ignore
                 });
             // prompt user to deploy to newly created web app
-            if (await vscode.window.showInformationMessage('Deploy to web app?', yesButton, noButton) === yesButton) {
-                this.properties[deployingToWebApp] = 'true';
-                await deploy(this, false, createdApp);
-            } else {
-                this.properties[deployingToWebApp] = 'false';
-            }
+            vscode.window.showInformationMessage('Deploy to web app?', yesButton, noButton).then(
+                async (input: vscode.MessageItem) => {
+                    if (input === yesButton) {
+                        await deploy(this, false, createdApp);
+                    }
+                });
         });
         registerCommand('appService.Deploy', async function (this: IActionContext, target?: vscode.Uri | WebAppTreeItem | undefined): Promise<void> {
             await deploy(this, true, target);
         });
         registerCommand('appService.ConfigureDeploymentSource', async function (this: IActionContext, node?: SiteTreeItem): Promise<void> {
             if (!node) {
-                node = <SiteTreeItem>await tree.showTreeItemPicker(WebAppTreeItem.contextValue);
+                node = <SiteTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue);
             }
             await editScmType(node.root.client, node, this);
         });
         registerCommand('appService.OpenVSTSCD', async (node?: WebAppTreeItem) => {
             if (!node) {
-                node = <WebAppTreeItem>await tree.showTreeItemPicker(WebAppTreeItem.contextValue);
+                node = <WebAppTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue);
             }
 
             node.openCdInPortal();
         });
         registerCommand('appService.DeploymentScript', async (node?: WebAppTreeItem) => {
             if (!node) {
-                node = <WebAppTreeItem>await tree.showTreeItemPicker(WebAppTreeItem.contextValue);
+                node = <WebAppTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue);
             }
 
             await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async p => {
@@ -234,7 +233,7 @@ export async function activateInternal(
             const deployingToDeploymentSlot = 'deployingToDeploymentSlot';
 
             if (!node) {
-                node = <DeploymentSlotsTreeItem>await tree.showTreeItemPicker(DeploymentSlotsTreeItem.contextValue);
+                node = <DeploymentSlotsTreeItem>await ext.tree.showTreeItemPicker(DeploymentSlotsTreeItem.contextValue);
             }
 
             const createdSlot = <SiteTreeItem>await node.createChild(this);
@@ -250,38 +249,38 @@ export async function activateInternal(
         registerCommand('appService.SwapSlots', async (node: DeploymentSlotTreeItem) => await swapSlots(node));
         registerCommand('appService.appSettings.Add', async (node?: AppSettingsTreeItem) => {
             if (!node) {
-                node = <AppSettingsTreeItem>await tree.showTreeItemPicker(AppSettingsTreeItem.contextValue);
+                node = <AppSettingsTreeItem>await ext.tree.showTreeItemPicker(AppSettingsTreeItem.contextValue);
             }
 
             await node.createChild();
         });
         registerCommand('appService.appSettings.Edit', async (node?: AppSettingTreeItem) => {
             if (!node) {
-                node = <AppSettingTreeItem>await tree.showTreeItemPicker(AppSettingTreeItem.contextValue);
+                node = <AppSettingTreeItem>await ext.tree.showTreeItemPicker(AppSettingTreeItem.contextValue);
             }
-
             await node.edit();
         });
         registerCommand('appService.appSettings.Rename', async (node?: AppSettingTreeItem) => {
             if (!node) {
-                node = <AppSettingTreeItem>await tree.showTreeItemPicker(AppSettingTreeItem.contextValue);
+                node = <AppSettingTreeItem>await ext.tree.showTreeItemPicker(AppSettingTreeItem.contextValue);
             }
 
             await node.rename();
         });
         registerCommand('appService.appSettings.Delete', async (node?: AppSettingTreeItem) => {
             if (!node) {
-                node = <AppSettingTreeItem>await tree.showTreeItemPicker(AppSettingTreeItem.contextValue);
+                node = <AppSettingTreeItem>await ext.tree.showTreeItemPicker(AppSettingTreeItem.contextValue);
             }
 
             await node.deleteTreeItem();
         });
         registerCommand('appService.appSettings.Download', downloadAppSettings);
         registerCommand('appService.appSettings.Upload', uploadAppSettings);
+        registerCommand('appService.appSettings.ToggleSlotSetting', toggleSlotSetting);
         registerCommand('appService.OpenLogStream', startStreamingLogs);
         registerCommand('appService.StopLogStream', async (node?: SiteTreeItem) => {
             if (!node) {
-                node = <WebAppTreeItem>await tree.showTreeItemPicker(WebAppTreeItem.contextValue);
+                node = <WebAppTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue);
             }
 
             await stopStreamingLogs(node.root.client);

@@ -5,7 +5,6 @@
 
 import * as WebSiteModels from 'azure-arm-website/lib/models';
 import { SiteConfigResource } from 'azure-arm-website/lib/models';
-import { randomBytes } from 'crypto';
 import { pathExists } from 'fs-extra';
 import * as path from 'path';
 import { join } from 'path';
@@ -17,8 +16,9 @@ import * as constants from '../constants';
 import { SiteTreeItem } from '../explorer/SiteTreeItem';
 import { WebAppTreeItem } from '../explorer/WebAppTreeItem';
 import { ext } from '../extensionVariables';
-import * as javaUtil from '../utils/javaUtils';
+import { showQuickPickByFileExtension } from '../util';
 import { isPathEqual, isSubpath } from '../utils/pathUtils';
+import { getRandomHexString } from "../utils/randomUtils";
 import * as workspaceUtil from '../utils/workspace';
 import { cancelWebsiteValidation, delay, validateWebSite } from '../validateWebSite';
 import { startStreamingLogs } from './startStreamingLogs';
@@ -99,13 +99,14 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
         }
     }
 
-    const correlationId = getRandomHexString(10);
+    const correlationId = getRandomHexString();
     context.properties.correlationId = correlationId;
     const siteConfig: WebSiteModels.SiteConfigResource = await node.root.client.getSiteConfig();
 
     if (!fsPath) {
-        if (javaUtil.isJavaRuntime(siteConfig.linuxFxVersion)) {
-            fsPath = await javaUtil.getJavaRuntimeTargetFile(siteConfig.linuxFxVersion, context.properties);
+        if (appservice.javaUtils.isJavaRuntime(siteConfig.linuxFxVersion)) {
+            const fileExtension: string = appservice.javaUtils.getArtifactTypeByJavaRuntime(siteConfig.linuxFxVersion);
+            fsPath = await showQuickPickByFileExtension(context.properties, `Select the ${fileExtension} file to deploy...`, fileExtension);
         } else {
             fsPath = await workspaceUtil.showWorkspaceFoldersQuickPick("Select the folder to deploy", context.properties, constants.configurationSettings.deploySubpath);
         }
@@ -117,10 +118,11 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
         if (workspaceConfig.get(constants.configurationSettings.showBuildDuringDeployPrompt)) {
             //check if node is being zipdeployed and that there is no .deployment file
             if (siteConfig.linuxFxVersion && siteConfig.scmType === 'None' && !(await pathExists(path.join(fsPath, constants.deploymentFileName)))) {
-                if (siteConfig.linuxFxVersion.startsWith(constants.runtimes.node)) {
+                const linuxFxVersion: string = siteConfig.linuxFxVersion.toLowerCase();
+                if (linuxFxVersion.startsWith(constants.runtimes.node)) {
                     // if it is node or python, prompt the user (as we can break them)
                     await node.promptScmDoBuildDeploy(fsPath, constants.runtimes.node, context.properties);
-                } else if (siteConfig.linuxFxVersion.startsWith(constants.runtimes.python)) {
+                } else if (linuxFxVersion.startsWith(constants.runtimes.python)) {
                     await node.promptScmDoBuildDeploy(fsPath, constants.runtimes.python, context.properties);
                 }
 
@@ -160,15 +162,12 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
         node.promptToSaveDeployDefaults(currentWorkspace.uri.fsPath, fsPath, context.properties);
     }
 
-    const preDeployResult: appservice.IPreDeployTaskResult = await appservice.runPreDeployTask(context, fsPath, siteConfig.scmType, constants.extensionPrefix);
-    if (preDeployResult.failedToFindTask) {
-        throw new Error(`Failed to find pre-deploy task "${preDeployResult.taskName}". Modify your tasks or the setting "${constants.extensionPrefix}.preDeployTask".`);
-    }
+    await appservice.runPreDeployTask(context, fsPath, siteConfig.scmType, constants.extensionPrefix);
 
     cancelWebsiteValidation(node);
     await node.runWithTemporaryDescription("Deploying...", async () => {
         // tslint:disable-next-line:no-non-null-assertion
-        await appservice.deploy(node!.root.client, <string>fsPath, constants.extensionPrefix, context.properties);
+        await appservice.deploy(node!.root.client, <string>fsPath, context);
     });
 
     const deployComplete: string = `Deployment to "${node.root.client.fullName}" completed.`;
@@ -197,9 +196,4 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
         () => {
             // ignore
         });
-}
-
-function getRandomHexString(length: number): string {
-    const buffer: Buffer = randomBytes(Math.ceil(length / 2));
-    return buffer.toString('hex').slice(0, length);
 }
