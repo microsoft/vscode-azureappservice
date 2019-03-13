@@ -728,22 +728,22 @@
                 },
                 {
                     "command": "appService.Redeploy",
-                    "when": "view == azureAppService && viewItem == deployment",
+                    "when": "view == azureAppService && viewItem =~ /deployment/",
                     "group": "1@1"
                 },
                 {
                     "command": "appService.ViewCommitInGitHub",
-                    "when": "view == azureAppService && viewItem == deployment",
+                    "when": "view == azureAppService && viewItem == deployment/GitHub",
                     "group": "1@2"
                 },
                 {
                     "command": "appService.OpenInPortal",
-                    "when": "view == azureAppService && viewItem == deployment",
+                    "when": "view == azureAppService && viewItem =~ /deployment/",
                     "group": "1@3"
                 },
                 {
                     "command": "appService.ViewDeploymentLogs",
-                    "when": "view == azureAppService && viewItem == deployment",
+                    "when": "view == azureAppService && viewItem =~ /deployment/",
                     "group": "inline"
                 }
             ],
@@ -984,7 +984,7 @@
         "portfinder": "^1.0.13",
         "request": "^2.83.0",
         "request-promise": "^4.2.2",
-        "vscode-azureappservice": "^0.31.5",
+        "vscode-azureappservice": "^0.32.0",
         "vscode-azureextensionui": "^0.20.4",
         "vscode-azurekudu": "^0.1.8",
         "vscode-debugadapter": "^1.24.0",
