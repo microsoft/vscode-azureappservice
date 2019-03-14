@@ -22,6 +22,7 @@ import { deploy } from './commands/deploy';
 import { connectToGitHub } from './commands/deployments/connectToGitHub';
 import { disconnectRepo } from './commands/deployments/disconnectRepo';
 import { redeployDeployment } from './commands/deployments/redeployDeployment';
+import { viewCommitInGitHub } from './commands/deployments/viewCommitInGitHub';
 import { viewDeploymentLogs } from './commands/deployments/viewDeploymentLogs';
 import { enableFileLogging } from './commands/enableFileLogging';
 import { disableRemoteDebug } from './commands/remoteDebug/disableRemoteDebug';
@@ -44,7 +45,6 @@ import { LogPointsManager } from './logPoints/LogPointsManager';
 import { LogPointsSessionWizard } from './logPoints/LogPointsSessionWizard';
 import { RemoteScriptDocumentProvider, RemoteScriptSchema } from './logPoints/remoteScriptDocumentProvider';
 import { LogpointsCollection } from './logPoints/structs/LogpointsCollection';
-import { viewCommitInGitHub } from './commands/deployments/viewCommitInGitHub';
 
 // tslint:disable-next-line:export-name
 // tslint:disable-next-line:max-func-body-length
