@@ -733,7 +733,7 @@
                 },
                 {
                     "command": "appService.ViewCommitInGitHub",
-                    "when": "view == azureAppService && viewItem == deployment/GitHub",
+                    "when": "view == azureAppService && viewItem == deployment/github",
                     "group": "1@2"
                 },
                 {
