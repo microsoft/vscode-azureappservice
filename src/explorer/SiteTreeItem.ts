@@ -86,7 +86,7 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         return [this.appSettingsNode, this._connectionsNode, this.deploymentsNode, this._folderNode, this._logFolderNode, this._webJobsNode];
     }
 
-    public pickTreeItemImpl(expectedContextValue: string): AzureTreeItem<ISiteTreeRoot> | undefined {
+    public pickTreeItemImpl(expectedContextValue: string | RegExp): AzureTreeItem<ISiteTreeRoot> | undefined {
         switch (expectedContextValue) {
             case AppSettingsTreeItem.contextValue:
             case AppSettingTreeItem.contextValue:
@@ -105,6 +105,9 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
             case WebJobsTreeItem.contextValue:
                 return this._webJobsNode;
             default:
+                if (typeof expectedContextValue === 'string' && DeploymentTreeItem.contextValue.test(expectedContextValue)) {
+                    return this.deploymentsNode;
+                }
                 return undefined;
         }
     }

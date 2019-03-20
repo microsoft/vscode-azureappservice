@@ -8,7 +8,7 @@ import { ext } from "../../extensionVariables";
 
 export async function viewCommitInGitHub(node?: DeploymentTreeItem): Promise<void> {
     if (!node) {
-        node = <DeploymentTreeItem>(await ext.tree.showTreeItemPicker(DeploymentTreeItem.contextValue));
+        node = <DeploymentTreeItem>(await ext.tree.showTreeItemPicker('deployment/github'));
     }
     await node.viewCommitInGitHub();
 }
