@@ -22,6 +22,7 @@ import { deploy } from './commands/deploy';
 import { connectToGitHub } from './commands/deployments/connectToGitHub';
 import { disconnectRepo } from './commands/deployments/disconnectRepo';
 import { redeployDeployment } from './commands/deployments/redeployDeployment';
+import { viewCommitInGitHub } from './commands/deployments/viewCommitInGitHub';
 import { viewDeploymentLogs } from './commands/deployments/viewDeploymentLogs';
 import { enableFileLogging } from './commands/enableFileLogging';
 import { disableRemoteDebug } from './commands/remoteDebug/disableRemoteDebug';
@@ -346,6 +347,7 @@ export async function activateInternal(
         registerCommand('appService.DisconnectRepo', disconnectRepo);
         registerCommand('appService.ConnectToGitHub', connectToGitHub);
         registerCommand(toggleValueVisibilityCommandId, async (node: AppSettingTreeItem) => { await node.toggleValueVisibility(); }, 250);
+        registerCommand('appService.ViewCommitInGitHub', viewCommitInGitHub);
     });
 
     return createApiProvider([]);

@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as path from 'path';
-import { getKuduClient, ISiteTreeRoot } from 'vscode-azureappservice';
+import { ISiteTreeRoot } from 'vscode-azureappservice';
 import { AzureParentTreeItem, AzureTreeItem, GenericTreeItem } from 'vscode-azureextensionui';
 import { resourcesPath } from '../constants';
 
@@ -30,9 +30,7 @@ export class WebJobsTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     }
 
     public async loadMoreChildrenImpl(_clearCache: boolean): Promise<AzureTreeItem<ISiteTreeRoot>[]> {
-        const kuduClient = await getKuduClient(this.root.client);
-
-        const jobList: webJob[] = <webJob[]>await kuduClient.jobs.listAllJobs();
+        const jobList: webJob[] = <webJob[]>await this.root.client.kudu.jobs.listAllJobs();
 
         return jobList.map((job: webJob) => {
             return new GenericTreeItem<ISiteTreeRoot>(this, { id: job.name, label: job.name, contextValue: 'webJob' });
