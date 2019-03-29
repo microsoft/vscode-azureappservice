@@ -54,6 +54,7 @@
         "onCommand:appService.StopLogStream",
         "onCommand:appService.StartRemoteDebug",
         "onCommand:appService.DisableRemoteDebug",
+        "onCommand:appService.StartRemoteSsh",
         "onCommand:appService.CreateSlot",
         "onCommand:appService.EnableFileLogging",
         "onCommand:appService.ViewDeploymentLogs",
@@ -218,6 +219,11 @@
             {
                 "command": "appService.DisableRemoteDebug",
                 "title": "Disable Remote Debugging",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.StartRemoteSsh",
+                "title": "Start Remote SSH",
                 "category": "Azure App Service"
             },
             {
@@ -506,6 +512,11 @@
                     "command": "appService.DisableRemoteDebug",
                     "when": "view == azureAppService && viewItem == appService",
                     "group": "5_appServiceRemoteDebugCommands@2"
+                },
+                {
+                    "command": "appService.StartRemoteSsh",
+                    "when": "view == azureAppService && viewItem == appService",
+                    "group": "5_appServiceRemoteDebugCommands@3"
                 },
                 {
                     "command": "appService.CreateSlot",

@@ -56,7 +56,7 @@ async function startRemoteDebugInternal(actionContext: IActionContext, node?: Si
         await callWithTelemetryAndErrorHandling('appService.remoteDebugStartProxy', async function (this: IActionContext): Promise<void> {
             this.suppressErrorDisplay = true;
             this.rethrowError = true;
-            await tunnelProxy.startProxy();
+            await tunnelProxy.startProxy(49494);
         });
 
         remoteDebug.reportMessage('Attaching debugger...', progress);
