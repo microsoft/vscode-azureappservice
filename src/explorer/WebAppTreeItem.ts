@@ -50,8 +50,8 @@ export class WebAppTreeItem extends SiteTreeItem {
         }
     }
 
-    public openCdInPortal(): void {
-        this.openInPortal(`${this.root.client.id}/vstscd`);
+    public async openCdInPortal(): Promise<void> {
+        await this.openInPortal(`${this.root.client.id}/vstscd`);
     }
 
     public async generateDeploymentScript(): Promise<void> {
