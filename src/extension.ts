@@ -124,15 +124,15 @@ export async function activateInternal(
                 // the deep link for slots does not follow the conventional pattern of including its parent in the path name so this is how we extract the slot's id
                 case DeploymentSlotsTreeItem.contextValue:
                     // tslint:disable-next-line:no-non-null-assertion
-                    node.openInPortal(`${node.parent!.fullId}/deploymentSlots`);
+                    await node.openInPortal(`${node.parent!.fullId}/deploymentSlots`);
                     return;
                 // the deep link for "Deployments" do not follow the conventional pattern of including its parent in the path name so we need to pass the "Deployment Center" url directly
                 case DeploymentsTreeItem.contextValueConnected:
                 case DeploymentsTreeItem.contextValueUnconnected:
-                    node.openInPortal(`${node.root.client.id}/vstscd`);
+                    await node.openInPortal(`${node.root.client.id}/vstscd`);
                     return;
                 default:
-                    node.openInPortal();
+                    await node.openInPortal();
                     return;
             }
         });
@@ -217,7 +217,7 @@ export async function activateInternal(
                 node = <WebAppTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue);
             }
 
-            node.openCdInPortal();
+            await node.openCdInPortal();
         });
         registerCommand('appService.DeploymentScript', async (node?: WebAppTreeItem) => {
             if (!node) {
@@ -305,7 +305,7 @@ export async function activateInternal(
 
         registerCommand('appService.showFile', async (node: FileTreeItem) => { await showFile(node, fileEditor); }, 500);
         registerCommand('appService.ScaleUp', async (node: DeploymentSlotsNATreeItem | ScaleUpTreeItem) => {
-            node.openInPortal(node.scaleUpId);
+            await node.openInPortal(node.scaleUpId);
         });
 
         registerEvent('appService.fileEditor.onDidSaveTextDocument', vscode.workspace.onDidSaveTextDocument, async function (this: IActionContext, doc: vscode.TextDocument): Promise<void> { await fileEditor.onDidSaveTextDocument(this, context.globalState, doc); });
