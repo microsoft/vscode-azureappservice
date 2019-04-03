@@ -56,7 +56,7 @@ async function startRemoteSshInternal(node: SiteTreeItem): Promise<void> {
         const tunnelProxy: TunnelProxy = new TunnelProxy(portNumber, siteClient, publishCredential);
         await callWithTelemetryAndErrorHandling('appService.remoteSshStartProxy', async function (this: IActionContext): Promise<void> {
             this.rethrowError = true;
-            await tunnelProxy.startProxy();
+            await tunnelProxy.startProxy(2222);
             await connectToTunnelProxy(tunnelProxy);
         });
     });
