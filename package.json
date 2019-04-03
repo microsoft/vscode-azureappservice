@@ -55,6 +55,7 @@
         "onCommand:appService.StartRemoteDebug",
         "onCommand:appService.DisableRemoteDebug",
         "onCommand:appService.StartRemoteSsh",
+        "onCommand:appService.StopRemoteSsh",
         "onCommand:appService.CreateSlot",
         "onCommand:appService.EnableFileLogging",
         "onCommand:appService.ViewDeploymentLogs",
@@ -224,6 +225,11 @@
             {
                 "command": "appService.StartRemoteSsh",
                 "title": "Start Remote SSH",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.StopRemoteSsh",
+                "title": "Stop Remote SSH",
                 "category": "Azure App Service"
             },
             {
@@ -496,7 +502,7 @@
                 {
                     "command": "appService.Refresh",
                     "when": "view == azureAppService && viewItem == appService",
-                    "group": "6_appServiceRefreshCommands@1"
+                    "group": "7_appServiceRefreshCommands@1"
                 },
                 {
                     "command": "appService.StartLogPointsSession",
@@ -516,7 +522,12 @@
                 {
                     "command": "appService.StartRemoteSsh",
                     "when": "view == azureAppService && viewItem == appService",
-                    "group": "5_appServiceRemoteDebugCommands@3"
+                    "group": "6_appServiceRemoteSshCommands@1"
+                },
+                {
+                    "command": "appService.StopRemoteSsh",
+                    "when": "view == azureAppService && viewItem == appService",
+                    "group": "6_appServiceRemoteSshCommands@2"
                 },
                 {
                     "command": "appService.CreateSlot",
@@ -995,7 +1006,7 @@
         "portfinder": "^1.0.13",
         "request": "^2.83.0",
         "request-promise": "^4.2.2",
-        "vscode-azureappservice": "^0.35.0",
+        "vscode-azureappservice": "^0.36.0",
         "vscode-azureextensionui": "^0.23.0",
         "vscode-azurekudu": "^0.1.8",
         "vscode-debugadapter": "^1.24.0",

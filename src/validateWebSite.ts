@@ -10,6 +10,7 @@ import { URL } from 'url';
 import { isNumber } from 'util';
 import { callWithTelemetryAndErrorHandling, IActionContext } from 'vscode-azureextensionui';
 import { SiteTreeItem } from './explorer/SiteTreeItem';
+import { delay } from './utils/delay';
 
 const requestPromise = <(options: RequestOptions | string | URL) => Promise<IncomingMessage>><Function>requestP;
 
@@ -100,8 +101,4 @@ export async function validateWebSite(deploymentCorrelationId: string, siteTreeI
             cancellations.delete(id);
         }
     });
-}
-
-export async function delay(delayMs: number): Promise<void> {
-    await new Promise<void>((resolve: () => void): void => { setTimeout(resolve, delayMs); });
 }

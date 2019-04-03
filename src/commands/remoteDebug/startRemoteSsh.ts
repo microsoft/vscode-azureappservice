@@ -11,8 +11,8 @@ import { callWithTelemetryAndErrorHandling, IActionContext } from 'vscode-azuree
 import { SiteTreeItem } from '../../explorer/SiteTreeItem';
 import { WebAppTreeItem } from '../../explorer/WebAppTreeItem';
 import { ext } from '../../extensionVariables';
+import { delay } from '../../utils/delay';
 import * as remoteDebug from './remoteDebugCommon';
-import { delay } from '../../validateWebSite';
 
 const remoteSsh: Map<string, boolean> = new Map();
 
@@ -35,56 +35,76 @@ export async function startRemoteSsh(node?: SiteTreeItem): Promise<void> {
 
 async function startRemoteSshInternal(node: SiteTreeItem): Promise<void> {
     const siteClient: SiteClient = node.root.client;
+    const siteConfig: SiteConfigResource = await siteClient.getSiteConfig();
+    const oldSetting: boolean = <boolean>siteConfig.remoteDebuggingEnabled;
+    // should always be an unbound port
+    const portNumber: number = await portfinder.getPortPromise();
 
     await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification }, async (progress: vscode.Progress<{}>): Promise<void> => {
-        remoteDebug.reportMessage('Fetching site configuration...', progress);
-        const siteConfig: SiteConfigResource = await siteClient.getSiteConfig();
-        const oldSetting: boolean = <boolean>siteConfig.remoteDebuggingEnabled;
         if (!siteConfig.linuxFxVersion) {
             throw new Error('Azure Remote SSH is only supported for Linux web apps.');
         }
 
-        // should always be an unbound port
-        const portNumber: number = await portfinder.getPortPromise();
         remoteDebug.reportMessage('Checking app settings...', progress);
+
         // remote debugging has to be disabled in order to tunnel to the 2222 port
-        await remoteDebug.setRemoteDebug(false, undefined /*skips confirmation*/, undefined, siteClient, siteConfig, progress);
+        await remoteDebug.setRemoteDebug(false, undefined /*skips confirmation*/, undefined, siteClient, siteConfig);
 
         remoteDebug.reportMessage('Starting tunnel proxy...', progress);
 
         const publishCredential: User = await siteClient.getWebAppPublishCredential();
         const tunnelProxy: TunnelProxy = new TunnelProxy(portNumber, siteClient, publishCredential);
         await callWithTelemetryAndErrorHandling('appService.remoteSshStartProxy', async function (this: IActionContext): Promise<void> {
-            const sshTerminalName: string = `Remote SSH - ${node.root.client.fullName}`;
             this.rethrowError = true;
             await tunnelProxy.startProxy();
-            const sshCommand: string = `ssh -c aes256-cbc root@127.0.0.1 -p ${portNumber}`;
-            const terminal: vscode.Terminal = vscode.window.createTerminal(sshTerminalName);
-            // because the container needs time to respond, there needs to be a delay between cmds
-            terminal.sendText(sshCommand, true);
-            await delay(2000);
-            // say yes to the known SSH hosts
-            terminal.sendText('yes', true);
-            await delay(500);
-            terminal.sendText('Docker!', true);
-            terminal.show();
-            vscode.window.onDidCloseTerminal(async (e: vscode.Terminal) => {
-                if (e.processId === terminal.processId) {
-                    // clean up if the SSH task ends
-                    if (tunnelProxy !== undefined) {
-                        tunnelProxy.dispose();
-                    }
-                    // WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!
-                    // This is to handle the error above is the port has already been set in .ssh/known-hosts
-                    const shellRemoveKeygen: vscode.ShellExecution = new vscode.ShellExecution(`ssh-keygen -R [127.0.0.1]:${portNumber}`);
-                    const taskRemoveKeygen: vscode.Task = new vscode.Task({ type: shellRemoveKeygen.commandLine }, shellRemoveKeygen.commandLine, `ssh-keygen`, shellRemoveKeygen);
-                    taskRemoveKeygen.isBackground = true;
-                    await vscode.tasks.executeTask(taskRemoveKeygen);
-                    remoteSsh.set(node.root.client.fullName, false);
-                    ext.outputChannel.appendLine(`Azure Remote SSH for "${node.root.client.fullName}" has disconnected.`);
-                    await remoteDebug.setRemoteDebug(oldSetting, undefined/*skips confirmation*/, undefined, siteClient, siteConfig, progress);
-                }
-            });
+            await connectToTunnelProxy(tunnelProxy);
         });
     });
+
+    async function connectToTunnelProxy(tunnelProxy: TunnelProxy): Promise<void> {
+        const sshTerminalName: string = `${node.root.client.fullName} - Remote SSH`;
+        // -o StrictHostKeyChecking=no doesn't prompt for adding to hosts
+        // -o "UserKnownHostsFile /dev/null" doesn't add host to known_user file
+        // -o "LogLevel ERROR" doesn't display Warning: Permanently added 'hostname,ip' (RSA) to the list of known hosts.
+        const sshCommand: string = `ssh -c aes256-cbc -o StrictHostKeyChecking=no -o "UserKnownHostsFile /dev/null" -o "LogLevel ERROR" root@127.0.0.1 -p ${portNumber}`;
+        const terminal: vscode.Terminal = vscode.window.createTerminal(sshTerminalName);
+
+        // because the container needs time to respond, there needs to be a delay between connecting and entering password
+        terminal.sendText(sshCommand, true);
+        await delay(3000);
+        terminal.sendText('Docker!', true);
+        terminal.show();
+        ext.context.subscriptions.push(terminal);
+
+        vscode.window.onDidCloseTerminal(async (e: vscode.Terminal) => {
+            if (e.processId === terminal.processId) {
+                // clean up if the SSH task ends
+                if (tunnelProxy !== undefined) {
+                    tunnelProxy.dispose();
+                }
+                remoteSsh.set(node.root.client.fullName, false);
+                ext.outputChannel.appendLine(`Azure Remote SSH for "${node.root.client.fullName}" has disconnected.`);
+                await remoteDebug.setRemoteDebug(oldSetting, undefined/*skips confirmation*/, undefined, siteClient, siteConfig);
+            }
+        });
+    }
+}
+
+export async function stopRemoteSsh(node?: SiteTreeItem): Promise<void> {
+    if (!node) {
+        node = <SiteTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue);
+    }
+
+    if (!remoteSsh.get(node.root.client.fullName)) {
+        throw new Error(`Azure Remote SSH is not currently running for "${node.root.client.fullName}".`);
+    }
+    const sshTerminalName: string = `${node.root.client.fullName} - Remote SSH`;
+    for (const terminal of vscode.window.terminals) {
+        if (terminal.name === sshTerminalName) {
+            terminal.dispose();
+            return;
+        }
+    }
+
+    throw new Error(`Terminal "${sshTerminalName}" could not be found.`);
 }

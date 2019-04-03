@@ -57,20 +57,26 @@ function isNodeVersionSupported(nodeVersion: string): boolean {
     return (major > 8 || (major === 8 && minor >= 11));
 }
 
-export async function setRemoteDebug(isRemoteDebuggingToBeEnabled: boolean, confirmMessage: string | undefined, noopMessage: string | undefined, siteClient: SiteClient, siteConfig: SiteConfigResource, progress: vscode.Progress<{}>): Promise<void> {
+export async function setRemoteDebug(isRemoteDebuggingToBeEnabled: boolean, confirmMessage: string | undefined, noopMessage: string | undefined, siteClient: SiteClient, siteConfig: SiteConfigResource, progress?: vscode.Progress<{}>): Promise<void> {
     if (isRemoteDebuggingToBeEnabled !== siteConfig.remoteDebuggingEnabled) {
-        // if there is no confirmMessage, automatically assume yes
+        // if there is no confirmMessage, automatically assume yes.
         const result: vscode.MessageItem = confirmMessage ? await ext.ui.showWarningMessage(confirmMessage, { modal: true }, DialogResponses.yes, DialogResponses.learnMore, DialogResponses.cancel) : DialogResponses.yes;
         if (result === DialogResponses.yes) {
             siteConfig.remoteDebuggingEnabled = isRemoteDebuggingToBeEnabled;
+            if (progress) {
+                reportMessage('Updating site configuration to set remote debugging...', progress);
+            }
 
-            reportMessage('Updating site configuration to set remote debugging...', progress);
             await callWithTelemetryAndErrorHandling('appService.remoteDebugUpdateConfiguration', async function (this: IActionContext): Promise<void> {
                 this.suppressErrorDisplay = true;
                 this.rethrowError = true;
                 await siteClient.updateConfiguration(siteConfig);
             });
-            reportMessage('Updating site configuration done...', progress);
+
+            if (progress) {
+                reportMessage('Updating site configuration done...', progress);
+            }
+
         } else if (result === DialogResponses.learnMore) {
             // tslint:disable-next-line:no-unsafe-any
             opn('https://aka.ms/appsvc-remotedebug');
