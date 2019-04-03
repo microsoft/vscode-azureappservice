@@ -12,6 +12,7 @@ import { SiteTreeItem } from '../../explorer/SiteTreeItem';
 import { WebAppTreeItem } from '../../explorer/WebAppTreeItem';
 import { ext } from '../../extensionVariables';
 import * as remoteDebug from './remoteDebugCommon';
+import { delay } from '../../validateWebSite';
 
 const remoteSsh: Map<string, boolean> = new Map();
 
@@ -54,38 +55,36 @@ async function startRemoteSshInternal(node: SiteTreeItem): Promise<void> {
         const publishCredential: User = await siteClient.getWebAppPublishCredential();
         const tunnelProxy: TunnelProxy = new TunnelProxy(portNumber, siteClient, publishCredential);
         await callWithTelemetryAndErrorHandling('appService.remoteSshStartProxy', async function (this: IActionContext): Promise<void> {
-            this.suppressErrorDisplay = true;
+            const sshTerminalName: string = `Remote SSH - ${node.root.client.fullName}`;
             this.rethrowError = true;
-
             await tunnelProxy.startProxy();
-            vscode.window.showInformationMessage('Your password: Docker!');
-            const shellExecution: vscode.ShellExecution = new vscode.ShellExecution(`ssh -c aes256-cbc root@127.0.0.1 -p ${portNumber}`);
-            const task: vscode.Task = new vscode.Task({ type: `SSH - ${node.root.client.fullName}` }, `Azure Remote SSH - ${node.root.client.fullName}`, `ssh`, shellExecution);
-            await vscode.tasks.executeTask(task);
-            vscode.tasks.onDidEndTask(async (e: vscode.TaskEndEvent) => {
-                if (e.execution.task.name === task.name) {
+            const sshCommand: string = `ssh -c aes256-cbc root@127.0.0.1 -p ${portNumber}`;
+            const terminal: vscode.Terminal = vscode.window.createTerminal(sshTerminalName);
+            // because the container needs time to respond, there needs to be a delay between cmds
+            terminal.sendText(sshCommand, true);
+            await delay(2000);
+            // say yes to the known SSH hosts
+            terminal.sendText('yes', true);
+            await delay(500);
+            terminal.sendText('Docker!', true);
+            terminal.show();
+            vscode.window.onDidCloseTerminal(async (e: vscode.Terminal) => {
+                if (e.processId === terminal.processId) {
                     // clean up if the SSH task ends
                     if (tunnelProxy !== undefined) {
                         tunnelProxy.dispose();
                     }
-                    /**
-                     * @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-                     * @    WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!
-                     * @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-                     * IT IS POSSIBLE THAT SOMEONE IS DOING SOMETHING NASTY!
-                     */
+                    // WARNING: REMOTE HOST IDENTIFICATION HAS CHANGED!
                     // This is to handle the error above is the port has already been set in .ssh/known-hosts
                     const shellRemoveKeygen: vscode.ShellExecution = new vscode.ShellExecution(`ssh-keygen -R [127.0.0.1]:${portNumber}`);
                     const taskRemoveKeygen: vscode.Task = new vscode.Task({ type: shellRemoveKeygen.commandLine }, shellRemoveKeygen.commandLine, `ssh-keygen`, shellRemoveKeygen);
                     taskRemoveKeygen.isBackground = true;
                     await vscode.tasks.executeTask(taskRemoveKeygen);
-
                     remoteSsh.set(node.root.client.fullName, false);
                     ext.outputChannel.appendLine(`Azure Remote SSH for "${node.root.client.fullName}" has disconnected.`);
                     await remoteDebug.setRemoteDebug(oldSetting, undefined/*skips confirmation*/, undefined, siteClient, siteConfig, progress);
                 }
             });
-
         });
     });
 }
