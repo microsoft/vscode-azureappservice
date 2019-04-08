@@ -6,7 +6,6 @@
 'use strict';
 
 import { SiteConfigResource } from 'azure-arm-website/lib/models';
-import * as opn from 'opn';
 import * as vscode from 'vscode';
 import { AppSettingsTreeItem, AppSettingTreeItem, DeploymentsTreeItem, editScmType, ISiteTreeRoot, registerAppServiceExtensionVariables, SiteClient, stopStreamingLogs } from 'vscode-azureappservice';
 import { AzureParentTreeItem, AzureTreeDataProvider, AzureTreeItem, AzureUserInput, callWithTelemetryAndErrorHandling, createApiProvider, createTelemetryReporter, IActionContext, IAzureUserInput, registerCommand, registerEvent, registerUIExtensionVariables, SubscriptionTreeItem } from 'vscode-azureextensionui';
@@ -45,6 +44,7 @@ import { LogPointsManager } from './logPoints/LogPointsManager';
 import { LogPointsSessionWizard } from './logPoints/LogPointsSessionWizard';
 import { RemoteScriptDocumentProvider, RemoteScriptSchema } from './logPoints/remoteScriptDocumentProvider';
 import { LogpointsCollection } from './logPoints/structs/LogpointsCollection';
+import { openUrl } from './utils/openUrl';
 
 // tslint:disable-next-line:export-name
 // tslint:disable-next-line:max-func-body-length
@@ -112,7 +112,7 @@ export async function activateInternal(
                 node = <WebAppTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue);
             }
 
-            node.browse();
+            await node.browse();
         });
         registerCommand('appService.OpenInPortal', async (node?: AzureTreeItem<ISiteTreeRoot>) => {
             if (!node) {
@@ -335,7 +335,7 @@ export async function activateInternal(
                 vscode.commands.executeCommand(commandToRun, 'ms-azuretools.vscode-cosmosdb');
             } else {
                 // tslint:disable-next-line:no-unsafe-any
-                opn('https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-cosmosdb');
+                await openUrl('https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-cosmosdb');
             }
         });
         registerCommand('appService.AddCosmosDBConnection', addCosmosDBConnection);
