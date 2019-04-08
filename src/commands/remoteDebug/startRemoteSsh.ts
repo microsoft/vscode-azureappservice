@@ -38,7 +38,8 @@ async function startRemoteSshInternal(node: SiteTreeItem): Promise<void> {
     const siteConfig: SiteConfigResource = await siteClient.getSiteConfig();
     const oldSetting: boolean = <boolean>siteConfig.remoteDebuggingEnabled;
     // should always be an unbound port
-    const portNumber: number = await portfinder.getPortPromise();
+    const localHostPortNumber: number = await portfinder.getPortPromise();
+    const sshPortNumber: number = 2222;
 
     await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification }, async (progress: vscode.Progress<{}>): Promise<void> => {
         if (!siteConfig.linuxFxVersion) {
@@ -53,10 +54,10 @@ async function startRemoteSshInternal(node: SiteTreeItem): Promise<void> {
         remoteDebug.reportMessage('Starting tunnel proxy...', progress);
 
         const publishCredential: User = await siteClient.getWebAppPublishCredential();
-        const tunnelProxy: TunnelProxy = new TunnelProxy(portNumber, siteClient, publishCredential);
+        const tunnelProxy: TunnelProxy = new TunnelProxy(localHostPortNumber, sshPortNumber, siteClient, publishCredential);
         await callWithTelemetryAndErrorHandling('appService.remoteSshStartProxy', async function (this: IActionContext): Promise<void> {
             this.rethrowError = true;
-            await tunnelProxy.startProxy(2222);
+            await tunnelProxy.startProxy();
             await connectToTunnelProxy(tunnelProxy);
         });
     });
@@ -66,7 +67,7 @@ async function startRemoteSshInternal(node: SiteTreeItem): Promise<void> {
         // -o StrictHostKeyChecking=no doesn't prompt for adding to hosts
         // -o "UserKnownHostsFile /dev/null" doesn't add host to known_user file
         // -o "LogLevel ERROR" doesn't display Warning: Permanently added 'hostname,ip' (RSA) to the list of known hosts.
-        const sshCommand: string = `ssh -c aes256-cbc -o StrictHostKeyChecking=no -o "UserKnownHostsFile /dev/null" -o "LogLevel ERROR" root@127.0.0.1 -p ${portNumber}`;
+        const sshCommand: string = `ssh -c aes256-cbc -o StrictHostKeyChecking=no -o "UserKnownHostsFile /dev/null" -o "LogLevel ERROR" root@127.0.0.1 -p ${localHostPortNumber}`;
         const terminal: vscode.Terminal = vscode.window.createTerminal(sshTerminalName);
 
         // because the container needs time to respond, there needs to be a delay between connecting and entering password

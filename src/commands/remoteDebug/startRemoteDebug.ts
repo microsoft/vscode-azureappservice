@@ -42,7 +42,7 @@ async function startRemoteDebugInternal(actionContext: IActionContext, node?: Si
         remoteDebug.checkForRemoteDebugSupport(siteConfig, actionContext);
         const debugConfig: vscode.DebugConfiguration = await getDebugConfiguration();
         // tslint:disable-next-line:no-unsafe-any
-        const portNumber: number = debugConfig.port;
+        const localHostPortNumber: number = debugConfig.port;
 
         remoteDebug.reportMessage('Checking app settings...', progress);
 
@@ -52,11 +52,12 @@ async function startRemoteDebugInternal(actionContext: IActionContext, node?: Si
         remoteDebug.reportMessage('Starting tunnel proxy...', progress);
 
         const publishCredential: User = await siteClient.getWebAppPublishCredential();
-        const tunnelProxy: TunnelProxy = new TunnelProxy(portNumber, siteClient, publishCredential);
+        const remoteDebuggingPort: number = 49494;
+        const tunnelProxy: TunnelProxy = new TunnelProxy(localHostPortNumber, remoteDebuggingPort, siteClient, publishCredential);
         await callWithTelemetryAndErrorHandling('appService.remoteDebugStartProxy', async function (this: IActionContext): Promise<void> {
             this.suppressErrorDisplay = true;
             this.rethrowError = true;
-            await tunnelProxy.startProxy(49494);
+            await tunnelProxy.startProxy();
         });
 
         remoteDebug.reportMessage('Attaching debugger...', progress);
