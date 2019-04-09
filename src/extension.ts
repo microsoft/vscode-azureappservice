@@ -26,8 +26,9 @@ import { viewDeploymentLogs } from './commands/deployments/viewDeploymentLogs';
 import { enableFileLogging } from './commands/enableFileLogging';
 import { disableRemoteDebug } from './commands/remoteDebug/disableRemoteDebug';
 import { startRemoteDebug } from './commands/remoteDebug/startRemoteDebug';
-import { RemoteSsh } from './commands/remoteDebug/RemoteSsh';
 import { showFile } from './commands/showFile';
+import { startSsh } from './commands/ssh/startSsh';
+import { stopSsh } from './commands/ssh/stopSsh';
 import { startStreamingLogs } from './commands/startStreamingLogs';
 import { swapSlots } from './commands/swapSlots';
 import { toggleValueVisibilityCommandId } from './constants';
@@ -45,6 +46,7 @@ import { LogPointsManager } from './logPoints/LogPointsManager';
 import { LogPointsSessionWizard } from './logPoints/LogPointsSessionWizard';
 import { RemoteScriptDocumentProvider, RemoteScriptSchema } from './logPoints/remoteScriptDocumentProvider';
 import { LogpointsCollection } from './logPoints/structs/LogpointsCollection';
+import { openUrl } from './utils/openUrl';
 
 // tslint:disable-next-line:export-name
 // tslint:disable-next-line:max-func-body-length
@@ -104,8 +106,6 @@ export async function activateInternal(
         const yesButton: vscode.MessageItem = { title: 'Yes' };
         const noButton: vscode.MessageItem = { title: 'No', isCloseAffordance: true };
 
-        const remoteSsh: RemoteSsh = new RemoteSsh();
-
         registerCommand('appService.Refresh', async (node?: AzureTreeItem) => await ext.tree.refresh(node));
         registerCommand('appService.selectSubscriptions', () => vscode.commands.executeCommand("azure-account.selectSubscriptions"));
         registerCommand('appService.LoadMore', async (node: AzureTreeItem) => await ext.tree.loadMore(node));
@@ -114,7 +114,7 @@ export async function activateInternal(
                 node = <WebAppTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue);
             }
 
-            node.browse();
+            await node.browse();
         });
         registerCommand('appService.OpenInPortal', async (node?: AzureTreeItem<ISiteTreeRoot>) => {
             if (!node) {
@@ -302,8 +302,8 @@ export async function activateInternal(
 
         registerCommand('appService.StartRemoteDebug', async function (this: IActionContext, node?: SiteTreeItem): Promise<void> { await startRemoteDebug(this, node); });
         registerCommand('appService.DisableRemoteDebug', async function (this: IActionContext, node?: SiteTreeItem): Promise<void> { await disableRemoteDebug(this, node); });
-        registerCommand('appService.StartRemoteSsh', async (node?: SiteTreeItem): Promise<void> => { await remoteSsh.startRemoteSsh(node); });
-        registerCommand('appService.StopRemoteSsh', async (node?: SiteTreeItem): Promise<void> => { await remoteSsh.stopRemoteSsh(node); });
+        registerCommand('appService.StartSsh', async (node?: SiteTreeItem): Promise<void> => { await startSsh(node); });
+        registerCommand('appService.StopSsh', async (node?: SiteTreeItem): Promise<void> => { await stopSsh(node); });
 
         registerCommand('appService.showFile', async (node: FileTreeItem) => { await showFile(node, fileEditor); }, 500);
         registerCommand('appService.ScaleUp', async (node: DeploymentSlotsNATreeItem | ScaleUpTreeItem) => {
@@ -338,8 +338,7 @@ export async function activateInternal(
             if (listOfCommands.find((x: string) => x === commandToRun)) {
                 vscode.commands.executeCommand(commandToRun, 'ms-azuretools.vscode-cosmosdb');
             } else {
-                // tslint:disable-next-line:no-unsafe-any
-                opn('https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-cosmosdb');
+                await openUrl('https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-cosmosdb');
             }
         });
         registerCommand('appService.AddCosmosDBConnection', addCosmosDBConnection);
