@@ -4,11 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { SiteConfigResource } from 'azure-arm-website/lib/models';
-import * as opn from 'opn';
 import * as vscode from 'vscode';
 import { SiteClient } from 'vscode-azureappservice';
 import { callWithTelemetryAndErrorHandling, DialogResponses, IActionContext } from 'vscode-azureextensionui';
 import { ext } from '../../extensionVariables';
+import { openUrl } from '../../utils/openUrl';
 
 export function reportMessage(message: string, progress: vscode.Progress<{}>): void {
     ext.outputChannel.appendLine(message);
@@ -71,8 +71,7 @@ export async function setRemoteDebug(isRemoteDebuggingToBeEnabled: boolean, conf
             });
             reportMessage('Updating site configuration done...', progress);
         } else if (result === DialogResponses.learnMore) {
-            // tslint:disable-next-line:no-unsafe-any
-            opn('https://aka.ms/appsvc-remotedebug');
+            await openUrl('https://aka.ms/appsvc-remotedebug');
         } else {
             // User canceled
             return;

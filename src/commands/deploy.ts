@@ -182,7 +182,7 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
             ext.outputChannel.show();
         } else if (result === browseWebsite) {
             // tslint:disable-next-line:no-non-null-assertion
-            node!.browse();
+            await node!.browse();
         } else if (result === streamLogs) {
             await startStreamingLogs(node);
         }

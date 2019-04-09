@@ -5,7 +5,6 @@
 
 import * as WebSiteModels from 'azure-arm-website/lib/models';
 import * as fse from 'fs-extra';
-import * as opn from 'opn';
 import * as path from 'path';
 import { MessageItem, Uri, window, workspace, WorkspaceConfiguration } from 'vscode';
 import { AppSettingsTreeItem, AppSettingTreeItem, deleteSite, DeploymentsTreeItem, DeploymentTreeItem, ISiteTreeRoot, SiteClient } from 'vscode-azureappservice';
@@ -13,6 +12,7 @@ import { AzureParentTreeItem, AzureTreeItem, DialogResponses, TelemetryPropertie
 import { runtimes, toggleValueVisibilityCommandId } from '../constants';
 import * as constants from '../constants';
 import { ext } from '../extensionVariables';
+import { openUrl } from '../utils/openUrl';
 import { ConnectionsTreeItem } from './ConnectionsTreeItem';
 import { CosmosDBConnection } from './CosmosDBConnection';
 import { CosmosDBTreeItem } from './CosmosDBTreeItem';
@@ -74,9 +74,8 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         return this.root.client.id;
     }
 
-    public browse(): void {
-        // tslint:disable-next-line:no-unsafe-any
-        opn(this.root.client.defaultHostUrl);
+    public async browse(): Promise<void> {
+        await openUrl(this.root.client.defaultHostUrl);
     }
 
     public async loadMoreChildrenImpl(_clearCache: boolean): Promise<AzureTreeItem<ISiteTreeRoot>[]> {
@@ -144,8 +143,7 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         while (input === learnMoreButton) {
             input = await window.showInformationMessage(buildDuringDeploy, yesButton, dontShowAgainButton, learnMoreButton);
             if (input === learnMoreButton) {
-                // tslint:disable-next-line:no-unsafe-any
-                opn('https://aka.ms/Kwwkbd');
+                await openUrl('https://aka.ms/Kwwkbd');
             }
         }
         if (input === yesButton) {
