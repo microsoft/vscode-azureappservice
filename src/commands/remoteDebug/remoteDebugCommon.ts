@@ -71,7 +71,6 @@ export async function setRemoteDebug(isRemoteDebuggingToBeEnabled: boolean, conf
             });
             reportMessage('Updating site configuration done...', progress);
         } else if (result === DialogResponses.learnMore) {
-            // tslint:disable-next-line:no-unsafe-any
             await openUrl('https://aka.ms/appsvc-remotedebug');
         } else {
             // User canceled

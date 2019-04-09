@@ -75,7 +75,6 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     }
 
     public async browse(): Promise<void> {
-        // tslint:disable-next-line:no-unsafe-any
         await openUrl(this.root.client.defaultHostUrl);
     }
 
@@ -144,7 +143,6 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         while (input === learnMoreButton) {
             input = await window.showInformationMessage(buildDuringDeploy, yesButton, dontShowAgainButton, learnMoreButton);
             if (input === learnMoreButton) {
-                // tslint:disable-next-line:no-unsafe-any
                 await openUrl('https://aka.ms/Kwwkbd');
             }
         }

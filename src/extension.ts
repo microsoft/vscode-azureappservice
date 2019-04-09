@@ -334,7 +334,6 @@ export async function activateInternal(
             if (listOfCommands.find((x: string) => x === commandToRun)) {
                 vscode.commands.executeCommand(commandToRun, 'ms-azuretools.vscode-cosmosdb');
             } else {
-                // tslint:disable-next-line:no-unsafe-any
                 await openUrl('https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-cosmosdb');
             }
         });
