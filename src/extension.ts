@@ -6,7 +6,6 @@
 'use strict';
 
 import { SiteConfigResource } from 'azure-arm-website/lib/models';
-import * as opn from 'opn';
 import * as vscode from 'vscode';
 import { AppSettingsTreeItem, AppSettingTreeItem, DeploymentsTreeItem, editScmType, ISiteTreeRoot, registerAppServiceExtensionVariables, SiteClient, stopStreamingLogs } from 'vscode-azureappservice';
 import { AzureParentTreeItem, AzureTreeDataProvider, AzureTreeItem, AzureUserInput, callWithTelemetryAndErrorHandling, createApiProvider, createTelemetryReporter, IActionContext, IAzureUserInput, registerCommand, registerEvent, registerUIExtensionVariables, SubscriptionTreeItem } from 'vscode-azureextensionui';
@@ -27,7 +26,7 @@ import { viewDeploymentLogs } from './commands/deployments/viewDeploymentLogs';
 import { enableFileLogging } from './commands/enableFileLogging';
 import { disableRemoteDebug } from './commands/remoteDebug/disableRemoteDebug';
 import { startRemoteDebug } from './commands/remoteDebug/startRemoteDebug';
-import { startRemoteSsh, stopRemoteSsh } from './commands/remoteDebug/startRemoteSsh';
+import { RemoteSsh } from './commands/remoteDebug/RemoteSsh';
 import { showFile } from './commands/showFile';
 import { startStreamingLogs } from './commands/startStreamingLogs';
 import { swapSlots } from './commands/swapSlots';
@@ -104,6 +103,8 @@ export async function activateInternal(
 
         const yesButton: vscode.MessageItem = { title: 'Yes' };
         const noButton: vscode.MessageItem = { title: 'No', isCloseAffordance: true };
+
+        const remoteSsh: RemoteSsh = new RemoteSsh();
 
         registerCommand('appService.Refresh', async (node?: AzureTreeItem) => await ext.tree.refresh(node));
         registerCommand('appService.selectSubscriptions', () => vscode.commands.executeCommand("azure-account.selectSubscriptions"));
@@ -301,8 +302,8 @@ export async function activateInternal(
 
         registerCommand('appService.StartRemoteDebug', async function (this: IActionContext, node?: SiteTreeItem): Promise<void> { await startRemoteDebug(this, node); });
         registerCommand('appService.DisableRemoteDebug', async function (this: IActionContext, node?: SiteTreeItem): Promise<void> { await disableRemoteDebug(this, node); });
-        registerCommand('appService.StartRemoteSsh', async (node?: SiteTreeItem): Promise<void> => { await startRemoteSsh(node); });
-        registerCommand('appService.StopRemoteSsh', async (node?: SiteTreeItem): Promise<void> => { await stopRemoteSsh(node); });
+        registerCommand('appService.StartRemoteSsh', async (node?: SiteTreeItem): Promise<void> => { await remoteSsh.startRemoteSsh(node); });
+        registerCommand('appService.StopRemoteSsh', async (node?: SiteTreeItem): Promise<void> => { await remoteSsh.stopRemoteSsh(node); });
 
         registerCommand('appService.showFile', async (node: FileTreeItem) => { await showFile(node, fileEditor); }, 500);
         registerCommand('appService.ScaleUp', async (node: DeploymentSlotsNATreeItem | ScaleUpTreeItem) => {

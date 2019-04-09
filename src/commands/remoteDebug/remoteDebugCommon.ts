@@ -57,10 +57,9 @@ function isNodeVersionSupported(nodeVersion: string): boolean {
     return (major > 8 || (major === 8 && minor >= 11));
 }
 
-export async function setRemoteDebug(isRemoteDebuggingToBeEnabled: boolean, confirmMessage: string | undefined, noopMessage: string | undefined, siteClient: SiteClient, siteConfig: SiteConfigResource, progress?: vscode.Progress<{}>): Promise<void> {
+export async function setRemoteDebug(isRemoteDebuggingToBeEnabled: boolean, confirmMessage: string, noopMessage: string | undefined, siteClient: SiteClient, siteConfig: SiteConfigResource, progress?: vscode.Progress<{}>): Promise<void> {
     if (isRemoteDebuggingToBeEnabled !== siteConfig.remoteDebuggingEnabled) {
-        // if there is no confirmMessage, automatically assume yes.
-        const result: vscode.MessageItem = confirmMessage ? await ext.ui.showWarningMessage(confirmMessage, { modal: true }, DialogResponses.yes, DialogResponses.learnMore, DialogResponses.cancel) : DialogResponses.yes;
+        const result: vscode.MessageItem = await ext.ui.showWarningMessage(confirmMessage, { modal: true }, DialogResponses.yes, DialogResponses.learnMore, DialogResponses.cancel);
         if (result === DialogResponses.yes) {
             siteConfig.remoteDebuggingEnabled = isRemoteDebuggingToBeEnabled;
             if (progress) {

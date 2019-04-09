@@ -7,7 +7,6 @@ import { SiteConfigResource, User } from 'azure-arm-website/lib/models';
 import * as portfinder from 'portfinder';
 import * as vscode from 'vscode';
 import { SiteClient, TunnelProxy } from 'vscode-azureappservice';
-import { callWithTelemetryAndErrorHandling, IActionContext } from 'vscode-azureextensionui';
 import { SiteTreeItem } from '../../explorer/SiteTreeItem';
 import { WebAppTreeItem } from '../../explorer/WebAppTreeItem';
 import { ext } from '../../extensionVariables';
@@ -16,12 +15,11 @@ import * as remoteDebug from './remoteDebugCommon';
 
 type sshTerminal = {
     running: boolean,
-    terminal: vscode.Terminal
+    terminal: vscode.Terminal | undefined
 }
 
-export class remoteSsh {
+export class RemoteSsh {
     public activeSshSessions: Map<string, sshTerminal>;
-    public constructor(node:)
 
     public async startRemoteSsh(node?: SiteTreeItem): Promise<void> {
         if (!node) {
@@ -31,11 +29,10 @@ export class remoteSsh {
             throw new Error(`Azure Remote SSH is currently starting or already started for "${node.root.client.fullName}".`);
         }
 
-        this.activeSshSessions.set(node.root.client.fullName, true);
         try {
             await this.startRemoteSshInternal(node);
         } catch (error) {
-            this.activeSshSessions.set(node.root.client.fullName, false);
+            this.activeSshSessions.set(node.root.client.fullName, { running: false, terminal: undefined });
             throw error;
         }
     }
@@ -43,7 +40,6 @@ export class remoteSsh {
     public async startRemoteSshInternal(node: SiteTreeItem): Promise<void> {
         const siteClient: SiteClient = node.root.client;
         const siteConfig: SiteConfigResource = await siteClient.getSiteConfig();
-        const oldSetting: boolean = <boolean>siteConfig.remoteDebuggingEnabled;
         // should always be an unbound port
         const localHostPortNumber: number = await portfinder.getPortPromise();
         const sshPortNumber: number = 2222;
@@ -54,28 +50,25 @@ export class remoteSsh {
             }
 
             remoteDebug.reportMessage('Checking app settings...', progress);
-
+            const confirmDisableMessage: string = 'The app configuration will be updated to disable remote debugging and restarted. Would you like to continue?';
             // remote debugging has to be disabled in order to tunnel to the 2222 port
-            await remoteDebug.setRemoteDebug(false, undefined /*skips confirmation*/, undefined, siteClient, siteConfig);
+            await remoteDebug.setRemoteDebug(false, confirmDisableMessage /*skips confirmation*/, undefined, siteClient, siteConfig);
 
             remoteDebug.reportMessage('Starting SSH...', progress);
 
             const publishCredential: User = await siteClient.getWebAppPublishCredential();
             const tunnelProxy: TunnelProxy = new TunnelProxy(localHostPortNumber, sshPortNumber, siteClient, publishCredential);
-            await callWithTelemetryAndErrorHandling('appService.remoteSshStartProxy', async function (this: IActionContext): Promise<void> {
-                this.rethrowError = true;
-                await tunnelProxy.startProxy();
-                await this.connectToTunnelProxy(tunnelProxy);
-            });
+            await tunnelProxy.startProxy();
+            await this.connectToTunnelProxy(node, tunnelProxy, localHostPortNumber);
         });
     }
 
-    public async connectToTunnelProxy(tunnelProxy: TunnelProxy): Promise<void> {
+    public async connectToTunnelProxy(node: SiteTreeItem, tunnelProxy: TunnelProxy, port: number): Promise<void> {
         const sshTerminalName: string = `${node.root.client.fullName} - Remote SSH`;
         // -o StrictHostKeyChecking=no doesn't prompt for adding to hosts
         // -o "UserKnownHostsFile /dev/null" doesn't add host to known_user file
         // -o "LogLevel ERROR" doesn't display Warning: Permanently added 'hostname,ip' (RSA) to the list of known hosts.
-        const sshCommand: string = `ssh -c aes256-cbc -o StrictHostKeyChecking=no -o "UserKnownHostsFile /dev/null" -o "LogLevel ERROR" root@127.0.0.1 -p ${localHostPortNumber}`;
+        const sshCommand: string = `ssh -c aes256-cbc -o StrictHostKeyChecking=no -o "UserKnownHostsFile /dev/null" -o "LogLevel ERROR" root@127.0.0.1 -p ${port}`;
         const terminal: vscode.Terminal = vscode.window.createTerminal(sshTerminalName);
 
 
@@ -92,9 +85,8 @@ export class remoteSsh {
                 if (tunnelProxy !== undefined) {
                     tunnelProxy.dispose();
                 }
-                this.activeSshSessions.set(node.root.client.fullName, false);
+                this.activeSshSessions.set(node.root.client.fullName, { running: false, terminal: undefined });
                 ext.outputChannel.appendLine(`Azure Remote SSH for "${node.root.client.fullName}" has disconnected.`);
-                await remoteDebug.setRemoteDebug(oldSetting, undefined/*skips confirmation*/, undefined, siteClient, siteConfig);
             }
         });
     }
@@ -104,17 +96,14 @@ export class remoteSsh {
             node = <SiteTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue);
         }
 
-        if (!this.activeSshSessions.get(node.root.client.fullName)) {
+        const sshTerminal: sshTerminal | undefined = this.activeSshSessions.get(node.root.client.fullName);
+
+        if (!sshTerminal || !sshTerminal.running) {
             throw new Error(`Azure Remote SSH is not currently running for "${node.root.client.fullName}".`);
         }
-        const sshTerminalName: string = `${node.root.client.fullName} - Remote SSH`;
-        for (const terminal of vscode.window.terminals) {
-            if (terminal.name === sshTerminalName) {
-                terminal.dispose();
-                return;
-            }
-        }
 
-        throw new Error(`Terminal "${sshTerminalName}" could not be found.`);
+        if (sshTerminal.terminal) {
+            sshTerminal.terminal.dispose();
+        }
     }
 }
