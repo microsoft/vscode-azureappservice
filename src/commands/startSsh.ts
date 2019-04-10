@@ -31,8 +31,8 @@ export async function startSsh(node?: SiteTreeItem): Promise<void> {
     if (currentSshTerminal) {
         if (currentSshTerminal.starting) {
             throw new Error(`Azure SSH is currently starting or already started for "${node.root.client.fullName}".`);
-        } else if (currentSshTerminal.tunnel && currentSshTerminal.localPort) {
-            connectToTunnelProxy(node, currentSshTerminal.tunnel, currentSshTerminal.localPort);
+        } else if (currentSshTerminal.tunnel && currentSshTerminal.localPort !== undefined) {
+            await connectToTunnelProxy(node, currentSshTerminal.tunnel, currentSshTerminal.localPort);
             return;
         }
     }
@@ -83,9 +83,8 @@ async function connectToTunnelProxy(node: SiteTreeItem, tunnelProxy: TunnelProxy
     const sshCommand: string = `ssh -c aes256-cbc -o StrictHostKeyChecking=no -o "UserKnownHostsFile /dev/null" -o "LogLevel ERROR" root@127.0.0.1 -p ${port}`;
 
     // if this terminal already exists, just reuse it otherwise create a new terminal.
-    const terminal: vscode.Terminal = vscode.window.terminals.find((terminal: vscode.Terminal) => {
-        return terminal.name === sshTerminalName;
-    }) || vscode.window.createTerminal(sshTerminalName);
+    // tslint:disable-next-line:strict-boolean-expressions
+    const terminal: vscode.Terminal = vscode.window.terminals.find((activeTerminal: vscode.Terminal) => { return activeTerminal.name === sshTerminalName; }) || vscode.window.createTerminal(sshTerminalName);
 
     // because the container needs time to respond, there needs to be a delay between connecting and entering password
     terminal.sendText(sshCommand, true);

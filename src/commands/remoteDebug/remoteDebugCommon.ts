@@ -9,7 +9,7 @@ import { SiteClient } from 'vscode-azureappservice';
 import { callWithTelemetryAndErrorHandling, DialogResponses, IActionContext } from 'vscode-azureextensionui';
 import { ext } from '../../extensionVariables';
 
-export const learnMoreLink: string = 'https://aka.ms/appsvc-remotedebug';
+export const remoteDebugLink: string = 'https://aka.ms/appsvc-remotedebug';
 export function reportMessage(message: string, progress: vscode.Progress<{}>): void {
     ext.outputChannel.appendLine(message);
     progress.report({ message: message });

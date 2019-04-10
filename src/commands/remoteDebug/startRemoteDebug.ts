@@ -47,7 +47,7 @@ async function startRemoteDebugInternal(actionContext: IActionContext, node?: Si
         remoteDebug.reportMessage('Checking app settings...', progress);
 
         const confirmEnableMessage: string = 'The app configuration will be updated to enable remote debugging and restarted. Would you like to continue?';
-        await remoteDebug.setRemoteDebug(true, confirmEnableMessage, undefined, siteClient, siteConfig, progress, remoteDebug.learnMoreLink);
+        await remoteDebug.setRemoteDebug(true, confirmEnableMessage, undefined, siteClient, siteConfig, progress, remoteDebug.remoteDebugLink);
 
         remoteDebug.reportMessage('Starting tunnel proxy...', progress);
 
@@ -81,7 +81,7 @@ async function startRemoteDebugInternal(actionContext: IActionContext, node?: Si
 
                 const confirmDisableMessage: string = 'Leaving the app in debugging mode may cause performance issues. Would you like to disable debugging for this app? The app will be restarted.';
                 await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification }, async (innerProgress: vscode.Progress<{}>): Promise<void> => {
-                    await remoteDebug.setRemoteDebug(false, confirmDisableMessage, undefined, siteClient, siteConfig, innerProgress, remoteDebug.learnMoreLink);
+                    await remoteDebug.setRemoteDebug(false, confirmDisableMessage, undefined, siteClient, siteConfig, innerProgress, remoteDebug.remoteDebugLink);
                 });
             }
         });
