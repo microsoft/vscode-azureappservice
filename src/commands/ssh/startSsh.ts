@@ -41,50 +41,52 @@ export async function startSsh(node?: SiteTreeItem): Promise<void> {
 
 async function startSshInternal(node: SiteTreeItem): Promise<void> {
     const siteClient: SiteClient = node.root.client;
-    const siteConfig: SiteConfigResource = await siteClient.getSiteConfig();
-
-    // should always be an unbound port
-    const localHostPortNumber: number = await portfinder.getPortPromise();
-    const sshPortNumber: number = 2222;
-    const confirmDisableMessage: string = 'The app configuration will be updated to disable remote debugging and restarted. Would you like to continue?';
+    if (!siteClient.isLinux) {
+        throw new Error('Azure SSH is only supported for Linux web apps.');
+    }
 
     await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification }, async (progress: vscode.Progress<{}>): Promise<void> => {
-        if (!siteClient.isLinux) {
-            throw new Error('Azure SSH is only supported for Linux web apps.');
-        }
 
         remoteDebug.reportMessage('Checking app settings...', progress);
 
+        const confirmDisableMessage: string = 'Remote debugging must be disabled in order to SSH. This will restart the app.';
+        const siteConfig: SiteConfigResource = await siteClient.getSiteConfig();
         // remote debugging has to be disabled in order to tunnel to the 2222 port
-        await remoteDebug.setRemoteDebug(false, confirmDisableMessage, undefined, siteClient, siteConfig);
+        await remoteDebug.setRemoteDebug(false, confirmDisableMessage, undefined, siteClient, siteConfig, progress);
 
         remoteDebug.reportMessage('Initializing SSH...', progress);
         const publishCredential: User = await siteClient.getWebAppPublishCredential();
+        const localHostPortNumber: number = await portfinder.getPortPromise();
+        // should always be an unbound port
+        const sshPortNumber: number = 2222;
         const tunnelProxy: TunnelProxy = new TunnelProxy(localHostPortNumber, sshPortNumber, siteClient, publishCredential);
 
         await tunnelProxy.startProxy();
 
         remoteDebug.reportMessage('Connecting to SSH...', progress);
-        await connectToTunnelProxy(tunnelProxy);
+        await connectToTunnelProxy(tunnelProxy, localHostPortNumber);
     });
 
-    async function connectToTunnelProxy(tunnelProxy: TunnelProxy): Promise<void> {
+    async function connectToTunnelProxy(tunnelProxy: TunnelProxy, port: number): Promise<void> {
         const sshTerminalName: string = `${node.root.client.fullName} - SSH`;
         // -o StrictHostKeyChecking=no doesn't prompt for adding to hosts
         // -o "UserKnownHostsFile /dev/null" doesn't add host to known_user file
         // -o "LogLevel ERROR" doesn't display Warning: Permanently added 'hostname,ip' (RSA) to the list of known hosts.
-        const sshCommand: string = `ssh -c aes256-cbc -o StrictHostKeyChecking=no -o "UserKnownHostsFile /dev/null" -o "LogLevel ERROR" root@127.0.0.1 -p ${localHostPortNumber}`;
+        const sshCommand: string = `ssh -c aes256-cbc -o StrictHostKeyChecking=no -o "UserKnownHostsFile /dev/null" -o "LogLevel ERROR" root@127.0.0.1 -p ${port}`;
         const terminal: vscode.Terminal = vscode.window.createTerminal(sshTerminalName);
 
         // because the container needs time to respond, there needs to be a delay between connecting and entering password
         terminal.sendText(sshCommand, true);
         await delay(3000);
+
+        // The default password for logging into the container (after you have SSHed in) is Docker!
         terminal.sendText('Docker!', true);
         terminal.show();
         ext.context.subscriptions.push(terminal);
+
         sshSessionsMap.set(node.root.client.fullName, { running: true, terminal: terminal });
 
-        vscode.window.onDidCloseTerminal(async (e: vscode.Terminal) => {
+        const onCloseEvent: vscode.Disposable = vscode.window.onDidCloseTerminal(async (e: vscode.Terminal) => {
             if (e.processId === terminal.processId) {
                 // clean up if the SSH task ends
                 if (tunnelProxy !== undefined) {
@@ -93,6 +95,9 @@ async function startSshInternal(node: SiteTreeItem): Promise<void> {
 
                 sshSessionsMap.set(node.root.client.fullName, { running: false, terminal: undefined });
                 ext.outputChannel.appendLine(`Azure SSH for "${node.root.client.fullName}" has disconnected.`);
+
+                // clean this up after we've disposed the terminal and reset the map
+                onCloseEvent.dispose();
             }
         });
     }
