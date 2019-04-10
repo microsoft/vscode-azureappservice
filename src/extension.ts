@@ -27,8 +27,7 @@ import { enableFileLogging } from './commands/enableFileLogging';
 import { disableRemoteDebug } from './commands/remoteDebug/disableRemoteDebug';
 import { startRemoteDebug } from './commands/remoteDebug/startRemoteDebug';
 import { showFile } from './commands/showFile';
-import { startSsh } from './commands/ssh/startSsh';
-import { stopSsh } from './commands/ssh/stopSsh';
+import { startSsh } from './commands/startSsh';
 import { startStreamingLogs } from './commands/startStreamingLogs';
 import { swapSlots } from './commands/swapSlots';
 import { toggleValueVisibilityCommandId } from './constants';
@@ -302,8 +301,7 @@ export async function activateInternal(
 
         registerCommand('appService.StartRemoteDebug', async function (this: IActionContext, node?: SiteTreeItem): Promise<void> { await startRemoteDebug(this, node); });
         registerCommand('appService.DisableRemoteDebug', async function (this: IActionContext, node?: SiteTreeItem): Promise<void> { await disableRemoteDebug(this, node); });
-        registerCommand('appService.StartSsh', async (node?: SiteTreeItem): Promise<void> => { await startSsh(node); });
-        registerCommand('appService.StopSsh', async (node?: SiteTreeItem): Promise<void> => { await stopSsh(node); });
+        registerCommand('appService.StartSsh', startSsh);
 
         registerCommand('appService.showFile', async (node: FileTreeItem) => { await showFile(node, fileEditor); }, 500);
         registerCommand('appService.ScaleUp', async (node: DeploymentSlotsNATreeItem | ScaleUpTreeItem) => {

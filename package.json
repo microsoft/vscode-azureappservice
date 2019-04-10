@@ -55,7 +55,6 @@
         "onCommand:appService.StartRemoteDebug",
         "onCommand:appService.DisableRemoteDebug",
         "onCommand:appService.StartSsh",
-        "onCommand:appService.StopSsh",
         "onCommand:appService.CreateSlot",
         "onCommand:appService.EnableFileLogging",
         "onCommand:appService.ViewDeploymentLogs",
@@ -224,12 +223,7 @@
             },
             {
                 "command": "appService.StartSsh",
-                "title": "Start SSH",
-                "category": "Azure App Service"
-            },
-            {
-                "command": "appService.StopSsh",
-                "title": "Stop SSH",
+                "title": "SSH into Web App",
                 "category": "Azure App Service"
             },
             {
@@ -523,11 +517,6 @@
                     "command": "appService.StartSsh",
                     "when": "view == azureAppService && viewItem == appService",
                     "group": "6_appServiceRemoteSshCommands@1"
-                },
-                {
-                    "command": "appService.StopSsh",
-                    "when": "view == azureAppService && viewItem == appService",
-                    "group": "6_appServiceRemoteSshCommands@2"
                 },
                 {
                     "command": "appService.CreateSlot",
