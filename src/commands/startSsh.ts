@@ -65,8 +65,7 @@ async function startSshInternal(node: SiteTreeItem): Promise<void> {
         const publishCredential: User = await siteClient.getWebAppPublishCredential();
         const localHostPortNumber: number = await portfinder.getPortPromise();
         // should always be an unbound port
-        const sshPortNumber: number = 2222;
-        const tunnelProxy: TunnelProxy = new TunnelProxy(localHostPortNumber, sshPortNumber, siteClient, publishCredential);
+        const tunnelProxy: TunnelProxy = new TunnelProxy(localHostPortNumber, siteClient, publishCredential, true);
 
         await tunnelProxy.startProxy();
 

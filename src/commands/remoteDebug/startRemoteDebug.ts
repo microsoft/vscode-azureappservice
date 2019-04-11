@@ -52,8 +52,7 @@ async function startRemoteDebugInternal(actionContext: IActionContext, node?: Si
         remoteDebug.reportMessage('Starting tunnel proxy...', progress);
 
         const publishCredential: User = await siteClient.getWebAppPublishCredential();
-        const remoteDebuggingPort: number = 49494;
-        const tunnelProxy: TunnelProxy = new TunnelProxy(localHostPortNumber, remoteDebuggingPort, siteClient, publishCredential);
+        const tunnelProxy: TunnelProxy = new TunnelProxy(localHostPortNumber, siteClient, publishCredential);
         await callWithTelemetryAndErrorHandling('appService.remoteDebugStartProxy', async function (this: IActionContext): Promise<void> {
             this.suppressErrorDisplay = true;
             this.rethrowError = true;
