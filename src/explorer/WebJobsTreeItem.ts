@@ -39,7 +39,7 @@ export class WebJobsTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
             return [new GenericTreeItem<ISiteTreeRoot>(this, { label: 'WebJobs are not available for Linux Apps.', contextValue: 'webJobNA' })];
         }
 
-        const jobList: webJob[] = <webJob[]>await this.root.client.getWebJobs();
+        const jobList: webJob[] = <webJob[]>await this.root.client.listWebJobs();
         return jobList.map((job: webJob) => {
             return new GenericTreeItem<ISiteTreeRoot>(this, { id: job.name, label: job.name, contextValue: 'webJob' });
         });
