@@ -41,7 +41,7 @@ export async function startSsh(node?: SiteTreeItem): Promise<void> {
         sshSessionsMap.set(node.root.client.fullName, { starting: true, terminal: undefined, tunnel: undefined, localPort: undefined });
         await startSshInternal(node);
     } catch (error) {
-        sshSessionsMap.set(node.root.client.fullName, { starting: false, terminal: undefined, tunnel: undefined, localPort: undefined });
+        sshSessionsMap.delete(node.root.client.fullName);
         throw error;
     }
 }
@@ -85,8 +85,9 @@ async function connectToTunnelProxy(node: SiteTreeItem, tunnelProxy: TunnelProxy
     // tslint:disable-next-line:strict-boolean-expressions
     const terminal: vscode.Terminal = vscode.window.terminals.find((activeTerminal: vscode.Terminal) => { return activeTerminal.name === sshTerminalName; }) || vscode.window.createTerminal(sshTerminalName);
 
-    // because the container needs time to respond, there needs to be a delay between connecting and entering password
     terminal.sendText(sshCommand, true);
+    // because the container needs time to respond, there needs to be a delay between connecting and entering password
+    // this is a workaround and is being tracked: https://github.com/Microsoft/vscode-azureappservice/issues/932
     await delay(3000);
 
     // The default password for logging into the container (after you have SSHed in) is Docker!
@@ -103,7 +104,7 @@ async function connectToTunnelProxy(node: SiteTreeItem, tunnelProxy: TunnelProxy
                 tunnelProxy.dispose();
             }
 
-            sshSessionsMap.set(node.root.client.fullName, { starting: false, terminal: undefined, tunnel: undefined, localPort: undefined });
+            sshSessionsMap.delete(node.root.client.fullName)
             ext.outputChannel.appendLine(`Azure SSH for "${node.root.client.fullName}" has disconnected.`);
 
             // clean this up after we've disposed the terminal and reset the map
