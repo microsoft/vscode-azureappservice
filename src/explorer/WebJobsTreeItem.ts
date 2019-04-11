@@ -5,7 +5,7 @@
 
 import * as path from 'path';
 import { ISiteTreeRoot } from 'vscode-azureappservice';
-import { AzureParentTreeItem, AzureTreeItem, GenericTreeItem, parseError } from 'vscode-azureextensionui';
+import { AzureParentTreeItem, AzureTreeItem, GenericTreeItem } from 'vscode-azureextensionui';
 import { resourcesPath } from '../constants';
 
 export class WebJobsTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
@@ -44,7 +44,7 @@ export class WebJobsTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
                 return [new GenericTreeItem<ISiteTreeRoot>(this, { label: 'WebJobs are not available for Linux Apps.', contextValue: 'webJobNA' })];
             }
 
-            throw parseError(err);
+            throw err;
         }
 
         return jobList.map((job: webJob) => {
