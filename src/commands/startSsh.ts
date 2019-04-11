@@ -104,7 +104,7 @@ async function connectToTunnelProxy(node: SiteTreeItem, tunnelProxy: TunnelProxy
                 tunnelProxy.dispose();
             }
 
-            sshSessionsMap.delete(node.root.client.fullName)
+            sshSessionsMap.delete(node.root.client.fullName);
             ext.outputChannel.appendLine(`Azure SSH for "${node.root.client.fullName}" has disconnected.`);
 
             // clean this up after we've disposed the terminal and reset the map
