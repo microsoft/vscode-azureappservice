@@ -5,7 +5,7 @@
 
 import * as path from 'path';
 import { ISiteTreeRoot } from 'vscode-azureappservice';
-import { AzureParentTreeItem, AzureTreeItem, GenericTreeItem } from 'vscode-azureextensionui';
+import { AzureParentTreeItem, AzureTreeItem, GenericTreeItem, parseError } from 'vscode-azureextensionui';
 import { resourcesPath } from '../constants';
 
 export class WebJobsTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
@@ -35,11 +35,18 @@ export class WebJobsTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     }
 
     public async loadMoreChildrenImpl(_clearCache: boolean): Promise<AzureTreeItem<ISiteTreeRoot>[]> {
-        if (this.root.client.isLinux) {
-            return [new GenericTreeItem<ISiteTreeRoot>(this, { label: 'WebJobs are not available for Linux Apps.', contextValue: 'webJobNA' })];
+        let jobList: webJob[];
+        try {
+            jobList = <webJob[]>await this.root.client.listWebJobs();
+        } catch (err) {
+            if (this.root.client.isLinux) {
+                // Can't find actual documentation on this, but the portal claims it and this feedback suggests it's not planned https://aka.ms/AA4q5gi
+                return [new GenericTreeItem<ISiteTreeRoot>(this, { label: 'WebJobs are not available for Linux Apps.', contextValue: 'webJobNA' })];
+            }
+
+            throw parseError(err);
         }
 
-        const jobList: webJob[] = <webJob[]>await this.root.client.listWebJobs();
         return jobList.map((job: webJob) => {
             return new GenericTreeItem<ISiteTreeRoot>(this, { id: job.name, label: job.name, contextValue: 'webJob' });
         });
