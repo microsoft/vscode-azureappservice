@@ -17,10 +17,11 @@ import { SiteTreeItem } from '../explorer/SiteTreeItem';
 import { WebAppTreeItem } from '../explorer/WebAppTreeItem';
 import { ext } from '../extensionVariables';
 import { showQuickPickByFileExtension } from '../util';
+import { delay } from '../utils/delay';
 import { isPathEqual, isSubpath } from '../utils/pathUtils';
 import { getRandomHexString } from "../utils/randomUtils";
 import * as workspaceUtil from '../utils/workspace';
-import { cancelWebsiteValidation, delay, validateWebSite } from '../validateWebSite';
+import { cancelWebsiteValidation, validateWebSite } from '../validateWebSite';
 import { startStreamingLogs } from './startStreamingLogs';
 
 // tslint:disable-next-line:max-func-body-length cyclomatic-complexity

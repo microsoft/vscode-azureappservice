@@ -26,6 +26,7 @@ export async function disableRemoteDebug(actionContext: IActionContext, node?: S
         const siteConfig: SiteConfigResource = await siteClient.getSiteConfig();
 
         remoteDebug.checkForRemoteDebugSupport(siteConfig, actionContext);
-        await remoteDebug.setRemoteDebug(false, confirmMessage, noopMessage, siteClient, siteConfig, progress);
+
+        await remoteDebug.setRemoteDebug(false, confirmMessage, noopMessage, siteClient, siteConfig, progress, remoteDebug.remoteDebugLink);
     });
 }

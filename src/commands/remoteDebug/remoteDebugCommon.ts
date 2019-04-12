@@ -8,8 +8,8 @@ import * as vscode from 'vscode';
 import { SiteClient } from 'vscode-azureappservice';
 import { callWithTelemetryAndErrorHandling, DialogResponses, IActionContext } from 'vscode-azureextensionui';
 import { ext } from '../../extensionVariables';
-import { openUrl } from '../../utils/openUrl';
 
+export const remoteDebugLink: string = 'https://aka.ms/appsvc-remotedebug';
 export function reportMessage(message: string, progress: vscode.Progress<{}>): void {
     ext.outputChannel.appendLine(message);
     progress.report({ message: message });
@@ -57,24 +57,25 @@ function isNodeVersionSupported(nodeVersion: string): boolean {
     return (major > 8 || (major === 8 && minor >= 11));
 }
 
-export async function setRemoteDebug(isRemoteDebuggingToBeEnabled: boolean, confirmMessage: string, noopMessage: string | undefined, siteClient: SiteClient, siteConfig: SiteConfigResource, progress: vscode.Progress<{}>): Promise<void> {
+export async function setRemoteDebug(isRemoteDebuggingToBeEnabled: boolean, confirmMessage: string, noopMessage: string | undefined, siteClient: SiteClient, siteConfig: SiteConfigResource, progress?: vscode.Progress<{}>, learnMoreLink?: string): Promise<void> {
     if (isRemoteDebuggingToBeEnabled !== siteConfig.remoteDebuggingEnabled) {
-        const result: vscode.MessageItem = await ext.ui.showWarningMessage(confirmMessage, { modal: true }, DialogResponses.yes, DialogResponses.learnMore, DialogResponses.cancel);
-        if (result === DialogResponses.yes) {
-            siteConfig.remoteDebuggingEnabled = isRemoteDebuggingToBeEnabled;
+        const confirmButton: vscode.MessageItem = isRemoteDebuggingToBeEnabled ? { title: 'Enable' } : { title: 'Disable' };
 
+        // don't have to check input as this handles cancels and learnMore responses
+        await ext.ui.showWarningMessage(confirmMessage, { modal: true, learnMoreLink }, confirmButton, DialogResponses.cancel);
+        siteConfig.remoteDebuggingEnabled = isRemoteDebuggingToBeEnabled;
+        if (progress) {
             reportMessage('Updating site configuration to set remote debugging...', progress);
-            await callWithTelemetryAndErrorHandling('appService.remoteDebugUpdateConfiguration', async function (this: IActionContext): Promise<void> {
-                this.suppressErrorDisplay = true;
-                this.rethrowError = true;
-                await siteClient.updateConfiguration(siteConfig);
-            });
+        }
+
+        await callWithTelemetryAndErrorHandling('appService.remoteDebugUpdateConfiguration', async function (this: IActionContext): Promise<void> {
+            this.suppressErrorDisplay = true;
+            this.rethrowError = true;
+            await siteClient.updateConfiguration(siteConfig);
+        });
+
+        if (progress) {
             reportMessage('Updating site configuration done...', progress);
-        } else if (result === DialogResponses.learnMore) {
-            await openUrl('https://aka.ms/appsvc-remotedebug');
-        } else {
-            // User canceled
-            return;
         }
     } else {
         // Update not needed
