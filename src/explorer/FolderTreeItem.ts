@@ -4,10 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { IncomingMessage } from 'http';
-import * as path from 'path';
 import { ISiteTreeRoot } from 'vscode-azureappservice';
 import { AzureParentTreeItem, AzureTreeItem } from 'vscode-azureextensionui';
-import { resourcesPath } from '../constants';
+import { getThemedIconPath, IThemedIconPath } from '../utils/pathUtils';
 import { FileTreeItem } from './FileTreeItem';
 import { LogStreamTreeItem } from './LogStreamTreeItem';
 
@@ -21,11 +20,8 @@ export class FolderTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         this.contextValue = subcontextValue ? subcontextValue : FolderTreeItem.contextValue;
     }
 
-    public get iconPath(): { light: string, dark: string } | undefined {
-        return {
-            light: path.join(resourcesPath, 'light', 'Folder_16x.svg'),
-            dark: path.join(resourcesPath, 'dark', 'Folder_16x.svg')
-        };
+    public get iconPath(): IThemedIconPath {
+        return getThemedIconPath('Folder_16x');
     }
 
     public hasMoreChildrenImpl(): boolean {

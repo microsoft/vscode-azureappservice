@@ -10,7 +10,8 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { ISiteTreeRoot } from 'vscode-azureappservice';
 import { AzureTreeItem, createAzureClient } from 'vscode-azureextensionui';
-import { extensionPrefix, resourcesPath } from '../constants';
+import { extensionPrefix } from '../constants';
+import { getResourcesPath, getThemedIconPath, IThemedIconPath } from '../utils/pathUtils';
 import { DeploymentSlotsNATreeItem, DeploymentSlotsTreeItem } from './DeploymentSlotsTreeItem';
 import { DeploymentSlotTreeItem } from './DeploymentSlotTreeItem';
 import { SiteTreeItem } from './SiteTreeItem';
@@ -24,12 +25,8 @@ export class WebAppTreeItem extends SiteTreeItem {
         return this.root.client.siteName;
     }
 
-    public get iconPath(): { light: string, dark: string } {
-        const iconName = 'WebApp_color.svg';
-        return {
-            light: path.join(resourcesPath, 'light', iconName),
-            dark: path.join(resourcesPath, 'dark', iconName)
-        };
+    public get iconPath(): IThemedIconPath {
+        return getThemedIconPath('WebApp_color');
     }
 
     public async loadMoreChildrenImpl(clearCache: boolean): Promise<AzureTreeItem<ISiteTreeRoot>[]> {
@@ -125,7 +122,7 @@ export class WebAppTreeItem extends SiteTreeItem {
     }
 
     private async loadScriptTemplate(scriptName: string): Promise<string> {
-        const templatePath = path.join(resourcesPath, 'deploymentScripts', scriptName);
+        const templatePath = path.join(getResourcesPath(), 'deploymentScripts', scriptName);
         return await fs.readFile(templatePath, 'utf8');
     }
 }

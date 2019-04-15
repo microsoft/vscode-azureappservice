@@ -4,13 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { StringDictionary } from 'azure-arm-website/lib/models';
-import * as path from 'path';
 import * as vscode from 'vscode';
 import { ISiteTreeRoot, validateAppSettingKey } from 'vscode-azureappservice';
 import { AzureParentTreeItem, AzureTreeItem, createTreeItemsWithErrorHandling, GenericTreeItem, UserCancelledError } from 'vscode-azureextensionui';
 import { AzureExtensionApiProvider } from 'vscode-azureextensionui/api';
-import { resourcesPath } from '../constants';
 import { ext } from '../extensionVariables';
+import { getThemedIconPath, IThemedIconPath } from '../utils/pathUtils';
 import { CosmosDBExtensionApi, DatabaseTreeItem } from '../vscode-cosmos.api';
 import { ConnectionsTreeItem } from './ConnectionsTreeItem';
 import { CosmosDBConnection } from './CosmosDBConnection';
@@ -38,11 +37,8 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         return this._cosmosDBExtension ? CosmosDBTreeItem.contextValueInstalled : CosmosDBTreeItem.contextValueNotInstalled;
     }
 
-    public get iconPath(): string | vscode.Uri | { light: string | vscode.Uri; dark: string | vscode.Uri } {
-        return {
-            light: path.join(resourcesPath, 'light', 'CosmosDBAccount.svg'),
-            dark: path.join(resourcesPath, 'dark', 'CosmosDBAccount.svg')
-        };
+    public get iconPath(): IThemedIconPath {
+        return getThemedIconPath('CosmosDBAccount');
     }
 
     public async loadMoreChildrenImpl(_clearCache: boolean): Promise<AzureTreeItem<ISiteTreeRoot>[]> {

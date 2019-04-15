@@ -3,10 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as path from 'path';
 import { ISiteTreeRoot } from 'vscode-azureappservice';
 import { AzureParentTreeItem, AzureTreeItem, GenericTreeItem } from 'vscode-azureextensionui';
-import { resourcesPath } from '../constants';
+import { getThemedIconPath, IThemedIconPath } from '../utils/pathUtils';
 
 export class WebJobsTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     public static contextValue: string = 'webJobs';
@@ -18,16 +17,8 @@ export class WebJobsTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         return 'webJobs';
     }
 
-    public get iconPath(): { light: string, dark: string } {
-        return this.root.client.isLinux ?
-            {
-                light: path.join(resourcesPath, 'light', 'WebJobs_grayscale.svg'),
-                dark: path.join(resourcesPath, 'dark', 'WebJobs_grayscale.svg')
-            } :
-            {
-                light: path.join(resourcesPath, 'light', 'WebJobs_color.svg'),
-                dark: path.join(resourcesPath, 'dark', 'WebJobs_color.svg')
-            };
+    public get iconPath(): IThemedIconPath {
+        return getThemedIconPath(this.root.client.isLinux ? 'WebJobs_grayscale' : 'WebJobs_color');
     }
 
     public hasMoreChildrenImpl(): boolean {

@@ -3,10 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as path from 'path';
-
-export const resourcesPath = path.join(__dirname, '..', 'resources'); // (relative to dist folder)
-
 export const deploymentFileName: string = '.deployment';
 export const deploymentFile: string = `[config]
 SCM_DO_BUILD_DURING_DEPLOYMENT=true`;

@@ -3,10 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as path from 'path';
 import { ISiteTreeRoot } from 'vscode-azureappservice';
 import { AzureTreeItem } from 'vscode-azureextensionui';
-import { resourcesPath } from '../constants';
+import { getThemedIconPath, IThemedIconPath } from '../utils/pathUtils';
 import { FolderTreeItem } from './FolderTreeItem';
 
 export class LogStreamTreeItem extends AzureTreeItem<ISiteTreeRoot> {
@@ -20,10 +19,7 @@ export class LogStreamTreeItem extends AzureTreeItem<ISiteTreeRoot> {
         super(parent);
     }
 
-    public get iconPath(): { light: string, dark: string } {
-        return {
-            light: path.join(resourcesPath, 'light', 'StartLog.svg'),
-            dark: path.join(resourcesPath, 'dark', 'StartLog.svg')
-        };
+    public get iconPath(): IThemedIconPath {
+        return getThemedIconPath('StartLog');
     }
 }
