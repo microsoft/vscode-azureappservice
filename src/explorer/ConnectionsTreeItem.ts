@@ -3,10 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as path from 'path';
 import { ISiteTreeRoot } from 'vscode-azureappservice';
 import { AzureParentTreeItem, AzureTreeItem } from 'vscode-azureextensionui';
-import { resourcesPath } from '../constants';
+import { getThemedIconPath, IThemedIconPath } from '../utils/pathUtils';
 import { CosmosDBConnection } from './CosmosDBConnection';
 import { CosmosDBTreeItem } from './CosmosDBTreeItem';
 import { SiteTreeItem } from './SiteTreeItem';
@@ -24,12 +23,8 @@ export class ConnectionsTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         this._cosmosDBNode = new CosmosDBTreeItem(this);
     }
 
-    public get iconPath(): { light: string, dark: string } {
-        const iconName = 'Connections_16x.svg';
-        return {
-            light: path.join(resourcesPath, 'light', iconName),
-            dark: path.join(resourcesPath, 'dark', iconName)
-        };
+    public get iconPath(): IThemedIconPath {
+        return getThemedIconPath('Connections_16x');
     }
 
     public async loadMoreChildrenImpl(_clearCache: boolean): Promise<AzureTreeItem<ISiteTreeRoot>[]> {
