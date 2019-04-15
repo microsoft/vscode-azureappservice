@@ -19,10 +19,15 @@ export class WebJobsTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     }
 
     public get iconPath(): { light: string, dark: string } {
-        return {
-            light: path.join(resourcesPath, 'light', 'WebJobs_color.svg'),
-            dark: path.join(resourcesPath, 'dark', 'WebJobs_color.svg')
-        };
+        return this.root.client.isLinux ?
+            {
+                light: path.join(resourcesPath, 'light', 'WebJobs_grayscale.svg'),
+                dark: path.join(resourcesPath, 'dark', 'WebJobs_grayscale.svg')
+            } :
+            {
+                light: path.join(resourcesPath, 'light', 'WebJobs_color.svg'),
+                dark: path.join(resourcesPath, 'dark', 'WebJobs_color.svg')
+            };
     }
 
     public hasMoreChildrenImpl(): boolean {
@@ -30,7 +35,17 @@ export class WebJobsTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     }
 
     public async loadMoreChildrenImpl(_clearCache: boolean): Promise<AzureTreeItem<ISiteTreeRoot>[]> {
-        const jobList: webJob[] = <webJob[]>await this.root.client.kudu.jobs.listAllJobs();
+        let jobList: webJob[];
+        try {
+            jobList = <webJob[]>await this.root.client.listWebJobs();
+        } catch (err) {
+            if (this.root.client.isLinux) {
+                // Can't find actual documentation on this, but the portal claims it and this feedback suggests it's not planned https://aka.ms/AA4q5gi
+                return [new GenericTreeItem<ISiteTreeRoot>(this, { label: 'WebJobs are not available for Linux Apps.', contextValue: 'webJobNA' })];
+            }
+
+            throw err;
+        }
 
         return jobList.map((job: webJob) => {
             return new GenericTreeItem<ISiteTreeRoot>(this, { id: job.name, label: job.name, contextValue: 'webJob' });
