@@ -5,4 +5,4 @@ steps:
     vsckEndpoint: 'azureappservice-dev' # name of the IntelliNav service connection
     nugetpat: 'azureappservice-nuget' # name of the NuGet service connection
     language: 'typescript' # languages in your repo, separated by commas
-    githubpat: 'vsls-contrib' # if your repo is on GitHub, this is the name of the GitHub service connection (GitHub organization by default)
+    githubpat: 'GitHub connection' # if your repo is on GitHub, this is the name of the GitHub service connection (GitHub organization by default)
