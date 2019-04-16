@@ -35,6 +35,5 @@
         "repos",
         "runtimes",
         "vsce"
-    ],
-    "appService.showBuildDuringDeployPrompt": false
+    ]
 }
