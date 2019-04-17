@@ -30,7 +30,7 @@ export class WebAppTreeItem extends SiteTreeItem {
     }
 
     public async loadMoreChildrenImpl(clearCache: boolean): Promise<AzureTreeItem<ISiteTreeRoot>[]> {
-        let tier: string | undefined
+        let tier: string | undefined;
         let asp: AppServicePlan | undefined;
         try {
             asp = await this.root.client.getAppServicePlan();
