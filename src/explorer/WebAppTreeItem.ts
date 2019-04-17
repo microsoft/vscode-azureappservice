@@ -30,8 +30,16 @@ export class WebAppTreeItem extends SiteTreeItem {
     }
 
     public async loadMoreChildrenImpl(clearCache: boolean): Promise<AzureTreeItem<ISiteTreeRoot>[]> {
-        const asp: AppServicePlan | undefined = await this.root.client.getAppServicePlan();
-        const tier: string | undefined = asp && asp.sku && asp.sku.tier;
+        let tier: string | undefined
+        let asp: AppServicePlan | undefined;
+        try {
+            asp = await this.root.client.getAppServicePlan();
+            tier = asp && asp.sku && asp.sku.tier;
+        } catch (err) {
+            // ignore this error, we don't want to block users for deployment slots
+            tier = 'ignored';
+        }
+
         // tslint:disable-next-line:no-non-null-assertion
         this.deploymentSlotsNode = tier && /^(basic|free|shared)$/i.test(tier) ? new DeploymentSlotsNATreeItem(this, asp!.id!) : new DeploymentSlotsTreeItem(this);
         return (await super.loadMoreChildrenImpl(clearCache)).concat(this.deploymentSlotsNode);
