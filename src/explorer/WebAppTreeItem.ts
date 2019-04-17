@@ -37,7 +37,7 @@ export class WebAppTreeItem extends SiteTreeItem {
             tier = asp && asp.sku && asp.sku.tier;
         } catch (err) {
             // ignore this error, we don't want to block users for deployment slots
-            tier = 'ignored';
+            tier = 'unknown';
         }
 
         // tslint:disable-next-line:no-non-null-assertion
