@@ -1,6 +1,11 @@
 # Change Log
 All notable changes to the "azure-appservice" extension will be documented in this file.
 
+## 0.13.1 - 2019-04-19
+### Fixed
+- Extension does not load in older vscode versions:
+    - https://github.com/Microsoft/vscode-azureappservice/issues/942
+
 ## 0.13.0 - 2019-03-07
 ### Added
 - Remote debugging support for Node.js on Linux (previously required a feature flag)
