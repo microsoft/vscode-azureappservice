@@ -981,7 +981,7 @@
         "tslint-microsoft-contrib": "5.0.1",
         "typescript": "^3.3.1",
         "vsce": "^1.55.0",
-        "vscode": "^1.1.28",
+        "vscode": "^1.1.33",
         "vscode-azureextensiondev": "0.1.8",
         "webpack": "^4.25.1",
         "webpack-cli": "^3.1.2"
