@@ -1,8 +1,6 @@
 # Change Log
 All notable changes to the "azure-appservice" extension will be documented in this file.
 
-
-
 ## 0.14.0 - 2019-05-01
 ### Added
 - SSH into Linux Web Apps
