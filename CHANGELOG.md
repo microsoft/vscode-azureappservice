@@ -1,6 +1,15 @@
 # Change Log
 All notable changes to the "azure-appservice" extension will be documented in this file.
 
+## 0.14.0 - 2019-05-01
+### Added
+- SSH into Linux Web Apps
+- View GitHub commits for web apps connected to a GitHub repo
+- Show deployment source on Deployments node
+
+### Fixed
+- [Bugs fixed](https://github.com/Microsoft/vscode-azureappservice/issues?utf8=%E2%9C%93&q=is%3Aissue+milestone%3A%220.14.0%22+label%3Abug+is%3Aclosed+)
+
 ## 0.13.0 - 2019-03-07
 ### Added
 - Remote debugging support for Node.js on Linux (previously required a feature flag)
