@@ -5,10 +5,9 @@
 
 'use strict';
 
-import { SiteConfigResource } from 'azure-arm-website/lib/models';
 import * as vscode from 'vscode';
 import { AppSettingsTreeItem, AppSettingTreeItem, DeploymentsTreeItem, editScmType, ISiteTreeRoot, registerAppServiceExtensionVariables, SiteClient, stopStreamingLogs } from 'vscode-azureappservice';
-import { AzureParentTreeItem, AzureTreeDataProvider, AzureTreeItem, AzureUserInput, callWithTelemetryAndErrorHandling, createApiProvider, createTelemetryReporter, IActionContext, IAzureUserInput, registerCommand, registerEvent, registerUIExtensionVariables, SubscriptionTreeItem } from 'vscode-azureextensionui';
+import { AzureParentTreeItem, AzureTreeDataProvider, AzureTreeItem, AzureUserInput, callWithTelemetryAndErrorHandling, createApiProvider, createTelemetryReporter, IActionContext, IAzureUserInput, registerCommand, registerEvent, registerUIExtensionVariables } from 'vscode-azureextensionui';
 import { AzureExtensionApiProvider } from 'vscode-azureextensionui/api';
 import { downloadAppSettings } from './commands/appSettings/downloadAppSettings';
 import { toggleSlotSetting } from './commands/appSettings/toggleSlotSetting';
@@ -17,6 +16,7 @@ import { addCosmosDBConnection } from './commands/connections/addCosmosDBConnect
 import { removeCosmosDBConnection } from './commands/connections/removeCosmosDBConnection';
 import { revealConnection } from './commands/connections/revealConnection';
 import { revealConnectionInAppSettings } from './commands/connections/revealConnectionInAppSettings';
+import { createWebApp } from './commands/createWebApp';
 import { deploy } from './commands/deploy';
 import { connectToGitHub } from './commands/deployments/connectToGitHub';
 import { disconnectRepo } from './commands/deployments/disconnectRepo';
@@ -182,26 +182,7 @@ export async function activateInternal(
             await node.deleteTreeItem();
         });
         registerCommand('appService.CreateWebApp', async function (this: IActionContext, node?: AzureParentTreeItem): Promise<void> {
-            if (!node) {
-                node = <AzureParentTreeItem>await ext.tree.showTreeItemPicker(SubscriptionTreeItem.contextValue);
-            }
-
-            const createdApp = <WebAppTreeItem>await node.createChild(this);
-            createdApp.root.client.getSiteConfig().then(
-                (createdAppConfig: SiteConfigResource) => {
-                    this.properties.linuxFxVersion = createdAppConfig.linuxFxVersion ? createdAppConfig.linuxFxVersion : 'undefined';
-                    this.properties.createdFromDeploy = 'false';
-                },
-                () => {
-                    // ignore
-                });
-            // prompt user to deploy to newly created web app
-            vscode.window.showInformationMessage('Deploy to web app?', yesButton, noButton).then(
-                async (input: vscode.MessageItem) => {
-                    if (input === yesButton) {
-                        await deploy(this, false, createdApp);
-                    }
-                });
+            await createWebApp(this, node);
         });
         registerCommand('appService.Deploy', async function (this: IActionContext, target?: vscode.Uri | WebAppTreeItem | undefined): Promise<void> {
             await deploy(this, true, target);

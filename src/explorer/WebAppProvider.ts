@@ -5,10 +5,8 @@
 
 import { WebSiteManagementClient } from 'azure-arm-website';
 import { Site, WebAppCollection } from 'azure-arm-website/lib/models';
-import { workspace, WorkspaceConfiguration } from 'vscode';
-import { createWebApp, SiteClient } from 'vscode-azureappservice';
-import { AzureTreeItem, createAzureClient, createTreeItemsWithErrorHandling, IActionContext, parseError, SubscriptionTreeItem, UserCancelledError } from 'vscode-azureextensionui';
-import { configurationSettings, extensionPrefix } from '../constants';
+import { createWebApp, IAppCreateOptions, SiteClient } from 'vscode-azureappservice';
+import { AzureTreeItem, createAzureClient, createTreeItemsWithErrorHandling, parseError, SubscriptionTreeItem, UserCancelledError } from 'vscode-azureextensionui';
 import { WebAppTreeItem } from './WebAppTreeItem';
 
 export class WebAppProvider extends SubscriptionTreeItem {
@@ -59,15 +57,17 @@ export class WebAppProvider extends SubscriptionTreeItem {
         );
     }
 
-    public async createChildImpl(showCreatingTreeItem: (label: string) => void, actionContext: IActionContext): Promise<AzureTreeItem> {
-        const workspaceConfig: WorkspaceConfiguration = workspace.getConfiguration(extensionPrefix);
-        const advancedCreation: boolean | undefined = workspaceConfig.get(configurationSettings.advancedCreation);
-        const newSite: Site | undefined = await createWebApp(actionContext, this.root, { advancedCreation }, showCreatingTreeItem);
-        if (newSite === undefined) {
-            throw new UserCancelledError();
+    public async createChildImpl(showCreatingTreeItem: (label: string) => void, createOptions?: IAppCreateOptions): Promise<AzureTreeItem> {
+        if (createOptions && createOptions.actionContext) {
+            const newSite: Site | undefined = await createWebApp(createOptions.actionContext, this.root, createOptions, showCreatingTreeItem);
+            if (newSite === undefined) {
+                throw new UserCancelledError();
+            } else {
+                const siteClient: SiteClient = new SiteClient(newSite, this.root);
+                return new WebAppTreeItem(this, siteClient);
+            }
         } else {
-            const siteClient: SiteClient = new SiteClient(newSite, this.root);
-            return new WebAppTreeItem(this, siteClient);
+            throw new Error('Missing object "actionContext"');
         }
     }
 }

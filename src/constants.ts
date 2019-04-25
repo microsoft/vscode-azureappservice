@@ -10,15 +10,6 @@ export const none: string = 'None';
 export const isWindows: boolean = /^win/.test(process.platform);
 
 export const extensionPrefix: string = 'appService';
-export enum runtimes {
-    node = 'node',
-    php = 'php',
-    dotnetcore = 'dotnetcore',
-    ruby = 'ruby',
-    tomcat = 'tomcat',
-    javase = 'java|8-jre8',
-    python = 'python'
-}
 
 export enum configurationSettings {
     zipIgnorePattern = 'zipIgnorePattern',

@@ -120,11 +120,11 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
             //check if node is being zipdeployed and that there is no .deployment file
             if (siteConfig.linuxFxVersion && siteConfig.scmType === 'None' && !(await pathExists(path.join(fsPath, constants.deploymentFileName)))) {
                 const linuxFxVersion: string = siteConfig.linuxFxVersion.toLowerCase();
-                if (linuxFxVersion.startsWith(constants.runtimes.node)) {
+                if (linuxFxVersion.startsWith(appservice.LinuxRuntimes.node)) {
                     // if it is node or python, prompt the user (as we can break them)
-                    await node.promptScmDoBuildDeploy(fsPath, constants.runtimes.node, context.properties);
-                } else if (linuxFxVersion.startsWith(constants.runtimes.python)) {
-                    await node.promptScmDoBuildDeploy(fsPath, constants.runtimes.python, context.properties);
+                    await node.promptScmDoBuildDeploy(fsPath, appservice.LinuxRuntimes.node, context.properties);
+                } else if (linuxFxVersion.startsWith(appservice.LinuxRuntimes.python)) {
+                    await node.promptScmDoBuildDeploy(fsPath, appservice.LinuxRuntimes.python, context.properties);
                 }
 
             }

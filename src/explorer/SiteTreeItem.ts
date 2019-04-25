@@ -7,9 +7,9 @@ import * as WebSiteModels from 'azure-arm-website/lib/models';
 import * as fse from 'fs-extra';
 import * as path from 'path';
 import { MessageItem, Uri, window, workspace, WorkspaceConfiguration } from 'vscode';
-import { AppSettingsTreeItem, AppSettingTreeItem, deleteSite, DeploymentsTreeItem, DeploymentTreeItem, ISiteTreeRoot, SiteClient } from 'vscode-azureappservice';
+import { AppSettingsTreeItem, AppSettingTreeItem, deleteSite, DeploymentsTreeItem, DeploymentTreeItem, ISiteTreeRoot, LinuxRuntimes, SiteClient } from 'vscode-azureappservice';
 import { AzureParentTreeItem, AzureTreeItem, DialogResponses, TelemetryProperties } from 'vscode-azureextensionui';
-import { runtimes, toggleValueVisibilityCommandId } from '../constants';
+import { toggleValueVisibilityCommandId } from '../constants';
 import * as constants from '../constants';
 import { ext } from '../extensionVariables';
 import { openUrl } from '../utils/openUrl';
@@ -198,9 +198,9 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     private getIgnoredFoldersForDeployment(runtime: string): string[] {
         let ignoredFolders: string[];
         switch (runtime) {
-            case runtimes.node:
+            case LinuxRuntimes.node:
                 ignoredFolders = ['node_modules{,/**}'];
-            case runtimes.python:
+            case LinuxRuntimes.python:
                 // list of Python ignorables are pulled from here https://github.com/github/gitignore/blob/master/Python.gitignore
                 // Byte-compiled / optimized / DLL files
                 ignoredFolders = ['__pycache__{,/**}', '*.py[cod]', '*$py.class',
