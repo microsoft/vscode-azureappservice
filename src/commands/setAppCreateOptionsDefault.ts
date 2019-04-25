@@ -43,14 +43,22 @@ export async function setAppCreateOptionsDefault(actionContext: IActionContext):
             // to avoid 'Requested features are not supported in region' error
             createOptions.location = 'westeurope';
         }
-        // we only set the OS for the non-advanced creation scenario
-        // tslint:disable-next-line:strict-boolean-expressions
+
+        // if we are recommending a runtime, then it is either Nodejs, Python, or Java which all use Linux
         if (createOptions.recommendedSiteRuntime) {
             createOptions.os = WebsiteOS.linux;
+            if (!createOptions.planSku) {
+                // don't overwrite the planSku if it is already set
+                createOptions.planSku = { name: 'B1', tier: 'Basic', size: 'B1', family: 'B', capacity: 1 };
+            }
         } else {
             await workspace.findFiles('*.csproj').then((files: Uri[]) => {
                 if (files.length > 0) {
                     createOptions.os = WebsiteOS.windows;
+                    if (!createOptions.planSku) {
+                        // don't overwrite the planSku if it is already set
+                        createOptions.planSku = { name: 'F1', tier: 'Free', size: 'F1', family: 'F', capacity: 1 };
+                    }
                 }
             });
         }
