@@ -6,3 +6,4 @@ steps:
     nugetpat: 'azuretools-nuget' # name of the NuGet service connection
     language: 'typescript' # languages in your repo, separated by commas
     githubpat: 'GitHub connection' # if your repo is on GitHub, this is the name of the GitHub service connection (GitHub organization by default)
+  continueOnError: true
