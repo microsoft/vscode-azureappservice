@@ -5,10 +5,11 @@
 
 import { WebSiteManagementClient } from 'azure-arm-website';
 import { Site, WebAppCollection } from 'azure-arm-website/lib/models';
-import { workspace, WorkspaceConfiguration } from 'vscode';
+import { ConfigurationTarget, MessageItem, workspace, WorkspaceConfiguration } from 'vscode';
 import { createWebApp, SiteClient } from 'vscode-azureappservice';
 import { AzureTreeItem, createAzureClient, createTreeItemsWithErrorHandling, IActionContext, parseError, SubscriptionTreeItem, UserCancelledError } from 'vscode-azureextensionui';
 import { configurationSettings, extensionPrefix } from '../constants';
+import { ext } from '../extensionVariables';
 import { WebAppTreeItem } from './WebAppTreeItem';
 
 export class WebAppProvider extends SubscriptionTreeItem {
@@ -62,7 +63,23 @@ export class WebAppProvider extends SubscriptionTreeItem {
     public async createChildImpl(showCreatingTreeItem: (label: string) => void, actionContext: IActionContext): Promise<AzureTreeItem> {
         const workspaceConfig: WorkspaceConfiguration = workspace.getConfiguration(extensionPrefix);
         const advancedCreation: boolean | undefined = workspaceConfig.get(configurationSettings.advancedCreation);
-        const newSite: Site | undefined = await createWebApp(actionContext, this.root, { advancedCreation }, showCreatingTreeItem);
+        let newSite: Site | undefined;
+        try {
+            newSite = await createWebApp(actionContext, this.root, { advancedCreation }, showCreatingTreeItem);
+        } catch (error) {
+            if (!parseError(error).isUserCancelledError && !advancedCreation) {
+                const message: string = `Modify the setting "${extensionPrefix}.${configurationSettings.advancedCreation}" if you want to change the default values when creating a Web App in Azure.`;
+                const btn: MessageItem = { title: 'Turn on advanced creation' };
+                // tslint:disable-next-line: no-floating-promises
+                ext.ui.showWarningMessage(message, btn).then(async result => {
+                    if (result === btn) {
+                        const projectConfiguration: WorkspaceConfiguration = workspace.getConfiguration('appService');
+                        await projectConfiguration.update('advancedCreation', true, ConfigurationTarget.Global);
+                    }
+                });
+            }
+            throw error;
+        }
         if (newSite === undefined) {
             throw new UserCancelledError();
         } else {
