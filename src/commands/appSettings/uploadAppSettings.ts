@@ -41,5 +41,7 @@ export async function uploadAppSettings(target?: Uri | AppSettingsTreeItem | und
             throw new Error(`No enviroment variables found in "${envFileName}".`);
         }
     });
-    await window.showInformationMessage(`Uploaded settings to "${client.fullName}".`);
+
+    // tslint:disable-next-line: no-floating-promises
+    window.showInformationMessage(`Uploaded settings to "${client.fullName}".`);
 }
