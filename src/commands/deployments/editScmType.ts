@@ -1,8 +1,8 @@
-import { SiteTreeItem } from "../../explorer/SiteTreeItem";
 import * as appservice from "vscode-azureappservice";
-import { ext } from "../../extensionVariables";
+import { AzureTreeItem, IActionContext } from "vscode-azureextensionui";
+import { SiteTreeItem } from "../../explorer/SiteTreeItem";
 import { WebAppTreeItem } from "../../explorer/WebAppTreeItem";
-import { IActionContext, AzureTreeItem } from "vscode-azureextensionui";
+import { ext } from "../../extensionVariables";
 
 export async function editScmType(actionContext: IActionContext, node?: SiteTreeItem | appservice.DeploymentsTreeItem): Promise<void> {
     if (!node) {
@@ -15,7 +15,7 @@ export async function editScmType(actionContext: IActionContext, node?: SiteTree
     const children: AzureTreeItem[] = await node.getCachedChildren();
     const deploymentsTreeItem: AzureTreeItem | undefined = children.find(ti => {
         return ti.label === appservice.DeploymentsTreeItem.contextValueConnected ||
-            ti.contextValue === appservice.DeploymentsTreeItem.contextValueUnconnected
+            ti.contextValue === appservice.DeploymentsTreeItem.contextValueUnconnected;
     });
 
     // if we couldn't find the deployments treeItem, just refresh the parent
