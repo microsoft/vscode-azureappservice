@@ -195,13 +195,6 @@ export async function activateInternal(
                 () => {
                     // ignore
                 });
-            // prompt user to deploy to newly created web app
-            vscode.window.showInformationMessage('Deploy to web app?', yesButton, noButton).then(
-                async (input: vscode.MessageItem) => {
-                    if (input === yesButton) {
-                        await deploy(this, false, createdApp);
-                    }
-                });
         });
         registerCommand('appService.Deploy', async function (this: IActionContext, target?: vscode.Uri | WebAppTreeItem | undefined): Promise<void> {
             await deploy(this, true, target);

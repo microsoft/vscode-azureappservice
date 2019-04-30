@@ -5,9 +5,10 @@
 
 import { WebSiteManagementClient } from 'azure-arm-website';
 import { Site, WebAppCollection } from 'azure-arm-website/lib/models';
-import { ConfigurationTarget, MessageItem, workspace, WorkspaceConfiguration } from 'vscode';
+import { ConfigurationTarget, MessageItem, window, workspace, WorkspaceConfiguration } from 'vscode';
 import { createWebApp, SiteClient } from 'vscode-azureappservice';
 import { AzureTreeItem, createAzureClient, createTreeItemsWithErrorHandling, IActionContext, parseError, SubscriptionTreeItem, UserCancelledError } from 'vscode-azureextensionui';
+import { deploy } from '../commands/deploy';
 import { configurationSettings, extensionPrefix } from '../constants';
 import { ext } from '../extensionVariables';
 import { WebAppTreeItem } from './WebAppTreeItem';
@@ -84,7 +85,25 @@ export class WebAppProvider extends SubscriptionTreeItem {
             throw new UserCancelledError();
         } else {
             const siteClient: SiteClient = new SiteClient(newSite, this.root);
-            return new WebAppTreeItem(this, siteClient);
+            const treeItem: WebAppTreeItem = new WebAppTreeItem(this, siteClient);
+
+            const createdNewApp: string = `Created new web app "${newSite.name}": https://${newSite.defaultHostName}`;
+            ext.outputChannel.appendLine(createdNewApp);
+            ext.outputChannel.appendLine('');
+
+            const viewOutput: MessageItem = { title: 'View Output' };
+            const deployButton: MessageItem = { title: 'Deploy to Web App' };
+
+            // Note: intentionally not waiting for the result of this before returning
+            window.showInformationMessage(createdNewApp, deployButton, viewOutput).then(async (result: MessageItem | undefined) => {
+                if (result === viewOutput) {
+                    ext.outputChannel.show();
+                } else if (result === deployButton) {
+                    await deploy(actionContext, false, treeItem);
+                }
+            });
+
+            return treeItem;
         }
     }
 }
