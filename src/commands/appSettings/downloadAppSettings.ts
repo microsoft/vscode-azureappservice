@@ -39,12 +39,13 @@ export async function downloadAppSettings(node?: AppSettingsTreeItem): Promise<v
         await fse.writeFile(envVarPath, convertAppSettingsToEnvVariables(localEnvVariables, client.fullName));
     });
 
-    const input: string | undefined = await window.showInformationMessage(`Downloaded settings from "${client.fullName}".  View settings file?`, 'View file');
-    if (!input) {
-        throw new UserCancelledError();
-    }
-    const doc: vscode.TextDocument = await vscode.workspace.openTextDocument(envVarUri);
-    await vscode.window.showTextDocument(doc);
+    window.showInformationMessage(`Downloaded settings from "${client.fullName}".  View settings file?`, 'View file').then(async (input) => {
+        if (!input) {
+            throw new UserCancelledError();
+        }
+        const doc: vscode.TextDocument = await vscode.workspace.openTextDocument(envVarUri);
+        await vscode.window.showTextDocument(doc);
+    });
 }
 
 export function convertAppSettingsToEnvVariables(appSettings: { [propertyName: string]: string }, appName: string): string {

@@ -240,12 +240,14 @@ export async function activateInternal(
             const createdSlot = <SiteTreeItem>await node.createChild(this);
 
             // prompt user to deploy to newly created web app
-            if (await vscode.window.showInformationMessage('Deploy to deployment slot?', yesButton, noButton) === yesButton) {
-                this.properties[deployingToDeploymentSlot] = 'true';
-                await deploy(this, false, createdSlot);
-            } else {
-                this.properties[deployingToDeploymentSlot] = 'false';
-            }
+            vscode.window.showInformationMessage('Deploy to deployment slot?', yesButton, noButton).then(async (input) => {
+                if (input === yesButton) {
+                    this.properties[deployingToDeploymentSlot] = 'true';
+                    await deploy(this, false, createdSlot);
+                } else {
+                    this.properties[deployingToDeploymentSlot] = 'false';
+                }
+            });
         });
         registerCommand('appService.SwapSlots', async (node: DeploymentSlotTreeItem) => await swapSlots(node));
         registerCommand('appService.appSettings.Add', async (node?: AppSettingsTreeItem) => {
