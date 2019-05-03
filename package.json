@@ -728,9 +728,14 @@
                     "group": "1@1"
                 },
                 {
+                    "command": "appService.ConfigureDeploymentSource",
+                    "when": "view == azureAppService && viewItem =~ /^deployments(C|Unc)onnected$/",
+                    "group": "1@2"
+                },
+                {
                     "command": "appService.DisconnectRepo",
                     "when": "view == azureAppService && viewItem == deploymentsConnected",
-                    "group": "1@2"
+                    "group": "1@3"
                 },
                 {
                     "command": "appService.Refresh",

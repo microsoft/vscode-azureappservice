@@ -7,7 +7,7 @@
 
 import { SiteConfigResource } from 'azure-arm-website/lib/models';
 import * as vscode from 'vscode';
-import { AppSettingsTreeItem, AppSettingTreeItem, DeploymentsTreeItem, editScmType, ISiteTreeRoot, registerAppServiceExtensionVariables, SiteClient, stopStreamingLogs } from 'vscode-azureappservice';
+import { AppSettingsTreeItem, AppSettingTreeItem, DeploymentsTreeItem, ISiteTreeRoot, registerAppServiceExtensionVariables, SiteClient, stopStreamingLogs } from 'vscode-azureappservice';
 import { AzureParentTreeItem, AzureTreeDataProvider, AzureTreeItem, AzureUserInput, callWithTelemetryAndErrorHandling, createApiProvider, createTelemetryReporter, IActionContext, IAzureUserInput, registerCommand, registerEvent, registerUIExtensionVariables, SubscriptionTreeItem } from 'vscode-azureextensionui';
 import { AzureExtensionApiProvider } from 'vscode-azureextensionui/api';
 import { downloadAppSettings } from './commands/appSettings/downloadAppSettings';
@@ -20,6 +20,7 @@ import { revealConnectionInAppSettings } from './commands/connections/revealConn
 import { deploy } from './commands/deploy';
 import { connectToGitHub } from './commands/deployments/connectToGitHub';
 import { disconnectRepo } from './commands/deployments/disconnectRepo';
+import { editScmType } from './commands/deployments/editScmType';
 import { redeployDeployment } from './commands/deployments/redeployDeployment';
 import { viewCommitInGitHub } from './commands/deployments/viewCommitInGitHub';
 import { viewDeploymentLogs } from './commands/deployments/viewDeploymentLogs';
@@ -206,11 +207,9 @@ export async function activateInternal(
         registerCommand('appService.Deploy', async function (this: IActionContext, target?: vscode.Uri | WebAppTreeItem | undefined): Promise<void> {
             await deploy(this, true, target);
         });
-        registerCommand('appService.ConfigureDeploymentSource', async function (this: IActionContext, node?: SiteTreeItem): Promise<void> {
-            if (!node) {
-                node = <SiteTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue);
-            }
-            await editScmType(node.root.client, node, this);
+        registerCommand('appService.ConfigureDeploymentSource', async function (this: IActionContext, node?: DeploymentsTreeItem): Promise<void> {
+            await editScmType(this, node);
+
         });
         registerCommand('appService.OpenVSTSCD', async (node?: WebAppTreeItem) => {
             if (!node) {
