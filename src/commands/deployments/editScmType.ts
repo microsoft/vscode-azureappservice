@@ -13,11 +13,7 @@ export async function editScmType(actionContext: IActionContext, node?: SiteTree
     if (!node) {
         node = <DeploymentsTreeItem>await ext.tree.showTreeItemPicker([DeploymentsTreeItem.contextValueConnected, DeploymentsTreeItem.contextValueUnconnected]);
     } else if (node instanceof SiteTreeItem) {
-        actionContext.properties.contextValue = node.contextValue;
         node = <DeploymentsTreeItem>node.deploymentsNode;
-    } else {
-        // entered through deployments node context menu
-        actionContext.properties.contextValue = node.contextValue;
     }
 
     await appservice.editScmType(node.root.client, node.parent, actionContext);
