@@ -6,12 +6,10 @@
 
 import { SiteConfigResource } from "azure-arm-website/lib/models";
 import { MessageItem, window } from 'vscode';
-import { IAppCreateOptions } from "vscode-azureappservice";
 import { AzureParentTreeItem, IActionContext, SubscriptionTreeItem } from "vscode-azureextensionui";
 import { WebAppTreeItem } from "../explorer/WebAppTreeItem";
 import { ext } from "../extensionVariables";
 import { deploy } from "./deploy";
-import { setAppCreateOptionsDefault } from "./setAppCreateOptionsDefault";
 
 const yesButton: MessageItem = { title: 'Yes' };
 const noButton: MessageItem = { title: 'No', isCloseAffordance: true };
@@ -21,9 +19,7 @@ export async function createWebApp(actionContext: IActionContext, node?: AzurePa
         node = <AzureParentTreeItem>await ext.tree.showTreeItemPicker(SubscriptionTreeItem.contextValue);
     }
 
-    const createOptions: IAppCreateOptions = await setAppCreateOptionsDefault(actionContext);
-
-    const createdApp = <WebAppTreeItem>await node.createChild(createOptions);
+    const createdApp = <WebAppTreeItem>await node.createChild(actionContext);
     createdApp.root.client.getSiteConfig().then(
         (createdAppConfig: SiteConfigResource) => {
             actionContext.properties.linuxFxVersion = createdAppConfig.linuxFxVersion ? createdAppConfig.linuxFxVersion : 'undefined';
@@ -32,6 +28,7 @@ export async function createWebApp(actionContext: IActionContext, node?: AzurePa
         () => {
             // ignore
         });
+
     // prompt user to deploy to newly created web app
     window.showInformationMessage('Deploy to web app?', yesButton, noButton).then(
         async (input: MessageItem) => {
