@@ -34,8 +34,7 @@ export async function createWebApp(actionContext: IActionContext, node?: AzurePa
             // tslint:disable-next-line: no-floating-promises
             ext.ui.showWarningMessage(message, btn).then(async result => {
                 if (result === btn) {
-                    const projectConfiguration: WorkspaceConfiguration = workspace.getConfiguration('appService');
-                    await projectConfiguration.update('advancedCreation', true, ConfigurationTarget.Global);
+                    await workspaceConfig.update('advancedCreation', true, ConfigurationTarget.Global);
                 }
             });
         }
