@@ -469,6 +469,11 @@
                     "group": "3_appServiceDeployCommands@1"
                 },
                 {
+                    "command": "appService.ConfigureDeploymentSource",
+                    "when": "view == azureAppService && viewItem == appService",
+                    "group": "3_appServiceDeployCommands@2"
+                },
+                {
                     "command": "appService.OpenVSTSCD",
                     "when": "view == azureAppService && viewItem == appService",
                     "group": "3_appServiceDeployCommands@3"
@@ -567,6 +572,11 @@
                     "command": "appService.Deploy",
                     "when": "view == azureAppService && viewItem == deploymentSlot",
                     "group": "3_deploymentSlotDeployCommands@1"
+                },
+                {
+                    "command": "appService.ConfigureDeploymentSource",
+                    "when": "view == azureAppService && viewItem == deploymentSlot",
+                    "group": "3_deploymentSlotDeployCommands@2"
                 },
                 {
                     "command": "appService.OpenLogStream",

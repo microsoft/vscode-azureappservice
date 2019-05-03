@@ -207,8 +207,8 @@ export async function activateInternal(
         registerCommand('appService.Deploy', async function (this: IActionContext, target?: vscode.Uri | WebAppTreeItem | undefined): Promise<void> {
             await deploy(this, true, target);
         });
-        registerCommand('appService.ConfigureDeploymentSource', async function (this: IActionContext): Promise<void> {
-            await editScmType(this);
+        registerCommand('appService.ConfigureDeploymentSource', async function (this: IActionContext, node?: DeploymentsTreeItem): Promise<void> {
+            await editScmType(this, node);
 
         });
         registerCommand('appService.OpenVSTSCD', async (node?: WebAppTreeItem) => {
