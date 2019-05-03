@@ -5,8 +5,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { SiteConfigResource } from "azure-arm-website/lib/models";
-import { MessageItem, window } from 'vscode';
-import { AzureParentTreeItem, IActionContext, SubscriptionTreeItem } from "vscode-azureextensionui";
+import { ConfigurationTarget, MessageItem, window, workspace, WorkspaceConfiguration } from 'vscode';
+import { AzureParentTreeItem, IActionContext, parseError, SubscriptionTreeItem, UserCancelledError } from "vscode-azureextensionui";
+import { configurationSettings, extensionPrefix } from "../constants";
+import { SiteTreeItem } from "../explorer/SiteTreeItem";
 import { WebAppTreeItem } from "../explorer/WebAppTreeItem";
 import { ext } from "../extensionVariables";
 import { deploy } from "./deploy";
@@ -19,7 +21,31 @@ export async function createWebApp(actionContext: IActionContext, node?: AzurePa
         node = <AzureParentTreeItem>await ext.tree.showTreeItemPicker(SubscriptionTreeItem.contextValue);
     }
 
-    const createdApp = <WebAppTreeItem>await node.createChild(actionContext);
+    let createdApp: SiteTreeItem | undefined;
+    try {
+        createdApp = <WebAppTreeItem>await node.createChild(actionContext);
+    } catch (error) {
+        const workspaceConfig: WorkspaceConfiguration = workspace.getConfiguration(extensionPrefix);
+        const advancedCreation: boolean | undefined = workspaceConfig.get(configurationSettings.advancedCreation);
+        if (!parseError(error).isUserCancelledError && !advancedCreation) {
+
+            const message: string = `Modify the setting "${extensionPrefix}.${configurationSettings.advancedCreation}" if you want to change the default values when creating a Web App in Azure.`;
+            const btn: MessageItem = { title: 'Turn on advanced creation' };
+            // tslint:disable-next-line: no-floating-promises
+            ext.ui.showWarningMessage(message, btn).then(async result => {
+                if (result === btn) {
+                    const projectConfiguration: WorkspaceConfiguration = workspace.getConfiguration('appService');
+                    await projectConfiguration.update('advancedCreation', true, ConfigurationTarget.Global);
+                }
+            });
+        }
+        throw error;
+    }
+
+    if (createdApp === undefined) {
+        throw new UserCancelledError();
+    }
+
     createdApp.root.client.getSiteConfig().then(
         (createdAppConfig: SiteConfigResource) => {
             actionContext.properties.linuxFxVersion = createdAppConfig.linuxFxVersion ? createdAppConfig.linuxFxVersion : 'undefined';

@@ -6,8 +6,8 @@
 'use strict';
 
 import * as vscode from 'vscode';
-import { AppSettingsTreeItem, AppSettingTreeItem, DeploymentsTreeItem, editScmType, ISiteTreeRoot, registerAppServiceExtensionVariables, SiteClient, stopStreamingLogs } from 'vscode-azureappservice';
-import { AzureParentTreeItem, AzureTreeDataProvider, AzureTreeItem, AzureUserInput, callWithTelemetryAndErrorHandling, createApiProvider, createTelemetryReporter, IActionContext, IAzureUserInput, registerCommand, registerEvent, registerUIExtensionVariables } from 'vscode-azureextensionui';
+import { AppSettingsTreeItem, AppSettingTreeItem, DeploymentsTreeItem, ISiteTreeRoot, registerAppServiceExtensionVariables, SiteClient, stopStreamingLogs } from 'vscode-azureappservice';
+import { AzureParentTreeItem, AzureTreeDataProvider, AzureTreeItem, AzureUserInput, callWithTelemetryAndErrorHandling, createApiProvider, createTelemetryReporter, IActionContext, IAzureUserInput, registerCommand, registerEvent, registerUIExtensionVariables, SubscriptionTreeItem } from 'vscode-azureextensionui';
 import { AzureExtensionApiProvider } from 'vscode-azureextensionui/api';
 import { downloadAppSettings } from './commands/appSettings/downloadAppSettings';
 import { toggleSlotSetting } from './commands/appSettings/toggleSlotSetting';
@@ -20,6 +20,7 @@ import { createWebApp } from './commands/createWebApp';
 import { deploy } from './commands/deploy';
 import { connectToGitHub } from './commands/deployments/connectToGitHub';
 import { disconnectRepo } from './commands/deployments/disconnectRepo';
+import { editScmType } from './commands/deployments/editScmType';
 import { redeployDeployment } from './commands/deployments/redeployDeployment';
 import { viewCommitInGitHub } from './commands/deployments/viewCommitInGitHub';
 import { viewDeploymentLogs } from './commands/deployments/viewDeploymentLogs';
@@ -187,11 +188,9 @@ export async function activateInternal(
         registerCommand('appService.Deploy', async function (this: IActionContext, target?: vscode.Uri | WebAppTreeItem | undefined): Promise<void> {
             await deploy(this, true, target);
         });
-        registerCommand('appService.ConfigureDeploymentSource', async function (this: IActionContext, node?: SiteTreeItem): Promise<void> {
-            if (!node) {
-                node = <SiteTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue);
-            }
-            await editScmType(node.root.client, node, this);
+        registerCommand('appService.ConfigureDeploymentSource', async function (this: IActionContext, node?: DeploymentsTreeItem): Promise<void> {
+            await editScmType(this, node);
+
         });
         registerCommand('appService.OpenVSTSCD', async (node?: WebAppTreeItem) => {
             if (!node) {
@@ -221,12 +220,14 @@ export async function activateInternal(
             const createdSlot = <SiteTreeItem>await node.createChild(this);
 
             // prompt user to deploy to newly created web app
-            if (await vscode.window.showInformationMessage('Deploy to deployment slot?', yesButton, noButton) === yesButton) {
-                this.properties[deployingToDeploymentSlot] = 'true';
-                await deploy(this, false, createdSlot);
-            } else {
-                this.properties[deployingToDeploymentSlot] = 'false';
-            }
+            vscode.window.showInformationMessage('Deploy to deployment slot?', yesButton, noButton).then(async (input) => {
+                if (input === yesButton) {
+                    this.properties[deployingToDeploymentSlot] = 'true';
+                    await deploy(this, false, createdSlot);
+                } else {
+                    this.properties[deployingToDeploymentSlot] = 'false';
+                }
+            });
         });
         registerCommand('appService.SwapSlots', async (node: DeploymentSlotTreeItem) => await swapSlots(node));
         registerCommand('appService.appSettings.Add', async (node?: AppSettingsTreeItem) => {

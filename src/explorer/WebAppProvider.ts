@@ -11,6 +11,7 @@ import { AppKind, AppServicePlanCreateStep, AppServicePlanListStep, IAppServiceW
 import { AzureTreeItem, AzureWizard, AzureWizardExecuteStep, AzureWizardPromptStep, createAzureClient, createTreeItemsWithErrorHandling, IActionContext, parseError, ResourceGroupCreateStep, ResourceGroupListStep, SubscriptionTreeItem } from 'vscode-azureextensionui';
 import { setAppWizardContextDefault } from '../commands/setAppWizardContextDefault';
 import { configurationSettings, extensionPrefix } from '../constants';
+import { ext } from '../extensionVariables';
 import { WebAppTreeItem } from './WebAppTreeItem';
 
 export class WebAppProvider extends SubscriptionTreeItem {
