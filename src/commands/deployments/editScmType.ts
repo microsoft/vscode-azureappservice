@@ -13,6 +13,9 @@ export async function editScmType(actionContext: IActionContext, node?: SiteTree
     if (!node) {
         node = <DeploymentsTreeItem>await ext.tree.showTreeItemPicker([DeploymentsTreeItem.contextValueConnected, DeploymentsTreeItem.contextValueUnconnected]);
     } else if (node instanceof SiteTreeItem) {
+        if (!node.deploymentsNode) {
+            await node.getCachedChildren();
+        }
         node = <DeploymentsTreeItem>node.deploymentsNode;
     }
 
