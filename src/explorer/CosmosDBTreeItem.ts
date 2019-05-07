@@ -9,6 +9,7 @@ import { ISiteTreeRoot, validateAppSettingKey } from 'vscode-azureappservice';
 import { AzureParentTreeItem, AzureTreeItem, createTreeItemsWithErrorHandling, GenericTreeItem, UserCancelledError } from 'vscode-azureextensionui';
 import { AzureExtensionApiProvider } from 'vscode-azureextensionui/api';
 import { ext } from '../extensionVariables';
+import { nonNullProp } from '../utils/nonNull';
 import { getThemedIconPath, IThemedIconPath } from '../utils/pathUtils';
 import { CosmosDBExtensionApi, DatabaseTreeItem } from '../vscode-cosmos.api';
 import { ConnectionsTreeItem } from './ConnectionsTreeItem';
@@ -226,10 +227,8 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         });
 
         return new Map([
-            // tslint:disable-next-line:no-non-null-assertion
-            [appSettingPrefix + this._endpointSuffix, database.docDBData!.documentEndpoint],
-            // tslint:disable-next-line:no-non-null-assertion
-            [appSettingPrefix + this._keySuffix, database.docDBData!.masterKey],
+            [appSettingPrefix + this._endpointSuffix, nonNullProp(database, 'docDBData').documentEndpoint],
+            [appSettingPrefix + this._keySuffix, nonNullProp(database, 'docDBData').masterKey],
             [appSettingPrefix + this._databaseSuffix, database.databaseName]
         ]);
     }
