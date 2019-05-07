@@ -14,7 +14,6 @@ export async function enableFileLogging(node: SiteTreeItem): Promise<void> {
     const enabledLogging: string = `Enabled Logging for "${node.root.client.fullName}".`;
     await window.withProgress({ location: ProgressLocation.Notification, title: enablingLogging }, async (): Promise<void> => {
         ext.outputChannel.appendLine(enablingLogging);
-        // tslint:disable-next-line:no-non-null-assertion
         await node.enableHttpLogs();
         await commands.executeCommand('appService.Restart', node);
         window.showInformationMessage(enabledLogging);

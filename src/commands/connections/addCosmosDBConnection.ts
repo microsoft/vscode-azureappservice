@@ -6,6 +6,7 @@
 import { AzureParentTreeItem, AzureTreeItem } from 'vscode-azureextensionui';
 import { CosmosDBTreeItem } from '../../explorer/CosmosDBTreeItem';
 import { ext } from "../../extensionVariables";
+import { nonNullProp } from '../../utils/nonNull';
 
 export async function addCosmosDBConnection(node?: AzureTreeItem): Promise<void> {
     if (!node) {
@@ -16,8 +17,7 @@ export async function addCosmosDBConnection(node?: AzureTreeItem): Promise<void>
     if (node instanceof CosmosDBTreeItem) {
         cosmosDBTreeItem = node;
     } else {
-        // tslint:disable-next-line:no-non-null-assertion
-        cosmosDBTreeItem = node.parent!;
+        cosmosDBTreeItem = nonNullProp(node, 'parent');
     }
     await cosmosDBTreeItem.createChild();
     await ext.tree.refresh(cosmosDBTreeItem);
