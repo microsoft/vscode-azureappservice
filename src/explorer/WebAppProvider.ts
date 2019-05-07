@@ -10,6 +10,7 @@ import { workspace, WorkspaceConfiguration } from 'vscode';
 import { AppKind, AppServicePlanCreateStep, AppServicePlanListStep, IAppServiceWizardContext, SiteClient, SiteCreateStep, SiteNameStep, SiteOSStep, SiteRuntimeStep } from 'vscode-azureappservice';
 import { AzureTreeItem, AzureWizard, AzureWizardExecuteStep, AzureWizardPromptStep, createAzureClient, createTreeItemsWithErrorHandling, IActionContext, parseError, ResourceGroupCreateStep, ResourceGroupListStep, SubscriptionTreeItem } from 'vscode-azureextensionui';
 import { configurationSettings, extensionPrefix } from '../constants';
+import { nonNullProp } from '../utils/nonNull';
 import { setAppWizardContextDefault } from './setAppWizardContextDefault';
 import { WebAppTreeItem } from './WebAppTreeItem';
 
@@ -105,13 +106,11 @@ export class WebAppProvider extends SubscriptionTreeItem {
 
         await wizard.prompt(actionContext);
 
-        // tslint:disable-next-line no-non-null-assertion
-        showCreatingTreeItem(wizardContext.newSiteName!);
+        showCreatingTreeItem(nonNullProp(wizardContext, 'newSiteName'));
 
         if (!advancedCreation) {
             // this should always be set when in the basic creation scenario
-            // tslint:disable-next-line no-non-null-assertion
-            const location: Location = wizardContext.location!;
+            const location: Location = nonNullProp(wizardContext, 'location');
             wizardContext.newResourceGroupName = `appsvc_rg_${wizardContext.newSiteOS}_${location.name}`;
             wizardContext.newPlanName = `appsvc_asp_${wizardContext.newSiteOS}_${location.name}`;
         }
@@ -123,8 +122,7 @@ export class WebAppProvider extends SubscriptionTreeItem {
         actionContext.properties.advancedCreation = advancedCreation ? 'true' : 'false';
 
         // site is set as a result of SiteCreateStep.execute()
-        // tslint:disable-next-line no-non-null-assertion
-        const siteClient: SiteClient = new SiteClient(wizardContext.site!, this.root);
+        const siteClient: SiteClient = new SiteClient(nonNullProp(wizardContext, 'site'), this.root);
         return new WebAppTreeItem(this, siteClient);
     }
 }
