@@ -16,8 +16,9 @@ import * as constants from '../constants';
 import { SiteTreeItem } from '../explorer/SiteTreeItem';
 import { WebAppTreeItem } from '../explorer/WebAppTreeItem';
 import { ext } from '../extensionVariables';
-import { showQuickPickByFileExtension } from '../util';
 import { delay } from '../utils/delay';
+import { javaUtils } from '../utils/javaUtils';
+import { nonNullValue } from '../utils/nonNull';
 import { isPathEqual, isSubpath } from '../utils/pathUtils';
 import { getRandomHexString } from "../utils/randomUtils";
 import * as workspaceUtil from '../utils/workspace';
@@ -105,13 +106,15 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
     const siteConfig: WebSiteModels.SiteConfigResource = await node.root.client.getSiteConfig();
 
     if (!fsPath) {
-        if (appservice.javaUtils.isJavaRuntime(siteConfig.linuxFxVersion)) {
-            const fileExtension: string = appservice.javaUtils.getArtifactTypeByJavaRuntime(siteConfig.linuxFxVersion);
-            fsPath = await showQuickPickByFileExtension(context.properties, `Select the ${fileExtension} file to deploy...`, fileExtension);
+        if (javaUtils.isJavaRuntime(siteConfig.linuxFxVersion)) {
+            const fileExtension: string = javaUtils.getArtifactTypeByJavaRuntime(siteConfig.linuxFxVersion);
+            fsPath = await javaUtils.showQuickPickByFileExtension(context.properties, `Select the ${fileExtension} file to deploy...`, fileExtension);
         } else {
             fsPath = await workspaceUtil.showWorkspaceFoldersQuickPick("Select the folder to deploy", context.properties, constants.configurationSettings.deploySubpath);
         }
+        await javaUtils.configureJavaSEAppSettings(node);
     }
+
     workspaceConfig = vscode.workspace.getConfiguration(constants.extensionPrefix, vscode.Uri.file(fsPath));
     if (currentWorkspace && (isPathEqual(currentWorkspace.uri.fsPath, fsPath) || isSubpath(currentWorkspace.uri.fsPath, fsPath))) {
         // currentWorkspace is only set if there is one active workspace
