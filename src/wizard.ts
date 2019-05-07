@@ -4,8 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import { TelemetryProperties, UserCancelledError } from 'vscode-azureextensionui';
-import * as util from './util';
+import { IAzureQuickPickItem, TelemetryProperties, UserCancelledError } from 'vscode-azureextensionui';
 
 export type WizardStatus = 'PromptCompleted' | 'Completed' | 'Faulted' | 'Cancelled';
 
@@ -145,16 +144,16 @@ export class WizardStep {
     }
 
     public async showQuickPick<T>(
-        items: util.IQuickPickItemWithData<T>[] | Thenable<util.IQuickPickItemWithData<T>[]>,
+        items: IAzureQuickPickItem<T>[] | Thenable<IAzureQuickPickItem<T>[]>,
         options: vscode.QuickPickOptions,
         persistenceKey?: string,
-        token?: vscode.CancellationToken): Promise<util.IQuickPickItemWithData<T>> {
+        token?: vscode.CancellationToken): Promise<IAzureQuickPickItem<T>> {
         options.ignoreFocusOut = true;
         let resolvedItems = await items;
         if (this.persistenceState && persistenceKey) {
             // See if the previous value selected by the user is in this list, and move it to the top as default
             const previousId = this.persistenceState.get(persistenceKey);
-            const previousItem = previousId && resolvedItems.find(item => item.persistenceId === previousId);
+            const previousItem = previousId && resolvedItems.find(item => item.id === previousId);
             if (previousItem) {
                 resolvedItems = ([previousItem]).concat(resolvedItems.filter(item => item !== previousItem));
             }
@@ -166,14 +165,9 @@ export class WizardStep {
         }
 
         if (this.persistenceState && persistenceKey) {
-            this.persistenceState.update(persistenceKey, result.persistenceId);
+            this.persistenceState.update(persistenceKey, result.id);
         }
 
         return result;
     }
-}
-
-export interface IQuickPickItemWithData<T> extends vscode.QuickPickItem {
-    persistenceId?: string; // A unique key to identify this item items across sessions, used in persisting previous selections
-    data?: T;
 }

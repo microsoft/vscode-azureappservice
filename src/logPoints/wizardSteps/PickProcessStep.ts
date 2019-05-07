@@ -4,8 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import { UserCancelledError } from 'vscode-azureextensionui';
-import * as util from '../../util';
+import { UserCancelledError, IAzureQuickPickItem } from 'vscode-azureextensionui';
 import { callWithTimeout, DEFAULT_TIMEOUT } from '../../utils/logpointsUtil';
 import { WizardStep } from '../../wizard';
 import { ILogPointsDebuggerClient } from '../logPointsClient';
@@ -39,8 +38,8 @@ export class PickProcessStep extends WizardStep {
         }
 
         // Show a quick pick list (even if there is only 1 process)
-        const quickPickItems: util.IQuickPickItemWithData<string>[] = result.json!.data.map((process) => { // non-null behavior unknown. Should be handled by logPoints team
-            return <util.IQuickPickItemWithData<string>>{
+        const quickPickItems: IAzureQuickPickItem<string>[] = result.json!.data.map((process) => { // non-null behavior unknown. Should be handled by logPoints team
+            return <IAzureQuickPickItem<string>>{
                 label: `${process.pid}`,
                 description: ` ${process.command} `
                     + ` ${typeof process.arguments === 'string' ? process.arguments : process.arguments.join(' ')}`,
