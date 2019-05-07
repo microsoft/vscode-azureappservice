@@ -9,9 +9,8 @@ import { Site, WebAppCollection } from 'azure-arm-website/lib/models';
 import { workspace, WorkspaceConfiguration } from 'vscode';
 import { AppKind, AppServicePlanCreateStep, AppServicePlanListStep, IAppServiceWizardContext, SiteClient, SiteCreateStep, SiteNameStep, SiteOSStep, SiteRuntimeStep } from 'vscode-azureappservice';
 import { AzureTreeItem, AzureWizard, AzureWizardExecuteStep, AzureWizardPromptStep, createAzureClient, createTreeItemsWithErrorHandling, IActionContext, parseError, ResourceGroupCreateStep, ResourceGroupListStep, SubscriptionTreeItem } from 'vscode-azureextensionui';
-import { setAppWizardContextDefault } from '../commands/setAppWizardContextDefault';
 import { configurationSettings, extensionPrefix } from '../constants';
-import { ext } from '../extensionVariables';
+import { setAppWizardContextDefault } from './editors/setAppWizardContextDefault';
 import { WebAppTreeItem } from './WebAppTreeItem';
 
 export class WebAppProvider extends SubscriptionTreeItem {
@@ -105,11 +104,9 @@ export class WebAppProvider extends SubscriptionTreeItem {
         const wizard: AzureWizard<IAppServiceWizardContext> = new AzureWizard(wizardContext, { promptSteps, executeSteps, title });
 
         await wizard.prompt(actionContext);
-        // tslint:disable-next-line strict-boolean-expressions
-        if (showCreatingTreeItem) {
-            // tslint:disable-next-line no-non-null-assertion
-            showCreatingTreeItem(wizardContext.newSiteName!);
-        }
+
+        // tslint:disable-next-line no-non-null-assertion
+        showCreatingTreeItem(wizardContext.newSiteName!);
 
         if (!advancedCreation) {
             // this should always be set when in the basic creation scenario
