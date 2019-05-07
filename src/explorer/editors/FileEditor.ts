@@ -8,6 +8,7 @@ import { Readable } from 'stream';
 import * as vscode from 'vscode';
 import { getFile, IFileResult, putFile } from 'vscode-azureappservice';
 import { BaseEditor } from 'vscode-azureextensionui';
+import { nonNullProp } from '../../utils/nonNull';
 import { FileTreeItem } from '../FileTreeItem';
 
 export class FileEditor extends BaseEditor<FileTreeItem> {
@@ -39,8 +40,7 @@ export class FileEditor extends BaseEditor<FileTreeItem> {
             throw new Error('Cannot update file after it has been closed.');
         }
         const localFile: Readable = fs.createReadStream(vscode.window.activeTextEditor.document.uri.fsPath);
-        // tslint:disable-next-line:no-non-null-assertion
-        node.etag = await putFile(node.root.client, localFile, node.path, node.etag!);
+        node.etag = await putFile(node.root.client, localFile, node.path, nonNullProp(node, 'etag'));
         return await this.getData(node);
     }
 }

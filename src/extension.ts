@@ -46,6 +46,7 @@ import { LogPointsManager } from './logPoints/LogPointsManager';
 import { LogPointsSessionWizard } from './logPoints/LogPointsSessionWizard';
 import { RemoteScriptDocumentProvider, RemoteScriptSchema } from './logPoints/remoteScriptDocumentProvider';
 import { LogpointsCollection } from './logPoints/structs/LogpointsCollection';
+import { nonNullProp, nonNullValue } from './utils/nonNull';
 import { openUrl } from './utils/openUrl';
 
 // tslint:disable-next-line:export-name
@@ -124,8 +125,7 @@ export async function activateInternal(
             switch (node.contextValue) {
                 // the deep link for slots does not follow the conventional pattern of including its parent in the path name so this is how we extract the slot's id
                 case DeploymentSlotsTreeItem.contextValue:
-                    // tslint:disable-next-line:no-non-null-assertion
-                    await node.openInPortal(`${node.parent!.fullId}/deploymentSlots`);
+                    await node.openInPortal(`${nonNullProp(node, 'parent').fullId}/deploymentSlots`);
                     return;
                 // the deep link for "Deployments" do not follow the conventional pattern of including its parent in the path name so we need to pass the "Deployment Center" url directly
                 case DeploymentsTreeItem.contextValueConnected:
@@ -206,8 +206,7 @@ export async function activateInternal(
 
             await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async p => {
                 p.report({ message: 'Generating script...' });
-                // tslint:disable-next-line:no-non-null-assertion
-                await node!.generateDeploymentScript();
+                await nonNullValue(node).generateDeploymentScript();
             });
         });
         registerCommand('appService.CreateSlot', async function (this: IActionContext, node?: DeploymentSlotsTreeItem): Promise<void> {
@@ -308,7 +307,6 @@ export async function activateInternal(
             if (!isEnabled) {
                 await enableFileLogging(<SiteTreeItem>node);
             } else {
-                // tslint:disable-next-line:no-non-null-assertion
                 vscode.window.showInformationMessage(`File logging has already been enabled for ${node.root.client.fullName}.`);
             }
         });

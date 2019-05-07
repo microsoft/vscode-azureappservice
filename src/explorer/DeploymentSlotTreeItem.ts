@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { SiteClient } from 'vscode-azureappservice';
+import { nonNullProp } from '../utils/nonNull';
 import { getThemedIconPath, IThemedIconPath } from '../utils/pathUtils';
 import { DeploymentSlotsTreeItem } from './DeploymentSlotsTreeItem';
 import { SiteTreeItem } from './SiteTreeItem';
@@ -18,8 +19,7 @@ export class DeploymentSlotTreeItem extends SiteTreeItem {
     }
 
     public get label(): string {
-        // tslint:disable-next-line:no-non-null-assertion
-        return this.root.client.slotName!;
+        return nonNullProp(this.root.client, 'slotName');
     }
 
     public get iconPath(): IThemedIconPath {

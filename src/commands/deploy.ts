@@ -148,8 +148,7 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
         await delay(500);
         const result: vscode.MessageItem = await ext.ui.showWarningMessage(warning, { modal: true }, ...items);
         if (result === resetDefault) {
-            // tslint:disable-next-line:no-non-null-assertion
-            const localRootPath = currentWorkspace!.uri.fsPath;
+            const localRootPath = nonNullValue(currentWorkspace).uri.fsPath;
             const settingsPath = path.join(localRootPath, '.vscode', 'settings.json');
             const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(settingsPath));
             vscode.window.showTextDocument(doc);
@@ -170,8 +169,7 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
 
     cancelWebsiteValidation(node);
     await node.runWithTemporaryDescription("Deploying...", async () => {
-        // tslint:disable-next-line:no-non-null-assertion
-        await appservice.deploy(node!.root.client, <string>fsPath, context);
+        await appservice.deploy(nonNullValue(node).root.client, <string>fsPath, context);
     });
 
     const deployComplete: string = `Deployment to "${node.root.client.fullName}" completed.`;
@@ -185,8 +183,7 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
         if (result === viewOutput) {
             ext.outputChannel.show();
         } else if (result === browseWebsite) {
-            // tslint:disable-next-line:no-non-null-assertion
-            await node!.browse();
+            await nonNullValue(node).browse();
         } else if (result === streamLogs) {
             await startStreamingLogs(node);
         }
