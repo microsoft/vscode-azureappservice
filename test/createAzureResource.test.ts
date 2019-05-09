@@ -52,7 +52,7 @@ suite('Create Azure Resources', async function (this: ISuiteCallbackContext): Pr
     test('Create and Delete New Web App (Advanced)', async () => {
         const resourceName: string = getRandomHexString().toLowerCase();
         await vscode.workspace.getConfiguration(constants.extensionPrefix).update('advancedCreation', true, vscode.ConfigurationTarget.Global);
-        const testInputs: (string | RegExp)[] = [resourceName, '$(plus) Create new resource group', resourceName, 'West US', 'Linux', regExpLTS, '$(plus) Create new App Service plan', resourceName, 'B1'];
+        const testInputs: (string | RegExp)[] = [resourceName, '$(plus) Create new resource group', resourceName, 'Linux', regExpLTS, '$(plus) Create new App Service plan', resourceName, 'B1', 'West US'];
         ext.ui = new TestUserInput(testInputs);
 
         resourceGroupsToDelete.push(resourceName);
