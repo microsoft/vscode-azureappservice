@@ -5,10 +5,9 @@
 
 import { Site } from 'azure-arm-website/lib/models';
 import * as vscode from 'vscode';
-import { UserCancelledError, AzureTreeItem } from 'vscode-azureextensionui';
+import { UserCancelledError, AzureTreeItem, IAzureQuickPickItem } from 'vscode-azureextensionui';
 import { DeploymentSlotsTreeItem } from '../../explorer/DeploymentSlotsTreeItem';
 import { SiteTreeItem } from '../../explorer/SiteTreeItem';
-import * as util from '../../util';
 import { WizardStep } from '../../wizard';
 import { LogPointsSessionWizard } from '../LogPointsSessionWizard';
 
@@ -36,7 +35,7 @@ export class PromptSlotSelection extends WizardStep {
         }
 
         const deploymentQuickPickItems = deploymentSlotsTreeItems.map((deploymentSlotTreeItem: SiteTreeItem) => {
-            return <util.IQuickPickItemWithData<SiteTreeItem>>{
+            return <IAzureQuickPickItem<SiteTreeItem>>{
                 label: deploymentSlotTreeItem.label,
                 description: '',
                 data: deploymentSlotTreeItem

@@ -7,11 +7,13 @@ import * as WebSiteModels from 'azure-arm-website/lib/models';
 import * as fse from 'fs-extra';
 import * as path from 'path';
 import { MessageItem, Uri, window, workspace, WorkspaceConfiguration } from 'vscode';
-import { AppSettingsTreeItem, AppSettingTreeItem, deleteSite, DeploymentsTreeItem, DeploymentTreeItem, ISiteTreeRoot, SiteClient } from 'vscode-azureappservice';
-import { AzureParentTreeItem, AzureTreeItem, DialogResponses, TelemetryProperties } from 'vscode-azureextensionui';
-import { runtimes, toggleValueVisibilityCommandId } from '../constants';
+import { AppSettingsTreeItem, AppSettingTreeItem, deleteSite, DeploymentsTreeItem, DeploymentTreeItem, ISiteTreeRoot, LinuxRuntimes, SiteClient } from 'vscode-azureappservice';
+import { AzureParentTreeItem, AzureTreeItem, DialogResponses, IActionContext, TelemetryProperties } from 'vscode-azureextensionui';
+import { deploy } from '../commands/deploy';
+import { toggleValueVisibilityCommandId } from '../constants';
 import * as constants from '../constants';
 import { ext } from '../extensionVariables';
+import { nonNullValue } from '../utils/nonNull';
 import { openUrl } from '../utils/openUrl';
 import { ConnectionsTreeItem } from './ConnectionsTreeItem';
 import { CosmosDBConnection } from './CosmosDBConnection';
@@ -195,12 +197,33 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         }
     }
 
+    public showCreatedOutput(actionContext: IActionContext): void {
+        const resource: string = this.root.client.isSlot ? 'slot' : 'web app';
+        const createdNewAppMsg: string = `Created new ${resource} "${this.root.client.fullName}": https://${this.root.client.defaultHostName}`;
+        ext.outputChannel.appendLine(createdNewAppMsg);
+        ext.outputChannel.appendLine('');
+
+        const viewOutput: MessageItem = { title: 'View Output' };
+        const deployButton: MessageItem = {
+            title: 'Deploy'
+        };
+
+        // Note: intentionally not waiting for the result of this before returning
+        window.showInformationMessage(createdNewAppMsg, deployButton, viewOutput).then(async (result: MessageItem | undefined) => {
+            if (result === viewOutput) {
+                ext.outputChannel.show();
+            } else if (result === deployButton) {
+                await deploy(nonNullValue(actionContext), false, this);
+            }
+        });
+    }
+
     private getIgnoredFoldersForDeployment(runtime: string): string[] {
         let ignoredFolders: string[];
         switch (runtime) {
-            case runtimes.node:
+            case LinuxRuntimes.node:
                 ignoredFolders = ['node_modules{,/**}'];
-            case runtimes.python:
+            case LinuxRuntimes.python:
                 // list of Python ignorables are pulled from here https://github.com/github/gitignore/blob/master/Python.gitignore
                 // Byte-compiled / optimized / DLL files
                 ignoredFolders = ['__pycache__{,/**}', '*.py[cod]', '*$py.class',

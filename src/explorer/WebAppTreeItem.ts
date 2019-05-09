@@ -8,9 +8,13 @@ import { AppServicePlan } from 'azure-arm-website/lib/models';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as vscode from 'vscode';
+import { MessageItem } from 'vscode';
 import { ISiteTreeRoot } from 'vscode-azureappservice';
-import { AzureTreeItem, createAzureClient } from 'vscode-azureextensionui';
+import { AzureTreeItem, createAzureClient, IActionContext } from 'vscode-azureextensionui';
+import { deploy } from '../commands/deploy';
 import { extensionPrefix } from '../constants';
+import { ext } from '../extensionVariables';
+import { nonNullProp, nonNullValue } from '../utils/nonNull';
 import { getResourcesPath, getThemedIconPath, IThemedIconPath } from '../utils/pathUtils';
 import { DeploymentSlotsNATreeItem, DeploymentSlotsTreeItem } from './DeploymentSlotsTreeItem';
 import { DeploymentSlotTreeItem } from './DeploymentSlotTreeItem';
@@ -40,8 +44,7 @@ export class WebAppTreeItem extends SiteTreeItem {
             tier = 'unknown';
         }
 
-        // tslint:disable-next-line:no-non-null-assertion
-        this.deploymentSlotsNode = tier && /^(basic|free|shared)$/i.test(tier) ? new DeploymentSlotsNATreeItem(this, asp!.id!) : new DeploymentSlotsTreeItem(this);
+        this.deploymentSlotsNode = tier && /^(basic|free|shared)$/i.test(tier) ? new DeploymentSlotsNATreeItem(this, nonNullProp(nonNullValue(asp), 'id')) : new DeploymentSlotsTreeItem(this);
         return (await super.loadMoreChildrenImpl(clearCache)).concat(this.deploymentSlotsNode);
     }
 

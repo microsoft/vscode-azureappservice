@@ -5,10 +5,9 @@
 
 'use strict';
 
-import { SiteConfigResource } from 'azure-arm-website/lib/models';
 import * as vscode from 'vscode';
-import { AppSettingsTreeItem, AppSettingTreeItem, DeploymentsTreeItem, editScmType, ISiteTreeRoot, registerAppServiceExtensionVariables, SiteClient, stopStreamingLogs } from 'vscode-azureappservice';
-import { AzureParentTreeItem, AzureTreeDataProvider, AzureTreeItem, AzureUserInput, callWithTelemetryAndErrorHandling, createApiProvider, createTelemetryReporter, IActionContext, IAzureUserInput, registerCommand, registerEvent, registerUIExtensionVariables, SubscriptionTreeItem } from 'vscode-azureextensionui';
+import { AppSettingsTreeItem, AppSettingTreeItem, DeploymentsTreeItem, ISiteTreeRoot, registerAppServiceExtensionVariables, SiteClient, stopStreamingLogs } from 'vscode-azureappservice';
+import { AzureParentTreeItem, AzureTreeDataProvider, AzureTreeItem, AzureUserInput, callWithTelemetryAndErrorHandling, createApiProvider, createTelemetryReporter, IActionContext, IAzureUserInput, registerCommand, registerEvent, registerUIExtensionVariables } from 'vscode-azureextensionui';
 import { AzureExtensionApiProvider } from 'vscode-azureextensionui/api';
 import { downloadAppSettings } from './commands/appSettings/downloadAppSettings';
 import { toggleSlotSetting } from './commands/appSettings/toggleSlotSetting';
@@ -17,9 +16,11 @@ import { addCosmosDBConnection } from './commands/connections/addCosmosDBConnect
 import { removeCosmosDBConnection } from './commands/connections/removeCosmosDBConnection';
 import { revealConnection } from './commands/connections/revealConnection';
 import { revealConnectionInAppSettings } from './commands/connections/revealConnectionInAppSettings';
+import { createWebApp } from './commands/createWebApp';
 import { deploy } from './commands/deploy';
 import { connectToGitHub } from './commands/deployments/connectToGitHub';
 import { disconnectRepo } from './commands/deployments/disconnectRepo';
+import { editScmType } from './commands/deployments/editScmType';
 import { redeployDeployment } from './commands/deployments/redeployDeployment';
 import { viewCommitInGitHub } from './commands/deployments/viewCommitInGitHub';
 import { viewDeploymentLogs } from './commands/deployments/viewDeploymentLogs';
@@ -45,6 +46,7 @@ import { LogPointsManager } from './logPoints/LogPointsManager';
 import { LogPointsSessionWizard } from './logPoints/LogPointsSessionWizard';
 import { RemoteScriptDocumentProvider, RemoteScriptSchema } from './logPoints/remoteScriptDocumentProvider';
 import { LogpointsCollection } from './logPoints/structs/LogpointsCollection';
+import { nonNullProp, nonNullValue } from './utils/nonNull';
 import { openUrl } from './utils/openUrl';
 
 // tslint:disable-next-line:export-name
@@ -123,8 +125,7 @@ export async function activateInternal(
             switch (node.contextValue) {
                 // the deep link for slots does not follow the conventional pattern of including its parent in the path name so this is how we extract the slot's id
                 case DeploymentSlotsTreeItem.contextValue:
-                    // tslint:disable-next-line:no-non-null-assertion
-                    await node.openInPortal(`${node.parent!.fullId}/deploymentSlots`);
+                    await node.openInPortal(`${nonNullProp(node, 'parent').fullId}/deploymentSlots`);
                     return;
                 // the deep link for "Deployments" do not follow the conventional pattern of including its parent in the path name so we need to pass the "Deployment Center" url directly
                 case DeploymentsTreeItem.contextValueConnected:
@@ -182,28 +183,14 @@ export async function activateInternal(
             await node.deleteTreeItem();
         });
         registerCommand('appService.CreateWebApp', async function (this: IActionContext, node?: AzureParentTreeItem): Promise<void> {
-            if (!node) {
-                node = <AzureParentTreeItem>await ext.tree.showTreeItemPicker(SubscriptionTreeItem.contextValue);
-            }
-
-            const createdApp = <WebAppTreeItem>await node.createChild(this);
-            createdApp.root.client.getSiteConfig().then(
-                (createdAppConfig: SiteConfigResource) => {
-                    this.properties.linuxFxVersion = createdAppConfig.linuxFxVersion ? createdAppConfig.linuxFxVersion : 'undefined';
-                    this.properties.createdFromDeploy = 'false';
-                },
-                () => {
-                    // ignore
-                });
+            await createWebApp(this, node);
         });
         registerCommand('appService.Deploy', async function (this: IActionContext, target?: vscode.Uri | WebAppTreeItem | undefined): Promise<void> {
             await deploy(this, true, target);
         });
-        registerCommand('appService.ConfigureDeploymentSource', async function (this: IActionContext, node?: SiteTreeItem): Promise<void> {
-            if (!node) {
-                node = <SiteTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue);
-            }
-            await editScmType(node.root.client, node, this);
+        registerCommand('appService.ConfigureDeploymentSource', async function (this: IActionContext, node?: DeploymentsTreeItem): Promise<void> {
+            await editScmType(this, node);
+
         });
         registerCommand('appService.OpenVSTSCD', async (node?: WebAppTreeItem) => {
             if (!node) {
@@ -219,26 +206,16 @@ export async function activateInternal(
 
             await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async p => {
                 p.report({ message: 'Generating script...' });
-                // tslint:disable-next-line:no-non-null-assertion
-                await node!.generateDeploymentScript();
+                await nonNullValue(node).generateDeploymentScript();
             });
         });
         registerCommand('appService.CreateSlot', async function (this: IActionContext, node?: DeploymentSlotsTreeItem): Promise<void> {
-            const deployingToDeploymentSlot = 'deployingToDeploymentSlot';
-
             if (!node) {
                 node = <DeploymentSlotsTreeItem>await ext.tree.showTreeItemPicker(DeploymentSlotsTreeItem.contextValue);
             }
 
             const createdSlot = <SiteTreeItem>await node.createChild(this);
-
-            // prompt user to deploy to newly created web app
-            if (await vscode.window.showInformationMessage('Deploy to deployment slot?', yesButton, noButton) === yesButton) {
-                this.properties[deployingToDeploymentSlot] = 'true';
-                await deploy(this, false, createdSlot);
-            } else {
-                this.properties[deployingToDeploymentSlot] = 'false';
-            }
+            createdSlot.showCreatedOutput(this);
         });
         registerCommand('appService.SwapSlots', async (node: DeploymentSlotTreeItem) => await swapSlots(node));
         registerCommand('appService.appSettings.Add', async (node?: AppSettingsTreeItem) => {
@@ -319,7 +296,6 @@ export async function activateInternal(
             if (!isEnabled) {
                 await enableFileLogging(<SiteTreeItem>node);
             } else {
-                // tslint:disable-next-line:no-non-null-assertion
                 vscode.window.showInformationMessage(`File logging has already been enabled for ${node.root.client.fullName}.`);
             }
         });
