@@ -104,9 +104,6 @@ export async function activateInternal(
 
         LogpointsCollection.TextEditorDecorationType = logpointDecorationType;
 
-        const yesButton: vscode.MessageItem = { title: 'Yes' };
-        const noButton: vscode.MessageItem = { title: 'No', isCloseAffordance: true };
-
         registerCommand('appService.Refresh', async (node?: AzureTreeItem) => await ext.tree.refresh(node));
         registerCommand('appService.selectSubscriptions', () => vscode.commands.executeCommand("azure-account.selectSubscriptions"));
         registerCommand('appService.LoadMore', async (node: AzureTreeItem) => await ext.tree.loadMore(node));
