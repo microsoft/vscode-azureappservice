@@ -72,7 +72,8 @@ export class WebAppProvider extends SubscriptionTreeItem {
             subscriptionId: this.root.subscriptionId,
             subscriptionDisplayName: this.root.subscriptionDisplayName,
             credentials: this.root.credentials,
-            environment: this.root.environment
+            environment: this.root.environment,
+            resourceGroupDeferLocationStep: true
         };
 
         await setAppWizardContextDefault(wizardContext);
