@@ -213,6 +213,7 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
             if (result === viewOutput) {
                 ext.outputChannel.show();
             } else if (result === deployButton) {
+                actionContext.properties.deploy = 'true';
                 await deploy(nonNullValue(actionContext), false, this);
             }
         });
