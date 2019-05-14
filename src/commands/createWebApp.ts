@@ -3,25 +3,20 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ConfigurationTarget, MessageItem, window, workspace, WorkspaceConfiguration } from 'vscode';
+import { ConfigurationTarget, MessageItem, workspace, WorkspaceConfiguration } from 'vscode';
 import { AzureParentTreeItem, IActionContext, parseError, SubscriptionTreeItem } from "vscode-azureextensionui";
 import { configurationSettings, extensionPrefix } from "../constants";
-import { SiteTreeItem } from "../explorer/SiteTreeItem";
 import { WebAppTreeItem } from "../explorer/WebAppTreeItem";
 import { ext } from "../extensionVariables";
-import { deploy } from "./deploy";
-
-const yesButton: MessageItem = { title: 'Yes' };
-const noButton: MessageItem = { title: 'No', isCloseAffordance: true };
 
 export async function createWebApp(actionContext: IActionContext, node?: AzureParentTreeItem | undefined): Promise<void> {
     if (!node) {
         node = <AzureParentTreeItem>await ext.tree.showTreeItemPicker(SubscriptionTreeItem.contextValue);
     }
 
-    let createdApp: SiteTreeItem | undefined;
+    let newSite: WebAppTreeItem | undefined;
     try {
-        createdApp = <WebAppTreeItem>await node.createChild(actionContext);
+        newSite = <WebAppTreeItem>await node.createChild(actionContext);
     } catch (error) {
         const workspaceConfig: WorkspaceConfiguration = workspace.getConfiguration(extensionPrefix);
         const advancedCreation: boolean | undefined = workspaceConfig.get(configurationSettings.advancedCreation);
@@ -39,11 +34,5 @@ export async function createWebApp(actionContext: IActionContext, node?: AzurePa
         throw error;
     }
 
-    // prompt user to deploy to newly created web app
-    window.showInformationMessage('Deploy to web app?', yesButton, noButton).then(
-        async (input: MessageItem) => {
-            if (input === yesButton) {
-                await deploy(actionContext, false, createdApp);
-            }
-        });
+    newSite.showCreatedOutput(actionContext);
 }

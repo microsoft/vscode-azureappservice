@@ -124,6 +124,7 @@ export class WebAppProvider extends SubscriptionTreeItem {
 
         // site is set as a result of SiteCreateStep.execute()
         const siteClient: SiteClient = new SiteClient(nonNullProp(wizardContext, 'site'), this.root);
+
         return new WebAppTreeItem(this, siteClient);
     }
 }

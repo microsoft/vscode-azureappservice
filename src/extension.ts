@@ -104,9 +104,6 @@ export async function activateInternal(
 
         LogpointsCollection.TextEditorDecorationType = logpointDecorationType;
 
-        const yesButton: vscode.MessageItem = { title: 'Yes' };
-        const noButton: vscode.MessageItem = { title: 'No', isCloseAffordance: true };
-
         registerCommand('appService.Refresh', async (node?: AzureTreeItem) => await ext.tree.refresh(node));
         registerCommand('appService.selectSubscriptions', () => vscode.commands.executeCommand("azure-account.selectSubscriptions"));
         registerCommand('appService.LoadMore', async (node: AzureTreeItem) => await ext.tree.loadMore(node));
@@ -210,23 +207,12 @@ export async function activateInternal(
             });
         });
         registerCommand('appService.CreateSlot', async function (this: IActionContext, node?: DeploymentSlotsTreeItem): Promise<void> {
-            const deployingToDeploymentSlot = 'deployingToDeploymentSlot';
-
             if (!node) {
                 node = <DeploymentSlotsTreeItem>await ext.tree.showTreeItemPicker(DeploymentSlotsTreeItem.contextValue);
             }
 
             const createdSlot = <SiteTreeItem>await node.createChild(this);
-
-            // prompt user to deploy to newly created web app
-            vscode.window.showInformationMessage('Deploy to deployment slot?', yesButton, noButton).then(async (input) => {
-                if (input === yesButton) {
-                    this.properties[deployingToDeploymentSlot] = 'true';
-                    await deploy(this, false, createdSlot);
-                } else {
-                    this.properties[deployingToDeploymentSlot] = 'false';
-                }
-            });
+            createdSlot.showCreatedOutput(this);
         });
         registerCommand('appService.SwapSlots', async (node: DeploymentSlotTreeItem) => await swapSlots(node));
         registerCommand('appService.appSettings.Add', async (node?: AppSettingsTreeItem) => {
