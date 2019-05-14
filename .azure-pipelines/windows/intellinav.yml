@@ -2,8 +2,9 @@ steps:
 - task: vsintellinav.vsck-service-endpoint.build-task.upload-cache-build-task@0
   displayName: 'VS IntelliNav Upload'
   inputs:
-    vsckEndpoint: 'azuretools-dev' # name of the IntelliNav service connection
-    nugetpat: 'azuretools-nuget' # name of the NuGet service connection
-    language: 'typescript' # languages in your repo, separated by commas
-    githubpat: 'GitHub connection' # if your repo is on GitHub, this is the name of the GitHub service connection (GitHub organization by default)
+    serviceConnection: 'azuretools-dev' # name of the IntelliNav service connection
+    nugetServiceConnection: 'azuretools-nuget' # name of the NuGet service connection
+    languages: 'typescript' # languages in your repo, separated by commas
+    githubServiceConnection: 'GitHub connection' # if your repo is on GitHub, this is the name of the GitHub service connection (GitHub organization by default)
+    serviceEndpoint: 'https://prod.richnav.vsengsaas.visualstudio.com'
   continueOnError: true
