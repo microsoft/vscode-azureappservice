@@ -8,13 +8,13 @@ import { WebSiteManagementClient } from 'azure-arm-website';
 import { Site, WebAppCollection } from 'azure-arm-website/lib/models';
 import { workspace, WorkspaceConfiguration } from 'vscode';
 import { AppKind, AppServicePlanCreateStep, AppServicePlanListStep, IAppServiceWizardContext, SiteClient, SiteCreateStep, SiteNameStep, SiteOSStep, SiteRuntimeStep } from 'vscode-azureappservice';
-import { AzureTreeItem, AzureWizard, AzureWizardExecuteStep, AzureWizardPromptStep, createAzureClient, createTreeItemsWithErrorHandling, IActionContext, parseError, ResourceGroupCreateStep, ResourceGroupListStep, SubscriptionTreeItem } from 'vscode-azureextensionui';
+import { AzExtTreeItem, AzureTreeItem, AzureWizard, AzureWizardExecuteStep, AzureWizardPromptStep, createAzureClient, IActionContext, parseError, ResourceGroupCreateStep, ResourceGroupListStep, SubscriptionTreeItemBase } from 'vscode-azureextensionui';
 import { configurationSettings, extensionPrefix } from '../constants';
 import { nonNullProp } from '../utils/nonNull';
 import { setAppWizardContextDefault } from './setAppWizardContextDefault';
 import { WebAppTreeItem } from './WebAppTreeItem';
 
-export class WebAppProvider extends SubscriptionTreeItem {
+export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
     public readonly childTypeLabel: string = 'Web App';
 
     private _nextLink: string | undefined;
@@ -23,7 +23,7 @@ export class WebAppProvider extends SubscriptionTreeItem {
         return this._nextLink !== undefined;
     }
 
-    public async loadMoreChildrenImpl(clearCache: boolean): Promise<AzureTreeItem[]> {
+    public async loadMoreChildrenImpl(clearCache: boolean): Promise<AzExtTreeItem[]> {
         if (clearCache) {
             this._nextLink = undefined;
         }
@@ -48,8 +48,7 @@ export class WebAppProvider extends SubscriptionTreeItem {
 
         this._nextLink = webAppCollection.nextLink;
 
-        return await createTreeItemsWithErrorHandling(
-            this,
+        return await this.createTreeItemsWithErrorHandling(
             webAppCollection,
             'invalidAppService',
             (s: Site) => {

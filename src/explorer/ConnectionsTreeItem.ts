@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { ISiteTreeRoot } from 'vscode-azureappservice';
-import { AzureParentTreeItem, AzureTreeItem } from 'vscode-azureextensionui';
+import { AzExtTreeItem, AzureParentTreeItem, AzureTreeItem } from 'vscode-azureextensionui';
 import { getThemedIconPath, IThemedIconPath } from '../utils/pathUtils';
 import { CosmosDBConnection } from './CosmosDBConnection';
 import { CosmosDBTreeItem } from './CosmosDBTreeItem';
@@ -31,15 +31,18 @@ export class ConnectionsTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         return [this._cosmosDBNode];
     }
 
-    public pickTreeItemImpl(expectedContextValue: string): AzureTreeItem<ISiteTreeRoot> | undefined {
-        switch (expectedContextValue) {
-            case CosmosDBTreeItem.contextValueInstalled:
-            case CosmosDBTreeItem.contextValueNotInstalled:
-            case CosmosDBConnection.contextValue:
-                return this._cosmosDBNode;
-            default:
-                return undefined;
+    public async pickTreeItemImpl(expectedContextValues: (string | RegExp)[]): Promise<AzExtTreeItem | undefined> {
+        for (const expectedContextValue of expectedContextValues) {
+            switch (expectedContextValue) {
+                case CosmosDBTreeItem.contextValueInstalled:
+                case CosmosDBTreeItem.contextValueNotInstalled:
+                case CosmosDBConnection.contextValue:
+                    return this._cosmosDBNode;
+                default:
+            }
         }
+
+        return undefined;
     }
 
     public hasMoreChildrenImpl(): boolean {
