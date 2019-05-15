@@ -19,7 +19,7 @@ import { ConnectionsTreeItem } from './ConnectionsTreeItem';
 import { CosmosDBConnection } from './CosmosDBConnection';
 import { CosmosDBTreeItem } from './CosmosDBTreeItem';
 import { FolderTreeItem } from './FolderTreeItem';
-import { WebJobsTreeItem } from './WebJobsTreeItem';
+import { WebJobsNATreeItem, WebJobsTreeItem } from './WebJobsTreeItem';
 
 export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     public readonly abstract contextValue: string;
@@ -31,7 +31,7 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     private readonly _connectionsNode: ConnectionsTreeItem;
     private readonly _folderNode: FolderTreeItem;
     private readonly _logFolderNode: FolderTreeItem;
-    private readonly _webJobsNode: WebJobsTreeItem;
+    private readonly _webJobsNode: WebJobsTreeItem | WebJobsNATreeItem;
 
     private readonly _root: ISiteTreeRoot;
     private _state?: string;
@@ -45,7 +45,8 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         this._connectionsNode = new ConnectionsTreeItem(this);
         this._folderNode = new FolderTreeItem(this, 'Files', "/site/wwwroot");
         this._logFolderNode = new FolderTreeItem(this, 'Logs', '/LogFiles', 'logFolder');
-        this._webJobsNode = new WebJobsTreeItem(this);
+        // Can't find actual documentation on this, but the portal claims it and this feedback suggests it's not planned https://aka.ms/AA4q5gi
+        this._webJobsNode = this.root.client.isLinux ? new WebJobsNATreeItem(this) : new WebJobsTreeItem(this);
     }
 
     public get root(): ISiteTreeRoot {

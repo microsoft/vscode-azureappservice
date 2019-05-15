@@ -15,6 +15,7 @@ import { nonNullProp, nonNullValue } from '../utils/nonNull';
 import { getResourcesPath, getThemedIconPath, IThemedIconPath } from '../utils/pathUtils';
 import { DeploymentSlotsNATreeItem, DeploymentSlotsTreeItem } from './DeploymentSlotsTreeItem';
 import { DeploymentSlotTreeItem } from './DeploymentSlotTreeItem';
+import { NotAvailableTreeItem } from './NotAvailableTreeItem';
 import { SiteTreeItem } from './SiteTreeItem';
 
 export class WebAppTreeItem extends SiteTreeItem {
@@ -46,9 +47,9 @@ export class WebAppTreeItem extends SiteTreeItem {
     }
 
     public compareChildrenImpl(ti1: AzureTreeItem<ISiteTreeRoot>, ti2: AzureTreeItem<ISiteTreeRoot>): number {
-        if (ti1 instanceof DeploymentSlotsNATreeItem) {
+        if (ti1 instanceof NotAvailableTreeItem) {
             return 1;
-        } else if (ti2 instanceof DeploymentSlotsNATreeItem) {
+        } else if (ti2 instanceof NotAvailableTreeItem) {
             return -1;
         } else {
             return ti1.label.localeCompare(ti2.label);
