@@ -214,6 +214,13 @@ export async function activateInternal(
             const createdSlot = <SiteTreeItem>await node.createChild(this);
             createdSlot.showCreatedOutput(this);
         });
+        registerCommand('appService.DeploySlot', async function (this: IActionContext, node?: DeploymentSlotTreeItem | undefined): Promise<void> {
+            if (!node) {
+                node = <DeploymentSlotTreeItem>await ext.tree.showTreeItemPicker(DeploymentSlotTreeItem.contextValue);
+            }
+
+            await deploy(this, true, node);
+        });
         registerCommand('appService.SwapSlots', async (node: DeploymentSlotTreeItem) => await swapSlots(node));
         registerCommand('appService.appSettings.Add', async (node?: AppSettingsTreeItem) => {
             if (!node) {
