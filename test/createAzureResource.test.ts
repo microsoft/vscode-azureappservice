@@ -8,7 +8,7 @@ import { ResourceManagementClient } from 'azure-arm-resource';
 import { WebSiteManagementClient, WebSiteManagementModels } from 'azure-arm-website';
 import { IHookCallbackContext, ISuiteCallbackContext } from 'mocha';
 import * as vscode from 'vscode';
-import { AzureTreeDataProvider, constants, DialogResponses, ext, getRandomHexString, TestAzureAccount, TestUserInput, WebAppProvider } from '../extension.bundle';
+import { AzExtTreeDataProvider, AzureAccountTreeItem, constants, DialogResponses, ext, getRandomHexString, TestAzureAccount, TestUserInput } from '../extension.bundle';
 import { longRunningTestsEnabled } from './global.test';
 
 suite('Create Azure Resources', async function (this: ISuiteCallbackContext): Promise<void> {
@@ -25,8 +25,8 @@ suite('Create Azure Resources', async function (this: ISuiteCallbackContext): Pr
         oldAdvancedCreationSetting = <boolean>vscode.workspace.getConfiguration(constants.extensionPrefix).get('advancedCreation');
         this.timeout(120 * 1000);
         await testAccount.signIn();
-        ext.tree = new AzureTreeDataProvider(WebAppProvider, 'appService.startTesting', undefined, testAccount);
-        ext.treeView = vscode.window.createTreeView('azureAppService', { treeDataProvider: ext.tree });
+        ext.azureAccountTreeItem = new AzureAccountTreeItem(testAccount);
+        ext.tree = new AzExtTreeDataProvider(ext.azureAccountTreeItem, 'appService.loadMore');
     });
 
     suiteTeardown(async function (this: IHookCallbackContext): Promise<void> {
@@ -46,7 +46,7 @@ suite('Create Azure Resources', async function (this: ISuiteCallbackContext): Pr
                 console.log(`Ignoring resource group "${resourceGroup}" because it does not exist.`);
             }
         }
-        ext.tree.dispose();
+        ext.azureAccountTreeItem.dispose();
     });
 
     test('Create and Delete New Web App (Advanced)', async () => {

@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { ISiteTreeRoot } from 'vscode-azureappservice';
-import { AzureParentTreeItem, AzureTreeItem, GenericTreeItem } from 'vscode-azureextensionui';
+import { AzExtTreeItem, AzureParentTreeItem, GenericTreeItem } from 'vscode-azureextensionui';
 import { getThemedIconPath, IThemedIconPath } from '../utils/pathUtils';
 
 export class WebJobsTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
@@ -25,21 +25,21 @@ export class WebJobsTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         return false;
     }
 
-    public async loadMoreChildrenImpl(_clearCache: boolean): Promise<AzureTreeItem<ISiteTreeRoot>[]> {
+    public async loadMoreChildrenImpl(_clearCache: boolean): Promise<AzExtTreeItem[]> {
         let jobList: webJob[];
         try {
             jobList = <webJob[]>await this.root.client.listWebJobs();
         } catch (err) {
             if (this.root.client.isLinux) {
                 // Can't find actual documentation on this, but the portal claims it and this feedback suggests it's not planned https://aka.ms/AA4q5gi
-                return [new GenericTreeItem<ISiteTreeRoot>(this, { label: 'WebJobs are not available for Linux Apps.', contextValue: 'webJobNA' })];
+                return [new GenericTreeItem(this, { label: 'WebJobs are not available for Linux Apps.', contextValue: 'webJobNA' })];
             }
 
             throw err;
         }
 
         return jobList.map((job: webJob) => {
-            return new GenericTreeItem<ISiteTreeRoot>(this, { id: job.name, label: job.name, contextValue: 'webJob' });
+            return new GenericTreeItem(this, { id: job.name, label: job.name, contextValue: 'webJob' });
         });
     }
 }
