@@ -7,7 +7,7 @@
 
 import * as vscode from 'vscode';
 import { AppSettingsTreeItem, AppSettingTreeItem, DeploymentsTreeItem, ISiteTreeRoot, registerAppServiceExtensionVariables, SiteClient, stopStreamingLogs } from 'vscode-azureappservice';
-import { AzureParentTreeItem, AzureTreeDataProvider, AzureTreeItem, AzureUserInput, callWithTelemetryAndErrorHandling, createApiProvider, createTelemetryReporter, IActionContext, IAzureUserInput, registerCommand, registerEvent, registerUIExtensionVariables } from 'vscode-azureextensionui';
+import { AzExtTreeDataProvider, AzureParentTreeItem, AzureTreeItem, AzureUserInput, callWithTelemetryAndErrorHandling, createApiProvider, createTelemetryReporter, IActionContext, IAzureUserInput, openInPortal, registerCommand, registerEvent, registerUIExtensionVariables } from 'vscode-azureextensionui';
 import { AzureExtensionApiProvider } from 'vscode-azureextensionui/api';
 import { downloadAppSettings } from './commands/appSettings/downloadAppSettings';
 import { toggleSlotSetting } from './commands/appSettings/toggleSlotSetting';
@@ -32,6 +32,7 @@ import { startSsh } from './commands/startSsh';
 import { startStreamingLogs } from './commands/startStreamingLogs';
 import { swapSlots } from './commands/swapSlots';
 import { toggleValueVisibilityCommandId } from './constants';
+import { AzureAccountTreeItem } from './explorer/AzureAccountTreeItem';
 import { DeploymentSlotsNATreeItem, DeploymentSlotsTreeItem, ScaleUpTreeItem } from './explorer/DeploymentSlotsTreeItem';
 import { DeploymentSlotTreeItem } from './explorer/DeploymentSlotTreeItem';
 import { FileEditor } from './explorer/editors/FileEditor';
@@ -39,7 +40,6 @@ import { FileTreeItem } from './explorer/FileTreeItem';
 import { FolderTreeItem } from './explorer/FolderTreeItem';
 import { LoadedScriptsProvider, openScript } from './explorer/loadedScriptsExplorer';
 import { SiteTreeItem } from './explorer/SiteTreeItem';
-import { WebAppProvider } from './explorer/WebAppProvider';
 import { WebAppTreeItem } from './explorer/WebAppTreeItem';
 import { ext } from './extensionVariables';
 import { LogPointsManager } from './logPoints/LogPointsManager';
@@ -74,11 +74,11 @@ export async function activateInternal(
         this.properties.isActivationEvent = 'true';
         this.measurements.mainFileLoad = (perfStats.loadEndTime - perfStats.loadStartTime) / 1000;
 
-        const tree = new AzureTreeDataProvider(WebAppProvider, 'appService.LoadMore');
-        ext.tree = tree;
-        context.subscriptions.push(tree);
+        ext.azureAccountTreeItem = new AzureAccountTreeItem();
+        context.subscriptions.push(ext.azureAccountTreeItem);
+        ext.tree = new AzExtTreeDataProvider(ext.azureAccountTreeItem, 'appService.LoadMore');
 
-        ext.treeView = vscode.window.createTreeView('azureAppService', { treeDataProvider: tree });
+        ext.treeView = vscode.window.createTreeView('azureAppService', { treeDataProvider: ext.tree });
         context.subscriptions.push(ext.treeView);
 
         const fileEditor: FileEditor = new FileEditor();
@@ -122,12 +122,12 @@ export async function activateInternal(
             switch (node.contextValue) {
                 // the deep link for slots does not follow the conventional pattern of including its parent in the path name so this is how we extract the slot's id
                 case DeploymentSlotsTreeItem.contextValue:
-                    await node.openInPortal(`${nonNullProp(node, 'parent').fullId}/deploymentSlots`);
+                    await openInPortal(node.root, `${nonNullProp(node, 'parent').fullId}/deploymentSlots`);
                     return;
                 // the deep link for "Deployments" do not follow the conventional pattern of including its parent in the path name so we need to pass the "Deployment Center" url directly
                 case DeploymentsTreeItem.contextValueConnected:
                 case DeploymentsTreeItem.contextValueUnconnected:
-                    await node.openInPortal(`${node.root.client.id}/vstscd`);
+                    await openInPortal(node.root, `${node.root.client.id}/vstscd`);
                     return;
                 default:
                     await node.openInPortal();
@@ -272,7 +272,7 @@ export async function activateInternal(
 
         registerCommand('appService.showFile', async (node: FileTreeItem) => { await showFile(node, fileEditor); }, 500);
         registerCommand('appService.ScaleUp', async (node: DeploymentSlotsNATreeItem | ScaleUpTreeItem) => {
-            await node.openInPortal(node.scaleUpId);
+            await openInPortal(node.root, node.scaleUpId);
         });
 
         registerEvent('appService.fileEditor.onDidSaveTextDocument', vscode.workspace.onDidSaveTextDocument, async function (this: IActionContext, doc: vscode.TextDocument): Promise<void> { await fileEditor.onDidSaveTextDocument(this, context.globalState, doc); });

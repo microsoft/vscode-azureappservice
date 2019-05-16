@@ -8,7 +8,7 @@ import * as fse from 'fs-extra';
 import * as path from 'path';
 import { MessageItem, Uri, window, workspace, WorkspaceConfiguration } from 'vscode';
 import { AppSettingsTreeItem, AppSettingTreeItem, deleteSite, DeploymentsTreeItem, DeploymentTreeItem, ISiteTreeRoot, LinuxRuntimes, SiteClient } from 'vscode-azureappservice';
-import { AzureParentTreeItem, AzureTreeItem, DialogResponses, IActionContext, TelemetryProperties } from 'vscode-azureextensionui';
+import { AzExtTreeItem, AzureParentTreeItem, AzureTreeItem, DialogResponses, IActionContext, TelemetryProperties } from 'vscode-azureextensionui';
 import { deploy } from '../commands/deploy';
 import { toggleValueVisibilityCommandId } from '../constants';
 import * as constants from '../constants';
@@ -88,30 +88,33 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         return [this.appSettingsNode, this._connectionsNode, this.deploymentsNode, this._folderNode, this._logFolderNode, this._webJobsNode];
     }
 
-    public pickTreeItemImpl(expectedContextValue: string | RegExp): AzureTreeItem<ISiteTreeRoot> | undefined {
-        switch (expectedContextValue) {
-            case AppSettingsTreeItem.contextValue:
-            case AppSettingTreeItem.contextValue:
-                return this.appSettingsNode;
-            case ConnectionsTreeItem.contextValue:
-            case CosmosDBTreeItem.contextValueInstalled:
-            case CosmosDBTreeItem.contextValueNotInstalled:
-            case CosmosDBConnection.contextValue:
-                return this._connectionsNode;
-            case DeploymentsTreeItem.contextValueConnected:
-            case DeploymentsTreeItem.contextValueUnconnected:
-            case DeploymentTreeItem.contextValue:
-                return this.deploymentsNode;
-            case FolderTreeItem.contextValue:
-                return this._folderNode;
-            case WebJobsTreeItem.contextValue:
-                return this._webJobsNode;
-            default:
-                if (typeof expectedContextValue === 'string' && DeploymentTreeItem.contextValue.test(expectedContextValue)) {
+    public async pickTreeItemImpl(expectedContextValues: (string | RegExp)[]): Promise<AzExtTreeItem | undefined> {
+        for (const expectedContextValue of expectedContextValues) {
+            switch (expectedContextValue) {
+                case AppSettingsTreeItem.contextValue:
+                case AppSettingTreeItem.contextValue:
+                    return this.appSettingsNode;
+                case ConnectionsTreeItem.contextValue:
+                case CosmosDBTreeItem.contextValueInstalled:
+                case CosmosDBTreeItem.contextValueNotInstalled:
+                case CosmosDBConnection.contextValue:
+                    return this._connectionsNode;
+                case DeploymentsTreeItem.contextValueConnected:
+                case DeploymentsTreeItem.contextValueUnconnected:
+                case DeploymentTreeItem.contextValue:
                     return this.deploymentsNode;
-                }
-                return undefined;
+                case FolderTreeItem.contextValue:
+                    return this._folderNode;
+                case WebJobsTreeItem.contextValue:
+                    return this._webJobsNode;
+                default:
+                    if (typeof expectedContextValue === 'string' && DeploymentTreeItem.contextValue.test(expectedContextValue)) {
+                        return this.deploymentsNode;
+                    }
+            }
         }
+
+        return undefined;
     }
 
     public async deleteTreeItemImpl(): Promise<void> {
