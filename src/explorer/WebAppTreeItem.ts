@@ -9,7 +9,7 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { ISiteTreeRoot } from 'vscode-azureappservice';
-import { AzureTreeItem, createAzureClient } from 'vscode-azureextensionui';
+import { AzExtTreeItem, AzureTreeItem, createAzureClient, openInPortal } from 'vscode-azureextensionui';
 import { extensionPrefix } from '../constants';
 import { nonNullProp, nonNullValue } from '../utils/nonNull';
 import { getResourcesPath, getThemedIconPath, IThemedIconPath } from '../utils/pathUtils';
@@ -55,18 +55,21 @@ export class WebAppTreeItem extends SiteTreeItem {
         }
     }
 
-    public pickTreeItemImpl(expectedContextValue: string): AzureTreeItem<ISiteTreeRoot> | undefined {
-        switch (expectedContextValue) {
-            case DeploymentSlotsTreeItem.contextValue:
-            case DeploymentSlotTreeItem.contextValue:
-                return this.deploymentSlotsNode;
-            default:
-                return super.pickTreeItemImpl(expectedContextValue);
+    public async pickTreeItemImpl(expectedContextValues: (string | RegExp)[]): Promise<AzExtTreeItem | undefined> {
+        for (const expectedContextValue of expectedContextValues) {
+            switch (expectedContextValue) {
+                case DeploymentSlotsTreeItem.contextValue:
+                case DeploymentSlotTreeItem.contextValue:
+                    return this.deploymentSlotsNode;
+                default:
+            }
         }
+
+        return super.pickTreeItemImpl(expectedContextValues);
     }
 
     public async openCdInPortal(): Promise<void> {
-        await this.openInPortal(`${this.root.client.id}/vstscd`);
+        await openInPortal(this.root, `${this.root.client.id}/vstscd`);
     }
 
     public async generateDeploymentScript(): Promise<void> {

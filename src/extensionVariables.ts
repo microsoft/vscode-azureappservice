@@ -4,16 +4,19 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { ExtensionContext, OutputChannel, TreeView } from "vscode";
-import { AzureTreeDataProvider, AzureTreeItem, IAzureUserInput, ITelemetryReporter } from "vscode-azureextensionui";
+import { AzExtTreeDataProvider, AzExtTreeItem, IAzureUserInput, ITelemetryReporter } from "vscode-azureextensionui";
+import { AzureAccountTreeItem } from "./explorer/AzureAccountTreeItem";
 
 /**
  * Namespace for common variables used throughout the extension. They must be initialized in the activate() method of extension.ts
  */
 export namespace ext {
-    export let tree: AzureTreeDataProvider;
     export let outputChannel: OutputChannel;
     export let ui: IAzureUserInput;
     export let reporter: ITelemetryReporter;
     export let context: ExtensionContext;
-    export let treeView: TreeView<AzureTreeItem>;
+
+    export let tree: AzExtTreeDataProvider;
+    export let treeView: TreeView<AzExtTreeItem>;
+    export let azureAccountTreeItem: AzureAccountTreeItem;
 }
