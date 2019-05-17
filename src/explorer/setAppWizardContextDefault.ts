@@ -45,21 +45,18 @@ export async function setAppWizardContextDefault(wizardContext: IAppServiceWizar
             await LocationListStep.setLocation(wizardContext, 'centralus');
         }
 
+        if (!wizardContext.newPlanSku) {
+            // don't overwrite the planSku if it is already set
+            wizardContext.newPlanSku = { name: 'F1', tier: 'Free', size: 'F1', family: 'F', capacity: 1 };
+        }
+
         // if we are recommending a runtime, then it is either Nodejs, Python, or Java which all use Linux
         if (wizardContext.recommendedSiteRuntime) {
             wizardContext.newSiteOS = WebsiteOS.linux;
-            if (!wizardContext.newPlanSku) {
-                // don't overwrite the planSku if it is already set
-                wizardContext.newPlanSku = { name: 'B1', tier: 'Basic', size: 'B1', family: 'B', capacity: 1 };
-            }
         } else {
             await workspace.findFiles('*.csproj').then((files: Uri[]) => {
                 if (files.length > 0) {
                     wizardContext.newSiteOS = WebsiteOS.windows;
-                    if (!wizardContext.newPlanSku) {
-                        // don't overwrite the planSku if it is already set
-                        wizardContext.newPlanSku = { name: 'F1', tier: 'Free', size: 'F1', family: 'F', capacity: 1 };
-                    }
                 }
             });
         }
