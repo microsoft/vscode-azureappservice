@@ -19,7 +19,8 @@ import { ConnectionsTreeItem } from './ConnectionsTreeItem';
 import { CosmosDBConnection } from './CosmosDBConnection';
 import { CosmosDBTreeItem } from './CosmosDBTreeItem';
 import { FolderTreeItem } from './FolderTreeItem';
-import { WebJobsTreeItem } from './WebJobsTreeItem';
+import { NotAvailableTreeItem } from './NotAvailableTreeItem';
+import { WebJobsNATreeItem, WebJobsTreeItem } from './WebJobsTreeItem';
 
 export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     public readonly abstract contextValue: string;
@@ -31,7 +32,7 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     private readonly _connectionsNode: ConnectionsTreeItem;
     private readonly _folderNode: FolderTreeItem;
     private readonly _logFolderNode: FolderTreeItem;
-    private readonly _webJobsNode: WebJobsTreeItem;
+    private readonly _webJobsNode: WebJobsTreeItem | WebJobsNATreeItem;
 
     private readonly _root: ISiteTreeRoot;
     private _state?: string;
@@ -45,7 +46,8 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         this._connectionsNode = new ConnectionsTreeItem(this);
         this._folderNode = new FolderTreeItem(this, 'Files', "/site/wwwroot");
         this._logFolderNode = new FolderTreeItem(this, 'Logs', '/LogFiles', 'logFolder');
-        this._webJobsNode = new WebJobsTreeItem(this);
+        // Can't find actual documentation on this, but the portal claims it and this feedback suggests it's not planned https://aka.ms/AA4q5gi
+        this._webJobsNode = this.root.client.isLinux ? new WebJobsNATreeItem(this) : new WebJobsTreeItem(this);
     }
 
     public get root(): ISiteTreeRoot {
@@ -85,6 +87,16 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         const sourceControl: WebSiteModels.SiteSourceControl = await this.root.client.getSourceControl();
         this.deploymentsNode = new DeploymentsTreeItem(this, siteConfig, sourceControl, 'appService.ConnectToGitHub');
         return [this.appSettingsNode, this._connectionsNode, this.deploymentsNode, this._folderNode, this._logFolderNode, this._webJobsNode];
+    }
+
+    public compareChildrenImpl(ti1: AzureTreeItem<ISiteTreeRoot>, ti2: AzureTreeItem<ISiteTreeRoot>): number {
+        if (ti1 instanceof NotAvailableTreeItem) {
+            return 1;
+        } else if (ti2 instanceof NotAvailableTreeItem) {
+            return -1;
+        } else {
+            return ti1.label.localeCompare(ti2.label);
+        }
     }
 
     public async pickTreeItemImpl(expectedContextValues: (string | RegExp)[]): Promise<AzExtTreeItem | undefined> {

@@ -45,16 +45,6 @@ export class WebAppTreeItem extends SiteTreeItem {
         return (await super.loadMoreChildrenImpl(clearCache)).concat(this.deploymentSlotsNode);
     }
 
-    public compareChildrenImpl(ti1: AzureTreeItem<ISiteTreeRoot>, ti2: AzureTreeItem<ISiteTreeRoot>): number {
-        if (ti1 instanceof DeploymentSlotsNATreeItem) {
-            return 1;
-        } else if (ti2 instanceof DeploymentSlotsNATreeItem) {
-            return -1;
-        } else {
-            return ti1.label.localeCompare(ti2.label);
-        }
-    }
-
     public async pickTreeItemImpl(expectedContextValues: (string | RegExp)[]): Promise<AzExtTreeItem | undefined> {
         for (const expectedContextValue of expectedContextValues) {
             switch (expectedContextValue) {

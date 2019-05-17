@@ -6,6 +6,7 @@
 import { ISiteTreeRoot } from 'vscode-azureappservice';
 import { AzExtTreeItem, AzureParentTreeItem, GenericTreeItem } from 'vscode-azureextensionui';
 import { getThemedIconPath, IThemedIconPath } from '../utils/pathUtils';
+import { NotAvailableTreeItem } from './NotAvailableTreeItem';
 
 export class WebJobsTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     public static contextValue: string = 'webJobs';
@@ -18,7 +19,7 @@ export class WebJobsTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     }
 
     public get iconPath(): IThemedIconPath {
-        return getThemedIconPath(this.root.client.isLinux ? 'WebJobs_grayscale' : 'WebJobs_color');
+        return getThemedIconPath('WebJobs_color');
     }
 
     public hasMoreChildrenImpl(): boolean {
@@ -26,21 +27,31 @@ export class WebJobsTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     }
 
     public async loadMoreChildrenImpl(_clearCache: boolean): Promise<AzExtTreeItem[]> {
-        let jobList: webJob[];
-        try {
-            jobList = <webJob[]>await this.root.client.listWebJobs();
-        } catch (err) {
-            if (this.root.client.isLinux) {
-                // Can't find actual documentation on this, but the portal claims it and this feedback suggests it's not planned https://aka.ms/AA4q5gi
-                return [new GenericTreeItem(this, { label: 'WebJobs are not available for Linux Apps.', contextValue: 'webJobNA' })];
-            }
-
-            throw err;
-        }
-
-        return jobList.map((job: webJob) => {
+        return (await this.root.client.listWebJobs()).map((job: webJob) => {
             return new GenericTreeItem(this, { id: job.name, label: job.name, contextValue: 'webJob' });
         });
+    }
+}
+
+export class WebJobsNATreeItem extends NotAvailableTreeItem {
+    public static contextValue: string = "webJobsNA";
+    public readonly label: string = 'WebJobs';
+    public readonly contextValue: string = WebJobsNATreeItem.contextValue;
+
+    public constructor(parent: AzureParentTreeItem) {
+        super(parent);
+    }
+
+    public get iconPath(): IThemedIconPath {
+        return getThemedIconPath('WebJobs_grayscale');
+    }
+
+    public hasMoreChildrenImpl(): boolean {
+        return false;
+    }
+
+    public async loadMoreChildrenImpl(_clearCache: boolean): Promise<AzExtTreeItem[]> {
+        return [new GenericTreeItem(this, { label: 'WebJobs are not available for Linux Apps.', contextValue: 'webJobNA' })];
     }
 }
 

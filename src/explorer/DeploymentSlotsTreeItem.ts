@@ -9,6 +9,7 @@ import { createSlot, ISiteTreeRoot, SiteClient } from 'vscode-azureappservice';
 import { AzureParentTreeItem, AzureTreeItem, createAzureClient } from 'vscode-azureextensionui';
 import { getThemedIconPath, IThemedIconPath } from '../utils/pathUtils';
 import { DeploymentSlotTreeItem } from './DeploymentSlotTreeItem';
+import { NotAvailableTreeItem } from './NotAvailableTreeItem';
 
 export class DeploymentSlotsTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     public static contextValue: string = 'deploymentSlots';
@@ -65,7 +66,7 @@ export class ScaleUpTreeItem extends AzureTreeItem<ISiteTreeRoot> {
     }
 }
 
-export class DeploymentSlotsNATreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
+export class DeploymentSlotsNATreeItem extends NotAvailableTreeItem {
     public static contextValue: string = "deploymentNASlots";
     public readonly label: string;
     public readonly contextValue: string = DeploymentSlotsNATreeItem.contextValue;
