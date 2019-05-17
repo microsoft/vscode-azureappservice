@@ -28,7 +28,7 @@ export class WebJobsTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
 
     public async loadMoreChildrenImpl(_clearCache: boolean): Promise<AzExtTreeItem[]> {
         return (await this.root.client.listWebJobs()).map((job: webJob) => {
-            return new GenericTreeItem<ISiteTreeRoot>(this, { id: job.name, label: job.name, contextValue: 'webJob' });
+            return new GenericTreeItem(this, { id: job.name, label: job.name, contextValue: 'webJob' });
         });
     }
 }
@@ -51,7 +51,7 @@ export class WebJobsNATreeItem extends NotAvailableTreeItem {
     }
 
     public async loadMoreChildrenImpl(_clearCache: boolean): Promise<AzExtTreeItem[]> {
-        return [new GenericTreeItem<ISiteTreeRoot>(this, { label: 'WebJobs are not available for Linux Apps.', contextValue: 'webJobNA' })];
+        return [new GenericTreeItem(this, { label: 'WebJobs are not available for Linux Apps.', contextValue: 'webJobNA' })];
     }
 }
 
