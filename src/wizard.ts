@@ -4,15 +4,17 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import { IAzureQuickPickItem, TelemetryProperties, UserCancelledError } from 'vscode-azureextensionui';
+import { IActionContext, IAzureQuickPickItem, UserCancelledError } from 'vscode-azureextensionui';
+
+// **IMPORTANT** This wizard is deprecated. Use wizard from 'vscode-azureextensionui' instead
 
 export type WizardStatus = 'PromptCompleted' | 'Completed' | 'Faulted' | 'Cancelled';
 
 export abstract class WizardBase {
     public readonly output: vscode.OutputChannel;
+    public context: IActionContext;
     private readonly _steps: WizardStep[] = [];
     private _result: IWizardResult;
-    private _telemetryProperties: TelemetryProperties;
 
     protected constructor(output: vscode.OutputChannel) {
         this.output = output;
@@ -26,8 +28,8 @@ export abstract class WizardBase {
         this.output.appendLine(text);
     }
 
-    public async run(properties: TelemetryProperties, promptOnly: boolean = false): Promise<IWizardResult> {
-        this._telemetryProperties = properties;
+    public async run(context: IActionContext, promptOnly: boolean = false): Promise<IWizardResult> {
+        this.context = context;
         this.initSteps();
 
         // Go through the prompts...
@@ -96,14 +98,14 @@ export abstract class WizardBase {
     }
 
     protected cancel(step: WizardStep): void {
-        this._telemetryProperties.stepTitle = step.telemetryStepTitle;
-        this._telemetryProperties.stepIndex = step.stepIndex.toString();
+        this.context.telemetry.properties.stepTitle = step.telemetryStepTitle;
+        this.context.telemetry.properties.stepIndex = step.stepIndex.toString();
         throw new UserCancelledError();
     }
 
     protected onError(err: Error, step: WizardStep): void {
-        this._telemetryProperties.stepTitle = step.telemetryStepTitle;
-        this._telemetryProperties.stepIndex = step.stepIndex.toString();
+        this.context.telemetry.properties.stepTitle = step.telemetryStepTitle;
+        this.context.telemetry.properties.stepIndex = step.stepIndex.toString();
         throw err;
     }
 

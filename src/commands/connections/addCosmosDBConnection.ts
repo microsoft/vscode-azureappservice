@@ -3,14 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { AzExtParentTreeItem, AzureTreeItem } from 'vscode-azureextensionui';
+import { AzExtParentTreeItem, AzureTreeItem, IActionContext } from 'vscode-azureextensionui';
 import { CosmosDBTreeItem } from '../../explorer/CosmosDBTreeItem';
 import { ext } from "../../extensionVariables";
 import { nonNullProp } from '../../utils/nonNull';
 
-export async function addCosmosDBConnection(node?: AzureTreeItem): Promise<void> {
+export async function addCosmosDBConnection(context: IActionContext, node?: AzureTreeItem): Promise<void> {
     if (!node) {
-        node = <CosmosDBTreeItem>await ext.tree.showTreeItemPicker([CosmosDBTreeItem.contextValueNotInstalled, CosmosDBTreeItem.contextValueInstalled]);
+        node = <CosmosDBTreeItem>await ext.tree.showTreeItemPicker([CosmosDBTreeItem.contextValueNotInstalled, CosmosDBTreeItem.contextValueInstalled], context);
     }
 
     let cosmosDBTreeItem: AzExtParentTreeItem;
@@ -19,6 +19,6 @@ export async function addCosmosDBConnection(node?: AzureTreeItem): Promise<void>
     } else {
         cosmosDBTreeItem = nonNullProp(node, 'parent');
     }
-    await cosmosDBTreeItem.createChild();
+    await cosmosDBTreeItem.createChild(context);
     await ext.tree.refresh(cosmosDBTreeItem);
 }

@@ -6,7 +6,7 @@
 import { WebSiteManagementClient } from 'azure-arm-website';
 import { Site, WebAppCollection } from 'azure-arm-website/lib/models';
 import { createSlot, ISiteTreeRoot, SiteClient } from 'vscode-azureappservice';
-import { AzureParentTreeItem, AzureTreeItem, createAzureClient } from 'vscode-azureextensionui';
+import { AzureParentTreeItem, AzureTreeItem, createAzureClient, ICreateChildImplContext } from 'vscode-azureextensionui';
 import { getThemedIconPath, IThemedIconPath } from '../utils/pathUtils';
 import { DeploymentSlotTreeItem } from './DeploymentSlotTreeItem';
 import { NotAvailableTreeItem } from './NotAvailableTreeItem';
@@ -46,9 +46,9 @@ export class DeploymentSlotsTreeItem extends AzureParentTreeItem<ISiteTreeRoot> 
         return webAppCollection.map((s: Site) => new DeploymentSlotTreeItem(this, new SiteClient(s, this.root)));
     }
 
-    public async createChildImpl(showCreatingTreeItem: (label: string) => void): Promise<AzureTreeItem<ISiteTreeRoot>> {
-        const existingSlots: DeploymentSlotTreeItem[] = <DeploymentSlotTreeItem[]>await this.getCachedChildren();
-        const newSite: Site = await createSlot(this.root, existingSlots, showCreatingTreeItem);
+    public async createChildImpl(context: ICreateChildImplContext): Promise<AzureTreeItem<ISiteTreeRoot>> {
+        const existingSlots: DeploymentSlotTreeItem[] = <DeploymentSlotTreeItem[]>await this.getCachedChildren(context);
+        const newSite: Site = await createSlot(this.root, existingSlots, context);
         return new DeploymentSlotTreeItem(this, new SiteClient(newSite, this.root));
     }
 }

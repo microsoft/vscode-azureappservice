@@ -10,14 +10,14 @@ import { SubscriptionTreeItem } from '../explorer/SubscriptionTreeItem';
 import { WebAppTreeItem } from "../explorer/WebAppTreeItem";
 import { ext } from "../extensionVariables";
 
-export async function createWebApp(actionContext: IActionContext, node?: AzureParentTreeItem | undefined): Promise<void> {
+export async function createWebApp(context: IActionContext, node?: AzureParentTreeItem | undefined): Promise<void> {
     if (!node) {
-        node = <AzureParentTreeItem>await ext.tree.showTreeItemPicker(SubscriptionTreeItem.contextValue);
+        node = <AzureParentTreeItem>await ext.tree.showTreeItemPicker(SubscriptionTreeItem.contextValue, context);
     }
 
     let newSite: WebAppTreeItem | undefined;
     try {
-        newSite = <WebAppTreeItem>await node.createChild(actionContext);
+        newSite = <WebAppTreeItem>await node.createChild(context);
     } catch (error) {
         const workspaceConfig: WorkspaceConfiguration = workspace.getConfiguration(extensionPrefix);
         const advancedCreation: boolean | undefined = workspaceConfig.get(configurationSettings.advancedCreation);
@@ -35,5 +35,5 @@ export async function createWebApp(actionContext: IActionContext, node?: AzurePa
         throw error;
     }
 
-    newSite.showCreatedOutput(actionContext);
+    newSite.showCreatedOutput(context);
 }
