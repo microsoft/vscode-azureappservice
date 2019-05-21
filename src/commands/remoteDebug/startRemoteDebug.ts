@@ -15,23 +15,23 @@ import * as remoteDebug from './remoteDebugCommon';
 
 let isRemoteDebugging = false;
 
-export async function startRemoteDebug(actionContext: IActionContext, node?: SiteTreeItem): Promise<void> {
+export async function startRemoteDebug(context: IActionContext, node?: SiteTreeItem): Promise<void> {
     if (isRemoteDebugging) {
         throw new Error('Azure Remote Debugging is currently starting or already started.');
     }
 
     isRemoteDebugging = true;
     try {
-        await startRemoteDebugInternal(actionContext, node);
+        await startRemoteDebugInternal(context, node);
     } catch (error) {
         isRemoteDebugging = false;
         throw error;
     }
 }
 
-async function startRemoteDebugInternal(actionContext: IActionContext, node?: SiteTreeItem): Promise<void> {
+async function startRemoteDebugInternal(context: IActionContext, node?: SiteTreeItem): Promise<void> {
     if (!node) {
-        node = <SiteTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue);
+        node = <SiteTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue, context);
     }
     const siteClient: SiteClient = node.root.client;
 
@@ -39,7 +39,7 @@ async function startRemoteDebugInternal(actionContext: IActionContext, node?: Si
         remoteDebug.reportMessage('Fetching site configuration...', progress);
         const siteConfig: SiteConfigResource = await siteClient.getSiteConfig();
 
-        remoteDebug.checkForRemoteDebugSupport(siteConfig, actionContext);
+        remoteDebug.checkForRemoteDebugSupport(siteConfig, context);
         const debugConfig: vscode.DebugConfiguration = await getDebugConfiguration();
         // tslint:disable-next-line:no-unsafe-any
         const localHostPortNumber: number = debugConfig.port;
@@ -53,17 +53,17 @@ async function startRemoteDebugInternal(actionContext: IActionContext, node?: Si
 
         const publishCredential: User = await siteClient.getWebAppPublishCredential();
         const tunnelProxy: TunnelProxy = new TunnelProxy(localHostPortNumber, siteClient, publishCredential);
-        await callWithTelemetryAndErrorHandling('appService.remoteDebugStartProxy', async function (this: IActionContext): Promise<void> {
-            this.suppressErrorDisplay = true;
-            this.rethrowError = true;
+        await callWithTelemetryAndErrorHandling('appService.remoteDebugStartProxy', async (startContext: IActionContext) => {
+            startContext.errorHandling.suppressDisplay = true;
+            startContext.errorHandling.rethrow = true;
             await tunnelProxy.startProxy();
         });
 
         remoteDebug.reportMessage('Attaching debugger...', progress);
 
-        await callWithTelemetryAndErrorHandling('appService.remoteDebugAttach', async function (this: IActionContext): Promise<void> {
-            this.suppressErrorDisplay = true;
-            this.rethrowError = true;
+        await callWithTelemetryAndErrorHandling('appService.remoteDebugAttach', async (attachContext: IActionContext) => {
+            attachContext.errorHandling.suppressDisplay = true;
+            attachContext.errorHandling.rethrow = true;
             await vscode.debug.startDebugging(undefined, debugConfig);
         });
 

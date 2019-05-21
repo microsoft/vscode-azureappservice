@@ -8,7 +8,7 @@ import * as fse from 'fs-extra';
 import * as path from 'path';
 import { workspace } from "vscode";
 import * as vscode from 'vscode';
-import { IAzureQuickPickItem, TelemetryProperties, UserCancelledError } from 'vscode-azureextensionui';
+import { IActionContext, IAzureQuickPickItem, UserCancelledError } from 'vscode-azureextensionui';
 import { SiteTreeItem } from "../explorer/SiteTreeItem";
 import { ext } from '../extensionVariables';
 
@@ -92,7 +92,7 @@ export namespace javaUtils {
         return node.root.client.updateApplicationSettings(appSettings);
     }
 
-    export async function showQuickPickByFileExtension(telemetryProperties: TelemetryProperties, placeHolderString: string, fileExtension: string = '*'): Promise<string> {
+    export async function showQuickPickByFileExtension(context: IActionContext, placeHolderString: string, fileExtension: string = '*'): Promise<string> {
         const files: vscode.Uri[] = await vscode.workspace.findFiles(`**/*.${fileExtension}`);
         const quickPickItems: IAzureQuickPickItem<string | undefined>[] = files.map((uri: vscode.Uri) => {
             return {
@@ -108,7 +108,7 @@ export namespace javaUtils {
         const pickedItem = await vscode.window.showQuickPick(quickPickItems, quickPickOption);
 
         if (!pickedItem) {
-            telemetryProperties.cancelStep = `show${fileExtension}`;
+            context.telemetry.properties.cancelStep = `show${fileExtension}`;
             throw new UserCancelledError();
         } else if (!pickedItem.data) {
             const browseResult = await vscode.window.showOpenDialog({
@@ -120,7 +120,7 @@ export namespace javaUtils {
             });
 
             if (!browseResult) {
-                telemetryProperties.cancelStep = `show${fileExtension}Browse`;
+                context.telemetry.properties.cancelStep = `show${fileExtension}Browse`;
                 throw new UserCancelledError();
             }
 

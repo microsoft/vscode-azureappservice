@@ -10,11 +10,11 @@ import { SiteTreeItem } from "../../explorer/SiteTreeItem";
 import { WebAppTreeItem } from "../../explorer/WebAppTreeItem";
 import { ext } from "../../extensionVariables";
 
-export async function connectToGitHub(this: IActionContext, node?: WebAppTreeItem | DeploymentsTreeItem): Promise<void> {
+export async function connectToGitHub(context: IActionContext, node?: WebAppTreeItem | DeploymentsTreeItem): Promise<void> {
     if (!node) {
-        node = <WebAppTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue);
+        node = <WebAppTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue, context);
     }
-    await editScmType(node.root.client, node, this, ScmType.GitHub);
+    await editScmType(node.root.client, node, context, ScmType.GitHub);
     if (node instanceof SiteTreeItem) {
         if (node.deploymentsNode) {
             await node.deploymentsNode.refresh();

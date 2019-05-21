@@ -6,7 +6,7 @@
 import { StringDictionary } from 'azure-arm-website/lib/models';
 import * as vscode from 'vscode';
 import { ISiteTreeRoot, validateAppSettingKey } from 'vscode-azureappservice';
-import { AzExtTreeItem, AzureParentTreeItem, AzureTreeItem, GenericTreeItem, UserCancelledError } from 'vscode-azureextensionui';
+import { AzExtTreeItem, AzureParentTreeItem, AzureTreeItem, GenericTreeItem, ICreateChildImplContext, UserCancelledError } from 'vscode-azureextensionui';
 import { AzureExtensionApiProvider } from 'vscode-azureextensionui/api';
 import { ext } from '../extensionVariables';
 import { nonNullProp } from '../utils/nonNull';
@@ -78,7 +78,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         }
     }
 
-    public async createChildImpl(showCreatingTreeItem: (label: string) => void): Promise<AzureTreeItem<ISiteTreeRoot>> {
+    public async createChildImpl(context: ICreateChildImplContext): Promise<AzureTreeItem<ISiteTreeRoot>> {
         const cosmosDBApi = await this.getCosmosDBApi();
         const databaseToAdd = await cosmosDBApi.pickTreeItem({
             resourceType: 'Database'
@@ -102,7 +102,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         await this.parent.parent.appSettingsNode.refresh();
 
         const createdDatabase = new CosmosDBConnection(this, databaseToAdd, Array.from(newAppSettings.keys()));
-        showCreatingTreeItem(createdDatabase.label);
+        context.showCreatingTreeItem(createdDatabase.label);
 
         const ok: vscode.MessageItem = { title: 'OK' };
         const revealDatabase: vscode.MessageItem = { title: 'Reveal Database' };

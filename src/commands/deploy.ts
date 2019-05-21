@@ -33,13 +33,13 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
     let currentWorkspace: WorkspaceFolder | undefined;
     let defaultWebAppToDeploy: string | undefined;
     let workspaceConfig: WorkspaceConfiguration;
-    context.properties.deployedWithConfigs = 'false';
+    context.telemetry.properties.deployedWithConfigs = 'false';
 
     if (target instanceof Uri) {
         fsPath = target.fsPath;
-        context.properties.deploymentEntryPoint = 'fileExplorerContextMenu';
+        context.telemetry.properties.deploymentEntryPoint = 'fileExplorerContextMenu';
     } else {
-        context.properties.deploymentEntryPoint = target ? 'webAppContextMenu' : 'deployButton';
+        context.telemetry.properties.deploymentEntryPoint = target ? 'webAppContextMenu' : 'deployButton';
         node = target;
     }
 
@@ -52,12 +52,12 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
             const defaultSubpath: string | undefined = workspaceConfig.get(constants.configurationSettings.deploySubpath);
             const defaultDeployPath: string = defaultSubpath ? join(currentWorkspace.uri.fsPath, defaultSubpath) : currentWorkspace.uri.fsPath;
             const defaultPathExists: boolean = await pathExists(defaultDeployPath);
-            const defaultNode: AzureTreeItem | undefined = await ext.tree.findTreeItem(defaultWebAppToDeploy); // resolves to undefined if app can't be found
+            const defaultNode: AzureTreeItem | undefined = await ext.tree.findTreeItem(defaultWebAppToDeploy, context); // resolves to undefined if app can't be found
             if (defaultPathExists && (!fsPath || isPathEqual(fsPath, defaultDeployPath)) &&
                 defaultNode && (!node || node.fullId === defaultNode.fullId)) {
                 fsPath = defaultDeployPath;
                 node = <SiteTreeItem>defaultNode;
-                context.properties.deployedWithConfigs = 'true';
+                context.telemetry.properties.deployedWithConfigs = 'true';
             } else {
                 // if defaultPath or defaultNode cannot be found or there was a mismatch, delete old settings and prompt to save next deployment
                 workspaceConfig.update(constants.configurationSettings.defaultWebAppToDeploy, undefined);
@@ -72,10 +72,10 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
             newNodes.push(newNode);
         });
         try {
-            node = <SiteTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue);
+            node = <SiteTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue, context);
         } catch (err2) {
             if (parseError(err2).isUserCancelledError) {
-                context.properties.cancelStep = `showTreeItemPicker:${WebAppTreeItem.contextValue}`;
+                context.telemetry.properties.cancelStep = `showTreeItemPicker:${WebAppTreeItem.contextValue}`;
             }
             throw err2;
         } finally {
@@ -90,8 +90,8 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
                 confirmDeployment = false;
                 newApp.root.client.getSiteConfig().then(
                     (createdAppConfig: SiteConfigResource) => {
-                        context.properties.linuxFxVersion = createdAppConfig.linuxFxVersion ? createdAppConfig.linuxFxVersion : 'undefined';
-                        context.properties.createdFromDeploy = 'true';
+                        context.telemetry.properties.linuxFxVersion = createdAppConfig.linuxFxVersion ? createdAppConfig.linuxFxVersion : 'undefined';
+                        context.telemetry.properties.createdFromDeploy = 'true';
                     },
                     () => {
                         // ignore
@@ -101,15 +101,15 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
     }
 
     const correlationId = getRandomHexString();
-    context.properties.correlationId = correlationId;
+    context.telemetry.properties.correlationId = correlationId;
     const siteConfig: WebSiteModels.SiteConfigResource = await node.root.client.getSiteConfig();
 
     if (!fsPath) {
         if (javaUtils.isJavaRuntime(siteConfig.linuxFxVersion)) {
             const fileExtension: string = javaUtils.getArtifactTypeByJavaRuntime(siteConfig.linuxFxVersion);
-            fsPath = await javaUtils.showQuickPickByFileExtension(context.properties, `Select the ${fileExtension} file to deploy...`, fileExtension);
+            fsPath = await javaUtils.showQuickPickByFileExtension(context, `Select the ${fileExtension} file to deploy...`, fileExtension);
         } else {
-            fsPath = await workspaceUtil.showWorkspaceFoldersQuickPick("Select the folder to deploy", context.properties, constants.configurationSettings.deploySubpath);
+            fsPath = await workspaceUtil.showWorkspaceFoldersQuickPick("Select the folder to deploy", context, constants.configurationSettings.deploySubpath);
         }
         await javaUtils.configureJavaSEAppSettings(node);
     }
@@ -124,9 +124,9 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
                 const linuxFxVersion: string = siteConfig.linuxFxVersion.toLowerCase();
                 if (linuxFxVersion.startsWith(appservice.LinuxRuntimes.node)) {
                     // if it is node or python, prompt the user (as we can break them)
-                    await node.promptScmDoBuildDeploy(fsPath, appservice.LinuxRuntimes.node, context.properties);
+                    await node.promptScmDoBuildDeploy(fsPath, appservice.LinuxRuntimes.node, context);
                 } else if (linuxFxVersion.startsWith(appservice.LinuxRuntimes.python)) {
-                    await node.promptScmDoBuildDeploy(fsPath, appservice.LinuxRuntimes.python, context.properties);
+                    await node.promptScmDoBuildDeploy(fsPath, appservice.LinuxRuntimes.python, context);
                 }
 
             }
@@ -135,7 +135,7 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
 
     if (confirmDeployment && siteConfig.scmType !== constants.ScmType.LocalGit && siteConfig !== constants.ScmType.GitHub) {
         const warning: string = `Are you sure you want to deploy to "${node.root.client.fullName}"? This will overwrite any previous deployment and cannot be undone.`;
-        context.properties.cancelStep = 'confirmDestructiveDeployment';
+        context.telemetry.properties.cancelStep = 'confirmDestructiveDeployment';
         const items: MessageItem[] = [{ title: 'Deploy' }];
         const resetDefault: MessageItem = { title: 'Reset default' };
         if (defaultWebAppToDeploy) {
@@ -156,12 +156,12 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
             await commands.executeCommand('appService.Deploy');
             return;
         }
-        context.properties.cancelStep = '';
+        context.telemetry.properties.cancelStep = '';
     }
 
     if (!defaultWebAppToDeploy && currentWorkspace && (isPathEqual(currentWorkspace.uri.fsPath, fsPath) || isSubpath(currentWorkspace.uri.fsPath, fsPath))) {
         // tslint:disable-next-line:no-floating-promises
-        node.promptToSaveDeployDefaults(currentWorkspace.uri.fsPath, fsPath, context.properties);
+        node.promptToSaveDeployDefaults(currentWorkspace.uri.fsPath, fsPath, context);
     }
 
     await appservice.runPreDeployTask(context, fsPath, siteConfig.scmType, constants.extensionPrefix);
@@ -184,7 +184,7 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
         } else if (result === browseWebsite) {
             await nonNullValue(node).browse();
         } else if (result === streamLogs) {
-            await startStreamingLogs(node);
+            await startStreamingLogs(context, node);
         }
     });
 
