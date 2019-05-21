@@ -8,6 +8,7 @@ import * as vscode from 'vscode';
 import { Event, EventEmitter, ProviderResult, TreeDataProvider, TreeItem } from 'vscode';
 import { Source } from 'vscode-debugadapter';
 import { RemoteScriptSchema } from '../logPoints/remoteScriptDocumentProvider';
+import { IActionContext } from 'vscode-azureextensionui';
 
 const AZURE_JS_DEBUG_TYPE = 'jsLogpoints';
 
@@ -201,7 +202,7 @@ class SessionTreeItem extends BaseTreeItem {
     }
 }
 
-export function openScript(session: vscode.DebugSession | undefined, source: Source): void {
+export function openScript(_context: IActionContext, session: vscode.DebugSession | undefined, source: Source): void {
     if (!session) {
         vscode.window.showErrorMessage("Cannot find the debug session");
         return;

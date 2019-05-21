@@ -4,14 +4,15 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as appservice from 'vscode-azureappservice';
+import { IActionContext } from 'vscode-azureextensionui';
 import { DeploymentSlotTreeItem } from '../explorer/DeploymentSlotTreeItem';
 import { ext } from '../extensionVariables';
 
-export async function swapSlots(sourceSlotNode: DeploymentSlotTreeItem | undefined): Promise<void> {
+export async function swapSlots(context: IActionContext, sourceSlotNode: DeploymentSlotTreeItem | undefined): Promise<void> {
     if (!sourceSlotNode) {
-        sourceSlotNode = <DeploymentSlotTreeItem>await ext.tree.showTreeItemPicker(DeploymentSlotTreeItem.contextValue);
+        sourceSlotNode = <DeploymentSlotTreeItem>await ext.tree.showTreeItemPicker(DeploymentSlotTreeItem.contextValue, context);
     }
 
-    const existingSlots: DeploymentSlotTreeItem[] = <DeploymentSlotTreeItem[]>await sourceSlotNode.parent.getCachedChildren();
+    const existingSlots: DeploymentSlotTreeItem[] = <DeploymentSlotTreeItem[]>await sourceSlotNode.parent.getCachedChildren(context);
     await appservice.swapSlot(sourceSlotNode, existingSlots);
 }

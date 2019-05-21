@@ -7,6 +7,7 @@ import { SiteConfigResource, User } from 'azure-arm-website/lib/models';
 import * as portfinder from 'portfinder';
 import * as vscode from 'vscode';
 import { SiteClient, TunnelProxy } from 'vscode-azureappservice';
+import { IActionContext } from 'vscode-azureextensionui';
 import { SiteTreeItem } from '../explorer/SiteTreeItem';
 import { WebAppTreeItem } from '../explorer/WebAppTreeItem';
 import { ext } from '../extensionVariables';
@@ -22,9 +23,9 @@ export type sshTerminal = {
 
 export const sshSessionsMap: Map<string, sshTerminal> = new Map();
 
-export async function startSsh(node?: SiteTreeItem): Promise<void> {
+export async function startSsh(context: IActionContext, node?: SiteTreeItem): Promise<void> {
     if (!node) {
-        node = <SiteTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue);
+        node = <SiteTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue, context);
     }
 
     const currentSshTerminal: sshTerminal | undefined = sshSessionsMap.get(node.root.client.fullName);

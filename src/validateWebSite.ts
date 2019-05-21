@@ -50,11 +50,11 @@ export async function validateWebSite(deploymentCorrelationId: string, siteTreeI
     const cancellation: ICancellation = { canceled: false };
     cancellations.set(id, cancellation);
 
-    return callWithTelemetryAndErrorHandling('appService.validateWebSite', async function (this: IActionContext): Promise<void> {
-        this.rethrowError = false;
-        this.suppressErrorDisplay = true;
+    return callWithTelemetryAndErrorHandling('appService.validateWebSite', async (context: IActionContext) => {
+        context.errorHandling.rethrow = false;
+        context.errorHandling.suppressDisplay = true;
 
-        const properties = <IValidateProperties>this.properties;
+        const properties = <IValidateProperties>context.telemetry.properties;
         properties.correlationId = deploymentCorrelationId;
 
         let pollingIntervalMs = initialPollingIntervalMs;

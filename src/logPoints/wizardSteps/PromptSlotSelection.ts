@@ -60,7 +60,7 @@ export class PromptSlotSelection extends WizardStep {
      * Returns all the deployment slots and the production slot.
      */
     private async getDeploymentSlotsTreeItems(): Promise<SiteTreeItem[]> {
-        const result = await this._wizard.uiTreeItem.getCachedChildren();
+        const result = await this._wizard.uiTreeItem.getCachedChildren(this._wizard.context);
 
         let deploymentSlotsCategoryNode: DeploymentSlotsTreeItem | undefined;
         if (!result || result.length <= 0) {
@@ -77,7 +77,7 @@ export class PromptSlotSelection extends WizardStep {
             throw new Error('Cannot find the Deployment Slots tree node');
         }
 
-        const deploymentSlotTreeNodes = <SiteTreeItem[]>await deploymentSlotsCategoryNode.getCachedChildren();
+        const deploymentSlotTreeNodes = <SiteTreeItem[]>await deploymentSlotsCategoryNode.getCachedChildren(this._wizard.context);
 
         return [this._wizard.uiTreeItem].concat(deploymentSlotTreeNodes);
     }

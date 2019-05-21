@@ -5,7 +5,7 @@
 
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { IAzureQuickPickItem, TelemetryProperties } from 'vscode-azureextensionui';
+import { IActionContext, IAzureQuickPickItem } from 'vscode-azureextensionui';
 import { extensionPrefix } from '../constants';
 import { ext } from '../extensionVariables';
 
@@ -51,8 +51,8 @@ export async function selectWorkspaceItem(placeHolder: string, options: vscode.O
     return folder && folder.data ? folder.data : (await ext.ui.showOpenDialog(options))[0].fsPath;
 }
 
-export async function showWorkspaceFoldersQuickPick(placeHolderString: string, telemetryProperties: TelemetryProperties, subPathSetting: string | undefined): Promise<string> {
-    telemetryProperties.cancelStep = 'showWorkspaceFolders';
+export async function showWorkspaceFoldersQuickPick(placeHolderString: string, context: IActionContext, subPathSetting: string | undefined): Promise<string> {
+    context.telemetry.properties.cancelStep = 'showWorkspaceFolders';
     return await selectWorkspaceItem(
         placeHolderString,
         {

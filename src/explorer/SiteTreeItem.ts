@@ -8,12 +8,11 @@ import * as fse from 'fs-extra';
 import * as path from 'path';
 import { MessageItem, Uri, window, workspace, WorkspaceConfiguration } from 'vscode';
 import { AppSettingsTreeItem, AppSettingTreeItem, deleteSite, DeploymentsTreeItem, DeploymentTreeItem, ISiteTreeRoot, LinuxRuntimes, SiteClient } from 'vscode-azureappservice';
-import { AzExtTreeItem, AzureParentTreeItem, AzureTreeItem, DialogResponses, IActionContext, TelemetryProperties } from 'vscode-azureextensionui';
+import { AzExtTreeItem, AzureParentTreeItem, AzureTreeItem, DialogResponses, IActionContext } from 'vscode-azureextensionui';
 import { deploy } from '../commands/deploy';
 import { toggleValueVisibilityCommandId } from '../constants';
 import * as constants from '../constants';
 import { ext } from '../extensionVariables';
-import { nonNullValue } from '../utils/nonNull';
 import { openUrl } from '../utils/openUrl';
 import { ConnectionsTreeItem } from './ConnectionsTreeItem';
 import { CosmosDBConnection } from './CosmosDBConnection';
@@ -151,7 +150,7 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         await this.root.client.updateLogsConfig(logsConfig);
     }
 
-    public async promptScmDoBuildDeploy(fsPath: string, runtime: string, telemetryProperties: TelemetryProperties): Promise<void> {
+    public async promptScmDoBuildDeploy(fsPath: string, runtime: string, context: IActionContext): Promise<void> {
         const yesButton: MessageItem = { title: 'Yes' };
         const dontShowAgainButton: MessageItem = { title: "No, and don't show again" };
         const learnMoreButton: MessageItem = { title: 'Learn More' };
@@ -165,14 +164,14 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         }
         if (input === yesButton) {
             await this.enableScmDoBuildDuringDeploy(fsPath, runtime);
-            telemetryProperties.enableScmInput = "Yes";
+            context.telemetry.properties.enableScmInput = "Yes";
         } else {
             workspace.getConfiguration(constants.extensionPrefix, Uri.file(fsPath)).update(constants.configurationSettings.showBuildDuringDeployPrompt, false);
-            telemetryProperties.enableScmInput = "No, and don't show again";
+            context.telemetry.properties.enableScmInput = "No, and don't show again";
         }
 
-        if (!telemetryProperties.enableScmInput) {
-            telemetryProperties.enableScmInput = "Canceled";
+        if (!context.telemetry.properties.enableScmInput) {
+            context.telemetry.properties.enableScmInput = "Canceled";
         }
     }
 
@@ -195,7 +194,7 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         await fse.writeFile(path.join(fsPath, constants.deploymentFileName), constants.deploymentFile);
     }
 
-    public async promptToSaveDeployDefaults(workspacePath: string, deployPath: string, telemetryProperties: TelemetryProperties): Promise<void> {
+    public async promptToSaveDeployDefaults(workspacePath: string, deployPath: string, context: IActionContext): Promise<void> {
         const saveDeploymentConfig: string = `Always deploy the workspace "${path.basename(workspacePath)}" to "${this.root.client.fullName}"?`;
         const dontShowAgain: MessageItem = { title: "Don't show again" };
         const workspaceConfiguration: WorkspaceConfiguration = workspace.getConfiguration(constants.extensionPrefix, Uri.file(deployPath));
@@ -203,16 +202,16 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         if (result === DialogResponses.yes) {
             workspaceConfiguration.update(constants.configurationSettings.defaultWebAppToDeploy, this.fullId);
             workspaceConfiguration.update(constants.configurationSettings.deploySubpath, path.relative(workspacePath, deployPath)); // '' is a falsey value
-            telemetryProperties.promptToSaveDeployConfigs = 'Yes';
+            context.telemetry.properties.promptToSaveDeployConfigs = 'Yes';
         } else if (result === dontShowAgain) {
             workspaceConfiguration.update(constants.configurationSettings.defaultWebAppToDeploy, constants.none);
-            telemetryProperties.promptToSaveDeployConfigs = "Don't show again";
+            context.telemetry.properties.promptToSaveDeployConfigs = "Don't show again";
         } else {
-            telemetryProperties.promptToSaveDeployConfigs = 'Skip for now';
+            context.telemetry.properties.promptToSaveDeployConfigs = 'Skip for now';
         }
     }
 
-    public showCreatedOutput(actionContext: IActionContext): void {
+    public showCreatedOutput(context: IActionContext): void {
         const resource: string = this.root.client.isSlot ? 'slot' : 'web app';
         const createdNewAppMsg: string = `Created new ${resource} "${this.root.client.fullName}": https://${this.root.client.defaultHostName}`;
         ext.outputChannel.appendLine(createdNewAppMsg);
@@ -228,8 +227,8 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
             if (result === viewOutput) {
                 ext.outputChannel.show();
             } else if (result === deployButton) {
-                actionContext.properties.deploy = 'true';
-                await deploy(nonNullValue(actionContext), false, this);
+                context.telemetry.properties.deploy = 'true';
+                await deploy(context, false, this);
             }
         });
     }

@@ -10,14 +10,14 @@ import { SiteTreeItem } from "../../explorer/SiteTreeItem";
 import { WebAppTreeItem } from "../../explorer/WebAppTreeItem";
 import { ext } from "../../extensionVariables";
 
-export async function editScmType(actionContext: IActionContext, node?: SiteTreeItem | DeploymentsTreeItem): Promise<void> {
+export async function editScmType(context: IActionContext, node?: SiteTreeItem | DeploymentsTreeItem): Promise<void> {
     if (!node) {
-        node = <SiteTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue);
+        node = <SiteTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue, context);
     } else if (node instanceof DeploymentsTreeItem) {
         node = <SiteTreeItem>node.parent;
     }
 
-    await appservice.editScmType(node.root.client, node, actionContext);
+    await appservice.editScmType(node.root.client, node, context);
 
     if (node.deploymentsNode) {
         await node.deploymentsNode.refresh();
