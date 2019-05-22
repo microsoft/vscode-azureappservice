@@ -25,8 +25,8 @@ import { redeployDeployment } from './commands/deployments/redeployDeployment';
 import { viewCommitInGitHub } from './commands/deployments/viewCommitInGitHub';
 import { viewDeploymentLogs } from './commands/deployments/viewDeploymentLogs';
 import { enableFileLogging } from './commands/enableFileLogging';
-import { disableRemoteDebug } from './commands/remoteDebug/disableRemoteDebug';
 import { startRemoteDebug } from './commands/remoteDebug/startRemoteDebug';
+import { stopRemoteDebug } from './commands/remoteDebug/stopRemoteDebug';
 import { showFile } from './commands/showFile';
 import { startSsh } from './commands/startSsh';
 import { startStreamingLogs } from './commands/startStreamingLogs';
@@ -261,7 +261,7 @@ export async function activateInternal(
         registerCommand('appService.LogPoints.OpenScript', openScript);
 
         registerCommand('appService.StartRemoteDebug', startRemoteDebug);
-        registerCommand('appService.DisableRemoteDebug', disableRemoteDebug);
+        registerCommand('appService.DisableRemoteDebug', stopRemoteDebug);
         registerCommand('appService.StartSsh', startSsh);
 
         registerCommand('appService.showFile', async (_actionContext: IActionContext, node: FileTreeItem) => { await showFile(node, fileEditor); }, 500);

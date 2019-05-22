@@ -46,6 +46,11 @@ export function checkForRemoteDebugSupport(siteConfig: SiteConfigResource, conte
 
 // Remote debugging is currently only supported for Node.js >= 8.11
 function isNodeVersionSupported(nodeVersion: string): boolean {
+    // the portal's new default node runtime is LTS
+    if (nodeVersion.toLocaleLowerCase() === 'lts') {
+        return true;
+    }
+
     const splitNodeVersion = nodeVersion.split('.');
     if (splitNodeVersion.length < 2) {
         return false;

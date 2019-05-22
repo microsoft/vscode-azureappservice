@@ -218,7 +218,7 @@
             },
             {
                 "command": "appService.DisableRemoteDebug",
-                "title": "Disable Remote Debugging",
+                "title": "Stop Remote Debugging",
                 "category": "Azure App Service"
             },
             {
