@@ -4,18 +4,23 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { DeploymentsTreeItem, editScmType } from "vscode-azureappservice";
-import { IActionContext } from "vscode-azureextensionui";
+import { GenericTreeItem, IActionContext } from "vscode-azureextensionui";
 import { ScmType } from "../../constants";
-import { SiteTreeItem } from "../../explorer/SiteTreeItem";
 import { WebAppTreeItem } from "../../explorer/WebAppTreeItem";
 import { ext } from "../../extensionVariables";
 
-export async function connectToGitHub(context: IActionContext, node?: WebAppTreeItem | DeploymentsTreeItem): Promise<void> {
-    if (!node) {
+export async function connectToGitHub(context: IActionContext, target?: GenericTreeItem): Promise<void> {
+    let node: WebAppTreeItem | DeploymentsTreeItem;
+
+    if (!target) {
         node = <WebAppTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue, context);
+    } else {
+        node = <DeploymentsTreeItem>target.parent;
     }
+
     await editScmType(node.root.client, node, context, ScmType.GitHub);
-    if (node instanceof SiteTreeItem) {
+
+    if (node instanceof WebAppTreeItem) {
         if (node.deploymentsNode) {
             await node.deploymentsNode.refresh();
         }
