@@ -108,10 +108,10 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
         if (javaUtils.isJavaRuntime(siteConfig.linuxFxVersion)) {
             const fileExtension: string = javaUtils.getArtifactTypeByJavaRuntime(siteConfig.linuxFxVersion);
             fsPath = await javaUtils.showQuickPickByFileExtension(context, `Select the ${fileExtension} file to deploy...`, fileExtension);
+            await javaUtils.configureJavaSEAppSettings(node);
         } else {
             fsPath = await workspaceUtil.showWorkspaceFoldersQuickPick("Select the folder to deploy", context, constants.configurationSettings.deploySubpath);
         }
-        await javaUtils.configureJavaSEAppSettings(node);
     }
 
     workspaceConfig = workspace.getConfiguration(constants.extensionPrefix, Uri.file(fsPath));
