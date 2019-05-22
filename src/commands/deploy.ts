@@ -66,6 +66,22 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
         }
     }
 
+    let siteConfig: WebSiteModels.SiteConfigResource | undefined;
+
+    if (!fsPath) {
+        // we can only get the siteConfig if the entry point was a treeItem
+        siteConfig = node ? await node.root.client.getSiteConfig() : undefined;
+
+        if (siteConfig && javaUtils.isJavaRuntime(siteConfig.linuxFxVersion)) {
+            const fileExtension: string = javaUtils.getArtifactTypeByJavaRuntime(siteConfig.linuxFxVersion);
+            fsPath = await javaUtils.showQuickPickByFileExtension(context, `Select the ${fileExtension} file to deploy...`, fileExtension);
+            // if there is a siteConfig, then there is a node
+            await javaUtils.configureJavaSEAppSettings(nonNullValue(node));
+        } else {
+            fsPath = await workspaceUtil.showWorkspaceFoldersQuickPick("Select the folder to deploy", context, constants.configurationSettings.deploySubpath);
+        }
+    }
+
     if (!node) {
         const onTreeItemCreatedFromQuickPickDisposable: Disposable = ext.tree.onTreeItemCreate((newNode: SiteTreeItem) => {
             // event is fired from azure-extensionui if node was created during deployment
@@ -102,18 +118,8 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
 
     const correlationId = getRandomHexString();
     context.telemetry.properties.correlationId = correlationId;
-    const siteConfig: WebSiteModels.SiteConfigResource = await node.root.client.getSiteConfig();
 
-    if (!fsPath) {
-        if (javaUtils.isJavaRuntime(siteConfig.linuxFxVersion)) {
-            const fileExtension: string = javaUtils.getArtifactTypeByJavaRuntime(siteConfig.linuxFxVersion);
-            fsPath = await javaUtils.showQuickPickByFileExtension(context, `Select the ${fileExtension} file to deploy...`, fileExtension);
-            await javaUtils.configureJavaSEAppSettings(node);
-        } else {
-            fsPath = await workspaceUtil.showWorkspaceFoldersQuickPick("Select the folder to deploy", context, constants.configurationSettings.deploySubpath);
-        }
-    }
-
+    siteConfig = siteConfig ? siteConfig : await node.root.client.getSiteConfig();
     workspaceConfig = workspace.getConfiguration(constants.extensionPrefix, Uri.file(fsPath));
     if (currentWorkspace && (isPathEqual(currentWorkspace.uri.fsPath, fsPath) || isSubpath(currentWorkspace.uri.fsPath, fsPath))) {
         // currentWorkspace is only set if there is one active workspace

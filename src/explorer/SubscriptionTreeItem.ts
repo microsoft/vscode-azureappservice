@@ -61,7 +61,7 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
         );
     }
 
-    public async createChildImpl(context: ICreateChildImplContext): Promise<AzureTreeItem> {
+    public async createChildImpl(context: ICreateChildImplContext & { fsPath?: string }): Promise<AzureTreeItem> {
         const wizardContext: IAppServiceWizardContext = Object.assign(context, this.root, {
             newSiteKind: AppKind.app,
             resourceGroupDeferLocationStep: true
