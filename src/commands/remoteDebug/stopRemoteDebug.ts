@@ -12,7 +12,7 @@ import { WebAppTreeItem } from '../../explorer/WebAppTreeItem';
 import { ext } from '../../extensionVariables';
 import * as remoteDebug from './remoteDebugCommon';
 
-export async function disableRemoteDebug(context: IActionContext, node?: SiteTreeItem): Promise<void> {
+export async function stopRemoteDebug(context: IActionContext, node?: SiteTreeItem): Promise<void> {
     if (!node) {
         node = <SiteTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue, context);
     }
