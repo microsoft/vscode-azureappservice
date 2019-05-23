@@ -261,7 +261,7 @@ export async function activateInternal(
         registerCommand('appService.LogPoints.OpenScript', openScript);
 
         registerCommand('appService.StartRemoteDebug', startRemoteDebug);
-        registerCommand('appService.DisableRemoteDebug', stopRemoteDebug);
+        registerCommand('appService.StopRemoteDebug', stopRemoteDebug);
         registerCommand('appService.StartSsh', startSsh);
 
         registerCommand('appService.showFile', async (_actionContext: IActionContext, node: FileTreeItem) => { await showFile(node, fileEditor); }, 500);
