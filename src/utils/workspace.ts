@@ -51,15 +51,24 @@ export async function selectWorkspaceItem(placeHolder: string, options: vscode.O
     return folder && folder.data ? folder.data : (await ext.ui.showOpenDialog(options))[0].fsPath;
 }
 
-export async function showWorkspaceFoldersQuickPick(placeHolderString: string, context: IActionContext, subPathSetting: string | undefined): Promise<string> {
-    context.telemetry.properties.cancelStep = 'showWorkspaceFolders';
+export async function showWorkspaceFoldersAndFiles(placeHolderString: string, context: IActionContext, subPathSetting: string | undefined, fileExtensions?: string | string[]): Promise<string> {
+    context.telemetry.properties.cancelStep = 'showWorkspaceFoldersAndExtensions';
+
+    if (!fileExtensions) {
+        // these are the current deployables we support
+        fileExtensions = ['jar', 'war', 'zip'];
+    } else if (typeof fileExtensions === 'string') {
+        fileExtensions = [fileExtensions];
+    }
+
     return await selectWorkspaceItem(
         placeHolderString,
         {
-            canSelectFiles: false,
-            canSelectFolders: true,
+            canSelectFiles: true,
+            canSelectFolders: false,
             canSelectMany: false,
-            defaultUri: vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri : undefined
+            defaultUri: vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri : undefined,
+            filters: { Artifacts: fileExtensions }
         },
         (f: vscode.WorkspaceFolder): string | undefined => {
             if (subPathSetting) {
@@ -67,6 +76,5 @@ export async function showWorkspaceFoldersQuickPick(placeHolderString: string, c
             }
             return;
         }
-
     );
 }

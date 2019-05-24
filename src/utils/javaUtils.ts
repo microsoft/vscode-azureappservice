@@ -28,6 +28,10 @@ export namespace javaUtils {
         return isJavaWebContainerRuntime(runtime) || isJavaSERuntime(runtime);
     }
 
+    function isJavaArtifact(artifactPath: string): boolean {
+        return /^(.jar|.war)/i.test(path.extname(artifactPath));
+    }
+
     export function getArtifactTypeByJavaRuntime(runtime: string | undefined): string {
         if (isJavaSERuntime(runtime)) {
             return 'jar';
@@ -51,22 +55,32 @@ export namespace javaUtils {
 
     /**
      * Return if all of the workspace folders contain Java projects in their base paths.
+     * Or if optional fsPath passed in is a Java artifact or project
      * Only Maven and Gradle are taken into consideration for now.
      */
-    export async function isJavaProject(): Promise<boolean> {
+    export async function isJavaProject(deployFsPath?: string): Promise<boolean> {
+
+        // if there is a deployed project path, use that for the default
+        if (deployFsPath) {
+            return await isJavaFolder(deployFsPath) || isJavaArtifact(deployFsPath);
+        }
+
         if (!workspace.workspaceFolders) {
             return false;
         }
 
         for (const workspaceFolder of workspace.workspaceFolders) {
-            if (await fse.pathExists(path.join(workspaceFolder.uri.fsPath, 'pom.xml')) ||
-                await fse.pathExists(path.join(workspaceFolder.uri.fsPath, 'build.gradle'))) {
+            if (await isJavaFolder(workspaceFolder.uri.fsPath)) {
                 continue;
             }
             return false;
         }
 
         return true;
+    }
+
+    async function isJavaFolder(fsPath: string): Promise<boolean> {
+        return await fse.pathExists(path.join(fsPath, 'pom.xml')) || await fse.pathExists(path.join(fsPath, 'build.gradle'));
     }
 
     export async function configureJavaSEAppSettings(node: SiteTreeItem): Promise<StringDictionary | undefined> {

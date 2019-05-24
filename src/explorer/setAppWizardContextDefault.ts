@@ -9,32 +9,37 @@ import { Uri, workspace, WorkspaceConfiguration } from 'vscode';
 import { IAppServiceWizardContext, LinuxRuntimes, WebsiteOS } from 'vscode-azureappservice';
 import { LocationListStep } from 'vscode-azureextensionui';
 import { configurationSettings, extensionPrefix } from '../constants';
+import { IDeployWizardContext } from '../IDeployWizardContext';
 import { javaUtils } from '../utils/javaUtils';
 
-export async function setAppWizardContextDefault(wizardContext: IAppServiceWizardContext): Promise<void> {
-    const isJavaProject: boolean = await javaUtils.isJavaProject();
+export async function setAppWizardContextDefault(wizardContext: IAppServiceWizardContext & IDeployWizardContext): Promise<void> {
+    // if the user entered through "Deploy", we'll have a project to base our recommendations on
+    // otherwise, look at their current workspace and only suggest if one workspace is opened
+    const workspaceForRecommendation: string | undefined = wizardContext.fsPath ?
+        wizardContext.fsPath : workspace.workspaceFolders && workspace.workspaceFolders.length === 1 ?
+            workspace.workspaceFolders[0].uri.fsPath : undefined;
 
-    if (isJavaProject) {
-        wizardContext.recommendedSiteRuntime = [
-            LinuxRuntimes.java,
-            LinuxRuntimes.tomcat,
-            LinuxRuntimes.wildfly
-        ];
+    if (workspaceForRecommendation) {
+        const fsPath: string = workspaceForRecommendation;
 
-        // considering high resource requirement for Java applications, a higher plan sku is set here
-        wizardContext.newPlanSku = { name: 'P1v2', tier: 'PremiumV2', size: 'P1v2', family: 'P', capacity: 1 };
-        // to avoid 'Requested features are not supported in region' error
-        await LocationListStep.setLocation(wizardContext, 'weseteurope');
-    }
-
-    // only detect if one workspace is opened
-    if (workspace.workspaceFolders && workspace.workspaceFolders.length === 1) {
-        const fsPath: string = workspace.workspaceFolders[0].uri.fsPath;
         if (await fse.pathExists(path.join(fsPath, 'package.json'))) {
             wizardContext.recommendedSiteRuntime = [LinuxRuntimes.node];
+
         } else if (await fse.pathExists(path.join(fsPath, 'requirements.txt'))) {
             // requirements.txt are used to pip install so a good way to determine it's a Python app
             wizardContext.recommendedSiteRuntime = [LinuxRuntimes.python];
+
+        } else if (await javaUtils.isJavaProject(fsPath)) {
+            wizardContext.recommendedSiteRuntime = [
+                LinuxRuntimes.java,
+                LinuxRuntimes.tomcat,
+                LinuxRuntimes.wildfly
+            ];
+
+            // considering high resource requirement for Java applications, a higher plan sku is set here
+            wizardContext.newPlanSku = { name: 'P1v2', tier: 'PremiumV2', size: 'P1v2', family: 'P', capacity: 1 };
+            // to avoid 'Requested features are not supported in region' error
+            await LocationListStep.setLocation(wizardContext, 'weseteurope');
         }
     }
 

@@ -10,11 +10,12 @@ import * as path from 'path';
 import { join } from 'path';
 import { commands, Disposable, MessageItem, Uri, window, workspace, WorkspaceConfiguration, WorkspaceFolder } from 'vscode';
 import * as appservice from 'vscode-azureappservice';
-import { AzureTreeItem, DialogResponses, IActionContext, parseError } from 'vscode-azureextensionui';
+import { AzureTreeItem, DialogResponses, parseError } from 'vscode-azureextensionui';
 import * as constants from '../constants';
 import { SiteTreeItem } from '../explorer/SiteTreeItem';
 import { WebAppTreeItem } from '../explorer/WebAppTreeItem';
 import { ext } from '../extensionVariables';
+import { IDeployWizardContext } from '../IDeployWizardContext';
 import { delay } from '../utils/delay';
 import { javaUtils } from '../utils/javaUtils';
 import { nonNullValue } from '../utils/nonNull';
@@ -25,7 +26,7 @@ import { cancelWebsiteValidation, validateWebSite } from '../validateWebSite';
 import { startStreamingLogs } from './startStreamingLogs';
 
 // tslint:disable-next-line:max-func-body-length cyclomatic-complexity
-export async function deploy(context: IActionContext, confirmDeployment: boolean, target?: Uri | SiteTreeItem | undefined): Promise<void> {
+export async function deploy(context: IDeployWizardContext, confirmDeployment: boolean, target?: Uri | SiteTreeItem | undefined): Promise<void> {
 
     let node: SiteTreeItem | undefined;
     const newNodes: SiteTreeItem[] = [];
@@ -75,12 +76,11 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
         if (siteConfig && javaUtils.isJavaRuntime(siteConfig.linuxFxVersion)) {
             const fileExtension: string = javaUtils.getArtifactTypeByJavaRuntime(siteConfig.linuxFxVersion);
             fsPath = await javaUtils.showQuickPickByFileExtension(context, `Select the ${fileExtension} file to deploy...`, fileExtension);
-            // if there is a siteConfig, then there is a node
-            await javaUtils.configureJavaSEAppSettings(nonNullValue(node));
         } else {
-            fsPath = await workspaceUtil.showWorkspaceFoldersQuickPick("Select the folder to deploy", context, constants.configurationSettings.deploySubpath);
+            fsPath = await workspaceUtil.showWorkspaceFoldersAndFiles("Select the projet to deploy", context, constants.configurationSettings.deploySubpath);
         }
     }
+    context.fsPath = fsPath;
 
     if (!node) {
         const onTreeItemCreatedFromQuickPickDisposable: Disposable = ext.tree.onTreeItemCreate((newNode: SiteTreeItem) => {
@@ -120,6 +120,10 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
     context.telemetry.properties.correlationId = correlationId;
 
     siteConfig = siteConfig ? siteConfig : await node.root.client.getSiteConfig();
+    if (javaUtils.isJavaRuntime(siteConfig.linuxFxVersion)) {
+        await javaUtils.configureJavaSEAppSettings(node);
+    }
+
     workspaceConfig = workspace.getConfiguration(constants.extensionPrefix, Uri.file(fsPath));
     if (currentWorkspace && (isPathEqual(currentWorkspace.uri.fsPath, fsPath) || isSubpath(currentWorkspace.uri.fsPath, fsPath))) {
         // currentWorkspace is only set if there is one active workspace
