@@ -8,57 +8,60 @@ import { IActionContext } from 'vscode-azureextensionui';
 import { checkForRemoteDebugSupport } from '../../extension.bundle';
 
 suite('checkForRemoteDebugSupport', () => {
-    function getEmptyActionContext(): IActionContext {
+    function getEmptycontext(): IActionContext {
         return {
-            measurements: {},
-            properties: {}
+            telemetry: {
+                properties: {},
+                measurements: {}
+            },
+            errorHandling: {}
         };
     }
 
     test('Checks bad versions', async () => {
-        const actionContext = getEmptyActionContext();
+        const context = getEmptycontext();
 
         // empty version
-        assert.throws(() => { checkForRemoteDebugSupport({}, actionContext); }, Error);
-        assert.throws(() => { checkForRemoteDebugSupport({ linuxFxVersion: undefined }, actionContext); }, Error);
-        assert.throws(() => { checkForRemoteDebugSupport({ linuxFxVersion: '' }, actionContext); }, Error);
-        assert.throws(() => { checkForRemoteDebugSupport({ linuxFxVersion: ' ' }, actionContext); }, Error);
+        assert.throws(() => { checkForRemoteDebugSupport({}, context); }, Error);
+        assert.throws(() => { checkForRemoteDebugSupport({ linuxFxVersion: undefined }, context); }, Error);
+        assert.throws(() => { checkForRemoteDebugSupport({ linuxFxVersion: '' }, context); }, Error);
+        assert.throws(() => { checkForRemoteDebugSupport({ linuxFxVersion: ' ' }, context); }, Error);
 
         // not node
-        assert.throws(() => { checkForRemoteDebugSupport({ linuxFxVersion: 'php' }, actionContext); }, Error);
-        assert.throws(() => { checkForRemoteDebugSupport({ linuxFxVersion: 'PYTHON|8.11' }, actionContext); }, Error);
-        assert.throws(() => { checkForRemoteDebugSupport({ linuxFxVersion: 'docker|image' }, actionContext); }, Error);
+        assert.throws(() => { checkForRemoteDebugSupport({ linuxFxVersion: 'php' }, context); }, Error);
+        assert.throws(() => { checkForRemoteDebugSupport({ linuxFxVersion: 'PYTHON|8.11' }, context); }, Error);
+        assert.throws(() => { checkForRemoteDebugSupport({ linuxFxVersion: 'docker|image' }, context); }, Error);
 
         // bad node versions
-        assert.throws(() => { checkForRemoteDebugSupport({ linuxFxVersion: 'NODE' }, actionContext); }, Error);
-        assert.throws(() => { checkForRemoteDebugSupport({ linuxFxVersion: 'node|9' }, actionContext); }, Error);
-        assert.throws(() => { checkForRemoteDebugSupport({ linuxFxVersion: 'node|not.number' }, actionContext); }, Error);
-        assert.throws(() => { checkForRemoteDebugSupport({ linuxFxVersion: 'NODE|6.12' }, actionContext); }, Error);
-        assert.throws(() => { checkForRemoteDebugSupport({ linuxFxVersion: 'node|8.10' }, actionContext); }, Error);
+        assert.throws(() => { checkForRemoteDebugSupport({ linuxFxVersion: 'NODE' }, context); }, Error);
+        assert.throws(() => { checkForRemoteDebugSupport({ linuxFxVersion: 'node|9' }, context); }, Error);
+        assert.throws(() => { checkForRemoteDebugSupport({ linuxFxVersion: 'node|not.number' }, context); }, Error);
+        assert.throws(() => { checkForRemoteDebugSupport({ linuxFxVersion: 'NODE|6.12' }, context); }, Error);
+        assert.throws(() => { checkForRemoteDebugSupport({ linuxFxVersion: 'node|8.10' }, context); }, Error);
     });
 
     test('Checks good versions', async () => {
-        const actionContext = getEmptyActionContext();
+        const context = getEmptycontext();
 
         // >= 8.11 is valid
-        checkForRemoteDebugSupport({ linuxFxVersion: 'node|8.11' }, actionContext);
-        checkForRemoteDebugSupport({ linuxFxVersion: 'NODE|8.12' }, actionContext);
-        checkForRemoteDebugSupport({ linuxFxVersion: 'node|9.0' }, actionContext);
-        checkForRemoteDebugSupport({ linuxFxVersion: 'NODE|10.11' }, actionContext);
+        checkForRemoteDebugSupport({ linuxFxVersion: 'node|8.11' }, context);
+        checkForRemoteDebugSupport({ linuxFxVersion: 'NODE|8.12' }, context);
+        checkForRemoteDebugSupport({ linuxFxVersion: 'node|9.0' }, context);
+        checkForRemoteDebugSupport({ linuxFxVersion: 'NODE|10.11' }, context);
     });
 
     test('Reports telemetry correctly', async () => {
-        const actionContext = getEmptyActionContext();
+        const context = getEmptycontext();
 
-        checkForRemoteDebugSupport({ linuxFxVersion: 'NODE|8.11' }, actionContext);
-        assert.equal(actionContext.properties.linuxFxVersion, 'node|8.11');
+        checkForRemoteDebugSupport({ linuxFxVersion: 'NODE|8.11' }, context);
+        assert.equal(context.telemetry.properties.linuxFxVersion, 'node|8.11');
 
         // Docker image information should be removed from telemetry
         try {
-            checkForRemoteDebugSupport({ linuxFxVersion: 'docker|image' }, actionContext);
+            checkForRemoteDebugSupport({ linuxFxVersion: 'docker|image' }, context);
         } catch (e) {
             // ignore error
         }
-        assert.equal(actionContext.properties.linuxFxVersion, 'docker');
+        assert.equal(context.telemetry.properties.linuxFxVersion, 'docker');
     });
 });

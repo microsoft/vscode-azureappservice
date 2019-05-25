@@ -8,13 +8,13 @@ import { WebSiteManagementClient } from 'azure-arm-website';
 import { Site, WebAppCollection } from 'azure-arm-website/lib/models';
 import { workspace, WorkspaceConfiguration } from 'vscode';
 import { AppKind, AppServicePlanCreateStep, AppServicePlanListStep, IAppServiceWizardContext, SiteClient, SiteCreateStep, SiteNameStep, SiteOSStep, SiteRuntimeStep } from 'vscode-azureappservice';
-import { AzureTreeItem, AzureWizard, AzureWizardExecuteStep, AzureWizardPromptStep, createAzureClient, createTreeItemsWithErrorHandling, IActionContext, parseError, ResourceGroupCreateStep, ResourceGroupListStep, SubscriptionTreeItem } from 'vscode-azureextensionui';
+import { AzExtTreeItem, AzureTreeItem, AzureWizard, AzureWizardExecuteStep, AzureWizardPromptStep, createAzureClient, ICreateChildImplContext, parseError, ResourceGroupCreateStep, ResourceGroupListStep, SubscriptionTreeItemBase } from 'vscode-azureextensionui';
 import { configurationSettings, extensionPrefix } from '../constants';
 import { nonNullProp } from '../utils/nonNull';
 import { setAppWizardContextDefault } from './setAppWizardContextDefault';
 import { WebAppTreeItem } from './WebAppTreeItem';
 
-export class WebAppProvider extends SubscriptionTreeItem {
+export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
     public readonly childTypeLabel: string = 'Web App';
 
     private _nextLink: string | undefined;
@@ -23,7 +23,7 @@ export class WebAppProvider extends SubscriptionTreeItem {
         return this._nextLink !== undefined;
     }
 
-    public async loadMoreChildrenImpl(clearCache: boolean): Promise<AzureTreeItem[]> {
+    public async loadMoreChildrenImpl(clearCache: boolean): Promise<AzExtTreeItem[]> {
         if (clearCache) {
             this._nextLink = undefined;
         }
@@ -48,8 +48,7 @@ export class WebAppProvider extends SubscriptionTreeItem {
 
         this._nextLink = webAppCollection.nextLink;
 
-        return await createTreeItemsWithErrorHandling(
-            this,
+        return await this.createTreeItemsWithErrorHandling(
             webAppCollection,
             'invalidAppService',
             (s: Site) => {
@@ -62,19 +61,11 @@ export class WebAppProvider extends SubscriptionTreeItem {
         );
     }
 
-    public async createChildImpl(showCreatingTreeItem: (label: string) => void, actionContext?: IActionContext): Promise<AzureTreeItem> {
-        // Ideally actionContext should always be defined, but there's a bug with the TreeItemPicker. Create a 'fake' actionContext until that bug is fixed
-        // https://github.com/Microsoft/vscode-azuretools/issues/120
-        // tslint:disable-next-line strict-boolean-expressions
-        actionContext = actionContext || { properties: {}, measurements: {} };
-        const wizardContext: IAppServiceWizardContext = {
+    public async createChildImpl(context: ICreateChildImplContext): Promise<AzureTreeItem> {
+        const wizardContext: IAppServiceWizardContext = Object.assign(context, this.root, {
             newSiteKind: AppKind.app,
-            subscriptionId: this.root.subscriptionId,
-            subscriptionDisplayName: this.root.subscriptionDisplayName,
-            credentials: this.root.credentials,
-            environment: this.root.environment,
             resourceGroupDeferLocationStep: true
-        };
+        });
 
         await setAppWizardContextDefault(wizardContext);
 
@@ -105,9 +96,9 @@ export class WebAppProvider extends SubscriptionTreeItem {
         const title: string = 'Create new web app';
         const wizard: AzureWizard<IAppServiceWizardContext> = new AzureWizard(wizardContext, { promptSteps, executeSteps, title });
 
-        await wizard.prompt(actionContext);
+        await wizard.prompt();
 
-        showCreatingTreeItem(nonNullProp(wizardContext, 'newSiteName'));
+        context.showCreatingTreeItem(nonNullProp(wizardContext, 'newSiteName'));
 
         if (!advancedCreation) {
             // this should always be set when in the basic creation scenario
@@ -116,11 +107,11 @@ export class WebAppProvider extends SubscriptionTreeItem {
             wizardContext.newPlanName = `appsvc_asp_${wizardContext.newSiteOS}_${location.name}`;
         }
 
-        await wizard.execute(actionContext);
+        await wizard.execute();
 
-        actionContext.properties.os = wizardContext.newSiteOS;
-        actionContext.properties.runtime = wizardContext.newSiteRuntime;
-        actionContext.properties.advancedCreation = advancedCreation ? 'true' : 'false';
+        context.telemetry.properties.os = wizardContext.newSiteOS;
+        context.telemetry.properties.runtime = wizardContext.newSiteRuntime;
+        context.telemetry.properties.advancedCreation = advancedCreation ? 'true' : 'false';
 
         // site is set as a result of SiteCreateStep.execute()
         const siteClient: SiteClient = new SiteClient(nonNullProp(wizardContext, 'site'), this.root);

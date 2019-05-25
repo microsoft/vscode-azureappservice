@@ -15,7 +15,7 @@ export function reportMessage(message: string, progress: vscode.Progress<{}>): v
     progress.report({ message: message });
 }
 
-export function checkForRemoteDebugSupport(siteConfig: SiteConfigResource, actionContext: IActionContext): void {
+export function checkForRemoteDebugSupport(siteConfig: SiteConfigResource, context: IActionContext): void {
     // We read siteConfig.linuxFxVersion to find the image version:
     //   If the app is running Windows, it will be empty
     //   If the app is running a blessed Linux image, it will contain the language and version, e.g. "NODE|8.11"
@@ -30,7 +30,7 @@ export function checkForRemoteDebugSupport(siteConfig: SiteConfigResource, actio
         }
 
         // Add the version to telemtry for this action
-        actionContext.properties.linuxFxVersion = version;
+        context.telemetry.properties.linuxFxVersion = version;
 
         if (version.startsWith('node')) {
             const splitVersion = version.split('|');
@@ -46,6 +46,11 @@ export function checkForRemoteDebugSupport(siteConfig: SiteConfigResource, actio
 
 // Remote debugging is currently only supported for Node.js >= 8.11
 function isNodeVersionSupported(nodeVersion: string): boolean {
+    // the portal's new default node runtime is LTS
+    if (nodeVersion.toLocaleLowerCase() === 'lts') {
+        return true;
+    }
+
     const splitNodeVersion = nodeVersion.split('.');
     if (splitNodeVersion.length < 2) {
         return false;
@@ -68,9 +73,9 @@ export async function setRemoteDebug(isRemoteDebuggingToBeEnabled: boolean, conf
             reportMessage('Updating site configuration to set remote debugging...', progress);
         }
 
-        await callWithTelemetryAndErrorHandling('appService.remoteDebugUpdateConfiguration', async function (this: IActionContext): Promise<void> {
-            this.suppressErrorDisplay = true;
-            this.rethrowError = true;
+        await callWithTelemetryAndErrorHandling('appService.remoteDebugUpdateConfiguration', async (context: IActionContext) => {
+            context.errorHandling.suppressDisplay = true;
+            context.errorHandling.rethrow = true;
             await siteClient.updateConfiguration(siteConfig);
         });
 

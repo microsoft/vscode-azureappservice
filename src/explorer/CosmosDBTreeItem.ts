@@ -6,7 +6,7 @@
 import { StringDictionary } from 'azure-arm-website/lib/models';
 import * as vscode from 'vscode';
 import { ISiteTreeRoot, validateAppSettingKey } from 'vscode-azureappservice';
-import { AzureParentTreeItem, AzureTreeItem, createTreeItemsWithErrorHandling, GenericTreeItem, UserCancelledError } from 'vscode-azureextensionui';
+import { AzExtTreeItem, AzureParentTreeItem, AzureTreeItem, GenericTreeItem, ICreateChildImplContext, UserCancelledError } from 'vscode-azureextensionui';
 import { AzureExtensionApiProvider } from 'vscode-azureextensionui/api';
 import { ext } from '../extensionVariables';
 import { nonNullProp } from '../utils/nonNull';
@@ -42,7 +42,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         return getThemedIconPath('CosmosDBAccount');
     }
 
-    public async loadMoreChildrenImpl(_clearCache: boolean): Promise<AzureTreeItem<ISiteTreeRoot>[]> {
+    public async loadMoreChildrenImpl(_clearCache: boolean): Promise<AzExtTreeItem[]> {
         if (!this._cosmosDBExtension) {
             return [new GenericTreeItem(this, {
                 commandId: 'appService.InstallCosmosDBExtension',
@@ -55,8 +55,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         // tslint:disable-next-line:strict-boolean-expressions
         const appSettings = (await this.root.client.listApplicationSettings()).properties || {};
         const connections: IDetectedConnection[] = this.detectMongoConnections(appSettings).concat(this.detectDocDBConnections(appSettings));
-        const treeItems = <CosmosDBConnection[]>await createTreeItemsWithErrorHandling(
-            this,
+        const treeItems = await this.createTreeItemsWithErrorHandling(
             connections,
             'invalidCosmosDBConnection',
             async (c: IDetectedConnection) => {
@@ -79,7 +78,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         }
     }
 
-    public async createChildImpl(showCreatingTreeItem: (label: string) => void): Promise<AzureTreeItem<ISiteTreeRoot>> {
+    public async createChildImpl(context: ICreateChildImplContext): Promise<AzureTreeItem<ISiteTreeRoot>> {
         const cosmosDBApi = await this.getCosmosDBApi();
         const databaseToAdd = await cosmosDBApi.pickTreeItem({
             resourceType: 'Database'
@@ -103,7 +102,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         await this.parent.parent.appSettingsNode.refresh();
 
         const createdDatabase = new CosmosDBConnection(this, databaseToAdd, Array.from(newAppSettings.keys()));
-        showCreatingTreeItem(createdDatabase.label);
+        context.showCreatingTreeItem(createdDatabase.label);
 
         const ok: vscode.MessageItem = { title: 'OK' };
         const revealDatabase: vscode.MessageItem = { title: 'Reveal Database' };

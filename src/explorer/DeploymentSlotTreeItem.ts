@@ -6,7 +6,7 @@
 import { SiteClient } from 'vscode-azureappservice';
 import { nonNullProp } from '../utils/nonNull';
 import { getThemedIconPath, IThemedIconPath } from '../utils/pathUtils';
-import { DeploymentSlotsTreeItem, ScaleUpTreeItem } from './DeploymentSlotsTreeItem';
+import { DeploymentSlotsTreeItem } from './DeploymentSlotsTreeItem';
 import { SiteTreeItem } from './SiteTreeItem';
 
 export class DeploymentSlotTreeItem extends SiteTreeItem {
@@ -24,13 +24,5 @@ export class DeploymentSlotTreeItem extends SiteTreeItem {
 
     public get iconPath(): IThemedIconPath {
         return getThemedIconPath('DeploymentSlot_color');
-    }
-
-    public isAncestorOfImpl(): boolean {
-        if (this.parent.contextValue === ScaleUpTreeItem.contextValue) {
-            return false;
-        }
-
-        return true;
     }
 }

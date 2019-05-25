@@ -10,15 +10,15 @@ import * as os from 'os';
 import * as vscode from 'vscode';
 import { window } from "vscode";
 import { AppSettingsTreeItem, confirmOverwriteSettings, SiteClient } from "vscode-azureappservice";
-import { UserCancelledError } from "vscode-azureextensionui";
+import { IActionContext, UserCancelledError } from "vscode-azureextensionui";
 import { envFileName } from "../../constants";
 import { ext } from "../../extensionVariables";
 import * as workspaceUtil from '../../utils/workspace';
 import { getLocalEnvironmentVariables } from './getLocalEnvironmentVariables';
 
-export async function downloadAppSettings(node?: AppSettingsTreeItem): Promise<void> {
+export async function downloadAppSettings(context: IActionContext, node?: AppSettingsTreeItem): Promise<void> {
     if (!node) {
-        node = <AppSettingsTreeItem>await ext.tree.showTreeItemPicker(AppSettingsTreeItem.contextValue);
+        node = <AppSettingsTreeItem>await ext.tree.showTreeItemPicker(AppSettingsTreeItem.contextValue, context);
     }
 
     const client: SiteClient = node.root.client;

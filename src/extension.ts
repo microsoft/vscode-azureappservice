@@ -7,7 +7,7 @@
 
 import * as vscode from 'vscode';
 import { AppSettingsTreeItem, AppSettingTreeItem, DeploymentsTreeItem, ISiteTreeRoot, registerAppServiceExtensionVariables, SiteClient, stopStreamingLogs } from 'vscode-azureappservice';
-import { AzureParentTreeItem, AzureTreeDataProvider, AzureTreeItem, AzureUserInput, callWithTelemetryAndErrorHandling, createApiProvider, createTelemetryReporter, IActionContext, IAzureUserInput, registerCommand, registerEvent, registerUIExtensionVariables } from 'vscode-azureextensionui';
+import { AzExtTreeDataProvider, AzureTreeItem, AzureUserInput, callWithTelemetryAndErrorHandling, createApiProvider, createTelemetryReporter, IActionContext, IAzureUserInput, openInPortal, registerCommand, registerEvent, registerUIExtensionVariables } from 'vscode-azureextensionui';
 import { AzureExtensionApiProvider } from 'vscode-azureextensionui/api';
 import { downloadAppSettings } from './commands/appSettings/downloadAppSettings';
 import { toggleSlotSetting } from './commands/appSettings/toggleSlotSetting';
@@ -25,13 +25,14 @@ import { redeployDeployment } from './commands/deployments/redeployDeployment';
 import { viewCommitInGitHub } from './commands/deployments/viewCommitInGitHub';
 import { viewDeploymentLogs } from './commands/deployments/viewDeploymentLogs';
 import { enableFileLogging } from './commands/enableFileLogging';
-import { disableRemoteDebug } from './commands/remoteDebug/disableRemoteDebug';
 import { startRemoteDebug } from './commands/remoteDebug/startRemoteDebug';
+import { stopRemoteDebug } from './commands/remoteDebug/stopRemoteDebug';
 import { showFile } from './commands/showFile';
 import { startSsh } from './commands/startSsh';
 import { startStreamingLogs } from './commands/startStreamingLogs';
 import { swapSlots } from './commands/swapSlots';
 import { toggleValueVisibilityCommandId } from './constants';
+import { AzureAccountTreeItem } from './explorer/AzureAccountTreeItem';
 import { DeploymentSlotsNATreeItem, DeploymentSlotsTreeItem, ScaleUpTreeItem } from './explorer/DeploymentSlotsTreeItem';
 import { DeploymentSlotTreeItem } from './explorer/DeploymentSlotTreeItem';
 import { FileEditor } from './explorer/editors/FileEditor';
@@ -39,7 +40,6 @@ import { FileTreeItem } from './explorer/FileTreeItem';
 import { FolderTreeItem } from './explorer/FolderTreeItem';
 import { LoadedScriptsProvider, openScript } from './explorer/loadedScriptsExplorer';
 import { SiteTreeItem } from './explorer/SiteTreeItem';
-import { WebAppProvider } from './explorer/WebAppProvider';
 import { WebAppTreeItem } from './explorer/WebAppTreeItem';
 import { ext } from './extensionVariables';
 import { LogPointsManager } from './logPoints/LogPointsManager';
@@ -70,15 +70,15 @@ export async function activateInternal(
     registerAppServiceExtensionVariables(ext);
 
     // tslint:disable-next-line:max-func-body-length
-    await callWithTelemetryAndErrorHandling('appService.activate', async function (this: IActionContext): Promise<void> {
-        this.properties.isActivationEvent = 'true';
-        this.measurements.mainFileLoad = (perfStats.loadEndTime - perfStats.loadStartTime) / 1000;
+    await callWithTelemetryAndErrorHandling('appService.activate', async (activateContext: IActionContext) => {
+        activateContext.telemetry.properties.isActivationEvent = 'true';
+        activateContext.telemetry.measurements.mainFileLoad = (perfStats.loadEndTime - perfStats.loadStartTime) / 1000;
 
-        const tree = new AzureTreeDataProvider(WebAppProvider, 'appService.LoadMore');
-        ext.tree = tree;
-        context.subscriptions.push(tree);
+        ext.azureAccountTreeItem = new AzureAccountTreeItem();
+        context.subscriptions.push(ext.azureAccountTreeItem);
+        ext.tree = new AzExtTreeDataProvider(ext.azureAccountTreeItem, 'appService.LoadMore');
 
-        ext.treeView = vscode.window.createTreeView('azureAppService', { treeDataProvider: tree });
+        ext.treeView = vscode.window.createTreeView('azureAppService', { treeDataProvider: ext.tree });
         context.subscriptions.push(ext.treeView);
 
         const fileEditor: FileEditor = new FileEditor();
@@ -104,39 +104,39 @@ export async function activateInternal(
 
         LogpointsCollection.TextEditorDecorationType = logpointDecorationType;
 
-        registerCommand('appService.Refresh', async (node?: AzureTreeItem) => await ext.tree.refresh(node));
+        registerCommand('appService.Refresh', async (_actionContext: IActionContext, node?: AzureTreeItem) => await ext.tree.refresh(node));
         registerCommand('appService.selectSubscriptions', () => vscode.commands.executeCommand("azure-account.selectSubscriptions"));
-        registerCommand('appService.LoadMore', async (node: AzureTreeItem) => await ext.tree.loadMore(node));
-        registerCommand('appService.Browse', async (node?: SiteTreeItem) => {
+        registerCommand('appService.LoadMore', async (actionContext: IActionContext, node: AzureTreeItem) => await ext.tree.loadMore(node, actionContext));
+        registerCommand('appService.Browse', async (actionContext: IActionContext, node?: SiteTreeItem) => {
             if (!node) {
-                node = <WebAppTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue);
+                node = <WebAppTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue, actionContext);
             }
 
             await node.browse();
         });
-        registerCommand('appService.OpenInPortal', async (node?: AzureTreeItem<ISiteTreeRoot>) => {
+        registerCommand('appService.OpenInPortal', async (actionContext: IActionContext, node?: AzureTreeItem<ISiteTreeRoot>) => {
             if (!node) {
-                node = <WebAppTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue);
+                node = <WebAppTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue, actionContext);
             }
 
             switch (node.contextValue) {
                 // the deep link for slots does not follow the conventional pattern of including its parent in the path name so this is how we extract the slot's id
                 case DeploymentSlotsTreeItem.contextValue:
-                    await node.openInPortal(`${nonNullProp(node, 'parent').fullId}/deploymentSlots`);
+                    await openInPortal(node.root, `${nonNullProp(node, 'parent').fullId}/deploymentSlots`);
                     return;
                 // the deep link for "Deployments" do not follow the conventional pattern of including its parent in the path name so we need to pass the "Deployment Center" url directly
                 case DeploymentsTreeItem.contextValueConnected:
                 case DeploymentsTreeItem.contextValueUnconnected:
-                    await node.openInPortal(`${node.root.client.id}/vstscd`);
+                    await openInPortal(node.root, `${node.root.client.id}/vstscd`);
                     return;
                 default:
                     await node.openInPortal();
                     return;
             }
         });
-        registerCommand('appService.Start', async (node?: SiteTreeItem) => {
+        registerCommand('appService.Start', async (actionContext: IActionContext, node?: SiteTreeItem) => {
             if (!node) {
-                node = <WebAppTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue);
+                node = <WebAppTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue, actionContext);
             }
 
             const client: SiteClient = node.root.client;
@@ -148,9 +148,9 @@ export async function activateInternal(
                 ext.outputChannel.appendLine(startedApp);
             });
         });
-        registerCommand('appService.Stop', async (node?: SiteTreeItem) => {
+        registerCommand('appService.Stop', async (actionContext: IActionContext, node?: SiteTreeItem) => {
             if (!node) {
-                node = <WebAppTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue);
+                node = <WebAppTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue, actionContext);
             }
 
             const client: SiteClient = node.root.client;
@@ -164,41 +164,36 @@ export async function activateInternal(
 
             await logPointsManager.onAppServiceSiteClosed(client);
         });
-        registerCommand('appService.Restart', async (node?: SiteTreeItem) => {
+        registerCommand('appService.Restart', async (actionContext: IActionContext, node?: SiteTreeItem) => {
             if (!node) {
-                node = <WebAppTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue);
+                node = <WebAppTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue, actionContext);
             }
             await vscode.commands.executeCommand('appService.Stop', node);
             await vscode.commands.executeCommand('appService.Start', node);
             await logPointsManager.onAppServiceSiteClosed(node.root.client);
         });
-        registerCommand('appService.Delete', async (node?: SiteTreeItem) => {
+        registerCommand('appService.Delete', async (actionContext: IActionContext, node?: SiteTreeItem) => {
             if (!node) {
-                node = <WebAppTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue);
+                node = <WebAppTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue, actionContext);
             }
 
-            await node.deleteTreeItem();
+            await node.deleteTreeItem(actionContext);
         });
-        registerCommand('appService.CreateWebApp', async function (this: IActionContext, node?: AzureParentTreeItem): Promise<void> {
-            await createWebApp(this, node);
+        registerCommand('appService.CreateWebApp', createWebApp);
+        registerCommand('appService.Deploy', async (actionContext: IActionContext, target?: vscode.Uri | WebAppTreeItem | undefined) => {
+            await deploy(actionContext, true, target);
         });
-        registerCommand('appService.Deploy', async function (this: IActionContext, target?: vscode.Uri | WebAppTreeItem | undefined): Promise<void> {
-            await deploy(this, true, target);
-        });
-        registerCommand('appService.ConfigureDeploymentSource', async function (this: IActionContext, node?: DeploymentsTreeItem): Promise<void> {
-            await editScmType(this, node);
-
-        });
-        registerCommand('appService.OpenVSTSCD', async (node?: WebAppTreeItem) => {
+        registerCommand('appService.ConfigureDeploymentSource', editScmType);
+        registerCommand('appService.OpenVSTSCD', async (actionContext: IActionContext, node?: WebAppTreeItem) => {
             if (!node) {
-                node = <WebAppTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue);
+                node = <WebAppTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue, actionContext);
             }
 
             await node.openCdInPortal();
         });
-        registerCommand('appService.DeploymentScript', async (node?: WebAppTreeItem) => {
+        registerCommand('appService.DeploymentScript', async (actionContext: IActionContext, node?: WebAppTreeItem) => {
             if (!node) {
-                node = <WebAppTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue);
+                node = <WebAppTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue, actionContext);
             }
 
             await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async p => {
@@ -206,86 +201,86 @@ export async function activateInternal(
                 await nonNullValue(node).generateDeploymentScript();
             });
         });
-        registerCommand('appService.CreateSlot', async function (this: IActionContext, node?: DeploymentSlotsTreeItem): Promise<void> {
+        registerCommand('appService.CreateSlot', async (actionContext: IActionContext, node?: DeploymentSlotsTreeItem) => {
             if (!node) {
-                node = <DeploymentSlotsTreeItem>await ext.tree.showTreeItemPicker(DeploymentSlotsTreeItem.contextValue);
+                node = <DeploymentSlotsTreeItem>await ext.tree.showTreeItemPicker(DeploymentSlotsTreeItem.contextValue, actionContext);
             }
 
-            const createdSlot = <SiteTreeItem>await node.createChild(this);
-            createdSlot.showCreatedOutput(this);
+            const createdSlot = <SiteTreeItem>await node.createChild(actionContext);
+            createdSlot.showCreatedOutput(actionContext);
         });
-        registerCommand('appService.DeploySlot', async function (this: IActionContext, node?: DeploymentSlotTreeItem | undefined): Promise<void> {
+        registerCommand('appService.DeploySlot', async (actionContext: IActionContext, node?: DeploymentSlotTreeItem | undefined) => {
             if (!node) {
-                node = <DeploymentSlotTreeItem>await ext.tree.showTreeItemPicker(DeploymentSlotTreeItem.contextValue);
+                node = <DeploymentSlotTreeItem>await ext.tree.showTreeItemPicker(DeploymentSlotTreeItem.contextValue, actionContext);
             }
 
-            await deploy(this, true, node);
+            await deploy(actionContext, true, node);
         });
-        registerCommand('appService.SwapSlots', async (node: DeploymentSlotTreeItem) => await swapSlots(node));
-        registerCommand('appService.appSettings.Add', async (node?: AppSettingsTreeItem) => {
+        registerCommand('appService.SwapSlots', swapSlots);
+        registerCommand('appService.appSettings.Add', async (actionContext: IActionContext, node?: AppSettingsTreeItem) => {
             if (!node) {
-                node = <AppSettingsTreeItem>await ext.tree.showTreeItemPicker(AppSettingsTreeItem.contextValue);
+                node = <AppSettingsTreeItem>await ext.tree.showTreeItemPicker(AppSettingsTreeItem.contextValue, actionContext);
             }
 
-            await node.createChild();
+            await node.createChild(actionContext);
         });
-        registerCommand('appService.appSettings.Edit', async (node?: AppSettingTreeItem) => {
+        registerCommand('appService.appSettings.Edit', async (actionContext: IActionContext, node?: AppSettingTreeItem) => {
             if (!node) {
-                node = <AppSettingTreeItem>await ext.tree.showTreeItemPicker(AppSettingTreeItem.contextValue);
+                node = <AppSettingTreeItem>await ext.tree.showTreeItemPicker(AppSettingTreeItem.contextValue, actionContext);
             }
-            await node.edit();
+            await node.edit(actionContext);
         });
-        registerCommand('appService.appSettings.Rename', async (node?: AppSettingTreeItem) => {
+        registerCommand('appService.appSettings.Rename', async (actionContext: IActionContext, node?: AppSettingTreeItem) => {
             if (!node) {
-                node = <AppSettingTreeItem>await ext.tree.showTreeItemPicker(AppSettingTreeItem.contextValue);
-            }
-
-            await node.rename();
-        });
-        registerCommand('appService.appSettings.Delete', async (node?: AppSettingTreeItem) => {
-            if (!node) {
-                node = <AppSettingTreeItem>await ext.tree.showTreeItemPicker(AppSettingTreeItem.contextValue);
+                node = <AppSettingTreeItem>await ext.tree.showTreeItemPicker(AppSettingTreeItem.contextValue, actionContext);
             }
 
-            await node.deleteTreeItem();
+            await node.rename(actionContext);
+        });
+        registerCommand('appService.appSettings.Delete', async (actionContext: IActionContext, node?: AppSettingTreeItem) => {
+            if (!node) {
+                node = <AppSettingTreeItem>await ext.tree.showTreeItemPicker(AppSettingTreeItem.contextValue, actionContext);
+            }
+
+            await node.deleteTreeItem(actionContext);
         });
         registerCommand('appService.appSettings.Download', downloadAppSettings);
         registerCommand('appService.appSettings.Upload', uploadAppSettings);
         registerCommand('appService.appSettings.ToggleSlotSetting', toggleSlotSetting);
         registerCommand('appService.OpenLogStream', startStreamingLogs);
-        registerCommand('appService.StopLogStream', async (node?: SiteTreeItem) => {
+        registerCommand('appService.StopLogStream', async (actionContext: IActionContext, node?: SiteTreeItem) => {
             if (!node) {
-                node = <WebAppTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue);
+                node = <WebAppTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue, actionContext);
             }
 
             await stopStreamingLogs(node.root.client);
         });
-        registerCommand('appService.StartLogPointsSession', async function (this: IActionContext, node?: SiteTreeItem): Promise<void> {
+        registerCommand('appService.StartLogPointsSession', async (actionContext: IActionContext, node?: SiteTreeItem) => {
             if (node) {
                 const wizard = new LogPointsSessionWizard(logPointsManager, context, ext.outputChannel, node, node.root.client);
-                await wizard.run(this.properties);
+                await wizard.run(actionContext);
             }
         });
 
-        registerCommand('appService.LogPoints.Toggle', async (uri: vscode.Uri) => {
+        registerCommand('appService.LogPoints.Toggle', async (_actionContext: IActionContext, uri: vscode.Uri) => {
             await logPointsManager.toggleLogpoint(uri);
         });
 
         registerCommand('appService.LogPoints.OpenScript', openScript);
 
-        registerCommand('appService.StartRemoteDebug', async function (this: IActionContext, node?: SiteTreeItem): Promise<void> { await startRemoteDebug(this, node); });
-        registerCommand('appService.DisableRemoteDebug', async function (this: IActionContext, node?: SiteTreeItem): Promise<void> { await disableRemoteDebug(this, node); });
+        registerCommand('appService.StartRemoteDebug', startRemoteDebug);
+        registerCommand('appService.StopRemoteDebug', stopRemoteDebug);
         registerCommand('appService.StartSsh', startSsh);
 
-        registerCommand('appService.showFile', async (node: FileTreeItem) => { await showFile(node, fileEditor); }, 500);
-        registerCommand('appService.ScaleUp', async (node: DeploymentSlotsNATreeItem | ScaleUpTreeItem) => {
-            await node.openInPortal(node.scaleUpId);
+        registerCommand('appService.showFile', async (_actionContext: IActionContext, node: FileTreeItem) => { await showFile(node, fileEditor); }, 500);
+        registerCommand('appService.ScaleUp', async (_actionContext: IActionContext, node: DeploymentSlotsNATreeItem | ScaleUpTreeItem) => {
+            await openInPortal(node.root, node.scaleUpId);
         });
 
-        registerEvent('appService.fileEditor.onDidSaveTextDocument', vscode.workspace.onDidSaveTextDocument, async function (this: IActionContext, doc: vscode.TextDocument): Promise<void> { await fileEditor.onDidSaveTextDocument(this, context.globalState, doc); });
-        registerCommand('appService.EnableFileLogging', async (node?: SiteTreeItem | FolderTreeItem) => {
+        registerEvent('appService.fileEditor.onDidSaveTextDocument', vscode.workspace.onDidSaveTextDocument, async (actionContext: IActionContext, doc: vscode.TextDocument) => { await fileEditor.onDidSaveTextDocument(actionContext, context.globalState, doc); });
+        registerCommand('appService.EnableFileLogging', async (actionContext: IActionContext, node?: SiteTreeItem | FolderTreeItem) => {
             if (!node) {
-                node = <SiteTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue);
+                node = <SiteTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue, actionContext);
             }
 
             if (node instanceof FolderTreeItem) {
@@ -320,7 +315,7 @@ export async function activateInternal(
         registerCommand('appService.Redeploy', redeployDeployment);
         registerCommand('appService.DisconnectRepo', disconnectRepo);
         registerCommand('appService.ConnectToGitHub', connectToGitHub);
-        registerCommand(toggleValueVisibilityCommandId, async (node: AppSettingTreeItem) => { await node.toggleValueVisibility(); }, 250);
+        registerCommand(toggleValueVisibilityCommandId, async (_actionContext: IActionContext, node: AppSettingTreeItem) => { await node.toggleValueVisibility(); }, 250);
         registerCommand('appService.ViewCommitInGitHub', viewCommitInGitHub);
     });
 

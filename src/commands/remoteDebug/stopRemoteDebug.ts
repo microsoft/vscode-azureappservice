@@ -12,9 +12,9 @@ import { WebAppTreeItem } from '../../explorer/WebAppTreeItem';
 import { ext } from '../../extensionVariables';
 import * as remoteDebug from './remoteDebugCommon';
 
-export async function disableRemoteDebug(actionContext: IActionContext, node?: SiteTreeItem): Promise<void> {
+export async function stopRemoteDebug(context: IActionContext, node?: SiteTreeItem): Promise<void> {
     if (!node) {
-        node = <SiteTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue);
+        node = <SiteTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue, context);
     }
     const siteClient: SiteClient = node.root.client;
 
@@ -25,7 +25,7 @@ export async function disableRemoteDebug(actionContext: IActionContext, node?: S
         remoteDebug.reportMessage('Fetching site configuration...', progress);
         const siteConfig: SiteConfigResource = await siteClient.getSiteConfig();
 
-        remoteDebug.checkForRemoteDebugSupport(siteConfig, actionContext);
+        remoteDebug.checkForRemoteDebugSupport(siteConfig, context);
 
         await remoteDebug.setRemoteDebug(false, confirmMessage, noopMessage, siteClient, siteConfig, progress, remoteDebug.remoteDebugLink);
     });
