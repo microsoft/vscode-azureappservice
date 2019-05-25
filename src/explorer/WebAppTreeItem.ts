@@ -18,9 +18,6 @@ import { DeploymentSlotTreeItem } from './DeploymentSlotTreeItem';
 import { SiteTreeItem } from './SiteTreeItem';
 
 export class WebAppTreeItem extends SiteTreeItem {
-    public static contextValue: string = extensionPrefix;
-    public readonly contextValue: string = WebAppTreeItem.contextValue;
-    public deploymentSlotsNode: DeploymentSlotsTreeItem | DeploymentSlotsNATreeItem;
 
     public get label(): string {
         return this.root.client.siteName;
@@ -29,6 +26,9 @@ export class WebAppTreeItem extends SiteTreeItem {
     public get iconPath(): IThemedIconPath {
         return getThemedIconPath('WebApp_color');
     }
+    public static contextValue: string = extensionPrefix;
+    public readonly contextValue: string = WebAppTreeItem.contextValue;
+    public deploymentSlotsNode: DeploymentSlotsTreeItem | DeploymentSlotsNATreeItem;
 
     public async loadMoreChildrenImpl(clearCache: boolean): Promise<AzureTreeItem<ISiteTreeRoot>[]> {
         let tier: string | undefined;
@@ -120,6 +120,19 @@ export class WebAppTreeItem extends SiteTreeItem {
 
         const doc = await vscode.workspace.openTextDocument({ language: 'shellscript', content: script });
         await vscode.window.showTextDocument(doc);
+    }
+
+    public isAncestorOfImpl(contextValue: string | RegExp): boolean {
+        // DeploymentSlotsNATreeItem shouldn't show up in the tree picker if we're looking for a deployment slot
+        if (contextValue === DeploymentSlotTreeItem.contextValue) {
+            // in the event the web app tree hasn't been expanded, include by default
+            // tslint:disable-next-line: strict-boolean-expressions
+            if (this.deploymentSlotsNode) {
+                return this.deploymentSlotsNode.contextValue === DeploymentSlotsTreeItem.contextValue;
+            }
+        }
+
+        return true;
     }
 
     private async loadScriptTemplate(scriptName: string): Promise<string> {
