@@ -5,17 +5,17 @@
 
 import * as WebSiteModels from 'azure-arm-website/lib/models';
 import { SiteConfigResource } from 'azure-arm-website/lib/models';
-import { pathExists } from 'fs-extra';
+import { lstat, pathExists, readdir } from 'fs-extra';
 import * as path from 'path';
 import { join } from 'path';
 import { commands, Disposable, MessageItem, Uri, window, workspace, WorkspaceConfiguration, WorkspaceFolder } from 'vscode';
 import * as appservice from 'vscode-azureappservice';
 import { AzureTreeItem, DialogResponses, parseError } from 'vscode-azureextensionui';
 import * as constants from '../constants';
+import { IDeployWizardContext } from '../explorer/setAppWizardContextDefault';
 import { SiteTreeItem } from '../explorer/SiteTreeItem';
 import { WebAppTreeItem } from '../explorer/WebAppTreeItem';
 import { ext } from '../extensionVariables';
-import { IDeployWizardContext } from '../IDeployWizardContext';
 import { delay } from '../utils/delay';
 import { javaUtils } from '../utils/javaUtils';
 import { nonNullValue } from '../utils/nonNull';
@@ -77,7 +77,7 @@ export async function deploy(context: IDeployWizardContext, confirmDeployment: b
             const fileExtension: string = javaUtils.getArtifactTypeByJavaRuntime(siteConfig.linuxFxVersion);
             fsPath = await javaUtils.showQuickPickByFileExtension(context, `Select the ${fileExtension} file to deploy...`, fileExtension);
         } else {
-            fsPath = await workspaceUtil.showWorkspaceFoldersAndFiles("Select the projet to deploy", context, constants.configurationSettings.deploySubpath);
+            fsPath = await workspaceUtil.showWorkspaceFolders("Select the folder to deploy", context, constants.configurationSettings.deploySubpath);
         }
     }
     context.fsPath = fsPath;
@@ -121,6 +121,9 @@ export async function deploy(context: IDeployWizardContext, confirmDeployment: b
 
     siteConfig = siteConfig ? siteConfig : await node.root.client.getSiteConfig();
     if (javaUtils.isJavaRuntime(siteConfig.linuxFxVersion)) {
+        // check if there is a jar/war file in the fsPath that was provided
+        const artifactFsPath: string | undefined = await workspaceUtil.findFileByFileExtension(fsPath, javaUtils.getArtifactTypeByJavaRuntime(siteConfig.linuxFxVersion));
+        fsPath = artifactFsPath ? artifactFsPath : fsPath;
         await javaUtils.configureJavaSEAppSettings(node);
     }
 

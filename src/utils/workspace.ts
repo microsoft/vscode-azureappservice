@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { lstat, readdir } from 'fs-extra';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { IActionContext, IAzureQuickPickItem } from 'vscode-azureextensionui';
@@ -51,24 +52,15 @@ export async function selectWorkspaceItem(placeHolder: string, options: vscode.O
     return folder && folder.data ? folder.data : (await ext.ui.showOpenDialog(options))[0].fsPath;
 }
 
-export async function showWorkspaceFoldersAndFiles(placeHolderString: string, context: IActionContext, subPathSetting: string | undefined, fileExtensions?: string | string[]): Promise<string> {
+export async function showWorkspaceFolders(placeHolderString: string, context: IActionContext, subPathSetting: string | undefined): Promise<string> {
     context.telemetry.properties.cancelStep = 'showWorkspaceFoldersAndExtensions';
-
-    if (!fileExtensions) {
-        // these are the current deployables we support
-        fileExtensions = ['jar', 'war', 'zip'];
-    } else if (typeof fileExtensions === 'string') {
-        fileExtensions = [fileExtensions];
-    }
-
     return await selectWorkspaceItem(
         placeHolderString,
         {
             canSelectFiles: true,
-            canSelectFolders: false,
+            canSelectFolders: true,
             canSelectMany: false,
-            defaultUri: vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri : undefined,
-            filters: { Artifacts: fileExtensions }
+            defaultUri: vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri : undefined
         },
         (f: vscode.WorkspaceFolder): string | undefined => {
             if (subPathSetting) {
@@ -77,4 +69,17 @@ export async function showWorkspaceFoldersAndFiles(placeHolderString: string, co
             return;
         }
     );
+}
+
+export async function findFileByFileExtension(fsPath: string, fileExtension: string): Promise<string | undefined> {
+    if ((await lstat(fsPath)).isDirectory()) {
+        const files: string[] = await readdir(fsPath);
+        for (const file of files) {
+            if (path.extname(file) === `.${fileExtension}`) {
+                return `${path.join(fsPath, file)}`;
+            }
+        }
+    }
+
+    return undefined;
 }
