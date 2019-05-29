@@ -18,6 +18,9 @@ import { DeploymentSlotTreeItem } from './DeploymentSlotTreeItem';
 import { SiteTreeItem } from './SiteTreeItem';
 
 export class WebAppTreeItem extends SiteTreeItem {
+    public static contextValue: string = extensionPrefix;
+    public readonly contextValue: string = WebAppTreeItem.contextValue;
+    public deploymentSlotsNode: DeploymentSlotsTreeItem | DeploymentSlotsNATreeItem;
 
     public get label(): string {
         return this.root.client.siteName;
@@ -26,9 +29,6 @@ export class WebAppTreeItem extends SiteTreeItem {
     public get iconPath(): IThemedIconPath {
         return getThemedIconPath('WebApp_color');
     }
-    public static contextValue: string = extensionPrefix;
-    public readonly contextValue: string = WebAppTreeItem.contextValue;
-    public deploymentSlotsNode: DeploymentSlotsTreeItem | DeploymentSlotsNATreeItem;
 
     public async loadMoreChildrenImpl(clearCache: boolean): Promise<AzureTreeItem<ISiteTreeRoot>[]> {
         let tier: string | undefined;
