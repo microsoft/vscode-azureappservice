@@ -7,8 +7,7 @@ import { StringDictionary } from "azure-arm-website/lib/models";
 import * as fse from 'fs-extra';
 import * as path from 'path';
 import { workspace } from "vscode";
-import * as vscode from 'vscode';
-import { IActionContext, IAzureQuickPickItem, UserCancelledError } from 'vscode-azureextensionui';
+import { UserCancelledError } from 'vscode-azureextensionui';
 import { SiteTreeItem } from "../explorer/SiteTreeItem";
 import { ext } from '../extensionVariables';
 
@@ -16,11 +15,11 @@ export namespace javaUtils {
     const DEFAULT_PORT: string = '8080';
     const PORT_KEY: string = 'PORT';
 
-    export function isJavaWebContainerRuntime(runtime: string | undefined): boolean {
+    function isJavaWebContainerRuntime(runtime: string | undefined): boolean {
         return !!runtime && /^(tomcat|wildfly)/i.test(runtime);
     }
 
-    export function isJavaSERuntime(runtime: string | undefined): boolean {
+    function isJavaSERuntime(runtime: string | undefined): boolean {
         return !!runtime && /^java/i.test(runtime);
     }
 
@@ -42,7 +41,7 @@ export namespace javaUtils {
         }
     }
 
-    export function isJavaSERequiredPortConfigured(appSettings: StringDictionary | undefined): boolean {
+    function isJavaSERequiredPortConfigured(appSettings: StringDictionary | undefined): boolean {
         if (appSettings && appSettings.properties) {
             for (const key of Object.keys(appSettings.properties)) {
                 if (key.toUpperCase() === PORT_KEY) {
@@ -104,43 +103,5 @@ export namespace javaUtils {
         }
         appSettings.properties[PORT_KEY] = port;
         return node.root.client.updateApplicationSettings(appSettings);
-    }
-
-    export async function showQuickPickByFileExtension(context: IActionContext, placeHolderString: string, fileExtension: string = '*'): Promise<string> {
-        const files: vscode.Uri[] = await vscode.workspace.findFiles(`**/*.${fileExtension}`);
-        const quickPickItems: IAzureQuickPickItem<string | undefined>[] = files.map((uri: vscode.Uri) => {
-            return {
-                label: path.basename(uri.fsPath),
-                description: uri.fsPath,
-                data: uri.fsPath
-            };
-        });
-
-        quickPickItems.push({ label: '$(package) Browse...', description: '', data: undefined });
-
-        const quickPickOption = { placeHolder: placeHolderString };
-        const pickedItem = await vscode.window.showQuickPick(quickPickItems, quickPickOption);
-
-        if (!pickedItem) {
-            context.telemetry.properties.cancelStep = `show${fileExtension}`;
-            throw new UserCancelledError();
-        } else if (!pickedItem.data) {
-            const browseResult = await vscode.window.showOpenDialog({
-                canSelectFiles: true,
-                canSelectFolders: false,
-                canSelectMany: false,
-                defaultUri: vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri : undefined,
-                filters: { Artifacts: [fileExtension] }
-            });
-
-            if (!browseResult) {
-                context.telemetry.properties.cancelStep = `show${fileExtension}Browse`;
-                throw new UserCancelledError();
-            }
-
-            return browseResult[0].fsPath;
-        } else {
-            return pickedItem.data;
-        }
     }
 }

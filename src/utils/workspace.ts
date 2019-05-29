@@ -3,12 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { lstat, readdir } from 'fs-extra';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { IActionContext, IAzureQuickPickItem } from 'vscode-azureextensionui';
 import { extensionPrefix } from '../constants';
 import { ext } from '../extensionVariables';
+import { isPathEqual, isSubpath } from '../utils/pathUtils';
 
 export async function selectWorkspaceFile(placeHolder: string, getSubPath?: (f: vscode.WorkspaceFolder) => string | undefined): Promise<string> {
     let defaultUri: vscode.Uri | undefined;
@@ -32,9 +32,13 @@ export async function selectWorkspaceFile(placeHolder: string, getSubPath?: (f: 
         getSubPath);
 }
 
-export async function selectWorkspaceItem(placeHolder: string, options: vscode.OpenDialogOptions, getSubPath?: (f: vscode.WorkspaceFolder) => string | undefined): Promise<string> {
+export async function selectWorkspaceItem(placeHolder: string, options: vscode.OpenDialogOptions, getSubPath?: (f: vscode.WorkspaceFolder) => string | undefined, fileExtension?: string): Promise<string> {
     let folder: IAzureQuickPickItem<string | undefined> | undefined;
+    let quickPicks: IAzureQuickPickItem<string | undefined>[] = [];
     if (vscode.workspace.workspaceFolders) {
+        // include the fileExtension in the quickPick list of workspaces
+        const filePicks: IAzureQuickPickItem<string | undefined>[] = fileExtension ? await findFilesByFileExtension(undefined, fileExtension) : [];
+
         const folderPicks: IAzureQuickPickItem<string | undefined>[] = vscode.workspace.workspaceFolders.map((f: vscode.WorkspaceFolder) => {
             let subpath: string | undefined;
             if (getSubPath) {
@@ -45,18 +49,21 @@ export async function selectWorkspaceItem(placeHolder: string, options: vscode.O
             return { label: path.basename(fsPath), description: fsPath, data: fsPath };
         });
 
-        folderPicks.push({ label: '$(file-directory) Browse...', description: '', data: undefined });
-        folder = await ext.ui.showQuickPick(folderPicks, { placeHolder });
+        quickPicks = filePicks.concat(folderPicks);
+
+        quickPicks.push({ label: '$(file-directory) Browse...', description: '', data: undefined });
+        folder = await ext.ui.showQuickPick(quickPicks, { placeHolder });
     }
 
     return folder && folder.data ? folder.data : (await ext.ui.showOpenDialog(options))[0].fsPath;
 }
 
-export async function showWorkspaceFolders(placeHolderString: string, context: IActionContext, subPathSetting: string | undefined): Promise<string> {
+export async function showWorkspaceFolders(placeHolderString: string, context: IActionContext, subPathSetting: string | undefined, fileExtension?: string): Promise<string> {
     context.telemetry.properties.cancelStep = 'showWorkspaceFoldersAndExtensions';
     return await selectWorkspaceItem(
         placeHolderString,
         {
+            // on Windows, if both files and folder are set to true, then it defaults to folders
             canSelectFiles: true,
             canSelectFolders: true,
             canSelectMany: false,
@@ -67,19 +74,28 @@ export async function showWorkspaceFolders(placeHolderString: string, context: I
                 return vscode.workspace.getConfiguration(extensionPrefix, f.uri).get(subPathSetting);
             }
             return;
-        }
+        },
+        fileExtension
     );
 }
 
-export async function findFileByFileExtension(fsPath: string, fileExtension: string): Promise<string | undefined> {
-    if ((await lstat(fsPath)).isDirectory()) {
-        const files: string[] = await readdir(fsPath);
-        for (const file of files) {
-            if (path.extname(file) === `.${fileExtension}`) {
-                return `${path.join(fsPath, file)}`;
-            }
-        }
-    }
+export function getContainingWorkspace(fsPath: string): vscode.WorkspaceFolder | undefined {
+    // tslint:disable-next-line:strict-boolean-expressions
+    const openFolders: vscode.WorkspaceFolder[] = vscode.workspace.workspaceFolders || [];
+    return openFolders.find((f: vscode.WorkspaceFolder): boolean => {
+        return isPathEqual(f.uri.fsPath, fsPath) || isSubpath(f.uri.fsPath, fsPath);
+    });
+}
 
-    return undefined;
+export async function findFilesByFileExtension(deployPath: string | undefined, fileExtension: string): Promise<IAzureQuickPickItem<string | undefined>[]> {
+    // if there is a deployPath, then only check the deployed folder for the file extension, otherwise use all currently opened workspaces
+    const relativeDirectory: vscode.RelativePattern | string = deployPath ? new vscode.RelativePattern(deployPath, `*.${fileExtension}`) : path.join('**', `*.${fileExtension}`);
+    const files: vscode.Uri[] = await vscode.workspace.findFiles(relativeDirectory);
+    return files.map((uri: vscode.Uri) => {
+        return {
+            label: path.basename(uri.fsPath),
+            description: uri.fsPath,
+            data: uri.fsPath
+        };
+    });
 }

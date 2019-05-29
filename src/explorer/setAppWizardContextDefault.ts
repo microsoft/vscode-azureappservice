@@ -5,12 +5,12 @@
 
 import * as fse from 'fs-extra';
 import * as path from 'path';
-import { Uri, workspace, WorkspaceConfiguration } from 'vscode';
+import { workspace, WorkspaceConfiguration, WorkspaceFolder } from 'vscode';
 import { IAppServiceWizardContext, LinuxRuntimes, WebsiteOS } from 'vscode-azureappservice';
 import { IActionContext, LocationListStep } from 'vscode-azureextensionui';
 import { configurationSettings, extensionPrefix } from '../constants';
 import { javaUtils } from '../utils/javaUtils';
-import { findFileByFileExtension } from '../utils/workspace';
+import { findFilesByFileExtension, getContainingWorkspace } from '../utils/workspace';
 
 export interface IDeployWizardContext extends IActionContext {
     fsPath?: string;
@@ -19,12 +19,12 @@ export interface IDeployWizardContext extends IActionContext {
 export async function setAppWizardContextDefault(wizardContext: IAppServiceWizardContext & IDeployWizardContext): Promise<void> {
     // if the user entered through "Deploy", we'll have a project to base our recommendations on
     // otherwise, look at their current workspace and only suggest if one workspace is opened
-    const workspaceForRecommendation: string | undefined = wizardContext.fsPath ?
-        wizardContext.fsPath : workspace.workspaceFolders && workspace.workspaceFolders.length === 1 ?
-            workspace.workspaceFolders[0].uri.fsPath : undefined;
+    const workspaceForRecommendation: WorkspaceFolder | undefined = wizardContext.fsPath ?
+        getContainingWorkspace(wizardContext.fsPath) : workspace.workspaceFolders && workspace.workspaceFolders.length === 1 ?
+            workspace.workspaceFolders[0] : undefined;
 
     if (workspaceForRecommendation) {
-        const fsPath: string = workspaceForRecommendation;
+        const fsPath: string = workspaceForRecommendation.uri.fsPath;
 
         if (await fse.pathExists(path.join(fsPath, 'package.json'))) {
             wizardContext.recommendedSiteRuntime = [LinuxRuntimes.node];
@@ -63,7 +63,7 @@ export async function setAppWizardContextDefault(wizardContext: IAppServiceWizar
         if (wizardContext.recommendedSiteRuntime) {
             wizardContext.newSiteOS = WebsiteOS.linux;
         } else {
-            if ((await findFileByFileExtension(workspaceForRecommendation, 'csproj')) !== undefined) {
+            if (workspaceForRecommendation && (await findFilesByFileExtension(workspaceForRecommendation.uri.fsPath, 'csproj')).length > 0) {
                 wizardContext.newSiteOS = WebsiteOS.windows;
             }
         }

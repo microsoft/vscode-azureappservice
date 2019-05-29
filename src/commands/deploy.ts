@@ -5,12 +5,12 @@
 
 import * as WebSiteModels from 'azure-arm-website/lib/models';
 import { SiteConfigResource } from 'azure-arm-website/lib/models';
-import { lstat, pathExists, readdir } from 'fs-extra';
+import { pathExists } from 'fs-extra';
 import * as path from 'path';
 import { join } from 'path';
 import { commands, Disposable, MessageItem, Uri, window, workspace, WorkspaceConfiguration, WorkspaceFolder } from 'vscode';
 import * as appservice from 'vscode-azureappservice';
-import { AzureTreeItem, DialogResponses, parseError } from 'vscode-azureextensionui';
+import { AzureTreeItem, DialogResponses, IAzureQuickPickItem, parseError } from 'vscode-azureextensionui';
 import * as constants from '../constants';
 import { IDeployWizardContext } from '../explorer/setAppWizardContextDefault';
 import { SiteTreeItem } from '../explorer/SiteTreeItem';
@@ -75,7 +75,7 @@ export async function deploy(context: IDeployWizardContext, confirmDeployment: b
 
         if (siteConfig && javaUtils.isJavaRuntime(siteConfig.linuxFxVersion)) {
             const fileExtension: string = javaUtils.getArtifactTypeByJavaRuntime(siteConfig.linuxFxVersion);
-            fsPath = await javaUtils.showQuickPickByFileExtension(context, `Select the ${fileExtension} file to deploy...`, fileExtension);
+            fsPath = await workspaceUtil.showWorkspaceFolders(`Select the ${fileExtension} file to deploy...`, context, constants.configurationSettings.deploySubpath, fileExtension);
         } else {
             fsPath = await workspaceUtil.showWorkspaceFolders("Select the folder to deploy", context, constants.configurationSettings.deploySubpath);
         }
@@ -120,10 +120,13 @@ export async function deploy(context: IDeployWizardContext, confirmDeployment: b
     context.telemetry.properties.correlationId = correlationId;
 
     siteConfig = siteConfig ? siteConfig : await node.root.client.getSiteConfig();
+
     if (javaUtils.isJavaRuntime(siteConfig.linuxFxVersion)) {
-        // check if there is a jar/war file in the fsPath that was provided
-        const artifactFsPath: string | undefined = await workspaceUtil.findFileByFileExtension(fsPath, javaUtils.getArtifactTypeByJavaRuntime(siteConfig.linuxFxVersion));
-        fsPath = artifactFsPath ? artifactFsPath : fsPath;
+        const javaArtifactFiles: IAzureQuickPickItem<string | undefined>[] = await workspaceUtil.findFilesByFileExtension(fsPath, javaUtils.getArtifactTypeByJavaRuntime(siteConfig.linuxFxVersion));
+        if (javaArtifactFiles.length > 0) {
+            // check if there is a jar/war file in the fsPath that was provided
+            fsPath = <string>(await ext.ui.showQuickPick(javaArtifactFiles, { placeHolder: `Select the ${javaUtils.getArtifactTypeByJavaRuntime(siteConfig.linuxFxVersion)} file to deploy...` })).data;
+        }
         await javaUtils.configureJavaSEAppSettings(node);
     }
 
