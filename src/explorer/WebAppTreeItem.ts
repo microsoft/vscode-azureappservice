@@ -122,19 +122,6 @@ export class WebAppTreeItem extends SiteTreeItem {
         await vscode.window.showTextDocument(doc);
     }
 
-    public isAncestorOfImpl(contextValue: string | RegExp): boolean {
-        // DeploymentSlotsNATreeItem shouldn't show up in the tree picker if we're looking for a deployment slot
-        if (contextValue === DeploymentSlotTreeItem.contextValue) {
-            // in the event the web app tree hasn't been expanded, include by default
-            // tslint:disable-next-line: strict-boolean-expressions
-            if (this.deploymentSlotsNode) {
-                return this.deploymentSlotsNode.contextValue === DeploymentSlotsTreeItem.contextValue;
-            }
-        }
-
-        return true;
-    }
-
     private async loadScriptTemplate(scriptName: string): Promise<string> {
         const templatePath = path.join(getResourcesPath(), 'deploymentScripts', scriptName);
         return await fs.readFile(templatePath, 'utf8');

@@ -209,12 +209,16 @@ export async function activateInternal(
             const createdSlot = <SiteTreeItem>await node.createChild(actionContext);
             createdSlot.showCreatedOutput(actionContext);
         });
-        registerCommand('appService.DeploySlot', async (actionContext: IActionContext, node?: DeploymentSlotTreeItem | undefined) => {
+        registerCommand('appService.DeploySlot', async (actionContext: IActionContext, node?: DeploymentSlotTreeItem | ScaleUpTreeItem | undefined) => {
             if (!node) {
-                node = <DeploymentSlotTreeItem>await ext.tree.showTreeItemPicker(DeploymentSlotTreeItem.contextValue, actionContext);
+                node = <DeploymentSlotTreeItem | ScaleUpTreeItem>await ext.tree.showTreeItemPicker([DeploymentSlotTreeItem.contextValue, ScaleUpTreeItem.contextValue], actionContext);
             }
 
-            await deploy(actionContext, true, node);
+            if (node instanceof ScaleUpTreeItem) {
+                await openInPortal(node.root, node.scaleUpId);
+            } else {
+                await deploy(actionContext, true, node);
+            }
         });
         registerCommand('appService.SwapSlots', swapSlots);
         registerCommand('appService.appSettings.Add', async (actionContext: IActionContext, node?: AppSettingsTreeItem) => {
