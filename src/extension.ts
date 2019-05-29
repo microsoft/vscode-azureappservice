@@ -34,6 +34,7 @@ import { swapSlots } from './commands/swapSlots';
 import { toggleValueVisibilityCommandId } from './constants';
 import { AzureAccountTreeItem } from './explorer/AzureAccountTreeItem';
 import { DeploymentSlotsNATreeItem, DeploymentSlotsTreeItem, ScaleUpTreeItem } from './explorer/DeploymentSlotsTreeItem';
+import { DeploymentSlotTreeItem } from './explorer/DeploymentSlotTreeItem';
 import { FileEditor } from './explorer/editors/FileEditor';
 import { FileTreeItem } from './explorer/FileTreeItem';
 import { FolderTreeItem } from './explorer/FolderTreeItem';
@@ -207,6 +208,17 @@ export async function activateInternal(
 
             const createdSlot = <SiteTreeItem>await node.createChild(actionContext);
             createdSlot.showCreatedOutput(actionContext);
+        });
+        registerCommand('appService.DeploySlot', async (actionContext: IActionContext, node?: DeploymentSlotTreeItem | ScaleUpTreeItem | undefined) => {
+            if (!node) {
+                node = <DeploymentSlotTreeItem | ScaleUpTreeItem>await ext.tree.showTreeItemPicker([DeploymentSlotTreeItem.contextValue, ScaleUpTreeItem.contextValue], actionContext);
+            }
+
+            if (node instanceof ScaleUpTreeItem) {
+                await openInPortal(node.root, node.scaleUpId);
+            } else {
+                await deploy(actionContext, true, node);
+            }
         });
         registerCommand('appService.SwapSlots', swapSlots);
         registerCommand('appService.appSettings.Add', async (actionContext: IActionContext, node?: AppSettingsTreeItem) => {

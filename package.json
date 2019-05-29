@@ -56,6 +56,7 @@
         "onCommand:appService.StopRemoteDebug",
         "onCommand:appService.StartSsh",
         "onCommand:appService.CreateSlot",
+        "onCommand:appService.DeploySlot",
         "onCommand:appService.EnableFileLogging",
         "onCommand:appService.ViewDeploymentLogs",
         "onCommand:appService.Redeploy",
@@ -209,6 +210,11 @@
             {
                 "command": "appService.CreateSlot",
                 "title": "Create New Deployment Slot...",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.DeploySlot",
+                "title": "Deploy to Slot...",
                 "category": "Azure App Service"
             },
             {
@@ -569,7 +575,7 @@
                     "group": "2_deploymentSlotControlCommands@5"
                 },
                 {
-                    "command": "appService.Deploy",
+                    "command": "appService.DeploySlot",
                     "when": "view == azureAppService && viewItem == deploymentSlot",
                     "group": "3_deploymentSlotDeployCommands@1"
                 },
