@@ -31,7 +31,7 @@ import { showFile } from './commands/showFile';
 import { startSsh } from './commands/startSsh';
 import { startStreamingLogs } from './commands/startStreamingLogs';
 import { swapSlots } from './commands/swapSlots';
-import { toggleValueVisibilityCommandId } from './constants';
+import { showOutputChannelCommandId, toggleValueVisibilityCommandId } from './constants';
 import { AzureAccountTreeItem } from './explorer/AzureAccountTreeItem';
 import { DeploymentSlotsNATreeItem, DeploymentSlotsTreeItem, ScaleUpTreeItem } from './explorer/DeploymentSlotsTreeItem';
 import { FileEditor } from './explorer/editors/FileEditor';
@@ -309,6 +309,7 @@ export async function activateInternal(
         registerCommand('appService.ConnectToGitHub', connectToGitHub);
         registerCommand(toggleValueVisibilityCommandId, async (_actionContext: IActionContext, node: AppSettingTreeItem) => { await node.toggleValueVisibility(); }, 250);
         registerCommand('appService.ViewCommitInGitHub', viewCommitInGitHub);
+        registerCommand(showOutputChannelCommandId, () => { ext.outputChannel.show(); });
     });
 
     return createApiProvider([]);

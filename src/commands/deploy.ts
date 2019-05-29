@@ -168,7 +168,7 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
 
     cancelWebsiteValidation(node);
     await node.runWithTemporaryDescription("Deploying...", async () => {
-        await appservice.deploy(nonNullValue(node).root.client, <string>fsPath, context);
+        await appservice.deploy(nonNullValue(node).root.client, <string>fsPath, context, constants.showOutputChannelCommandId);
     });
 
     const deployComplete: string = `Deployment to "${node.root.client.fullName}" completed.`;
