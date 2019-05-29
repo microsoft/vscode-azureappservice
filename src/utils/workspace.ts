@@ -36,20 +36,17 @@ export async function selectWorkspaceItem(placeHolder: string, options: vscode.O
     let folder: IAzureQuickPickItem<string | undefined> | undefined;
     let quickPicks: IAzureQuickPickItem<string | undefined>[] = [];
     if (vscode.workspace.workspaceFolders) {
-        // include the fileExtension in the quickPick list of workspaces
-        const filePicks: IAzureQuickPickItem<string | undefined>[] = fileExtension ? await findFilesByFileExtension(undefined, fileExtension) : [];
+        // if there's a fileExtension, then only populate the quickPick menu with that, otherwise show the current folders in the workspace
+        quickPicks = fileExtension ? await findFilesByFileExtension(undefined, fileExtension) :
+            vscode.workspace.workspaceFolders.map((f: vscode.WorkspaceFolder) => {
+                let subpath: string | undefined;
+                if (getSubPath) {
+                    subpath = getSubPath(f);
+                }
 
-        const folderPicks: IAzureQuickPickItem<string | undefined>[] = vscode.workspace.workspaceFolders.map((f: vscode.WorkspaceFolder) => {
-            let subpath: string | undefined;
-            if (getSubPath) {
-                subpath = getSubPath(f);
-            }
-
-            const fsPath: string = subpath ? path.join(f.uri.fsPath, subpath) : f.uri.fsPath;
-            return { label: path.basename(fsPath), description: fsPath, data: fsPath };
-        });
-
-        quickPicks = filePicks.concat(folderPicks);
+                const fsPath: string = subpath ? path.join(f.uri.fsPath, subpath) : f.uri.fsPath;
+                return { label: path.basename(fsPath), description: fsPath, data: fsPath };
+            });
 
         quickPicks.push({ label: '$(file-directory) Browse...', description: '', data: undefined });
         folder = await ext.ui.showQuickPick(quickPicks, { placeHolder });
