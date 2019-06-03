@@ -17,6 +17,9 @@ suite('Create Azure Resources', async function (this: ISuiteCallbackContext): Pr
     const testAccount: TestAzureAccount = new TestAzureAccount();
     let oldAdvancedCreationSetting: boolean | undefined;
     const regExpLTS: RegExp = /LTS/g;
+    const resourceName1: string = getRandomHexString().toLowerCase();
+    let webSiteClient: WebSiteManagementClient;
+    const resourceGroupName: string = 'appsvc_rg_windows_centralus';
 
     suiteSetup(async function (this: IHookCallbackContext): Promise<void> {
         if (!longRunningTestsEnabled) {
@@ -27,6 +30,7 @@ suite('Create Azure Resources', async function (this: ISuiteCallbackContext): Pr
         await testAccount.signIn();
         ext.azureAccountTreeItem = new AzureAccountTreeItem(testAccount);
         ext.tree = new AzExtTreeDataProvider(ext.azureAccountTreeItem, 'appService.loadMore');
+        webSiteClient = getWebsiteManagementClient(testAccount);
     });
 
     suiteTeardown(async function (this: IHookCallbackContext): Promise<void> {
@@ -50,21 +54,59 @@ suite('Create Azure Resources', async function (this: ISuiteCallbackContext): Pr
     });
 
     test('Create and Delete New Web App (Advanced)', async () => {
-        const resourceName: string = getRandomHexString().toLowerCase();
+        const resourceName2: string = getRandomHexString().toLowerCase();
         await vscode.workspace.getConfiguration(constants.extensionPrefix).update('advancedCreation', true, vscode.ConfigurationTarget.Global);
-        const testInputs: (string | RegExp)[] = [resourceName, '$(plus) Create new resource group', resourceName, 'Linux', regExpLTS, '$(plus) Create new App Service plan', resourceName, 'B1', 'West US'];
+        const testInputs: (string | RegExp)[] = [resourceName2, '$(plus) Create new resource group', resourceName2, 'Linux', regExpLTS, '$(plus) Create new App Service plan', resourceName2, 'B1', 'West US'];
         ext.ui = new TestUserInput(testInputs);
 
-        resourceGroupsToDelete.push(resourceName);
+        resourceGroupsToDelete.push(resourceName2);
         await vscode.commands.executeCommand('appService.CreateWebApp');
-        const client: WebSiteManagementClient = getWebsiteManagementClient(testAccount);
-        const createdApp: WebSiteManagementModels.Site = await client.webApps.get(resourceName, resourceName);
+        const createdApp: WebSiteManagementModels.Site = await webSiteClient.webApps.get(resourceName2, resourceName2);
         assert.ok(createdApp);
 
-        ext.ui = new TestUserInput([resourceName, DialogResponses.deleteResponse.title, DialogResponses.yes.title]);
+        ext.ui = new TestUserInput([resourceName2, DialogResponses.deleteResponse.title, DialogResponses.yes.title]);
         await vscode.commands.executeCommand('appService.Delete');
-        const deletedApp: WebSiteManagementModels.Site | undefined = await client.webApps.get(resourceName, resourceName);
+        const deletedApp: WebSiteManagementModels.Site | undefined = await webSiteClient.webApps.get(resourceName2, resourceName2);
         assert.ifError(deletedApp); // if app was deleted, get() returns null.  assert.ifError throws if the value passed is not null/undefined
+    });
+
+    test('Create and Delete New Web App (Basic)', async () => {
+        resourceGroupsToDelete.push(resourceGroupName);
+        await vscode.workspace.getConfiguration(constants.extensionPrefix).update('advancedCreation', false, vscode.ConfigurationTarget.Global);
+        ext.ui = new TestUserInput([resourceName1, 'Windows']);
+        await vscode.commands.executeCommand('appService.CreateWebApp');
+        const createdApp: WebSiteManagementModels.Site = await webSiteClient.webApps.get(resourceGroupName, resourceName1);
+        assert.ok(createdApp);
+    });
+
+    test('Stop Web App', async () => {
+        let createdApp: WebSiteManagementModels.Site;
+        createdApp = await webSiteClient.webApps.get(resourceGroupName, resourceName1);
+        assert.equal(createdApp.state, 'Running', `Web App state should be 'Running' rather than ${createdApp.state} before stop.`);
+        ext.ui = new TestUserInput([resourceName1]);
+        await vscode.commands.executeCommand('appService.Stop');
+        createdApp = await webSiteClient.webApps.get(resourceGroupName, resourceName1);
+        assert.equal(createdApp.state, 'Stopped', `Web App state should be 'Stopped' rather than ${createdApp.state}.`);
+    });
+
+    test('Start Web App', async () => {
+        let createdApp: WebSiteManagementModels.Site;
+        createdApp = await webSiteClient.webApps.get(resourceGroupName, resourceName1);
+        assert.equal(createdApp.state, 'Stopped', `Web App state should be 'Stopped' rather than ${createdApp.state} before start.`);
+        ext.ui = new TestUserInput([resourceName1]);
+        await vscode.commands.executeCommand('appService.Start');
+        createdApp = await webSiteClient.webApps.get(resourceGroupName, resourceName1);
+        assert.equal(createdApp.state, 'Running', `Web App state should be 'Running' rather than ${createdApp.state}.`);
+    });
+
+    test('Restart Web App', async () => {
+        let createdApp: WebSiteManagementModels.Site;
+        createdApp = await webSiteClient.webApps.get(resourceGroupName, resourceName1);
+        assert.equal(createdApp.state, 'Running', `Web App state should be 'Running' rather than ${createdApp.state} before restart.`);
+        ext.ui = new TestUserInput([resourceName1, resourceName1]);
+        await vscode.commands.executeCommand('appService.Restart');
+        createdApp = await webSiteClient.webApps.get(resourceGroupName, resourceName1);
+        assert.equal(createdApp.state, 'Running', `Web App state should be 'Running' rather than ${createdApp.state}.`);
     });
 });
 
