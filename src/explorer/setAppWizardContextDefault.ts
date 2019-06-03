@@ -3,13 +3,17 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import WebSiteManagementClient from 'azure-arm-website';
+import { AppServicePlan } from 'azure-arm-website/lib/models';
 import * as fse from 'fs-extra';
 import * as path from 'path';
 import { Uri, workspace, WorkspaceConfiguration } from 'vscode';
-import { IAppServiceWizardContext, LinuxRuntimes, WebsiteOS } from 'vscode-azureappservice';
-import { LocationListStep } from 'vscode-azureextensionui';
+import { AppServicePlanNameStep, IAppServiceWizardContext, LinuxRuntimes, WebsiteOS } from 'vscode-azureappservice';
+import { ext } from 'vscode-azureappservice/out/src/extensionVariables';
+import { createAzureClient, LocationListStep } from 'vscode-azureextensionui';
 import { configurationSettings, extensionPrefix } from '../constants';
 import { javaUtils } from '../utils/javaUtils';
+import { nonNullProp } from '../utils/nonNull';
 
 export async function setAppWizardContextDefault(wizardContext: IAppServiceWizardContext): Promise<void> {
     const isJavaProject: boolean = await javaUtils.isJavaProject();
@@ -62,3 +66,83 @@ export async function setAppWizardContextDefault(wizardContext: IAppServiceWizar
         }
     }
 }
+
+export async function getAsp(wizardContext: IAppServiceWizardContext, newName: string): Promise<AppServicePlan | null> {
+    const client: WebSiteManagementClient = createAzureClient(wizardContext, WebSiteManagementClient);
+    return await client.appServicePlans.get(wizardContext.newResourceGroupName, newName);
+}
+
+function checkWorkspaceSetting(): boolean | undefined {
+    const workspaceConfig: WorkspaceConfiguration = workspace.getConfiguration(extensionPrefix);
+    return workspaceConfig.get('neverAskAgain');
+}
+
+export function checkAspHasMoreThan3Sites(asp: AppServicePlan | null): boolean {
+    if (asp && asp.numberOfSites && asp.numberOfSites >= 3) {
+        const tier: string | undefined = asp && asp.sku && asp.sku.tier;
+        if (tier && /^(basic|free)$/i.test(tier)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+export function checkIfLinux(asp: AppServicePlan | null): boolean {
+    return !!asp && !!asp.kind && asp.kind.toLowerCase().includes('linux');
+}
+
+export async function showPromptAboutPerf(asp: AppServicePlan): Promise<void> {
+    const numberOfSites: number = nonNullProp(asp, 'numberOfSites');
+    await ext.ui.showWarningMessage('The selected plan currently has n apps. Deploying additional apps may degrade the performance on the apps in the plan.');
+}
+
+export async function getRelatedName(wizardContext: IAppServiceWizardContext, defaultName: string): Promise<string | undefined> {
+    const minLength: number = 1;
+    const maxLength: number = 40;
+
+    const maxTries: number = 100;
+    let count: number = 1;
+    let newName: string;
+    while (count < maxTries) {
+        newName = generateSuffixedName(defaultName, count, minLength, maxLength);
+        if (await validatePlanName(wizardContext, newName)) {
+            const asp: AppServicePlan | null = await getAsp(wizardContext, newName);
+            if (!asp || asp.numberOfSites && asp.numberOfSites < 3) {
+                return newName;
+            }
+        }
+        count += 1;
+    }
+
+    return undefined;
+}
+
+function generateSuffixedName(preferredName: string, i: number, minLength: number, maxLength: number): string {
+    const suffix: string = i === 1 ? '' : i.toString();
+    const minUnsuffixedLength: number = minLength - suffix.length;
+    const maxUnsuffixedLength: number = maxLength - suffix.length;
+
+    let unsuffixedName: string = preferredName;
+    if (unsuffixedName.length > maxUnsuffixedLength) {
+        unsuffixedName = preferredName.slice(0, maxUnsuffixedLength);
+    } else {
+        while (unsuffixedName.length < minUnsuffixedLength) {
+            unsuffixedName += preferredName;
+        }
+    }
+
+    return `${unsuffixedName}${suffix.length > 0 ? _ : ''}${suffix}`;
+}
+
+async function validatePlanName(wizardContext: IAppServiceWizardContext, name: string): Promise<boolean> {
+    return await new AppServicePlanNameStep().validatePlanName(wizardContext, name) === undefined;
+}
+
+// when creating a new web app...
+// first check workspace setting to see if never warn again is enabled
+// check to see if default plan has 3 sites
+// if it does, check if it is linux or windows
+// if linux, prompt user about performance
+// if windows, keep cycling through the asp default plan names until one without 3 apps is found
+// create app in that plan name
+// if can't find one, then prompt user

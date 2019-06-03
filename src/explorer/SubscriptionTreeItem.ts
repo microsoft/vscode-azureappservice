@@ -5,13 +5,13 @@
 
 import { Location } from 'azure-arm-resource/lib/subscription/models';
 import { WebSiteManagementClient } from 'azure-arm-website';
-import { Site, WebAppCollection } from 'azure-arm-website/lib/models';
+import { Site, WebAppCollection, AppServicePlan } from 'azure-arm-website/lib/models';
 import { workspace, WorkspaceConfiguration } from 'vscode';
 import { AppKind, AppServicePlanCreateStep, AppServicePlanListStep, IAppServiceWizardContext, SiteClient, SiteCreateStep, SiteNameStep, SiteOSStep, SiteRuntimeStep } from 'vscode-azureappservice';
 import { AzExtTreeItem, AzureTreeItem, AzureWizard, AzureWizardExecuteStep, AzureWizardPromptStep, createAzureClient, ICreateChildImplContext, parseError, ResourceGroupCreateStep, ResourceGroupListStep, SubscriptionTreeItemBase } from 'vscode-azureextensionui';
 import { configurationSettings, extensionPrefix } from '../constants';
 import { nonNullProp } from '../utils/nonNull';
-import { setAppWizardContextDefault } from './setAppWizardContextDefault';
+import { checkAspHasMoreThan3Sites, getAsp, setAppWizardContextDefault, checkIfLinux, showPromptAboutPerf, getRelatedName } from './setAppWizardContextDefault';
 import { WebAppTreeItem } from './WebAppTreeItem';
 
 export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
@@ -105,6 +105,15 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
             const location: Location = nonNullProp(wizardContext, 'location');
             wizardContext.newResourceGroupName = `appsvc_rg_${wizardContext.newSiteOS}_${location.name}`;
             wizardContext.newPlanName = `appsvc_asp_${wizardContext.newSiteOS}_${location.name}`;
+            const asp: AppServicePlan | null = await getAsp(wizardContext, wizardContext.newPlanName);
+            if (asp && checkAspHasMoreThan3Sites(asp)) {
+                if (checkIfLinux(asp)) {
+                    await showPromptAboutPerf(asp);
+                } else {
+                    const newName: string | undefined = await getRelatedName(wizardContext, wizardContext.newPlanName);
+                    console.log(newName);
+                }
+            }
         }
 
         await wizard.execute();
