@@ -5,15 +5,15 @@
 
 import { Location } from 'azure-arm-resource/lib/subscription/models';
 import { WebSiteManagementClient } from 'azure-arm-website';
-import { Site, WebAppCollection, AppServicePlan } from 'azure-arm-website/lib/models';
-import { workspace, WorkspaceConfiguration, ConfigurationTarget } from 'vscode';
+import { AppServicePlan, Site, WebAppCollection } from 'azure-arm-website/lib/models';
+import { ConfigurationTarget, workspace, WorkspaceConfiguration } from 'vscode';
 import { AppKind, AppServicePlanCreateStep, AppServicePlanListStep, IAppServiceWizardContext, SiteClient, SiteCreateStep, SiteNameStep, SiteOSStep, SiteRuntimeStep } from 'vscode-azureappservice';
 import { AzExtTreeItem, AzureTreeItem, AzureWizard, AzureWizardExecuteStep, AzureWizardPromptStep, createAzureClient, ICreateChildImplContext, parseError, ResourceGroupCreateStep, ResourceGroupListStep, SubscriptionTreeItemBase } from 'vscode-azureextensionui';
 import { configurationSettings, extensionPrefix, turnOnAdvancedCreation } from '../constants';
-import { nonNullProp, nonNullValue } from '../utils/nonNull';
-import { checkPlanForPerformance, getAppServicePlan, setAppWizardContextDefault, isPlanLinux, showPerformancePrompt, getSuffixedName } from './setAppWizardContextDefault';
-import { WebAppTreeItem } from './WebAppTreeItem';
 import { ext } from '../extensionVariables';
+import { nonNullProp } from '../utils/nonNull';
+import { checkPlanForPerformanceDrop, getAppServicePlan, getNextPlanName, isPlanLinux, setAppWizardContextDefault, showPerformancePrompt } from './setAppWizardContextDefault';
+import { WebAppTreeItem } from './WebAppTreeItem';
 
 export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
     public readonly childTypeLabel: string = 'Web App';
@@ -103,24 +103,24 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
 
         if (!advancedCreation) {
             // this should always be set when in the basic creation scenario
-            const location: Location = nonNullValue(wizardContext, 'location');
+            const location: Location = nonNullProp(wizardContext, 'location');
             wizardContext.newResourceGroupName = `appsvc_rg_${wizardContext.newSiteOS}_${location.name}`;
             wizardContext.newPlanName = `appsvc_asp_${wizardContext.newSiteOS}_${location.name}`;
 
-            const asp: AppServicePlan | null = await getAppServicePlan(wizardContext, wizardContext.newPlanName);
-            if (asp && checkPlanForPerformance(asp)) {
+            const asp: AppServicePlan | null = await getAppServicePlan(wizardContext, wizardContext.newResourceGroupName, wizardContext.newPlanName);
+            if (asp && checkPlanForPerformanceDrop(asp)) {
                 // Subscriptions can only have 1 free tier Linux plan so show the warning if there are too many apps on the plan
 
-                context.telemetry.properties.performanceWarning = 'true';
-                if (!isPlanLinux(asp)) {
+                if (isPlanLinux(asp)) {
                     const showPerfWarning: boolean | undefined = workspaceConfig.get(configurationSettings.showPlanPerformanceWarning);
+                    context.telemetry.properties.performanceWarning = showPerfWarning ? 'true' : 'false';
                     if (showPerfWarning) {
                         await showPerformancePrompt(context, asp);
                     }
                 } else {
                     // Subscriptions can have 10 free tier Windows plans so just create a new one with a suffixed name
                     // If there are 10 plans, it'll throw an error that directs them to advancedCreation
-                    wizardContext.newPlanName = await getSuffixedName(wizardContext, wizardContext.newPlanName);
+                    wizardContext.newPlanName = await getNextPlanName(wizardContext, wizardContext.newPlanName);
                 }
             }
         }

@@ -7,10 +7,10 @@ import WebSiteManagementClient from 'azure-arm-website';
 import { AppServicePlan } from 'azure-arm-website/lib/models';
 import * as fse from 'fs-extra';
 import * as path from 'path';
-import { Uri, workspace, WorkspaceConfiguration, MessageItem, ConfigurationTarget } from 'vscode';
+import { ConfigurationTarget, MessageItem, Uri, workspace, WorkspaceConfiguration } from 'vscode';
 import { AppServicePlanNameStep, IAppServiceWizardContext, LinuxRuntimes, WebsiteOS } from 'vscode-azureappservice';
 import { ext } from 'vscode-azureappservice/out/src/extensionVariables';
-import { createAzureClient, LocationListStep, DialogResponses, UserCancelledError, IActionContext } from 'vscode-azureextensionui';
+import { createAzureClient, DialogResponses, IActionContext, LocationListStep, UserCancelledError } from 'vscode-azureextensionui';
 import { configurationSettings, extensionPrefix, turnOnAdvancedCreation } from '../constants';
 import { javaUtils } from '../utils/javaUtils';
 import { nonNullProp } from '../utils/nonNull';
@@ -67,20 +67,21 @@ export async function setAppWizardContextDefault(wizardContext: IAppServiceWizar
     }
 }
 
-export async function getAppServicePlan(wizardContext: IAppServiceWizardContext, newName: string): Promise<AppServicePlan | null> {
+export async function getAppServicePlan(wizardContext: IAppServiceWizardContext, rgName: string, newName: string): Promise<AppServicePlan | null> {
     const client: WebSiteManagementClient = createAzureClient(wizardContext, WebSiteManagementClient);
-    return await client.appServicePlans.get(wizardContext.newResourceGroupName!, newName);
+    return await client.appServicePlans.get(rgName, newName);
 }
 
-
-export function checkPlanForPerformance(asp: AppServicePlan | null): boolean {
+export function checkPlanForPerformanceDrop(asp: AppServicePlan | null): boolean {
     // for free and basic plans, there is a perf drop after 3 active apps are running
-    if (asp && asp.numberOfSites && asp.numberOfSites >= 3) {
+    if (asp && asp.numberOfSites !== undefined && asp.numberOfSites >= 3) {
+        // tslint:disable-next-line: strict-boolean-expressions
         const tier: string | undefined = asp && asp.sku && asp.sku.tier;
         if (tier && /^(basic|free)$/i.test(tier)) {
             return true;
         }
     }
+
     return false;
 }
 
@@ -94,7 +95,7 @@ export async function showPerformancePrompt(context: IActionContext, asp: AppSer
 
     const numberOfSites: number = nonNullProp(asp, 'numberOfSites');
     const createAnyway: MessageItem = { title: 'Create anyway' };
-    const inputs: MessageItem[] = [createAnyway, turnOnAdvancedCreation, DialogResponses.dontWarnAgain]
+    const inputs: MessageItem[] = [createAnyway, turnOnAdvancedCreation, DialogResponses.dontWarnAgain];
     const input: MessageItem = await ext.ui.showWarningMessage(`The selected plan currently has ${numberOfSites} apps. Deploying additional apps may degrade the performance on the apps in the plan.`, { modal: true }, ...inputs);
     const workspaceConfig: WorkspaceConfiguration = workspace.getConfiguration(extensionPrefix);
 
@@ -107,23 +108,24 @@ export async function showPerformancePrompt(context: IActionContext, asp: AppSer
         workspaceConfig.update(configurationSettings.showPlanPerformanceWarning, false);
     }
 
-    context.telemetry.properties.cancelStep = '';;
+    context.telemetry.properties.cancelStep = '';
 }
 
-export async function getSuffixedName(wizardContext: IAppServiceWizardContext, defaultName: string): Promise<string | undefined> {
+export async function getNextPlanName(wizardContext: IAppServiceWizardContext, defaultName: string): Promise<string | undefined> {
     const minLength: number = 1;
     const maxLength: number = 40;
 
     const maxTries: number = 100;
     let count: number = 1;
     let newName: string;
+
     while (count < maxTries) {
         newName = generateSuffixedName(defaultName, count, minLength, maxLength);
         // AppServicePlanNameStep returns undefined if there are no errors
         if (!(await new AppServicePlanNameStep().validatePlanName(wizardContext, newName))) {
-            const asp: AppServicePlan | null = await getAppServicePlan(wizardContext, newName);
+            const asp: AppServicePlan | null = await getAppServicePlan(wizardContext, nonNullProp(wizardContext, 'newResourceGroupName'), newName);
             // if the plan doesn't exist or contains less than 3 sites, then use it
-            if (!asp || asp.numberOfSites !== undefined && asp.numberOfSites < 3) {
+            if (!asp || !checkPlanForPerformanceDrop(asp)) {
                 return newName;
             }
         }
@@ -134,7 +136,7 @@ export async function getSuffixedName(wizardContext: IAppServiceWizardContext, d
     return undefined;
 }
 
-// generates a name with _n if the preferredName with the i that is passed in
+// generates a name that suffixes the preferredName with the n that is passed in
 function generateSuffixedName(preferredName: string, i: number, minLength: number, maxLength: number): string {
     const suffix: string = i === 1 ? '' : i.toString();
     const minUnsuffixedLength: number = minLength - suffix.length;
