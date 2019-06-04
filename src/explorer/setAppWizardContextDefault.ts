@@ -151,12 +151,3 @@ function generateSuffixedName(preferredName: string, i: number, minLength: numbe
 
     return `${unsuffixedName}${suffix.length > 0 ? '_' : ''}${suffix}`;
 }
-
-// when creating a new web app...
-// first check workspace setting to see if never warn again is enabled
-// check to see if default plan has 3 sites
-// if it does, check if it is linux or windows
-// if linux, prompt user about performance
-// if windows, keep cycling through the asp default plan names until one without 3 apps is found
-// create app in that plan name
-// if can't find one, then prompt user
