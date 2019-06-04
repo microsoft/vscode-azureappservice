@@ -62,10 +62,10 @@ export async function showWorkspaceFolders(placeHolderString: string, context: I
         {
             // on Windows, if both files and folder are set to true, then it defaults to folders
             canSelectFiles: true,
-            canSelectFolders: true,
+            canSelectFolders: !fileExtension,
             canSelectMany: false,
             defaultUri: vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri : undefined,
-            filters: { Artifacts: ['jar', 'war', 'zip'] }
+            filters: { Artifacts: fileExtension ? [fileExtension] : ['jar', 'war', 'zip'] }
         },
         (f: vscode.WorkspaceFolder): string | undefined => {
             if (subPathSetting) {
