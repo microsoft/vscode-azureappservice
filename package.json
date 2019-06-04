@@ -887,6 +887,11 @@
                     "scope": "resource",
                     "type": "string",
                     "description": "The name of the task to run before deploying."
+                },
+                "appService.showASPPerfWarning": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Shows a warning that performance may drop when creating an app in an App Service Plan that has more than 3 web apps associated to it"
                 }
             }
         },

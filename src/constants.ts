@@ -1,7 +1,9 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See License.txt in the project root for license information.
- *--------------------------------------------------------------------------------------------*/
+*  Copyright (c) Microsoft Corporation. All rights reserved.
+*  Licensed under the MIT License. See License.txt in the project root for license information.
+*--------------------------------------------------------------------------------------------*/
+
+import { MessageItem } from "vscode";
 
 export const deploymentFileName: string = '.deployment';
 export const deploymentFile: string = `[config]
@@ -17,7 +19,8 @@ export enum configurationSettings {
     deploySubpath = 'deploySubpath',
     advancedCreation = 'advancedCreation',
     defaultWebAppToDeploy = 'defaultWebAppToDeploy',
-    connections = 'connections'
+    connections = 'connections',
+    showASPPerfWarning = 'showASPPerfWarning'
 }
 
 export enum ScmType {
@@ -29,3 +32,5 @@ export enum ScmType {
 export const envFileName: string = '.env';
 export const toggleValueVisibilityCommandId: string = 'appService.toggleValueVisibility';
 export const showOutputChannelCommandId: string = 'appService.showOutputChannel';
+
+export const turnOnAdvancedCreation: MessageItem = { title: 'Turn on advanced creation' };

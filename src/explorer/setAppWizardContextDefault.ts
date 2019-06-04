@@ -7,11 +7,11 @@ import WebSiteManagementClient from 'azure-arm-website';
 import { AppServicePlan } from 'azure-arm-website/lib/models';
 import * as fse from 'fs-extra';
 import * as path from 'path';
-import { Uri, workspace, WorkspaceConfiguration } from 'vscode';
+import { Uri, workspace, WorkspaceConfiguration, MessageItem, ConfigurationTarget } from 'vscode';
 import { AppServicePlanNameStep, IAppServiceWizardContext, LinuxRuntimes, WebsiteOS } from 'vscode-azureappservice';
 import { ext } from 'vscode-azureappservice/out/src/extensionVariables';
-import { createAzureClient, LocationListStep } from 'vscode-azureextensionui';
-import { configurationSettings, extensionPrefix } from '../constants';
+import { createAzureClient, LocationListStep, DialogResponses, UserCancelledError } from 'vscode-azureextensionui';
+import { configurationSettings, extensionPrefix, turnOnAdvancedCreation } from '../constants';
 import { javaUtils } from '../utils/javaUtils';
 import { nonNullProp } from '../utils/nonNull';
 
@@ -69,13 +69,9 @@ export async function setAppWizardContextDefault(wizardContext: IAppServiceWizar
 
 export async function getAsp(wizardContext: IAppServiceWizardContext, newName: string): Promise<AppServicePlan | null> {
     const client: WebSiteManagementClient = createAzureClient(wizardContext, WebSiteManagementClient);
-    return await client.appServicePlans.get(wizardContext.newResourceGroupName, newName);
+    return await client.appServicePlans.get(wizardContext.newResourceGroupName!, newName);
 }
 
-function checkWorkspaceSetting(): boolean | undefined {
-    const workspaceConfig: WorkspaceConfiguration = workspace.getConfiguration(extensionPrefix);
-    return workspaceConfig.get('neverAskAgain');
-}
 
 export function checkAspHasMoreThan3Sites(asp: AppServicePlan | null): boolean {
     if (asp && asp.numberOfSites && asp.numberOfSites >= 3) {
@@ -93,7 +89,17 @@ export function checkIfLinux(asp: AppServicePlan | null): boolean {
 
 export async function showPromptAboutPerf(asp: AppServicePlan): Promise<void> {
     const numberOfSites: number = nonNullProp(asp, 'numberOfSites');
-    await ext.ui.showWarningMessage('The selected plan currently has n apps. Deploying additional apps may degrade the performance on the apps in the plan.');
+    const createAnyway: MessageItem = { title: 'Create anyway' };
+    const inputs: MessageItem[] = [createAnyway, turnOnAdvancedCreation, DialogResponses.dontWarnAgain]
+    const input: MessageItem = await ext.ui.showWarningMessage(`The selected plan currently has ${numberOfSites} apps. Deploying additional apps may degrade the performance on the apps in the plan.`, { modal: true }, ...inputs);
+    const workspaceConfig: WorkspaceConfiguration = workspace.getConfiguration(extensionPrefix);
+
+    if (input === turnOnAdvancedCreation) {
+        await workspaceConfig.update('advancedCreation', true, ConfigurationTarget.Global);
+        throw new UserCancelledError();
+    } else if (input === DialogResponses.dontWarnAgain) {
+        workspaceConfig.update(configurationSettings.showASPPerfWarning, false);
+    }
 }
 
 export async function getRelatedName(wizardContext: IAppServiceWizardContext, defaultName: string): Promise<string | undefined> {
@@ -131,7 +137,7 @@ function generateSuffixedName(preferredName: string, i: number, minLength: numbe
         }
     }
 
-    return `${unsuffixedName}${suffix.length > 0 ? _ : ''}${suffix}`;
+    return `${unsuffixedName}${suffix.length > 0 ? '_' : ''}${suffix}`;
 }
 
 async function validatePlanName(wizardContext: IAppServiceWizardContext, name: string): Promise<boolean> {

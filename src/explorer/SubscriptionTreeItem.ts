@@ -105,13 +105,16 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
             const location: Location = nonNullProp(wizardContext, 'location');
             wizardContext.newResourceGroupName = `appsvc_rg_${wizardContext.newSiteOS}_${location.name}`;
             wizardContext.newPlanName = `appsvc_asp_${wizardContext.newSiteOS}_${location.name}`;
+
             const asp: AppServicePlan | null = await getAsp(wizardContext, wizardContext.newPlanName);
             if (asp && checkAspHasMoreThan3Sites(asp)) {
                 if (checkIfLinux(asp)) {
-                    await showPromptAboutPerf(asp);
+                    const showPerfWarning: boolean | undefined = workspaceConfig.get(configurationSettings.showASPPerfWarning);
+                    if (showPerfWarning) {
+                        await showPromptAboutPerf(asp);
+                    }
                 } else {
-                    const newName: string | undefined = await getRelatedName(wizardContext, wizardContext.newPlanName);
-                    console.log(newName);
+                    wizardContext.newPlanName = await getRelatedName(wizardContext, wizardContext.newPlanName);
                 }
             }
         }
