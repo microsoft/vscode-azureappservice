@@ -52,7 +52,7 @@ suite('Create Azure Resources', async function (this: ISuiteCallbackContext): Pr
         ext.azureAccountTreeItem.dispose();
     });
 
-    test('Create and Delete New Web App (Advanced)', async () => {
+    test('Create New Web App (Advanced)', async () => {
         await vscode.workspace.getConfiguration(constants.extensionPrefix).update('advancedCreation', true, vscode.ConfigurationTarget.Global);
         const testInputs: (string | RegExp)[] = [resourceName, '$(plus) Create new resource group', resourceName, 'Linux', regExpLTS, '$(plus) Create new App Service plan', resourceName, 'B1', 'West US'];
         ext.ui = new TestUserInput(testInputs);
