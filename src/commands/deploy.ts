@@ -122,10 +122,11 @@ export async function deploy(context: IDeployWizardContext, confirmDeployment: b
     siteConfig = siteConfig ? siteConfig : await node.root.client.getSiteConfig();
 
     if (javaUtils.isJavaRuntime(siteConfig.linuxFxVersion)) {
-        const javaArtifactFiles: IAzureQuickPickItem<string | undefined>[] = await workspaceUtil.findFilesByFileExtension(fsPath, javaUtils.getArtifactTypeByJavaRuntime(siteConfig.linuxFxVersion));
+        const javaArtifactFiles: Uri[] = await workspaceUtil.findFilesByFileExtension(fsPath, javaUtils.getArtifactTypeByJavaRuntime(siteConfig.linuxFxVersion));
         if (javaArtifactFiles.length > 0) {
+            const javaArtifactQp: IAzureQuickPickItem<string>[] = workspaceUtil.mapFilesToQuickPickItems(javaArtifactFiles);
             // check if there is a jar/war file in the fsPath that was provided
-            fsPath = <string>(await ext.ui.showQuickPick(javaArtifactFiles, { placeHolder: `Select the ${javaUtils.getArtifactTypeByJavaRuntime(siteConfig.linuxFxVersion)} file to deploy...` })).data;
+            fsPath = <string>(await ext.ui.showQuickPick(javaArtifactQp, { placeHolder: `Select the ${javaUtils.getArtifactTypeByJavaRuntime(siteConfig.linuxFxVersion)} file to deploy...` })).data;
         }
         await javaUtils.configureJavaSEAppSettings(node);
     }

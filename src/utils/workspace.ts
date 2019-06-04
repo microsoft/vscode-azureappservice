@@ -37,7 +37,7 @@ export async function selectWorkspaceItem(placeHolder: string, options: vscode.O
     let quickPicks: IAzureQuickPickItem<string | undefined>[] = [];
     if (vscode.workspace.workspaceFolders) {
         // if there's a fileExtension, then only populate the quickPick menu with that, otherwise show the current folders in the workspace
-        quickPicks = fileExtension ? await findFilesByFileExtension(undefined, fileExtension) :
+        quickPicks = fileExtension ? mapFilesToQuickPickItems(await findFilesByFileExtension(undefined, fileExtension)) :
             vscode.workspace.workspaceFolders.map((f: vscode.WorkspaceFolder) => {
                 let subpath: string | undefined;
                 if (getSubPath) {
@@ -64,7 +64,8 @@ export async function showWorkspaceFolders(placeHolderString: string, context: I
             canSelectFiles: true,
             canSelectFolders: true,
             canSelectMany: false,
-            defaultUri: vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri : undefined
+            defaultUri: vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri : undefined,
+            filters: { Artifacts: ['jar', 'war', 'zip'] }
         },
         (f: vscode.WorkspaceFolder): string | undefined => {
             if (subPathSetting) {
@@ -84,10 +85,13 @@ export function getContainingWorkspace(fsPath: string): vscode.WorkspaceFolder |
     });
 }
 
-export async function findFilesByFileExtension(deployPath: string | undefined, fileExtension: string): Promise<IAzureQuickPickItem<string | undefined>[]> {
-    // if there is a deployPath, then only check the deployed folder for the file extension, otherwise use all currently opened workspaces
-    const relativeDirectory: vscode.RelativePattern | string = deployPath ? new vscode.RelativePattern(deployPath, `*.${fileExtension}`) : path.join('**', `*.${fileExtension}`);
-    const files: vscode.Uri[] = await vscode.workspace.findFiles(relativeDirectory);
+export async function findFilesByFileExtension(fsPath: string | undefined, fileExtension: string): Promise<vscode.Uri[]> {
+    // if there is a fsPath, then only check the folder for the file extension, otherwise use all currently opened workspaces
+    const relativeDirectory: vscode.RelativePattern | string = fsPath ? new vscode.RelativePattern(fsPath, `*.${fileExtension}`) : path.join('**', `*.${fileExtension}`);
+    return await vscode.workspace.findFiles(relativeDirectory);
+}
+
+export function mapFilesToQuickPickItems(files: vscode.Uri[]): IAzureQuickPickItem<string>[] {
     return files.map((uri: vscode.Uri) => {
         return {
             label: path.basename(uri.fsPath),
