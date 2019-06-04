@@ -3,9 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ConfigurationTarget, workspace, WorkspaceConfiguration } from 'vscode';
-import { AzureParentTreeItem, IActionContext, parseError } from "vscode-azureextensionui";
-import { configurationSettings, extensionPrefix, turnOnAdvancedCreation } from "../constants";
+import { AzureParentTreeItem, IActionContext } from "vscode-azureextensionui";
 import { SubscriptionTreeItem } from '../explorer/SubscriptionTreeItem';
 import { WebAppTreeItem } from "../explorer/WebAppTreeItem";
 import { ext } from "../extensionVariables";
@@ -16,23 +14,7 @@ export async function createWebApp(context: IActionContext, node?: AzureParentTr
     }
 
     let newSite: WebAppTreeItem | undefined;
-    try {
-        newSite = <WebAppTreeItem>await node.createChild(context);
-    } catch (error) {
-        const workspaceConfig: WorkspaceConfiguration = workspace.getConfiguration(extensionPrefix);
-        const advancedCreation: boolean | undefined = workspaceConfig.get(configurationSettings.advancedCreation);
-        if (!parseError(error).isUserCancelledError && !advancedCreation) {
-
-            const message: string = `Modify the setting "${extensionPrefix}.${configurationSettings.advancedCreation}" if you want to change the default values when creating a Web App in Azure.`;
-            // tslint:disable-next-line: no-floating-promises
-            ext.ui.showWarningMessage(message, turnOnAdvancedCreation).then(async result => {
-                if (result === turnOnAdvancedCreation) {
-                    await workspaceConfig.update('advancedCreation', true, ConfigurationTarget.Global);
-                }
-            });
-        }
-        throw error;
-    }
+    newSite = <WebAppTreeItem>await node.createChild(context);
 
     newSite.showCreatedOutput(context);
 }

@@ -20,7 +20,7 @@ export enum configurationSettings {
     advancedCreation = 'advancedCreation',
     defaultWebAppToDeploy = 'defaultWebAppToDeploy',
     connections = 'connections',
-    showASPPerfWarning = 'showASPPerfWarning'
+    showPlanPerformanceWarning = 'showPlanPerformanceWarning'
 }
 
 export enum ScmType {

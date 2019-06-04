@@ -888,7 +888,7 @@
                     "type": "string",
                     "description": "The name of the task to run before deploying."
                 },
-                "appService.showASPPerfWarning": {
+                "appService.showPlanPerformanceWarning": {
                     "type": "boolean",
                     "default": true,
                     "description": "Shows a warning that performance may drop when creating an app in an App Service Plan that has more than 3 web apps associated to it"
@@ -1010,7 +1010,7 @@
         "portfinder": "^1.0.13",
         "request": "^2.83.0",
         "request-promise": "^4.2.2",
-        "vscode-azureappservice": "^0.42.0",
+        "vscode-azureappservice": "^0.42.1",
         "vscode-azureextensionui": "^0.25.0",
         "vscode-azurekudu": "^0.1.8",
         "vscode-debugadapter": "^1.24.0",
