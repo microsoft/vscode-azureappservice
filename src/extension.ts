@@ -206,8 +206,8 @@ export async function activateInternal(
                 node = <DeploymentSlotsTreeItem>await ext.tree.showTreeItemPicker(DeploymentSlotsTreeItem.contextValue, actionContext);
             }
 
-            const createdSlot = <SiteTreeItem>await node.createChild(actionContext);
-            createdSlot.showCreatedOutput(actionContext);
+            const createdSlot = <DeploymentSlotTreeItem>await node.createChild(actionContext);
+            createdSlot.promptToDeploy(actionContext);
         });
         registerCommand('appService.DeploySlot', async (actionContext: IActionContext, node?: DeploymentSlotTreeItem | ScaleUpTreeItem | undefined) => {
             if (!node) {

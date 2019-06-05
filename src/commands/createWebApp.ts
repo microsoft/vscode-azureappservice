@@ -35,5 +35,5 @@ export async function createWebApp(context: IActionContext, node?: AzureParentTr
         throw error;
     }
 
-    newSite.showCreatedOutput(context);
+    newSite.promptToDeploy(context);
 }
