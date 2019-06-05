@@ -153,7 +153,7 @@ export async function deploy(context: IDeployWizardContext, confirmDeployment: b
     if (confirmDeployment && siteConfig.scmType !== constants.ScmType.LocalGit && siteConfig !== constants.ScmType.GitHub) {
         const warning: string = `Are you sure you want to deploy to "${node.root.client.fullName}"? This will overwrite any previous deployment and cannot be undone.`;
         context.telemetry.properties.cancelStep = 'confirmDestructiveDeployment';
-        const items: MessageItem[] = [{ title: 'Deploy' }];
+        const items: MessageItem[] = [constants.AppServiceDialogResponses.deploy];
         const resetDefault: MessageItem = { title: 'Reset default' };
         if (defaultWebAppToDeploy) {
             items.push(resetDefault);
@@ -190,13 +190,12 @@ export async function deploy(context: IDeployWizardContext, confirmDeployment: b
 
     const deployComplete: string = `Deployment to "${node.root.client.fullName}" completed.`;
     ext.outputChannel.appendLine(deployComplete);
-    const viewOutput: MessageItem = { title: 'View Output' };
     const browseWebsite: MessageItem = { title: 'Browse Website' };
     const streamLogs: MessageItem = { title: 'Stream Logs' };
 
     // Don't wait
-    window.showInformationMessage(deployComplete, browseWebsite, streamLogs, viewOutput).then(async (result: MessageItem | undefined) => {
-        if (result === viewOutput) {
+    window.showInformationMessage(deployComplete, browseWebsite, streamLogs, constants.AppServiceDialogResponses.viewOutput).then(async (result: MessageItem | undefined) => {
+        if (result === constants.AppServiceDialogResponses.viewOutput) {
             ext.outputChannel.show();
         } else if (result === browseWebsite) {
             await nonNullValue(node).browse();
