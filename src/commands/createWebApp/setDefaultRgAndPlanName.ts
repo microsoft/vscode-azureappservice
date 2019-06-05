@@ -6,25 +6,26 @@
 import WebSiteManagementClient from "azure-arm-website";
 import { AppServicePlan } from "azure-arm-website/lib/models";
 import { ConfigurationTarget, MessageItem, workspace, WorkspaceConfiguration } from "vscode";
-import { IAppServiceWizardContext, SiteNameStep } from "vscode-azureappservice";
+import { IAppServiceWizardContext, SiteNameStep, WebsiteOS } from "vscode-azureappservice";
 import { createAzureClient, DialogResponses, IActionContext, UserCancelledError } from "vscode-azureextensionui";
-import { AppServiceDialogResponses, extensionPrefix } from "./constants";
-import { ext } from "./extensionVariables";
-import { nonNullProp } from "./utils/nonNull";
+import { AppServiceDialogResponses, extensionPrefix } from "../../constants";
+import { ext } from "../../extensionVariables";
+import { nonNullProp } from "../../utils/nonNull";
 
 const maxNumberOfSites: number = 3;
 
-export async function validatePlanPerformance(wizardContext: IAppServiceWizardContext, rgName: string, newPlanName: string, siteNameStep: SiteNameStep): Promise<void> {
+export async function setDefaultRgAndPlanName(wizardContext: IAppServiceWizardContext, rgName: string, newPlanName: string, siteNameStep: SiteNameStep): Promise<void> {
     const asp: AppServicePlan | null = await getAppServicePlan(wizardContext, rgName, newPlanName);
     if (asp) {
         if (checkPlanForPerformanceDrop(asp)) {
-            // Subscriptions can only have 1 free tier Linux plan so show the warning if there are too many apps on the plan
-            if (isPlanLinux(asp)) {
+            // Subscriptions can only have 1 free tier Linux plan so show a warning if there are too many apps on the plan
+            if (wizardContext.newSiteOS === WebsiteOS.linux) {
                 await promptPerformanceWarning(wizardContext, asp);
             } else {
                 // Subscriptions can have 10 free tier Windows plans so just create a new one with a suffixed name
                 // If there are 10 plans, it'll throw an error that directs them to advancedCreation
-                wizardContext.newPlanName = await siteNameStep.getRelatedName(wizardContext, newPlanName);
+                wizardContext.newResourceGroupName = await siteNameStep.getRelatedName(wizardContext, newPlanName);
+                wizardContext.newPlanName = wizardContext.newResourceGroupName;
             }
         }
     }
@@ -46,10 +47,6 @@ function checkPlanForPerformanceDrop(asp: AppServicePlan): boolean {
     }
 
     return false;
-}
-
-function isPlanLinux(asp: AppServicePlan): boolean {
-    return !!asp.kind && asp.kind.toLowerCase().includes('linux');
 }
 
 async function promptPerformanceWarning(context: IActionContext, asp: AppServicePlan): Promise<void> {

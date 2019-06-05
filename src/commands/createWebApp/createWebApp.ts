@@ -4,9 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { AzureParentTreeItem, IActionContext } from "vscode-azureextensionui";
-import { SubscriptionTreeItem } from '../explorer/SubscriptionTreeItem';
-import { WebAppTreeItem } from "../explorer/WebAppTreeItem";
-import { ext } from "../extensionVariables";
+import { SubscriptionTreeItem } from '../../explorer/SubscriptionTreeItem';
+import { WebAppTreeItem } from "../../explorer/WebAppTreeItem";
+import { ext } from "../../extensionVariables";
 
 export async function createWebApp(context: IActionContext, node?: AzureParentTreeItem | undefined): Promise<void> {
     if (!node) {

@@ -9,11 +9,11 @@ import { Site, WebAppCollection } from 'azure-arm-website/lib/models';
 import { ConfigurationTarget, workspace, WorkspaceConfiguration } from 'vscode';
 import { AppKind, AppServicePlanCreateStep, AppServicePlanListStep, IAppServiceWizardContext, SiteClient, SiteCreateStep, SiteNameStep, SiteOSStep, SiteRuntimeStep } from 'vscode-azureappservice';
 import { AzExtTreeItem, AzureTreeItem, AzureWizard, AzureWizardExecuteStep, AzureWizardPromptStep, createAzureClient, ICreateChildImplContext, parseError, ResourceGroupCreateStep, ResourceGroupListStep, SubscriptionTreeItemBase } from 'vscode-azureextensionui';
+import { setAppWizardContextDefault } from '../commands/createWebApp/setAppWizardContextDefault';
+import { setDefaultRgAndPlanName } from '../commands/createWebApp/setDefaultRgAndPlanName';
 import { AppServiceDialogResponses, configurationSettings, extensionPrefix } from '../constants';
 import { ext } from '../extensionVariables';
 import { nonNullProp } from '../utils/nonNull';
-import { validatePlanPerformance } from '../validatePlanPerformance';
-import { setAppWizardContextDefault } from './setAppWizardContextDefault';
 import { WebAppTreeItem } from './WebAppTreeItem';
 
 export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
@@ -105,10 +105,10 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
         if (!advancedCreation) {
             // this should always be set when in the basic creation scenario
             const location: Location = nonNullProp(wizardContext, 'location');
-            wizardContext.newResourceGroupName = `appsvc_rg_${wizardContext.newSiteOS}_${location.name}`;
-            wizardContext.newPlanName = `appsvc_asp_${wizardContext.newSiteOS}_${location.name}`;
+            wizardContext.newResourceGroupName = `appsvc_${wizardContext.newSiteOS}_${location.name}`;
+            wizardContext.newPlanName = wizardContext.newResourceGroupName;
 
-            await validatePlanPerformance(wizardContext, wizardContext.newResourceGroupName, wizardContext.newPlanName, siteStep);
+            await setDefaultRgAndPlanName(wizardContext, wizardContext.newResourceGroupName, wizardContext.newPlanName, siteStep);
 
             try {
                 await wizard.execute();
