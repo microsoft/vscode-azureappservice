@@ -7,10 +7,9 @@ import * as WebSiteModels from 'azure-arm-website/lib/models';
 import { SiteConfigResource } from 'azure-arm-website/lib/models';
 import { pathExists } from 'fs-extra';
 import * as path from 'path';
-import { join } from 'path';
-import { commands, Disposable, MessageItem, Uri, window, workspace, WorkspaceConfiguration, WorkspaceFolder } from 'vscode';
+import { commands, ConfigurationTarget, Disposable, MessageItem, Uri, window, workspace, WorkspaceConfiguration, WorkspaceFolder } from 'vscode';
 import * as appservice from 'vscode-azureappservice';
-import { AzureTreeItem, DialogResponses, IAzureQuickPickItem, parseError } from 'vscode-azureextensionui';
+import { DialogResponses, IAzureQuickPickItem, parseError } from 'vscode-azureextensionui';
 import * as constants from '../constants';
 import { IDeployWizardContext } from '../explorer/setAppWizardContextDefault';
 import { SiteTreeItem } from '../explorer/SiteTreeItem';
@@ -23,6 +22,7 @@ import { isPathEqual, isSubpath } from '../utils/pathUtils';
 import { getRandomHexString } from "../utils/randomUtils";
 import * as workspaceUtil from '../utils/workspace';
 import { cancelWebsiteValidation, validateWebSite } from '../validateWebSite';
+import { getDefaultWebAppToDeploy } from './getDefaultWebAppToDeploy';
 import { startStreamingLogs } from './startStreamingLogs';
 
 // tslint:disable-next-line:max-func-body-length cyclomatic-complexity
@@ -30,57 +30,32 @@ export async function deploy(context: IDeployWizardContext, confirmDeployment: b
 
     let node: SiteTreeItem | undefined;
     const newNodes: SiteTreeItem[] = [];
-    let fsPath: string | undefined;
-    let currentWorkspace: WorkspaceFolder | undefined;
-    let defaultWebAppToDeploy: string | undefined;
     let workspaceConfig: WorkspaceConfiguration;
     context.telemetry.properties.deployedWithConfigs = 'false';
 
     if (target instanceof Uri) {
-        fsPath = target.fsPath;
+        context.fsPath = target.fsPath;
         context.telemetry.properties.deploymentEntryPoint = 'fileExplorerContextMenu';
     } else {
         context.telemetry.properties.deploymentEntryPoint = target ? 'webAppContextMenu' : 'deployButton';
         node = target;
     }
 
-    // only use the defaultWebAppToDeploy is there is only one workspace opened
-    if (workspace.workspaceFolders && workspace.workspaceFolders.length === 1) {
-        currentWorkspace = workspace.workspaceFolders[0];
-        workspaceConfig = workspace.getConfiguration(constants.extensionPrefix, currentWorkspace.uri);
-        defaultWebAppToDeploy = workspaceConfig.get(constants.configurationSettings.defaultWebAppToDeploy);
-        if (defaultWebAppToDeploy && defaultWebAppToDeploy !== constants.none) {
-            const defaultSubpath: string | undefined = workspaceConfig.get(constants.configurationSettings.deploySubpath);
-            const defaultDeployPath: string = defaultSubpath ? join(currentWorkspace.uri.fsPath, defaultSubpath) : currentWorkspace.uri.fsPath;
-            const defaultPathExists: boolean = await pathExists(defaultDeployPath);
-            const defaultNode: AzureTreeItem | undefined = await ext.tree.findTreeItem(defaultWebAppToDeploy, context); // resolves to undefined if app can't be found
-            if (defaultPathExists && (!fsPath || isPathEqual(fsPath, defaultDeployPath)) &&
-                defaultNode && (!node || node.fullId === defaultNode.fullId)) {
-                fsPath = defaultDeployPath;
-                node = <SiteTreeItem>defaultNode;
-                context.telemetry.properties.deployedWithConfigs = 'true';
-            } else {
-                // if defaultPath or defaultNode cannot be found or there was a mismatch, delete old settings and prompt to save next deployment
-                workspaceConfig.update(constants.configurationSettings.defaultWebAppToDeploy, undefined);
-                defaultWebAppToDeploy = undefined;
-            }
-        }
-    }
-
     let siteConfig: WebSiteModels.SiteConfigResource | undefined;
 
-    if (!fsPath) {
+    if (!context.fsPath) {
         // we can only get the siteConfig if the entry point was a treeItem
         siteConfig = node ? await node.root.client.getSiteConfig() : undefined;
 
         if (siteConfig && javaUtils.isJavaRuntime(siteConfig.linuxFxVersion)) {
             const fileExtension: string = javaUtils.getArtifactTypeByJavaRuntime(siteConfig.linuxFxVersion);
-            fsPath = await workspaceUtil.showWorkspaceFolders(`Select the ${fileExtension} file to deploy...`, context, constants.configurationSettings.deploySubpath, fileExtension);
+            context.fsPath = await workspaceUtil.showWorkspaceFolders(`Select the ${fileExtension} file to deploy...`, context, constants.configurationSettings.deploySubpath, fileExtension);
         } else {
-            fsPath = await workspaceUtil.showWorkspaceFolders("Select the folder to deploy", context, constants.configurationSettings.deploySubpath);
+            context.fsPath = await workspaceUtil.showWorkspaceFolders("Select the folder to deploy", context, constants.configurationSettings.deploySubpath);
         }
     }
-    context.fsPath = fsPath;
+
+    node = await getDefaultWebAppToDeploy(context);
 
     if (!node) {
         const onTreeItemCreatedFromQuickPickDisposable: Disposable = ext.tree.onTreeItemCreate((newNode: SiteTreeItem) => {
@@ -122,28 +97,30 @@ export async function deploy(context: IDeployWizardContext, confirmDeployment: b
     siteConfig = siteConfig ? siteConfig : await node.root.client.getSiteConfig();
 
     if (javaUtils.isJavaRuntime(siteConfig.linuxFxVersion)) {
-        const javaArtifactFiles: Uri[] = await workspaceUtil.findFilesByFileExtension(fsPath, javaUtils.getArtifactTypeByJavaRuntime(siteConfig.linuxFxVersion));
+        const javaArtifactFiles: Uri[] = await workspaceUtil.findFilesByFileExtension(context.fsPath, javaUtils.getArtifactTypeByJavaRuntime(siteConfig.linuxFxVersion));
         if (javaArtifactFiles.length > 0) {
             const javaArtifactQp: IAzureQuickPickItem<string>[] = workspaceUtil.mapFilesToQuickPickItems(javaArtifactFiles);
             // check if there is a jar/war file in the fsPath that was provided
-            fsPath = <string>(await ext.ui.showQuickPick(javaArtifactQp, { placeHolder: `Select the ${javaUtils.getArtifactTypeByJavaRuntime(siteConfig.linuxFxVersion)} file to deploy...` })).data;
+            context.fsPath = <string>(await ext.ui.showQuickPick(javaArtifactQp, { placeHolder: `Select the ${javaUtils.getArtifactTypeByJavaRuntime(siteConfig.linuxFxVersion)} file to deploy...` })).data;
         }
         await javaUtils.configureJavaSEAppSettings(node);
     }
 
-    workspaceConfig = workspace.getConfiguration(constants.extensionPrefix, Uri.file(fsPath));
-    if (currentWorkspace && (isPathEqual(currentWorkspace.uri.fsPath, fsPath) || isSubpath(currentWorkspace.uri.fsPath, fsPath))) {
+    workspaceConfig = workspace.getConfiguration(constants.extensionPrefix, Uri.file(context.fsPath));
+
+    const currentWorkspace: WorkspaceFolder | undefined = workspaceUtil.getContainingWorkspace(context.fsPath);
+    if (currentWorkspace && (isPathEqual(currentWorkspace.uri.fsPath, context.fsPath) || isSubpath(currentWorkspace.uri.fsPath, context.fsPath))) {
         // currentWorkspace is only set if there is one active workspace
         // only check enableScmDoBuildDuringDeploy if currentWorkspace matches the workspace being deployed as a user can "Browse" to a different project
         if (workspaceConfig.get(constants.configurationSettings.showBuildDuringDeployPrompt)) {
             //check if node is being zipdeployed and that there is no .deployment file
-            if (siteConfig.linuxFxVersion && siteConfig.scmType === 'None' && !(await pathExists(path.join(fsPath, constants.deploymentFileName)))) {
+            if (siteConfig.linuxFxVersion && siteConfig.scmType === 'None' && !(await pathExists(path.join(context.fsPath, constants.deploymentFileName)))) {
                 const linuxFxVersion: string = siteConfig.linuxFxVersion.toLowerCase();
                 if (linuxFxVersion.startsWith(appservice.LinuxRuntimes.node)) {
                     // if it is node or python, prompt the user (as we can break them)
-                    await node.promptScmDoBuildDeploy(fsPath, appservice.LinuxRuntimes.node, context);
+                    await node.promptScmDoBuildDeploy(context.fsPath, appservice.LinuxRuntimes.node, context);
                 } else if (linuxFxVersion.startsWith(appservice.LinuxRuntimes.python)) {
-                    await node.promptScmDoBuildDeploy(fsPath, appservice.LinuxRuntimes.python, context);
+                    await node.promptScmDoBuildDeploy(context.fsPath, appservice.LinuxRuntimes.python, context);
                 }
 
             }
@@ -155,20 +132,27 @@ export async function deploy(context: IDeployWizardContext, confirmDeployment: b
         context.telemetry.properties.cancelStep = 'confirmDestructiveDeployment';
         const items: MessageItem[] = [constants.AppServiceDialogResponses.deploy];
         const resetDefault: MessageItem = { title: 'Reset default' };
-        if (defaultWebAppToDeploy) {
+        if (context.deployedWithConfigs) {
             items.push(resetDefault);
         }
+
         items.push(DialogResponses.cancel);
 
         // a temporary workaround for this issue: https://github.com/Microsoft/vscode-azureappservice/issues/844
         await delay(500);
         const result: MessageItem = await ext.ui.showWarningMessage(warning, { modal: true }, ...items);
         if (result === resetDefault) {
-            const localRootPath = nonNullValue(currentWorkspace).uri.fsPath;
-            const settingsPath = path.join(localRootPath, '.vscode', 'settings.json');
-            const doc = await workspace.openTextDocument(Uri.file(settingsPath));
-            window.showTextDocument(doc);
-            await workspaceConfig.update(constants.configurationSettings.defaultWebAppToDeploy, '');
+            if (context.configurationTarget === ConfigurationTarget.Global) {
+                await commands.executeCommand('workbench.action.openGlobalSettings');
+            } else {
+                const localRootPath = nonNullValue(currentWorkspace).uri.fsPath;
+                const settingsPath = path.join(localRootPath, '.vscode', 'settings.json');
+                const doc = await workspace.openTextDocument(Uri.file(settingsPath));
+                window.showTextDocument(doc);
+            }
+
+            await workspaceConfig.update(constants.configurationSettings.defaultWebAppToDeploy, '', context.configurationTarget);
+
             // If resetDefault button was clicked we ask what and where to deploy again
             await commands.executeCommand('appService.Deploy');
             return;
@@ -176,16 +160,16 @@ export async function deploy(context: IDeployWizardContext, confirmDeployment: b
         context.telemetry.properties.cancelStep = '';
     }
 
-    if (!defaultWebAppToDeploy && currentWorkspace && (isPathEqual(currentWorkspace.uri.fsPath, fsPath) || isSubpath(currentWorkspace.uri.fsPath, fsPath))) {
+    if (!context.deployedWithConfigs && currentWorkspace && (isPathEqual(currentWorkspace.uri.fsPath, context.fsPath) || isSubpath(currentWorkspace.uri.fsPath, context.fsPath))) {
         // tslint:disable-next-line:no-floating-promises
-        node.promptToSaveDeployDefaults(currentWorkspace.uri.fsPath, fsPath, context);
+        node.promptToSaveDeployDefaults(currentWorkspace.uri.fsPath, context.fsPath, context);
     }
 
-    await appservice.runPreDeployTask(context, fsPath, siteConfig.scmType, constants.extensionPrefix);
+    await appservice.runPreDeployTask(context, context.fsPath, siteConfig.scmType, constants.extensionPrefix);
 
     cancelWebsiteValidation(node);
     await node.runWithTemporaryDescription("Deploying...", async () => {
-        await appservice.deploy(nonNullValue(node).root.client, <string>fsPath, context, constants.showOutputChannelCommandId);
+        await appservice.deploy(nonNullValue(node).root.client, <string>context.fsPath, context, constants.showOutputChannelCommandId);
     });
 
     const deployComplete: string = `Deployment to "${node.root.client.fullName}" completed.`;
