@@ -11,6 +11,7 @@ import * as vscode from 'vscode';
 import { AzExtTreeDataProvider, AzureAccountTreeItem, constants, DialogResponses, ext, getRandomHexString, TestAzureAccount, TestUserInput } from '../extension.bundle';
 import { longRunningTestsEnabled } from './global.test';
 
+// tslint:disable-next-line: max-func-body-length
 suite('Create Azure Resources', async function (this: ISuiteCallbackContext): Promise<void> {
     this.timeout(1200 * 1000);
     const resourceGroupsToDelete: string[] = [];
@@ -91,6 +92,26 @@ suite('Create Azure Resources', async function (this: ISuiteCallbackContext): Pr
         await vscode.commands.executeCommand('appService.Restart');
         createdApp = await webSiteClient.webApps.get(resourceName, resourceName);
         assert.equal(createdApp.state, 'Running', `Web App state should be 'Running' rather than ${createdApp.state}.`);
+    });
+
+    test('Configure Deployment Source to LocalGit', async () => {
+        let createdApp: WebSiteManagementModels.SiteConfigResource;
+        createdApp = await webSiteClient.webApps.getConfiguration(resourceName, resourceName);
+        assert.notEqual(createdApp.scmType, 'LocalGit', `Web App scmType's property value shouldn't be ${createdApp.scmType} before "Configure Deployment Source to LocalGit".`);
+        ext.ui = new TestUserInput([resourceName, 'LocalGit']);
+        await vscode.commands.executeCommand('appService.ConfigureDeploymentSource');
+        createdApp = await webSiteClient.webApps.getConfiguration(resourceName, resourceName);
+        assert.equal(createdApp.scmType, 'LocalGit', `Web App scmType's property value should be 'LocalGit' rather than ${createdApp.scmType}.`);
+    });
+
+    test('Configure Deployment Source to None', async () => {
+        let createdApp: WebSiteManagementModels.SiteConfigResource;
+        createdApp = await webSiteClient.webApps.getConfiguration(resourceName, resourceName);
+        assert.notEqual(createdApp.scmType, 'None', `Web App scmType's property value shouldn't be ${createdApp.scmType} before "Configure Deployment Source to None".`);
+        ext.ui = new TestUserInput([resourceName, 'None']);
+        await vscode.commands.executeCommand('appService.ConfigureDeploymentSource');
+        createdApp = await webSiteClient.webApps.getConfiguration(resourceName, resourceName);
+        assert.equal(createdApp.scmType, 'None', `Web App scmType's property value should be 'None' rather than ${createdApp.scmType}.`);
     });
 
     test('Delete Web App', async () => {
