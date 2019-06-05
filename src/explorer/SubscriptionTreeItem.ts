@@ -5,14 +5,15 @@
 
 import { Location } from 'azure-arm-resource/lib/subscription/models';
 import { WebSiteManagementClient } from 'azure-arm-website';
-import { AppServicePlan, Site, WebAppCollection } from 'azure-arm-website/lib/models';
+import { Site, WebAppCollection } from 'azure-arm-website/lib/models';
 import { ConfigurationTarget, workspace, WorkspaceConfiguration } from 'vscode';
 import { AppKind, AppServicePlanCreateStep, AppServicePlanListStep, IAppServiceWizardContext, SiteClient, SiteCreateStep, SiteNameStep, SiteOSStep, SiteRuntimeStep } from 'vscode-azureappservice';
 import { AzExtTreeItem, AzureTreeItem, AzureWizard, AzureWizardExecuteStep, AzureWizardPromptStep, createAzureClient, ICreateChildImplContext, parseError, ResourceGroupCreateStep, ResourceGroupListStep, SubscriptionTreeItemBase } from 'vscode-azureextensionui';
-import { configurationSettings, extensionPrefix, turnOnAdvancedCreation } from '../constants';
+import { AppServiceDialogResponses, configurationSettings, extensionPrefix } from '../constants';
 import { ext } from '../extensionVariables';
 import { nonNullProp } from '../utils/nonNull';
-import { checkPlanForPerformanceDrop, getAppServicePlan, getNextPlanName, isPlanLinux, setAppWizardContextDefault, showPerformancePrompt } from './setAppWizardContextDefault';
+import { validatePlanPerformance } from '../validatePlanPerformance';
+import { setAppWizardContextDefault } from './setAppWizardContextDefault';
 import { WebAppTreeItem } from './WebAppTreeItem';
 
 export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
@@ -107,39 +108,25 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
             wizardContext.newResourceGroupName = `appsvc_rg_${wizardContext.newSiteOS}_${location.name}`;
             wizardContext.newPlanName = `appsvc_asp_${wizardContext.newSiteOS}_${location.name}`;
 
-            const asp: AppServicePlan | null = await getAppServicePlan(wizardContext, wizardContext.newResourceGroupName, wizardContext.newPlanName);
-            if (asp && checkPlanForPerformanceDrop(asp)) {
-                // Subscriptions can only have 1 free tier Linux plan so show the warning if there are too many apps on the plan
+            await validatePlanPerformance(wizardContext, wizardContext.newResourceGroupName, wizardContext.newPlanName);
 
-                if (isPlanLinux(asp)) {
-                    const showPerfWarning: boolean | undefined = workspaceConfig.get(configurationSettings.showPlanPerformanceWarning);
-                    context.telemetry.properties.performanceWarning = showPerfWarning ? 'true' : 'false';
-                    if (showPerfWarning) {
-                        await showPerformancePrompt(context, asp);
-                    }
-                } else {
-                    // Subscriptions can have 10 free tier Windows plans so just create a new one with a suffixed name
-                    // If there are 10 plans, it'll throw an error that directs them to advancedCreation
-                    wizardContext.newPlanName = await getNextPlanName(wizardContext, wizardContext.newPlanName);
+            try {
+                await wizard.execute();
+            } catch (error) {
+                // if there is an error when creating, prompt the user to try advanced creation
+                // tslint:disable-next-line: strict-boolean-expressions
+                if (!parseError(error).isUserCancelledError && !advancedCreation) {
+                    const message: string = `Modify the setting "${extensionPrefix}.${configurationSettings.advancedCreation}" if you want to change the default values when creating a Web App in Azure.`;
+
+                    // tslint:disable-next-line: no-floating-promises
+                    ext.ui.showWarningMessage(message, AppServiceDialogResponses.turnOnAdvancedCreation).then(async result => {
+                        if (result === AppServiceDialogResponses.turnOnAdvancedCreation) {
+                            await workspaceConfig.update('advancedCreation', true, ConfigurationTarget.Global);
+                        }
+                    });
                 }
+                throw error;
             }
-        }
-
-        try {
-            await wizard.execute();
-        } catch (error) {
-            // if there is an error when creating, prompt the user to try advanced creation
-            if (!parseError(error).isUserCancelledError && !advancedCreation) {
-                const message: string = `Modify the setting "${extensionPrefix}.${configurationSettings.advancedCreation}" if you want to change the default values when creating a Web App in Azure.`;
-
-                // tslint:disable-next-line: no-floating-promises
-                ext.ui.showWarningMessage(message, turnOnAdvancedCreation).then(async result => {
-                    if (result === turnOnAdvancedCreation) {
-                        await workspaceConfig.update('advancedCreation', true, ConfigurationTarget.Global);
-                    }
-                });
-            }
-            throw error;
         }
 
         context.telemetry.properties.os = wizardContext.newSiteOS;
@@ -148,7 +135,6 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
 
         // site is set as a result of SiteCreateStep.execute()
         const siteClient: SiteClient = new SiteClient(nonNullProp(wizardContext, 'site'), this.root);
-
         return new WebAppTreeItem(this, siteClient);
     }
 }

@@ -10,6 +10,7 @@ export const deploymentFile: string = `[config]
 SCM_DO_BUILD_DURING_DEPLOYMENT=true`;
 export const none: string = 'None';
 export const isWindows: boolean = /^win/.test(process.platform);
+export const maxNumberOfSites: number = 1;
 
 export const extensionPrefix: string = 'appService';
 
@@ -19,8 +20,7 @@ export enum configurationSettings {
     deploySubpath = 'deploySubpath',
     advancedCreation = 'advancedCreation',
     defaultWebAppToDeploy = 'defaultWebAppToDeploy',
-    connections = 'connections',
-    showPlanPerformanceWarning = 'showPlanPerformanceWarning'
+    connections = 'connections'
 }
 
 export enum ScmType {
@@ -29,8 +29,10 @@ export enum ScmType {
     GitHub = 'GitHub'
 }
 
+export namespace AppServiceDialogResponses {
+    export const turnOnAdvancedCreation: MessageItem = { title: 'Turn on advanced creation' };
+}
+
 export const envFileName: string = '.env';
 export const toggleValueVisibilityCommandId: string = 'appService.toggleValueVisibility';
 export const showOutputChannelCommandId: string = 'appService.showOutputChannel';
-
-export const turnOnAdvancedCreation: MessageItem = { title: 'Turn on advanced creation' };
