@@ -1,13 +1,20 @@
+/*---------------------------------------------------------------------------------------------
+*  Copyright (c) Microsoft Corporation. All rights reserved.
+*  Licensed under the MIT License. See License.txt in the project root for license information.
+*--------------------------------------------------------------------------------------------*/
+
 import WebSiteManagementClient from "azure-arm-website";
 import { AppServicePlan } from "azure-arm-website/lib/models";
 import { ConfigurationTarget, MessageItem, workspace, WorkspaceConfiguration } from "vscode";
-import { AppServicePlanNameStep, IAppServiceWizardContext } from "vscode-azureappservice";
+import { IAppServiceWizardContext, SiteNameStep } from "vscode-azureappservice";
 import { createAzureClient, DialogResponses, IActionContext, UserCancelledError } from "vscode-azureextensionui";
-import { AppServiceDialogResponses, extensionPrefix, maxNumberOfSites } from "./constants";
+import { AppServiceDialogResponses, extensionPrefix } from "./constants";
 import { ext } from "./extensionVariables";
 import { nonNullProp } from "./utils/nonNull";
 
-export async function validatePlanPerformance(wizardContext: IAppServiceWizardContext, rgName: string, newPlanName: string): Promise<void> {
+const maxNumberOfSites: number = 3;
+
+export async function validatePlanPerformance(wizardContext: IAppServiceWizardContext, rgName: string, newPlanName: string, siteNameStep: SiteNameStep): Promise<void> {
     const asp: AppServicePlan | null = await getAppServicePlan(wizardContext, rgName, newPlanName);
     if (asp) {
         if (checkPlanForPerformanceDrop(asp)) {
@@ -17,7 +24,7 @@ export async function validatePlanPerformance(wizardContext: IAppServiceWizardCo
             } else {
                 // Subscriptions can have 10 free tier Windows plans so just create a new one with a suffixed name
                 // If there are 10 plans, it'll throw an error that directs them to advancedCreation
-                wizardContext.newPlanName = await new AppServicePlanNameStep().getRelatedName(wizardContext, newPlanName);
+                wizardContext.newPlanName = await siteNameStep.getRelatedName(wizardContext, newPlanName);
             }
         }
     }

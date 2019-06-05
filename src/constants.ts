@@ -10,7 +10,6 @@ export const deploymentFile: string = `[config]
 SCM_DO_BUILD_DURING_DEPLOYMENT=true`;
 export const none: string = 'None';
 export const isWindows: boolean = /^win/.test(process.platform);
-export const maxNumberOfSites: number = 1;
 
 export const extensionPrefix: string = 'appService';
 

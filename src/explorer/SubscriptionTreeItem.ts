@@ -73,8 +73,8 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
 
         const promptSteps: AzureWizardPromptStep<IAppServiceWizardContext>[] = [];
         const executeSteps: AzureWizardExecuteStep<IAppServiceWizardContext>[] = [];
-
-        promptSteps.push(new SiteNameStep());
+        const siteStep: SiteNameStep = new SiteNameStep();
+        promptSteps.push(siteStep);
 
         const workspaceConfig: WorkspaceConfiguration = workspace.getConfiguration(extensionPrefix);
         const advancedCreation: boolean | undefined = workspaceConfig.get(configurationSettings.advancedCreation);
@@ -108,7 +108,7 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
             wizardContext.newResourceGroupName = `appsvc_rg_${wizardContext.newSiteOS}_${location.name}`;
             wizardContext.newPlanName = `appsvc_asp_${wizardContext.newSiteOS}_${location.name}`;
 
-            await validatePlanPerformance(wizardContext, wizardContext.newResourceGroupName, wizardContext.newPlanName);
+            await validatePlanPerformance(wizardContext, wizardContext.newResourceGroupName, wizardContext.newPlanName, siteStep);
 
             try {
                 await wizard.execute();
