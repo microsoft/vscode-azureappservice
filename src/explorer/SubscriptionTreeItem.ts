@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Location } from 'azure-arm-resource/lib/subscription/models';
 import { WebSiteManagementClient } from 'azure-arm-website';
 import { Site, WebAppCollection } from 'azure-arm-website/lib/models';
 import { ConfigurationTarget, workspace, WorkspaceConfiguration } from 'vscode';
@@ -103,12 +102,7 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
         context.showCreatingTreeItem(nonNullProp(wizardContext, 'newSiteName'));
 
         if (!advancedCreation) {
-            // this should always be set when in the basic creation scenario
-            const location: Location = nonNullProp(wizardContext, 'location');
-            wizardContext.newResourceGroupName = `appsvc_${wizardContext.newSiteOS}_${location.name}`;
-            wizardContext.newPlanName = wizardContext.newResourceGroupName;
-
-            await setDefaultRgAndPlanName(wizardContext, wizardContext.newResourceGroupName, wizardContext.newPlanName, siteStep);
+            await setDefaultRgAndPlanName(wizardContext, siteStep);
 
             try {
                 await wizard.execute();
@@ -135,6 +129,10 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
 
         // site is set as a result of SiteCreateStep.execute()
         const siteClient: SiteClient = new SiteClient(nonNullProp(wizardContext, 'site'), this.root);
+
+        const createdNewAppMsg: string = `Created new web app "${siteClient.fullName}": https://${siteClient.defaultHostName}`;
+        ext.outputChannel.appendLine(createdNewAppMsg);
+
         return new WebAppTreeItem(this, siteClient);
     }
 }

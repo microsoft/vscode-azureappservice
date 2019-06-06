@@ -5,7 +5,7 @@
 
 import * as fse from 'fs-extra';
 import * as path from 'path';
-import { workspace, WorkspaceConfiguration, WorkspaceFolder } from 'vscode';
+import { ConfigurationTarget, workspace, WorkspaceConfiguration, WorkspaceFolder } from 'vscode';
 import { IAppServiceWizardContext, LinuxRuntimes, WebsiteOS } from 'vscode-azureappservice';
 import { IActionContext, LocationListStep } from 'vscode-azureextensionui';
 import { configurationSettings, extensionPrefix } from '../../constants';
@@ -14,6 +14,8 @@ import { findFilesByFileExtension, getContainingWorkspace } from '../../utils/wo
 
 export interface IDeployWizardContext extends IActionContext {
     fsPath?: string;
+    deployedWithConfigs?: boolean;
+    configurationTarget?: ConfigurationTarget;
 }
 
 export async function setAppWizardContextDefault(wizardContext: IAppServiceWizardContext & IDeployWizardContext): Promise<void> {
