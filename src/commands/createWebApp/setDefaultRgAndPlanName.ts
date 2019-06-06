@@ -18,22 +18,42 @@ const maxNumberOfSites: number = 3;
 export async function setDefaultRgAndPlanName(wizardContext: IAppServiceWizardContext, siteNameStep: SiteNameStep): Promise<void> {
     // this should always be set when in the basic creation scenario
     const location: Location = nonNullProp(wizardContext, 'location');
-    wizardContext.newResourceGroupName = `appsvc_${wizardContext.newSiteOS}_${location.name}`;
-    wizardContext.newPlanName = wizardContext.newResourceGroupName;
+    const defaultName: string = `appsvc_${wizardContext.newSiteOS}_${location.name}`;
 
-    const asp: AppServicePlan | null = await getAppServicePlan(wizardContext, wizardContext.newResourceGroupName, wizardContext.newPlanName);
-    if (asp) {
-        if (checkPlanForPerformanceDrop(asp)) {
-            // Subscriptions can only have 1 free tier Linux plan so show a warning if there are too many apps on the plan
-            if (wizardContext.newSiteOS === WebsiteOS.linux) {
-                await promptPerformanceWarning(wizardContext, asp);
-            } else {
-                // Subscriptions can have 10 free tier Windows plans so just create a new one with a suffixed name
-                // If there are 10 plans, it'll throw an error that directs them to advancedCreation
-                wizardContext.newResourceGroupName = await siteNameStep.getRelatedName(wizardContext, wizardContext.newPlanName);
-                wizardContext.newPlanName = wizardContext.newResourceGroupName;
+    const asp: AppServicePlan | null = await getAppServicePlan(wizardContext, defaultName, defaultName);
+    if (asp && checkPlanForPerformanceDrop(asp)) {
+        // Subscriptions can only have 1 free tier Linux plan so show a warning if there are too many apps on the plan
+        if (wizardContext.newSiteOS === WebsiteOS.linux) {
+            await promptPerformanceWarning(wizardContext, asp);
+            wizardContext.newResourceGroupName = defaultName;
+            wizardContext.newPlanName = wizardContext.newResourceGroupName;
+        } else {
+            // Subscriptions can have 10 free tier Windows plans so just create a new one with a suffixed name
+            // If there are 10 plans, it'll throw an error that directs them to advancedCreation
+
+            const client: WebSiteManagementClient = createAzureClient(wizardContext, WebSiteManagementClient);
+            const allAppServicePlans: AppServicePlan[] = await client.appServicePlans.list();
+            const defaultPlans: AppServicePlan[] = allAppServicePlans.filter(plan => { return plan.name && plan.name.includes(defaultName); });
+
+            // try and find a default plan that has less than 3 plans first
+            for (const plan of defaultPlans) {
+                if (plan.name) {
+                    const fullPlanData: AppServicePlan | null = await getAppServicePlan(wizardContext, plan.name, plan.name);
+                    if (fullPlanData && !checkPlanForPerformanceDrop(fullPlanData)) {
+                        wizardContext.newResourceGroupName = plan.name;
+                        wizardContext.newPlanName = wizardContext.newResourceGroupName;
+                        break;
+                    }
+                }
             }
+
+            // otherwise create a new rg and asp
+            wizardContext.newResourceGroupName = wizardContext.newResourceGroupName || await siteNameStep.getRelatedName(wizardContext, defaultName);
+            wizardContext.newPlanName = wizardContext.newResourceGroupName;
         }
+    } else {
+        wizardContext.newResourceGroupName = defaultName;
+        wizardContext.newPlanName = wizardContext.newResourceGroupName;
     }
 }
 
