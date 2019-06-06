@@ -5,10 +5,10 @@
 
 import { ConfigurationTarget, MessageItem, workspace, WorkspaceConfiguration } from 'vscode';
 import { AzureParentTreeItem, IActionContext, parseError } from "vscode-azureextensionui";
-import { configurationSettings, extensionPrefix } from "../constants";
-import { SubscriptionTreeItem } from '../explorer/SubscriptionTreeItem';
-import { WebAppTreeItem } from "../explorer/WebAppTreeItem";
-import { ext } from "../extensionVariables";
+import { configurationSettings, extensionPrefix } from "../../constants";
+import { SubscriptionTreeItem } from '../../explorer/SubscriptionTreeItem';
+import { WebAppTreeItem } from "../../explorer/WebAppTreeItem";
+import { ext } from "../../extensionVariables";
 
 export async function createWebApp(context: IActionContext, node?: AzureParentTreeItem | undefined): Promise<void> {
     if (!node) {

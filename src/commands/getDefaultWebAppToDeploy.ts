@@ -4,8 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { ConfigurationTarget, workspace, WorkspaceConfiguration, WorkspaceFolder } from "vscode";
+import { IDeployWizardContext } from "../commands/createWebApp/setAppWizardContextDefault";
 import { configurationSettings, extensionPrefix, none } from "../constants";
-import { IDeployWizardContext } from "../explorer/setAppWizardContextDefault";
 import { WebAppTreeItem } from "../explorer/WebAppTreeItem";
 import { ext } from '../extensionVariables';
 import { getContainingWorkspace } from "../utils/workspace";
