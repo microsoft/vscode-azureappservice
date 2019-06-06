@@ -26,7 +26,7 @@ export async function setDefaultRgAndPlanName(wizardContext: IAppServiceWizardCo
         if (wizardContext.newSiteOS === WebsiteOS.linux) {
             await promptPerformanceWarning(wizardContext, asp);
             wizardContext.newResourceGroupName = defaultName;
-            wizardContext.newPlanName = wizardContext.newResourceGroupName;
+            wizardContext.newPlanName = defaultName;
         } else {
             // Subscriptions can have 10 free tier Windows plans so just create a new one with a suffixed name
             // If there are 10 plans, it'll throw an error that directs them to advancedCreation
@@ -41,7 +41,7 @@ export async function setDefaultRgAndPlanName(wizardContext: IAppServiceWizardCo
                     const fullPlanData: AppServicePlan | null = await getAppServicePlan(wizardContext, plan.name, plan.name);
                     if (fullPlanData && !checkPlanForPerformanceDrop(fullPlanData)) {
                         wizardContext.newResourceGroupName = plan.name;
-                        wizardContext.newPlanName = wizardContext.newResourceGroupName;
+                        wizardContext.newPlanName = plan.name;
                         break;
                     }
                 }
@@ -53,7 +53,7 @@ export async function setDefaultRgAndPlanName(wizardContext: IAppServiceWizardCo
         }
     } else {
         wizardContext.newResourceGroupName = defaultName;
-        wizardContext.newPlanName = wizardContext.newResourceGroupName;
+        wizardContext.newPlanName = defaultName;
     }
 }
 
