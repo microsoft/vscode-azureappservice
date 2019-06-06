@@ -1,6 +1,21 @@
 # Change Log
 All notable changes to the "azure-appservice" extension will be documented in this file.
 
+
+
+## 0.15.0 - 2019-06-10
+### Added
+- Free tier for Linux plans now available!
+- Windows app service plans are automatically created when there are 3 web apps associated to it
+- Deployment slots automatically have the same deployment source configuration as the production web app
+
+### Changed
+- When deploying, now the project is prompted first and then the web app
+
+### Fixed
+- [Bugs fixed](https://github.com/microsoft/vscode-azureappservice/issues?q=is%3Aissue+is%3Aclosed+milestone%3A0.15.0)
+
+
 ## 0.14.0 - 2019-05-01
 ### Added
 - SSH into Linux Web Apps
