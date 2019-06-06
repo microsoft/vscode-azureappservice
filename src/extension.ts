@@ -16,8 +16,7 @@ import { addCosmosDBConnection } from './commands/connections/addCosmosDBConnect
 import { removeCosmosDBConnection } from './commands/connections/removeCosmosDBConnection';
 import { revealConnection } from './commands/connections/revealConnection';
 import { revealConnectionInAppSettings } from './commands/connections/revealConnectionInAppSettings';
-import { createSlot } from './commands/createSlot';
-import { createWebApp } from './commands/createWebApp';
+import { createWebApp } from './commands/createWebApp/createWebApp';
 import { deploy } from './commands/deploy';
 import { connectToGitHub } from './commands/deployments/connectToGitHub';
 import { disconnectRepo } from './commands/deployments/disconnectRepo';

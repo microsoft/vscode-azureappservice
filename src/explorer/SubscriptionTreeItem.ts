@@ -3,16 +3,16 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Location } from 'azure-arm-resource/lib/subscription/models';
 import { WebSiteManagementClient } from 'azure-arm-website';
 import { Site, WebAppCollection } from 'azure-arm-website/lib/models';
-import { workspace, WorkspaceConfiguration } from 'vscode';
+import { ConfigurationTarget, workspace, WorkspaceConfiguration } from 'vscode';
 import { AppKind, AppServicePlanCreateStep, AppServicePlanListStep, IAppServiceWizardContext, SiteClient, SiteCreateStep, SiteNameStep, SiteOSStep, SiteRuntimeStep } from 'vscode-azureappservice';
-import { ext } from 'vscode-azureappservice/out/src/extensionVariables';
 import { AzExtTreeItem, AzureTreeItem, AzureWizard, AzureWizardExecuteStep, AzureWizardPromptStep, createAzureClient, ICreateChildImplContext, parseError, ResourceGroupCreateStep, ResourceGroupListStep, SubscriptionTreeItemBase } from 'vscode-azureextensionui';
-import { configurationSettings, extensionPrefix } from '../constants';
+import { setAppWizardContextDefault } from '../commands/createWebApp/setAppWizardContextDefault';
+import { setDefaultRgAndPlanName } from '../commands/createWebApp/setDefaultRgAndPlanName';
+import { AppServiceDialogResponses, configurationSettings, extensionPrefix } from '../constants';
+import { ext } from '../extensionVariables';
 import { nonNullProp } from '../utils/nonNull';
-import { setAppWizardContextDefault } from './setAppWizardContextDefault';
 import { WebAppTreeItem } from './WebAppTreeItem';
 
 export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
@@ -72,8 +72,8 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
 
         const promptSteps: AzureWizardPromptStep<IAppServiceWizardContext>[] = [];
         const executeSteps: AzureWizardExecuteStep<IAppServiceWizardContext>[] = [];
-
-        promptSteps.push(new SiteNameStep());
+        const siteStep: SiteNameStep = new SiteNameStep();
+        promptSteps.push(siteStep);
 
         const workspaceConfig: WorkspaceConfiguration = workspace.getConfiguration(extensionPrefix);
         const advancedCreation: boolean | undefined = workspaceConfig.get(configurationSettings.advancedCreation);
@@ -102,13 +102,26 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
         context.showCreatingTreeItem(nonNullProp(wizardContext, 'newSiteName'));
 
         if (!advancedCreation) {
-            // this should always be set when in the basic creation scenario
-            const location: Location = nonNullProp(wizardContext, 'location');
-            wizardContext.newResourceGroupName = `appsvc_rg_${wizardContext.newSiteOS}_${location.name}`;
-            wizardContext.newPlanName = `appsvc_asp_${wizardContext.newSiteOS}_${location.name}`;
-        }
+            await setDefaultRgAndPlanName(wizardContext, siteStep);
 
-        await wizard.execute();
+            try {
+                await wizard.execute();
+            } catch (error) {
+                // if there is an error when creating, prompt the user to try advanced creation
+                // tslint:disable-next-line: strict-boolean-expressions
+                if (!parseError(error).isUserCancelledError && !advancedCreation) {
+                    const message: string = `Modify the setting "${extensionPrefix}.${configurationSettings.advancedCreation}" if you want to change the default values when creating a Web App in Azure.`;
+
+                    // tslint:disable-next-line: no-floating-promises
+                    ext.ui.showWarningMessage(message, AppServiceDialogResponses.turnOnAdvancedCreation).then(async result => {
+                        if (result === AppServiceDialogResponses.turnOnAdvancedCreation) {
+                            await workspaceConfig.update('advancedCreation', true, ConfigurationTarget.Global);
+                        }
+                    });
+                }
+                throw error;
+            }
+        }
 
         context.telemetry.properties.os = wizardContext.newSiteOS;
         context.telemetry.properties.runtime = wizardContext.newSiteRuntime;
