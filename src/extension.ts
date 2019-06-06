@@ -16,6 +16,7 @@ import { addCosmosDBConnection } from './commands/connections/addCosmosDBConnect
 import { removeCosmosDBConnection } from './commands/connections/removeCosmosDBConnection';
 import { revealConnection } from './commands/connections/revealConnection';
 import { revealConnectionInAppSettings } from './commands/connections/revealConnectionInAppSettings';
+import { createSlot } from './commands/createSlot';
 import { createWebApp } from './commands/createWebApp/createWebApp';
 import { deploy } from './commands/deploy';
 import { connectToGitHub } from './commands/deployments/connectToGitHub';
@@ -201,14 +202,7 @@ export async function activateInternal(
                 await nonNullValue(node).generateDeploymentScript();
             });
         });
-        registerCommand('appService.CreateSlot', async (actionContext: IActionContext, node?: DeploymentSlotsTreeItem) => {
-            if (!node) {
-                node = <DeploymentSlotsTreeItem>await ext.tree.showTreeItemPicker(DeploymentSlotsTreeItem.contextValue, actionContext);
-            }
-
-            const createdSlot = <DeploymentSlotTreeItem>await node.createChild(actionContext);
-            createdSlot.promptToDeploy(actionContext);
-        });
+        registerCommand('appService.CreateSlot', createSlot);
         registerCommand('appService.DeploySlot', async (actionContext: IActionContext, node?: DeploymentSlotTreeItem | ScaleUpTreeItem | undefined) => {
             if (!node) {
                 node = <DeploymentSlotTreeItem | ScaleUpTreeItem>await ext.tree.showTreeItemPicker([DeploymentSlotTreeItem.contextValue, ScaleUpTreeItem.contextValue], actionContext);
