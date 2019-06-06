@@ -103,24 +103,24 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
 
         if (!advancedCreation) {
             await setDefaultRgAndPlanName(wizardContext, siteStep);
+        }
 
-            try {
-                await wizard.execute();
-            } catch (error) {
-                // if there is an error when creating, prompt the user to try advanced creation
-                // tslint:disable-next-line: strict-boolean-expressions
-                if (!parseError(error).isUserCancelledError && !advancedCreation) {
-                    const message: string = `Modify the setting "${extensionPrefix}.${configurationSettings.advancedCreation}" if you want to change the default values when creating a Web App in Azure.`;
+        try {
+            await wizard.execute();
+        } catch (error) {
+            // if there is an error when creating, prompt the user to try advanced creation
+            // tslint:disable-next-line: strict-boolean-expressions
+            if (!parseError(error).isUserCancelledError && !advancedCreation) {
+                const message: string = `Modify the setting "${extensionPrefix}.${configurationSettings.advancedCreation}" if you want to change the default values when creating a Web App in Azure.`;
 
-                    // tslint:disable-next-line: no-floating-promises
-                    ext.ui.showWarningMessage(message, AppServiceDialogResponses.turnOnAdvancedCreation).then(async result => {
-                        if (result === AppServiceDialogResponses.turnOnAdvancedCreation) {
-                            await workspaceConfig.update('advancedCreation', true, ConfigurationTarget.Global);
-                        }
-                    });
-                }
-                throw error;
+                // tslint:disable-next-line: no-floating-promises
+                ext.ui.showWarningMessage(message, AppServiceDialogResponses.turnOnAdvancedCreation).then(async result => {
+                    if (result === AppServiceDialogResponses.turnOnAdvancedCreation) {
+                        await workspaceConfig.update('advancedCreation', true, ConfigurationTarget.Global);
+                    }
+                });
             }
+            throw error;
         }
 
         context.telemetry.properties.os = wizardContext.newSiteOS;
