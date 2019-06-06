@@ -96,7 +96,7 @@ async function promptPerformanceWarning(context: IActionContext, asp: AppService
             throw new UserCancelledError();
         } else if (input === DialogResponses.dontWarnAgain) {
             context.telemetry.properties.turnOffPerfWarning = 'true';
-            workspaceConfig.update(showPlanPerformanceWarningSetting, false);
+            workspaceConfig.update(showPlanPerformanceWarningSetting, false, ConfigurationTarget.Global);
         }
         context.telemetry.properties.cancelStep = '';
     }
