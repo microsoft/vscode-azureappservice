@@ -35,7 +35,7 @@ export async function setDefaultRgAndPlanName(wizardContext: IAppServiceWizardCo
             const allAppServicePlans: AppServicePlan[] = await client.appServicePlans.list();
             const defaultPlans: AppServicePlan[] = allAppServicePlans.filter(plan => { return plan.name && plan.name.includes(defaultName); });
 
-            // try and find a default plan that has less than 3 plans first
+            // when using appServicePlans.list, the numOfSites are all set to 0 so individually get each plan and look for one with less than 3 sites
             for (const plan of defaultPlans) {
                 if (plan.name) {
                     const fullPlanData: AppServicePlan | null = await getAppServicePlan(wizardContext, plan.name, plan.name);
