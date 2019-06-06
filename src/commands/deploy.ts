@@ -55,15 +55,14 @@ export async function deploy(context: IDeployWizardContext, confirmDeployment: b
         }
     }
 
-    node = await getDefaultWebAppToDeploy(context);
-
     if (!node) {
         const onTreeItemCreatedFromQuickPickDisposable: Disposable = ext.tree.onTreeItemCreate((newNode: SiteTreeItem) => {
             // event is fired from azure-extensionui if node was created during deployment
             newNodes.push(newNode);
         });
         try {
-            node = <SiteTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue, context);
+            // tslint:disable-next-line: strict-boolean-expressions
+            node = await getDefaultWebAppToDeploy(context) || <SiteTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue, context);
         } catch (err2) {
             if (parseError(err2).isUserCancelledError) {
                 context.telemetry.properties.cancelStep = `showTreeItemPicker:${WebAppTreeItem.contextValue}`;
