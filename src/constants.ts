@@ -1,7 +1,9 @@
 /*---------------------------------------------------------------------------------------------
- *  Copyright (c) Microsoft Corporation. All rights reserved.
- *  Licensed under the MIT License. See License.txt in the project root for license information.
- *--------------------------------------------------------------------------------------------*/
+*  Copyright (c) Microsoft Corporation. All rights reserved.
+*  Licensed under the MIT License. See License.txt in the project root for license information.
+*--------------------------------------------------------------------------------------------*/
+
+import { MessageItem } from "vscode";
 
 export const deploymentFileName: string = '.deployment';
 export const deploymentFile: string = `[config]
@@ -24,6 +26,12 @@ export enum ScmType {
     None = 'None', // default scmType
     LocalGit = 'LocalGit',
     GitHub = 'GitHub'
+}
+
+export namespace AppServiceDialogResponses {
+    export const turnOnAdvancedCreation: MessageItem = { title: 'Turn on advanced creation' };
+    export const deploy: MessageItem = { title: 'Deploy' };
+    export const viewOutput: MessageItem = { title: 'View Output' };
 }
 
 export const envFileName: string = '.env';

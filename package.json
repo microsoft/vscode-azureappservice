@@ -2,7 +2,7 @@
     "name": "vscode-azureappservice",
     "displayName": "Azure App Service",
     "description": "An Azure App Service management extension for Visual Studio Code.",
-    "version": "0.14.1-alpha",
+    "version": "0.15.0",
     "publisher": "ms-azuretools",
     "icon": "resources/windows-azure-web-site.png",
     "aiKey": "AIF-d9b70cd4-b9f9-4d70-929b-a071c400b217",
@@ -887,6 +887,11 @@
                     "scope": "resource",
                     "type": "string",
                     "description": "The name of the task to run before deploying."
+                },
+                "appService.showPlanPerformanceWarning": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Shows a warning that performance may drop when creating an app in an App Service Plan that has more than 3 web apps associated to it"
                 }
             }
         },
@@ -1005,8 +1010,8 @@
         "portfinder": "^1.0.13",
         "request": "^2.83.0",
         "request-promise": "^4.2.2",
-        "vscode-azureappservice": "^0.42.0",
-        "vscode-azureextensionui": "^0.25.0",
+        "vscode-azureappservice": "^0.42.1",
+        "vscode-azureextensionui": "^0.25.1",
         "vscode-azurekudu": "^0.1.8",
         "vscode-debugadapter": "^1.24.0",
         "vscode-debugprotocol": "^1.24.0"

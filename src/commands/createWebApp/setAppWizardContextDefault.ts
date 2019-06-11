@@ -5,15 +5,17 @@
 
 import * as fse from 'fs-extra';
 import * as path from 'path';
-import { workspace, WorkspaceConfiguration, WorkspaceFolder } from 'vscode';
+import { ConfigurationTarget, workspace, WorkspaceConfiguration, WorkspaceFolder } from 'vscode';
 import { IAppServiceWizardContext, LinuxRuntimes, WebsiteOS } from 'vscode-azureappservice';
 import { IActionContext, LocationListStep } from 'vscode-azureextensionui';
-import { configurationSettings, extensionPrefix } from '../constants';
-import { javaUtils } from '../utils/javaUtils';
-import { findFilesByFileExtension, getContainingWorkspace } from '../utils/workspace';
+import { configurationSettings, extensionPrefix } from '../../constants';
+import { javaUtils } from '../../utils/javaUtils';
+import { findFilesByFileExtension, getContainingWorkspace } from '../../utils/workspace';
 
 export interface IDeployWizardContext extends IActionContext {
     fsPath?: string;
+    deployedWithConfigs?: boolean;
+    configurationTarget?: ConfigurationTarget;
 }
 
 export async function setAppWizardContextDefault(wizardContext: IAppServiceWizardContext & IDeployWizardContext): Promise<void> {
@@ -49,6 +51,7 @@ export async function setAppWizardContextDefault(wizardContext: IAppServiceWizar
 
     const workspaceConfig: WorkspaceConfiguration = workspace.getConfiguration(extensionPrefix);
     const advancedCreation: boolean | undefined = workspaceConfig.get(configurationSettings.advancedCreation);
+
     if (!advancedCreation) {
         if (!wizardContext.location) {
             await LocationListStep.setLocation(wizardContext, 'centralus');

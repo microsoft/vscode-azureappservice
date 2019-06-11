@@ -9,7 +9,6 @@ import * as path from 'path';
 import { MessageItem, Uri, window, workspace, WorkspaceConfiguration } from 'vscode';
 import { AppSettingsTreeItem, AppSettingTreeItem, deleteSite, DeploymentsTreeItem, DeploymentTreeItem, ISiteTreeRoot, LinuxRuntimes, SiteClient } from 'vscode-azureappservice';
 import { AzExtTreeItem, AzureParentTreeItem, AzureTreeItem, DialogResponses, IActionContext } from 'vscode-azureextensionui';
-import { deploy } from '../commands/deploy';
 import { toggleValueVisibilityCommandId } from '../constants';
 import * as constants from '../constants';
 import { ext } from '../extensionVariables';
@@ -209,28 +208,6 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         } else {
             context.telemetry.properties.promptToSaveDeployConfigs = 'Skip for now';
         }
-    }
-
-    public showCreatedOutput(context: IActionContext): void {
-        const resource: string = this.root.client.isSlot ? 'slot' : 'web app';
-        const createdNewAppMsg: string = `Created new ${resource} "${this.root.client.fullName}": https://${this.root.client.defaultHostName}`;
-        ext.outputChannel.appendLine(createdNewAppMsg);
-        ext.outputChannel.appendLine('');
-
-        const viewOutput: MessageItem = { title: 'View Output' };
-        const deployButton: MessageItem = {
-            title: 'Deploy'
-        };
-
-        // Note: intentionally not waiting for the result of this before returning
-        window.showInformationMessage(createdNewAppMsg, deployButton, viewOutput).then(async (result: MessageItem | undefined) => {
-            if (result === viewOutput) {
-                ext.outputChannel.show();
-            } else if (result === deployButton) {
-                context.telemetry.properties.deploy = 'true';
-                await deploy(context, false, this);
-            }
-        });
     }
 
     private getIgnoredFoldersForDeployment(runtime: string): string[] {
