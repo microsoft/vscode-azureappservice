@@ -53,7 +53,6 @@
         "onCommand:appService.OpenLogStream",
         "onCommand:appService.StopLogStream",
         "onCommand:appService.StartRemoteDebug",
-        "onCommand:appService.StopRemoteDebug",
         "onCommand:appService.StartSsh",
         "onCommand:appService.CreateSlot",
         "onCommand:appService.DeploySlot",
@@ -220,11 +219,6 @@
             {
                 "command": "appService.StartRemoteDebug",
                 "title": "Start Remote Debugging",
-                "category": "Azure App Service"
-            },
-            {
-                "command": "appService.StopRemoteDebug",
-                "title": "Stop Remote Debugging",
                 "category": "Azure App Service"
             },
             {
@@ -512,17 +506,12 @@
                 {
                     "command": "appService.StartRemoteDebug",
                     "when": "view == azureAppService && viewItem == appService",
-                    "group": "5_appServiceRemoteDebugCommands@1"
-                },
-                {
-                    "command": "appService.StopRemoteDebug",
-                    "when": "view == azureAppService && viewItem == appService",
-                    "group": "5_appServiceRemoteDebugCommands@2"
+                    "group": "5_appServiceRemoteCommands@1"
                 },
                 {
                     "command": "appService.StartSsh",
                     "when": "view == azureAppService && viewItem == appService",
-                    "group": "6_appServiceRemoteSshCommands@1"
+                    "group": "5_appServiceRemoteCommands@2"
                 },
                 {
                     "command": "appService.CreateSlot",
@@ -602,17 +591,12 @@
                 {
                     "command": "appService.StartRemoteDebug",
                     "when": "view == azureAppService && viewItem == deploymentSlot",
-                    "group": "5_appServiceRemoteDebugCommands@1"
-                },
-                {
-                    "command": "appService.StopRemoteDebug",
-                    "when": "view == azureAppService && viewItem == deploymentSlot",
-                    "group": "5_appServiceRemoteDebugCommands@2"
+                    "group": "5_appServiceRemoteCommands@1"
                 },
                 {
                     "command": "appService.Refresh",
                     "when": "view == azureAppService && viewItem == deploymentSlot",
-                    "group": "6_deploymentSlotRefreshCommands@1"
+                    "group": "5_appServiceRemoteCommands@2"
                 },
                 {
                     "command": "appService.EnableFileLogging",
@@ -1010,7 +994,7 @@
         "portfinder": "^1.0.13",
         "request": "^2.83.0",
         "request-promise": "^4.2.2",
-        "vscode-azureappservice": "^0.42.1",
+        "vscode-azureappservice": "^0.42.2",
         "vscode-azureextensionui": "^0.25.1",
         "vscode-azurekudu": "^0.1.8",
         "vscode-debugadapter": "^1.24.0",
