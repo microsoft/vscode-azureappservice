@@ -18,3 +18,12 @@ suiteSetup(async function (this: IHookCallbackContext): Promise<void> {
     await vscode.commands.executeCommand('appService.Refresh'); // activate the extension before tests begin
     ext.outputChannel = new TestOutputChannel();
 });
+
+export enum pricingTier {
+    B1 = 'B1',
+    B2 = 'B2',
+    B3 = 'B3',
+    S1 = 'S1',
+    S2 = 'S2',
+    S3 = 'S3'
+}

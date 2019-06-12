@@ -24,4 +24,5 @@ export * from 'vscode-azureextensionui';
 export { SubscriptionTreeItem } from './src/explorer/SubscriptionTreeItem';
 export { AzureAccountTreeItem } from './src/explorer/AzureAccountTreeItem';
 export { getRandomHexString } from './src/utils/randomUtils';
+export { getResourcesPath } from './src/utils/pathUtils';
 export { checkForRemoteDebugSupport } from './src/commands/remoteDebug/remoteDebugCommon';

@@ -6,10 +6,13 @@
 import * as assert from 'assert';
 import { ResourceManagementClient } from 'azure-arm-resource';
 import { WebSiteManagementClient, WebSiteManagementModels } from 'azure-arm-website';
+import * as fse from 'fs-extra';
 import { IHookCallbackContext, ISuiteCallbackContext } from 'mocha';
+import * as path from 'path';
 import * as vscode from 'vscode';
-import { AzExtTreeDataProvider, AzureAccountTreeItem, constants, DialogResponses, ext, getRandomHexString, TestAzureAccount, TestUserInput } from '../extension.bundle';
-import { longRunningTestsEnabled } from './global.test';
+import { WebsiteOS } from 'vscode-azureappservice';
+import { AzExtTreeDataProvider, AzureAccountTreeItem, AzureTreeItem, constants, DialogResponses, ext, getRandomHexString, getResourcesPath, IActionContext, TestAzureAccount, TestUserInput } from '../extension.bundle';
+import { longRunningTestsEnabled, pricingTier } from './global.test';
 
 // tslint:disable-next-line: max-func-body-length
 suite('Create Azure Resources', async function (this: ISuiteCallbackContext): Promise<void> {
@@ -55,7 +58,7 @@ suite('Create Azure Resources', async function (this: ISuiteCallbackContext): Pr
 
     test('Create New Web App (Advanced)', async () => {
         await vscode.workspace.getConfiguration(constants.extensionPrefix).update('advancedCreation', true, vscode.ConfigurationTarget.Global);
-        const testInputs: (string | RegExp)[] = [resourceName, '$(plus) Create new resource group', resourceName, 'Linux', regExpLTS, '$(plus) Create new App Service plan', resourceName, 'B1', 'West US'];
+        const testInputs: (string | RegExp)[] = [resourceName, '$(plus) Create new resource group', resourceName, 'Linux', regExpLTS, '$(plus) Create new App Service plan', resourceName, pricingTier.B1, 'West US'];
         ext.ui = new TestUserInput(testInputs);
 
         resourceGroupsToDelete.push(resourceName);
@@ -112,6 +115,14 @@ suite('Create Azure Resources', async function (this: ISuiteCallbackContext): Pr
         assert.equal(createdApp.scmType, constants.ScmType.None, `Web App scmType's property value should be ${constants.ScmType.None} rather than ${createdApp.scmType}.`);
     });
 
+    test('Generate Azure CLI Script', async () => {
+        const scriptTemplate: string = await generateAzureCLIScript('linux-default.sh', 'windows-default.sh');
+        ext.ui = new TestUserInput([resourceName]);
+        await vscode.commands.executeCommand('appService.DeploymentScript');
+        const scriptContent: string = (<vscode.TextEditor>vscode.window.activeTextEditor).document.getText();
+        assert.equal(scriptContent, scriptTemplate);
+    });
+
     test('Delete Web App', async () => {
         const createdApp: WebSiteManagementModels.Site = await webSiteClient.webApps.get(resourceName, resourceName);
         assert.ok(createdApp);
@@ -120,6 +131,32 @@ suite('Create Azure Resources', async function (this: ISuiteCallbackContext): Pr
         const deletedApp: WebSiteManagementModels.Site | undefined = await webSiteClient.webApps.get(resourceName, resourceName);
         assert.ifError(deletedApp); // if app was deleted, get() returns null.  assert.ifError throws if the value passed is not null/undefined
     });
+
+    async function generateAzureCLIScript(linuxDefault: string, windowsDefault: string): Promise<string> {
+        let script: string;
+        // tslint:disable-next-line: prefer-const
+        let context: IActionContext | undefined;
+        const createdApp: WebSiteManagementModels.Site = await webSiteClient.webApps.get(resourceName, resourceName);
+        assert.ok(createdApp);
+        const getWebAppConfiguration: WebSiteManagementModels.SiteConfigResource = await webSiteClient.webApps.getConfiguration(resourceName, resourceName);
+        const subscriptionName: string = (<AzureTreeItem>await ext.azureAccountTreeItem.treeDataProvider.findTreeItem(<string>createdApp.id, <IActionContext>context)).root.subscriptionDisplayName;
+        const planName: string = (<string>createdApp.serverFarmId).split('/')[((<string>createdApp.serverFarmId).split('/')).length - 1];
+        let templatePath: string = path.join(getResourcesPath(), 'deploymentScripts', windowsDefault);
+        if ((<string>createdApp.kind).split(',')[1] === WebsiteOS.linux) {
+            templatePath = path.join(getResourcesPath(), 'deploymentScripts', linuxDefault);
+        }
+        const scriptTemplate: string = <string>await fse.readFile(templatePath, 'utf-8');
+        script = scriptTemplate.replace('%SUBSCRIPTION_NAME%', subscriptionName)
+            .replace('%RG_NAME%', <string>createdApp.resourceGroup)
+            .replace('%LOCATION%', (createdApp.location).replace(/\s*/g, "").toLowerCase())
+            .replace('%PLAN_NAME%', planName)
+            .replace('%PLAN_SKU%', pricingTier.B1)
+            .replace('%SITE_NAME%', <string>createdApp.repositorySiteName);
+        if ((<string>createdApp.kind).split(',')[1] === WebsiteOS.linux) {
+            script = script.replace('%RUNTIME%', <string>getWebAppConfiguration.linuxFxVersion);
+        }
+        return script;
+    }
 });
 
 function getWebsiteManagementClient(testAccount: TestAzureAccount): WebSiteManagementClient {
