@@ -23,6 +23,7 @@ import { getRandomHexString } from "../utils/randomUtils";
 import * as workspaceUtil from '../utils/workspace';
 import { cancelWebsiteValidation, validateWebSite } from '../validateWebSite';
 import { getDefaultWebAppToDeploy } from './getDefaultWebAppToDeploy';
+import { setDefaultsForDeployments } from './setDefaultsForDeployments';
 import { startStreamingLogs } from './startStreamingLogs';
 
 // tslint:disable-next-line:max-func-body-length cyclomatic-complexity
@@ -111,9 +112,10 @@ export async function deploy(context: IDeployWizardContext, confirmDeployment: b
     if (currentWorkspace && (isPathEqual(currentWorkspace.uri.fsPath, context.fsPath) || isSubpath(currentWorkspace.uri.fsPath, context.fsPath))) {
         // currentWorkspace is only set if there is one active workspace
         // only check enableScmDoBuildDuringDeploy if currentWorkspace matches the workspace being deployed as a user can "Browse" to a different project
+        // tslint:disable-next-line: strict-boolean-expressions
         if (workspaceConfig.get(constants.configurationSettings.showBuildDuringDeployPrompt)) {
-            //check if node is being zipdeployed and that there is no .deployment file
-            if (siteConfig.linuxFxVersion && siteConfig.scmType === 'None' && !(await pathExists(path.join(context.fsPath, constants.deploymentFileName)))) {
+            //check if node is being zipdeployed and that there is no .deployment file in the root folder
+            if (siteConfig.linuxFxVersion && siteConfig.scmType === 'None' && !(await pathExists(path.join(currentWorkspace.uri.fsPath, constants.deploymentFileName)))) {
                 const linuxFxVersion: string = siteConfig.linuxFxVersion.toLowerCase();
                 if (linuxFxVersion.startsWith(appservice.LinuxRuntimes.node)) {
                     // if it is node or python, prompt the user (as we can break them)
@@ -163,6 +165,8 @@ export async function deploy(context: IDeployWizardContext, confirmDeployment: b
         // tslint:disable-next-line:no-floating-promises
         node.promptToSaveDeployDefaults(currentWorkspace.uri.fsPath, context.fsPath, context);
     }
+    // set-up predeploy task stuff here
+    await setDefaultsForDeployments(context);
 
     await appservice.runPreDeployTask(context, context.fsPath, siteConfig.scmType, constants.extensionPrefix);
 

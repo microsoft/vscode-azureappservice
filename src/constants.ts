@@ -19,7 +19,8 @@ export enum configurationSettings {
     deploySubpath = 'deploySubpath',
     advancedCreation = 'advancedCreation',
     defaultWebAppToDeploy = 'defaultWebAppToDeploy',
-    connections = 'connections'
+    connections = 'connections',
+    preDeployTask = 'preDeployTask'
 }
 
 export enum ScmType {
