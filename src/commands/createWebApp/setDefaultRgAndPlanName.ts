@@ -25,8 +25,8 @@ export async function setDefaultRgAndPlanName(wizardContext: IAppServiceWizardCo
         // Subscriptions can only have 1 free tier Linux plan so show a warning if there are too many apps on the plan
         if (wizardContext.newSiteOS === WebsiteOS.linux) {
             await promptPerformanceWarning(wizardContext, asp);
-            wizardContext.newResourceGroupName = defaultName;
-            wizardContext.newPlanName = defaultName;
+            wizardContext.newResourceGroupName = wizardContext.newResourceGroupName || defaultName;
+            wizardContext.newPlanName = wizardContext.newPlanName || defaultName;
         } else {
             // Subscriptions can have 10 free tier Windows plans so just create a new one with a suffixed name
             // If there are 10 plans, it'll throw an error that directs them to advancedCreation
@@ -38,6 +38,7 @@ export async function setDefaultRgAndPlanName(wizardContext: IAppServiceWizardCo
             // when using appServicePlans.list, the numOfSites are all set to 0 so individually get each plan and look for one with less than 3 sites
             for (const plan of defaultPlans) {
                 if (plan.name) {
+                    // using plan.name twice for rg and for asp as they identical
                     const fullPlanData: AppServicePlan | null = await getAppServicePlan(wizardContext, plan.name, plan.name);
                     if (fullPlanData && !checkPlanForPerformanceDrop(fullPlanData)) {
                         wizardContext.newResourceGroupName = plan.name;
@@ -52,8 +53,8 @@ export async function setDefaultRgAndPlanName(wizardContext: IAppServiceWizardCo
             wizardContext.newPlanName = wizardContext.newResourceGroupName;
         }
     } else {
-        wizardContext.newResourceGroupName = defaultName;
-        wizardContext.newPlanName = defaultName;
+        wizardContext.newResourceGroupName = wizardContext.newResourceGroupName || defaultName;
+        wizardContext.newPlanName = wizardContext.newPlanName || defaultName;
     }
 }
 
