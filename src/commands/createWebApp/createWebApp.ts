@@ -23,7 +23,6 @@ export async function createWebApp(
     websiteOS?: WebsiteOS,
     runtime?: LinuxRuntimes): Promise<void> {
 
-
     // set defaults if parameters were passed in
     node = subscriptionId ? await ext.tree.findTreeItem(subscriptionId, context) : undefined;
     context.newSiteName = siteName;
