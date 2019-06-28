@@ -3,8 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 import { SkuDescription } from 'azure-arm-website/lib/models';
-import { commands } from 'vscode';
-import { WebsiteOS } from 'vscode-azureappservice';
+import { IAppServiceWizardContext, WebsiteOS } from 'vscode-azureappservice';
+import { callWithTelemetryAndErrorHandling } from 'vscode-azureextensionui';
+import * as extension from '../createWebApp/createWebApp';
 
 export async function createWebApp(createOptions: {
     subscriptionId?: string,
@@ -16,5 +17,7 @@ export async function createWebApp(createOptions: {
     runtime?: string
 }): Promise<void> {
 
-    await commands.executeCommand('appService.CreateWebApp', undefined, createOptions);
+    await callWithTelemetryAndErrorHandling('api.appService.CreateWebApp', async (context: IAppServiceWizardContext) => {
+        return await extension.createWebApp(context, undefined, createOptions);
+    });
 }

@@ -9,7 +9,7 @@ import * as vscode from 'vscode';
 import { AppSettingsTreeItem, AppSettingTreeItem, DeploymentsTreeItem, ISiteTreeRoot, registerAppServiceExtensionVariables, SiteClient, stopStreamingLogs } from 'vscode-azureappservice';
 import { AzExtTreeDataProvider, AzureTreeItem, AzureUserInput, callWithTelemetryAndErrorHandling, createApiProvider, createTelemetryReporter, IActionContext, IAzureUserInput, openInPortal, registerCommand, registerEvent, registerUIExtensionVariables } from 'vscode-azureextensionui';
 import { AzureExtensionApi, AzureExtensionApiProvider } from 'vscode-azureextensionui/api';
-import * as api from './api/createWebApp';
+import * as api from './commands/api/createWebApp';
 import { downloadAppSettings } from './commands/appSettings/downloadAppSettings';
 import { toggleSlotSetting } from './commands/appSettings/toggleSlotSetting';
 import { uploadAppSettings } from './commands/appSettings/uploadAppSettings';
