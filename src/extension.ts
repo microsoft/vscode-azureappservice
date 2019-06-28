@@ -8,7 +8,8 @@
 import * as vscode from 'vscode';
 import { AppSettingsTreeItem, AppSettingTreeItem, DeploymentsTreeItem, ISiteTreeRoot, registerAppServiceExtensionVariables, SiteClient, stopStreamingLogs } from 'vscode-azureappservice';
 import { AzExtTreeDataProvider, AzureTreeItem, AzureUserInput, callWithTelemetryAndErrorHandling, createApiProvider, createTelemetryReporter, IActionContext, IAzureUserInput, openInPortal, registerCommand, registerEvent, registerUIExtensionVariables } from 'vscode-azureextensionui';
-import { AzureExtensionApiProvider } from 'vscode-azureextensionui/api';
+import { AzureExtensionApi, AzureExtensionApiProvider } from 'vscode-azureextensionui/api';
+import * as api from './api/createWebApp';
 import { downloadAppSettings } from './commands/appSettings/downloadAppSettings';
 import { toggleSlotSetting } from './commands/appSettings/toggleSlotSetting';
 import { uploadAppSettings } from './commands/appSettings/uploadAppSettings';
@@ -318,7 +319,10 @@ export async function activateInternal(
         registerCommand(showOutputChannelCommandId, () => { ext.outputChannel.show(); });
     });
 
-    return createApiProvider([]);
+    return createApiProvider([<AzureExtensionApi>{
+        apiVersion: '1.0.0',
+        createWebApp: api.createWebApp
+    }]);
 }
 
 // tslint:disable-next-line:no-empty

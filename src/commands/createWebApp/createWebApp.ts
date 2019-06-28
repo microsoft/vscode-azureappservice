@@ -5,7 +5,7 @@
 
 import { SkuDescription } from 'azure-arm-website/lib/models';
 import { ConfigurationTarget, MessageItem, workspace, WorkspaceConfiguration } from 'vscode';
-import { IAppServiceWizardContext, LinuxRuntimes, WebsiteOS } from 'vscode-azureappservice';
+import { IAppServiceWizardContext, WebsiteOS } from 'vscode-azureappservice';
 import { AzureParentTreeItem, parseError } from "vscode-azureextensionui";
 import { configurationSettings, extensionPrefix } from "../../constants";
 import { SubscriptionTreeItem } from '../../explorer/SubscriptionTreeItem';
@@ -15,22 +15,27 @@ import { ext } from "../../extensionVariables";
 export async function createWebApp(
     context: IAppServiceWizardContext,
     node?: AzureParentTreeItem | undefined,
-    subscriptionId?: string,
-    siteName?: string,
-    rgName?: string,
-    planName?: string,
-    planSku?: SkuDescription,
-    websiteOS?: WebsiteOS,
-    runtime?: LinuxRuntimes): Promise<void> {
+    createOptions?: {
+        subscriptionId?: string,
+        siteName?: string,
+        rgName?: string,
+        planName?: string,
+        planSku?: SkuDescription,
+        websiteOS?: WebsiteOS,
+        runtime?: string
+    }
+): Promise<void> {
 
     // set defaults if parameters were passed in
-    node = subscriptionId ? await ext.tree.findTreeItem(subscriptionId, context) : undefined;
-    context.newSiteName = siteName;
-    context.newResourceGroupName = rgName;
-    context.newPlanName = planName;
-    context.newPlanSku = planSku;
-    context.newSiteOS = websiteOS;
-    context.newSiteRuntime = runtime;
+    if (createOptions) {
+        node = createOptions.subscriptionId ? await ext.tree.findTreeItem(createOptions.subscriptionId, context) : undefined;
+        context.newSiteName = createOptions.siteName;
+        context.newResourceGroupName = createOptions.rgName;
+        context.newPlanName = createOptions.planName;
+        context.newPlanSku = createOptions.planSku;
+        context.newSiteOS = createOptions.websiteOS;
+        context.newSiteRuntime = createOptions.runtime;
+    }
 
     if (!node) {
         node = <AzureParentTreeItem>await ext.tree.showTreeItemPicker(SubscriptionTreeItem.contextValue, context);
