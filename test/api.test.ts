@@ -9,7 +9,7 @@ import { WebSiteManagementClient, WebSiteManagementModels } from 'azure-arm-webs
 import { IHookCallbackContext, ISuiteCallbackContext } from 'mocha';
 import * as vscode from 'vscode';
 import { AzureExtensionApiProvider } from 'vscode-azureextensionui/api';
-import { AzExtTreeDataProvider, AzureAccountTreeItem, AzureAppServiceExtensionApi, constants, ext, getRandomHexString, TestAzureAccount, WebsiteOS } from '../extension.bundle';
+import { AzExtTreeDataProvider, AzureAccountTreeItem, AzureAppServiceExtensionApi, constants, ext, getRandomHexString, TestAzureAccount } from '../extension.bundle';
 import { longRunningTestsEnabled } from './global.test';
 
 // tslint:disable-next-line: max-func-body-length
@@ -65,7 +65,7 @@ suite('Public API', async function (this: ISuiteCallbackContext): Promise<void> 
         await vscode.workspace.getConfiguration(constants.extensionPrefix).update('advancedCreation', false, vscode.ConfigurationTarget.Global);
         resourceGroupsToDelete.push(resourceName);
 
-        await appServiceApi.createWebApp({ subscriptionId: testAccount.getSubscriptionId(), siteName: resourceName, rgName: resourceName, websiteOS: WebsiteOS.linux, runtime: 'node|10.14' });
+        await appServiceApi.createWebApp({ subscriptionId: testAccount.getSubscriptionId(), siteName: resourceName, rgName: resourceName, runtime: 'node|10.14' });
         const createdApp: WebSiteManagementModels.Site = await webSiteClient.webApps.get(resourceName, resourceName);
         assert.ok(createdApp);
     });

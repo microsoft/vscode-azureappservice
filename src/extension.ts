@@ -143,6 +143,7 @@ export async function activateInternal(
 
             const client: SiteClient = node.root.client;
             const startingApp: string = `Starting "${client.fullName}"...`;
+            await api.createWebApp({ subscriptionId: node.root.subscriptionId, siteName: 'naturins-abcdefg', rgName: 'naturins-abcedf', runtime: 'node|10.14' });
             const startedApp: string = `"${client.fullName}" has been started.`;
             await node.runWithTemporaryDescription("Starting...", async () => {
                 ext.outputChannel.appendLine(startingApp);

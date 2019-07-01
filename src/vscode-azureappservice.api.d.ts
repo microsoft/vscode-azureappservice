@@ -15,12 +15,6 @@ export interface AzureAppServiceExtensionApi {
         subscriptionId?: string,
         siteName?: string,
         rgName?: string,
-        websiteOS?: WebsiteOS,
         runtime?: string
     }): Promise<void>
-}
-
-export enum WebsiteOS {
-    linux = 'linux',
-    windows = 'windows'
 }
