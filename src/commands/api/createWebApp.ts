@@ -10,12 +10,11 @@ export async function createWebApp(createOptions: {
     subscriptionId?: string,
     siteName?: string,
     rgName?: string,
+    os?: WebsiteOS,
     runtime?: string
 }): Promise<void> {
 
     await callWithTelemetryAndErrorHandling('api.CreateWebApp', async (context: IAppServiceWizardContext) => {
-        // the team requesting for the api only wants to create Linux apps
-        context.newSiteOS = WebsiteOS.linux;
         return await extension.createWebApp(context, undefined, createOptions);
     });
 }

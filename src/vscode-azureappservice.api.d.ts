@@ -15,6 +15,9 @@ export interface AzureAppServiceExtensionApi {
         subscriptionId?: string,
         siteName?: string,
         rgName?: string,
+        os?: WebsiteOS,
         runtime?: string
     }): Promise<void>
 }
+
+export type WebsiteOS = 'linux' | 'windows';

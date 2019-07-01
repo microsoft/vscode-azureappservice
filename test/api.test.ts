@@ -8,6 +8,7 @@ import { ResourceManagementClient } from 'azure-arm-resource';
 import { WebSiteManagementClient, WebSiteManagementModels } from 'azure-arm-website';
 import { IHookCallbackContext, ISuiteCallbackContext } from 'mocha';
 import * as vscode from 'vscode';
+import { WebsiteOS } from 'vscode-azureappservice';
 import { AzureExtensionApiProvider } from 'vscode-azureextensionui/api';
 import { AzExtTreeDataProvider, AzureAccountTreeItem, AzureAppServiceExtensionApi, constants, ext, getRandomHexString, TestAzureAccount } from '../extension.bundle';
 import { longRunningTestsEnabled } from './global.test';
@@ -65,16 +66,9 @@ suite('Public API', async function (this: ISuiteCallbackContext): Promise<void> 
     test('Create New Web App (Basic)', async () => {
         await vscode.workspace.getConfiguration(constants.extensionPrefix).update('advancedCreation', false, vscode.ConfigurationTarget.Global);
         resourceGroupsToDelete.push(resourceName);
-
-        await appServiceApi.createWebApp({ subscriptionId: testAccount.getSubscriptionId(), siteName: resourceName, rgName: resourceName, runtime: 'node|10.14' });
+        await appServiceApi.createWebApp({ subscriptionId: testAccount.getSubscriptionId(), siteName: resourceName, rgName: resourceName, os: WebsiteOS.windows, runtime: 'node|10.14' });
         const createdApp: WebSiteManagementModels.Site = await webSiteClient.webApps.get(resourceName, resourceName);
         assert.ok(createdApp);
-
-        // the asp has to be deleted after every test because there can only be 1 free Linux tier per subscription
-        const client: ResourceManagementClient = getResourceManagementClient(testAccount);
-        console.log(`Deleting resource group "${resourceName}"...`);
-        await client.resourceGroups.deleteMethod(resourceName);
-        console.log(`Resource group "${resourceName}" deleted.`);
     });
 });
 

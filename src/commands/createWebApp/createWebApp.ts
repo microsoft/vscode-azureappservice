@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { ConfigurationTarget, MessageItem, workspace, WorkspaceConfiguration } from 'vscode';
-import { IAppServiceWizardContext } from 'vscode-azureappservice';
+import { IAppServiceWizardContext, WebsiteOS } from 'vscode-azureappservice';
 import { AzureParentTreeItem, parseError } from "vscode-azureextensionui";
 import { configurationSettings, extensionPrefix } from "../../constants";
 import { SubscriptionTreeItem } from '../../explorer/SubscriptionTreeItem';
@@ -18,6 +18,7 @@ export async function createWebApp(
         subscriptionId?: string,
         siteName?: string,
         rgName?: string,
+        os?: WebsiteOS,
         runtime?: string
     }
 ): Promise<void> {
@@ -27,6 +28,7 @@ export async function createWebApp(
         node = createOptions.subscriptionId ? await ext.tree.findTreeItem(createOptions.subscriptionId, context) : undefined;
         context.newSiteName = createOptions.siteName;
         context.newResourceGroupName = createOptions.rgName;
+        context.newSiteOS = createOptions.os;
         context.newSiteRuntime = createOptions.runtime;
     }
 
