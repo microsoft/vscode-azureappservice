@@ -48,6 +48,7 @@ suite('Public API', async function (this: ISuiteCallbackContext): Promise<void> 
         await vscode.workspace.getConfiguration(constants.extensionPrefix).update('advancedCreation', oldAdvancedCreationSetting, vscode.ConfigurationTarget.Global);
         this.timeout(1200 * 1000);
         const client: ResourceManagementClient = getResourceManagementClient(testAccount);
+        // just in case the test didn't delete the resource group
         for (const resourceGroup of resourceGroupsToDelete) {
             if (await client.resourceGroups.checkExistence(resourceGroup)) {
                 console.log(`Deleting resource group "${resourceGroup}"...`);
@@ -68,6 +69,12 @@ suite('Public API', async function (this: ISuiteCallbackContext): Promise<void> 
         await appServiceApi.createWebApp({ subscriptionId: testAccount.getSubscriptionId(), siteName: resourceName, rgName: resourceName, runtime: 'node|10.14' });
         const createdApp: WebSiteManagementModels.Site = await webSiteClient.webApps.get(resourceName, resourceName);
         assert.ok(createdApp);
+
+        // the asp has to be deleted after every test because there can only be 1 free Linux tier per subscription
+        const client: ResourceManagementClient = getResourceManagementClient(testAccount);
+        console.log(`Deleting resource group "${resourceName}"...`);
+        await client.resourceGroups.deleteMethod(resourceName);
+        console.log(`Resource group "${resourceName}" deleted.`);
     });
 });
 
