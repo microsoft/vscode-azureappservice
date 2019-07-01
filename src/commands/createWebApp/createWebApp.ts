@@ -31,8 +31,6 @@ export async function createWebApp(
         node = createOptions.subscriptionId ? await ext.tree.findTreeItem(createOptions.subscriptionId, context) : undefined;
         context.newSiteName = createOptions.siteName;
         context.newResourceGroupName = createOptions.rgName;
-        context.newPlanName = createOptions.planName;
-        context.newPlanSku = createOptions.planSku;
         context.newSiteOS = createOptions.websiteOS;
         context.newSiteRuntime = createOptions.runtime;
     }
