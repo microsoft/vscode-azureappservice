@@ -25,3 +25,4 @@ export { SubscriptionTreeItem } from './src/explorer/SubscriptionTreeItem';
 export { AzureAccountTreeItem } from './src/explorer/AzureAccountTreeItem';
 export { getRandomHexString } from './src/utils/randomUtils';
 export { checkForRemoteDebugSupport } from './src/commands/remoteDebug/remoteDebugCommon';
+export { AzureAppServiceExtensionApi, WebsiteOS } from './src/vscode-azureappservice.api';

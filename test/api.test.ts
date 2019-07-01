@@ -9,8 +9,7 @@ import { WebSiteManagementClient, WebSiteManagementModels } from 'azure-arm-webs
 import { IHookCallbackContext, ISuiteCallbackContext } from 'mocha';
 import * as vscode from 'vscode';
 import { AzureExtensionApiProvider } from 'vscode-azureextensionui/api';
-import { AzExtTreeDataProvider, AzureAccountTreeItem, constants, ext, getRandomHexString, TestAzureAccount } from '../extension.bundle';
-import { AzureAppServiceExtensionApi, WebsiteOS } from '../src/vscode-azureappservice.api';
+import { AzExtTreeDataProvider, AzureAccountTreeItem, AzureAppServiceExtensionApi, constants, ext, getRandomHexString, TestAzureAccount, WebsiteOS } from '../extension.bundle';
 import { longRunningTestsEnabled } from './global.test';
 
 // tslint:disable-next-line: max-func-body-length
