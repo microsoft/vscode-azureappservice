@@ -139,6 +139,7 @@ export async function activateInternal(
             if (!node) {
                 node = <WebAppTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue, actionContext);
             }
+
             const client: SiteClient = node.root.client;
             const startingApp: string = `Starting "${client.fullName}"...`;
             const startedApp: string = `"${client.fullName}" has been started.`;
