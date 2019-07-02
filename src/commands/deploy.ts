@@ -23,7 +23,7 @@ import { getRandomHexString } from "../utils/randomUtils";
 import * as workspaceUtil from '../utils/workspace';
 import { cancelWebsiteValidation, validateWebSite } from '../validateWebSite';
 import { getDefaultWebAppToDeploy } from './getDefaultWebAppToDeploy';
-import { setDefaultsForDeployments } from './setDefaultsForDeployments';
+import { setPreDeployTaskForDotnet } from './setPreDeployTaskForDotnet';
 import { startStreamingLogs } from './startStreamingLogs';
 
 // tslint:disable-next-line:max-func-body-length cyclomatic-complexity
@@ -165,8 +165,9 @@ export async function deploy(context: IDeployWizardContext, confirmDeployment: b
         // tslint:disable-next-line:no-floating-promises
         node.promptToSaveDeployDefaults(currentWorkspace.uri.fsPath, context.fsPath, context);
     }
-    // set-up predeploy task stuff here
-    await setDefaultsForDeployments(context);
+    if (siteConfig.linuxFxVersion && siteConfig.linuxFxVersion.toLowerCase().includes('dotnet')) {
+        await setPreDeployTaskForDotnet(context);
+    }
 
     await appservice.runPreDeployTask(context, context.fsPath, siteConfig.scmType, constants.extensionPrefix);
 
