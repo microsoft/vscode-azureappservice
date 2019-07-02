@@ -1014,8 +1014,7 @@
         "vscode-azureextensionui": "^0.25.1",
         "vscode-azurekudu": "^0.1.8",
         "vscode-debugadapter": "^1.24.0",
-        "vscode-debugprotocol": "^1.24.0",
-        "xml-js": "^1.6.11"
+        "vscode-debugprotocol": "^1.24.0"
     },
     "extensionDependencies": [
         "ms-vscode.azure-account"
