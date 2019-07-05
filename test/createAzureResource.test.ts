@@ -9,6 +9,7 @@ import { WebSiteManagementClient, WebSiteManagementModels } from 'azure-arm-webs
 import { IHookCallbackContext, ISuiteCallbackContext } from 'mocha';
 import * as vscode from 'vscode';
 import { AzExtTreeDataProvider, AzureAccountTreeItem, constants, DialogResponses, ext, getRandomHexString, TestAzureAccount, TestUserInput } from '../extension.bundle';
+import { updateGlobalSetting } from '../src/vsCodeConfig/settings';
 import { longRunningTestsEnabled } from './global.test';
 
 // tslint:disable-next-line: max-func-body-length
@@ -37,7 +38,7 @@ suite('Create Azure Resources', async function (this: ISuiteCallbackContext): Pr
         if (!longRunningTestsEnabled) {
             this.skip();
         }
-        await vscode.workspace.getConfiguration(constants.extensionPrefix).update('advancedCreation', oldAdvancedCreationSetting, vscode.ConfigurationTarget.Global);
+        await updateGlobalSetting('advancedCreation', oldAdvancedCreationSetting);
         this.timeout(1200 * 1000);
         const client: ResourceManagementClient = getResourceManagementClient(testAccount);
         for (const resourceGroup of resourceGroupsToDelete) {
@@ -54,7 +55,7 @@ suite('Create Azure Resources', async function (this: ISuiteCallbackContext): Pr
     });
 
     test('Create New Web App (Advanced)', async () => {
-        await vscode.workspace.getConfiguration(constants.extensionPrefix).update('advancedCreation', true, vscode.ConfigurationTarget.Global);
+        await updateGlobalSetting('advancedCreation', true);
         const testInputs: (string | RegExp)[] = [resourceName, '$(plus) Create new resource group', resourceName, 'Linux', regExpLTS, '$(plus) Create new App Service plan', resourceName, 'B1', 'West US'];
         ext.ui = new TestUserInput(testInputs);
 

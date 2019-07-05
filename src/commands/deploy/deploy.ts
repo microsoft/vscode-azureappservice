@@ -7,32 +7,34 @@ import * as WebSiteModels from 'azure-arm-website/lib/models';
 import { SiteConfigResource } from 'azure-arm-website/lib/models';
 import { pathExists } from 'fs-extra';
 import * as path from 'path';
-import { commands, ConfigurationTarget, Disposable, MessageItem, Uri, window, workspace, WorkspaceConfiguration, WorkspaceFolder } from 'vscode';
+import { commands, ConfigurationTarget, Disposable, MessageItem, Uri, window, workspace, WorkspaceFolder } from 'vscode';
 import * as appservice from 'vscode-azureappservice';
 import { DialogResponses, IAzureQuickPickItem, parseError } from 'vscode-azureextensionui';
-import { IDeployWizardContext } from '../commands/createWebApp/setAppWizardContextDefault';
-import * as constants from '../constants';
-import { SiteTreeItem } from '../explorer/SiteTreeItem';
-import { WebAppTreeItem } from '../explorer/WebAppTreeItem';
-import { ext } from '../extensionVariables';
-import { delay } from '../utils/delay';
-import { javaUtils } from '../utils/javaUtils';
-import { nonNullValue } from '../utils/nonNull';
-import { isPathEqual, isSubpath } from '../utils/pathUtils';
-import { getRandomHexString } from "../utils/randomUtils";
-import * as workspaceUtil from '../utils/workspace';
-import { cancelWebsiteValidation, validateWebSite } from '../validateWebSite';
+import * as constants from '../../constants';
+import { SiteTreeItem } from '../../explorer/SiteTreeItem';
+import { WebAppTreeItem } from '../../explorer/WebAppTreeItem';
+import { ext } from '../../extensionVariables';
+import { delay } from '../../utils/delay';
+import { javaUtils } from '../../utils/javaUtils';
+import { nonNullValue } from '../../utils/nonNull';
+import { isPathEqual, isSubpath } from '../../utils/pathUtils';
+import { getRandomHexString } from "../../utils/randomUtils";
+import * as workspaceUtil from '../../utils/workspace';
+import { cancelWebsiteValidation, validateWebSite } from '../../validateWebSite';
+import { getWorkspaceSetting, updateWorkspaceSetting } from '../../vsCodeConfig/settings';
+import { IDeployWizardContext } from '../createWebApp/setAppWizardContextDefault';
+import { startStreamingLogs } from '../startStreamingLogs';
 import { getDefaultWebAppToDeploy } from './getDefaultWebAppToDeploy';
+import { getDeployFsPath } from './getDeployFsPath';
 import { setPreDeployTaskForDotnet } from './setPreDeployTaskForDotnet';
-import { startStreamingLogs } from './startStreamingLogs';
 
 // tslint:disable-next-line:max-func-body-length cyclomatic-complexity
 export async function deploy(context: IDeployWizardContext, confirmDeployment: boolean, target?: Uri | SiteTreeItem | undefined): Promise<void> {
 
     let node: SiteTreeItem | undefined;
     const newNodes: SiteTreeItem[] = [];
-    let workspaceConfig: WorkspaceConfiguration;
     context.telemetry.properties.deployedWithConfigs = 'false';
+    context.fsPath = await getDeployFsPath(target);
 
     if (target instanceof Uri) {
         context.fsPath = target.fsPath;
@@ -40,6 +42,11 @@ export async function deploy(context: IDeployWizardContext, confirmDeployment: b
     } else {
         context.telemetry.properties.deploymentEntryPoint = target ? 'webAppContextMenu' : 'deployButton';
         node = target;
+    }
+
+    const workspaceFolder: WorkspaceFolder | undefined = workspaceUtil.getContainingWorkspace(context.fsPath);
+    if (!workspaceFolder) {
+        throw new Error('Failed to deploy because the path is not part of an open workspace. Open in a workspace and try again.');
     }
 
     let siteConfig: WebSiteModels.SiteConfigResource | undefined;
@@ -106,14 +113,12 @@ export async function deploy(context: IDeployWizardContext, confirmDeployment: b
         await javaUtils.configureJavaSEAppSettings(node);
     }
 
-    workspaceConfig = workspace.getConfiguration(constants.extensionPrefix, Uri.file(context.fsPath));
-
     const currentWorkspace: WorkspaceFolder | undefined = workspaceUtil.getContainingWorkspace(context.fsPath);
     if (currentWorkspace && (isPathEqual(currentWorkspace.uri.fsPath, context.fsPath) || isSubpath(currentWorkspace.uri.fsPath, context.fsPath))) {
         // currentWorkspace is only set if there is one active workspace
         // only check enableScmDoBuildDuringDeploy if currentWorkspace matches the workspace being deployed as a user can "Browse" to a different project
         // tslint:disable-next-line: strict-boolean-expressions
-        if (workspaceConfig.get(constants.configurationSettings.showBuildDuringDeployPrompt)) {
+        if (getWorkspaceSetting(constants.configurationSettings.showBuildDuringDeployPrompt, context.fsPath)) {
             //check if node is being zipdeployed and that there is no .deployment file in the root folder
             if (siteConfig.linuxFxVersion && siteConfig.scmType === 'None' && !(await pathExists(path.join(currentWorkspace.uri.fsPath, constants.deploymentFileName)))) {
                 const linuxFxVersion: string = siteConfig.linuxFxVersion.toLowerCase();
@@ -152,7 +157,7 @@ export async function deploy(context: IDeployWizardContext, confirmDeployment: b
                 window.showTextDocument(doc);
             }
 
-            await workspaceConfig.update(constants.configurationSettings.defaultWebAppToDeploy, '', context.configurationTarget);
+            await updateWorkspaceSetting(constants.configurationSettings.defaultWebAppToDeploy, '', context.fsPath);
 
             // If resetDefault button was clicked we ask what and where to deploy again
             await commands.executeCommand('appService.Deploy');
@@ -163,7 +168,7 @@ export async function deploy(context: IDeployWizardContext, confirmDeployment: b
 
     if (!context.deployedWithConfigs && currentWorkspace && (isPathEqual(currentWorkspace.uri.fsPath, context.fsPath) || isSubpath(currentWorkspace.uri.fsPath, context.fsPath))) {
         // tslint:disable-next-line:no-floating-promises
-        node.promptToSaveDeployDefaults(currentWorkspace.uri.fsPath, context.fsPath, context);
+        node.promptToSaveDeployDefaults(currentWorkspace.uri.fsPath, context);
     }
     if (siteConfig.linuxFxVersion && siteConfig.linuxFxVersion.toLowerCase().includes('dotnet')) {
         await setPreDeployTaskForDotnet(context);

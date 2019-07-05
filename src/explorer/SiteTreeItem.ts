@@ -6,13 +6,14 @@
 import * as WebSiteModels from 'azure-arm-website/lib/models';
 import * as fse from 'fs-extra';
 import * as path from 'path';
-import { MessageItem, Uri, window, workspace, WorkspaceConfiguration } from 'vscode';
+import { MessageItem, Uri, window, workspace } from 'vscode';
 import { AppSettingsTreeItem, AppSettingTreeItem, deleteSite, DeploymentsTreeItem, DeploymentTreeItem, ISiteTreeRoot, LinuxRuntimes, SiteClient } from 'vscode-azureappservice';
 import { AzExtTreeItem, AzureParentTreeItem, AzureTreeItem, DialogResponses, IActionContext } from 'vscode-azureextensionui';
 import { toggleValueVisibilityCommandId } from '../constants';
 import * as constants from '../constants';
 import { ext } from '../extensionVariables';
 import { openUrl } from '../utils/openUrl';
+import { updateWorkspaceSetting } from '../vsCodeConfig/settings';
 import { ConnectionsTreeItem } from './ConnectionsTreeItem';
 import { CosmosDBConnection } from './CosmosDBConnection';
 import { CosmosDBTreeItem } from './CosmosDBTreeItem';
@@ -165,7 +166,7 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
             await this.enableScmDoBuildDuringDeploy(fsPath, runtime);
             context.telemetry.properties.enableScmInput = "Yes";
         } else {
-            workspace.getConfiguration(constants.extensionPrefix, Uri.file(fsPath)).update(constants.configurationSettings.showBuildDuringDeployPrompt, false);
+            await updateWorkspaceSetting(constants.configurationSettings.showBuildDuringDeployPrompt, false, fsPath);
             context.telemetry.properties.enableScmInput = "No, and don't show again";
         }
 
@@ -189,21 +190,19 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
                 newSettings.push(folder);
             }
         }
-        workspace.getConfiguration(constants.extensionPrefix, Uri.file(fsPath)).update(constants.configurationSettings.zipIgnorePattern, newSettings);
+        await updateWorkspaceSetting(constants.configurationSettings.zipIgnorePattern, newSettings, fsPath);
         await fse.writeFile(path.join(fsPath, constants.deploymentFileName), constants.deploymentFile);
     }
 
-    public async promptToSaveDeployDefaults(workspacePath: string, deployPath: string, context: IActionContext): Promise<void> {
+    public async promptToSaveDeployDefaults(workspacePath: string, context: IActionContext): Promise<void> {
         const saveDeploymentConfig: string = `Always deploy the workspace "${path.basename(workspacePath)}" to "${this.root.client.fullName}"?`;
         const dontShowAgain: MessageItem = { title: "Don't show again" };
-        const workspaceConfiguration: WorkspaceConfiguration = workspace.getConfiguration(constants.extensionPrefix, Uri.file(deployPath));
         const result: MessageItem = await ext.ui.showWarningMessage(saveDeploymentConfig, DialogResponses.yes, dontShowAgain, DialogResponses.skipForNow);
         if (result === DialogResponses.yes) {
-            workspaceConfiguration.update(constants.configurationSettings.defaultWebAppToDeploy, this.fullId);
-            workspaceConfiguration.update(constants.configurationSettings.deploySubpath, path.relative(workspacePath, deployPath)); // '' is a falsey value
+            await updateWorkspaceSetting(constants.configurationSettings.defaultWebAppToDeploy, this.fullId, workspacePath);
             context.telemetry.properties.promptToSaveDeployConfigs = 'Yes';
         } else if (result === dontShowAgain) {
-            workspaceConfiguration.update(constants.configurationSettings.defaultWebAppToDeploy, constants.none);
+            await updateWorkspaceSetting(constants.configurationSettings.defaultWebAppToDeploy, constants.none, workspacePath);
             context.telemetry.properties.promptToSaveDeployConfigs = "Don't show again";
         } else {
             context.telemetry.properties.promptToSaveDeployConfigs = 'Skip for now';

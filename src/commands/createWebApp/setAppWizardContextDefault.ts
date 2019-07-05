@@ -5,12 +5,13 @@
 
 import * as fse from 'fs-extra';
 import * as path from 'path';
-import { ConfigurationTarget, workspace, WorkspaceConfiguration, WorkspaceFolder } from 'vscode';
+import { ConfigurationTarget, workspace, WorkspaceFolder } from 'vscode';
 import { IAppServiceWizardContext, LinuxRuntimes, WebsiteOS } from 'vscode-azureappservice';
 import { IActionContext, LocationListStep } from 'vscode-azureextensionui';
-import { configurationSettings, extensionPrefix } from '../../constants';
+import { configurationSettings } from '../../constants';
 import { javaUtils } from '../../utils/javaUtils';
 import { findFilesByFileExtension, getContainingWorkspace } from '../../utils/workspace';
+import { getGlobalSetting } from '../../vsCodeConfig/settings';
 
 export interface IDeployWizardContext extends IActionContext {
     fsPath?: string;
@@ -35,6 +36,9 @@ export async function setAppWizardContextDefault(wizardContext: IAppServiceWizar
             // requirements.txt are used to pip install so a good way to determine it's a Python app
             wizardContext.recommendedSiteRuntime = [LinuxRuntimes.python];
 
+        } else if ((await findFilesByFileExtension(fsPath, 'csproj')).length > 0) {
+            // wizardContext.recommendedSiteRuntime = ['dotnet'];
+
         } else if (await javaUtils.isJavaProject(fsPath)) {
             wizardContext.recommendedSiteRuntime = [
                 LinuxRuntimes.java,
@@ -49,8 +53,7 @@ export async function setAppWizardContextDefault(wizardContext: IAppServiceWizar
         }
     }
 
-    const workspaceConfig: WorkspaceConfiguration = workspace.getConfiguration(extensionPrefix);
-    const advancedCreation: boolean | undefined = workspaceConfig.get(configurationSettings.advancedCreation);
+    const advancedCreation: boolean | undefined = getGlobalSetting(configurationSettings.advancedCreation);
 
     if (!advancedCreation) {
         if (!wizardContext.location) {
@@ -62,13 +65,9 @@ export async function setAppWizardContextDefault(wizardContext: IAppServiceWizar
             wizardContext.newPlanSku = { name: 'F1', tier: 'Free', size: 'F1', family: 'F', capacity: 1 };
         }
 
-        // if we are recommending a runtime, then it is either Nodejs, Python, or Java which all use Linux
+        // if we are recommending a runtime, then it is either Nodejs, Python, .NET, or Java which all use Linux
         if (wizardContext.recommendedSiteRuntime) {
             wizardContext.newSiteOS = WebsiteOS.linux;
-        } else {
-            if (workspaceForRecommendation && (await findFilesByFileExtension(workspaceForRecommendation.uri.fsPath, 'csproj')).length > 0) {
-                wizardContext.newSiteOS = WebsiteOS.windows;
-            }
         }
     }
 }

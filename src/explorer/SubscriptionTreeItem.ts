@@ -5,7 +5,6 @@
 
 import { WebSiteManagementClient } from 'azure-arm-website';
 import { Site, WebAppCollection } from 'azure-arm-website/lib/models';
-import { ConfigurationTarget, workspace, WorkspaceConfiguration } from 'vscode';
 import { AppKind, AppServicePlanCreateStep, AppServicePlanListStep, IAppServiceWizardContext, SiteClient, SiteCreateStep, SiteNameStep, SiteOSStep, SiteRuntimeStep } from 'vscode-azureappservice';
 import { AzExtTreeItem, AzureTreeItem, AzureWizard, AzureWizardExecuteStep, AzureWizardPromptStep, createAzureClient, ICreateChildImplContext, parseError, ResourceGroupCreateStep, ResourceGroupListStep, SubscriptionTreeItemBase } from 'vscode-azureextensionui';
 import { setAppWizardContextDefault } from '../commands/createWebApp/setAppWizardContextDefault';
@@ -13,6 +12,7 @@ import { setDefaultRgAndPlanName } from '../commands/createWebApp/setDefaultRgAn
 import { AppServiceDialogResponses, configurationSettings, extensionPrefix } from '../constants';
 import { ext } from '../extensionVariables';
 import { nonNullProp } from '../utils/nonNull';
+import { getGlobalSetting, updateGlobalSetting } from '../vsCodeConfig/settings';
 import { WebAppTreeItem } from './WebAppTreeItem';
 
 export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
@@ -75,8 +75,7 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
         const siteStep: SiteNameStep = new SiteNameStep();
         promptSteps.push(siteStep);
 
-        const workspaceConfig: WorkspaceConfiguration = workspace.getConfiguration(extensionPrefix);
-        const advancedCreation: boolean | undefined = workspaceConfig.get(configurationSettings.advancedCreation);
+        const advancedCreation: boolean | undefined = getGlobalSetting(configurationSettings.advancedCreation);
         if (advancedCreation) {
             promptSteps.push(new ResourceGroupListStep());
             promptSteps.push(new SiteOSStep());
@@ -116,7 +115,7 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
                 // tslint:disable-next-line: no-floating-promises
                 ext.ui.showWarningMessage(message, AppServiceDialogResponses.turnOnAdvancedCreation).then(async result => {
                     if (result === AppServiceDialogResponses.turnOnAdvancedCreation) {
-                        await workspaceConfig.update('advancedCreation', true, ConfigurationTarget.Global);
+                        await updateGlobalSetting('advancedCreation', true);
                     }
                 });
             }

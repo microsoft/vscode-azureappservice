@@ -6,12 +6,13 @@
 import { Location } from "azure-arm-resource/lib/subscription/models";
 import WebSiteManagementClient from "azure-arm-website";
 import { AppServicePlan } from "azure-arm-website/lib/models";
-import { ConfigurationTarget, MessageItem, workspace, WorkspaceConfiguration } from "vscode";
+import { MessageItem, workspace, WorkspaceConfiguration } from "vscode";
 import { IAppServiceWizardContext, SiteNameStep, WebsiteOS } from "vscode-azureappservice";
 import { createAzureClient, DialogResponses, IActionContext, UserCancelledError } from "vscode-azureextensionui";
-import { AppServiceDialogResponses, extensionPrefix } from "../../constants";
+import { AppServiceDialogResponses, configurationSettings, extensionPrefix } from "../../constants";
 import { ext } from "../../extensionVariables";
 import { nonNullProp } from "../../utils/nonNull";
+import { updateGlobalSetting } from "../../vsCodeConfig/settings";
 
 const maxNumberOfSites: number = 3;
 
@@ -91,12 +92,12 @@ async function promptPerformanceWarning(context: IActionContext, asp: AppService
         const input: MessageItem = await ext.ui.showWarningMessage(`The selected plan currently has ${numberOfSites} apps. Deploying more than ${maxNumberOfSites} apps may degrade the performance on the apps in the plan.`, { modal: true }, ...inputs);
 
         if (input === AppServiceDialogResponses.turnOnAdvancedCreation) {
-            await workspaceConfig.update('advancedCreation', true, ConfigurationTarget.Global);
+            await updateGlobalSetting(configurationSettings.advancedCreation, true);
             context.telemetry.properties.cancelStep = AppServiceDialogResponses.turnOnAdvancedCreation.title;
             throw new UserCancelledError();
         } else if (input === DialogResponses.dontWarnAgain) {
             context.telemetry.properties.turnOffPerfWarning = 'true';
-            workspaceConfig.update(showPlanPerformanceWarningSetting, false, ConfigurationTarget.Global);
+            await updateGlobalSetting(showPlanPerformanceWarningSetting, false);
         }
         context.telemetry.properties.cancelStep = '';
     }

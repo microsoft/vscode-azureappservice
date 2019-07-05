@@ -4,28 +4,31 @@
 *--------------------------------------------------------------------------------------------*/
 
 import * as path from 'path';
-import { QuickPickItem, TextDocument, workspace, WorkspaceConfiguration, WorkspaceFolder } from 'vscode';
+import { QuickPickItem, TextDocument, workspace, WorkspaceFolder } from 'vscode';
 import { ext } from 'vscode-azureappservice/out/src/extensionVariables';
-import * as constants from '../constants';
-import { nonNullProp } from '../utils/nonNull';
-import * as tasks from '../utils/tasks';
-import * as workspaceUtil from '../utils/workspace';
-import { IDeployWizardContext } from "./createWebApp/setAppWizardContextDefault";
+import * as constants from '../../constants';
+import { nonNullProp } from '../../utils/nonNull';
+import * as workspaceUtil from '../../utils/workspace';
+import { getWorkspaceSetting, updateWorkspaceSetting } from '../../vsCodeConfig/settings';
+import * as tasks from '../../vsCodeConfig/tasks';
+import { IDeployWizardContext } from "../createWebApp/setAppWizardContextDefault";
 
 export async function setPreDeployTaskForDotnet(context: IDeployWizardContext): Promise<void> {
-    const workspaceConfig: WorkspaceConfiguration = workspace.getConfiguration(constants.extensionPrefix);
     const fsPath: string = nonNullProp(context, 'fsPath');
     const currentWorkspace: WorkspaceFolder | undefined = workspaceUtil.getContainingWorkspace(fsPath);
-    const dotnetOutputPath: string = 'publish';
+    // follow the publish output patterns, but leaveout tfw
+    const dotnetOutputPath: string = path.join('bin', 'Debug', 'publish');
 
-    if (!currentWorkspace) {
-        // if the workspace they are deploying is not opened, return and do nothing
+    // tslint:disable-next-line: strict-boolean-expressions
+    if (!currentWorkspace || !getWorkspaceSetting('configurePreDeployTasks', currentWorkspace.uri.fsPath)) {
+        // if the workspace being deployed is not opened, return and do nothing
         return;
     }
 
     const csProj = await workspaceUtil.findFilesByFileExtension(currentWorkspace.uri.fsPath, 'csproj');
     if (csProj.length > 0) {
-        if (workspaceConfig.get(constants.configurationSettings.preDeployTask) !== 'publish') {
+        // if a publish task is already defined, then assume that we don't need this logic
+        if (getWorkspaceSetting(constants.configurationSettings.preDeployTask, currentWorkspace.uri.fsPath) !== 'publish') {
             // if this doesn't have the publish preDeployTask, configure for .NET depoyment
             const csProjDoc: TextDocument = await workspace.openTextDocument(csProj[0]);
             const csProjJson: string = csProjDoc.getText();
@@ -52,18 +55,23 @@ export async function setPreDeployTaskForDotnet(context: IDeployWizardContext): 
                 }
             }
 
-            await workspaceConfig.update(constants.configurationSettings.preDeployTask, 'publish');
+            await updateWorkspaceSetting(constants.configurationSettings.preDeployTask, 'publish', currentWorkspace.uri.fsPath);
+            await updateWorkspaceSetting(constants.configurationSettings.deploySubpath, dotnetOutputPath, currentWorkspace.uri.fsPath);
 
             const publishCommand: string = `dotnet publish -o ${dotnetOutputPath}${framework ? ` -f ${framework}` : ''}`;
             const publishTask: tasks.ITask[] = [{
+                label: 'clean',
+                command: 'dotnet clean',
+                type: 'shell'
+            },
+            {
                 label: 'publish',
                 command: publishCommand,
-                type: 'shell'
+                type: 'shell',
+                dependsOn: 'clean'
             }];
 
             tasks.updateTasks(currentWorkspace, publishTask);
         }
-        // set the deployment path to be the published bits
-        context.fsPath = path.join(currentWorkspace.uri.fsPath, dotnetOutputPath);
     }
 }
