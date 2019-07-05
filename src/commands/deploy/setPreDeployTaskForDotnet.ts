@@ -7,7 +7,7 @@ import * as path from 'path';
 import { QuickPickItem, TextDocument, workspace, WorkspaceFolder } from 'vscode';
 import { ext } from 'vscode-azureappservice/out/src/extensionVariables';
 import * as constants from '../../constants';
-import { nonNullProp } from '../../utils/nonNull';
+import { nonNullProp, nonNullValue } from '../../utils/nonNull';
 import * as workspaceUtil from '../../utils/workspace';
 import { getWorkspaceSetting, updateWorkspaceSetting } from '../../vsCodeConfig/settings';
 import * as tasks from '../../vsCodeConfig/tasks';
@@ -15,13 +15,11 @@ import { IDeployWizardContext } from "../createWebApp/setAppWizardContextDefault
 
 export async function setPreDeployTaskForDotnet(context: IDeployWizardContext): Promise<void> {
     const fsPath: string = nonNullProp(context, 'fsPath');
-    const currentWorkspace: WorkspaceFolder | undefined = workspaceUtil.getContainingWorkspace(fsPath);
-    // follow the publish output patterns, but leaveout tfw
+    const currentWorkspace: WorkspaceFolder | undefined = nonNullValue(workspaceUtil.getContainingWorkspace(fsPath));
+    // follow the publish output patterns, but leave out tfw
     const dotnetOutputPath: string = path.join('bin', 'Debug', 'publish');
 
-    // tslint:disable-next-line: strict-boolean-expressions
-    if (!currentWorkspace || !getWorkspaceSetting('configurePreDeployTasks', currentWorkspace.uri.fsPath)) {
-        // if the workspace being deployed is not opened, return and do nothing
+    if (!getWorkspaceSetting('configurePreDeployTasks', currentWorkspace.uri.fsPath)) {
         return;
     }
 

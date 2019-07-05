@@ -44,8 +44,8 @@ export async function deploy(context: IDeployWizardContext, confirmDeployment: b
         node = target;
     }
 
-    const workspaceFolder: WorkspaceFolder | undefined = workspaceUtil.getContainingWorkspace(context.fsPath);
-    if (!workspaceFolder) {
+    const currentWorkspace: WorkspaceFolder | undefined = workspaceUtil.getContainingWorkspace(context.fsPath);
+    if (!currentWorkspace) {
         throw new Error('Failed to deploy because the path is not part of an open workspace. Open in a workspace and try again.');
     }
 
@@ -113,7 +113,6 @@ export async function deploy(context: IDeployWizardContext, confirmDeployment: b
         await javaUtils.configureJavaSEAppSettings(node);
     }
 
-    const currentWorkspace: WorkspaceFolder | undefined = workspaceUtil.getContainingWorkspace(context.fsPath);
     if (currentWorkspace && (isPathEqual(currentWorkspace.uri.fsPath, context.fsPath) || isSubpath(currentWorkspace.uri.fsPath, context.fsPath))) {
         // currentWorkspace is only set if there is one active workspace
         // only check enableScmDoBuildDuringDeploy if currentWorkspace matches the workspace being deployed as a user can "Browse" to a different project
