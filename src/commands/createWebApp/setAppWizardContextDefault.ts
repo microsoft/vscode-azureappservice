@@ -10,24 +10,25 @@ import { IAppServiceWizardContext, LinuxRuntimes, WebsiteOS } from 'vscode-azure
 import { IActionContext, LocationListStep } from 'vscode-azureextensionui';
 import { configurationSettings } from '../../constants';
 import { javaUtils } from '../../utils/javaUtils';
-import { findFilesByFileExtension, getContainingWorkspace } from '../../utils/workspace';
-import { getGlobalSetting } from '../../vsCodeConfig/settings';
+import { findFilesByFileExtension } from '../../utils/workspace';
+import { getWorkspaceSetting } from '../../vsCodeConfig/settings';
 
 export interface IDeployWizardContext extends IActionContext {
-    fsPath?: string;
+    workspace: WorkspaceFolder;
     deployedWithConfigs?: boolean;
     configurationTarget?: ConfigurationTarget;
 }
 
-export async function setAppWizardContextDefault(wizardContext: IAppServiceWizardContext & IDeployWizardContext): Promise<void> {
+export async function setAppWizardContextDefault(wizardContext: IAppServiceWizardContext, deployedWorkspace?: WorkspaceFolder): Promise<void> {
     // if the user entered through "Deploy", we'll have a project to base our recommendations on
     // otherwise, look at their current workspace and only suggest if one workspace is opened
-    const workspaceForRecommendation: WorkspaceFolder | undefined = wizardContext.fsPath ?
-        getContainingWorkspace(wizardContext.fsPath) : workspace.workspaceFolders && workspace.workspaceFolders.length === 1 ?
+    const workspaceForRecommendation: WorkspaceFolder | undefined = deployedWorkspace ?
+        deployedWorkspace : workspace.workspaceFolders && workspace.workspaceFolders.length === 1 ?
             workspace.workspaceFolders[0] : undefined;
+    let fsPath: string | undefined;
 
     if (workspaceForRecommendation) {
-        const fsPath: string = workspaceForRecommendation.uri.fsPath;
+        fsPath = workspaceForRecommendation.uri.fsPath;
 
         if (await fse.pathExists(path.join(fsPath, 'package.json'))) {
             wizardContext.recommendedSiteRuntime = [LinuxRuntimes.node];
@@ -53,7 +54,7 @@ export async function setAppWizardContextDefault(wizardContext: IAppServiceWizar
         }
     }
 
-    const advancedCreation: boolean | undefined = getGlobalSetting(configurationSettings.advancedCreation);
+    const advancedCreation: boolean | undefined = getWorkspaceSetting(configurationSettings.advancedCreation, fsPath);
 
     if (!advancedCreation) {
         if (!wizardContext.location) {

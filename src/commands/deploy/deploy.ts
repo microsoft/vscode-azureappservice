@@ -9,13 +9,12 @@ import { pathExists } from 'fs-extra';
 import * as path from 'path';
 import { commands, ConfigurationTarget, Disposable, MessageItem, Uri, window, workspace, WorkspaceFolder } from 'vscode';
 import * as appservice from 'vscode-azureappservice';
-import { DialogResponses, IAzureQuickPickItem, parseError } from 'vscode-azureextensionui';
+import { DialogResponses, parseError } from 'vscode-azureextensionui';
 import * as constants from '../../constants';
 import { SiteTreeItem } from '../../explorer/SiteTreeItem';
 import { WebAppTreeItem } from '../../explorer/WebAppTreeItem';
 import { ext } from '../../extensionVariables';
 import { delay } from '../../utils/delay';
-import { javaUtils } from '../../utils/javaUtils';
 import { nonNullValue } from '../../utils/nonNull';
 import { isPathEqual, isSubpath } from '../../utils/pathUtils';
 import { getRandomHexString } from "../../utils/randomUtils";
@@ -34,34 +33,14 @@ export async function deploy(context: IDeployWizardContext, confirmDeployment: b
     let node: SiteTreeItem | undefined;
     const newNodes: SiteTreeItem[] = [];
     context.telemetry.properties.deployedWithConfigs = 'false';
-    context.fsPath = await getDeployFsPath(target);
+    const fsPath: string = await getDeployFsPath(context, target);
 
-    if (target instanceof Uri) {
-        context.fsPath = target.fsPath;
-        context.telemetry.properties.deploymentEntryPoint = 'fileExplorerContextMenu';
-    } else {
-        context.telemetry.properties.deploymentEntryPoint = target ? 'webAppContextMenu' : 'deployButton';
-        node = target;
-    }
-
-    const currentWorkspace: WorkspaceFolder | undefined = workspaceUtil.getContainingWorkspace(context.fsPath);
+    const currentWorkspace: WorkspaceFolder | undefined = workspaceUtil.getContainingWorkspace(fsPath);
     if (!currentWorkspace) {
         throw new Error('Failed to deploy because the path is not part of an open workspace. Open in a workspace and try again.');
     }
 
-    let siteConfig: WebSiteModels.SiteConfigResource | undefined;
-
-    if (!context.fsPath) {
-        // we can only get the siteConfig if the entry point was a treeItem
-        siteConfig = node ? await node.root.client.getSiteConfig() : undefined;
-
-        if (siteConfig && javaUtils.isJavaRuntime(siteConfig.linuxFxVersion)) {
-            const fileExtension: string = javaUtils.getArtifactTypeByJavaRuntime(siteConfig.linuxFxVersion);
-            context.fsPath = await workspaceUtil.showWorkspaceFolders(`Select the ${fileExtension} file to deploy...`, context, constants.configurationSettings.deploySubpath, fileExtension);
-        } else {
-            context.fsPath = await workspaceUtil.showWorkspaceFolders("Select the folder to deploy", context, constants.configurationSettings.deploySubpath);
-        }
-    }
+    context.workspace = currentWorkspace;
 
     if (!node) {
         const onTreeItemCreatedFromQuickPickDisposable: Disposable = ext.tree.onTreeItemCreate((newNode: SiteTreeItem) => {
@@ -101,34 +80,21 @@ export async function deploy(context: IDeployWizardContext, confirmDeployment: b
     const correlationId = getRandomHexString();
     context.telemetry.properties.correlationId = correlationId;
 
-    siteConfig = siteConfig ? siteConfig : await node.root.client.getSiteConfig();
+    const siteConfig: WebSiteModels.SiteConfigResource = await node.root.client.getSiteConfig();
 
-    if (javaUtils.isJavaRuntime(siteConfig.linuxFxVersion)) {
-        const javaArtifactFiles: Uri[] = await workspaceUtil.findFilesByFileExtension(context.fsPath, javaUtils.getArtifactTypeByJavaRuntime(siteConfig.linuxFxVersion));
-        if (javaArtifactFiles.length > 0) {
-            const javaArtifactQp: IAzureQuickPickItem<string>[] = workspaceUtil.mapFilesToQuickPickItems(javaArtifactFiles);
-            // check if there is a jar/war file in the fsPath that was provided
-            context.fsPath = <string>(await ext.ui.showQuickPick(javaArtifactQp, { placeHolder: `Select the ${javaUtils.getArtifactTypeByJavaRuntime(siteConfig.linuxFxVersion)} file to deploy...` })).data;
-        }
-        await javaUtils.configureJavaSEAppSettings(node);
-    }
-
-    if (currentWorkspace && (isPathEqual(currentWorkspace.uri.fsPath, context.fsPath) || isSubpath(currentWorkspace.uri.fsPath, context.fsPath))) {
-        // currentWorkspace is only set if there is one active workspace
-        // only check enableScmDoBuildDuringDeploy if currentWorkspace matches the workspace being deployed as a user can "Browse" to a different project
-        // tslint:disable-next-line: strict-boolean-expressions
-        if (getWorkspaceSetting(constants.configurationSettings.showBuildDuringDeployPrompt, context.fsPath)) {
-            //check if node is being zipdeployed and that there is no .deployment file in the root folder
-            if (siteConfig.linuxFxVersion && siteConfig.scmType === 'None' && !(await pathExists(path.join(currentWorkspace.uri.fsPath, constants.deploymentFileName)))) {
-                const linuxFxVersion: string = siteConfig.linuxFxVersion.toLowerCase();
-                if (linuxFxVersion.startsWith(appservice.LinuxRuntimes.node)) {
-                    // if it is node or python, prompt the user (as we can break them)
-                    await node.promptScmDoBuildDeploy(context.fsPath, appservice.LinuxRuntimes.node, context);
-                } else if (linuxFxVersion.startsWith(appservice.LinuxRuntimes.python)) {
-                    await node.promptScmDoBuildDeploy(context.fsPath, appservice.LinuxRuntimes.python, context);
-                }
-
+    // currentWorkspace is only set if there is one active workspace
+    // only check enableScmDoBuildDuringDeploy if currentWorkspace matches the workspace being deployed as a user can "Browse" to a different project
+    if (getWorkspaceSetting<boolean>(constants.configurationSettings.showBuildDuringDeployPrompt, context.workspace.uri.fsPath)) {
+        //check if node is being zipdeployed and that there is no .deployment file in the root folder
+        if (siteConfig.linuxFxVersion && siteConfig.scmType === 'None' && !(await pathExists(path.join(currentWorkspace.uri.fsPath, constants.deploymentFileName)))) {
+            const linuxFxVersion: string = siteConfig.linuxFxVersion.toLowerCase();
+            if (linuxFxVersion.startsWith(appservice.LinuxRuntimes.node)) {
+                // if it is node or python, prompt the user (as we can break them)
+                await node.promptScmDoBuildDeploy(context.workspace.uri.fsPath, appservice.LinuxRuntimes.node, context);
+            } else if (linuxFxVersion.startsWith(appservice.LinuxRuntimes.python)) {
+                await node.promptScmDoBuildDeploy(context.workspace.uri.fsPath, appservice.LinuxRuntimes.python, context);
             }
+
         }
     }
 
@@ -150,13 +116,13 @@ export async function deploy(context: IDeployWizardContext, confirmDeployment: b
             if (context.configurationTarget === ConfigurationTarget.Global) {
                 await commands.executeCommand('workbench.action.openGlobalSettings');
             } else {
-                const localRootPath = nonNullValue(currentWorkspace).uri.fsPath;
+                const localRootPath = context.workspace.uri.fsPath;
                 const settingsPath = path.join(localRootPath, '.vscode', 'settings.json');
                 const doc = await workspace.openTextDocument(Uri.file(settingsPath));
                 window.showTextDocument(doc);
             }
 
-            await updateWorkspaceSetting(constants.configurationSettings.defaultWebAppToDeploy, '', context.fsPath);
+            await updateWorkspaceSetting(constants.configurationSettings.defaultWebAppToDeploy, '', context.workspace.uri.fsPath);
 
             // If resetDefault button was clicked we ask what and where to deploy again
             await commands.executeCommand('appService.Deploy');
@@ -165,7 +131,7 @@ export async function deploy(context: IDeployWizardContext, confirmDeployment: b
         context.telemetry.properties.cancelStep = '';
     }
 
-    if (!context.deployedWithConfigs && currentWorkspace && (isPathEqual(currentWorkspace.uri.fsPath, context.fsPath) || isSubpath(currentWorkspace.uri.fsPath, context.fsPath))) {
+    if (!context.deployedWithConfigs && (isPathEqual(currentWorkspace.uri.fsPath, context.workspace.uri.fsPath) || isSubpath(currentWorkspace.uri.fsPath, context.workspace.uri.fsPath))) {
         // tslint:disable-next-line:no-floating-promises
         node.promptToSaveDeployDefaults(currentWorkspace.uri.fsPath, context);
     }
@@ -173,11 +139,11 @@ export async function deploy(context: IDeployWizardContext, confirmDeployment: b
         await setPreDeployTaskForDotnet(context);
     }
 
-    await appservice.runPreDeployTask(context, context.fsPath, siteConfig.scmType, constants.extensionPrefix);
+    await appservice.runPreDeployTask(context, context.workspace.uri.fsPath, siteConfig.scmType, constants.extensionPrefix);
 
     cancelWebsiteValidation(node);
     await node.runWithTemporaryDescription("Deploying...", async () => {
-        await appservice.deploy(nonNullValue(node).root.client, <string>context.fsPath, context, constants.showOutputChannelCommandId);
+        await appservice.deploy(nonNullValue(node).root.client, <string>context.workspace.uri.fsPath, context, constants.showOutputChannelCommandId);
     });
 
     const deployComplete: string = `Deployment to "${node.root.client.fullName}" completed.`;

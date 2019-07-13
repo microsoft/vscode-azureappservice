@@ -18,6 +18,7 @@ import { revealConnection } from './commands/connections/revealConnection';
 import { revealConnectionInAppSettings } from './commands/connections/revealConnectionInAppSettings';
 import { createSlot } from './commands/createSlot';
 import { createWebApp } from './commands/createWebApp/createWebApp';
+import { IDeployWizardContext } from './commands/createWebApp/setAppWizardContextDefault';
 import { deploy } from './commands/deploy/deploy';
 import { connectToGitHub } from './commands/deployments/connectToGitHub';
 import { disconnectRepo } from './commands/deployments/disconnectRepo';
@@ -181,7 +182,7 @@ export async function activateInternal(
             await node.deleteTreeItem(actionContext);
         });
         registerCommand('appService.CreateWebApp', createWebApp);
-        registerCommand('appService.Deploy', async (actionContext: IActionContext, target?: vscode.Uri | WebAppTreeItem | undefined) => {
+        registerCommand('appService.Deploy', async (actionContext: IDeployWizardContext, target?: vscode.Uri | WebAppTreeItem | undefined) => {
             await deploy(actionContext, true, target);
         });
         registerCommand('appService.ConfigureDeploymentSource', editScmType);
@@ -203,7 +204,7 @@ export async function activateInternal(
             });
         });
         registerCommand('appService.CreateSlot', createSlot);
-        registerCommand('appService.DeploySlot', async (actionContext: IActionContext, node?: DeploymentSlotTreeItem | ScaleUpTreeItem | undefined) => {
+        registerCommand('appService.DeploySlot', async (actionContext: IDeployWizardContext, node?: DeploymentSlotTreeItem | ScaleUpTreeItem | undefined) => {
             if (!node) {
                 node = <DeploymentSlotTreeItem | ScaleUpTreeItem>await ext.tree.showTreeItemPicker([DeploymentSlotTreeItem.contextValue, ScaleUpTreeItem.contextValue], actionContext);
             }

@@ -4,59 +4,35 @@
 *--------------------------------------------------------------------------------------------*/
 
 import * as path from 'path';
-import { QuickPickItem, TextDocument, workspace, WorkspaceFolder } from 'vscode';
-import { ext } from 'vscode-azureappservice/out/src/extensionVariables';
+import { window } from 'vscode';
+import { DialogResponses, IActionContext } from 'vscode-azureextensionui';
 import * as constants from '../../constants';
-import { nonNullProp, nonNullValue } from '../../utils/nonNull';
+import { cpUtils } from '../../utils/cpUtils';
+import { openUrl } from '../../utils/openUrl';
 import * as workspaceUtil from '../../utils/workspace';
 import { getWorkspaceSetting, updateWorkspaceSetting } from '../../vsCodeConfig/settings';
 import * as tasks from '../../vsCodeConfig/tasks';
 import { IDeployWizardContext } from "../createWebApp/setAppWizardContextDefault";
 
 export async function setPreDeployTaskForDotnet(context: IDeployWizardContext): Promise<void> {
-    const fsPath: string = nonNullProp(context, 'fsPath');
-    const currentWorkspace: WorkspaceFolder | undefined = nonNullValue(workspaceUtil.getContainingWorkspace(fsPath));
+    await validateDotnetInstalled(context);
     // follow the publish output patterns, but leave out tfw
     const dotnetOutputPath: string = path.join('bin', 'Debug', 'publish');
 
-    if (!getWorkspaceSetting('configurePreDeployTasks', currentWorkspace.uri.fsPath)) {
+    if (!getWorkspaceSetting<boolean>('configurePreDeployTasks', context.workspace.uri.fsPath)) {
         return;
     }
 
-    const csProj = await workspaceUtil.findFilesByFileExtension(currentWorkspace.uri.fsPath, 'csproj');
+    const csProj = await workspaceUtil.findFilesByFileExtension(context.workspace.uri.fsPath, 'csproj');
     if (csProj.length > 0) {
         // if a publish task is already defined, then assume that we don't need this logic
-        if (getWorkspaceSetting(constants.configurationSettings.preDeployTask, currentWorkspace.uri.fsPath) !== 'publish') {
+        if (!getWorkspaceSetting<string>(constants.configurationSettings.preDeployTask, context.workspace.uri.fsPath)) {
             // if this doesn't have the publish preDeployTask, configure for .NET depoyment
-            const csProjDoc: TextDocument = await workspace.openTextDocument(csProj[0]);
-            const csProjJson: string = csProjDoc.getText();
 
-            const tfw: string = 'TargetFrameworks';
-            const tfwRegExp: RegExp = new RegExp(`(?:<${tfw}.*>)(.*?)(?:<\/${tfw}*.>)`, 'ig'); //set ig flag for global search and case insensitive
-            const tfwMatches: string[] | null = tfwRegExp.exec(csProjJson);
-            let framework: string | undefined;
+            await updateWorkspaceSetting(constants.configurationSettings.preDeployTask, 'publish', context.workspace.uri.fsPath);
+            await updateWorkspaceSetting(constants.configurationSettings.deploySubpath, dotnetOutputPath, context.workspace.uri.fsPath);
 
-            if (tfwMatches) {
-                // framworks are separated by a ";" if there are multiple listed
-                const frameworks: string[] = tfwMatches[1].split(';');
-
-                if (frameworks.length > 1) {
-                    const frameworksQuickPick: QuickPickItem[] = frameworks.map((fw: string) => {
-                        return {
-                            label: fw
-                        };
-                    });
-                    framework = (await ext.ui.showQuickPick(frameworksQuickPick, { placeHolder: 'Select a target framework for your .NET project' })).label;
-                } else {
-                    // <TargetFrameworks> is used for indicating there are multiple, but if there is only one, use that
-                    framework = frameworks[0];
-                }
-            }
-
-            await updateWorkspaceSetting(constants.configurationSettings.preDeployTask, 'publish', currentWorkspace.uri.fsPath);
-            await updateWorkspaceSetting(constants.configurationSettings.deploySubpath, dotnetOutputPath, currentWorkspace.uri.fsPath);
-
-            const publishCommand: string = `dotnet publish -o ${dotnetOutputPath}${framework ? ` -f ${framework}` : ''}`;
+            const publishCommand: string = `dotnet publish -o ${dotnetOutputPath}`;
             const publishTask: tasks.ITask[] = [{
                 label: 'clean',
                 command: 'dotnet clean',
@@ -69,7 +45,34 @@ export async function setPreDeployTaskForDotnet(context: IDeployWizardContext): 
                 dependsOn: 'clean'
             }];
 
-            tasks.updateTasks(currentWorkspace, publishTask);
+            tasks.updateTasks(context.workspace, publishTask);
         }
+    }
+}
+
+async function isDotnetInstalled(): Promise<boolean> {
+    try {
+        await cpUtils.executeCommand(undefined, undefined, 'dotnet', '--version');
+        return true;
+    } catch (error) {
+        return false;
+    }
+}
+
+async function validateDotnetInstalled(context: IActionContext): Promise<void> {
+    if (!await isDotnetInstalled()) {
+        const message: string = 'You must have the .NET CLI installed to perform this operation.';
+
+        if (!context.errorHandling.suppressDisplay) {
+            // don't wait
+            window.showErrorMessage(message, DialogResponses.learnMore).then(async (result) => {
+                if (result === DialogResponses.learnMore) {
+                    await openUrl('https://aka.ms/AA4ac70');
+                }
+            });
+            context.errorHandling.suppressDisplay = true;
+        }
+
+        throw new Error(message);
     }
 }

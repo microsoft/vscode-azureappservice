@@ -5,7 +5,7 @@
 
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { DialogResponses } from 'vscode-azureextensionui';
+import { DialogResponses, IActionContext } from 'vscode-azureextensionui';
 import { configurationSettings, extensionPrefix } from '../../constants';
 import { SiteTreeItem } from '../../explorer/SiteTreeItem';
 import { ext } from '../../extensionVariables';
@@ -13,10 +13,13 @@ import { isPathEqual, isSubpath } from '../../utils/pathUtils';
 import * as workspaceUtil from '../../utils/workspace';
 import { getWorkspaceSetting, updateGlobalSetting } from '../../vsCodeConfig/settings';
 
-export async function getDeployFsPath(target: vscode.Uri | string | SiteTreeItem | undefined): Promise<string> {
+export async function getDeployFsPath(context: IActionContext, target: vscode.Uri | string | SiteTreeItem | undefined): Promise<string> {
+    context.telemetry.properties.deploymentEntryPoint = target ? 'webAppContextMenu' : 'deployButton';
     if (target instanceof vscode.Uri) {
+        context.telemetry.properties.deploymentEntryPoint = 'fileExplorerContextMenu';
         return await appendDeploySubpathSetting(target.fsPath);
     } else if (typeof target === 'string') {
+        // not sure where this entry point would be
         return await appendDeploySubpathSetting(target);
     } else if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length === 1) {
         // If there is only one workspace and it has 'deploySubPath' set - return that value without prompting
@@ -47,7 +50,7 @@ async function appendDeploySubpathSetting(targetPath: string): Promise<string> {
                     const fsPathWithSetting: string = path.join(folder.uri.fsPath, deploySubPath);
                     if (!isPathEqual(fsPathWithSetting, targetPath)) {
                         const settingKey: string = 'showDeploySubpathWarning';
-                        if (getWorkspaceSetting(settingKey)) {
+                        if (getWorkspaceSetting<boolean>(settingKey)) {
                             const selectedFolder: string = path.relative(folder.uri.fsPath, targetPath);
                             const message: string = `Deploying "${deploySubPath}" instead of selected folder "${selectedFolder}". Use "${extensionPrefix}.${configurationSettings.deploySubpath}" to change this behavior.`;
                             // don't wait
