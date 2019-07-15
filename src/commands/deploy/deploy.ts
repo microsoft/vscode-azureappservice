@@ -131,7 +131,7 @@ export async function deploy(context: IDeployWizardContext, confirmDeployment: b
         context.telemetry.properties.cancelStep = '';
     }
 
-    if (!context.deployedWithConfigs && (isPathEqual(currentWorkspace.uri.fsPath, context.workspace.uri.fsPath) || isSubpath(currentWorkspace.uri.fsPath, context.workspace.uri.fsPath))) {
+    if (!context.deployedWithConfigs) {
         // tslint:disable-next-line:no-floating-promises
         node.promptToSaveDeployDefaults(currentWorkspace.uri.fsPath, context);
     }
