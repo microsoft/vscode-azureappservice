@@ -6,10 +6,15 @@
 import * as assert from 'assert';
 import { ResourceManagementClient } from 'azure-arm-resource';
 import { WebSiteManagementClient, WebSiteManagementModels } from 'azure-arm-website';
+import * as fse from 'fs-extra';
 import { IHookCallbackContext, ISuiteCallbackContext } from 'mocha';
+import * as os from 'os';
+import * as path from 'path';
+import * as request from 'request-promise';
 import * as vscode from 'vscode';
 import { AzExtTreeDataProvider, AzureAccountTreeItem, constants, DialogResponses, ext, getRandomHexString, TestAzureAccount, TestUserInput } from '../extension.bundle';
 import { longRunningTestsEnabled } from './global.test';
+import { unzipFileFromUrl } from './unzipFileFromUrl';
 
 // tslint:disable-next-line: max-func-body-length
 suite('Create Azure Resources', async function (this: ISuiteCallbackContext): Promise<void> {
@@ -20,6 +25,7 @@ suite('Create Azure Resources', async function (this: ISuiteCallbackContext): Pr
     const regExpLTS: RegExp = /LTS/g;
     const resourceName: string = getRandomHexString().toLowerCase();
     let webSiteClient: WebSiteManagementClient;
+    const testFolderPath: string = path.join(os.tmpdir(), `appServiceTest${getRandomHexString()}`, 'testFolder');
 
     suiteSetup(async function (this: IHookCallbackContext): Promise<void> {
         if (!longRunningTestsEnabled) {
@@ -39,6 +45,7 @@ suite('Create Azure Resources', async function (this: ISuiteCallbackContext): Pr
         }
         await vscode.workspace.getConfiguration(constants.extensionPrefix).update('advancedCreation', oldAdvancedCreationSetting, vscode.ConfigurationTarget.Global);
         this.timeout(1200 * 1000);
+        await fse.remove(path.join(testFolderPath, '..'));
         const client: ResourceManagementClient = getResourceManagementClient(testAccount);
         for (const resourceGroup of resourceGroupsToDelete) {
             if (await client.resourceGroups.checkExistence(resourceGroup)) {
@@ -112,6 +119,27 @@ suite('Create Azure Resources', async function (this: ISuiteCallbackContext): Pr
         assert.equal(createdApp.scmType, constants.ScmType.None, `Web App scmType's property value should be ${constants.ScmType.None} rather than ${createdApp.scmType}.`);
     });
 
+    test('Create a new windows Web app and deployment to Web App', async () => {
+        const resourceGroupName: string = getRandomHexString();
+        const webAppName: string = getRandomHexString();
+        const AppServicePlan: string = getRandomHexString();
+        const inputs: string[] = [];
+        await fse.ensureDir(testFolderPath);
+        resourceGroupsToDelete.push(resourceGroupName);
+        const uri: string = 'https://codeload.github.com/Azure-Samples/nodejs-docs-hello-world/zip/master';
+        await unzipFileFromUrl(vscode.Uri.parse(uri), 'nodejs-docs-hello-world-master', testFolderPath);
+        await vscode.workspace.getConfiguration(constants.extensionPrefix).update('advancedCreation', true, vscode.ConfigurationTarget.Global);
+        inputs.unshift('Deploy');
+        if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0) {
+            inputs.unshift('$(file-directory) Browse...'); // If the test environment has an open workspace, select the 'Browse...' option
+        }
+        inputs.unshift(testFolderPath, '$(plus) Create new Web App...', webAppName, '$(plus) Create new resource group', resourceGroupName, 'Windows', '$(plus) Create new App Service plan', AppServicePlan, 'S1', 'West US');
+        ext.ui = new TestUserInput(inputs);
+        await vscode.commands.executeCommand('appService.Deploy');
+        const result: string = await getBody(`https://${webAppName}.azurewebsites.net`);
+        assert.equal(result, `Hello World!`, `The result should be "Hello World!" rather than ${result}`);
+    });
+
     test('Delete Web App', async () => {
         const createdApp: WebSiteManagementModels.Site = await webSiteClient.webApps.get(resourceName, resourceName);
         assert.ok(createdApp);
@@ -128,4 +156,13 @@ function getWebsiteManagementClient(testAccount: TestAzureAccount): WebSiteManag
 
 function getResourceManagementClient(testAccount: TestAzureAccount): ResourceManagementClient {
     return new ResourceManagementClient(testAccount.getSubscriptionCredentials(), testAccount.getSubscriptionId());
+}
+
+async function getBody(url: string): Promise<string> {
+    const options: request.OptionsWithUri = {
+        method: 'GET',
+        uri: url,
+        json: true
+    };
+    return await <Thenable<string>>request(options).promise();
 }

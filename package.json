@@ -981,6 +981,7 @@
         "webpack-profile": "webpack --profile --json --mode production > webpack-stats.json && echo Use http://webpack.github.io/analyse to analyze the stats"
     },
     "devDependencies": {
+        "@types/adm-zip": "^0.4.32",
         "@types/dotenv": "^6.1.0",
         "@types/fs-extra": "^4.0.5",
         "@types/gulp": "^4.0.5",
@@ -988,6 +989,7 @@
         "@types/node": "^8.0.51",
         "@types/request": "^2.0.3",
         "@types/request-promise": "4.1.41",
+        "adm-zip": "^0.4.13",
         "gulp": "^4.0.0",
         "mocha": "^5.2.0",
         "mocha-junit-reporter": "^1.18.0",
