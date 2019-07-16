@@ -11,13 +11,16 @@ export interface AzureAppServiceExtensionApi {
      * @param subscriptionId The subscription id of an Azure subscription: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
      * @param runtime The runtime must be formatted in the following: "NODE|10.14"
      */
-    createWebApp(createOptions: {
-        subscriptionId?: string,
-        siteName?: string,
-        rgName?: string,
-        os?: WebsiteOS,
-        runtime?: string
-    }): Promise<void>
+    createWebApp(createOptions: ICreateOptions
+    ): Promise<void>
 }
 
 export type WebsiteOS = 'linux' | 'windows';
+
+export interface ICreateOptions {
+    subscriptionId?: string,
+    siteName?: string,
+    rgName?: string,
+    os?: WebsiteOS,
+    runtime?: string
+}

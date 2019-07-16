@@ -25,7 +25,7 @@ export async function createWebApp(
 
     // set defaults if parameters were passed in
     if (createOptions) {
-        node = createOptions.subscriptionId ? await ext.tree.findTreeItem(createOptions.subscriptionId, context) : undefined;
+        node = createOptions.subscriptionId ? await ext.tree.findTreeItem(`/subscriptions/${createOptions.subscriptionId}/`, context) : undefined;
         context.newSiteName = createOptions.siteName;
         context.newResourceGroupName = createOptions.rgName;
         context.newSiteOS = createOptions.os;
