@@ -15,6 +15,7 @@ import * as constants from '../constants';
 import { SiteTreeItem } from '../explorer/SiteTreeItem';
 import { WebAppTreeItem } from '../explorer/WebAppTreeItem';
 import { ext } from '../extensionVariables';
+import { getLinuxDetector } from '../getLinuxDetector';
 import { delay } from '../utils/delay';
 import { javaUtils } from '../utils/javaUtils';
 import { nonNullValue } from '../utils/nonNull';
@@ -189,10 +190,11 @@ export async function deploy(context: IDeployWizardContext, confirmDeployment: b
 
     // Don't wait
     validateWebSite(correlationId, node).then(
-        () => {
+        async () => {
             // ignore
         },
-        () => {
-            // ignore
+        async () => {
+            // tslint:disable-next-line: no-floating-promises
+            getLinuxDetector(node);
         });
 }

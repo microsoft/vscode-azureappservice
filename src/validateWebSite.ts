@@ -51,7 +51,7 @@ export async function validateWebSite(deploymentCorrelationId: string, siteTreeI
     cancellations.set(id, cancellation);
 
     return callWithTelemetryAndErrorHandling('appService.validateWebSite', async (context: IActionContext) => {
-        context.errorHandling.rethrow = false;
+        context.errorHandling.rethrow = true;
         context.errorHandling.suppressDisplay = true;
 
         const properties = <IValidateProperties>context.telemetry.properties;
@@ -88,6 +88,9 @@ export async function validateWebSite(deploymentCorrelationId: string, siteTreeI
             statusCodes.push({ code: currentStatusCode, elapsed: elapsedSeconds });
 
             if (Date.now() > start + maximumValidationMs) {
+                if (currentStatusCode && currentStatusCode > 299) {
+                    throw new Error();
+                }
                 break;
             }
 
