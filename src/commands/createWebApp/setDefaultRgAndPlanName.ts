@@ -25,7 +25,7 @@ export async function setDefaultRgAndPlanName(wizardContext: IAppServiceWizardCo
         // Subscriptions can only have 1 free tier Linux plan so show a warning if there are too many apps on the plan
         if (wizardContext.newSiteOS === WebsiteOS.linux) {
             await promptPerformanceWarning(wizardContext, asp);
-            wizardContext.newResourceGroupName = wizardContext.newResourceGroupName || defaultName;
+            wizardContext.newResourceGroupName = defaultName;
             wizardContext.newPlanName = defaultName;
         } else {
             // Subscriptions can have 10 free tier Windows plans so just create a new one with a suffixed name
@@ -53,7 +53,7 @@ export async function setDefaultRgAndPlanName(wizardContext: IAppServiceWizardCo
             wizardContext.newPlanName = wizardContext.newResourceGroupName;
         }
     } else {
-        wizardContext.newResourceGroupName = wizardContext.newResourceGroupName || defaultName;
+        wizardContext.newResourceGroupName = defaultName;
         wizardContext.newPlanName = defaultName;
     }
 }

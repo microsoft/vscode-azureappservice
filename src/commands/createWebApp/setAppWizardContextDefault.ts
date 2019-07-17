@@ -64,10 +64,10 @@ export async function setAppWizardContextDefault(wizardContext: IAppServiceWizar
 
         // if we are recommending a runtime, then it is either Nodejs, Python, or Java which all use Linux
         if (wizardContext.recommendedSiteRuntime) {
-            wizardContext.newSiteOS = wizardContext.newSiteOS !== undefined ? wizardContext.newSiteOS : WebsiteOS.linux;
+            wizardContext.newSiteOS = WebsiteOS.linux;
         } else {
             if (workspaceForRecommendation && (await findFilesByFileExtension(workspaceForRecommendation.uri.fsPath, 'csproj')).length > 0) {
-                wizardContext.newSiteOS = wizardContext.newSiteOS !== undefined ? wizardContext.newSiteOS : WebsiteOS.windows;
+                wizardContext.newSiteOS = WebsiteOS.windows;
             }
         }
     }

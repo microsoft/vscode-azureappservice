@@ -4,34 +4,14 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { ConfigurationTarget, MessageItem, workspace, WorkspaceConfiguration } from 'vscode';
-import { IAppServiceWizardContext, WebsiteOS } from 'vscode-azureappservice';
+import { IAppServiceWizardContext } from 'vscode-azureappservice';
 import { AzureParentTreeItem, parseError } from "vscode-azureextensionui";
 import { configurationSettings, extensionPrefix } from "../../constants";
 import { SubscriptionTreeItem } from '../../explorer/SubscriptionTreeItem';
 import { WebAppTreeItem } from "../../explorer/WebAppTreeItem";
 import { ext } from "../../extensionVariables";
 
-export async function createWebApp(
-    context: IAppServiceWizardContext,
-    node?: AzureParentTreeItem | undefined,
-    createOptions?: {
-        subscriptionId?: string,
-        siteName?: string,
-        rgName?: string,
-        os?: WebsiteOS,
-        runtime?: string
-    }
-): Promise<void> {
-
-    // set defaults if parameters were passed in
-    if (createOptions) {
-        node = createOptions.subscriptionId ? await ext.tree.findTreeItem(`/subscriptions/${createOptions.subscriptionId}/`, context) : undefined;
-        context.newSiteName = createOptions.siteName;
-        context.newResourceGroupName = createOptions.rgName;
-        context.newSiteOS = createOptions.os;
-        context.newSiteRuntime = createOptions.runtime;
-    }
-
+export async function createWebApp(context: IAppServiceWizardContext, node?: AzureParentTreeItem | undefined): Promise<void> {
     if (!node) {
         node = <AzureParentTreeItem>await ext.tree.showTreeItemPicker(SubscriptionTreeItem.contextValue, context);
     }
