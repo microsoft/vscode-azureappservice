@@ -3,24 +3,15 @@
 *  Licensed under the MIT License. See License.txt in the project root for license information.
 *--------------------------------------------------------------------------------------------*/
 
+import { Site } from "azure-arm-website/lib/models";
+
 export interface AzureAppServiceExtensionApi {
     apiVersion: string;
     /**
-     * Creates a web app with the given options.  Empty properties will be their default value or the user will be prompted for it
+     * Deploys the project in the given fsPath to the given Site.  The project MUST be opened in VS Code in order to be deployed.
      *
-     * @param subscriptionId The subscription id of an Azure subscription: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
-     * @param runtime The runtime must be formatted in the following: "NODE|10.14"
+     * @param site The site object: this will be returned by the webApps.createOrUpdate command from the azure-arm-website API
+     * @param fsPath The absolute file path of the project to deploy
      */
-    createWebApp(createOptions: ICreateOptions
-    ): Promise<void>
-}
-
-export type WebsiteOS = 'linux' | 'windows';
-
-export interface ICreateOptions {
-    subscriptionId?: string,
-    siteName?: string,
-    rgName?: string,
-    os?: WebsiteOS,
-    runtime?: string
+    deploy(site: Site, fsPath: string): Promise<void>
 }

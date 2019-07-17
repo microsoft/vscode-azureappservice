@@ -5,11 +5,13 @@
 
 'use strict';
 
+import { WebSiteManagementClient } from 'azure-arm-website';
+import { Site } from 'azure-arm-website/lib/models';
 import * as vscode from 'vscode';
 import { AppSettingsTreeItem, AppSettingTreeItem, DeploymentsTreeItem, ISiteTreeRoot, registerAppServiceExtensionVariables, SiteClient, stopStreamingLogs } from 'vscode-azureappservice';
-import { AzExtTreeDataProvider, AzureTreeItem, AzureUserInput, callWithTelemetryAndErrorHandling, createApiProvider, createTelemetryReporter, IActionContext, IAzureUserInput, openInPortal, registerCommand, registerEvent, registerUIExtensionVariables } from 'vscode-azureextensionui';
+import { AzExtTreeDataProvider, AzureTreeItem, AzureUserInput, callWithTelemetryAndErrorHandling, createApiProvider, createAzureClient, createTelemetryReporter, IActionContext, IAzureUserInput, openInPortal, registerCommand, registerEvent, registerUIExtensionVariables } from 'vscode-azureextensionui';
 import { AzureExtensionApi, AzureExtensionApiProvider } from 'vscode-azureextensionui/api';
-import * as api from './commands/api/createWebApp';
+import * as api from './commands/api/deploy';
 import { downloadAppSettings } from './commands/appSettings/downloadAppSettings';
 import { toggleSlotSetting } from './commands/appSettings/toggleSlotSetting';
 import { uploadAppSettings } from './commands/appSettings/uploadAppSettings';
@@ -182,7 +184,11 @@ export async function activateInternal(
             await node.deleteTreeItem(actionContext);
         });
         registerCommand('appService.CreateWebApp', createWebApp);
-        registerCommand('appService.Deploy', async (actionContext: IActionContext, target?: vscode.Uri | WebAppTreeItem | undefined) => {
+        registerCommand('appService.Deploy', async (actionContext: IActionContext, target?: vscode.Uri | WebAppTreeItem | Site | undefined) => {
+            if (target instanceof WebAppTreeItem) {
+                const client: WebSiteManagementClient = createAzureClient(target.root, WebSiteManagementClient);
+                target = await client.webApps.get(target.root.client.resourceGroup, target.root.client.siteName);
+            }
             await deploy(actionContext, true, target);
         });
         registerCommand('appService.ConfigureDeploymentSource', editScmType);
@@ -321,7 +327,7 @@ export async function activateInternal(
 
     return createApiProvider([<AzureExtensionApi>{
         apiVersion: '1.0.0',
-        createWebApp: api.createWebApp
+        deploy: api.deploy
     }]);
 }
 

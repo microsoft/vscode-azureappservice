@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as WebSiteModels from 'azure-arm-website/lib/models';
-import { SiteConfigResource } from 'azure-arm-website/lib/models';
 import { pathExists } from 'fs-extra';
 import * as path from 'path';
 import { commands, ConfigurationTarget, Disposable, MessageItem, Uri, window, workspace, WorkspaceConfiguration, WorkspaceFolder } from 'vscode';
@@ -26,8 +25,7 @@ import { getDefaultWebAppToDeploy } from './getDefaultWebAppToDeploy';
 import { startStreamingLogs } from './startStreamingLogs';
 
 // tslint:disable-next-line:max-func-body-length cyclomatic-complexity
-export async function deploy(context: IDeployWizardContext, confirmDeployment: boolean, target?: Uri | SiteTreeItem | undefined): Promise<void> {
-
+export async function deploy(context: IDeployWizardContext, confirmDeployment: boolean, target?: Uri | SiteTreeItem | WebSiteModels.Site | undefined, fsPath?: string): Promise<void> {
     let node: SiteTreeItem | undefined;
     const newNodes: SiteTreeItem[] = [];
     let workspaceConfig: WorkspaceConfiguration;
@@ -36,6 +34,9 @@ export async function deploy(context: IDeployWizardContext, confirmDeployment: b
     if (target instanceof Uri) {
         context.fsPath = target.fsPath;
         context.telemetry.properties.deploymentEntryPoint = 'fileExplorerContextMenu';
+    } else if (target && !(target instanceof WebAppTreeItem)) {
+        node = target.id ? await ext.tree.findTreeItem(target.id, context) : undefined;
+        context.fsPath = fsPath;
     } else {
         context.telemetry.properties.deploymentEntryPoint = target ? 'webAppContextMenu' : 'deployButton';
         node = target;
@@ -79,7 +80,7 @@ export async function deploy(context: IDeployWizardContext, confirmDeployment: b
                 // if the node selected for deployment is the same newly created nodes, stifle the confirmDeployment dialog
                 confirmDeployment = false;
                 newApp.root.client.getSiteConfig().then(
-                    (createdAppConfig: SiteConfigResource) => {
+                    (createdAppConfig: WebSiteModels.SiteConfigResource) => {
                         context.telemetry.properties.linuxFxVersion = createdAppConfig.linuxFxVersion ? createdAppConfig.linuxFxVersion : 'undefined';
                         context.telemetry.properties.createdFromDeploy = 'true';
                     },
