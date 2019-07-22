@@ -17,11 +17,11 @@ export interface IDeployWizardContext extends IActionContext {
     configurationTarget?: ConfigurationTarget;
 }
 
-export async function setAppWizardContextDefault(wizardContext: IAppServiceWizardContext, deployedWorkspace?: WorkspaceFolder): Promise<void> {
+export async function setAppWizardContextDefault(wizardContext: IAppServiceWizardContext & Partial<IDeployWizardContext>): Promise<void> {
     // if the user entered through "Deploy", we'll have a project to base our recommendations on
     // otherwise, look at their current workspace and only suggest if one workspace is opened
-    const workspaceForRecommendation: WorkspaceFolder | undefined = deployedWorkspace ?
-        deployedWorkspace : workspace.workspaceFolders && workspace.workspaceFolders.length === 1 ?
+    const workspaceForRecommendation: WorkspaceFolder | undefined = wizardContext.workspace ?
+        wizardContext.workspace : workspace.workspaceFolders && workspace.workspaceFolders.length === 1 ?
             workspace.workspaceFolders[0] : undefined;
 
     let fsPath: string | undefined;
