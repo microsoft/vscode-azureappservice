@@ -3,76 +3,71 @@
 *  Licensed under the MIT License. See License.txt in the project root for license information.
 *--------------------------------------------------------------------------------------------*/
 
+import { SiteConfig } from 'azure-arm-website/lib/models';
 import * as path from 'path';
-import { window } from 'vscode';
-import { DialogResponses, IActionContext } from 'vscode-azureextensionui';
+import { Uri } from 'vscode';
+import { ext } from 'vscode-azureappservice/out/src/extensionVariables';
 import * as constants from '../../constants';
-import { cpUtils } from '../../utils/cpUtils';
-import { openUrl } from '../../utils/openUrl';
-import * as workspaceUtil from '../../utils/workspace';
+import { findFilesByFileExtension, mapFilesToQuickPickItems } from '../../utils/workspace';
 import { getWorkspaceSetting, updateWorkspaceSetting } from '../../vsCodeConfig/settings';
 import * as tasks from '../../vsCodeConfig/tasks';
 import { IDeployWizardContext } from "../createWebApp/setAppWizardContextDefault";
 
-export async function setPreDeployTaskForDotnet(context: IDeployWizardContext): Promise<void> {
-    await validateDotnetInstalled(context);
-    // follow the publish output patterns, but leave out tfw
-    const dotnetOutputPath: string = path.join('bin', 'Debug', 'publish');
-
-    if (!getWorkspaceSetting<boolean>('configurePreDeployTasks', context.workspace.uri.fsPath)) {
+export async function setPreDeployTaskForDotnet(context: IDeployWizardContext, siteConfig: SiteConfig): Promise<void> {
+    // don't overwrite preDeploy task if it exists
+    if (!getWorkspaceSetting<boolean>('configurePreDeployTasks', context.workspace.uri.fsPath) || getWorkspaceSetting<boolean>(constants.configurationSettings.preDeployTask, context.workspace.uri.fsPath)) {
         return;
     }
 
-    const csProj = await workspaceUtil.findFilesByFileExtension(context.workspace.uri.fsPath, 'csproj');
-    if (csProj.length > 0) {
-        // if a publish task is already defined, then assume that we don't need this logic
-        if (!getWorkspaceSetting<string>(constants.configurationSettings.preDeployTask, context.workspace.uri.fsPath)) {
-            // if this doesn't have the publish preDeployTask, configure for .NET depoyment
+    // assume that the csProj is in the root
+    let csProjFsPath: string = context.workspace.uri.fsPath;
 
-            await updateWorkspaceSetting(constants.configurationSettings.preDeployTask, 'publish', context.workspace.uri.fsPath);
-            await updateWorkspaceSetting(constants.configurationSettings.deploySubpath, dotnetOutputPath, context.workspace.uri.fsPath);
+    const csProjInRoot: Uri[] = await findFilesByFileExtension(context.workspace.uri.fsPath, 'csproj');
+    let csProjInSubfolders: Uri[] = [];
 
-            const publishCommand: string = `dotnet publish -o ${dotnetOutputPath}`;
-            const publishTask: tasks.ITask[] = [{
-                label: 'clean',
-                command: 'dotnet clean',
-                type: 'shell'
-            },
-            {
-                label: 'publish',
-                command: publishCommand,
-                type: 'shell',
-                dependsOn: 'clean'
-            }];
+    // if there was no .csproj in the root space, try to find it within subfolders
+    if (csProjInRoot.length === 0) {
+        // to have a recursive search of the opened workspace, pass in undefined rather than the fsPath
+        csProjInSubfolders = await findFilesByFileExtension(undefined, 'csproj');
+        try {
+            if (csProjInSubfolders.length === 1) {
+                csProjFsPath = csProjInSubfolders[0].fsPath;
+            } else if (csProjInSubfolders.length > 1) {
+                csProjFsPath = (await ext.ui.showQuickPick(mapFilesToQuickPickItems(csProjInSubfolders), { placeHolder: 'Select a .csproj file' })).data;
+            } else {
+                // exit the try/catch if no csproj file is found
+                throw new Error();
+            }
 
-            tasks.updateTasks(context.workspace, publishTask);
+            // remove the .csproj from the path name
+            csProjFsPath = path.dirname(csProjFsPath);
+        } catch (error) {
+            // ignore the error if no .csproj was found or the user cancelled selection
         }
     }
-}
 
-async function isDotnetInstalled(): Promise<boolean> {
-    try {
-        await cpUtils.executeCommand(undefined, undefined, 'dotnet', '--version');
-        return true;
-    } catch (error) {
-        return false;
-    }
-}
+    if (csProjInRoot.length > 0 || csProjFsPath.length > 0 || (siteConfig.linuxFxVersion && siteConfig.linuxFxVersion.toLowerCase().includes('dotnet'))) {
+        // follow the publish output patterns, but leave out targetFramework
+        // use the absolute path so the bits are created in the root, not the subpath
+        const dotnetOutputPath: string = path.join(csProjFsPath, 'bin', 'Debug', 'publish');
 
-async function validateDotnetInstalled(context: IActionContext): Promise<void> {
-    if (!await isDotnetInstalled()) {
-        const message: string = 'You must have the .NET CLI installed to perform this operation.';
+        await updateWorkspaceSetting(constants.configurationSettings.preDeployTask, 'publish', context.workspace.uri.fsPath);
+        await updateWorkspaceSetting(constants.configurationSettings.deploySubpath, dotnetOutputPath, context.workspace.uri.fsPath);
 
-        if (!context.errorHandling.suppressDisplay) {
-            // don't wait
-            window.showErrorMessage(message, DialogResponses.learnMore).then(async (result) => {
-                if (result === DialogResponses.learnMore) {
-                    await openUrl('https://aka.ms/AA4ac70');
-                }
-            });
-            context.errorHandling.suppressDisplay = true;
-        }
+        const publishCommand: string = `dotnet publish ${csProjFsPath} -o ${dotnetOutputPath}`;
+        const publishTask: tasks.ITask[] = [{
+            label: 'clean',
+            command: `dotnet clean ${csProjFsPath}`,
+            type: 'shell'
+        },
+        {
+            label: 'publish',
+            command: publishCommand,
+            type: 'shell',
+            dependsOn: 'clean'
+        }];
 
-        throw new Error(message);
+        tasks.updateTasks(context.workspace, publishTask);
+
     }
 }

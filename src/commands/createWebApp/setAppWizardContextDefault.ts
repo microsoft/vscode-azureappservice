@@ -3,18 +3,16 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as fse from 'fs-extra';
-import * as path from 'path';
 import { ConfigurationTarget, workspace, WorkspaceFolder } from 'vscode';
 import { IAppServiceWizardContext, LinuxRuntimes, WebsiteOS } from 'vscode-azureappservice';
 import { IActionContext, LocationListStep } from 'vscode-azureextensionui';
 import { configurationSettings } from '../../constants';
-import { javaUtils } from '../../utils/javaUtils';
-import { findFilesByFileExtension } from '../../utils/workspace';
+import { getRecommendedSiteRuntime } from '../../getRecommendedSiteRuntime';
 import { getWorkspaceSetting } from '../../vsCodeConfig/settings';
 
 export interface IDeployWizardContext extends IActionContext {
     workspace: WorkspaceFolder;
+    siteRuntime: LinuxRuntimes[] | undefined;
     deployedWithConfigs?: boolean;
     configurationTarget?: ConfigurationTarget;
 }
@@ -25,36 +23,22 @@ export async function setAppWizardContextDefault(wizardContext: IAppServiceWizar
     const workspaceForRecommendation: WorkspaceFolder | undefined = deployedWorkspace ?
         deployedWorkspace : workspace.workspaceFolders && workspace.workspaceFolders.length === 1 ?
             workspace.workspaceFolders[0] : undefined;
+
     let fsPath: string | undefined;
 
     if (workspaceForRecommendation) {
         fsPath = workspaceForRecommendation.uri.fsPath;
-
-        if (await fse.pathExists(path.join(fsPath, 'package.json'))) {
-            wizardContext.recommendedSiteRuntime = [LinuxRuntimes.node];
-
-        } else if (await fse.pathExists(path.join(fsPath, 'requirements.txt'))) {
-            // requirements.txt are used to pip install so a good way to determine it's a Python app
-            wizardContext.recommendedSiteRuntime = [LinuxRuntimes.python];
-
-        } else if ((await findFilesByFileExtension(fsPath, 'csproj')).length > 0) {
-            // wizardContext.recommendedSiteRuntime = ['dotnet'];
-
-        } else if (await javaUtils.isJavaProject(fsPath)) {
-            wizardContext.recommendedSiteRuntime = [
-                LinuxRuntimes.java,
-                LinuxRuntimes.tomcat,
-                LinuxRuntimes.wildfly
-            ];
-
-            // considering high resource requirement for Java applications, a higher plan sku is set here
-            wizardContext.newPlanSku = { name: 'P1v2', tier: 'PremiumV2', size: 'P1v2', family: 'P', capacity: 1 };
-            // to avoid 'Requested features are not supported in region' error
-            await LocationListStep.setLocation(wizardContext, 'weseteurope');
-        }
+        wizardContext.recommendedSiteRuntime = await getRecommendedSiteRuntime(workspaceForRecommendation);
     }
 
     const advancedCreation: boolean | undefined = getWorkspaceSetting(configurationSettings.advancedCreation, fsPath);
+
+    if (wizardContext.recommendedSiteRuntime && wizardContext.recommendedSiteRuntime.indexOf(LinuxRuntimes.java) > -1) {
+        // considering high resource requirement for Java applications, a higher plan sku is set here
+        wizardContext.newPlanSku = { name: 'P1v2', tier: 'PremiumV2', size: 'P1v2', family: 'P', capacity: 1 };
+        // to avoid 'Requested features are not supported in region' error
+        await LocationListStep.setLocation(wizardContext, 'weseteurope');
+    }
 
     if (!advancedCreation) {
         if (!wizardContext.location) {
@@ -66,7 +50,7 @@ export async function setAppWizardContextDefault(wizardContext: IAppServiceWizar
             wizardContext.newPlanSku = { name: 'F1', tier: 'Free', size: 'F1', family: 'F', capacity: 1 };
         }
 
-        // if we are recommending a runtime, then it is either Nodejs, Python, .NET, or Java which all use Linux
+        // if we are recommending a runtime, then it is either Nodejs, Python, .NET, or Java which all default to Linux
         if (wizardContext.recommendedSiteRuntime) {
             wizardContext.newSiteOS = WebsiteOS.linux;
         }

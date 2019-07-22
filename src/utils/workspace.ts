@@ -51,6 +51,16 @@ export async function selectWorkspaceItem(placeHolder: string, options: vscode.O
         folder = await ext.ui.showQuickPick(quickPicks, { placeHolder });
     }
 
+    options.canSelectFolders = true;
+
+    // this should be for only the Java scenario
+    if (fileExtension) {
+        options.filters = fileExtension ? { Artifact: [fileExtension] } : undefined;
+        options.canSelectFiles = true;
+        // Windows and Linux do not support both canSelectFiles and canSelectFolders being true
+        options.canSelectFolders = false;
+    }
+
     return folder && folder.data ? folder.data : (await ext.ui.showOpenDialog(options))[0].fsPath;
 }
 
@@ -63,8 +73,8 @@ export function getContainingWorkspace(fsPath: string): vscode.WorkspaceFolder |
 }
 
 export async function findFilesByFileExtension(fsPath: string | undefined, fileExtension: string): Promise<vscode.Uri[]> {
-    // if there is a fsPath, then only check the folder for the file extension, otherwise use all currently opened workspaces
-    const relativeDirectory: vscode.RelativePattern | string = fsPath ? new vscode.RelativePattern(fsPath, `*.${fileExtension}`) : path.join('**', `*.${fileExtension}`);
+    // if there is a fsPath, then only check the folder for the file extension, otherwise recursively check all currently opened workspaces
+    const relativeDirectory: vscode.RelativePattern | string = fsPath ? new vscode.RelativePattern(fsPath, `*.${fileExtension}`) : `**/*.{${fileExtension}}`;
     return await vscode.workspace.findFiles(relativeDirectory);
 }
 

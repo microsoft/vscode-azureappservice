@@ -15,8 +15,8 @@ import { SiteTreeItem } from '../../explorer/SiteTreeItem';
 import { WebAppTreeItem } from '../../explorer/WebAppTreeItem';
 import { ext } from '../../extensionVariables';
 import { delay } from '../../utils/delay';
+import { javaUtils } from '../../utils/javaUtils';
 import { nonNullValue } from '../../utils/nonNull';
-import { isPathEqual, isSubpath } from '../../utils/pathUtils';
 import { getRandomHexString } from "../../utils/randomUtils";
 import * as workspaceUtil from '../../utils/workspace';
 import { cancelWebsiteValidation, validateWebSite } from '../../validateWebSite';
@@ -33,7 +33,18 @@ export async function deploy(context: IDeployWizardContext, confirmDeployment: b
     let node: SiteTreeItem | undefined;
     const newNodes: SiteTreeItem[] = [];
     context.telemetry.properties.deployedWithConfigs = 'false';
-    const fsPath: string = await getDeployFsPath(context, target);
+    let javaFileExtension: string | undefined;
+    let siteConfig: WebSiteModels.SiteConfigResource | undefined;
+
+    if (target instanceof SiteTreeItem) {
+        node = target;
+        siteConfig = await node.root.client.getSiteConfig();
+        if (javaUtils.isJavaRuntime(siteConfig.linuxFxVersion)) {
+            javaFileExtension = javaUtils.getArtifactTypeByJavaRuntime(siteConfig.linuxFxVersion);
+        }
+    }
+
+    const fsPath: string = await getDeployFsPath(context, target, javaFileExtension);
 
     const currentWorkspace: WorkspaceFolder | undefined = workspaceUtil.getContainingWorkspace(fsPath);
     if (!currentWorkspace) {
@@ -80,7 +91,8 @@ export async function deploy(context: IDeployWizardContext, confirmDeployment: b
     const correlationId = getRandomHexString();
     context.telemetry.properties.correlationId = correlationId;
 
-    const siteConfig: WebSiteModels.SiteConfigResource = await node.root.client.getSiteConfig();
+    // if we already got siteConfig, don't waste time getting it again
+    siteConfig = siteConfig ? siteConfig : await node.root.client.getSiteConfig();
 
     // currentWorkspace is only set if there is one active workspace
     // only check enableScmDoBuildDuringDeploy if currentWorkspace matches the workspace being deployed as a user can "Browse" to a different project
@@ -94,7 +106,6 @@ export async function deploy(context: IDeployWizardContext, confirmDeployment: b
             } else if (linuxFxVersion.startsWith(appservice.LinuxRuntimes.python)) {
                 await node.promptScmDoBuildDeploy(context.workspace.uri.fsPath, appservice.LinuxRuntimes.python, context);
             }
-
         }
     }
 
@@ -135,10 +146,8 @@ export async function deploy(context: IDeployWizardContext, confirmDeployment: b
         // tslint:disable-next-line:no-floating-promises
         node.promptToSaveDeployDefaults(currentWorkspace.uri.fsPath, context);
     }
-    if (siteConfig.linuxFxVersion && siteConfig.linuxFxVersion.toLowerCase().includes('dotnet')) {
-        await setPreDeployTaskForDotnet(context);
-    }
 
+    await setPreDeployTaskForDotnet(context, siteConfig);
     await appservice.runPreDeployTask(context, context.workspace.uri.fsPath, siteConfig.scmType, constants.extensionPrefix);
 
     cancelWebsiteValidation(node);

@@ -13,7 +13,7 @@ import { isPathEqual, isSubpath } from '../../utils/pathUtils';
 import * as workspaceUtil from '../../utils/workspace';
 import { getWorkspaceSetting, updateGlobalSetting } from '../../vsCodeConfig/settings';
 
-export async function getDeployFsPath(context: IActionContext, target: vscode.Uri | string | SiteTreeItem | undefined): Promise<string> {
+export async function getDeployFsPath(context: IActionContext, target: vscode.Uri | string | SiteTreeItem | undefined, fileExtension?: string): Promise<string> {
     context.telemetry.properties.deploymentEntryPoint = target ? 'webAppContextMenu' : 'deployButton';
     if (target instanceof vscode.Uri) {
         context.telemetry.properties.deploymentEntryPoint = 'fileExplorerContextMenu';
@@ -30,8 +30,8 @@ export async function getDeployFsPath(context: IActionContext, target: vscode.Ur
         }
     }
 
-    const workspaceMessage: string = 'Select the folder to zip and deploy';
-    return await workspaceUtil.selectWorkspaceItem(workspaceMessage, {}, f => getWorkspaceSetting(configurationSettings.deploySubpath, f.uri.fsPath));
+    const workspaceMessage: string = fileExtension ? `Select the ${fileExtension} file to deploy` : 'Select the folder to zip and deploy';
+    return await workspaceUtil.selectWorkspaceItem(workspaceMessage, {}, f => getWorkspaceSetting(configurationSettings.deploySubpath, f.uri.fsPath), fileExtension);
 }
 
 /**
