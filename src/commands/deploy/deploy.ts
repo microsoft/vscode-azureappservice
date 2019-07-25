@@ -10,20 +10,20 @@ import * as path from 'path';
 import { commands, ConfigurationTarget, Disposable, MessageItem, Uri, window, workspace, WorkspaceConfiguration, WorkspaceFolder } from 'vscode';
 import * as appservice from 'vscode-azureappservice';
 import { DialogResponses, IAzureQuickPickItem, parseError } from 'vscode-azureextensionui';
-import { IDeployWizardContext } from '../commands/createWebApp/setAppWizardContextDefault';
-import * as constants from '../constants';
-import { SiteTreeItem } from '../explorer/SiteTreeItem';
-import { WebAppTreeItem } from '../explorer/WebAppTreeItem';
-import { ext } from '../extensionVariables';
-import { delay } from '../utils/delay';
-import { javaUtils } from '../utils/javaUtils';
-import { nonNullValue } from '../utils/nonNull';
-import { isPathEqual, isSubpath } from '../utils/pathUtils';
-import { getRandomHexString } from "../utils/randomUtils";
-import * as workspaceUtil from '../utils/workspace';
-import { cancelWebsiteValidation, validateWebSite } from '../validateWebSite';
-import { getDefaultWebAppToDeploy } from './getDefaultWebAppToDeploy';
-import { startStreamingLogs } from './startStreamingLogs';
+import { IDeployWizardContext } from '../createWebApp/setAppWizardContextDefault';
+import * as constants from '../../constants';
+import { SiteTreeItem } from '../../explorer/SiteTreeItem';
+import { WebAppTreeItem } from '../../explorer/WebAppTreeItem';
+import { ext } from '../../extensionVariables';
+import { delay } from '../../utils/delay';
+import { javaUtils } from '../../utils/javaUtils';
+import { nonNullValue } from '../../utils/nonNull';
+import { isPathEqual, isSubpath } from '../../utils/pathUtils';
+import { getRandomHexString } from "../../utils/randomUtils";
+import * as workspaceUtil from '../../utils/workspace';
+import { cancelWebsiteValidation, validateWebSite } from '../../validateWebSite';
+import { getDefaultWebAppToDeploy } from '../getDefaultWebAppToDeploy';
+import { startStreamingLogs } from '../startStreamingLogs';
 
 // tslint:disable-next-line:max-func-body-length cyclomatic-complexity
 export async function deploy(context: IDeployWizardContext, confirmDeployment: boolean, target?: Uri | SiteTreeItem | undefined): Promise<void> {
