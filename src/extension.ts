@@ -5,13 +5,11 @@
 
 'use strict';
 
-import { IncomingMessage, RequestOptions } from 'http';
-import { WebResource } from 'ms-rest';
-import * as requestP from 'request-promise';
 import * as vscode from 'vscode';
 import { AppSettingsTreeItem, AppSettingTreeItem, DeploymentsTreeItem, ISiteTreeRoot, registerAppServiceExtensionVariables, SiteClient, stopStreamingLogs } from 'vscode-azureappservice';
 import { AzExtTreeDataProvider, AzureTreeItem, AzureUserInput, callWithTelemetryAndErrorHandling, createApiProvider, createTelemetryReporter, IActionContext, IAzureUserInput, openInPortal, registerCommand, registerEvent, registerUIExtensionVariables } from 'vscode-azureextensionui';
 import { AzureExtensionApiProvider } from 'vscode-azureextensionui/api';
+import { checkLinuxWebAppDownDetector } from './checkLinuxWebAppDownDetector';
 import { downloadAppSettings } from './commands/appSettings/downloadAppSettings';
 import { toggleSlotSetting } from './commands/appSettings/toggleSlotSetting';
 import { uploadAppSettings } from './commands/appSettings/uploadAppSettings';
@@ -52,7 +50,6 @@ import { RemoteScriptDocumentProvider, RemoteScriptSchema } from './logPoints/re
 import { LogpointsCollection } from './logPoints/structs/LogpointsCollection';
 import { nonNullProp, nonNullValue } from './utils/nonNull';
 import { openUrl } from './utils/openUrl';
-import { signRequest } from './validateWebSite';
 
 // tslint:disable-next-line:export-name
 // tslint:disable-next-line:max-func-body-length
@@ -144,27 +141,7 @@ export async function activateInternal(
                 node = <WebAppTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue, actionContext);
             }
 
-            const detectorUri: string = `https://management.azure.com/subscriptions/${node.root.subscriptionId}/resourceGroups/${node.root.client.resourceGroup}/providers/Microsoft.Web/sites/${node.root.client.siteName}/detectors/LinuxContainerStartFailure`;
-            const requestOptions: WebResource = new WebResource();
-
-            requestOptions.method = 'GET';
-            requestOptions.url = detectorUri;
-            requestOptions.qs = {
-                "api-version": "2015-08-01",
-                fId: "1",
-                btnId: "2",
-                inpId: "1",
-                val: "vscode"
-            };
-
-            await signRequest(requestOptions, node.root.credentials);
-
-            const requestPromise = <(options: RequestOptions | string | URL) => Promise<IncomingMessage>><Function>requestP;
-            const detectorResponseJson = <unknown>(await requestPromise(requestOptions));
-            const detectorResponse = JSON.parse(<string>detectorResponseJson);
-            const time = detectorResponse.properties.dataset[1].table.rows[0][3];
-
-            const deployResults = await node.root.client.kudu.deployment.getDeployResults();
+            await checkLinuxWebAppDownDetector(node);
 
             const client: SiteClient = node.root.client;
             const startingApp: string = `Starting "${client.fullName}"...`;

@@ -88,7 +88,8 @@ export async function validateWebSite(deploymentCorrelationId: string, siteTreeI
             statusCodes.push({ code: currentStatusCode, elapsed: elapsedSeconds });
 
             if (Date.now() > start + maximumValidationMs) {
-                if (currentStatusCode && currentStatusCode > 299) {
+
+                if (currentStatusCode !== undefined && currentStatusCode >= 300) {
                     throw new Error();
                 }
                 break;

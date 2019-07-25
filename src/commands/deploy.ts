@@ -10,12 +10,12 @@ import * as path from 'path';
 import { commands, ConfigurationTarget, Disposable, MessageItem, Uri, window, workspace, WorkspaceConfiguration, WorkspaceFolder } from 'vscode';
 import * as appservice from 'vscode-azureappservice';
 import { DialogResponses, IAzureQuickPickItem, parseError } from 'vscode-azureextensionui';
+import { checkLinuxWebAppDownDetector } from '../checkLinuxWebAppDownDetector';
 import { IDeployWizardContext } from '../commands/createWebApp/setAppWizardContextDefault';
 import * as constants from '../constants';
 import { SiteTreeItem } from '../explorer/SiteTreeItem';
 import { WebAppTreeItem } from '../explorer/WebAppTreeItem';
 import { ext } from '../extensionVariables';
-import { getLinuxDetector } from '../getLinuxDetector';
 import { delay } from '../utils/delay';
 import { javaUtils } from '../utils/javaUtils';
 import { nonNullValue } from '../utils/nonNull';
@@ -194,7 +194,9 @@ export async function deploy(context: IDeployWizardContext, confirmDeployment: b
             // ignore
         },
         async () => {
+            // it can take over 10 minutes for the detectors to appear
+            await delay(1000 * 60 * 10);
             // tslint:disable-next-line: no-floating-promises
-            getLinuxDetector(node);
+            checkLinuxWebAppDownDetector(node);
         });
 }
