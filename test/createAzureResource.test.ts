@@ -92,7 +92,7 @@ suite('Create Azure Resources', async function (this: ISuiteCallbackContext): Pr
         let createdApp: WebSiteManagementModels.Site;
         createdApp = await webSiteClient.webApps.get(resourceName, resourceName);
         assert.equal(createdApp.state, 'Running', `Web App state should be 'Running' rather than ${createdApp.state} before restart.`);
-        await testUserInput.runWithInputs([resourceName, resourceName], async () => {
+        await testUserInput.runWithInputs([resourceName], async () => {
             await vscode.commands.executeCommand('appService.Restart');
         });
         createdApp = await webSiteClient.webApps.get(resourceName, resourceName);
