@@ -141,8 +141,6 @@ export async function activateInternal(
                 node = <WebAppTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue, actionContext);
             }
 
-            await checkLinuxWebAppDownDetector(node);
-
             const client: SiteClient = node.root.client;
             const startingApp: string = `Starting "${client.fullName}"...`;
             const startedApp: string = `"${client.fullName}" has been started.`;
