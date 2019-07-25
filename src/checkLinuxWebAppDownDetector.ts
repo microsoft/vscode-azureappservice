@@ -28,14 +28,8 @@ enum ColumnName {
     failureCount = "FailureCount"
 }
 
-export async function checkLinuxWebAppDownDetector(node: SiteTreeItem | undefined): Promise<void> {
+export async function checkLinuxWebAppDownDetector(node: SiteTreeItem): Promise<void> {
     return await callWithTelemetryAndErrorHandling('appService.linuxWebAppDownDetector', async (context: IActionContext): Promise<void> => {
-        // if this is not a Linux web app, then exit
-        if (!node || !(await node.root.client.getSiteConfig()).linuxFxVersion) {
-            context.telemetry.properties.cancelStep = 'notLinuxApp';
-            return;
-        }
-
         const deployment: DeployResult = await node.root.client.kudu.deployment.getResult('latest');
         if (!deployment.startTime) {
             // if there's no deployment detected, nothing can be done

@@ -194,6 +194,10 @@ export async function deploy(context: IDeployWizardContext, confirmDeployment: b
             // ignore
         },
         async () => {
+            if (!node || !(await node.root.client.getSiteConfig()).linuxFxVersion) {
+                // this currently only works for Linux apps, so don't delay and just exit if it's a Windows app
+                return;
+            }
             // it can take over 10 minutes for the detectors to appear
             await delay(1000 * 60 * 10);
             // tslint:disable-next-line: no-floating-promises
