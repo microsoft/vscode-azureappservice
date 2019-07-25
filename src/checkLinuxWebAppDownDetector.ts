@@ -39,7 +39,7 @@ export async function checkLinuxWebAppDownDetector(node: SiteTreeItem): Promise<
 
         const deployResultTime: Date = new Date(deployment.startTime);
 
-        const detectorOutput: string = `Diagnosing the app "${node.root.client.siteName}" for critical errors...`;
+        const detectorOutput: string = `Diagnosing web app "${node.root.client.siteName}" for critical errors...`;
         ext.outputChannel.appendLine(detectorOutput);
 
         const detectorUri: string = `https://management.azure.com/subscriptions/${node.root.subscriptionId}/resourceGroups/${node.root.client.resourceGroup}/providers/Microsoft.Web/sites/${node.root.client.siteName}/detectors/${detectorId}`;
@@ -63,6 +63,8 @@ export async function checkLinuxWebAppDownDetector(node: SiteTreeItem): Promise<
         const detectorTimeoutMs: number = Date.now() + 10 * 60 * 1000;
         do {
             if (Date.now() > detectorTimeoutMs) {
+                const noIssuesFound: string = `No critical issues found for web app "${node.root.client.siteName}".`;
+                ext.outputChannel.appendLine(noIssuesFound);
                 return undefined;
             }
             // update the new end time to be now
