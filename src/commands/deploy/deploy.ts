@@ -9,7 +9,7 @@ import { pathExists } from 'fs-extra';
 import * as path from 'path';
 import { commands, ConfigurationTarget, Disposable, MessageItem, Uri, window, workspace, WorkspaceConfiguration, WorkspaceFolder } from 'vscode';
 import * as appservice from 'vscode-azureappservice';
-import { DialogResponses, IAzureQuickPickItem, parseError } from 'vscode-azureextensionui';
+import { DialogResponses, IActionContext, IAzureQuickPickItem, parseError } from 'vscode-azureextensionui';
 import * as constants from '../../constants';
 import { SiteTreeItem } from '../../explorer/SiteTreeItem';
 import { WebAppTreeItem } from '../../explorer/WebAppTreeItem';
@@ -22,7 +22,6 @@ import { getRandomHexString } from "../../utils/randomUtils";
 import * as workspaceUtil from '../../utils/workspace';
 import { cancelWebsiteValidation, validateWebSite } from '../../validateWebSite';
 import { getWorkspaceSetting, updateWorkspaceSetting } from '../../vsCodeConfig/settings';
-import { IDeployWizardContext } from '../createWebApp/setAppWizardContextDefault';
 import { getDefaultWebAppToDeploy } from '../getDefaultWebAppToDeploy';
 import { startStreamingLogs } from '../startStreamingLogs';
 
@@ -31,7 +30,6 @@ export async function deploy(context: IDeployWizardContext, confirmDeployment: b
 
     let node: SiteTreeItem | undefined;
     const newNodes: SiteTreeItem[] = [];
-    let workspaceConfig: WorkspaceConfiguration;
     context.telemetry.properties.deployedWithConfigs = 'false';
 
     if (target instanceof Uri) {
@@ -196,4 +194,10 @@ export async function deploy(context: IDeployWizardContext, confirmDeployment: b
         () => {
             // ignore
         });
+}
+
+export interface IDeployWizardContext extends IActionContext {
+    fsPath?: string;
+    deployedWithConfigs?: boolean;
+    configurationTarget?: ConfigurationTarget;
 }

@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IDeployWizardContext } from "../commands/createWebApp/setAppWizardContextDefault";
+import { IDeployWizardContext } from "../commands/deploy/deploy";
 import { configurationSettings, extensionPrefix, none } from "../constants";
 import { WebAppTreeItem } from "../explorer/WebAppTreeItem";
 import { ext } from '../extensionVariables';

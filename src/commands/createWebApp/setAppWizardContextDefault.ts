@@ -12,12 +12,7 @@ import { configurationSettings, extensionPrefix } from '../../constants';
 import { javaUtils } from '../../utils/javaUtils';
 import { findFilesByFileExtension, getContainingWorkspace } from '../../utils/workspace';
 import { getWorkspaceSetting } from '../../vsCodeConfig/settings';
-
-export interface IDeployWizardContext extends IActionContext {
-    fsPath?: string;
-    deployedWithConfigs?: boolean;
-    configurationTarget?: ConfigurationTarget;
-}
+import { IDeployWizardContext } from '../deploy/deploy';
 
 export async function setAppWizardContextDefault(wizardContext: IAppServiceWizardContext & IDeployWizardContext): Promise<void> {
     // if the user entered through "Deploy", we'll have a project to base our recommendations on
