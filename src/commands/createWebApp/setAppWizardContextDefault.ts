@@ -11,6 +11,7 @@ import { IActionContext, LocationListStep } from 'vscode-azureextensionui';
 import { configurationSettings, extensionPrefix } from '../../constants';
 import { javaUtils } from '../../utils/javaUtils';
 import { findFilesByFileExtension, getContainingWorkspace } from '../../utils/workspace';
+import { getWorkspaceSetting } from '../../vsCodeConfig/settings';
 
 export interface IDeployWizardContext extends IActionContext {
     fsPath?: string;
@@ -24,9 +25,10 @@ export async function setAppWizardContextDefault(wizardContext: IAppServiceWizar
     const workspaceForRecommendation: WorkspaceFolder | undefined = wizardContext.fsPath ?
         getContainingWorkspace(wizardContext.fsPath) : workspace.workspaceFolders && workspace.workspaceFolders.length === 1 ?
             workspace.workspaceFolders[0] : undefined;
+    let fsPath: string | undefined;
 
     if (workspaceForRecommendation) {
-        const fsPath: string = workspaceForRecommendation.uri.fsPath;
+        fsPath = workspaceForRecommendation.uri.fsPath;
 
         if (await fse.pathExists(path.join(fsPath, 'package.json'))) {
             wizardContext.recommendedSiteRuntime = [LinuxRuntimes.node];
@@ -49,8 +51,7 @@ export async function setAppWizardContextDefault(wizardContext: IAppServiceWizar
         }
     }
 
-    const workspaceConfig: WorkspaceConfiguration = workspace.getConfiguration(extensionPrefix);
-    const advancedCreation: boolean | undefined = workspaceConfig.get(configurationSettings.advancedCreation);
+    const advancedCreation: boolean | undefined = getWorkspaceSetting(configurationSettings.advancedCreation, fsPath);
 
     if (!advancedCreation) {
         if (!wizardContext.location) {
