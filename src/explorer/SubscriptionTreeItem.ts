@@ -104,24 +104,7 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
             await setDefaultRgAndPlanName(wizardContext, siteStep);
         }
 
-        try {
-            await wizard.execute();
-        } catch (error) {
-            if (!parseError(error).isUserCancelledError && !context.advancedCreation) {
-
-                const message: string = `Use advanced create to change the default values when creating a Web App in Azure.`;
-                const btn: MessageItem = { title: 'Create Web App... (Advanced)' };
-                // tslint:disable-next-line: no-floating-promises
-                ext.ui.showWarningMessage(message, btn).then(async result => {
-                    if (result === btn) {
-                        resetAppWizardContextDefaults(context);
-                        await createWebAppAdvanced(context);
-                    }
-                });
-            }
-            throw error;
-        }
-
+        await wizard.execute();
         context.telemetry.properties.os = wizardContext.newSiteOS;
         context.telemetry.properties.runtime = wizardContext.newSiteRuntime;
         context.telemetry.properties.advancedCreation = context.advancedCreation ? 'true' : 'false';

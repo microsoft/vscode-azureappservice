@@ -89,17 +89,14 @@ async function promptPerformanceWarning(context: IAppServiceWizardContext, asp: 
 
         const numberOfSites: number = nonNullProp(asp, 'numberOfSites');
         const createAnyway: MessageItem = { title: 'Create anyway' };
-        const createNewAsp: MessageItem = { title: 'Create new App Service Plan' };
-        const inputs: MessageItem[] = [createAnyway, createNewAsp, DialogResponses.dontWarnAgain];
-        const input: MessageItem = await ext.ui.showWarningMessage(`The selected plan currently has ${numberOfSites} apps. Deploying more than ${maxNumberOfSites} apps may degrade the performance on the apps in the plan.`, { modal: true }, ...inputs);
+        const inputs: MessageItem[] = [createAnyway, DialogResponses.dontWarnAgain, DialogResponses.cancel];
+        const input: MessageItem = await ext.ui.showWarningMessage(`The selected plan currently has ${numberOfSites} apps. Deploying more than ${maxNumberOfSites} apps may degrade the performance on the apps in the plan.  Use "Create Web App... (Advanced)" to change the default resource names.`, { modal: true }, ...inputs);
 
-        if (input === createNewAsp) {
-            resetAppWizardContextDefaults(context);
-            await createWebAppAdvanced(context);
-        } else if (input === DialogResponses.dontWarnAgain) {
+        if (input === DialogResponses.dontWarnAgain) {
             context.telemetry.properties.turnOffPerfWarning = 'true';
             workspaceConfig.update(showPlanPerformanceWarningSetting, false, ConfigurationTarget.Global);
         }
+
         context.telemetry.properties.cancelStep = '';
     }
 }
