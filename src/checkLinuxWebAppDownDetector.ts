@@ -13,9 +13,10 @@ import { SiteTreeItem } from "./explorer/SiteTreeItem";
 import { ext } from './extensionVariables';
 import { delay } from "./utils/delay";
 import { openUrl } from './utils/openUrl';
+import { findTableByColumnName, findTableByRowValue, getValuesByColumnName } from "./utils/tableUtil";
 
 const detectorId: string = 'LinuxContainerStartFailure';
-enum ColumnName {
+export enum ColumnName {
     status = "Status",
     message = "Message",
     name = "Data.Name",
@@ -42,7 +43,7 @@ export async function checkLinuxWebAppDownDetector(node: SiteTreeItem): Promise<
         const detectorOutput: string = `Diagnosing web app "${node.root.client.siteName}" for critical errors...`;
         ext.outputChannel.appendLine(detectorOutput);
 
-        const detectorUri: string = `https://management.azure.com/subscriptions/${node.root.subscriptionId}/resourceGroups/${node.root.client.resourceGroup}/providers/Microsoft.Web/sites/${node.root.client.siteName}/detectors/${detectorId}`;
+        const detectorUri: string = `${node.root.environment.resourceManagerEndpointUrl}${node.id}/detectors/${detectorId}`;
         const requestOptions: WebResource & Partial<{ qs: queryString }> = new WebResource();
 
         requestOptions.method = 'GET';
@@ -75,7 +76,7 @@ export async function checkLinuxWebAppDownDetector(node: SiteTreeItem): Promise<
         } while (!detectorErrorMessage);
 
         await ext.ui.showWarningMessage(detectorErrorMessage, { title: 'Open in Portal' });
-        const portalDeeplink = `https://portal.azure.com/?websitesextension_ext=asd.featurePath%3Ddetectors%2F${detectorId}#@microsoft.onmicrosoft.com/resource/${node.root.client.id}/troubleshoot`;
+        const portalDeeplink = `${node.root.environment.portalUrl}/?websitesextension_ext=asd.featurePath%3Ddetectors%2F${detectorId}#@microsoft.onmicrosoft.com/resource/${node.root.client.id}/troubleshoot`;
         await openUrl(portalDeeplink);
         context.telemetry.properties.didClick = 'true';
     });
@@ -124,55 +125,7 @@ async function getLinuxDetectorError(requestOptions: WebResource, deployResultTi
     return undefined;
 }
 
-// the dataset contains several tables all with the same tableName and columnNames so to find the proper table, look for a specific value
-function findTableByRowValue(datasets: detectorDataset[], searchValue: string): detectorTable | undefined {
-    for (const dataset of datasets) {
-        for (const row of dataset.table.rows) {
-            for (const value of row) {
-                if (value === searchValue) {
-                    return dataset.table;
-                }
-            }
-        }
-    }
-
-    return undefined;
-}
-
-function findTableByColumnName(datasets: detectorDataset[], columnName: ColumnName): detectorTable | undefined {
-    for (const dataset of datasets) {
-        for (const col of dataset.table.columns) {
-            if (col.columnName === columnName) {
-                return dataset.table;
-            }
-        }
-    }
-
-    return undefined;
-}
-
-function getValuesByColumnName(table: detectorTable, columnName: ColumnName): string[] {
-    // -1 indicates that findIndex returned nothing
-    let rowIndex: number = -1;
-    const values: string[] = [];
-
-    for (let i = 0; i < table.columns.length; i++) {
-        if (table.columns[i].columnName === columnName) {
-            rowIndex = i;
-            break;
-        }
-    }
-
-    if (rowIndex > 0) {
-        for (const row of table.rows) {
-            values.push(row[rowIndex]);
-        }
-    }
-
-    return values;
-}
-
-function validateTimestamp(detectorTime: Date, deployResultTime: Date): boolean {
+export function validateTimestamp(detectorTime: Date, deployResultTime: Date): boolean {
     const timeBetweenDeployAndDetector: number = Math.abs(detectorTime.getSeconds() - deployResultTime.getSeconds());
 
     // there's usually around a 5-20 second difference between the deploy result and time reported by the detector
@@ -193,17 +146,17 @@ type queryString = {
     endTime: string
 };
 
-type detectorResponseJSON = {
+export type detectorResponseJSON = {
     properties: {
         dataset: detectorDataset[]
     }
 };
 
-type detectorDataset = {
+export type detectorDataset = {
     table: detectorTable
 };
 
-type detectorTable = {
+export type detectorTable = {
     columns: detectorColumn[],
     rows: string[]
 };
