@@ -80,7 +80,7 @@ export async function activateInternal(
         context.subscriptions.push(ext.azureAccountTreeItem);
         ext.tree = new AzExtTreeDataProvider(ext.azureAccountTreeItem, 'appService.LoadMore');
 
-        ext.treeView = vscode.window.createTreeView('azureAppService', { treeDataProvider: ext.tree });
+        ext.treeView = vscode.window.createTreeView('azureAppService', { treeDataProvider: ext.tree, showCollapseAll: true });
         context.subscriptions.push(ext.treeView);
 
         const fileEditor: FileEditor = new FileEditor();

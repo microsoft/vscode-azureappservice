@@ -8,14 +8,15 @@ import { ResourceManagementClient } from 'azure-arm-resource';
 import { WebSiteManagementClient, WebSiteManagementModels } from 'azure-arm-website';
 import { IHookCallbackContext, ISuiteCallbackContext } from 'mocha';
 import * as vscode from 'vscode';
-import { AzExtTreeDataProvider, AzureAccountTreeItem, constants, DialogResponses, ext, getRandomHexString, TestAzureAccount, TestUserInput } from '../extension.bundle';
-import { longRunningTestsEnabled } from './global.test';
+import { TestAzureAccount } from 'vscode-azureextensiondev';
+import { AzExtTreeDataProvider, AzureAccountTreeItem, constants, createAzureClient, DialogResponses, ext, getRandomHexString } from '../extension.bundle';
+import { longRunningTestsEnabled, testUserInput } from './global.test';
 
 // tslint:disable-next-line: max-func-body-length
 suite('Create Azure Resources', async function (this: ISuiteCallbackContext): Promise<void> {
     this.timeout(1200 * 1000);
     const resourceGroupsToDelete: string[] = [];
-    const testAccount: TestAzureAccount = new TestAzureAccount();
+    const testAccount: TestAzureAccount = new TestAzureAccount(vscode);
     let oldAdvancedCreationSetting: boolean | undefined;
     const regExpLTS: RegExp = /LTS/g;
     const resourceName: string = getRandomHexString().toLowerCase();
@@ -30,7 +31,7 @@ suite('Create Azure Resources', async function (this: ISuiteCallbackContext): Pr
         await testAccount.signIn();
         ext.azureAccountTreeItem = new AzureAccountTreeItem(testAccount);
         ext.tree = new AzExtTreeDataProvider(ext.azureAccountTreeItem, 'appService.loadMore');
-        webSiteClient = getWebsiteManagementClient(testAccount);
+        webSiteClient = createAzureClient(testAccount.getSubscriptionContext(), WebSiteManagementClient);
     });
 
     suiteTeardown(async function (this: IHookCallbackContext): Promise<void> {
@@ -39,8 +40,8 @@ suite('Create Azure Resources', async function (this: ISuiteCallbackContext): Pr
         }
         await vscode.workspace.getConfiguration(constants.extensionPrefix).update('advancedCreation', oldAdvancedCreationSetting, vscode.ConfigurationTarget.Global);
         this.timeout(1200 * 1000);
-        const client: ResourceManagementClient = getResourceManagementClient(testAccount);
-        for (const resourceGroup of resourceGroupsToDelete) {
+        const client: ResourceManagementClient = createAzureClient(testAccount.getSubscriptionContext(), ResourceManagementClient);
+        await Promise.all(resourceGroupsToDelete.map(async resourceGroup => {
             if (await client.resourceGroups.checkExistence(resourceGroup)) {
                 console.log(`Deleting resource group "${resourceGroup}"...`);
                 await client.resourceGroups.deleteMethod(resourceGroup);
@@ -49,17 +50,18 @@ suite('Create Azure Resources', async function (this: ISuiteCallbackContext): Pr
                 // If the test failed, the resource group might not actually exist
                 console.log(`Ignoring resource group "${resourceGroup}" because it does not exist.`);
             }
-        }
+        }));
         ext.azureAccountTreeItem.dispose();
     });
 
     test('Create New Web App (Advanced)', async () => {
         await vscode.workspace.getConfiguration(constants.extensionPrefix).update('advancedCreation', true, vscode.ConfigurationTarget.Global);
         const testInputs: (string | RegExp)[] = [resourceName, '$(plus) Create new resource group', resourceName, 'Linux', regExpLTS, '$(plus) Create new App Service plan', resourceName, 'B1', 'West US'];
-        ext.ui = new TestUserInput(testInputs);
 
         resourceGroupsToDelete.push(resourceName);
-        await vscode.commands.executeCommand('appService.CreateWebApp');
+        await testUserInput.runWithInputs(testInputs, async () => {
+            await vscode.commands.executeCommand('appService.CreateWebApp');
+        });
         const createdApp: WebSiteManagementModels.Site = await webSiteClient.webApps.get(resourceName, resourceName);
         assert.ok(createdApp);
     });
@@ -68,8 +70,9 @@ suite('Create Azure Resources', async function (this: ISuiteCallbackContext): Pr
         let createdApp: WebSiteManagementModels.Site;
         createdApp = await webSiteClient.webApps.get(resourceName, resourceName);
         assert.equal(createdApp.state, 'Running', `Web App state should be 'Running' rather than ${createdApp.state} before stop.`);
-        ext.ui = new TestUserInput([resourceName]);
-        await vscode.commands.executeCommand('appService.Stop');
+        await testUserInput.runWithInputs([resourceName], async () => {
+            await vscode.commands.executeCommand('appService.Stop');
+        });
         createdApp = await webSiteClient.webApps.get(resourceName, resourceName);
         assert.equal(createdApp.state, 'Stopped', `Web App state should be 'Stopped' rather than ${createdApp.state}.`);
     });
@@ -78,8 +81,9 @@ suite('Create Azure Resources', async function (this: ISuiteCallbackContext): Pr
         let createdApp: WebSiteManagementModels.Site;
         createdApp = await webSiteClient.webApps.get(resourceName, resourceName);
         assert.equal(createdApp.state, 'Stopped', `Web App state should be 'Stopped' rather than ${createdApp.state} before start.`);
-        ext.ui = new TestUserInput([resourceName]);
-        await vscode.commands.executeCommand('appService.Start');
+        await testUserInput.runWithInputs([resourceName], async () => {
+            await vscode.commands.executeCommand('appService.Start');
+        });
         createdApp = await webSiteClient.webApps.get(resourceName, resourceName);
         assert.equal(createdApp.state, 'Running', `Web App state should be 'Running' rather than ${createdApp.state}.`);
     });
@@ -88,8 +92,9 @@ suite('Create Azure Resources', async function (this: ISuiteCallbackContext): Pr
         let createdApp: WebSiteManagementModels.Site;
         createdApp = await webSiteClient.webApps.get(resourceName, resourceName);
         assert.equal(createdApp.state, 'Running', `Web App state should be 'Running' rather than ${createdApp.state} before restart.`);
-        ext.ui = new TestUserInput([resourceName, resourceName]);
-        await vscode.commands.executeCommand('appService.Restart');
+        await testUserInput.runWithInputs([resourceName], async () => {
+            await vscode.commands.executeCommand('appService.Restart');
+        });
         createdApp = await webSiteClient.webApps.get(resourceName, resourceName);
         assert.equal(createdApp.state, 'Running', `Web App state should be 'Running' rather than ${createdApp.state}.`);
     });
@@ -97,8 +102,9 @@ suite('Create Azure Resources', async function (this: ISuiteCallbackContext): Pr
     test('Configure Deployment Source to LocalGit', async () => {
         let createdApp: WebSiteManagementModels.SiteConfigResource = await webSiteClient.webApps.getConfiguration(resourceName, resourceName);
         assert.notEqual(createdApp.scmType, constants.ScmType.LocalGit, `Web App scmType's property value shouldn't be ${createdApp.scmType} before "Configure Deployment Source to LocalGit".`);
-        ext.ui = new TestUserInput([resourceName, constants.ScmType.LocalGit]);
-        await vscode.commands.executeCommand('appService.ConfigureDeploymentSource');
+        await testUserInput.runWithInputs([resourceName, constants.ScmType.LocalGit], async () => {
+            await vscode.commands.executeCommand('appService.ConfigureDeploymentSource');
+        });
         createdApp = await webSiteClient.webApps.getConfiguration(resourceName, resourceName);
         assert.equal(createdApp.scmType, constants.ScmType.LocalGit, `Web App scmType's property value should be ${constants.ScmType.LocalGit} rather than ${createdApp.scmType}.`);
     });
@@ -106,8 +112,9 @@ suite('Create Azure Resources', async function (this: ISuiteCallbackContext): Pr
     test('Configure Deployment Source to None', async () => {
         let createdApp: WebSiteManagementModels.SiteConfigResource = await webSiteClient.webApps.getConfiguration(resourceName, resourceName);
         assert.notEqual(createdApp.scmType, constants.ScmType.None, `Web App scmType's property value shouldn't be ${createdApp.scmType} before "Configure Deployment Source to None".`);
-        ext.ui = new TestUserInput([resourceName, constants.ScmType.None]);
-        await vscode.commands.executeCommand('appService.ConfigureDeploymentSource');
+        await testUserInput.runWithInputs([resourceName, constants.ScmType.None], async () => {
+            await vscode.commands.executeCommand('appService.ConfigureDeploymentSource');
+        });
         createdApp = await webSiteClient.webApps.getConfiguration(resourceName, resourceName);
         assert.equal(createdApp.scmType, constants.ScmType.None, `Web App scmType's property value should be ${constants.ScmType.None} rather than ${createdApp.scmType}.`);
     });
@@ -115,17 +122,10 @@ suite('Create Azure Resources', async function (this: ISuiteCallbackContext): Pr
     test('Delete Web App', async () => {
         const createdApp: WebSiteManagementModels.Site = await webSiteClient.webApps.get(resourceName, resourceName);
         assert.ok(createdApp);
-        ext.ui = new TestUserInput([resourceName, DialogResponses.deleteResponse.title, DialogResponses.yes.title]);
-        await vscode.commands.executeCommand('appService.Delete');
+        await testUserInput.runWithInputs([resourceName, DialogResponses.deleteResponse.title, DialogResponses.yes.title], async () => {
+            await vscode.commands.executeCommand('appService.Delete');
+        });
         const deletedApp: WebSiteManagementModels.Site | undefined = await webSiteClient.webApps.get(resourceName, resourceName);
         assert.ifError(deletedApp); // if app was deleted, get() returns null.  assert.ifError throws if the value passed is not null/undefined
     });
 });
-
-function getWebsiteManagementClient(testAccount: TestAzureAccount): WebSiteManagementClient {
-    return new WebSiteManagementClient(testAccount.getSubscriptionCredentials(), testAccount.getSubscriptionId());
-}
-
-function getResourceManagementClient(testAccount: TestAzureAccount): ResourceManagementClient {
-    return new ResourceManagementClient(testAccount.getSubscriptionCredentials(), testAccount.getSubscriptionId());
-}
