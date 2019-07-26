@@ -5,18 +5,19 @@
 
 import { WebSiteManagementClient } from 'azure-arm-website';
 import { Site, WebAppCollection } from 'azure-arm-website/lib/models';
-import { ConfigurationTarget, workspace, WorkspaceConfiguration } from 'vscode';
+import { MessageItem } from 'vscode';
 import { AppKind, AppServicePlanCreateStep, AppServicePlanListStep, IAppServiceWizardContext, SiteClient, SiteCreateStep, SiteNameStep, SiteOSStep, SiteRuntimeStep } from 'vscode-azureappservice';
 import { AzExtTreeItem, AzureTreeItem, AzureWizard, AzureWizardExecuteStep, AzureWizardPromptStep, createAzureClient, ICreateChildImplContext, parseError, ResourceGroupCreateStep, ResourceGroupListStep, SubscriptionTreeItemBase } from 'vscode-azureextensionui';
-import { setAppWizardContextDefault } from '../commands/createWebApp/setAppWizardContextDefault';
+import { createWebAppAdvanced } from '../commands/createWebApp/createWebApp';
+import { resetAppWizardContextDefaults, setAppWizardContextDefault } from '../commands/createWebApp/setAppWizardContextDefault';
 import { setDefaultRgAndPlanName } from '../commands/createWebApp/setDefaultRgAndPlanName';
-import { AppServiceDialogResponses, configurationSettings, extensionPrefix } from '../constants';
 import { ext } from '../extensionVariables';
 import { nonNullProp } from '../utils/nonNull';
 import { WebAppTreeItem } from './WebAppTreeItem';
 
 export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
     public readonly childTypeLabel: string = 'Web App';
+    public supportsAdvancedCreation: boolean = true;
 
     private _nextLink: string | undefined;
 
@@ -62,7 +63,7 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
         );
     }
 
-    public async createChildImpl(context: ICreateChildImplContext): Promise<AzureTreeItem> {
+    public async createChildImpl(context: ICreateChildImplContext & Partial<IAppServiceWizardContext>): Promise<AzureTreeItem> {
         const wizardContext: IAppServiceWizardContext = Object.assign(context, this.root, {
             newSiteKind: AppKind.app,
             resourceGroupDeferLocationStep: true
@@ -75,9 +76,7 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
         const siteStep: SiteNameStep = new SiteNameStep();
         promptSteps.push(siteStep);
 
-        const workspaceConfig: WorkspaceConfiguration = workspace.getConfiguration(extensionPrefix);
-        const advancedCreation: boolean | undefined = workspaceConfig.get(configurationSettings.advancedCreation);
-        if (advancedCreation) {
+        if (context.advancedCreation) {
             promptSteps.push(new ResourceGroupListStep());
             promptSteps.push(new SiteOSStep());
             promptSteps.push(new SiteRuntimeStep());
@@ -101,22 +100,22 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
 
         context.showCreatingTreeItem(nonNullProp(wizardContext, 'newSiteName'));
 
-        if (!advancedCreation) {
+        if (!context.advancedCreation) {
             await setDefaultRgAndPlanName(wizardContext, siteStep);
         }
 
         try {
             await wizard.execute();
         } catch (error) {
-            // if there is an error when creating, prompt the user to try advanced creation
-            // tslint:disable-next-line: strict-boolean-expressions
-            if (!parseError(error).isUserCancelledError && !advancedCreation) {
-                const message: string = `Modify the setting "${extensionPrefix}.${configurationSettings.advancedCreation}" if you want to change the default values when creating a Web App in Azure.`;
+            if (!parseError(error).isUserCancelledError && !context.advancedCreation) {
 
+                const message: string = `Use advanced create to change the default values when creating a Web App in Azure.`;
+                const btn: MessageItem = { title: 'Create Web App... (Advanced)' };
                 // tslint:disable-next-line: no-floating-promises
-                ext.ui.showWarningMessage(message, AppServiceDialogResponses.turnOnAdvancedCreation).then(async result => {
-                    if (result === AppServiceDialogResponses.turnOnAdvancedCreation) {
-                        await workspaceConfig.update('advancedCreation', true, ConfigurationTarget.Global);
+                ext.ui.showWarningMessage(message, btn).then(async result => {
+                    if (result === btn) {
+                        resetAppWizardContextDefaults(context);
+                        await createWebAppAdvanced(context);
                     }
                 });
             }
@@ -125,7 +124,7 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
 
         context.telemetry.properties.os = wizardContext.newSiteOS;
         context.telemetry.properties.runtime = wizardContext.newSiteRuntime;
-        context.telemetry.properties.advancedCreation = advancedCreation ? 'true' : 'false';
+        context.telemetry.properties.advancedCreation = context.advancedCreation ? 'true' : 'false';
 
         // site is set as a result of SiteCreateStep.execute()
         const siteClient: SiteClient = new SiteClient(nonNullProp(wizardContext, 'site'), this.root);
