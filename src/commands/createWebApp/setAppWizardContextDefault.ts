@@ -68,14 +68,3 @@ export async function setAppWizardContextDefault(wizardContext: IAppServiceWizar
         }
     }
 }
-
-export function resetAppWizardContextDefaults(context: Partial<IAppServiceWizardContext>): void {
-    context.plan = undefined;
-    context.newPlanName = undefined;
-    context.newPlanSku = undefined;
-
-    context.resourceGroup = undefined;
-    context.newResourceGroupName = undefined;
-    context.newSiteOS = undefined;
-    context.location = undefined;
-}

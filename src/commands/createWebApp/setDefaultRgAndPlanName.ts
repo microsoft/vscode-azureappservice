@@ -12,8 +12,6 @@ import { createAzureClient, DialogResponses } from "vscode-azureextensionui";
 import { extensionPrefix } from "../../constants";
 import { ext } from "../../extensionVariables";
 import { nonNullProp } from "../../utils/nonNull";
-import { createWebAppAdvanced } from "./createWebApp";
-import { resetAppWizardContextDefaults } from "./setAppWizardContextDefault";
 
 const maxNumberOfSites: number = 3;
 
