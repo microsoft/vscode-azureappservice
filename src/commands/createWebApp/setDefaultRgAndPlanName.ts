@@ -8,7 +8,7 @@ import WebSiteManagementClient from "azure-arm-website";
 import { AppServicePlan } from "azure-arm-website/lib/models";
 import { ConfigurationTarget, MessageItem, workspace, WorkspaceConfiguration } from "vscode";
 import { IAppServiceWizardContext, SiteNameStep, WebsiteOS } from "vscode-azureappservice";
-import { createAzureClient, DialogResponses } from "vscode-azureextensionui";
+import { createAzureClient, DialogResponses, IActionContext } from "vscode-azureextensionui";
 import { extensionPrefix } from "../../constants";
 import { ext } from "../../extensionVariables";
 import { nonNullProp } from "../../utils/nonNull";
@@ -75,7 +75,7 @@ function checkPlanForPerformanceDrop(asp: AppServicePlan): boolean {
     return false;
 }
 
-async function promptPerformanceWarning(context: IAppServiceWizardContext, asp: AppServicePlan): Promise<void> {
+async function promptPerformanceWarning(context: IActionContext, asp: AppServicePlan): Promise<void> {
     context.telemetry.properties.performanceWarning = 'true';
     const workspaceConfig: WorkspaceConfiguration = workspace.getConfiguration(extensionPrefix);
     const showPlanPerformanceWarningSetting: string = 'showPlanPerformanceWarning';
