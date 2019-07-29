@@ -17,7 +17,6 @@ suite('Create Azure Resources', async function (this: ISuiteCallbackContext): Pr
     this.timeout(1200 * 1000);
     const resourceGroupsToDelete: string[] = [];
     const testAccount: TestAzureAccount = new TestAzureAccount(vscode);
-    let oldAdvancedCreationSetting: boolean | undefined;
     const regExpLTS: RegExp = /LTS/g;
     const resourceName: string = getRandomHexString().toLowerCase();
     let webSiteClient: WebSiteManagementClient;
@@ -26,7 +25,6 @@ suite('Create Azure Resources', async function (this: ISuiteCallbackContext): Pr
         if (!longRunningTestsEnabled) {
             this.skip();
         }
-        oldAdvancedCreationSetting = <boolean>vscode.workspace.getConfiguration(constants.extensionPrefix).get('advancedCreation');
         this.timeout(120 * 1000);
         await testAccount.signIn();
         ext.azureAccountTreeItem = new AzureAccountTreeItem(testAccount);
@@ -38,7 +36,6 @@ suite('Create Azure Resources', async function (this: ISuiteCallbackContext): Pr
         if (!longRunningTestsEnabled) {
             this.skip();
         }
-        await vscode.workspace.getConfiguration(constants.extensionPrefix).update('advancedCreation', oldAdvancedCreationSetting, vscode.ConfigurationTarget.Global);
         this.timeout(1200 * 1000);
         const client: ResourceManagementClient = createAzureClient(testAccount.getSubscriptionContext(), ResourceManagementClient);
         await Promise.all(resourceGroupsToDelete.map(async resourceGroup => {
@@ -55,12 +52,11 @@ suite('Create Azure Resources', async function (this: ISuiteCallbackContext): Pr
     });
 
     test('Create New Web App (Advanced)', async () => {
-        await vscode.workspace.getConfiguration(constants.extensionPrefix).update('advancedCreation', true, vscode.ConfigurationTarget.Global);
         const testInputs: (string | RegExp)[] = [resourceName, '$(plus) Create new resource group', resourceName, 'Linux', regExpLTS, '$(plus) Create new App Service plan', resourceName, 'B1', 'West US'];
 
         resourceGroupsToDelete.push(resourceName);
         await testUserInput.runWithInputs(testInputs, async () => {
-            await vscode.commands.executeCommand('appService.CreateWebApp');
+            await vscode.commands.executeCommand('appService.CreateWebAppAdvanced');
         });
         const createdApp: WebSiteManagementModels.Site = await webSiteClient.webApps.get(resourceName, resourceName);
         assert.ok(createdApp);
