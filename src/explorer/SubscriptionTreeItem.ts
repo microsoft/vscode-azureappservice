@@ -105,7 +105,6 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
         await wizard.execute();
         context.telemetry.properties.os = wizardContext.newSiteOS;
         context.telemetry.properties.runtime = wizardContext.newSiteRuntime;
-        context.telemetry.properties.advancedCreation = context.advancedCreation ? 'true' : 'false';
 
         // site is set as a result of SiteCreateStep.execute()
         const siteClient: SiteClient = new SiteClient(nonNullProp(wizardContext, 'site'), this.root);
