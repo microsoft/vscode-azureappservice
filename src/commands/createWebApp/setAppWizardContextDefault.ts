@@ -15,8 +15,8 @@ import { IDeployWizardContext } from '../deploy/deploy';
 export async function setAppWizardContextDefault(wizardContext: IAppServiceWizardContext & Partial<IDeployWizardContext> & Partial<ICreateChildImplContext>): Promise<void> {
     // if the user entered through "Deploy", we'll have a project to base our recommendations on
     // otherwise, look at their current workspace and only suggest if one workspace is opened
-    const workspaceForRecommendation: WorkspaceFolder | undefined = wizardContext.fsPath ?
-        getContainingWorkspace(wizardContext.fsPath) : workspace.workspaceFolders && workspace.workspaceFolders.length === 1 ?
+    const workspaceForRecommendation: WorkspaceFolder | undefined = wizardContext.deployFsPath ?
+        getContainingWorkspace(wizardContext.deployFsPath) : workspace.workspaceFolders && workspace.workspaceFolders.length === 1 ?
             workspace.workspaceFolders[0] : undefined;
     let fsPath: string | undefined;
 
@@ -36,19 +36,11 @@ export async function setAppWizardContextDefault(wizardContext: IAppServiceWizar
                 LinuxRuntimes.tomcat,
                 LinuxRuntimes.wildfly
             ];
-
-            // considering high resource requirement for Java applications, a higher plan sku is set here
-            wizardContext.newPlanSku = { name: 'P1v2', tier: 'PremiumV2', size: 'P1v2', family: 'P', capacity: 1 };
-            // to avoid 'Requested features are not supported in region' error
-            await LocationListStep.setLocation(wizardContext, 'weseteurope');
         }
     }
 
     if (!wizardContext.advancedCreation) {
-        if (!wizardContext.location) {
-            await LocationListStep.setLocation(wizardContext, 'centralus');
-        }
-
+        await LocationListStep.setLocation(wizardContext, 'centralus');
         if (!wizardContext.newPlanSku) {
             // don't overwrite the planSku if it is already set
             wizardContext.newPlanSku = { name: 'F1', tier: 'Free', size: 'F1', family: 'F', capacity: 1 };

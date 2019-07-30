@@ -5,10 +5,9 @@
 
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { IActionContext, IAzureQuickPickItem } from 'vscode-azureextensionui';
+import { IAzureQuickPickItem } from 'vscode-azureextensionui';
 import { ext } from '../extensionVariables';
 import { isPathEqual, isSubpath } from '../utils/pathUtils';
-import { getWorkspaceSetting } from '../vsCodeConfig/settings';
 
 export async function selectWorkspaceFile(placeHolder: string, getSubPath?: (f: vscode.WorkspaceFolder) => string | undefined): Promise<string> {
     let defaultUri: vscode.Uri | undefined;
@@ -35,6 +34,7 @@ export async function selectWorkspaceFile(placeHolder: string, getSubPath?: (f: 
 export async function selectWorkspaceItem(placeHolder: string, options: vscode.OpenDialogOptions, getSubPath?: (f: vscode.WorkspaceFolder) => string | undefined, fileExtension?: string): Promise<string> {
     let folder: IAzureQuickPickItem<string | undefined> | undefined;
     let quickPicks: IAzureQuickPickItem<string | undefined>[] = [];
+    options.canSelectFolders = true;
     if (vscode.workspace.workspaceFolders) {
         // if there's a fileExtension, then only populate the quickPick menu with that, otherwise show the current folders in the workspace
         quickPicks = fileExtension ? mapFilesToQuickPickItems(await findFilesByFileExtension(undefined, fileExtension)) :
@@ -52,29 +52,15 @@ export async function selectWorkspaceItem(placeHolder: string, options: vscode.O
         folder = await ext.ui.showQuickPick(quickPicks, { placeHolder });
     }
 
-    return folder && folder.data ? folder.data : (await ext.ui.showOpenDialog(options))[0].fsPath;
-}
+    // this should be for only the Java scenario
+    if (fileExtension) {
+        options.filters = fileExtension ? { Artifact: [fileExtension] } : undefined;
+        options.canSelectFiles = true;
+        // Windows and Linux do not support both canSelectFiles and canSelectFolders being true
+        options.canSelectFolders = false;
+    }
 
-export async function showWorkspaceFolders(placeHolderString: string, context: IActionContext, subPathSetting: string | undefined, fileExtension?: string): Promise<string> {
-    context.telemetry.properties.cancelStep = 'showWorkspaceFoldersAndExtensions';
-    return await selectWorkspaceItem(
-        placeHolderString,
-        {
-            // on Windows, if both files and folder are set to true, then it defaults to folders
-            canSelectFiles: true,
-            canSelectFolders: !fileExtension,
-            canSelectMany: false,
-            defaultUri: vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri : undefined,
-            filters: { Artifacts: fileExtension ? [fileExtension] : ['jar', 'war', 'zip'] }
-        },
-        (f: vscode.WorkspaceFolder): string | undefined => {
-            if (subPathSetting) {
-                return getWorkspaceSetting(subPathSetting, f.uri.fsPath);
-            }
-            return;
-        },
-        fileExtension
-    );
+    return folder && folder.data ? folder.data : (await ext.ui.showOpenDialog(options))[0].fsPath;
 }
 
 export function getContainingWorkspace(fsPath: string): vscode.WorkspaceFolder | undefined {
@@ -86,8 +72,8 @@ export function getContainingWorkspace(fsPath: string): vscode.WorkspaceFolder |
 }
 
 export async function findFilesByFileExtension(fsPath: string | undefined, fileExtension: string): Promise<vscode.Uri[]> {
-    // if there is a fsPath, then only check the folder for the file extension, otherwise use all currently opened workspaces
-    const relativeDirectory: vscode.RelativePattern | string = fsPath ? new vscode.RelativePattern(fsPath, `*.${fileExtension}`) : path.join('**', `*.${fileExtension}`);
+    // if there is a fsPath, then only check the folder for the file extension, otherwise recursively check all currently opened workspaces
+    const relativeDirectory: vscode.RelativePattern | string = fsPath ? new vscode.RelativePattern(fsPath, `*.${fileExtension}`) : `**/*.{${fileExtension}}`;
     return await vscode.workspace.findFiles(relativeDirectory);
 }
 

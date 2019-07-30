@@ -13,14 +13,11 @@ import { isPathEqual, isSubpath } from '../../utils/pathUtils';
 import * as workspaceUtil from '../../utils/workspace';
 import { getWorkspaceSetting, updateGlobalSetting } from '../../vsCodeConfig/settings';
 
-export async function getDeployFsPath(context: IActionContext, target: vscode.Uri | string | SiteTreeItem | undefined, fileExtension?: string): Promise<string> {
+export async function getDeployFsPath(context: IActionContext, target: vscode.Uri | SiteTreeItem | undefined, fileExtension?: string): Promise<string> {
     context.telemetry.properties.deploymentEntryPoint = target ? 'webAppContextMenu' : 'deployButton';
     if (target instanceof vscode.Uri) {
         context.telemetry.properties.deploymentEntryPoint = 'fileExplorerContextMenu';
         return await appendDeploySubpathSetting(target.fsPath);
-    } else if (typeof target === 'string') {
-        // not sure where this entry point would be
-        return await appendDeploySubpathSetting(target);
     } else if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length === 1) {
         // If there is only one workspace and it has 'deploySubPath' set - return that value without prompting
         const folderPath: string = vscode.workspace.workspaceFolders[0].uri.fsPath;

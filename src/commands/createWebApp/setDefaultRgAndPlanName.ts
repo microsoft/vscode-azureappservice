@@ -8,14 +8,23 @@ import WebSiteManagementClient from "azure-arm-website";
 import { AppServicePlan } from "azure-arm-website/lib/models";
 import { MessageItem } from "vscode";
 import { IAppServiceWizardContext, SiteNameStep, WebsiteOS } from "vscode-azureappservice";
-import { createAzureClient, DialogResponses, IActionContext } from "vscode-azureextensionui";
+import { createAzureClient, DialogResponses, IActionContext, LocationListStep } from "vscode-azureextensionui";
 import { ext } from "../../extensionVariables";
+import { javaUtils } from "../../utils/javaUtils";
 import { nonNullProp } from "../../utils/nonNull";
 import { getWorkspaceSetting, updateGlobalSetting } from "../../vsCodeConfig/settings";
 
 const maxNumberOfSites: number = 3;
 
 export async function setDefaultRgAndPlanName(wizardContext: IAppServiceWizardContext, siteNameStep: SiteNameStep): Promise<void> {
+    // if the user selected a Java, set the defaults accordingly
+    if (javaUtils.isJavaRuntime(wizardContext.newSiteRuntime)) {
+        // considering high resource requirement for Java applications, a higher plan sku is set here
+        wizardContext.newPlanSku = { name: 'P1v2', tier: 'PremiumV2', size: 'P1v2', family: 'P', capacity: 1 };
+        // to avoid 'Requested features are not supported in region' error
+        await LocationListStep.setLocation(wizardContext, 'westeurope');
+    }
+
     // this should always be set when in the basic creation scenario
     const location: Location = nonNullProp(wizardContext, 'location');
     const defaultName: string = `appsvc_${wizardContext.newSiteOS}_${location.name}`;
