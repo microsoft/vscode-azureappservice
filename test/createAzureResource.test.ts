@@ -10,8 +10,6 @@ import { IHookCallbackContext, ISuiteCallbackContext } from 'mocha';
 import * as vscode from 'vscode';
 import { TestAzureAccount } from 'vscode-azureextensiondev';
 import { AzExtTreeDataProvider, AzureAccountTreeItem, constants, createAzureClient, DialogResponses, ext, getRandomHexString } from '../extension.bundle';
-import { configurationSettings } from '../src/constants';
-import { getWorkspaceSetting, updateGlobalSetting } from '../src/vsCodeConfig/settings';
 import { longRunningTestsEnabled, testUserInput } from './global.test';
 
 // tslint:disable-next-line: max-func-body-length
@@ -19,7 +17,6 @@ suite('Create Azure Resources', async function (this: ISuiteCallbackContext): Pr
     this.timeout(1200 * 1000);
     const resourceGroupsToDelete: string[] = [];
     const testAccount: TestAzureAccount = new TestAzureAccount(vscode);
-    let oldAdvancedCreationSetting: boolean | undefined;
     const regExpLTS: RegExp = /LTS/g;
     const resourceName: string = getRandomHexString().toLowerCase();
     let webSiteClient: WebSiteManagementClient;
@@ -28,7 +25,6 @@ suite('Create Azure Resources', async function (this: ISuiteCallbackContext): Pr
         if (!longRunningTestsEnabled) {
             this.skip();
         }
-        oldAdvancedCreationSetting = getWorkspaceSetting<boolean>(configurationSettings.advancedCreation);
         this.timeout(120 * 1000);
         await testAccount.signIn();
         ext.azureAccountTreeItem = new AzureAccountTreeItem(testAccount);
@@ -40,7 +36,6 @@ suite('Create Azure Resources', async function (this: ISuiteCallbackContext): Pr
         if (!longRunningTestsEnabled) {
             this.skip();
         }
-        await updateGlobalSetting(configurationSettings.advancedCreation, oldAdvancedCreationSetting);
         this.timeout(1200 * 1000);
         const client: ResourceManagementClient = createAzureClient(testAccount.getSubscriptionContext(), ResourceManagementClient);
         await Promise.all(resourceGroupsToDelete.map(async resourceGroup => {
@@ -57,12 +52,11 @@ suite('Create Azure Resources', async function (this: ISuiteCallbackContext): Pr
     });
 
     test('Create New Web App (Advanced)', async () => {
-        await updateGlobalSetting(configurationSettings.advancedCreation, true);
         const testInputs: (string | RegExp)[] = [resourceName, '$(plus) Create new resource group', resourceName, 'Linux', regExpLTS, '$(plus) Create new App Service plan', resourceName, 'B1', 'West US'];
 
         resourceGroupsToDelete.push(resourceName);
         await testUserInput.runWithInputs(testInputs, async () => {
-            await vscode.commands.executeCommand('appService.CreateWebApp');
+            await vscode.commands.executeCommand('appService.CreateWebAppAdvanced');
         });
         const createdApp: WebSiteManagementModels.Site = await webSiteClient.webApps.get(resourceName, resourceName);
         assert.ok(createdApp);

@@ -6,10 +6,9 @@
 import { Location } from "azure-arm-resource/lib/subscription/models";
 import WebSiteManagementClient from "azure-arm-website";
 import { AppServicePlan } from "azure-arm-website/lib/models";
-import { ConfigurationTarget, MessageItem, workspace, WorkspaceConfiguration } from "vscode";
+import { MessageItem } from "vscode";
 import { IAppServiceWizardContext, SiteNameStep, WebsiteOS } from "vscode-azureappservice";
-import { createAzureClient, DialogResponses, IActionContext, UserCancelledError } from "vscode-azureextensionui";
-import { AppServiceDialogResponses, configurationSettings, extensionPrefix } from "../../constants";
+import { createAzureClient, DialogResponses, IActionContext } from "vscode-azureextensionui";
 import { ext } from "../../extensionVariables";
 import { nonNullProp } from "../../utils/nonNull";
 import { getWorkspaceSetting, updateGlobalSetting } from "../../vsCodeConfig/settings";
@@ -30,7 +29,7 @@ export async function setDefaultRgAndPlanName(wizardContext: IAppServiceWizardCo
             wizardContext.newPlanName = defaultName;
         } else {
             // Subscriptions can have 10 free tier Windows plans so just create a new one with a suffixed name
-            // If there are 10 plans, it'll throw an error that directs them to advancedCreation
+            // If there are 10 plans, it'll throw an error that directs them to advanced create
 
             const client: WebSiteManagementClient = createAzureClient(wizardContext, WebSiteManagementClient);
             const allAppServicePlans: AppServicePlan[] = await client.appServicePlans.list();
@@ -87,17 +86,14 @@ async function promptPerformanceWarning(context: IActionContext, asp: AppService
 
         const numberOfSites: number = nonNullProp(asp, 'numberOfSites');
         const createAnyway: MessageItem = { title: 'Create anyway' };
-        const inputs: MessageItem[] = [createAnyway, AppServiceDialogResponses.turnOnAdvancedCreation, DialogResponses.dontWarnAgain];
-        const input: MessageItem = await ext.ui.showWarningMessage(`The selected plan currently has ${numberOfSites} apps. Deploying more than ${maxNumberOfSites} apps may degrade the performance on the apps in the plan.`, { modal: true }, ...inputs);
+        const inputs: MessageItem[] = [createAnyway, DialogResponses.dontWarnAgain, DialogResponses.cancel];
+        const input: MessageItem = await ext.ui.showWarningMessage(`The selected plan currently has ${numberOfSites} apps. Deploying more than ${maxNumberOfSites} apps may degrade the performance on the apps in the plan.  Use "Create Web App... (Advanced)" to change the default resource names.`, { modal: true }, ...inputs);
 
-        if (input === AppServiceDialogResponses.turnOnAdvancedCreation) {
-            await updateGlobalSetting(configurationSettings.advancedCreation, true);
-            context.telemetry.properties.cancelStep = AppServiceDialogResponses.turnOnAdvancedCreation.title;
-            throw new UserCancelledError();
-        } else if (input === DialogResponses.dontWarnAgain) {
+        if (input === DialogResponses.dontWarnAgain) {
             context.telemetry.properties.turnOffPerfWarning = 'true';
             await updateGlobalSetting(showPlanPerformanceWarningSetting, false);
         }
+
         context.telemetry.properties.cancelStep = '';
     }
 }

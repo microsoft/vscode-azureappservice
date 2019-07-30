@@ -30,6 +30,7 @@
     "preview": true,
     "activationEvents": [
         "onCommand:appService.CreateWebApp",
+        "onCommand:appService.CreateWebAppAdvanced",
         "onCommand:appService.Refresh",
         "onCommand:appService.LoadMore",
         "onCommand:appService.OpenInPortal",
@@ -88,6 +89,11 @@
                     "light": "resources/light/createAppSvc.svg",
                     "dark": "resources/dark/createAppSvc.svg"
                 }
+            },
+            {
+                "command": "appService.CreateWebAppAdvanced",
+                "title": "Create New Web App... (Advanced)",
+                "category": "Azure App Service"
             },
             {
                 "command": "appService.Deploy",
@@ -430,9 +436,14 @@
                     "group": "1_subscriptionGeneralCommands@1"
                 },
                 {
-                    "command": "appService.OpenInPortal",
+                    "command": "appService.CreateWebAppAdvanced",
                     "when": "view == azureAppService && viewItem == azureextensionui.azureSubscription",
                     "group": "1_subscriptionGeneralCommands@2"
+                },
+                {
+                    "command": "appService.OpenInPortal",
+                    "when": "view == azureAppService && viewItem == azureextensionui.azureSubscription",
+                    "group": "1_subscriptionGeneralCommands@3"
                 },
                 {
                     "command": "appService.Refresh",
@@ -851,11 +862,6 @@
                     "scope": "resource",
                     "type": "string",
                     "description": "The default web app to use when deploying represented by its full Azure id.  Every subsequent deployment of this workspace will deploy to this web app or slot. Can be disabled by setting to \"None\""
-                },
-                "appService.advancedCreation": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Enables the Advanced Web App Creation which will prompt for app name, location, website OS, runtime, resource group, and app service plan."
                 },
                 "appService.connections": {
                     "type": "array",

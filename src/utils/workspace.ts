@@ -6,9 +6,9 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { IActionContext, IAzureQuickPickItem } from 'vscode-azureextensionui';
-import { extensionPrefix } from '../constants';
 import { ext } from '../extensionVariables';
 import { isPathEqual, isSubpath } from '../utils/pathUtils';
+import { getWorkspaceSetting } from '../vsCodeConfig/settings';
 
 export async function selectWorkspaceFile(placeHolder: string, getSubPath?: (f: vscode.WorkspaceFolder) => string | undefined): Promise<string> {
     let defaultUri: vscode.Uri | undefined;
@@ -69,7 +69,7 @@ export async function showWorkspaceFolders(placeHolderString: string, context: I
         },
         (f: vscode.WorkspaceFolder): string | undefined => {
             if (subPathSetting) {
-                return vscode.workspace.getConfiguration(extensionPrefix, f.uri).get(subPathSetting);
+                return getWorkspaceSetting(subPathSetting, f.uri.fsPath);
             }
             return;
         },

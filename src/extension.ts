@@ -17,7 +17,7 @@ import { removeCosmosDBConnection } from './commands/connections/removeCosmosDBC
 import { revealConnection } from './commands/connections/revealConnection';
 import { revealConnectionInAppSettings } from './commands/connections/revealConnectionInAppSettings';
 import { createSlot } from './commands/createSlot';
-import { createWebApp } from './commands/createWebApp/createWebApp';
+import { createWebApp, createWebAppAdvanced } from './commands/createWebApp/createWebApp';
 import { deploy } from './commands/deploy/deploy';
 import { connectToGitHub } from './commands/deployments/connectToGitHub';
 import { disconnectRepo } from './commands/deployments/disconnectRepo';
@@ -181,6 +181,7 @@ export async function activateInternal(
             await node.deleteTreeItem(actionContext);
         });
         registerCommand('appService.CreateWebApp', createWebApp);
+        registerCommand('appService.CreateWebAppAdvanced', createWebAppAdvanced);
         registerCommand('appService.Deploy', async (actionContext: IActionContext, target?: vscode.Uri | WebAppTreeItem | undefined) => {
             await deploy(actionContext, true, target);
         });

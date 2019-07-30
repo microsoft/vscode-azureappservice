@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { IDeployWizardContext } from "../commands/deploy/deploy";
-import { configurationSettings, extensionPrefix, none } from "../constants";
+import { configurationSettings, none } from "../constants";
 import { WebAppTreeItem } from "../explorer/WebAppTreeItem";
 import { ext } from '../extensionVariables';
 import { getWorkspaceSetting, updateGlobalSetting, updateWorkspaceSetting } from "../vsCodeConfig/settings";

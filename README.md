@@ -61,11 +61,6 @@ Connecting to log stream...
 2019-01-06 07:37:33.273 INFO  - Container mahernaexpress_0 for site mahernaexpress initialized successfully.
 ```
 
-## Advanced Creation Configuration Settings
-
-* `appService.advancedCreation`
-  * Enables full control for `Create New Web App...`.  Set this to `true` to explicitly control more settings (i.e. App Service plan size) when creating web apps rather than using the defaults.
-
 ## Known Issues
 
 * Local Git deployment may fail with large commits

@@ -5,16 +5,14 @@
 
 import * as fse from 'fs-extra';
 import * as path from 'path';
-import { ConfigurationTarget, workspace, WorkspaceConfiguration, WorkspaceFolder } from 'vscode';
+import { workspace, WorkspaceFolder } from 'vscode';
 import { IAppServiceWizardContext, LinuxRuntimes, WebsiteOS } from 'vscode-azureappservice';
-import { IActionContext, LocationListStep } from 'vscode-azureextensionui';
-import { configurationSettings, extensionPrefix } from '../../constants';
+import { ICreateChildImplContext, LocationListStep } from 'vscode-azureextensionui';
 import { javaUtils } from '../../utils/javaUtils';
 import { findFilesByFileExtension, getContainingWorkspace } from '../../utils/workspace';
-import { getWorkspaceSetting } from '../../vsCodeConfig/settings';
 import { IDeployWizardContext } from '../deploy/deploy';
 
-export async function setAppWizardContextDefault(wizardContext: IAppServiceWizardContext & IDeployWizardContext): Promise<void> {
+export async function setAppWizardContextDefault(wizardContext: IAppServiceWizardContext & Partial<IDeployWizardContext> & Partial<ICreateChildImplContext>): Promise<void> {
     // if the user entered through "Deploy", we'll have a project to base our recommendations on
     // otherwise, look at their current workspace and only suggest if one workspace is opened
     const workspaceForRecommendation: WorkspaceFolder | undefined = wizardContext.fsPath ?
@@ -46,9 +44,7 @@ export async function setAppWizardContextDefault(wizardContext: IAppServiceWizar
         }
     }
 
-    const advancedCreation: boolean | undefined = getWorkspaceSetting(configurationSettings.advancedCreation, fsPath);
-
-    if (!advancedCreation) {
+    if (!wizardContext.advancedCreation) {
         if (!wizardContext.location) {
             await LocationListStep.setLocation(wizardContext, 'centralus');
         }

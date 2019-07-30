@@ -17,7 +17,6 @@ export enum configurationSettings {
     zipIgnorePattern = 'zipIgnorePattern',
     showBuildDuringDeployPrompt = 'showBuildDuringDeployPrompt',
     deploySubpath = 'deploySubpath',
-    advancedCreation = 'advancedCreation',
     defaultWebAppToDeploy = 'defaultWebAppToDeploy',
     connections = 'connections'
 }
@@ -29,7 +28,6 @@ export enum ScmType {
 }
 
 export namespace AppServiceDialogResponses {
-    export const turnOnAdvancedCreation: MessageItem = { title: 'Turn on advanced creation' };
     export const deploy: MessageItem = { title: 'Deploy' };
     export const viewOutput: MessageItem = { title: 'View Output' };
 }
