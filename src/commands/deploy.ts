@@ -7,10 +7,10 @@ import * as WebSiteModels from 'azure-arm-website/lib/models';
 import { SiteConfigResource } from 'azure-arm-website/lib/models';
 import { pathExists } from 'fs-extra';
 import * as path from 'path';
-import { commands, ConfigurationTarget, Disposable, MessageItem, Uri, window, workspace, WorkspaceConfiguration, WorkspaceFolder } from 'vscode';
+import { CancellationTokenSource, commands, ConfigurationTarget, Disposable, MessageItem, Uri, window, workspace, WorkspaceConfiguration, WorkspaceFolder } from 'vscode';
 import * as appservice from 'vscode-azureappservice';
 import { DialogResponses, IAzureQuickPickItem, parseError } from 'vscode-azureextensionui';
-import { checkLinuxWebAppDownDetector } from '../checkLinuxWebAppDownDetector';
+import { checkLinuxWebAppDownDetector, detectorCancelTokens } from '../checkLinuxWebAppDownDetector';
 import { IDeployWizardContext } from '../commands/createWebApp/setAppWizardContextDefault';
 import * as constants from '../constants';
 import { SiteTreeItem } from '../explorer/SiteTreeItem';
@@ -28,7 +28,6 @@ import { startStreamingLogs } from './startStreamingLogs';
 
 // tslint:disable-next-line:max-func-body-length cyclomatic-complexity
 export async function deploy(context: IDeployWizardContext, confirmDeployment: boolean, target?: Uri | SiteTreeItem | undefined): Promise<void> {
-
     let node: SiteTreeItem | undefined;
     const newNodes: SiteTreeItem[] = [];
     let workspaceConfig: WorkspaceConfiguration;
@@ -190,17 +189,30 @@ export async function deploy(context: IDeployWizardContext, confirmDeployment: b
 
     // Don't wait
     validateWebSite(correlationId, node).then(
-        async () => {
-            // ignore
+        async (statusCode: number | undefined) => {
+            if (statusCode !== undefined && statusCode >= 300) {
+                if (!node || !(await node.root.client.getSiteConfig()).linuxFxVersion) {
+                    // this currently only works for Linux apps, so don't delay and just exit if it's a Windows app
+                    return;
+                }
+
+                // cancel the previous detector check from the same web app
+                const previousTokenSource: CancellationTokenSource | undefined = detectorCancelTokens.get(node.id);
+                if (previousTokenSource) {
+                    previousTokenSource.cancel();
+                }
+
+                const tokenSource: CancellationTokenSource = new CancellationTokenSource();
+                detectorCancelTokens.set(node.id, tokenSource);
+
+                try {
+                    await checkLinuxWebAppDownDetector(node, tokenSource);
+                } finally {
+                    tokenSource.dispose();
+                }
+            }
         },
         async () => {
-            if (!node || !(await node.root.client.getSiteConfig()).linuxFxVersion) {
-                // this currently only works for Linux apps, so don't delay and just exit if it's a Windows app
-                return;
-            }
-            // it can take over 10 minutes for the detectors to appear
-            await delay(1000 * 60 * 10);
-            // tslint:disable-next-line: no-floating-promises
-            checkLinuxWebAppDownDetector(node);
+            // ignore
         });
 }

@@ -7,7 +7,8 @@ import { RequestOptions } from "http";
 import { IncomingMessage, ServiceClientCredentials, WebResource } from "ms-rest";
 import * as requestP from 'request-promise';
 import { URL } from "url";
-import { callWithTelemetryAndErrorHandling, IActionContext } from "vscode-azureextensionui";
+import { CancellationTokenSource } from "vscode";
+import { callWithTelemetryAndErrorHandling, IActionContext, UserCancelledError } from "vscode-azureextensionui";
 import { DeployResult } from "vscode-azurekudu/lib/models";
 import { SiteTreeItem } from "./explorer/SiteTreeItem";
 import { ext } from './extensionVariables';
@@ -29,7 +30,8 @@ export enum ColumnName {
     failureCount = "FailureCount"
 }
 
-export async function checkLinuxWebAppDownDetector(node: SiteTreeItem): Promise<void> {
+export const detectorCancelTokens: Map<string, CancellationTokenSource> = new Map();
+export async function checkLinuxWebAppDownDetector(node: SiteTreeItem, tokenSource: CancellationTokenSource): Promise<void> {
     return await callWithTelemetryAndErrorHandling('appService.linuxWebAppDownDetector', async (context: IActionContext): Promise<void> => {
         const deployment: DeployResult = await node.root.client.kudu.deployment.getResult('latest');
         if (!deployment.startTime) {
@@ -61,8 +63,13 @@ export async function checkLinuxWebAppDownDetector(node: SiteTreeItem): Promise<
 
         let detectorErrorMessage: string | undefined;
         // wait 10 minutes for a response from the detector
-        const detectorTimeoutMs: number = Date.now() + 10 * 60 * 1000;
+        const detectorTimeoutMs: number = Date.now() + 20 * 60 * 1000;
         do {
+            if (tokenSource.token.isCancellationRequested) {
+                // the user cancelled the check by deploying again
+                throw new UserCancelledError();
+            }
+
             if (Date.now() > detectorTimeoutMs) {
                 const noIssuesFound: string = `No critical issues found for web app "${node.root.client.siteName}".`;
                 ext.outputChannel.appendLine(noIssuesFound);

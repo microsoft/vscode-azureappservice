@@ -44,7 +44,7 @@ export function cancelWebsiteValidation(siteTreeItem: SiteTreeItem): void {
     }
 }
 
-export async function validateWebSite(deploymentCorrelationId: string, siteTreeItem: SiteTreeItem): Promise<void> {
+export async function validateWebSite(deploymentCorrelationId: string, siteTreeItem: SiteTreeItem): Promise<number | void> {
     cancelWebsiteValidation(siteTreeItem);
     const id = siteTreeItem.fullId;
     const cancellation: ICancellation = { canceled: false };
@@ -88,10 +88,6 @@ export async function validateWebSite(deploymentCorrelationId: string, siteTreeI
             statusCodes.push({ code: currentStatusCode, elapsed: elapsedSeconds });
 
             if (Date.now() > start + maximumValidationMs) {
-
-                if (currentStatusCode !== undefined && currentStatusCode >= 300) {
-                    throw new Error();
-                }
                 break;
             }
 
@@ -104,5 +100,7 @@ export async function validateWebSite(deploymentCorrelationId: string, siteTreeI
         if (cancellations.get(id) === cancellation) {
             cancellations.delete(id);
         }
+
+        return currentStatusCode;
     });
 }
