@@ -111,13 +111,13 @@ export async function deploy(context: IDeployWizardContext, confirmDeployment: b
         // only check enableScmDoBuildDuringDeploy if currentWorkspace matches the workspace being deployed as a user can "Browse" to a different project
         if (getWorkspaceSetting<boolean>(constants.configurationSettings.showBuildDuringDeployPrompt, currentWorkspace.uri.fsPath)) {
             //check if node is being zipdeployed and that there is no .deployment file
-            if (siteConfig.linuxFxVersion && siteConfig.scmType === 'None' && !(await pathExists(path.join(context.fsPath, constants.deploymentFileName)))) {
+            if (siteConfig.linuxFxVersion && siteConfig.scmType === 'None' && !(await pathExists(path.join(currentWorkspace.uri.fsPath, constants.deploymentFileName)))) {
                 const linuxFxVersion: string = siteConfig.linuxFxVersion.toLowerCase();
                 if (linuxFxVersion.startsWith(appservice.LinuxRuntimes.node)) {
                     // if it is node or python, prompt the user (as we can break them)
-                    await node.promptScmDoBuildDeploy(context.fsPath, appservice.LinuxRuntimes.node, context);
+                    await node.promptScmDoBuildDeploy(currentWorkspace.uri.fsPath, appservice.LinuxRuntimes.node, context);
                 } else if (linuxFxVersion.startsWith(appservice.LinuxRuntimes.python)) {
-                    await node.promptScmDoBuildDeploy(context.fsPath, appservice.LinuxRuntimes.python, context);
+                    await node.promptScmDoBuildDeploy(currentWorkspace.uri.fsPath, appservice.LinuxRuntimes.python, context);
                 }
 
             }

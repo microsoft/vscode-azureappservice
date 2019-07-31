@@ -11,7 +11,7 @@ import { IAppServiceWizardContext, SiteNameStep, WebsiteOS } from "vscode-azurea
 import { createAzureClient, DialogResponses, IActionContext } from "vscode-azureextensionui";
 import { ext } from "../../extensionVariables";
 import { nonNullProp } from "../../utils/nonNull";
-import { getGlobalSetting, updateGlobalSetting } from "../../vsCodeConfig/settings";
+import { getWorkspaceSetting, updateGlobalSetting } from "../../vsCodeConfig/settings";
 
 const maxNumberOfSites: number = 3;
 
@@ -78,7 +78,7 @@ function checkPlanForPerformanceDrop(asp: AppServicePlan): boolean {
 async function promptPerformanceWarning(context: IActionContext, asp: AppServicePlan): Promise<void> {
     context.telemetry.properties.performanceWarning = 'true';
     const showPlanPerformanceWarningSetting: string = 'showPlanPerformanceWarning';
-    const showPerfWarning: boolean | undefined = getGlobalSetting(showPlanPerformanceWarningSetting);
+    const showPerfWarning: boolean | undefined = getWorkspaceSetting(showPlanPerformanceWarningSetting);
 
     if (showPerfWarning) {
         context.telemetry.properties.turnOffPerfWarning = 'false';
