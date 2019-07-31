@@ -6,12 +6,12 @@
 import { Location } from "azure-arm-resource/lib/subscription/models";
 import WebSiteManagementClient from "azure-arm-website";
 import { AppServicePlan } from "azure-arm-website/lib/models";
-import { ConfigurationTarget, MessageItem, workspace, WorkspaceConfiguration } from "vscode";
+import { MessageItem } from "vscode";
 import { IAppServiceWizardContext, SiteNameStep, WebsiteOS } from "vscode-azureappservice";
 import { createAzureClient, DialogResponses, IActionContext } from "vscode-azureextensionui";
-import { extensionPrefix } from "../../constants";
 import { ext } from "../../extensionVariables";
 import { nonNullProp } from "../../utils/nonNull";
+import { getWorkspaceSetting, updateGlobalSetting } from "../../vsCodeConfig/settings";
 
 const maxNumberOfSites: number = 3;
 
@@ -77,9 +77,8 @@ function checkPlanForPerformanceDrop(asp: AppServicePlan): boolean {
 
 async function promptPerformanceWarning(context: IActionContext, asp: AppServicePlan): Promise<void> {
     context.telemetry.properties.performanceWarning = 'true';
-    const workspaceConfig: WorkspaceConfiguration = workspace.getConfiguration(extensionPrefix);
     const showPlanPerformanceWarningSetting: string = 'showPlanPerformanceWarning';
-    const showPerfWarning: boolean | undefined = workspaceConfig.get(showPlanPerformanceWarningSetting);
+    const showPerfWarning: boolean | undefined = getWorkspaceSetting(showPlanPerformanceWarningSetting);
 
     if (showPerfWarning) {
         context.telemetry.properties.turnOffPerfWarning = 'false';
@@ -92,7 +91,7 @@ async function promptPerformanceWarning(context: IActionContext, asp: AppService
 
         if (input === DialogResponses.dontWarnAgain) {
             context.telemetry.properties.turnOffPerfWarning = 'true';
-            workspaceConfig.update(showPlanPerformanceWarningSetting, false, ConfigurationTarget.Global);
+            await updateGlobalSetting(showPlanPerformanceWarningSetting, false);
         }
 
         context.telemetry.properties.cancelStep = '';
