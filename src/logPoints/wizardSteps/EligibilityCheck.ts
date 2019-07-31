@@ -4,10 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { SiteConfigResource } from 'azure-arm-website/lib/models';
-import * as vscode from 'vscode';
 import { WizardStep } from '../../wizard';
 import { LogPointsSessionWizard } from '../LogPointsSessionWizard';
-import { extensionPrefix } from '../../constants';
+import { getGlobalSetting } from '../../vsCodeConfig/settings';
 
 export class EligibilityCheck extends WizardStep {
     constructor(private _wizard: LogPointsSessionWizard) {
@@ -30,7 +29,7 @@ export class EligibilityCheck extends WizardStep {
         const [framework, fullImageName] = linuxFxVersion.split('|');
         // Remove the 'tag' portion of the image name.
         const imageName = fullImageName.split(':')[0];
-        const enabledImages = vscode.workspace.getConfiguration(extensionPrefix).get<string[]>('enabledDockerImages') || [];
+        const enabledImages = getGlobalSetting<string[]>('enabledDockerImages') || [];
         const enabledImagesTagless = enabledImages.map((name) => {
             return name.split(':')[0].toLocaleLowerCase();
         });

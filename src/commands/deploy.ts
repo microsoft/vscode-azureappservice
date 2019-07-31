@@ -7,7 +7,7 @@ import * as WebSiteModels from 'azure-arm-website/lib/models';
 import { SiteConfigResource } from 'azure-arm-website/lib/models';
 import { pathExists } from 'fs-extra';
 import * as path from 'path';
-import { commands, ConfigurationTarget, Disposable, MessageItem, Uri, window, workspace, WorkspaceConfiguration, WorkspaceFolder } from 'vscode';
+import { commands, Disposable, MessageItem, Uri, window, workspace, WorkspaceFolder } from 'vscode';
 import * as appservice from 'vscode-azureappservice';
 import { DialogResponses, IAzureQuickPickItem, parseError } from 'vscode-azureextensionui';
 import { IDeployWizardContext } from '../commands/createWebApp/setAppWizardContextDefault';
@@ -22,6 +22,7 @@ import { isPathEqual, isSubpath } from '../utils/pathUtils';
 import { getRandomHexString } from "../utils/randomUtils";
 import * as workspaceUtil from '../utils/workspace';
 import { cancelWebsiteValidation, validateWebSite } from '../validateWebSite';
+import { getWorkspaceSetting, updateWorkspaceSetting } from '../vsCodeConfig/settings';
 import { getDefaultWebAppToDeploy } from './getDefaultWebAppToDeploy';
 import { startStreamingLogs } from './startStreamingLogs';
 
@@ -30,7 +31,6 @@ export async function deploy(context: IDeployWizardContext, confirmDeployment: b
 
     let node: SiteTreeItem | undefined;
     const newNodes: SiteTreeItem[] = [];
-    let workspaceConfig: WorkspaceConfiguration;
     context.telemetry.properties.deployedWithConfigs = 'false';
 
     if (target instanceof Uri) {
@@ -105,13 +105,11 @@ export async function deploy(context: IDeployWizardContext, confirmDeployment: b
         await javaUtils.configureJavaSEAppSettings(node);
     }
 
-    workspaceConfig = workspace.getConfiguration(constants.extensionPrefix, Uri.file(context.fsPath));
-
     const currentWorkspace: WorkspaceFolder | undefined = workspaceUtil.getContainingWorkspace(context.fsPath);
     if (currentWorkspace && (isPathEqual(currentWorkspace.uri.fsPath, context.fsPath) || isSubpath(currentWorkspace.uri.fsPath, context.fsPath))) {
         // currentWorkspace is only set if there is one active workspace
         // only check enableScmDoBuildDuringDeploy if currentWorkspace matches the workspace being deployed as a user can "Browse" to a different project
-        if (workspaceConfig.get(constants.configurationSettings.showBuildDuringDeployPrompt)) {
+        if (getWorkspaceSetting<boolean>(constants.configurationSettings.showBuildDuringDeployPrompt, currentWorkspace.uri.fsPath)) {
             //check if node is being zipdeployed and that there is no .deployment file
             if (siteConfig.linuxFxVersion && siteConfig.scmType === 'None' && !(await pathExists(path.join(context.fsPath, constants.deploymentFileName)))) {
                 const linuxFxVersion: string = siteConfig.linuxFxVersion.toLowerCase();
@@ -141,16 +139,11 @@ export async function deploy(context: IDeployWizardContext, confirmDeployment: b
         await delay(500);
         const result: MessageItem = await ext.ui.showWarningMessage(warning, { modal: true }, ...items);
         if (result === resetDefault) {
-            if (context.configurationTarget === ConfigurationTarget.Global) {
-                await commands.executeCommand('workbench.action.openGlobalSettings');
-            } else {
-                const localRootPath = nonNullValue(currentWorkspace).uri.fsPath;
-                const settingsPath = path.join(localRootPath, '.vscode', 'settings.json');
-                const doc = await workspace.openTextDocument(Uri.file(settingsPath));
-                window.showTextDocument(doc);
-            }
-
-            await workspaceConfig.update(constants.configurationSettings.defaultWebAppToDeploy, '', context.configurationTarget);
+            const localRootPath = nonNullValue(currentWorkspace).uri.fsPath;
+            const settingsPath = path.join(localRootPath, '.vscode', 'settings.json');
+            const doc = await workspace.openTextDocument(Uri.file(settingsPath));
+            window.showTextDocument(doc);
+            await updateWorkspaceSetting(constants.configurationSettings.defaultWebAppToDeploy, '', context.fsPath);
 
             // If resetDefault button was clicked we ask what and where to deploy again
             await commands.executeCommand('appService.Deploy');
