@@ -50,10 +50,7 @@ export async function deploy(context: IActionContext & Partial<IDeployWizardCont
     }
 
     if (!context.deployFsPath) {
-        // we can only get the siteConfig if the entry point was a treeItem
-        siteConfig = node ? await node.root.client.getSiteConfig() : undefined;
-
-        if (siteConfig && javaUtils.isJavaRuntime(siteConfig.linuxFxVersion)) {
+        if (javaFileExtension) {
             context.deployFsPath = await workspaceUtil.showWorkspaceFolders(`Select the ${javaFileExtension} file to deploy...`, context, constants.configurationSettings.deploySubpath, javaFileExtension);
         } else {
             context.deployFsPath = await workspaceUtil.showWorkspaceFolders("Select the folder to deploy", context, constants.configurationSettings.deploySubpath);
