@@ -4,12 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { workspace, WorkspaceFolder } from "vscode";
-import { IDeployWizardContext } from "../commands/createWebApp/setAppWizardContextDefault";
 import { configurationSettings, none } from "../constants";
 import { WebAppTreeItem } from "../explorer/WebAppTreeItem";
 import { ext } from '../extensionVariables';
 import { getContainingWorkspace } from "../utils/workspace";
 import { getWorkspaceSetting, updateWorkspaceSetting } from "../vsCodeConfig/settings";
+import { IDeployWizardContext } from "./deploy/IDeployWizardContext";
 
 export async function getDefaultWebAppToDeploy(context: IDeployWizardContext): Promise<WebAppTreeItem | undefined> {
     const workspaceFolder: WorkspaceFolder | undefined = context.fsPath ?

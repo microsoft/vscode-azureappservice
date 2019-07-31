@@ -10,21 +10,21 @@ import * as path from 'path';
 import { commands, Disposable, MessageItem, Uri, window, workspace, WorkspaceFolder } from 'vscode';
 import * as appservice from 'vscode-azureappservice';
 import { DialogResponses, IAzureQuickPickItem, parseError } from 'vscode-azureextensionui';
-import * as constants from '../constants';
-import { SiteTreeItem } from '../explorer/SiteTreeItem';
-import { WebAppTreeItem } from '../explorer/WebAppTreeItem';
-import { ext } from '../extensionVariables';
-import { delay } from '../utils/delay';
-import { javaUtils } from '../utils/javaUtils';
-import { nonNullValue } from '../utils/nonNull';
-import { isPathEqual, isSubpath } from '../utils/pathUtils';
-import { getRandomHexString } from "../utils/randomUtils";
-import * as workspaceUtil from '../utils/workspace';
-import { cancelWebsiteValidation, validateWebSite } from '../validateWebSite';
-import { getWorkspaceSetting, updateWorkspaceSetting } from '../vsCodeConfig/settings';
-import { IDeployWizardContext } from './deploy/IDeployWizardContext';
-import { getDefaultWebAppToDeploy } from './getDefaultWebAppToDeploy';
-import { startStreamingLogs } from './startStreamingLogs';
+import * as constants from '../../constants';
+import { SiteTreeItem } from '../../explorer/SiteTreeItem';
+import { WebAppTreeItem } from '../../explorer/WebAppTreeItem';
+import { ext } from '../../extensionVariables';
+import { delay } from '../../utils/delay';
+import { javaUtils } from '../../utils/javaUtils';
+import { nonNullValue } from '../../utils/nonNull';
+import { isPathEqual, isSubpath } from '../../utils/pathUtils';
+import { getRandomHexString } from "../../utils/randomUtils";
+import * as workspaceUtil from '../../utils/workspace';
+import { cancelWebsiteValidation, validateWebSite } from '../../validateWebSite';
+import { getWorkspaceSetting, updateWorkspaceSetting } from '../../vsCodeConfig/settings';
+import { getDefaultWebAppToDeploy } from '../getDefaultWebAppToDeploy';
+import { startStreamingLogs } from '../startStreamingLogs';
+import { IDeployWizardContext } from './IDeployWizardContext';
 
 // tslint:disable-next-line:max-func-body-length cyclomatic-complexity
 export async function deploy(context: IDeployWizardContext, confirmDeployment: boolean, target?: Uri | SiteTreeItem | undefined): Promise<void> {
