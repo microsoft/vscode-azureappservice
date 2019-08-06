@@ -6,6 +6,7 @@
 import { IncomingMessage } from 'http';
 import { ISiteTreeRoot } from 'vscode-azureappservice';
 import { AzureParentTreeItem, AzureTreeItem } from 'vscode-azureextensionui';
+import { KuduClient } from 'vscode-azurekudu';
 import { getThemedIconPath, IThemedIconPath } from '../utils/pathUtils';
 import { FileTreeItem } from './FileTreeItem';
 import { LogStreamTreeItem } from './LogStreamTreeItem';
@@ -29,7 +30,8 @@ export class FolderTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     }
 
     public async loadMoreChildrenImpl(_clearCache: boolean): Promise<AzureTreeItem<ISiteTreeRoot>[]> {
-        const httpResponse: kuduIncomingMessage = <kuduIncomingMessage>(await this.root.client.kudu.vfs.getItemWithHttpOperationResponse(this.folderPath)).response;
+        const kuduClient: KuduClient = await this.root.client.getKuduClient();
+        const httpResponse: kuduIncomingMessage = <kuduIncomingMessage>(await kuduClient.vfs.getItemWithHttpOperationResponse(this.folderPath)).response;
         // response contains a body with a JSON parseable string
         const fileList: kuduFile[] = <kuduFile[]>JSON.parse(httpResponse.body);
         const home: string = 'home';

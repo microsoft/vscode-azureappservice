@@ -17,8 +17,8 @@ import { removeCosmosDBConnection } from './commands/connections/removeCosmosDBC
 import { revealConnection } from './commands/connections/revealConnection';
 import { revealConnectionInAppSettings } from './commands/connections/revealConnectionInAppSettings';
 import { createSlot } from './commands/createSlot';
-import { createWebApp } from './commands/createWebApp/createWebApp';
-import { deploy } from './commands/deploy';
+import { createWebApp, createWebAppAdvanced } from './commands/createWebApp/createWebApp';
+import { deploy } from './commands/deploy/deploy';
 import { connectToGitHub } from './commands/deployments/connectToGitHub';
 import { disconnectRepo } from './commands/deployments/disconnectRepo';
 import { editScmType } from './commands/deployments/editScmType';
@@ -78,7 +78,7 @@ export async function activateInternal(
         context.subscriptions.push(ext.azureAccountTreeItem);
         ext.tree = new AzExtTreeDataProvider(ext.azureAccountTreeItem, 'appService.LoadMore');
 
-        ext.treeView = vscode.window.createTreeView('azureAppService', { treeDataProvider: ext.tree });
+        ext.treeView = vscode.window.createTreeView('azureAppService', { treeDataProvider: ext.tree, showCollapseAll: true });
         context.subscriptions.push(ext.treeView);
 
         const fileEditor: FileEditor = new FileEditor();
@@ -180,6 +180,7 @@ export async function activateInternal(
             await node.deleteTreeItem(actionContext);
         });
         registerCommand('appService.CreateWebApp', createWebApp);
+        registerCommand('appService.CreateWebAppAdvanced', createWebAppAdvanced);
         registerCommand('appService.Deploy', async (actionContext: IActionContext, target?: vscode.Uri | WebAppTreeItem | undefined) => {
             await deploy(actionContext, true, target);
         });

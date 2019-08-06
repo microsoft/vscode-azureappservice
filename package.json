@@ -7,7 +7,7 @@
     "icon": "resources/windows-azure-web-site.png",
     "aiKey": "AIF-d9b70cd4-b9f9-4d70-929b-a071c400b217",
     "engines": {
-        "vscode": "^1.26.0"
+        "vscode": "^1.31.0"
     },
     "repository": {
         "type": "git",
@@ -30,6 +30,7 @@
     "preview": true,
     "activationEvents": [
         "onCommand:appService.CreateWebApp",
+        "onCommand:appService.CreateWebAppAdvanced",
         "onCommand:appService.Refresh",
         "onCommand:appService.LoadMore",
         "onCommand:appService.OpenInPortal",
@@ -87,6 +88,11 @@
                     "light": "resources/light/createAppSvc.svg",
                     "dark": "resources/dark/createAppSvc.svg"
                 }
+            },
+            {
+                "command": "appService.CreateWebAppAdvanced",
+                "title": "Create New Web App... (Advanced)",
+                "category": "Azure App Service"
             },
             {
                 "command": "appService.Deploy",
@@ -424,9 +430,14 @@
                     "group": "1_subscriptionGeneralCommands@1"
                 },
                 {
-                    "command": "appService.OpenInPortal",
+                    "command": "appService.CreateWebAppAdvanced",
                     "when": "view == azureAppService && viewItem == azureextensionui.azureSubscription",
                     "group": "1_subscriptionGeneralCommands@2"
+                },
+                {
+                    "command": "appService.OpenInPortal",
+                    "when": "view == azureAppService && viewItem == azureextensionui.azureSubscription",
+                    "group": "1_subscriptionGeneralCommands@3"
                 },
                 {
                     "command": "appService.Refresh",
@@ -836,11 +847,6 @@
                     "type": "string",
                     "description": "The default web app to use when deploying represented by its full Azure id.  Every subsequent deployment of this workspace will deploy to this web app or slot. Can be disabled by setting to \"None\""
                 },
-                "appService.advancedCreation": {
-                    "type": "boolean",
-                    "default": false,
-                    "description": "Enables the Advanced Web App Creation which will prompt for app name, location, website OS, runtime, resource group, and app service plan."
-                },
                 "appService.connections": {
                     "type": "array",
                     "description": "Array of web apps with its connections",
@@ -982,7 +988,7 @@
         "typescript": "^3.3.1",
         "vsce": "^1.55.0",
         "vscode": "^1.1.33",
-        "vscode-azureextensiondev": "0.1.8",
+        "vscode-azureextensiondev": "^0.2.1",
         "webpack": "^4.25.1",
         "webpack-cli": "^3.1.2"
     },
@@ -994,8 +1000,8 @@
         "portfinder": "^1.0.13",
         "request": "^2.83.0",
         "request-promise": "^4.2.2",
-        "vscode-azureappservice": "^0.42.2",
-        "vscode-azureextensionui": "^0.25.1",
+        "vscode-azureappservice": "^0.43.0",
+        "vscode-azureextensionui": "^0.26.3",
         "vscode-azurekudu": "^0.1.8",
         "vscode-debugadapter": "^1.24.0",
         "vscode-debugprotocol": "^1.24.0"
