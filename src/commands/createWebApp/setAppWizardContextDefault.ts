@@ -33,6 +33,11 @@ export async function setAppWizardContextDefault(wizardContext: IAppServiceWizar
                 LinuxRuntimes.tomcat,
                 LinuxRuntimes.wildfly
             ];
+
+            // considering high resource requirement for Java applications, a higher plan sku is set here
+            wizardContext.newPlanSku = { name: 'P1v2', tier: 'PremiumV2', size: 'P1v2', family: 'P', capacity: 1 };
+            // to avoid 'Requested features are not supported in region' error
+            await LocationListStep.setLocation(wizardContext, 'weseteurope');
         }
     }
 
@@ -41,7 +46,10 @@ export async function setAppWizardContextDefault(wizardContext: IAppServiceWizar
             await LocationListStep.setLocation(wizardContext, 'centralus');
         }
 
-        wizardContext.newPlanSku = { name: 'F1', tier: 'Free', size: 'F1', family: 'F', capacity: 1 };
+        if (!wizardContext.newPlanSku) {
+            // don't overwrite the planSku if it is already set
+            wizardContext.newPlanSku = { name: 'F1', tier: 'Free', size: 'F1', family: 'F', capacity: 1 };
+        }
 
         // if we are recommending a runtime, then it is either Nodejs, Python, or Java which all use Linux
         if (wizardContext.recommendedSiteRuntime) {
