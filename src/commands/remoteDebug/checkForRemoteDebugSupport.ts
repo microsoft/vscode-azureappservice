@@ -4,16 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { SiteConfigResource } from 'azure-arm-website/lib/models';
-import * as vscode from 'vscode';
-import { SiteClient } from 'vscode-azureappservice';
-import { callWithTelemetryAndErrorHandling, DialogResponses, IActionContext } from 'vscode-azureextensionui';
-import { ext } from '../../extensionVariables';
-
-export const remoteDebugLink: string = 'https://aka.ms/appsvc-remotedebug';
-export function reportMessage(message: string, progress: vscode.Progress<{}>): void {
-    ext.outputChannel.appendLine(message);
-    progress.report({ message: message });
-}
+import { IActionContext } from 'vscode-azureextensionui';
 
 export function checkForRemoteDebugSupport(siteConfig: SiteConfigResource, context: IActionContext): void {
     // We read siteConfig.linuxFxVersion to find the image version:
@@ -60,32 +51,4 @@ function isNodeVersionSupported(nodeVersion: string): boolean {
     const minor = +splitNodeVersion[1];
 
     return (major > 8 || (major === 8 && minor >= 11));
-}
-
-export async function setRemoteDebug(isRemoteDebuggingToBeEnabled: boolean, confirmMessage: string, noopMessage: string | undefined, siteClient: SiteClient, siteConfig: SiteConfigResource, progress?: vscode.Progress<{}>, learnMoreLink?: string): Promise<void> {
-    if (isRemoteDebuggingToBeEnabled !== siteConfig.remoteDebuggingEnabled) {
-        const confirmButton: vscode.MessageItem = isRemoteDebuggingToBeEnabled ? { title: 'Enable' } : { title: 'Disable' };
-
-        // don't have to check input as this handles cancels and learnMore responses
-        await ext.ui.showWarningMessage(confirmMessage, { modal: true, learnMoreLink }, confirmButton, DialogResponses.cancel);
-        siteConfig.remoteDebuggingEnabled = isRemoteDebuggingToBeEnabled;
-        if (progress) {
-            reportMessage('Updating site configuration to set remote debugging...', progress);
-        }
-
-        await callWithTelemetryAndErrorHandling('appService.remoteDebugUpdateConfiguration', async (context: IActionContext) => {
-            context.errorHandling.suppressDisplay = true;
-            context.errorHandling.rethrow = true;
-            await siteClient.updateConfiguration(siteConfig);
-        });
-
-        if (progress) {
-            reportMessage('Updating site configuration done...', progress);
-        }
-    } else {
-        // Update not needed
-        if (noopMessage) {
-            vscode.window.showWarningMessage(noopMessage);
-        }
-    }
 }

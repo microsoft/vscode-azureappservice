@@ -6,13 +6,12 @@
 import { SiteConfigResource, User } from 'azure-arm-website/lib/models';
 import * as portfinder from 'portfinder';
 import * as vscode from 'vscode';
-import { SiteClient, TunnelProxy } from 'vscode-azureappservice';
+import { reportMessage, setRemoteDebug, SiteClient, TunnelProxy } from 'vscode-azureappservice';
 import { IActionContext } from 'vscode-azureextensionui';
 import { SiteTreeItem } from '../explorer/SiteTreeItem';
 import { WebAppTreeItem } from '../explorer/WebAppTreeItem';
 import { ext } from '../extensionVariables';
 import { delay } from '../utils/delay';
-import * as remoteDebug from './remoteDebug/remoteDebugCommon';
 
 export type sshTerminal = {
     starting: boolean,
@@ -55,14 +54,14 @@ async function startSshInternal(node: SiteTreeItem): Promise<void> {
 
     await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification }, async (progress: vscode.Progress<{}>): Promise<void> => {
 
-        remoteDebug.reportMessage('Checking app settings...', progress);
+        reportMessage('Checking app settings...', progress);
 
         const confirmDisableMessage: string = 'Remote debugging must be disabled in order to SSH. This will restart the app.';
         const siteConfig: SiteConfigResource = await siteClient.getSiteConfig();
         // remote debugging has to be disabled in order to tunnel to the 2222 port
-        await remoteDebug.setRemoteDebug(false, confirmDisableMessage, undefined, siteClient, siteConfig, progress);
+        await setRemoteDebug(false, confirmDisableMessage, undefined, siteClient, siteConfig, progress);
 
-        remoteDebug.reportMessage('Initializing SSH...', progress);
+        reportMessage('Initializing SSH...', progress);
         const publishCredential: User = await siteClient.getWebAppPublishCredential();
         const localHostPortNumber: number = await portfinder.getPortPromise();
         // should always be an unbound port
@@ -70,7 +69,7 @@ async function startSshInternal(node: SiteTreeItem): Promise<void> {
 
         await tunnelProxy.startProxy();
 
-        remoteDebug.reportMessage('Connecting to SSH...', progress);
+        reportMessage('Connecting to SSH...', progress);
         await connectToTunnelProxy(node, tunnelProxy, localHostPortNumber);
     });
 }
