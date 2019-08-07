@@ -7,9 +7,9 @@ import * as WebSiteModels from 'azure-arm-website/lib/models';
 import { SiteConfigResource } from 'azure-arm-website/lib/models';
 import { pathExists } from 'fs-extra';
 import * as path from 'path';
-import { commands, Disposable, MessageItem, Uri, window, workspace, WorkspaceFolder } from 'vscode';
+import * as vscode from 'vscode';
 import * as appservice from 'vscode-azureappservice';
-import { DialogResponses, IActionContext, parseError } from 'vscode-azureextensionui';
+import { DialogResponses, IActionContext, IAzureQuickPickItem, parseError } from 'vscode-azureextensionui';
 import * as constants from '../../constants';
 import { SiteTreeItem } from '../../explorer/SiteTreeItem';
 import { WebAppTreeItem } from '../../explorer/WebAppTreeItem';
@@ -26,17 +26,15 @@ import { startStreamingLogs } from '../startStreamingLogs';
 import { IDeployWizardContext } from './IDeployWizardContext';
 
 // tslint:disable-next-line:max-func-body-length cyclomatic-complexity
-export async function deploy(context: IActionContext & Partial<IDeployWizardContext>, confirmDeployment: boolean, target?: Uri | SiteTreeItem | undefined): Promise<void> {
+export async function deploy(context: IActionContext, confirmDeployment: boolean, target?: vscode.Uri | SiteTreeItem | undefined): Promise<void> {
 
     let node: SiteTreeItem | undefined;
     const newNodes: SiteTreeItem[] = [];
     context.telemetry.properties.deployedWithConfigs = 'false';
+    let deployFsPath: string | undefined;
 
-    let javaFileExtension: string | undefined;
-    let siteConfig: WebSiteModels.SiteConfigResource | undefined;
-
-    if (target instanceof Uri) {
-        context.deployFsPath = target.fsPath;
+    if (target instanceof vscode.Uri) {
+        deployFsPath = target.fsPath;
         context.telemetry.properties.deploymentEntryPoint = 'fileExplorerContextMenu';
     } else {
         context.telemetry.properties.deploymentEntryPoint = target ? 'webAppContextMenu' : 'deployButton';
@@ -45,34 +43,36 @@ export async function deploy(context: IActionContext & Partial<IDeployWizardCont
 
     let siteConfig: WebSiteModels.SiteConfigResource | undefined;
 
-    if (!context.deployFsPath) {
+    if (!deployFsPath) {
         // we can only get the siteConfig if the entry point was a treeItem
         siteConfig = node ? await node.root.client.getSiteConfig() : undefined;
 
         if (siteConfig && javaUtils.isJavaRuntime(siteConfig.linuxFxVersion)) {
             const fileExtension: string = javaUtils.getArtifactTypeByJavaRuntime(siteConfig.linuxFxVersion);
-            context.fsPath = await workspaceUtil.showWorkspaceFolders(`Select the ${fileExtension} file to deploy...`, context, constants.configurationSettings.deploySubpath, fileExtension);
+            deployFsPath = await workspaceUtil.showWorkspaceFolders(`Select the ${fileExtension} file to deploy...`, context, constants.configurationSettings.deploySubpath, fileExtension);
         } else {
-            context.deployFsPath = await workspaceUtil.showWorkspaceFolders("Select the folder to deploy", context, constants.configurationSettings.deploySubpath);
+            deployFsPath = await workspaceUtil.showWorkspaceFolders("Select the folder to deploy", context, constants.configurationSettings.deploySubpath);
         }
     }
 
-    const currentWorkspace: WorkspaceFolder | undefined = workspaceUtil.getContainingWorkspace(context.deployFsPath);
+    const workspace: vscode.WorkspaceFolder | undefined = workspaceUtil.getContainingWorkspace(deployFsPath);
 
-    if (!currentWorkspace) {
+    if (!workspace) {
         throw new Error('Failed to deploy because the path is not part of an open workspace. Open in a workspace and try again.');
     }
 
-    context.workspace = currentWorkspace;
+    const deployContext: IDeployWizardContext = {
+        ...context, workspace, deployFsPath
+    };
 
     if (!node) {
-        const onTreeItemCreatedFromQuickPickDisposable: Disposable = ext.tree.onTreeItemCreate((newNode: SiteTreeItem) => {
+        const onTreeItemCreatedFromQuickPickDisposable: vscode.Disposable = ext.tree.onTreeItemCreate((newNode: SiteTreeItem) => {
             // event is fired from azure-extensionui if node was created during deployment
             newNodes.push(newNode);
         });
         try {
             // tslint:disable-next-line: strict-boolean-expressions
-            node = await getDefaultWebAppToDeploy(<IDeployWizardContext>context) || <SiteTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue, context);
+            node = await getDefaultWebAppToDeploy(deployContext) || <SiteTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue, context);
         } catch (err2) {
             if (parseError(err2).isUserCancelledError) {
                 context.telemetry.properties.cancelStep = `showTreeItemPicker:${WebAppTreeItem.contextValue}`;
@@ -107,25 +107,25 @@ export async function deploy(context: IActionContext & Partial<IDeployWizardCont
     siteConfig = siteConfig ? siteConfig : await node.root.client.getSiteConfig();
 
     if (javaUtils.isJavaRuntime(siteConfig.linuxFxVersion)) {
-        const javaArtifactFiles: Uri[] = await workspaceUtil.findFilesByFileExtension(context.fsPath, javaUtils.getArtifactTypeByJavaRuntime(siteConfig.linuxFxVersion));
+        const javaArtifactFiles: vscode.Uri[] = await workspaceUtil.findFilesByFileExtension(deployContext.deployFsPath, javaUtils.getArtifactTypeByJavaRuntime(siteConfig.linuxFxVersion));
         if (javaArtifactFiles.length > 0) {
             const javaArtifactQp: IAzureQuickPickItem<string>[] = workspaceUtil.mapFilesToQuickPickItems(javaArtifactFiles);
             // check if there is a jar/war file in the fsPath that was provided
-            context.fsPath = <string>(await ext.ui.showQuickPick(javaArtifactQp, { placeHolder: `Select the ${javaUtils.getArtifactTypeByJavaRuntime(siteConfig.linuxFxVersion)} file to deploy...` })).data;
+            deployContext.deployFsPath = <string>(await ext.ui.showQuickPick(javaArtifactQp, { placeHolder: `Select the ${javaUtils.getArtifactTypeByJavaRuntime(siteConfig.linuxFxVersion)} file to deploy...` })).data;
         }
         await javaUtils.configureJavaSEAppSettings(node);
     }
 
     // only check enableScmDoBuildDuringDeploy if currentWorkspace matches the workspace being deployed as a user can "Browse" to a different project
-    if (getWorkspaceSetting<boolean>(constants.configurationSettings.showBuildDuringDeployPrompt, context.workspace.uri.fsPath)) {
+    if (getWorkspaceSetting<boolean>(constants.configurationSettings.showBuildDuringDeployPrompt, deployContext.workspace.uri.fsPath)) {
         //check if node is being zipdeployed and that there is no .deployment file
-        if (siteConfig.linuxFxVersion && siteConfig.scmType === 'None' && !(await pathExists(path.join(context.workspace.uri.fsPath, constants.deploymentFileName)))) {
+        if (siteConfig.linuxFxVersion && siteConfig.scmType === 'None' && !(await pathExists(path.join(deployContext.workspace.uri.fsPath, constants.deploymentFileName)))) {
             const linuxFxVersion: string = siteConfig.linuxFxVersion.toLowerCase();
             if (linuxFxVersion.startsWith(appservice.LinuxRuntimes.node)) {
                 // if it is node or python, prompt the user (as we can break them)
-                await node.promptScmDoBuildDeploy(context.workspace.uri.fsPath, appservice.LinuxRuntimes.node, context);
+                await node.promptScmDoBuildDeploy(deployContext.workspace.uri.fsPath, appservice.LinuxRuntimes.node, context);
             } else if (linuxFxVersion.startsWith(appservice.LinuxRuntimes.python)) {
-                await node.promptScmDoBuildDeploy(context.workspace.uri.fsPath, appservice.LinuxRuntimes.python, context);
+                await node.promptScmDoBuildDeploy(deployContext.workspace.uri.fsPath, appservice.LinuxRuntimes.python, context);
             }
 
         }
@@ -134,9 +134,9 @@ export async function deploy(context: IActionContext & Partial<IDeployWizardCont
     if (confirmDeployment && siteConfig.scmType !== constants.ScmType.LocalGit && siteConfig !== constants.ScmType.GitHub) {
         const warning: string = `Are you sure you want to deploy to "${node.root.client.fullName}"? This will overwrite any previous deployment and cannot be undone.`;
         context.telemetry.properties.cancelStep = 'confirmDestructiveDeployment';
-        const items: MessageItem[] = [constants.AppServiceDialogResponses.deploy];
-        const resetDefault: MessageItem = { title: 'Reset default' };
-        if (context.deployedWithConfigs) {
+        const items: vscode.MessageItem[] = [constants.AppServiceDialogResponses.deploy];
+        const resetDefault: vscode.MessageItem = { title: 'Reset default' };
+        if (deployContext.deployedWithConfigs) {
             items.push(resetDefault);
         }
 
@@ -144,45 +144,45 @@ export async function deploy(context: IActionContext & Partial<IDeployWizardCont
 
         // a temporary workaround for this issue: https://github.com/Microsoft/vscode-azureappservice/issues/844
         await delay(500);
-        const result: MessageItem = await ext.ui.showWarningMessage(warning, { modal: true }, ...items);
+        const result: vscode.MessageItem = await ext.ui.showWarningMessage(warning, { modal: true }, ...items);
         if (result === resetDefault) {
-            const settingsPath = path.join(context.workspace.uri.fsPath, '.vscode', 'settings.json');
-            const doc = await workspace.openTextDocument(Uri.file(settingsPath));
-            window.showTextDocument(doc);
-            await updateWorkspaceSetting(constants.configurationSettings.defaultWebAppToDeploy, '', context.workspace.uri.fsPath);
+            const settingsPath = path.join(deployContext.workspace.uri.fsPath, '.vscode', 'settings.json');
+            const doc = await vscode.workspace.openTextDocument(vscode.Uri.file(settingsPath));
+            vscode.window.showTextDocument(doc);
+            await updateWorkspaceSetting(constants.configurationSettings.defaultWebAppToDeploy, '', deployContext.workspace.uri.fsPath);
 
             // If resetDefault button was clicked we ask what and where to deploy again
-            await commands.executeCommand('appService.Deploy');
+            await vscode.commands.executeCommand('appService.Deploy');
             return;
         }
-        context.telemetry.properties.cancelStep = '';
+        deployContext.telemetry.properties.cancelStep = '';
     }
 
-    if (!context.deployedWithConfigs) {
+    if (!deployContext.deployedWithConfigs) {
         // tslint:disable-next-line:no-floating-promises
-        node.promptToSaveDeployDefaults(context.workspace.uri.fsPath, context.deployFsPath, context);
+        node.promptToSaveDeployDefaults(deployContext.workspace.uri.fsPath, deployContext.deployFsPath, deployContext);
     }
 
-    await appservice.runPreDeployTask(context, context.deployFsPath, siteConfig.scmType, constants.extensionPrefix);
+    await appservice.runPreDeployTask(deployContext, deployContext.deployFsPath, siteConfig.scmType, constants.extensionPrefix);
 
     cancelWebsiteValidation(node);
     await node.runWithTemporaryDescription("Deploying...", async () => {
-        await appservice.deploy(nonNullValue(node).root.client, <string>context.deployFsPath, context, constants.showOutputChannelCommandId);
+        await appservice.deploy(nonNullValue(node).root.client, <string>deployContext.deployFsPath, deployContext, constants.showOutputChannelCommandId);
     });
 
     const deployComplete: string = `Deployment to "${node.root.client.fullName}" completed.`;
     ext.outputChannel.appendLine(deployComplete);
-    const browseWebsite: MessageItem = { title: 'Browse Website' };
-    const streamLogs: MessageItem = { title: 'Stream Logs' };
+    const browseWebsite: vscode.MessageItem = { title: 'Browse Website' };
+    const streamLogs: vscode.MessageItem = { title: 'Stream Logs' };
 
     // Don't wait
-    window.showInformationMessage(deployComplete, browseWebsite, streamLogs, constants.AppServiceDialogResponses.viewOutput).then(async (result: MessageItem | undefined) => {
+    vscode.window.showInformationMessage(deployComplete, browseWebsite, streamLogs, constants.AppServiceDialogResponses.viewOutput).then(async (result: vscode.MessageItem | undefined) => {
         if (result === constants.AppServiceDialogResponses.viewOutput) {
             ext.outputChannel.show();
         } else if (result === browseWebsite) {
             await nonNullValue(node).browse();
         } else if (result === streamLogs) {
-            await startStreamingLogs(context, node);
+            await startStreamingLogs(deployContext, node);
         }
     });
 
