@@ -40,18 +40,18 @@ export async function deploy(context: IActionContext & Partial<IDeployWizardCont
         context.telemetry.properties.deploymentEntryPoint = 'fileExplorerContextMenu';
     } else {
         context.telemetry.properties.deploymentEntryPoint = target ? 'webAppContextMenu' : 'deployButton';
-        if (target) {
-            node = target;
-            siteConfig = await node.root.client.getSiteConfig();
-            if (javaUtils.isJavaRuntime(siteConfig.linuxFxVersion)) {
-                javaFileExtension = javaUtils.getArtifactTypeByJavaRuntime(siteConfig.linuxFxVersion);
-            }
-        }
+        node = target;
     }
 
+    let siteConfig: WebSiteModels.SiteConfigResource | undefined;
+
     if (!context.deployFsPath) {
-        if (javaFileExtension) {
-            context.deployFsPath = await workspaceUtil.showWorkspaceFolders(`Select the ${javaFileExtension} file to deploy...`, context, constants.configurationSettings.deploySubpath, javaFileExtension);
+        // we can only get the siteConfig if the entry point was a treeItem
+        siteConfig = node ? await node.root.client.getSiteConfig() : undefined;
+
+        if (siteConfig && javaUtils.isJavaRuntime(siteConfig.linuxFxVersion)) {
+            const fileExtension: string = javaUtils.getArtifactTypeByJavaRuntime(siteConfig.linuxFxVersion);
+            context.fsPath = await workspaceUtil.showWorkspaceFolders(`Select the ${fileExtension} file to deploy...`, context, constants.configurationSettings.deploySubpath, fileExtension);
         } else {
             context.deployFsPath = await workspaceUtil.showWorkspaceFolders("Select the folder to deploy", context, constants.configurationSettings.deploySubpath);
         }
@@ -107,6 +107,12 @@ export async function deploy(context: IActionContext & Partial<IDeployWizardCont
     siteConfig = siteConfig ? siteConfig : await node.root.client.getSiteConfig();
 
     if (javaUtils.isJavaRuntime(siteConfig.linuxFxVersion)) {
+        const javaArtifactFiles: Uri[] = await workspaceUtil.findFilesByFileExtension(context.fsPath, javaUtils.getArtifactTypeByJavaRuntime(siteConfig.linuxFxVersion));
+        if (javaArtifactFiles.length > 0) {
+            const javaArtifactQp: IAzureQuickPickItem<string>[] = workspaceUtil.mapFilesToQuickPickItems(javaArtifactFiles);
+            // check if there is a jar/war file in the fsPath that was provided
+            context.fsPath = <string>(await ext.ui.showQuickPick(javaArtifactQp, { placeHolder: `Select the ${javaUtils.getArtifactTypeByJavaRuntime(siteConfig.linuxFxVersion)} file to deploy...` })).data;
+        }
         await javaUtils.configureJavaSEAppSettings(node);
     }
 
