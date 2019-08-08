@@ -3,11 +3,11 @@
 *  Licensed under the MIT License. See License.txt in the project root for license information.
 *--------------------------------------------------------------------------------------------*/
 
-import { ConfigurationTarget } from "vscode";
+import { WorkspaceFolder } from "vscode";
 import { IActionContext } from "vscode-azureextensionui";
 
 export interface IDeployWizardContext extends IActionContext {
-    fsPath?: string;
+    workspace: WorkspaceFolder;
+    deployFsPath: string;
     deployedWithConfigs?: boolean;
-    configurationTarget?: ConfigurationTarget;
 }

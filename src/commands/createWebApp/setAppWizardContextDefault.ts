@@ -5,19 +5,17 @@
 
 import * as fse from 'fs-extra';
 import * as path from 'path';
-import { workspace, WorkspaceFolder } from 'vscode';
+import { WorkspaceFolder } from 'vscode';
 import { IAppServiceWizardContext, LinuxRuntimes, WebsiteOS } from 'vscode-azureappservice';
 import { ICreateChildImplContext, LocationListStep } from 'vscode-azureextensionui';
 import { javaUtils } from '../../utils/javaUtils';
-import { findFilesByFileExtension, getContainingWorkspace } from '../../utils/workspace';
+import { findFilesByFileExtension } from '../../utils/workspace';
 import { IDeployWizardContext } from '../deploy/IDeployWizardContext';
 
 export async function setAppWizardContextDefault(wizardContext: IAppServiceWizardContext & Partial<IDeployWizardContext> & Partial<ICreateChildImplContext>): Promise<void> {
     // if the user entered through "Deploy", we'll have a project to base our recommendations on
     // otherwise, look at their current workspace and only suggest if one workspace is opened
-    const workspaceForRecommendation: WorkspaceFolder | undefined = wizardContext.fsPath ?
-        getContainingWorkspace(wizardContext.fsPath) : workspace.workspaceFolders && workspace.workspaceFolders.length === 1 ?
-            workspace.workspaceFolders[0] : undefined;
+    const workspaceForRecommendation: WorkspaceFolder | undefined = wizardContext.workspace;
 
     if (workspaceForRecommendation) {
         const fsPath: string = workspaceForRecommendation.uri.fsPath;
