@@ -6,7 +6,7 @@
 import * as WebSiteModels from 'azure-arm-website/lib/models';
 import * as fse from 'fs-extra';
 import * as path from 'path';
-import { MessageItem, window } from 'vscode';
+import { MessageItem } from 'vscode';
 import { AppSettingsTreeItem, AppSettingTreeItem, deleteSite, DeploymentsTreeItem, DeploymentTreeItem, ISiteTreeRoot, LinuxRuntimes, SiteClient } from 'vscode-azureappservice';
 import { AzExtTreeItem, AzureParentTreeItem, AzureTreeItem, DialogResponses, IActionContext } from 'vscode-azureextensionui';
 import { toggleValueVisibilityCommandId } from '../constants';
@@ -157,7 +157,7 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         const buildDuringDeploy: string = `Would you like to update your workspace configuration to run build commands on the target server? This should improve deployment performance.`;
         let input: MessageItem | undefined = learnMoreButton;
         while (input === learnMoreButton) {
-            input = await window.showInformationMessage(buildDuringDeploy, yesButton, dontShowAgainButton, learnMoreButton);
+            input = await ext.ui.showWarningMessage(buildDuringDeploy, yesButton, dontShowAgainButton, learnMoreButton);
             if (input === learnMoreButton) {
                 await openUrl('https://aka.ms/Kwwkbd');
             }

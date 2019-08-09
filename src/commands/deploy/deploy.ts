@@ -5,7 +5,7 @@
 
 import * as WebSiteModels from 'azure-arm-website/lib/models';
 import { SiteConfigResource } from 'azure-arm-website/lib/models';
-import { pathExists } from 'fs-extra';
+import { lstat, pathExists } from 'fs-extra';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as appservice from 'vscode-azureappservice';
@@ -117,7 +117,7 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
     }
 
     // only check enableScmDoBuildDuringDeploy if currentWorkspace matches the workspace being deployed as a user can "Browse" to a different project
-    if (getWorkspaceSetting<boolean>(constants.configurationSettings.showBuildDuringDeployPrompt, deployContext.workspace.uri.fsPath)) {
+    if (getWorkspaceSetting<boolean>(constants.configurationSettings.showBuildDuringDeployPrompt, deployContext.workspace.uri.fsPath) && (await lstat(deployContext.workspace.uri.fsPath)).isDirectory()) {
         //check if node is being zipdeployed and that there is no .deployment file
         if (siteConfig.linuxFxVersion && siteConfig.scmType === 'None' && !(await pathExists(path.join(deployContext.workspace.uri.fsPath, constants.deploymentFileName)))) {
             const linuxFxVersion: string = siteConfig.linuxFxVersion.toLowerCase();

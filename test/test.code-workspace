@@ -1,0 +1,11 @@
+{
+    "folders": [
+        {
+            "path": "./testFunctionNightly/testFolder/nodejs-docs-hello-world-master"
+        },
+        {
+            "path": "./testFunctionNightly/testFolder/nodejs-docs-hello-world-master.zip"
+        }
+    ],
+    "settings": {}
+}
