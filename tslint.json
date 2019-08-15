@@ -60,10 +60,6 @@
         "radix": false
     },
     "linterOptions": {
-        "exclude": [
-            "src/logPoints/**", // should be handled by the Log Points team
-            "src/explorer/loadedScriptsExplorer.ts", // should be handled by the Log Points team
-            "src/utils/logpointsUtil.ts" // should be handled by the Log Points team
-        ]
+        "exclude": []
     }
 }
