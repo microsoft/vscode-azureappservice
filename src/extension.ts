@@ -38,14 +38,9 @@ import { DeploymentSlotTreeItem } from './explorer/DeploymentSlotTreeItem';
 import { FileEditor } from './explorer/editors/FileEditor';
 import { FileTreeItem } from './explorer/FileTreeItem';
 import { FolderTreeItem } from './explorer/FolderTreeItem';
-import { LoadedScriptsProvider, openScript } from './explorer/loadedScriptsExplorer';
 import { SiteTreeItem } from './explorer/SiteTreeItem';
 import { WebAppTreeItem } from './explorer/WebAppTreeItem';
 import { ext } from './extensionVariables';
-import { LogPointsManager } from './logPoints/LogPointsManager';
-import { LogPointsSessionWizard } from './logPoints/LogPointsSessionWizard';
-import { RemoteScriptDocumentProvider, RemoteScriptSchema } from './logPoints/remoteScriptDocumentProvider';
-import { LogpointsCollection } from './logPoints/structs/LogpointsCollection';
 import { nonNullProp, nonNullValue } from './utils/nonNull';
 import { openUrl } from './utils/openUrl';
 
@@ -83,26 +78,6 @@ export async function activateInternal(
 
         const fileEditor: FileEditor = new FileEditor();
         context.subscriptions.push(fileEditor);
-
-        // loaded scripts
-        const provider = new LoadedScriptsProvider(context);
-        context.subscriptions.push(vscode.window.registerTreeDataProvider('appservice.loadedScriptsExplorer.jsLogpoints', provider));
-
-        const documentProvider = new RemoteScriptDocumentProvider();
-        context.subscriptions.push(vscode.workspace.registerTextDocumentContentProvider(RemoteScriptSchema.schema, documentProvider));
-
-        const logPointsManager = new LogPointsManager();
-        context.subscriptions.push(logPointsManager);
-
-        const pathIcon = context.asAbsolutePath('resources/logpoint.svg');
-        const logpointDecorationType = vscode.window.createTextEditorDecorationType({
-            gutterIconPath: pathIcon,
-            overviewRulerLane: vscode.OverviewRulerLane.Full,
-            overviewRulerColor: "rgba(21, 126, 251, 0.7)"
-        });
-        context.subscriptions.push(logpointDecorationType);
-
-        LogpointsCollection.TextEditorDecorationType = logpointDecorationType;
 
         registerCommand('appService.Refresh', async (_actionContext: IActionContext, node?: AzureTreeItem) => await ext.tree.refresh(node));
         registerCommand('appService.selectSubscriptions', () => vscode.commands.executeCommand("azure-account.selectSubscriptions"));
@@ -162,7 +137,6 @@ export async function activateInternal(
                 ext.outputChannel.appendLine(stoppedApp);
             });
 
-            await logPointsManager.onAppServiceSiteClosed(client);
         });
         registerCommand('appService.Restart', async (actionContext: IActionContext, node?: SiteTreeItem) => {
             if (!node) {
@@ -170,7 +144,6 @@ export async function activateInternal(
             }
             await vscode.commands.executeCommand('appService.Stop', node);
             await vscode.commands.executeCommand('appService.Start', node);
-            await logPointsManager.onAppServiceSiteClosed(node.root.client);
         });
         registerCommand('appService.Delete', async (actionContext: IActionContext, node?: SiteTreeItem) => {
             if (!node) {
@@ -253,18 +226,6 @@ export async function activateInternal(
 
             await stopStreamingLogs(node.root.client);
         });
-        registerCommand('appService.StartLogPointsSession', async (actionContext: IActionContext, node?: SiteTreeItem) => {
-            if (node) {
-                const wizard = new LogPointsSessionWizard(logPointsManager, context, ext.outputChannel, node, node.root.client);
-                await wizard.run(actionContext);
-            }
-        });
-
-        registerCommand('appService.LogPoints.Toggle', async (_actionContext: IActionContext, uri: vscode.Uri) => {
-            await logPointsManager.toggleLogpoint(uri);
-        });
-
-        registerCommand('appService.LogPoints.OpenScript', openScript);
 
         registerCommand('appService.StartRemoteDebug', startRemoteDebug);
         registerCommand('appService.StartSsh', startSsh);

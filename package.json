@@ -233,21 +233,6 @@
                 "category": "Azure App Service"
             },
             {
-                "command": "appService.StartLogPointsSession",
-                "title": "Launch Logpoints Debug Session",
-                "category": "Azure App Service"
-            },
-            {
-                "command": "appService.LogPoints.OpenScript",
-                "title": "Open and See the Content of a Script",
-                "category": "Azure App Service"
-            },
-            {
-                "command": "appService.LogPoints.Toggle",
-                "title": "Set or Remove a Logpoint",
-                "category": "Azure App Service"
-            },
-            {
                 "command": "appService.ScaleUp",
                 "title": "Scale up App Service Plan...",
                 "category": "Azure App Service"
@@ -337,13 +322,6 @@
                     "name": "App Service",
                     "when": "config.appService.showExplorer == true"
                 }
-            ],
-            "debug": [
-                {
-                    "id": "appservice.loadedScriptsExplorer.jsLogpoints",
-                    "name": "LOADED SCRIPTS",
-                    "when": "inDebugMode && debugType == 'jsLogpoints'"
-                }
             ]
         },
         "menus": {
@@ -358,30 +336,6 @@
                 },
                 {
                     "command": "appService.LoadMore",
-                    "when": "never"
-                },
-                {
-                    "command": "appService.StartLogPointsSession",
-                    "when": "never"
-                },
-                {
-                    "command": "appService.LogPoints.OpenScript",
-                    "when": "never"
-                },
-                {
-                    "command": "appService.LogPoints.Toggle",
-                    "when": "never"
-                },
-                {
-                    "command": "appService.StartLogPointsSession",
-                    "when": "never"
-                },
-                {
-                    "command": "appService.LogPoints.OpenScript",
-                    "when": "never"
-                },
-                {
-                    "command": "appService.LogPoints.Toggle",
                     "when": "never"
                 },
                 {
@@ -510,11 +464,6 @@
                     "group": "7_appServiceRefreshCommands@1"
                 },
                 {
-                    "command": "appService.StartLogPointsSession",
-                    "when": "config.appService.logpoints == true && view == azureAppService && viewItem == appService",
-                    "group": "4_appServiceDiagnosticsCommands@3"
-                },
-                {
                     "command": "appService.StartRemoteDebug",
                     "when": "view == azureAppService && viewItem == appService",
                     "group": "5_appServiceRemoteCommands@1"
@@ -593,11 +542,6 @@
                     "command": "appService.StopLogStream",
                     "when": "view == azureAppService && viewItem == deploymentSlot",
                     "group": "4_deploymentSlotDiagnosticsCommands@2"
-                },
-                {
-                    "command": "appService.StartLogPointsSession",
-                    "when": "config.appService.logpoints == true && view == azureAppService && viewItem == deploymentSlot",
-                    "group": "4_deploymentSlotDiagnosticsCommands@3"
                 },
                 {
                     "command": "appService.StartRemoteDebug",
@@ -780,12 +724,6 @@
                     "when": "resourceFilename == .env",
                     "group": "zzz_azuretools_appsettings@1"
                 }
-            ],
-            "editor/context": [
-                {
-                    "command": "appService.LogPoints.Toggle",
-                    "when": "config.appService.logpoints == true"
-                }
             ]
         },
         "keybindings": [
@@ -802,14 +740,6 @@
                     "type": "boolean",
                     "default": true,
                     "description": "Show or hide the App Service Explorer"
-                },
-                "appService.enabledDockerImages": {
-                    "type": "array",
-                    "default": [
-                        "f12azurenodelogpointsnightly.azurecr.io/azure-nodejs-logpoints",
-                        "azurenodelogpoints.azurecr.io/azure-nodejs-logpoints"
-                    ],
-                    "description": "The supported Docker images that logpoints feature can run with."
                 },
                 "appService.zipGlobPattern": {
                     "scope": "resource",
@@ -889,72 +819,6 @@
             {
                 "language": "javascript"
             }
-        ],
-        "debuggers": [
-            {
-                "type": "jsLogpoints",
-                "label": "Azure App Service LogPoints",
-                "program": "./out/src/diagnostics/LogPointsDebugAdapter.js",
-                "runtime": "node",
-                "configurationAttributes": {
-                    "launch": {
-                        "required": [
-                            "sessionId",
-                            "debugId"
-                        ],
-                        "properties": {
-                            "trace": {
-                                "type": "boolean",
-                                "description": "Enable logging of the Debug Adapter Protocol.",
-                                "default": true
-                            },
-                            "siteName": {
-                                "type": "string",
-                                "description": "A URL prefix for the azure scm url.",
-                                "default": ""
-                            },
-                            "publishCredentialUsername": {
-                                "type": "string",
-                                "description": "publishingUserName",
-                                "default": ""
-                            },
-                            "publishCredentialPassword": {
-                                "type": "string",
-                                "description": "publishingPassword",
-                                "default": ""
-                            },
-                            "instanceId": {
-                                "type": "string",
-                                "description": "ARRAffinity",
-                                "default": ""
-                            },
-                            "sessionId": {
-                                "type": "string",
-                                "description": "sessionId",
-                                "default": ""
-                            },
-                            "debugId": {
-                                "type": "string",
-                                "description": "debugId",
-                                "default": ""
-                            }
-                        }
-                    }
-                },
-                "initialConfigurations": [
-                    {
-                        "type": "mock",
-                        "name": "Azure App Service LogPoints",
-                        "request": "attach",
-                        "program": "readme.md",
-                        "trace": true,
-                        "hostname": "",
-                        "instanceId": "",
-                        "sessionId": "",
-                        "debugId": ""
-                    }
-                ]
-            }
         ]
     },
     "scripts": {
@@ -976,7 +840,6 @@
         "@types/gulp": "^4.0.5",
         "@types/mocha": "^5.2.5",
         "@types/node": "^8.0.51",
-        "@types/request": "^2.0.3",
         "@types/request-promise": "4.1.41",
         "gulp": "^4.0.0",
         "mocha": "^5.2.0",
@@ -998,13 +861,10 @@
         "dotenv": "^6.2.0",
         "fs-extra": "^4.0.2",
         "portfinder": "^1.0.13",
-        "request": "^2.83.0",
         "request-promise": "^4.2.2",
         "vscode-azureappservice": "^0.43.0",
         "vscode-azureextensionui": "^0.26.3",
-        "vscode-azurekudu": "^0.1.8",
-        "vscode-debugadapter": "^1.24.0",
-        "vscode-debugprotocol": "^1.24.0"
+        "vscode-azurekudu": "^0.1.8"
     },
     "extensionDependencies": [
         "ms-vscode.azure-account"
