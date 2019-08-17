@@ -11,8 +11,9 @@ import { IDeployWizardContext } from "./deploy/IDeployWizardContext";
 
 export async function getDefaultWebAppToDeploy(context: IDeployWizardContext): Promise<WebAppTreeItem | undefined> {
     const defaultWebAppId: string | undefined = getWorkspaceSetting(configurationSettings.defaultWebAppToDeploy, context.workspace.uri.fsPath);
-
-    if (defaultWebAppId && defaultWebAppId !== none) {
+    if (defaultWebAppId === none) {
+        context.telemetry.properties.deployedWithConfigs = 'none';
+    } else if (defaultWebAppId) {
         const defaultWebApp: WebAppTreeItem | undefined = await ext.tree.findTreeItem(defaultWebAppId, context); // resolves to undefined if app can't be found
         if (defaultWebApp) {
             context.deployedWithConfigs = true;

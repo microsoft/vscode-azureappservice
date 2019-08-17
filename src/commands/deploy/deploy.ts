@@ -158,7 +158,8 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
         deployContext.telemetry.properties.cancelStep = '';
     }
 
-    if (!deployContext.deployedWithConfigs) {
+    const defaultWebAppToDeploySetting: string | undefined = getWorkspaceSetting(constants.configurationSettings.defaultWebAppToDeploy, deployFsPath);
+    if (!defaultWebAppToDeploySetting) {
         // tslint:disable-next-line:no-floating-promises
         node.promptToSaveDeployDefaults(deployContext.workspace.uri.fsPath, deployContext.deployFsPath, deployContext);
     }
