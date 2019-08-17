@@ -60,10 +60,6 @@ export class WebAppTreeItem extends SiteTreeItem {
         return super.pickTreeItemImpl(expectedContextValues);
     }
 
-    public async openCdInPortal(): Promise<void> {
-        await openInPortal(this.root, `${this.root.client.id}/vstscd`);
-    }
-
     public async generateDeploymentScript(): Promise<void> {
         const resourceClient: ResourceManagementClient = createAzureClient(this.root, ResourceManagementClient);
         const tasks = Promise.all([

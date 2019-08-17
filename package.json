@@ -42,7 +42,6 @@
         "onCommand:appService.Deploy",
         "onCommand:appService.ConfigureDeploymentSource",
         "onCommand:appService.DeploymentScript",
-        "onCommand:appService.OpenVSTSCD",
         "onCommand:appService.SwapSlots",
         "onCommand:appService.appSettings.Add",
         "onCommand:appService.appSettings.Edit",
@@ -155,11 +154,6 @@
             {
                 "command": "appService.ConfigureDeploymentSource",
                 "title": "Configure Deployment Source...",
-                "category": "Azure App Service"
-            },
-            {
-                "command": "appService.OpenVSTSCD",
-                "title": "Continuous Delivery (Preview)",
                 "category": "Azure App Service"
             },
             {
@@ -437,11 +431,6 @@
                     "command": "appService.ConfigureDeploymentSource",
                     "when": "view == azureAppService && viewItem == appService",
                     "group": "3_appServiceDeployCommands@2"
-                },
-                {
-                    "command": "appService.OpenVSTSCD",
-                    "when": "view == azureAppService && viewItem == appService",
-                    "group": "3_appServiceDeployCommands@3"
                 },
                 {
                     "command": "appService.OpenLogStream",
