@@ -9,7 +9,7 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { ISiteTreeRoot } from 'vscode-azureappservice';
-import { AzExtTreeItem, AzureTreeItem, createAzureClient, IActionContext, openInPortal } from 'vscode-azureextensionui';
+import { AzExtTreeItem, AzureTreeItem, createAzureClient, IActionContext } from 'vscode-azureextensionui';
 import { deploy } from '../commands/deploy/deploy';
 import { AppServiceDialogResponses, extensionPrefix } from '../constants';
 import { ext } from '../extensionVariables';
@@ -58,10 +58,6 @@ export class WebAppTreeItem extends SiteTreeItem {
         }
 
         return super.pickTreeItemImpl(expectedContextValues);
-    }
-
-    public async openCdInPortal(): Promise<void> {
-        await openInPortal(this.root, `${this.root.client.id}/vstscd`);
     }
 
     public async generateDeploymentScript(): Promise<void> {
