@@ -109,6 +109,7 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
         // site is set as a result of SiteCreateStep.execute()
         const siteClient: SiteClient = new SiteClient(nonNullProp(wizardContext, 'site'), this.root);
 
+        // https://github.com/microsoft/vscode-azureappservice/issues/840
         if (wizardContext.newSiteOS === WebsiteOS.windows) {
             const appSettings: StringDictionary = await siteClient.listApplicationSettings();
             if (appSettings.properties && appSettings.properties.WEBSITE_NODE_DEFAULT_VERSION) {
