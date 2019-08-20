@@ -4,8 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { WebSiteManagementClient } from 'azure-arm-website';
-import { Site, WebAppCollection } from 'azure-arm-website/lib/models';
-import { AppKind, AppServicePlanCreateStep, AppServicePlanListStep, IAppServiceWizardContext, SiteClient, SiteCreateStep, SiteNameStep, SiteOSStep, SiteRuntimeStep } from 'vscode-azureappservice';
+import { Site, StringDictionary, WebAppCollection } from 'azure-arm-website/lib/models';
+import { AppKind, AppServicePlanCreateStep, AppServicePlanListStep, IAppServiceWizardContext, SiteClient, SiteCreateStep, SiteNameStep, SiteOSStep, SiteRuntimeStep, WebsiteOS } from 'vscode-azureappservice';
 import { AzExtTreeItem, AzureTreeItem, AzureWizard, AzureWizardExecuteStep, AzureWizardPromptStep, createAzureClient, ICreateChildImplContext, parseError, ResourceGroupCreateStep, ResourceGroupListStep, SubscriptionTreeItemBase } from 'vscode-azureextensionui';
 import { setAppWizardContextDefault } from '../commands/createWebApp/setAppWizardContextDefault';
 import { setDefaultRgAndPlanName } from '../commands/createWebApp/setDefaultRgAndPlanName';
@@ -108,6 +108,14 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
 
         // site is set as a result of SiteCreateStep.execute()
         const siteClient: SiteClient = new SiteClient(nonNullProp(wizardContext, 'site'), this.root);
+
+        if (wizardContext.newSiteOS === WebsiteOS.windows) {
+            const appSettings: StringDictionary = await siteClient.listApplicationSettings();
+            if (appSettings.properties && appSettings.properties.WEBSITE_NODE_DEFAULT_VERSION) {
+                delete appSettings.properties.WEBSITE_NODE_DEFAULT_VERSION;
+                await siteClient.updateApplicationSettings(appSettings);
+            }
+        }
 
         const createdNewAppMsg: string = `Created new web app "${siteClient.fullName}": https://${siteClient.defaultHostName}`;
         ext.outputChannel.appendLine(createdNewAppMsg);
