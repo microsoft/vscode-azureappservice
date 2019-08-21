@@ -23,6 +23,7 @@ import { cancelWebsiteValidation, validateWebSite } from '../../validateWebSite'
 import { getWorkspaceSetting, updateWorkspaceSetting } from '../../vsCodeConfig/settings';
 import { getDefaultWebAppToDeploy } from '../getDefaultWebAppToDeploy';
 import { startStreamingLogs } from '../startStreamingLogs';
+import { getDeployFsPath } from './getDeployFsPath';
 import { IDeployWizardContext } from './IDeployWizardContext';
 
 // tslint:disable-next-line:max-func-body-length cyclomatic-complexity
@@ -31,30 +32,21 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
     let node: SiteTreeItem | undefined;
     const newNodes: SiteTreeItem[] = [];
     context.telemetry.properties.deployedWithConfigs = 'false';
-    let deployFsPath: string | undefined;
 
-    if (target instanceof vscode.Uri) {
-        deployFsPath = target.fsPath;
-        context.telemetry.properties.deploymentEntryPoint = 'fileExplorerContextMenu';
-    } else {
-        context.telemetry.properties.deploymentEntryPoint = target ? 'webAppContextMenu' : 'deployButton';
+    if (target instanceof SiteTreeItem) {
         node = target;
     }
 
     let siteConfig: WebSiteModels.SiteConfigResource | undefined;
+    let javaFileExtension: string | undefined;
 
-    if (!deployFsPath) {
-        // we can only get the siteConfig if the entry point was a treeItem
-        siteConfig = node ? await node.root.client.getSiteConfig() : undefined;
-
-        if (siteConfig && javaUtils.isJavaRuntime(siteConfig.linuxFxVersion)) {
-            const fileExtension: string = javaUtils.getArtifactTypeByJavaRuntime(siteConfig.linuxFxVersion);
-            deployFsPath = await workspaceUtil.showWorkspaceFolders(`Select the ${fileExtension} file to deploy...`, context, constants.configurationSettings.deploySubpath, fileExtension);
-        } else {
-            deployFsPath = await workspaceUtil.showWorkspaceFolders("Select the folder to deploy", context, constants.configurationSettings.deploySubpath);
-        }
+    // we can only get the siteConfig if the entry point was a treeItem
+    siteConfig = node ? await node.root.client.getSiteConfig() : undefined;
+    if (siteConfig && javaUtils.isJavaRuntime(siteConfig.linuxFxVersion)) {
+        javaFileExtension = javaUtils.getArtifactTypeByJavaRuntime(siteConfig.linuxFxVersion);
     }
 
+    const deployFsPath: string = await getDeployFsPath(context, target, javaFileExtension);
     const workspace: vscode.WorkspaceFolder | undefined = workspaceUtil.getContainingWorkspace(deployFsPath);
 
     if (!workspace) {

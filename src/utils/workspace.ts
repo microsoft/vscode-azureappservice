@@ -55,26 +55,22 @@ export async function selectWorkspaceItem(placeHolder: string, options: vscode.O
     return folder && folder.data ? folder.data : (await ext.ui.showOpenDialog(options))[0].fsPath;
 }
 
-export async function showWorkspaceFolders(placeHolderString: string, context: IActionContext, subPathSetting: string | undefined, fileExtension?: string): Promise<string> {
+export async function showWorkspaceFolders(placeHolderString: string, context: IActionContext, subPathSetting: string | undefined): Promise<string> {
     context.telemetry.properties.cancelStep = 'showWorkspaceFoldersAndExtensions';
     return await selectWorkspaceItem(
         placeHolderString,
         {
-            // on Windows, if both files and folder are set to true, then it defaults to folders
-            canSelectFiles: true,
-            canSelectFolders: !fileExtension,
+            canSelectFiles: false,
+            canSelectFolders: true,
             canSelectMany: false,
-            defaultUri: vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri : undefined,
-            filters: { Artifacts: fileExtension ? [fileExtension] : ['jar', 'war', 'zip'] }
+            defaultUri: vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri : undefined
         },
         (f: vscode.WorkspaceFolder): string | undefined => {
             if (subPathSetting) {
                 return vscode.workspace.getConfiguration(extensionPrefix, f.uri).get(subPathSetting);
             }
             return;
-        },
-        fileExtension
-    );
+        });
 }
 
 export function getContainingWorkspace(fsPath: string): vscode.WorkspaceFolder | undefined {
