@@ -28,7 +28,13 @@ export async function getDeployFsPath(context: IActionContext, target: vscode.Ur
     }
 
     const workspaceMessage: string = fileExtension ? `Select the ${fileExtension} file to deploy` : 'Select the folder to zip and deploy';
-    return fileExtension ? await workspaceUtil.selectWorkspaceItem(workspaceMessage, {}, f => getWorkspaceSetting(configurationSettings.deploySubpath, f.uri.fsPath), fileExtension) :
+    const filter: { [name: string]: string[] } = {};
+    if (fileExtension) {
+        filter[fileExtension] = [fileExtension];
+    }
+
+    return fileExtension ?
+        await workspaceUtil.selectWorkspaceItem(workspaceMessage, { filters: filter, canSelectFiles: true }, f => getWorkspaceSetting(configurationSettings.deploySubpath, f.uri.fsPath), fileExtension) :
         workspaceUtil.showWorkspaceFolders(workspaceMessage, context, configurationSettings.deploySubpath);
 }
 
