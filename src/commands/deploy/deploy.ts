@@ -32,16 +32,15 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
     let node: SiteTreeItem | undefined;
     const newNodes: SiteTreeItem[] = [];
     context.telemetry.properties.deployedWithConfigs = 'false';
+    let siteConfig: WebSiteModels.SiteConfigResource | undefined;
 
     if (target instanceof SiteTreeItem) {
         node = target;
+        // we can only get the siteConfig earlier if the entry point was a treeItem
+        siteConfig = await node.root.client.getSiteConfig();
     }
 
-    let siteConfig: WebSiteModels.SiteConfigResource | undefined;
     let javaFileExtension: string | undefined;
-
-    // we can only get the siteConfig if the entry point was a treeItem
-    siteConfig = node ? await node.root.client.getSiteConfig() : undefined;
     if (siteConfig && javaUtils.isJavaRuntime(siteConfig.linuxFxVersion)) {
         javaFileExtension = javaUtils.getArtifactTypeByJavaRuntime(siteConfig.linuxFxVersion);
     }
