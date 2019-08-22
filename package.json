@@ -792,6 +792,12 @@
                         }
                     }
                 },
+                "appService.configurePreDeployTasks": {
+                    "scope": "resource",
+                    "type": "boolean",
+                    "description": "Configures preDeployTasks on a deployment when true",
+                    "default": true
+                },
                 "appService.preDeployTask": {
                     "scope": "resource",
                     "type": "string",
