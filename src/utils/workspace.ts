@@ -6,9 +6,11 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { IActionContext, IAzureQuickPickItem } from 'vscode-azureextensionui';
-import { extensionPrefix } from '../constants';
+import { configurationSettings, extensionPrefix } from '../constants';
+import { SiteTreeItem } from '../explorer/SiteTreeItem';
 import { ext } from '../extensionVariables';
 import { isPathEqual, isSubpath } from '../utils/pathUtils';
+import { getWorkspaceSetting } from '../vsCodeConfig/settings';
 
 export async function selectWorkspaceFile(placeHolder: string, getSubPath?: (f: vscode.WorkspaceFolder) => string | undefined): Promise<string> {
     let defaultUri: vscode.Uri | undefined;
@@ -32,7 +34,7 @@ export async function selectWorkspaceFile(placeHolder: string, getSubPath?: (f: 
         getSubPath);
 }
 
-export async function selectWorkspaceItem(placeHolder: string, options: vscode.OpenDialogOptions, getSubPath?: (f: vscode.WorkspaceFolder) => string | undefined, fileExtension?: string): Promise<string> {
+async function selectWorkspaceItem(placeHolder: string, options: vscode.OpenDialogOptions, getSubPath?: (f: vscode.WorkspaceFolder) => string | undefined, fileExtension?: string): Promise<string> {
     let folder: IAzureQuickPickItem<string | undefined> | undefined;
     let quickPicks: IAzureQuickPickItem<string | undefined>[] = [];
     if (vscode.workspace.workspaceFolders) {
@@ -55,8 +57,8 @@ export async function selectWorkspaceItem(placeHolder: string, options: vscode.O
     return folder && folder.data ? folder.data : (await ext.ui.showOpenDialog(options))[0].fsPath;
 }
 
-export async function showWorkspaceFolders(placeHolderString: string, context: IActionContext, subPathSetting: string | undefined): Promise<string> {
-    context.telemetry.properties.cancelStep = 'showWorkspaceFoldersAndExtensions';
+async function selectWorkspaceFolder(placeHolderString: string, context: IActionContext, subPathSetting: string | undefined): Promise<string> {
+    context.telemetry.properties.cancelStep = 'selectWorkspaceFolder';
     return await selectWorkspaceItem(
         placeHolderString,
         {
@@ -95,4 +97,26 @@ export function mapFilesToQuickPickItems(files: vscode.Uri[]): IAzureQuickPickIt
             data: uri.fsPath
         };
     });
+}
+
+export async function getDeploymentWorkspace(context: IActionContext, target?: vscode.Uri | SiteTreeItem, fileExtension?: string): Promise<string> {
+    if (target instanceof vscode.Uri) {
+        return target.fsPath;
+    } else if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length === 1) {
+        // If there is only one workspace and it has 'deploySubPath' set - return that value without prompting
+        const folderPath: string = vscode.workspace.workspaceFolders[0].uri.fsPath;
+        if (getWorkspaceSetting<string>(configurationSettings.deploySubpath, folderPath)) {
+            return folderPath;
+        }
+    }
+
+    const workspaceMessage: string = fileExtension ? `Select the ${fileExtension} file to deploy` : 'Select the folder to zip and deploy';
+    const filter: { [name: string]: string[] } = {};
+    if (fileExtension) {
+        filter[fileExtension] = [fileExtension];
+    }
+
+    return fileExtension ?
+        await selectWorkspaceItem(workspaceMessage, { filters: filter, canSelectFiles: true }, f => getWorkspaceSetting(configurationSettings.deploySubpath, f.uri.fsPath), fileExtension) :
+        await selectWorkspaceFolder(workspaceMessage, context, configurationSettings.deploySubpath);
 }

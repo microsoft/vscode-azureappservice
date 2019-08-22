@@ -23,7 +23,6 @@ import { cancelWebsiteValidation, validateWebSite } from '../../validateWebSite'
 import { getWorkspaceSetting, updateWorkspaceSetting } from '../../vsCodeConfig/settings';
 import { getDefaultWebAppToDeploy } from '../getDefaultWebAppToDeploy';
 import { startStreamingLogs } from '../startStreamingLogs';
-import { getDeployFsPath } from './getDeployFsPath';
 import { IDeployWizardContext } from './IDeployWizardContext';
 
 // tslint:disable-next-line:max-func-body-length cyclomatic-complexity
@@ -45,7 +44,9 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
         javaFileExtension = javaUtils.getArtifactTypeByJavaRuntime(siteConfig.linuxFxVersion);
     }
 
-    const deployFsPath: string = await getDeployFsPath(context, target, javaFileExtension);
+    const workspaceFsPath: string = await workspaceUtil.getDeploymentWorkspace(context, target, javaFileExtension);
+    const deployFsPath: string = await appservice.getDeployFsPath(workspaceFsPath, constants.extensionPrefix);
+
     const workspace: vscode.WorkspaceFolder | undefined = workspaceUtil.getContainingWorkspace(deployFsPath);
 
     if (!workspace) {
