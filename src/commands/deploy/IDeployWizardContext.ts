@@ -9,7 +9,7 @@ import { IActionContext } from "vscode-azureextensionui";
 export interface IDeployWizardContext extends IActionContext {
     workspace: WorkspaceFolder;
     deployFsPath: string;
-    webAppSource: WebAppSource;
+    webAppSource?: WebAppSource;
 }
 
 export enum WebAppSource {

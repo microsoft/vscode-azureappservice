@@ -30,12 +30,11 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
     const newNodes: SiteTreeItem[] = [];
     let node: SiteTreeItem | undefined;
     let deployFsPath: string | undefined;
-    let webAppSource: WebAppSource;
+    let webAppSource: WebAppSource | undefined;
 
     if (target instanceof vscode.Uri) {
         context.telemetry.properties.deploymentEntryPoint = 'fileExplorerContextMenu';
         deployFsPath = target.fsPath;
-        webAppSource = WebAppSource.nodePicker;
     } else {
         context.telemetry.properties.deploymentEntryPoint = target ? 'webAppContextMenu' : 'deployButton';
 
