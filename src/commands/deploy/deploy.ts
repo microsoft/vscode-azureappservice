@@ -44,9 +44,7 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
         javaFileExtension = javaUtils.getArtifactTypeByJavaRuntime(siteConfig.linuxFxVersion);
     }
 
-    const workspaceFsPath: string = await workspaceUtil.getDeploymentWorkspace(context, target, javaFileExtension);
-    const deployFsPath: string = await appservice.getDeployFsPath(workspaceFsPath, constants.extensionPrefix);
-
+    const deployFsPath: string = await appservice.getDeployFsPath(target, constants.extensionPrefix, javaFileExtension);
     const workspace: vscode.WorkspaceFolder | undefined = workspaceUtil.getContainingWorkspace(deployFsPath);
 
     if (!workspace) {
