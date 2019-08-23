@@ -9,5 +9,11 @@ import { IActionContext } from "vscode-azureextensionui";
 export interface IDeployWizardContext extends IActionContext {
     workspace: WorkspaceFolder;
     deployFsPath: string;
-    deployedWithConfigs?: boolean;
+    webAppSource: WebAppSource;
+}
+
+export enum WebAppSource {
+    setting = 'setting',
+    tree = 'tree',
+    nodePicker = 'nodePicker'
 }

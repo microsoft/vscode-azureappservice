@@ -21,23 +21,26 @@ import { getRandomHexString } from "../../utils/randomUtils";
 import * as workspaceUtil from '../../utils/workspace';
 import { cancelWebsiteValidation, validateWebSite } from '../../validateWebSite';
 import { getWorkspaceSetting, updateWorkspaceSetting } from '../../vsCodeConfig/settings';
-import { getDefaultWebAppToDeploy } from '../getDefaultWebAppToDeploy';
 import { startStreamingLogs } from '../startStreamingLogs';
-import { IDeployWizardContext } from './IDeployWizardContext';
+import { getDefaultWebAppToDeploy } from './getDefaultWebAppToDeploy';
+import { IDeployWizardContext, WebAppSource } from './IDeployWizardContext';
 
 // tslint:disable-next-line:max-func-body-length cyclomatic-complexity
 export async function deploy(context: IActionContext, confirmDeployment: boolean, target?: vscode.Uri | SiteTreeItem | undefined): Promise<void> {
+    context.telemetry.properties.deployedWithDefaultApp = 'false';
 
-    let node: SiteTreeItem | undefined;
     const newNodes: SiteTreeItem[] = [];
-    context.telemetry.properties.deployedWithConfigs = 'false';
+    let node: SiteTreeItem | undefined;
     let deployFsPath: string | undefined;
+    let webAppSource: WebAppSource;
 
     if (target instanceof vscode.Uri) {
-        deployFsPath = target.fsPath;
         context.telemetry.properties.deploymentEntryPoint = 'fileExplorerContextMenu';
+        deployFsPath = target.fsPath;
+        webAppSource = WebAppSource.nodePicker;
     } else {
         context.telemetry.properties.deploymentEntryPoint = target ? 'webAppContextMenu' : 'deployButton';
+        webAppSource = target ? WebAppSource.tree : WebAppSource.nodePicker;
         node = target;
     }
 
@@ -56,13 +59,12 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
     }
 
     const workspace: vscode.WorkspaceFolder | undefined = workspaceUtil.getContainingWorkspace(deployFsPath);
-
     if (!workspace) {
         throw new Error('Failed to deploy because the path is not part of an open workspace. Open in a workspace and try again.');
     }
 
     const deployContext: IDeployWizardContext = {
-        ...context, workspace, deployFsPath
+        ...context, workspace, deployFsPath, webAppSource
     };
 
     if (!node) {
@@ -136,14 +138,15 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
         context.telemetry.properties.cancelStep = 'confirmDestructiveDeployment';
         const items: vscode.MessageItem[] = [constants.AppServiceDialogResponses.deploy];
         const resetDefault: vscode.MessageItem = { title: 'Reset default' };
-        if (deployContext.deployedWithConfigs) {
+        if (deployContext.webAppSource === WebAppSource.setting) {
             items.push(resetDefault);
         }
-
         items.push(DialogResponses.cancel);
 
-        // a temporary workaround for this issue: https://github.com/Microsoft/vscode-azureappservice/issues/844
+        // a temporary workaround for this issue:
+        // https://github.com/Microsoft/vscode-azureappservice/issues/844
         await delay(500);
+
         const result: vscode.MessageItem = await ext.ui.showWarningMessage(warning, { modal: true }, ...items);
         if (result === resetDefault) {
             const settingsPath = path.join(deployContext.workspace.uri.fsPath, '.vscode', 'settings.json');
@@ -158,11 +161,8 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
         deployContext.telemetry.properties.cancelStep = '';
     }
 
-    const defaultWebAppToDeploySetting: string | undefined = getWorkspaceSetting(constants.configurationSettings.defaultWebAppToDeploy, deployFsPath);
-    if (!defaultWebAppToDeploySetting) {
-        // tslint:disable-next-line:no-floating-promises
-        node.promptToSaveDeployDefaults(deployContext.workspace.uri.fsPath, deployContext.deployFsPath, deployContext);
-    }
+    // tslint:disable-next-line:no-floating-promises
+    node.promptToSaveDeployDefaults(deployContext, deployContext.workspace.uri.fsPath, deployContext.deployFsPath);
 
     await appservice.runPreDeployTask(deployContext, deployContext.deployFsPath, siteConfig.scmType, constants.extensionPrefix);
 
