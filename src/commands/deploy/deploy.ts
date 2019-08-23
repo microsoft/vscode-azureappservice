@@ -22,13 +22,11 @@ import * as workspaceUtil from '../../utils/workspace';
 import { cancelWebsiteValidation, validateWebSite } from '../../validateWebSite';
 import { getWorkspaceSetting, updateWorkspaceSetting } from '../../vsCodeConfig/settings';
 import { startStreamingLogs } from '../startStreamingLogs';
-import { getDefaultWebAppToDeploy } from './getDefaultWebAppToDeploy';
+import { getWebAppToDeploy } from './getWebAppToDeploy';
 import { IDeployWizardContext, WebAppSource } from './IDeployWizardContext';
 
 // tslint:disable-next-line:max-func-body-length cyclomatic-complexity
 export async function deploy(context: IActionContext, confirmDeployment: boolean, target?: vscode.Uri | SiteTreeItem | undefined): Promise<void> {
-    context.telemetry.properties.deployedWithDefaultApp = 'false';
-
     const newNodes: SiteTreeItem[] = [];
     let node: SiteTreeItem | undefined;
     let deployFsPath: string | undefined;
@@ -40,7 +38,9 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
         webAppSource = WebAppSource.nodePicker;
     } else {
         context.telemetry.properties.deploymentEntryPoint = target ? 'webAppContextMenu' : 'deployButton';
-        webAppSource = target ? WebAppSource.tree : WebAppSource.nodePicker;
+
+        // webAppSource will get overwritten by getWebAppToDeploy if node is undefined
+        webAppSource = WebAppSource.tree;
         node = target;
     }
 
@@ -72,9 +72,9 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
             // event is fired from azure-extensionui if node was created during deployment
             newNodes.push(newNode);
         });
+
         try {
-            // tslint:disable-next-line: strict-boolean-expressions
-            node = await getDefaultWebAppToDeploy(deployContext) || <SiteTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue, context);
+            node = await getWebAppToDeploy(deployContext);
         } catch (err2) {
             if (parseError(err2).isUserCancelledError) {
                 context.telemetry.properties.cancelStep = `showTreeItemPicker:${WebAppTreeItem.contextValue}`;
@@ -84,6 +84,8 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
             onTreeItemCreatedFromQuickPickDisposable.dispose();
         }
     }
+
+    context.telemetry.properties.webAppSource = deployContext.webAppSource;
 
     if (newNodes.length > 0) {
         for (const newApp of newNodes) {
