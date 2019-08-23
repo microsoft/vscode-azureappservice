@@ -15,12 +15,16 @@ import * as tasks from '../../vsCodeConfig/tasks';
 import { IDeployWizardContext } from "./IDeployWizardContext";
 
 export async function setPreDeployTaskForDotnet(context: IDeployWizardContext, siteConfig: SiteConfig): Promise<void> {
+    const preDeployTaskSetting: string = 'preDeployTask';
+    const configurePreDeployTasksSetting: string = 'configurePreDeployTasks';
+
     // don't overwrite preDeploy task if it exists
-    if (!getWorkspaceSetting<boolean>('configurePreDeployTasks', context.workspace.uri.fsPath) || getWorkspaceSetting<boolean>(constants.configurationSettings.preDeployTask, context.workspace.uri.fsPath)) {
+    if (!getWorkspaceSetting<boolean>(configurePreDeployTasksSetting, context.workspace.uri.fsPath) ||
+        getWorkspaceSetting<string>(preDeployTaskSetting, context.workspace.uri.fsPath)) {
         return;
     }
 
-    // assume that the csProj is in the root
+    // assume that the csProj is in the root at first
     let csProjFsPath: string = context.workspace.uri.fsPath;
 
     const csprojFile: string | undefined = await tryGetCsprojFile(csProjFsPath);
@@ -29,13 +33,13 @@ export async function setPreDeployTaskForDotnet(context: IDeployWizardContext, s
         csProjFsPath = path.dirname(csProjFsPath);
     }
 
-    // if we found a csproj file or we know the app is .NET, go ahead and set the tasks and workspace settings
+    // if we found a .csproj file or we know the runtime is .NET, set the tasks and workspace settings
+    // assumes the .csproj file is in the root if one was not found
     if (csprojFile || (siteConfig.linuxFxVersion && siteConfig.linuxFxVersion.toLowerCase().includes('dotnet'))) {
         // follow the publish output patterns, but leave out targetFramework
         // use the absolute path so the bits are created in the root, not the subpath
         const dotnetOutputPath: string = path.join(csProjFsPath, 'bin', 'Debug', 'publish');
 
-        const preDeployTaskSetting: string = 'preDeployTask';
         await updateWorkspaceSetting(preDeployTaskSetting, 'publish', context.workspace.uri.fsPath);
         await updateWorkspaceSetting(constants.configurationSettings.deploySubpath, dotnetOutputPath, context.workspace.uri.fsPath);
 

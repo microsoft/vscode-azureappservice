@@ -24,6 +24,7 @@ import { getWorkspaceSetting, updateWorkspaceSetting } from '../../vsCodeConfig/
 import { getDefaultWebAppToDeploy } from '../getDefaultWebAppToDeploy';
 import { startStreamingLogs } from '../startStreamingLogs';
 import { IDeployWizardContext } from './IDeployWizardContext';
+import { setPreDeployTaskForDotnet } from './setPreDeployTaskForDotnet';
 
 // tslint:disable-next-line:max-func-body-length cyclomatic-complexity
 export async function deploy(context: IActionContext, confirmDeployment: boolean, target?: vscode.Uri | SiteTreeItem | undefined): Promise<void> {
@@ -163,6 +164,7 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
         node.promptToSaveDeployDefaults(deployContext.workspace.uri.fsPath, deployContext.deployFsPath, deployContext);
     }
 
+    await setPreDeployTaskForDotnet(deployContext, siteConfig);
     await appservice.runPreDeployTask(deployContext, deployContext.deployFsPath, siteConfig.scmType, constants.extensionPrefix);
 
     cancelWebsiteValidation(node);
