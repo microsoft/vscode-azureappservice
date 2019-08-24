@@ -6,10 +6,7 @@
 import { SiteConfig } from 'azure-arm-website/lib/models';
 import * as fse from 'fs-extra';
 import * as path from 'path';
-import { Uri } from 'vscode';
-import { ext } from 'vscode-azureappservice/out/src/extensionVariables';
 import * as constants from '../../constants';
-import { findFilesByFileExtension, mapFilesToQuickPickItems } from '../../utils/workspace';
 import { getWorkspaceSetting, updateWorkspaceSetting } from '../../vsCodeConfig/settings';
 import * as tasks from '../../vsCodeConfig/tasks';
 import { IDeployWizardContext } from "./IDeployWizardContext";
