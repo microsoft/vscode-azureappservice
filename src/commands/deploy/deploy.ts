@@ -39,12 +39,12 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
         siteConfig = await node.root.client.getSiteConfig();
     }
 
-    let javaFileExtension: string | undefined;
+    let fileExtension: string | undefined;
     if (siteConfig && javaUtils.isJavaRuntime(siteConfig.linuxFxVersion)) {
-        javaFileExtension = javaUtils.getArtifactTypeByJavaRuntime(siteConfig.linuxFxVersion);
+        fileExtension = javaUtils.getArtifactTypeByJavaRuntime(siteConfig.linuxFxVersion);
     }
 
-    const deployFsPath: string = await appservice.getDeployFsPath(target, constants.extensionPrefix, javaFileExtension);
+    const deployFsPath: string = await appservice.getDeployFsPath(target, constants.extensionPrefix, fileExtension);
     const workspace: vscode.WorkspaceFolder | undefined = workspaceUtil.getContainingWorkspace(deployFsPath);
 
     if (!workspace) {
