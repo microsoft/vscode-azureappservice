@@ -5,8 +5,7 @@
 
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { IActionContext, IAzureQuickPickItem } from 'vscode-azureextensionui';
-import { extensionPrefix } from '../constants';
+import { IAzureQuickPickItem } from 'vscode-azureextensionui';
 import { ext } from '../extensionVariables';
 import { isPathEqual, isSubpath } from '../utils/pathUtils';
 
@@ -32,7 +31,7 @@ export async function selectWorkspaceFile(placeHolder: string, getSubPath?: (f: 
         getSubPath);
 }
 
-export async function selectWorkspaceItem(placeHolder: string, options: vscode.OpenDialogOptions, getSubPath?: (f: vscode.WorkspaceFolder) => string | undefined, fileExtension?: string): Promise<string> {
+async function selectWorkspaceItem(placeHolder: string, options: vscode.OpenDialogOptions, getSubPath?: (f: vscode.WorkspaceFolder) => string | undefined, fileExtension?: string): Promise<string> {
     let folder: IAzureQuickPickItem<string | undefined> | undefined;
     let quickPicks: IAzureQuickPickItem<string | undefined>[] = [];
     if (vscode.workspace.workspaceFolders) {
@@ -53,28 +52,6 @@ export async function selectWorkspaceItem(placeHolder: string, options: vscode.O
     }
 
     return folder && folder.data ? folder.data : (await ext.ui.showOpenDialog(options))[0].fsPath;
-}
-
-export async function showWorkspaceFolders(placeHolderString: string, context: IActionContext, subPathSetting: string | undefined, fileExtension?: string): Promise<string> {
-    context.telemetry.properties.cancelStep = 'showWorkspaceFoldersAndExtensions';
-    return await selectWorkspaceItem(
-        placeHolderString,
-        {
-            // on Windows, if both files and folder are set to true, then it defaults to folders
-            canSelectFiles: true,
-            canSelectFolders: !fileExtension,
-            canSelectMany: false,
-            defaultUri: vscode.workspace.workspaceFolders ? vscode.workspace.workspaceFolders[0].uri : undefined,
-            filters: { Artifacts: fileExtension ? [fileExtension] : ['jar', 'war', 'zip'] }
-        },
-        (f: vscode.WorkspaceFolder): string | undefined => {
-            if (subPathSetting) {
-                return vscode.workspace.getConfiguration(extensionPrefix, f.uri).get(subPathSetting);
-            }
-            return;
-        },
-        fileExtension
-    );
 }
 
 export function getContainingWorkspace(fsPath: string): vscode.WorkspaceFolder | undefined {

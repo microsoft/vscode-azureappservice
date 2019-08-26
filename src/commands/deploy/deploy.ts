@@ -31,30 +31,20 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
     let node: SiteTreeItem | undefined;
     const newNodes: SiteTreeItem[] = [];
     context.telemetry.properties.deployedWithConfigs = 'false';
-    let deployFsPath: string | undefined;
-
-    if (target instanceof vscode.Uri) {
-        deployFsPath = target.fsPath;
-        context.telemetry.properties.deploymentEntryPoint = 'fileExplorerContextMenu';
-    } else {
-        context.telemetry.properties.deploymentEntryPoint = target ? 'webAppContextMenu' : 'deployButton';
-        node = target;
-    }
-
     let siteConfig: WebSiteModels.SiteConfigResource | undefined;
 
-    if (!deployFsPath) {
-        // we can only get the siteConfig if the entry point was a treeItem
-        siteConfig = node ? await node.root.client.getSiteConfig() : undefined;
-
-        if (siteConfig && javaUtils.isJavaRuntime(siteConfig.linuxFxVersion)) {
-            const fileExtension: string = javaUtils.getArtifactTypeByJavaRuntime(siteConfig.linuxFxVersion);
-            deployFsPath = await workspaceUtil.showWorkspaceFolders(`Select the ${fileExtension} file to deploy...`, context, constants.configurationSettings.deploySubpath, fileExtension);
-        } else {
-            deployFsPath = await workspaceUtil.showWorkspaceFolders("Select the folder to deploy", context, constants.configurationSettings.deploySubpath);
-        }
+    if (target instanceof SiteTreeItem) {
+        node = target;
+        // we can only get the siteConfig earlier if the entry point was a treeItem
+        siteConfig = await node.root.client.getSiteConfig();
     }
 
+    let fileExtension: string | undefined;
+    if (siteConfig && javaUtils.isJavaRuntime(siteConfig.linuxFxVersion)) {
+        fileExtension = javaUtils.getArtifactTypeByJavaRuntime(siteConfig.linuxFxVersion);
+    }
+
+    const deployFsPath: string = await appservice.getDeployFsPath(target, constants.extensionPrefix, fileExtension);
     const workspace: vscode.WorkspaceFolder | undefined = workspaceUtil.getContainingWorkspace(deployFsPath);
 
     if (!workspace) {

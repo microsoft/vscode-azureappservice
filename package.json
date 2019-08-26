@@ -801,6 +801,11 @@
                     "type": "boolean",
                     "default": true,
                     "description": "Shows a warning that performance may drop when creating an app in an App Service Plan that has more than 3 web apps associated to it"
+                },
+                "appService.showDeploySubpathWarning": {
+                    "type": "boolean",
+                    "description": "Show a warning when the \"deploySubpath\" setting does not match the selected folder for deploying.",
+                    "default": true
                 }
             }
         },
@@ -851,8 +856,8 @@
         "fs-extra": "^4.0.2",
         "portfinder": "^1.0.13",
         "request-promise": "^4.2.2",
-        "vscode-azureappservice": "^0.43.0",
-        "vscode-azureextensionui": "^0.26.3",
+        "vscode-azureappservice": "^0.43.4",
+        "vscode-azureextensionui": "^0.27.0",
         "vscode-azurekudu": "^0.1.8"
     },
     "extensionDependencies": [
