@@ -15,19 +15,18 @@ export async function setPreDeployTaskForDotnet(context: IDeployWizardContext, s
     const preDeployTaskSetting: string = 'preDeployTask';
     const configurePreDeployTasksSetting: string = 'configurePreDeployTasks';
 
-    // don't overwrite preDeploy task if it exists
-    if (!getWorkspaceSetting<boolean>(configurePreDeployTasksSetting, context.workspace.uri.fsPath) ||
-        getWorkspaceSetting<string>(preDeployTaskSetting, context.workspace.uri.fsPath)) {
+    // don't overwrite preDeploy task if it exists and respect configurePreDeployTasks setting
+    if (!getWorkspaceSetting<boolean>(configurePreDeployTasksSetting, context.workspace.uri.fsPath) || getWorkspaceSetting<string>(preDeployTaskSetting, context.workspace.uri.fsPath)) {
         return;
     }
 
     // assume that the csProj is in the root at first
-    let csProjFsPath: string = context.workspace.uri.fsPath;
+    let csprojFsPath: string = context.workspace.uri.fsPath;
 
-    const csprojFile: string | undefined = await tryGetCsprojFile(csProjFsPath);
+    const csprojFile: string | undefined = await tryGetCsprojFile(csprojFsPath);
 
     if (csprojFile) {
-        csProjFsPath = path.dirname(csprojFile);
+        csprojFsPath = path.dirname(csprojFile);
     }
 
     // if we found a .csproj file or we know the runtime is .NET, set the tasks and workspace settings
@@ -41,13 +40,13 @@ export async function setPreDeployTaskForDotnet(context: IDeployWizardContext, s
         await updateWorkspaceSetting(preDeployTaskSetting, 'publish', context.workspace.uri.fsPath);
         await updateWorkspaceSetting(constants.configurationSettings.deploySubpath, publishPath, context.workspace.uri.fsPath);
 
-        // update the deployContext with the .NET output path since deployFsPath is prior to this
+        // update the deployContext with the .NET output path since getDeployFsPath is called prior to this
         context.deployFsPath = dotnetOutputPath;
 
-        const publishCommand: string = `dotnet publish ${csProjFsPath} -o ${dotnetOutputPath}`;
+        const publishCommand: string = `dotnet publish ${csprojFsPath} -o ${dotnetOutputPath}`;
         const publishTask: tasks.ITask[] = [{
             label: 'clean',
-            command: `dotnet clean ${csProjFsPath}`,
+            command: `dotnet clean ${csprojFsPath}`,
             type: 'shell'
         },
         {
@@ -63,7 +62,7 @@ export async function setPreDeployTaskForDotnet(context: IDeployWizardContext, s
 
     async function tryGetCsprojFile(projectPath: string): Promise<string | undefined> {
         let projectFiles: string[] = await checkFolderForCsproj(projectPath);
-        // it's a common pattern to have the .csproj file in a subfolder
+        // it's a common pattern to have the .csproj file in a subfolder so check one level deep
         if (projectFiles.length === 0) {
             for (const folder of fse.readdirSync(projectPath)) {
                 const filePath: string = path.join(projectPath, folder);
