@@ -44,14 +44,14 @@ export function cancelWebsiteValidation(siteTreeItem: SiteTreeItem): void {
     }
 }
 
-export async function validateWebSite(deploymentCorrelationId: string, siteTreeItem: SiteTreeItem): Promise<void> {
+export async function validateWebSite(deploymentCorrelationId: string, siteTreeItem: SiteTreeItem): Promise<number | void> {
     cancelWebsiteValidation(siteTreeItem);
     const id = siteTreeItem.fullId;
     const cancellation: ICancellation = { canceled: false };
     cancellations.set(id, cancellation);
 
     return callWithTelemetryAndErrorHandling('appService.validateWebSite', async (context: IActionContext) => {
-        context.errorHandling.rethrow = false;
+        context.errorHandling.rethrow = true;
         context.errorHandling.suppressDisplay = true;
 
         const properties = <IValidateProperties>context.telemetry.properties;
@@ -100,5 +100,7 @@ export async function validateWebSite(deploymentCorrelationId: string, siteTreeI
         if (cancellations.get(id) === cancellation) {
             cancellations.delete(id);
         }
+
+        return currentStatusCode;
     });
 }
