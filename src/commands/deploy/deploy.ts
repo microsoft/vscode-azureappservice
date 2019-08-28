@@ -29,34 +29,24 @@ import { IDeployWizardContext, WebAppSource } from './IDeployWizardContext';
 export async function deploy(context: IActionContext, confirmDeployment: boolean, target?: vscode.Uri | SiteTreeItem | undefined): Promise<void> {
     const newNodes: SiteTreeItem[] = [];
     let node: SiteTreeItem | undefined;
-    let deployFsPath: string | undefined;
     let webAppSource: WebAppSource | undefined;
 
-    if (target instanceof vscode.Uri) {
-        context.telemetry.properties.deploymentEntryPoint = 'fileExplorerContextMenu';
-        deployFsPath = target.fsPath;
-    } else {
-        context.telemetry.properties.deploymentEntryPoint = target ? 'webAppContextMenu' : 'deployButton';
-
-        // webAppSource will get overwritten by getWebAppToDeploy if node is undefined
-        webAppSource = WebAppSource.tree;
-        node = target;
-    }
-
+    context.telemetry.properties.deployedWithConfigs = 'false';
     let siteConfig: WebSiteModels.SiteConfigResource | undefined;
 
-    if (!deployFsPath) {
-        // we can only get the siteConfig if the entry point was a treeItem
-        siteConfig = node ? await node.root.client.getSiteConfig() : undefined;
-
-        if (siteConfig && javaUtils.isJavaRuntime(siteConfig.linuxFxVersion)) {
-            const fileExtension: string = javaUtils.getArtifactTypeByJavaRuntime(siteConfig.linuxFxVersion);
-            deployFsPath = await workspaceUtil.showWorkspaceFolders(`Select the ${fileExtension} file to deploy...`, context, constants.configurationSettings.deploySubpath, fileExtension);
-        } else {
-            deployFsPath = await workspaceUtil.showWorkspaceFolders("Select the folder to deploy", context, constants.configurationSettings.deploySubpath);
-        }
+    if (target instanceof SiteTreeItem) {
+        node = target;
+        webAppSource = WebAppSource.tree;
+        // we can only get the siteConfig earlier if the entry point was a treeItem
+        siteConfig = await node.root.client.getSiteConfig();
     }
 
+    let fileExtension: string | undefined;
+    if (siteConfig && javaUtils.isJavaRuntime(siteConfig.linuxFxVersion)) {
+        fileExtension = javaUtils.getArtifactTypeByJavaRuntime(siteConfig.linuxFxVersion);
+    }
+
+    const deployFsPath: string = await appservice.getDeployFsPath(target, constants.extensionPrefix, fileExtension);
     const workspace: vscode.WorkspaceFolder | undefined = workspaceUtil.getContainingWorkspace(deployFsPath);
     if (!workspace) {
         throw new Error('Failed to deploy because the path is not part of an open workspace. Open in a workspace and try again.');

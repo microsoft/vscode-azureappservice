@@ -158,13 +158,6 @@ export async function activateInternal(
             await deploy(actionContext, true, target);
         });
         registerCommand('appService.ConfigureDeploymentSource', editScmType);
-        registerCommand('appService.OpenVSTSCD', async (actionContext: IActionContext, node?: WebAppTreeItem) => {
-            if (!node) {
-                node = <WebAppTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue, actionContext);
-            }
-
-            await node.openCdInPortal();
-        });
         registerCommand('appService.DeploymentScript', async (actionContext: IActionContext, node?: WebAppTreeItem) => {
             if (!node) {
                 node = <WebAppTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue, actionContext);

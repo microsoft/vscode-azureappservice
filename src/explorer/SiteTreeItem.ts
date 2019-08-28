@@ -220,6 +220,7 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         switch (runtime) {
             case LinuxRuntimes.node:
                 ignoredFolders = ['node_modules{,/**}'];
+                break;
             case LinuxRuntimes.python:
                 // list of Python ignorables are pulled from here https://github.com/github/gitignore/blob/master/Python.gitignore
                 // Byte-compiled / optimized / DLL files
@@ -229,6 +230,7 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
                     'wheels{,/**}', 'share/python-wheels{,/**}', '*.egg-info{,/**}', '.installed.cfg', '*.egg', 'MANIFEST',
                     // Environments
                     '.env{,/**}', '.venv{,/**}', 'env{,/**}', 'venv{,/**}', 'ENV{,/**}', 'env.bak{,/**}', 'venv.bak{,/**}'];
+                break;
             default:
                 ignoredFolders = [];
         }
