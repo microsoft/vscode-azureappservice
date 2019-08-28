@@ -7,6 +7,7 @@ import { SiteConfig } from 'azure-arm-website/lib/models';
 import * as fse from 'fs-extra';
 import * as path from 'path';
 import * as constants from '../../constants';
+import { ext } from '../../extensionVariables';
 import { getWorkspaceSetting, updateWorkspaceSetting } from '../../vsCodeConfig/settings';
 import * as tasks from '../../vsCodeConfig/tasks';
 import { IDeployWizardContext } from "./IDeployWizardContext";
@@ -14,39 +15,42 @@ import { IDeployWizardContext } from "./IDeployWizardContext";
 export async function setPreDeployTaskForDotnet(context: IDeployWizardContext, siteConfig: SiteConfig): Promise<void> {
     const preDeployTaskSetting: string = 'preDeployTask';
     const configurePreDeployTasksSetting: string = 'configurePreDeployTasks';
+    const workspaceFspath: string = context.workspace.uri.fsPath;
 
-    // don't overwrite preDeploy task if it exists and respect configurePreDeployTasks setting
-    if (!getWorkspaceSetting<boolean>(configurePreDeployTasksSetting, context.workspace.uri.fsPath) || getWorkspaceSetting<string>(preDeployTaskSetting, context.workspace.uri.fsPath)) {
+    // don't overwrite preDeploy or deploySubpath if it exists and respect configurePreDeployTasks setting
+    if (!getWorkspaceSetting<boolean>(configurePreDeployTasksSetting, context.workspace.uri.fsPath)
+        || getWorkspaceSetting<string>(preDeployTaskSetting, context.workspace.uri.fsPath)
+        || getWorkspaceSetting<string>(constants.configurationSettings.deploySubpath, workspaceFspath)) {
+        return;
+    }
+
+    // if the user is deploying a different folder than the root, use this folder without setting up defaults
+    if (context.deployFsPath !== context.workspace.uri.fsPath) {
         return;
     }
 
     // assume that the csProj is in the root at first
-    let csprojFsPath: string = context.workspace.uri.fsPath;
+    let csprojFile: string | undefined = await tryGetCsprojFile(context.workspace.uri.fsPath);
 
-    const csprojFile: string | undefined = await tryGetCsprojFile(csprojFsPath);
-
+    // if we found a .csproj file set the tasks and workspace settings
     if (csprojFile) {
-        csprojFsPath = path.dirname(csprojFile);
-    }
-
-    // if we found a .csproj file or we know the runtime is .NET, set the tasks and workspace settings
-    // assumes the .csproj file is in the root if one was not found
-    if (csprojFile || (siteConfig.linuxFxVersion && siteConfig.linuxFxVersion.toLowerCase().includes('dotnet'))) {
+        await ext.ui.showWarningMessage('Configure this project for deployment with VS Code?', { modal: true }, { title: 'Yes' }, { title: 'Never show again' });
         // follow the publish output patterns, but leave out targetFramework
         // use the absolute path so the bits are created in the root, not the subpath
-        const publishPath: string = path.join('bin', 'Debug', 'publish');
-        const dotnetOutputPath: string = path.join(context.workspace.uri.fsPath, publishPath);
+        const publishPath: string = path.posix.join('bin', 'Debug', 'publish');
 
         await updateWorkspaceSetting(preDeployTaskSetting, 'publish', context.workspace.uri.fsPath);
-        await updateWorkspaceSetting(constants.configurationSettings.deploySubpath, publishPath, context.workspace.uri.fsPath);
+        await updateWorkspaceSetting(constants.configurationSettings.deploySubpath, publishPath, workspaceFspath);
 
         // update the deployContext with the .NET output path since getDeployFsPath is called prior to this
-        context.deployFsPath = dotnetOutputPath;
+        context.deployFsPath = path.join(context.workspace.uri.fsPath, publishPath);
 
-        const publishCommand: string = `dotnet publish ${csprojFsPath} -o ${dotnetOutputPath}`;
+        // set it as the relative path
+        csprojFile = `${path.posix.normalize(path.relative(context.workspace.uri.fsPath, csprojFile))}`;
+        const publishCommand: string = `dotnet publish ${csprojFile} -o ${publishPath}`;
         const publishTask: tasks.ITask[] = [{
             label: 'clean',
-            command: `dotnet clean ${csprojFsPath}`,
+            command: `dotnet clean ${csprojFile}`,
             type: 'shell'
         },
         {
