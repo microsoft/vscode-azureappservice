@@ -9,8 +9,8 @@ import * as requestP from 'request-promise';
 import { URL } from 'url';
 import { isNumber } from 'util';
 import { callWithTelemetryAndErrorHandling, IActionContext } from 'vscode-azureextensionui';
-import { SiteTreeItem } from './explorer/SiteTreeItem';
-import { delay } from './utils/delay';
+import { SiteTreeItem } from '../../explorer/SiteTreeItem';
+import { delay } from '../../utils/delay';
 
 const requestPromise = <(options: RequestOptions | string | URL) => Promise<IncomingMessage>><Function>requestP;
 
@@ -104,3 +104,21 @@ export async function validateWebSite(deploymentCorrelationId: string, siteTreeI
         return currentStatusCode;
     });
 }
+
+// async (statusCode: number | undefined) => {
+//     if (statusCode !== undefined && statusCode >= 300) {
+//         if (!node || !(await node.root.client.isLinux) {
+//             // this currently only works for Linux apps, so don't delay and just exit if it's a Windows app
+//             return;
+//         }
+
+//         const tokenSource: vscode.CancellationTokenSource = new vscode.CancellationTokenSource();
+//         detectorCancelTokens.set(node.id, tokenSource);
+
+//         try {
+//             await checkLinuxWebAppDownDetector(node, tokenSource);
+//         } finally {
+//             tokenSource.dispose();
+//         }
+//     }
+// }

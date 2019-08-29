@@ -19,8 +19,10 @@ import { javaUtils } from '../../utils/javaUtils';
 import { nonNullValue } from '../../utils/nonNull';
 import { getRandomHexString } from "../../utils/randomUtils";
 import * as workspaceUtil from '../../utils/workspace';
-import { cancelWebsiteValidation, validateWebSite } from '../../validateWebSite';
 import { getWorkspaceSetting, updateWorkspaceSetting } from '../../vsCodeConfig/settings';
+import { checkLinuxWebAppDownDetector, detectorCancelTokens } from '../postDeploy/checkLinuxWebAppDownDetector';
+import { runPostDeployTask } from '../postDeploy/runPostDeployTask';
+import { cancelWebsiteValidation, validateWebSite } from '../postDeploy/validateWebSite';
 import { startStreamingLogs } from '../startStreamingLogs';
 import { getWebAppToDeploy } from './getWebAppToDeploy';
 import { IDeployWizardContext, WebAppSource } from './IDeployWizardContext';
@@ -72,6 +74,12 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
         } finally {
             onTreeItemCreatedFromQuickPickDisposable.dispose();
         }
+    }
+
+    // cancel the previous detector check from the same web app
+    const previousTokenSource: vscode.CancellationTokenSource | undefined = detectorCancelTokens.get(node.id);
+    if (previousTokenSource) {
+        previousTokenSource.cancel();
     }
 
     context.telemetry.properties.webAppSource = deployContext.webAppSource;
@@ -162,6 +170,10 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
         await appservice.deploy(nonNullValue(node).root.client, <string>deployContext.deployFsPath, deployContext, constants.showOutputChannelCommandId);
     });
 
+    // intentionally not waiting
+    // tslint:disable-next-line: no-floating-promises
+    runPostDeployTask(context, node, correlationId);
+
     const deployComplete: string = `Deployment to "${node.root.client.fullName}" completed.`;
     ext.outputChannel.appendLine(deployComplete);
     const browseWebsite: vscode.MessageItem = { title: 'Browse Website' };
@@ -177,13 +189,4 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
             await startStreamingLogs(deployContext, node);
         }
     });
-
-    // Don't wait
-    validateWebSite(correlationId, node).then(
-        () => {
-            // ignore
-        },
-        () => {
-            // ignore
-        });
 }

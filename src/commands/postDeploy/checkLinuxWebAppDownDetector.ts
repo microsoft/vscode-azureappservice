@@ -3,20 +3,19 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { RequestOptions } from "http";
-import { IncomingMessage, ServiceClientCredentials, WebResource } from "ms-rest";
-import * as requestP from 'request-promise';
-import { URL } from "url";
+import { WebResource } from "ms-rest";
 import { CancellationTokenSource } from "vscode";
-import { callWithTelemetryAndErrorHandling, IActionContext, UserCancelledError } from "vscode-azureextensionui";
+import { callWithTelemetryAndErrorHandling, IActionContext, openInPortal, UserCancelledError } from "vscode-azureextensionui";
+import { KuduClient } from "vscode-azurekudu";
 import { DeployResult } from "vscode-azurekudu/lib/models";
-import { SiteTreeItem } from "./explorer/SiteTreeItem";
-import { ext } from './extensionVariables';
-import { delay } from "./utils/delay";
-import { openUrl } from './utils/openUrl';
-import { findTableByColumnName, findTableByRowValue, getValuesByColumnName } from "./utils/tableUtil";
+import { SiteTreeItem } from "../../explorer/SiteTreeItem";
+import { ext } from '../../extensionVariables';
+import { delay } from "../../utils/delay";
+import { requestUtils } from '../../utils/requestUtils';
+import { getGlobalSetting } from '../../vsCodeConfig/settings';
+import { findTableByColumnName, findTableByRowValue, getValuesByColumnName } from "./parseDetectorResponse";
 
-const detectorId: string = 'LinuxContainerStartFailure';
+const detectorId: string = 'LinuxAppDown';
 export enum ColumnName {
     status = "Status",
     message = "Message",
@@ -31,9 +30,13 @@ export enum ColumnName {
 }
 
 export const detectorCancelTokens: Map<string, CancellationTokenSource> = new Map();
-export async function checkLinuxWebAppDownDetector(node: SiteTreeItem, tokenSource: CancellationTokenSource): Promise<void> {
+export async function checkLinuxWebAppDownDetector(correlationId: string, node: SiteTreeItem, tokenSource: CancellationTokenSource): Promise<void> {
     return await callWithTelemetryAndErrorHandling('appService.linuxWebAppDownDetector', async (context: IActionContext): Promise<void> => {
-        const deployment: DeployResult = await node.root.client.kudu.deployment.getResult('latest');
+        context.errorHandling.suppressDisplay = true;
+        context.telemetry.properties.correlationId = correlationId;
+
+        const kuduClient: KuduClient = await node.root.client.getKuduClient();
+        const deployment: DeployResult = await kuduClient.deployment.getResult('latest');
         if (!deployment.startTime) {
             // if there's no deployment detected, nothing can be done
             context.telemetry.properties.cancelStep = 'noDeployResult';
@@ -41,76 +44,70 @@ export async function checkLinuxWebAppDownDetector(node: SiteTreeItem, tokenSour
         }
 
         const deployResultTime: Date = new Date(deployment.startTime);
+        const enableDetectorOutputSetting: string = 'enableDetectorOutput';
+        const showOutput: boolean | undefined = getGlobalSetting<boolean>(enableDetectorOutputSetting);;
 
-        const detectorOutput: string = `Diagnosing web app "${node.root.client.siteName}" for critical errors...`;
-        ext.outputChannel.appendLine(detectorOutput);
+        if (showOutput) {
+            const detectorOutput: string = `Diagnosing web app "${node.root.client.siteName}" for critical errors...`;
+            ext.outputChannel.appendLine(detectorOutput);
+        }
 
-        const detectorUri: string = `${node.root.environment.resourceManagerEndpointUrl}${node.id}/detectors/${detectorId}`;
-        const requestOptions: WebResource & Partial<{ qs: queryString }> = new WebResource();
+        const detectorUri: string = `${node.id}/detectors/${detectorId}`;
+        const requestOptions: requestUtils.Request = await requestUtils.getDefaultAzureRequest(detectorUri, node.root);
 
-        requestOptions.method = 'GET';
-        requestOptions.url = detectorUri;
+        // these parameters were specified to retrieve the timestamp from the detector
+        // The string 'Latest time seen by detector. To be used in VSCode integration.' is added
+        // when val: 'vscode' is added
         requestOptions.qs = {
             'api-version': "2015-08-01",
-            fId: "1",
-            btnId: "2",
-            inpId: "1",
             val: "vscode",
             startTime: deployResultTime.toISOString(),
             endTime: new Date().toISOString()
         };
-        await signRequest(requestOptions, node.root.credentials);
 
         let detectorErrorMessage: string | undefined;
-        // wait 10 minutes for a response from the detector
-        const detectorTimeoutMs: number = Date.now() + 20 * 60 * 1000;
+        // wait 15 minutes for a response from the detector
+        const detectorTimeoutMs: number = Date.now() + 15 * 60 * 1000;
         do {
             if (tokenSource.token.isCancellationRequested) {
                 // the user cancelled the check by deploying again
+                context.telemetry.properties.cancelStep = 'cancellationToken';
                 throw new UserCancelledError();
             }
 
             if (Date.now() > detectorTimeoutMs) {
-                const noIssuesFound: string = `No critical issues found for web app "${node.root.client.siteName}".`;
-                ext.outputChannel.appendLine(noIssuesFound);
+                if (showOutput) {
+                    const noIssuesFound: string = `Diagnosing for "${node.root.client.siteName}" has timed out.`;
+                    ext.outputChannel.appendLine(noIssuesFound);
+                    context.telemetry.properties.failureCount = '0';
+                }
                 return undefined;
             }
             // update the new end time to be now
             requestOptions.qs.endTime = new Date().toISOString();
-            detectorErrorMessage = await getLinuxDetectorError(requestOptions, deployResultTime, node.root.client.fullName);
+            detectorErrorMessage = await getLinuxDetectorError(context, requestOptions, deployResultTime, node.root.client.fullName);
             // poll every minute
             await delay(1000 * 60);
         } while (!detectorErrorMessage);
 
-        await ext.ui.showWarningMessage(detectorErrorMessage, { title: 'Open in Portal' });
-        const portalDeeplink = `${node.root.environment.portalUrl}/?websitesextension_ext=asd.featurePath%3Ddetectors%2F${detectorId}#@microsoft.onmicrosoft.com/resource/${node.root.client.id}/troubleshoot`;
-        await openUrl(portalDeeplink);
-        context.telemetry.properties.didClick = 'true';
+        if (showOutput) {
+            await ext.ui.showWarningMessage(detectorErrorMessage, { title: 'Open in Portal' });
+            await openInPortal(node.root, `${node.root.client.id}/troubleshoot`, { queryPrefix: `websitesextension_ext=asd.featurePath%3Ddetectors%2F${detectorId}` });
+            context.telemetry.properties.didClick = 'true';
+        }
     });
 }
 
-async function signRequest(req: WebResource, cred: ServiceClientCredentials): Promise<void> {
-    await new Promise((resolve: () => void, reject: (err: Error) => void): void => {
-        cred.signRequest(req, (err: Error | undefined) => {
-            if (err) {
-                reject(err);
-            } else {
-                resolve();
-            }
-        });
-    });
-}
-
-async function getLinuxDetectorError(requestOptions: WebResource, deployResultTime: Date, siteName: string): Promise<string | undefined> {
-    const requestPromise = <(options: RequestOptions | string | URL) => Promise<IncomingMessage>><Function>requestP;
-    const detectorResponse: string = <string><unknown>(await requestPromise(requestOptions));
+async function getLinuxDetectorError(context: IActionContext, requestOptions: WebResource, deployResultTime: Date, siteName: string): Promise<string | undefined> {
+    const detectorResponse: string = await requestUtils.sendRequest<string>(requestOptions);
     const responseJson: detectorResponseJSON = <detectorResponseJSON>JSON.parse(detectorResponse);
 
     const datasets: detectorDataset[] = responseJson.properties.dataset;
     const vsCodeIntegration: string = 'Latest time seen by detector. To be used in VSCode integration.';
     const timestampTable: detectorTable | undefined = findTableByRowValue(datasets, vsCodeIntegration);
+
+    // if we can't find the timestamp, exit and try again
     if (!timestampTable) {
-        // if we can't find the timestamp, exit and try again
         return undefined;
     }
 
@@ -119,12 +116,17 @@ async function getLinuxDetectorError(requestOptions: WebResource, deployResultTi
 
         const criticalErrorTable: detectorTable | undefined = findTableByRowValue(datasets, 'Critical');
         const failureCountTable: detectorTable | undefined = findTableByColumnName(datasets, ColumnName.failureCount);
+
+        // if the criticalError table or failureCounts aren't defined, we can't display anything to the user
         if (!criticalErrorTable || !failureCountTable) {
             return undefined;
         }
 
         const errorMessages: string[] = getValuesByColumnName(criticalErrorTable, ColumnName.value);
         const failureCount: string = getValuesByColumnName(failureCountTable, ColumnName.failureCount)[0];
+
+        context.telemetry.properties.errorMessages = JSON.stringify(errorMessages);
+        context.telemetry.properties.failureCount = failureCount;
 
         return `Critical insights found for "${siteName}": ${failureCount} as of ${new Date(timestamp).toLocaleString()}. Critical insight preview: "${errorMessages[0]}". Click here to access "App Service Diagnostics" for recommendations.`;
     }
@@ -136,22 +138,12 @@ export function validateTimestamp(detectorTime: Date, deployResultTime: Date): b
     const timeBetweenDeployAndDetector: number = Math.abs(detectorTime.getSeconds() - deployResultTime.getSeconds());
 
     // there's usually around a 5-20 second difference between the deploy result and time reported by the detector
-    if (timeBetweenDeployAndDetector <= 60) {
+    if (timeBetweenDeployAndDetector <= 20) {
         return true;
     }
 
     return false;
 }
-
-type queryString = {
-    'api-version': string,
-    fId: string,
-    btnId: string,
-    inpId: string,
-    val: string,
-    startTime: string,
-    endTime: string
-};
 
 export type detectorResponseJSON = {
     properties: {

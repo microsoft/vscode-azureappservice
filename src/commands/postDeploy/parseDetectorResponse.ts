@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ColumnName, detectorDataset, detectorTable } from "../checkLinuxWebAppDownDetector";
+import { ColumnName, detectorDataset, detectorTable } from "./checkLinuxWebAppDownDetector";
 
 // the dataset contains several tables all with the same tableName and columnNames so to find the proper table, look for a specific value
 export function findTableByRowValue(datasets: detectorDataset[], searchValue: string): detectorTable | undefined {
