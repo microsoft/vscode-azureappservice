@@ -154,7 +154,7 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
         node.promptToSaveDeployDefaults(deployContext.workspace.uri.fsPath, deployContext.deployFsPath, deployContext);
     }
 
-    await setPreDeployTaskForDotnet(deployContext, siteConfig);
+    await setPreDeployTaskForDotnet(deployContext);
     await appservice.runPreDeployTask(deployContext, deployContext.deployFsPath, siteConfig.scmType, constants.extensionPrefix);
 
     cancelWebsiteValidation(node);
