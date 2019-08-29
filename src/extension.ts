@@ -26,7 +26,6 @@ import { redeployDeployment } from './commands/deployments/redeployDeployment';
 import { viewCommitInGitHub } from './commands/deployments/viewCommitInGitHub';
 import { viewDeploymentLogs } from './commands/deployments/viewDeploymentLogs';
 import { enableFileLogging } from './commands/enableFileLogging';
-import { checkLinuxWebAppDownDetector, detectorCancelTokens } from './commands/postDeploy/checkLinuxWebAppDownDetector';
 import { startRemoteDebug } from './commands/remoteDebug/startRemoteDebug';
 import { showFile } from './commands/showFile';
 import { startSsh } from './commands/startSsh';
@@ -118,11 +117,6 @@ export async function activateInternal(
             const client: SiteClient = node.root.client;
             const startingApp: string = `Starting "${client.fullName}"...`;
             const startedApp: string = `"${client.fullName}" has been started.`;
-
-            const tokenSource: vscode.CancellationTokenSource = new vscode.CancellationTokenSource();
-            detectorCancelTokens.set(node.id, tokenSource);
-
-            await checkLinuxWebAppDownDetector('asdfasdf', node, tokenSource);
 
             await node.runWithTemporaryDescription("Starting...", async () => {
                 ext.outputChannel.appendLine(startingApp);

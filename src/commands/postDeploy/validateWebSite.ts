@@ -4,15 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { IncomingMessage } from 'http';
-import { RequestOptions } from 'https';
-import * as requestP from 'request-promise';
-import { URL } from 'url';
 import { isNumber } from 'util';
-import { callWithTelemetryAndErrorHandling, IActionContext } from 'vscode-azureextensionui';
+import { CancellationTokenSource } from 'vscode';
+import { callWithTelemetryAndErrorHandling, IActionContext, UserCancelledError } from 'vscode-azureextensionui';
 import { SiteTreeItem } from '../../explorer/SiteTreeItem';
 import { delay } from '../../utils/delay';
-
-const requestPromise = <(options: RequestOptions | string | URL) => Promise<IncomingMessage>><Function>requestP;
+import { requestUtils } from '../../utils/requestUtils';
 
 type WebError = {
     response?: {
@@ -31,25 +28,7 @@ const initialPollingIntervalMs = 5000;
 const pollingIncrementMs = 0; // Increase in interval each time
 const maximumValidationMs = 60 * 1000;
 
-interface ICancellation {
-    canceled: boolean;
-}
-const cancellations = new Map<string, ICancellation>();
-
-export function cancelWebsiteValidation(siteTreeItem: SiteTreeItem): void {
-    const cancellation = cancellations.get(siteTreeItem.fullId);
-    if (cancellation) {
-        cancellations.delete(siteTreeItem.fullId);
-        cancellation.canceled = true;
-    }
-}
-
-export async function validateWebSite(deploymentCorrelationId: string, siteTreeItem: SiteTreeItem): Promise<number | void> {
-    cancelWebsiteValidation(siteTreeItem);
-    const id = siteTreeItem.fullId;
-    const cancellation: ICancellation = { canceled: false };
-    cancellations.set(id, cancellation);
-
+export async function validateWebSite(deploymentCorrelationId: string, siteTreeItem: SiteTreeItem, tokenSource: CancellationTokenSource): Promise<number | void> {
     return callWithTelemetryAndErrorHandling('appService.validateWebSite', async (context: IActionContext) => {
         context.errorHandling.rethrow = true;
         context.errorHandling.suppressDisplay = true;
@@ -60,28 +39,26 @@ export async function validateWebSite(deploymentCorrelationId: string, siteTreeI
         let pollingIntervalMs = initialPollingIntervalMs;
         const start = Date.now();
         const uri = siteTreeItem.root.client.defaultHostUrl;
-        const options: {} = {
-            method: 'GET',
-            uri: uri,
-            resolveWithFullResponse: true
-        };
         let currentStatusCode: number | undefined = 0;
         const statusCodes: { code: number | undefined, elapsed: number }[] = [];
 
         // tslint:disable-next-line:no-constant-condition
         while (true) {
+            if (tokenSource.token.isCancellationRequested) {
+                // the user cancelled the check by deploying again
+                context.telemetry.properties.canceled = 'true';
+                throw new UserCancelledError();
+            }
+
             try {
-                const response = <IncomingMessage>(await requestPromise(options));
+                const request: requestUtils.Request = await requestUtils.getDefaultRequest(uri);
+                request.resolveWithFullResponse = true;
+                const response = await requestUtils.sendRequest<IncomingMessage>(request);
                 currentStatusCode = response.statusCode;
             } catch (error) {
                 // tslint:disable-next-line:strict-boolean-expressions
                 const response = (<WebError>error).response || {};
                 currentStatusCode = isNumber(response.statusCode) ? response.statusCode : 0;
-            }
-
-            if (cancellation.canceled) {
-                properties.canceled = 'true';
-                break;
             }
 
             const elapsedSeconds = Math.round((Date.now() - start) / 1000);
@@ -96,29 +73,6 @@ export async function validateWebSite(deploymentCorrelationId: string, siteTreeI
         }
 
         properties.statusCodes = JSON.stringify(statusCodes);
-
-        if (cancellations.get(id) === cancellation) {
-            cancellations.delete(id);
-        }
-
         return currentStatusCode;
     });
 }
-
-// async (statusCode: number | undefined) => {
-//     if (statusCode !== undefined && statusCode >= 300) {
-//         if (!node || !(await node.root.client.isLinux) {
-//             // this currently only works for Linux apps, so don't delay and just exit if it's a Windows app
-//             return;
-//         }
-
-//         const tokenSource: vscode.CancellationTokenSource = new vscode.CancellationTokenSource();
-//         detectorCancelTokens.set(node.id, tokenSource);
-
-//         try {
-//             await checkLinuxWebAppDownDetector(node, tokenSource);
-//         } finally {
-//             tokenSource.dispose();
-//         }
-//     }
-// }

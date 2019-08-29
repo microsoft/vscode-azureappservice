@@ -8,18 +8,8 @@ import * as requestP from 'request-promise';
 import { ISiteTreeRoot } from "vscode-azureappservice";
 import { appendExtensionUserAgent } from "vscode-azureextensionui";
 
-type queryString = {
-    'api-version': string,
-    fId: string,
-    btnId: string,
-    inpId: string,
-    val: string,
-    startTime: string,
-    endTime: string
-};
-
 export namespace requestUtils {
-    export type Request = WebResource & requestP.RequestPromiseOptions & { qs?: queryString };
+    export type Request = WebResource & requestP.RequestPromiseOptions;
 
     export async function getDefaultRequest(url: string, credentials?: ServiceClientCredentials, method: HttpMethods = 'GET'): Promise<Request> {
         const request: WebResource = new WebResource();

@@ -15,7 +15,8 @@ import { requestUtils } from '../../utils/requestUtils';
 import { getGlobalSetting } from '../../vsCodeConfig/settings';
 import { findTableByColumnName, findTableByRowValue, getValuesByColumnName } from "./parseDetectorResponse";
 
-const detectorId: string = 'LinuxAppDown';
+const linuxContainerStartFailureId: string = 'LinuxContainerStartFailure';
+
 export enum ColumnName {
     status = "Status",
     message = "Message",
@@ -29,7 +30,6 @@ export enum ColumnName {
     failureCount = "FailureCount"
 }
 
-export const detectorCancelTokens: Map<string, CancellationTokenSource> = new Map();
 export async function checkLinuxWebAppDownDetector(correlationId: string, node: SiteTreeItem, tokenSource: CancellationTokenSource): Promise<void> {
     return await callWithTelemetryAndErrorHandling('appService.linuxWebAppDownDetector', async (context: IActionContext): Promise<void> => {
         context.errorHandling.suppressDisplay = true;
@@ -45,22 +45,25 @@ export async function checkLinuxWebAppDownDetector(correlationId: string, node: 
 
         const deployResultTime: Date = new Date(deployment.startTime);
         const enableDetectorOutputSetting: string = 'enableDetectorOutput';
-        const showOutput: boolean | undefined = getGlobalSetting<boolean>(enableDetectorOutputSetting);;
+        const showOutput: boolean | undefined = getGlobalSetting<boolean>(enableDetectorOutputSetting);
 
         if (showOutput) {
             const detectorOutput: string = `Diagnosing web app "${node.root.client.siteName}" for critical errors...`;
             ext.outputChannel.appendLine(detectorOutput);
         }
 
-        const detectorUri: string = `${node.id}/detectors/${detectorId}`;
+        const detectorUri: string = `${node.id}/detectors/${linuxContainerStartFailureId}`;
         const requestOptions: requestUtils.Request = await requestUtils.getDefaultAzureRequest(detectorUri, node.root);
 
-        // these parameters were specified to retrieve the timestamp from the detector
-        // The string 'Latest time seen by detector. To be used in VSCode integration.' is added
+        // these parameters were specified to retrieve the timestamp from the detector by Detectors team
+        // string "Latest time seen by detector. To be used in VSCode integration."" is added to response
         // when val: 'vscode' is added
         requestOptions.qs = {
             'api-version': "2015-08-01",
+            fId: "1",
+            btnId: "2",
             val: "vscode",
+            inpId: "1",
             startTime: deployResultTime.toISOString(),
             endTime: new Date().toISOString()
         };
@@ -68,6 +71,7 @@ export async function checkLinuxWebAppDownDetector(correlationId: string, node: 
         let detectorErrorMessage: string | undefined;
         // wait 15 minutes for a response from the detector
         const detectorTimeoutMs: number = Date.now() + 15 * 60 * 1000;
+
         do {
             if (tokenSource.token.isCancellationRequested) {
                 // the user cancelled the check by deploying again
@@ -83,16 +87,21 @@ export async function checkLinuxWebAppDownDetector(correlationId: string, node: 
                 }
                 return undefined;
             }
+
             // update the new end time to be now
+            // tslint:disable-next-line: no-unsafe-any
             requestOptions.qs.endTime = new Date().toISOString();
             detectorErrorMessage = await getLinuxDetectorError(context, requestOptions, deployResultTime, node.root.client.fullName);
+
             // poll every minute
             await delay(1000 * 60);
         } while (!detectorErrorMessage);
 
         if (showOutput) {
+            // this detector has more valuable information to show in the portal than 'LinuxContainerStartFailure'
+            const linuxAppDownId: string = 'LinuxAppDown';
             await ext.ui.showWarningMessage(detectorErrorMessage, { title: 'Open in Portal' });
-            await openInPortal(node.root, `${node.root.client.id}/troubleshoot`, { queryPrefix: `websitesextension_ext=asd.featurePath%3Ddetectors%2F${detectorId}` });
+            await openInPortal(node.root, `${node.root.client.id}/troubleshoot`, { queryPrefix: `websitesextension_ext=asd.featurePath%3Ddetectors%2F${linuxAppDownId}` });
             context.telemetry.properties.didClick = 'true';
         }
     });

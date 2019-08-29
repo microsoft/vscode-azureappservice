@@ -8,14 +8,9 @@ import { SiteTreeItem } from "../../explorer/SiteTreeItem";
 import { checkLinuxWebAppDownDetector } from "./checkLinuxWebAppDownDetector";
 import { validateWebSite } from "./validateWebSite";
 
+export const postDeployCancelTokens: Map<string, CancellationTokenSource> = new Map();
 export async function runPostDeployTask(node: SiteTreeItem, correlationId: string, tokenSource: CancellationTokenSource): Promise<void> {
-    await validateWebSite(correlationId, node).then(
-        async () => {
-            // ignore
-        },
-        async () => {
-            // ignore
-        });
+    await validateWebSite(correlationId, node, tokenSource);
 
     // this currently only works for Linux apps, so ignore if it's Windows
     if (!node.root.client.isLinux) {

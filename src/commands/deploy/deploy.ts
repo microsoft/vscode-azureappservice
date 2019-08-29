@@ -20,9 +20,8 @@ import { nonNullValue } from '../../utils/nonNull';
 import { getRandomHexString } from "../../utils/randomUtils";
 import * as workspaceUtil from '../../utils/workspace';
 import { getWorkspaceSetting, updateWorkspaceSetting } from '../../vsCodeConfig/settings';
-import { checkLinuxWebAppDownDetector, detectorCancelTokens } from '../postDeploy/checkLinuxWebAppDownDetector';
 import { runPostDeployTask } from '../postDeploy/runPostDeployTask';
-import { cancelWebsiteValidation, validateWebSite } from '../postDeploy/validateWebSite';
+import { postDeployCancelTokens } from '../postDeploy/runPostDeployTask';
 import { startStreamingLogs } from '../startStreamingLogs';
 import { getWebAppToDeploy } from './getWebAppToDeploy';
 import { IDeployWizardContext, WebAppSource } from './IDeployWizardContext';
@@ -77,7 +76,7 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
     }
 
     // cancel the previous detector check from the same web app
-    const previousTokenSource: vscode.CancellationTokenSource | undefined = detectorCancelTokens.get(node.id);
+    const previousTokenSource: vscode.CancellationTokenSource | undefined = postDeployCancelTokens.get(node.id);
     if (previousTokenSource) {
         previousTokenSource.cancel();
     }
@@ -165,14 +164,16 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
 
     await appservice.runPreDeployTask(deployContext, deployContext.deployFsPath, siteConfig.scmType, constants.extensionPrefix);
 
-    cancelWebsiteValidation(node);
     await node.runWithTemporaryDescription("Deploying...", async () => {
         await appservice.deploy(nonNullValue(node).root.client, <string>deployContext.deployFsPath, deployContext, constants.showOutputChannelCommandId);
     });
 
+    const tokenSource: vscode.CancellationTokenSource = new vscode.CancellationTokenSource();
+    postDeployCancelTokens.set(node.id, tokenSource);
+
     // intentionally not waiting
     // tslint:disable-next-line: no-floating-promises
-    runPostDeployTask(context, node, correlationId);
+    runPostDeployTask(node, correlationId, tokenSource);
 
     const deployComplete: string = `Deployment to "${node.root.client.fullName}" completed.`;
     ext.outputChannel.appendLine(deployComplete);
