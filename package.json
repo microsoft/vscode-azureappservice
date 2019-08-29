@@ -792,10 +792,10 @@
                         }
                     }
                 },
-                "appService.configurePreDeployTasks": {
+                "appService.showPreDeployWarning": {
                     "scope": "resource",
                     "type": "boolean",
-                    "description": "Configures preDeployTasks on a deployment when true",
+                    "description": "Shows warning that project is not configured for VS Code deployments",
                     "default": true
                 },
                 "appService.preDeployTask": {

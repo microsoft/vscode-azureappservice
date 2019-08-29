@@ -7,6 +7,11 @@ import { TaskDefinition, workspace, WorkspaceConfiguration, WorkspaceFolder } fr
 
 const tasksKey: string = 'tasks';
 
+export function getTasks(folder: WorkspaceFolder): ITask[] {
+    // tslint:disable-next-line: strict-boolean-expressions
+    return getTasksConfig(folder).get<ITask[]>(tasksKey) || [];
+}
+
 export function updateTasks(folder: WorkspaceFolder, tasks: ITask[]): void {
     getTasksConfig(folder).update(tasksKey, tasks);
 }

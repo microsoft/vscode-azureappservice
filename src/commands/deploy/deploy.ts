@@ -125,6 +125,8 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
         }
     }
 
+    await setPreDeployTaskForDotnet(deployContext);
+
     if (confirmDeployment && siteConfig.scmType !== constants.ScmType.LocalGit && siteConfig !== constants.ScmType.GitHub) {
         const warning: string = `Are you sure you want to deploy to "${node.root.client.fullName}"? This will overwrite any previous deployment and cannot be undone.`;
         context.telemetry.properties.cancelStep = 'confirmDestructiveDeployment';
@@ -155,8 +157,6 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
 
     // tslint:disable-next-line:no-floating-promises
     node.promptToSaveDeployDefaults(deployContext, deployContext.workspace.uri.fsPath, deployContext.deployFsPath);
-
-    await setPreDeployTaskForDotnet(deployContext);
     await appservice.runPreDeployTask(deployContext, deployContext.deployFsPath, siteConfig.scmType, constants.extensionPrefix);
 
     cancelWebsiteValidation(node);
