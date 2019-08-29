@@ -21,21 +21,23 @@ import { getRandomHexString } from "../../utils/randomUtils";
 import * as workspaceUtil from '../../utils/workspace';
 import { cancelWebsiteValidation, validateWebSite } from '../../validateWebSite';
 import { getWorkspaceSetting, updateWorkspaceSetting } from '../../vsCodeConfig/settings';
-import { getDefaultWebAppToDeploy } from '../getDefaultWebAppToDeploy';
 import { startStreamingLogs } from '../startStreamingLogs';
-import { IDeployWizardContext } from './IDeployWizardContext';
+import { getWebAppToDeploy } from './getWebAppToDeploy';
+import { IDeployWizardContext, WebAppSource } from './IDeployWizardContext';
 import { setPreDeployTaskForDotnet } from './setPreDeployTaskForDotnet';
 
 // tslint:disable-next-line:max-func-body-length cyclomatic-complexity
 export async function deploy(context: IActionContext, confirmDeployment: boolean, target?: vscode.Uri | SiteTreeItem | undefined): Promise<void> {
-
-    let node: SiteTreeItem | undefined;
     const newNodes: SiteTreeItem[] = [];
+    let node: SiteTreeItem | undefined;
+    let webAppSource: WebAppSource | undefined;
+
     context.telemetry.properties.deployedWithConfigs = 'false';
     let siteConfig: WebSiteModels.SiteConfigResource | undefined;
 
     if (target instanceof SiteTreeItem) {
         node = target;
+        webAppSource = WebAppSource.tree;
         // we can only get the siteConfig earlier if the entry point was a treeItem
         siteConfig = await node.root.client.getSiteConfig();
     }
@@ -47,13 +49,12 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
 
     const deployFsPath: string = await appservice.getDeployFsPath(target, constants.extensionPrefix, fileExtension);
     const workspace: vscode.WorkspaceFolder | undefined = workspaceUtil.getContainingWorkspace(deployFsPath);
-
     if (!workspace) {
         throw new Error('Failed to deploy because the path is not part of an open workspace. Open in a workspace and try again.');
     }
 
     const deployContext: IDeployWizardContext = {
-        ...context, workspace, deployFsPath
+        ...context, workspace, deployFsPath, webAppSource
     };
 
     if (!node) {
@@ -61,9 +62,9 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
             // event is fired from azure-extensionui if node was created during deployment
             newNodes.push(newNode);
         });
+
         try {
-            // tslint:disable-next-line: strict-boolean-expressions
-            node = await getDefaultWebAppToDeploy(deployContext) || <SiteTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue, context);
+            node = await getWebAppToDeploy(deployContext);
         } catch (err2) {
             if (parseError(err2).isUserCancelledError) {
                 context.telemetry.properties.cancelStep = `showTreeItemPicker:${WebAppTreeItem.contextValue}`;
@@ -73,6 +74,8 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
             onTreeItemCreatedFromQuickPickDisposable.dispose();
         }
     }
+
+    context.telemetry.properties.webAppSource = deployContext.webAppSource;
 
     if (newNodes.length > 0) {
         for (const newApp of newNodes) {
@@ -127,14 +130,15 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
         context.telemetry.properties.cancelStep = 'confirmDestructiveDeployment';
         const items: vscode.MessageItem[] = [constants.AppServiceDialogResponses.deploy];
         const resetDefault: vscode.MessageItem = { title: 'Reset default' };
-        if (deployContext.deployedWithConfigs) {
+        if (deployContext.webAppSource === WebAppSource.setting) {
             items.push(resetDefault);
         }
-
         items.push(DialogResponses.cancel);
 
-        // a temporary workaround for this issue: https://github.com/Microsoft/vscode-azureappservice/issues/844
+        // a temporary workaround for this issue:
+        // https://github.com/Microsoft/vscode-azureappservice/issues/844
         await delay(500);
+
         const result: vscode.MessageItem = await ext.ui.showWarningMessage(warning, { modal: true }, ...items);
         if (result === resetDefault) {
             const settingsPath = path.join(deployContext.workspace.uri.fsPath, '.vscode', 'settings.json');
@@ -149,10 +153,8 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
         deployContext.telemetry.properties.cancelStep = '';
     }
 
-    if (!deployContext.deployedWithConfigs) {
-        // tslint:disable-next-line:no-floating-promises
-        node.promptToSaveDeployDefaults(deployContext.workspace.uri.fsPath, deployContext.deployFsPath, deployContext);
-    }
+    // tslint:disable-next-line:no-floating-promises
+    node.promptToSaveDeployDefaults(deployContext, deployContext.workspace.uri.fsPath, deployContext.deployFsPath);
 
     await setPreDeployTaskForDotnet(deployContext);
     await appservice.runPreDeployTask(deployContext, deployContext.deployFsPath, siteConfig.scmType, constants.extensionPrefix);

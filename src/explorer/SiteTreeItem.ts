@@ -193,20 +193,25 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         await fse.writeFile(path.join(fsPath, constants.deploymentFileName), constants.deploymentFile);
     }
 
-    public async promptToSaveDeployDefaults(workspacePath: string, deployPath: string, context: IActionContext): Promise<void> {
-        const saveDeploymentConfig: string = `Always deploy the workspace "${path.basename(workspacePath)}" to "${this.root.client.fullName}"?`;
-        const dontShowAgain: MessageItem = { title: "Don't show again" };
-        const result: MessageItem = await ext.ui.showWarningMessage(saveDeploymentConfig, DialogResponses.yes, dontShowAgain, DialogResponses.skipForNow);
-        if (result === DialogResponses.yes) {
-            await updateWorkspaceSetting(constants.configurationSettings.defaultWebAppToDeploy, this.fullId, deployPath);
-            await updateWorkspaceSetting(constants.configurationSettings.deploySubpath, path.relative(workspacePath, deployPath), deployPath); // '' is a falsey value
-            context.telemetry.properties.promptToSaveDeployConfigs = 'Yes';
-        } else if (result === dontShowAgain) {
-            await updateWorkspaceSetting(constants.configurationSettings.defaultWebAppToDeploy, constants.none, deployPath);
-            context.telemetry.properties.promptToSaveDeployConfigs = "Don't show again";
-        } else {
-            context.telemetry.properties.promptToSaveDeployConfigs = 'Skip for now';
+    public async promptToSaveDeployDefaults(context: IActionContext, workspacePath: string, deployPath: string): Promise<void> {
+        const defaultWebAppToDeploySetting: string | undefined = getWorkspaceSetting(constants.configurationSettings.defaultWebAppToDeploy, workspacePath);
+        // only prompt if setting is unset
+        if (!defaultWebAppToDeploySetting) {
+            const saveDeploymentConfig: string = `Always deploy the workspace "${path.basename(workspacePath)}" to "${this.root.client.fullName}"?`;
+            const dontShowAgain: MessageItem = { title: "Don't show again" };
+            const result: MessageItem = await ext.ui.showWarningMessage(saveDeploymentConfig, DialogResponses.yes, dontShowAgain, DialogResponses.skipForNow);
+            if (result === DialogResponses.yes) {
+                await updateWorkspaceSetting(constants.configurationSettings.defaultWebAppToDeploy, this.fullId, deployPath);
+                await updateWorkspaceSetting(constants.configurationSettings.deploySubpath, path.relative(workspacePath, deployPath), deployPath); // '' is a falsey value
+                context.telemetry.properties.promptToSaveDeployConfigs = 'Yes';
+            } else if (result === dontShowAgain) {
+                await updateWorkspaceSetting(constants.configurationSettings.defaultWebAppToDeploy, constants.none, deployPath);
+                context.telemetry.properties.promptToSaveDeployConfigs = "Don't show again";
+            } else {
+                context.telemetry.properties.promptToSaveDeployConfigs = 'Skip for now';
+            }
         }
+
     }
 
     private getIgnoredFoldersForDeployment(runtime: string): string[] {
