@@ -20,8 +20,7 @@ import { nonNullValue } from '../../utils/nonNull';
 import { getRandomHexString } from "../../utils/randomUtils";
 import * as workspaceUtil from '../../utils/workspace';
 import { getWorkspaceSetting, updateWorkspaceSetting } from '../../vsCodeConfig/settings';
-import { runPostDeployTask } from '../postDeploy/runPostDeployTask';
-import { postDeployCancelTokens } from '../postDeploy/runPostDeployTask';
+import { postDeployCancelTokens, runPostDeployTask } from '../postDeploy/runPostDeployTask';
 import { startStreamingLogs } from '../startStreamingLogs';
 import { getWebAppToDeploy } from './getWebAppToDeploy';
 import { IDeployWizardContext, WebAppSource } from './IDeployWizardContext';
@@ -171,10 +170,6 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
     const tokenSource: vscode.CancellationTokenSource = new vscode.CancellationTokenSource();
     postDeployCancelTokens.set(node.id, tokenSource);
 
-    // intentionally not waiting
-    // tslint:disable-next-line: no-floating-promises
-    runPostDeployTask(node, correlationId, tokenSource);
-
     const deployComplete: string = `Deployment to "${node.root.client.fullName}" completed.`;
     ext.outputChannel.appendLine(deployComplete);
     const browseWebsite: vscode.MessageItem = { title: 'Browse Website' };
@@ -190,4 +185,8 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
             await startStreamingLogs(deployContext, node);
         }
     });
+
+    // intentionally not waiting
+    // tslint:disable-next-line: no-floating-promises
+    runPostDeployTask(node, correlationId, tokenSource);
 }

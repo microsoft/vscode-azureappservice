@@ -807,9 +807,9 @@
                     "description": "Show a warning when the \"deploySubpath\" setting does not match the selected folder for deploying.",
                     "default": true
                 },
-                "appService.enableDetectorOutput": {
+                "appService.enableDetectors": {
                     "type": "boolean",
-                    "description": "Outputs the response of the Linux Detectors that diagnose Linux web apps to check for container failures",
+                    "description": "Enables detectors that diagnose Linux web apps that diagnose container failures post deployment",
                     "default": false
                 }
             }

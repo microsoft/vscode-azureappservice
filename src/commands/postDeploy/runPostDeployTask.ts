@@ -10,10 +10,24 @@ import { validateWebSite } from "./validateWebSite";
 
 export const postDeployCancelTokens: Map<string, CancellationTokenSource> = new Map();
 export async function runPostDeployTask(node: SiteTreeItem, correlationId: string, tokenSource: CancellationTokenSource): Promise<void> {
-    await validateWebSite(correlationId, node, tokenSource);
+    // both of these should be happening in parallel so don't await either
 
-    // this currently only works for Linux apps, so ignore if it's Windows
-    if (!node.root.client.isLinux) {
-        await checkLinuxWebAppDownDetector(correlationId, node, tokenSource);
+    validateWebSite(correlationId, node, tokenSource).then(
+        () => {
+            // ignore
+        },
+        () => {
+            // ignore
+        });
+
+    // this currently only works for Linux apps
+    if (node.root.client.isLinux) {
+        checkLinuxWebAppDownDetector(correlationId, node, tokenSource).then(
+            () => {
+                // ignore
+            },
+            () => {
+                // ignore
+            });
     }
 }

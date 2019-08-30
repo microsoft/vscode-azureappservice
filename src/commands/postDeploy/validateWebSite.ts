@@ -30,7 +30,7 @@ const maximumValidationMs = 60 * 1000;
 
 export async function validateWebSite(deploymentCorrelationId: string, siteTreeItem: SiteTreeItem, tokenSource: CancellationTokenSource): Promise<number | void> {
     return callWithTelemetryAndErrorHandling('appService.validateWebSite', async (context: IActionContext) => {
-        context.errorHandling.rethrow = true;
+        context.errorHandling.rethrow = false;
         context.errorHandling.suppressDisplay = true;
 
         const properties = <IValidateProperties>context.telemetry.properties;
@@ -73,6 +73,5 @@ export async function validateWebSite(deploymentCorrelationId: string, siteTreeI
         }
 
         properties.statusCodes = JSON.stringify(statusCodes);
-        return currentStatusCode;
     });
 }

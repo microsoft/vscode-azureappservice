@@ -44,8 +44,8 @@ export async function checkLinuxWebAppDownDetector(correlationId: string, node: 
         }
 
         const deployResultTime: Date = new Date(deployment.startTime);
-        const enableDetectorOutputSetting: string = 'enableDetectorOutput';
-        const showOutput: boolean | undefined = getGlobalSetting<boolean>(enableDetectorOutputSetting);
+        const enableDetectorsSetting: string = 'enableDetectors';
+        const showOutput: boolean | undefined = getGlobalSetting<boolean>(enableDetectorsSetting);
 
         if (showOutput) {
             const detectorOutput: string = `Diagnosing web app "${node.root.client.siteName}" for critical errors...`;
