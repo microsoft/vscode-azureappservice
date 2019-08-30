@@ -4,8 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { WebSiteManagementClient } from 'azure-arm-website';
-import { Site, WebAppCollection } from 'azure-arm-website/lib/models';
-import { AppKind, AppServicePlanCreateStep, AppServicePlanListStep, IAppServiceWizardContext, SiteClient, SiteCreateStep, SiteNameStep, SiteOSStep, SiteRuntimeStep } from 'vscode-azureappservice';
+import { Site, StringDictionary, WebAppCollection } from 'azure-arm-website/lib/models';
+import { AppInsightsCreateStep, AppInsightsListStep, AppKind, AppServicePlanCreateStep, AppServicePlanListStep, IAppServiceWizardContext, SiteClient, SiteCreateStep, SiteNameStep, SiteOSStep, SiteRuntimeStep } from 'vscode-azureappservice';
 import { AzExtTreeItem, AzureTreeItem, AzureWizard, AzureWizardExecuteStep, AzureWizardPromptStep, createAzureClient, ICreateChildImplContext, parseError, ResourceGroupCreateStep, ResourceGroupListStep, SubscriptionTreeItemBase } from 'vscode-azureextensionui';
 import { setAppWizardContextDefault } from '../commands/createWebApp/setAppWizardContextDefault';
 import { setDefaultRgAndPlanName } from '../commands/createWebApp/setDefaultRgAndPlanName';
@@ -79,12 +79,15 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
             promptSteps.push(new SiteOSStep());
             promptSteps.push(new SiteRuntimeStep());
             promptSteps.push(new AppServicePlanListStep());
+            promptSteps.push(new AppInsightsListStep());
         } else {
             promptSteps.push(new SiteOSStep()); // will be skipped if there is a smart default
             promptSteps.push(new SiteRuntimeStep());
             executeSteps.push(new ResourceGroupCreateStep());
             executeSteps.push(new AppServicePlanCreateStep());
+            executeSteps.push(new AppInsightsCreateStep());
         }
+
         executeSteps.push(new SiteCreateStep());
 
         if (wizardContext.newSiteOS !== undefined) {
@@ -100,6 +103,7 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
 
         if (!context.advancedCreation) {
             await setDefaultRgAndPlanName(wizardContext, siteStep);
+            wizardContext.newAppInsightsName = wizardContext.newSiteName;
         }
 
         await wizard.execute();
@@ -111,6 +115,17 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
 
         const createdNewAppMsg: string = `Created new web app "${siteClient.fullName}": https://${siteClient.defaultHostName}`;
         ext.outputChannel.appendLine(createdNewAppMsg);
+
+        if (wizardContext.appInsightsComponent && wizardContext.appInsightsComponent.instrumentationKey) {
+            const appSettings: StringDictionary = await siteClient.listApplicationSettings();
+            if (!appSettings.properties) {
+                appSettings.properties = {};
+            }
+
+            appSettings.properties.APPINSIGHTS_INSTRUMENTATIONKEY = wizardContext.appInsightsComponent.instrumentationKey;
+            appSettings.properties.APPLICATIONINSIGHTSAGENT_EXTENSION_ENABLED = 'true';
+            await siteClient.updateApplicationSettings(appSettings);
+        }
 
         return new WebAppTreeItem(this, siteClient);
     }
