@@ -5,7 +5,7 @@
 
 import { WebSiteManagementClient } from 'azure-arm-website';
 import { Site, StringDictionary, WebAppCollection } from 'azure-arm-website/lib/models';
-import { AppInsightsCreateStep, AppInsightsListStep, AppKind, AppServicePlanCreateStep, AppServicePlanListStep, IAppServiceWizardContext, SiteClient, SiteCreateStep, SiteNameStep, SiteOSStep, SiteRuntimeStep } from 'vscode-azureappservice';
+import { AppInsightsCreateStep, AppInsightsListStep, AppKind, AppServicePlanCreateStep, AppServicePlanListStep, IAppServiceWizardContext, SiteClient, SiteCreateStep, SiteNameStep, SiteOSStep, SiteRuntimeStep, WebsiteOS } from 'vscode-azureappservice';
 import { AzExtTreeItem, AzureTreeItem, AzureWizard, AzureWizardExecuteStep, AzureWizardPromptStep, createAzureClient, ICreateChildImplContext, parseError, ResourceGroupCreateStep, ResourceGroupListStep, SubscriptionTreeItemBase } from 'vscode-azureextensionui';
 import { setAppWizardContextDefault } from '../commands/createWebApp/setAppWizardContextDefault';
 import { setDefaultRgAndPlanName } from '../commands/createWebApp/setDefaultRgAndPlanName';
@@ -123,7 +123,19 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
             }
 
             appSettings.properties.APPINSIGHTS_INSTRUMENTATIONKEY = wizardContext.appInsightsComponent.instrumentationKey;
-            appSettings.properties.APPLICATIONINSIGHTSAGENT_EXTENSION_ENABLED = 'true';
+            if (wizardContext.newSiteOS === WebsiteOS.windows) {
+                // all these settings are set on the portal if AI is enabled for Windows apps
+                appSettings.properties.APPINSIGHTS_PROFILERFEATURE_VERSION = 'disabled';
+                appSettings.properties.APPINSIGHTS_SNAPSHOTFEATURE_VERSION = 'disabled';
+                appSettings.properties.ApplicationInsightsAgent_EXTENSION_VERSION = '~2';
+                appSettings.properties.DiagnosticServices_EXTENSION_VERSION = 'disabled';
+                appSettings.properties.InstrumentationEngine_EXTENSION_VERSION = 'disabled';
+                appSettings.properties.SnapshotDebugger_EXTENSION_VERSION = 'disabled';
+                appSettings.properties.XDT_MicrosoftApplicationInsights_BaseExtensions = 'disabled';
+                appSettings.properties.XDT_MicrosoftApplicationInsights_Mode = 'default';
+            } else {
+                appSettings.properties.APPLICATIONINSIGHTSAGENT_EXTENSION_ENABLED = 'true';
+            }
             await siteClient.updateApplicationSettings(appSettings);
         }
 
