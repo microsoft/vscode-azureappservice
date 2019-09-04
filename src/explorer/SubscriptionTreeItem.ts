@@ -124,14 +124,15 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
 
             appSettings.properties.APPINSIGHTS_INSTRUMENTATIONKEY = wizardContext.appInsightsComponent.instrumentationKey;
             if (wizardContext.newSiteOS === WebsiteOS.windows) {
+                const disabled: string = 'disabled';
                 // all these settings are set on the portal if AI is enabled for Windows apps
-                appSettings.properties.APPINSIGHTS_PROFILERFEATURE_VERSION = 'disabled';
-                appSettings.properties.APPINSIGHTS_SNAPSHOTFEATURE_VERSION = 'disabled';
+                appSettings.properties.APPINSIGHTS_PROFILERFEATURE_VERSION = disabled;
+                appSettings.properties.APPINSIGHTS_SNAPSHOTFEATURE_VERSION = disabled;
                 appSettings.properties.ApplicationInsightsAgent_EXTENSION_VERSION = '~2';
-                appSettings.properties.DiagnosticServices_EXTENSION_VERSION = 'disabled';
-                appSettings.properties.InstrumentationEngine_EXTENSION_VERSION = 'disabled';
-                appSettings.properties.SnapshotDebugger_EXTENSION_VERSION = 'disabled';
-                appSettings.properties.XDT_MicrosoftApplicationInsights_BaseExtensions = 'disabled';
+                appSettings.properties.DiagnosticServices_EXTENSION_VERSION = disabled;
+                appSettings.properties.InstrumentationEngine_EXTENSION_VERSION = disabled;
+                appSettings.properties.SnapshotDebugger_EXTENSION_VERSION = disabled;
+                appSettings.properties.XDT_MicrosoftApplicationInsights_BaseExtensions = disabled;
                 appSettings.properties.XDT_MicrosoftApplicationInsights_Mode = 'default';
             } else {
                 appSettings.properties.APPLICATIONINSIGHTSAGENT_EXTENSION_ENABLED = 'true';
