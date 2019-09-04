@@ -417,131 +417,131 @@ const detectorJSONWithoutCriticalErrors: detectorResponseJSON = <detectorRespons
     type: "Microsoft.Web/sites/detectors",
     location: "West US",
     properties: {
-       metadata: {
-          id: "LinuxContainerStartFailure",
-          name: "Container Issues",
-          category: "Availability and Performance",
-          author: "",
-          description: "Investigate potential reasons why your container failed to start, which could cause deployment and availability issues.",
-          type: "Detector",
-          supportTopicList: [
+        metadata: {
+            id: "LinuxContainerStartFailure",
+            name: "Container Issues",
+            category: "Availability and Performance",
+            author: "",
+            description: "Investigate potential reasons why your container failed to start, which could cause deployment and availability issues.",
+            type: "Detector",
+            supportTopicList: [
 
-          ],
-          analysisTypes: null,
-          score: 0.0,
-          typeId: "Diagnostics.ModelsAndUtils.Attributes.Definition, Diagnostics.ModelsAndUtils, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
-       },
-       dataset: [
-          {
-             table: {
-                tableName: "",
-                columns: [
-                   {
-                      columnName: "Status",
-                      dataType: "String",
-                      columnType: null
-                   },
-                   {
-                      columnName: "Message",
-                      dataType: "String",
-                      columnType: null
-                   },
-                   {
-                      columnName: "Data.Name",
-                      dataType: "String",
-                      columnType: null
-                   },
-                   {
-                      columnName: "Data.Value",
-                      dataType: "String",
-                      columnType: null
-                   },
-                   {
-                      columnName: "Expanded",
-                      dataType: "String",
-                      columnType: null
-                   },
-                   {
-                      columnName: "Solutions",
-                      dataType: "String",
-                      columnType: null
-                   }
-                ],
-                rows: [
-                   [
-                      "Success",
-                      "Your app started successfully.",
-                      "Observation",
-                      "No app start failures were found in this time range. Please use the time range selector to explore different time periods.",
-                      "False",
-                      "null"
-                   ]
-                ]
-             },
-             renderingProperties: {
-                type: 7,
-                title: null,
-                description: null
-             }
-          },
-          {
-             table: {
-                tableName: "",
-                columns: [
-                   {
-                      columnName: "Status",
-                      dataType: "String",
-                      columnType: null
-                   },
-                   {
-                      columnName: "Message",
-                      dataType: "String",
-                      columnType: null
-                   },
-                   {
-                      columnName: "Data.Name",
-                      dataType: "String",
-                      columnType: null
-                   },
-                   {
-                      columnName: "Data.Value",
-                      dataType: "String",
-                      columnType: null
-                   },
-                   {
-                      columnName: "Expanded",
-                      dataType: "String",
-                      columnType: null
-                   },
-                   {
-                      columnName: "Solutions",
-                      dataType: "String",
-                      columnType: null
-                   }
-                ],
-                rows: [
-                   [
-                      "Info",
-                      "Get full Docker logs",
-                      "Full Docker logs can be found from: ",
-                      "<a href=\"https://naturins-dotnet-linux.scm.azurewebsites.net/api/logs/docker\" target=\"_blank\">Get JSON with Docker log links</a> ",
-                      "False",
-                      "null"
-                   ]
-                ]
-             },
-             renderingProperties: {
-                type: 7,
-                title: null,
-                description: null
-             }
-          }
-       ],
-       status: {
-          message: null,
-          statusId: 2
-       },
-       dataProvidersMetadata: null,
-       suggestedUtterances: null
+            ],
+            analysisTypes: null,
+            score: 0.0,
+            typeId: "Diagnostics.ModelsAndUtils.Attributes.Definition, Diagnostics.ModelsAndUtils, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+        },
+        dataset: [
+            {
+                table: {
+                    tableName: "",
+                    columns: [
+                        {
+                            columnName: "Status",
+                            dataType: "String",
+                            columnType: null
+                        },
+                        {
+                            columnName: "Message",
+                            dataType: "String",
+                            columnType: null
+                        },
+                        {
+                            columnName: "Data.Name",
+                            dataType: "String",
+                            columnType: null
+                        },
+                        {
+                            columnName: "Data.Value",
+                            dataType: "String",
+                            columnType: null
+                        },
+                        {
+                            columnName: "Expanded",
+                            dataType: "String",
+                            columnType: null
+                        },
+                        {
+                            columnName: "Solutions",
+                            dataType: "String",
+                            columnType: null
+                        }
+                    ],
+                    rows: [
+                        [
+                            "Success",
+                            "Your app started successfully.",
+                            "Observation",
+                            "No app start failures were found in this time range. Please use the time range selector to explore different time periods.",
+                            "False",
+                            "null"
+                        ]
+                    ]
+                },
+                renderingProperties: {
+                    type: 7,
+                    title: null,
+                    description: null
+                }
+            },
+            {
+                table: {
+                    tableName: "",
+                    columns: [
+                        {
+                            columnName: "Status",
+                            dataType: "String",
+                            columnType: null
+                        },
+                        {
+                            columnName: "Message",
+                            dataType: "String",
+                            columnType: null
+                        },
+                        {
+                            columnName: "Data.Name",
+                            dataType: "String",
+                            columnType: null
+                        },
+                        {
+                            columnName: "Data.Value",
+                            dataType: "String",
+                            columnType: null
+                        },
+                        {
+                            columnName: "Expanded",
+                            dataType: "String",
+                            columnType: null
+                        },
+                        {
+                            columnName: "Solutions",
+                            dataType: "String",
+                            columnType: null
+                        }
+                    ],
+                    rows: [
+                        [
+                            "Info",
+                            "Get full Docker logs",
+                            "Full Docker logs can be found from: ",
+                            "<a href=\"https://naturins-dotnet-linux.scm.azurewebsites.net/api/logs/docker\" target=\"_blank\">Get JSON with Docker log links</a> ",
+                            "False",
+                            "null"
+                        ]
+                    ]
+                },
+                renderingProperties: {
+                    type: 7,
+                    title: null,
+                    description: null
+                }
+            }
+        ],
+        status: {
+            message: null,
+            statusId: 2
+        },
+        dataProvidersMetadata: null,
+        suggestedUtterances: null
     }
- };
+};

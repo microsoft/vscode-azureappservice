@@ -35,6 +35,7 @@
         "no-parameter-properties": false,
         "no-relative-imports": false,
         "no-require-imports": false,
+        "no-use-before-declare": false,
         "no-void-expression": [
             false,
             "ignore-arrow-function-shorthand"
