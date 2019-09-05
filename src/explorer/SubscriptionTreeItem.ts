@@ -3,10 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { WebSiteManagementClient } from 'azure-arm-website';
-import { Site, StringDictionary, WebAppCollection } from 'azure-arm-website/lib/models';
-import { AppInsightsCreateStep, AppInsightsListStep, AppKind, AppServicePlanCreateStep, AppServicePlanListStep, IAppServiceWizardContext, SiteClient, SiteCreateStep, SiteNameStep, SiteOSStep, SiteRuntimeStep, WebsiteOS } from 'vscode-azureappservice';
-import { AzExtTreeItem, AzureTreeItem, AzureWizard, AzureWizardExecuteStep, AzureWizardPromptStep, createAzureClient, ICreateChildImplContext, parseError, ResourceGroupCreateStep, ResourceGroupListStep, SubscriptionTreeItemBase } from 'vscode-azureextensionui';
+import { WebSiteManagementClient, WebSiteManagementModels } from 'azure-arm-website';
+import { Site, WebAppCollection } from 'azure-arm-website/lib/models';
+import { AppInsightsCreateStep, AppInsightsListStep, AppKind, AppServicePlanCreateStep, AppServicePlanListStep, IAppServiceWizardContext, IAppSettingsContext, SiteClient, SiteCreateStep, SiteNameStep, SiteOSStep, SiteRuntimeStep, WebsiteOS } from 'vscode-azureappservice';
+import { AzExtTreeItem, AzureTreeItem, AzureWizard, AzureWizardExecuteStep, AzureWizardPromptStep, createAzureClient, ICreateChildImplContext, LocationListStep, parseError, ResourceGroupCreateStep, ResourceGroupListStep, SubscriptionTreeItemBase } from 'vscode-azureextensionui';
 import { setAppWizardContextDefault } from '../commands/createWebApp/setAppWizardContextDefault';
 import { setDefaultRgAndPlanName } from '../commands/createWebApp/setDefaultRgAndPlanName';
 import { ext } from '../extensionVariables';
@@ -87,8 +87,9 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
             executeSteps.push(new AppServicePlanCreateStep());
             executeSteps.push(new AppInsightsCreateStep());
         }
+        LocationListStep.addStep(wizardContext, promptSteps);
 
-        executeSteps.push(new SiteCreateStep());
+        executeSteps.push(new SiteCreateStep(createWebAppSettings));
 
         if (wizardContext.newSiteOS !== undefined) {
             SiteOSStep.setLocationsTask(wizardContext);
@@ -103,7 +104,7 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
 
         if (!context.advancedCreation) {
             await setDefaultRgAndPlanName(wizardContext, siteStep);
-            wizardContext.newAppInsightsName = wizardContext.newSiteName;
+            wizardContext.newAppInsightsName = await wizardContext.relatedNameTask;
         }
 
         await wizard.execute();
@@ -115,31 +116,62 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
 
         const createdNewAppMsg: string = `Created new web app "${siteClient.fullName}": https://${siteClient.defaultHostName}`;
         ext.outputChannel.appendLine(createdNewAppMsg);
-
-        if (wizardContext.appInsightsComponent && wizardContext.appInsightsComponent.instrumentationKey) {
-            const appSettings: StringDictionary = await siteClient.listApplicationSettings();
-            if (!appSettings.properties) {
-                appSettings.properties = {};
-            }
-
-            appSettings.properties.APPINSIGHTS_INSTRUMENTATIONKEY = wizardContext.appInsightsComponent.instrumentationKey;
-            if (wizardContext.newSiteOS === WebsiteOS.windows) {
-                const disabled: string = 'disabled';
-                // all these settings are set on the portal if AI is enabled for Windows apps
-                appSettings.properties.APPINSIGHTS_PROFILERFEATURE_VERSION = disabled;
-                appSettings.properties.APPINSIGHTS_SNAPSHOTFEATURE_VERSION = disabled;
-                appSettings.properties.ApplicationInsightsAgent_EXTENSION_VERSION = '~2';
-                appSettings.properties.DiagnosticServices_EXTENSION_VERSION = disabled;
-                appSettings.properties.InstrumentationEngine_EXTENSION_VERSION = disabled;
-                appSettings.properties.SnapshotDebugger_EXTENSION_VERSION = disabled;
-                appSettings.properties.XDT_MicrosoftApplicationInsights_BaseExtensions = disabled;
-                appSettings.properties.XDT_MicrosoftApplicationInsights_Mode = 'default';
-            } else {
-                appSettings.properties.APPLICATIONINSIGHTSAGENT_EXTENSION_ENABLED = 'true';
-            }
-            await siteClient.updateApplicationSettings(appSettings);
-        }
-
         return new WebAppTreeItem(this, siteClient);
     }
+}
+
+async function createWebAppSettings(context: IAppSettingsContext): Promise<WebSiteManagementModels.NameValuePair[]> {
+    const appSettings: WebSiteManagementModels.NameValuePair[] = [];
+    const disabled: string = 'disabled';
+
+    if (context.aiInstrumentationKey) {
+        appSettings.push({
+            name: 'APPINSIGHTS_INSTRUMENTATIONKEY',
+            value: context.aiInstrumentationKey
+        });
+
+        // all these settings are set on the portal if AI is enabled for Windows apps
+        if (context.os === WebsiteOS.windows) {
+            appSettings.push({
+                name: 'APPINSIGHTS_PROFILERFEATURE_VERSION',
+                value: disabled
+            });
+            appSettings.push({
+                name: 'APPINSIGHTS_SNAPSHOTFEATURE_VERSION',
+                value: disabled
+            });
+            appSettings.push({
+                name: 'ApplicationInsightsAgent_EXTENSION_VERSION',
+                value: '~2'
+            });
+            appSettings.push({
+                name: 'DiagnosticServices_EXTENSION_VERSION',
+                value: disabled
+            });
+            appSettings.push({
+                name: 'InstrumentationEngine_EXTENSION_VERSION',
+                value: disabled
+            });
+            appSettings.push({
+                name: 'SnapshotDebugger_EXTENSION_VERSION',
+                value: disabled
+            });
+            appSettings.push({
+                name: 'XDT_MicrosoftApplicationInsights_BaseExtensions',
+                value: disabled
+            });
+            appSettings.push({
+                name: 'XDT_MicrosoftApplicationInsights_Mode',
+                value: 'default'
+            });
+        } else {
+            appSettings.push({
+                name: 'APPLICATIONINSIGHTSAGENT_EXTENSION_ENABLED',
+                value: 'true'
+            });
+        }
+
+    }
+
+    return appSettings;
 }
