@@ -75,13 +75,6 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
     }
 
     // cancel the previous detector check from the same web app
-    const previousTokenSource: vscode.CancellationTokenSource | undefined = postDeployCancelTokens.get(node.id);
-    if (previousTokenSource) {
-        previousTokenSource.cancel();
-    }
-
-    context.telemetry.properties.webAppSource = deployContext.webAppSource;
-
     if (newNodes.length > 0) {
         for (const newApp of newNodes) {
             if (newApp.fullId === node.fullId) {
@@ -166,6 +159,14 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
     await node.runWithTemporaryDescription("Deploying...", async () => {
         await appservice.deploy(nonNullValue(node).root.client, <string>deployContext.deployFsPath, deployContext, constants.showOutputChannelCommandId);
     });
+
+    // moved to after prompts for telemetry purposes
+    const previousTokenSource: vscode.CancellationTokenSource | undefined = postDeployCancelTokens.get(node.id);
+    if (previousTokenSource) {
+        previousTokenSource.cancel();
+    }
+
+    context.telemetry.properties.webAppSource = deployContext.webAppSource;
 
     const tokenSource: vscode.CancellationTokenSource = new vscode.CancellationTokenSource();
     postDeployCancelTokens.set(node.id, tokenSource);
