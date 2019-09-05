@@ -32,26 +32,3 @@ export interface ITaskOptions {
         [key: string]: string;
     };
 }
-
-export function insertNewTasks(existingTasks: ITask[] | undefined, newTasks: ITask[]): ITask[] {
-    // tslint:disable-next-line: strict-boolean-expressions
-    existingTasks = existingTasks || [];
-    // Remove tasks that match the ones we're about to add
-    existingTasks = existingTasks.filter(t1 => !newTasks.find(t2 => {
-        if (t1.type === t2.type) {
-            switch (t1.type) {
-                case 'shell':
-                case 'process':
-                    return t1.label === t2.label && t1.identifier === t2.identifier;
-                default:
-                    // Not worth throwing an error for unrecognized task type
-                    // Worst case the user has an extra task in their tasks.json
-                    return false;
-            }
-        } else {
-            return false;
-        }
-    }));
-    existingTasks.push(...newTasks);
-    return existingTasks;
-}

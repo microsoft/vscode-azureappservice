@@ -6,7 +6,7 @@
 import * as fse from 'fs-extra';
 import * as path from 'path';
 import { MessageItem, TaskDefinition } from 'vscode';
-import { DialogResponses } from 'vscode-azureappservice/node_modules/vscode-azureextensionui';
+import { DialogResponses } from 'vscode-azureextensionui';
 import * as constants from '../../constants';
 import { ext } from '../../extensionVariables';
 import { isPathEqual } from '../../utils/pathUtils';
@@ -35,7 +35,14 @@ export async function setPreDeployTaskForDotnet(context: IDeployWizardContext): 
 
     // if we found a .csproj file set the tasks and workspace settings
     if (csprojFile) {
-        const notConfiguredForDeploy: string = `The selected project is not configured for deployment through VS Code. Add "${preDeployTaskSetting}" and "${constants.configurationSettings.deploySubpath}" settings?`;
+        const targetFramework: string | undefined = await tryGetTargetFramework(csprojFile);
+        context.telemetry.properties.tfw = targetFramework ? targetFramework : 'N/A';
+        if (!targetFramework) {
+            // if the target framework cannot be found, don't try to set defaults
+            return;
+        }
+
+        const notConfiguredForDeploy: string = `Required assets to build and deploy are missing from "${context.workspace.name}"? Add them?`;
         const dontShowAgainButton: MessageItem = { title: "No, and don't show again" };
         const input: MessageItem = await ext.ui.showWarningMessage(notConfiguredForDeploy, { modal: true }, DialogResponses.yes, dontShowAgainButton);
         if (input === dontShowAgainButton) {
@@ -45,7 +52,7 @@ export async function setPreDeployTaskForDotnet(context: IDeployWizardContext): 
             const subfolder: string = path.dirname(path.relative(workspaceFspath, csprojFile));
 
             // always use posix for debug config
-            const deploySubpath: string = path.posix.join(subfolder, 'bin', 'Release', 'publish');
+            const deploySubpath: string = path.posix.join(subfolder, 'bin', 'Release', targetFramework, 'publish');
 
             await updateWorkspaceSetting(preDeployTaskSetting, 'publish', workspaceFspath);
             await updateWorkspaceSetting(constants.configurationSettings.deploySubpath, deploySubpath, workspaceFspath);
@@ -53,11 +60,17 @@ export async function setPreDeployTaskForDotnet(context: IDeployWizardContext): 
             // update the deployContext.deployFsPath with the .NET output path since getDeployFsPath is called prior to this
             context.deployFsPath = path.join(workspaceFspath, deploySubpath);
 
-            // this will overwrite clean and publish tasks
             const existingTasks: tasks.ITask[] = tasks.getTasks(context.workspace);
-            const dotnetTasks: tasks.ITask[] = tasks.insertNewTasks(existingTasks, getDotnetTasks(deploySubpath, subfolder));
 
-            tasks.updateTasks(context.workspace, dotnetTasks);
+            // do not overwrite any dotnet commands the user may have
+            let dotnetTasks: tasks.ITask[] = generateDotnetTasks(subfolder);
+            dotnetTasks = dotnetTasks.filter(t1 => !existingTasks.find(t2 => {
+                return t1.label === t2.label;
+            }));
+
+            const newTasks: tasks.ITask[] = existingTasks.concat(dotnetTasks);
+
+            tasks.updateTasks(context.workspace, newTasks);
         }
 
     }
@@ -92,7 +105,15 @@ async function tryGetCsprojFile(context: IDeployWizardContext, projectPath: stri
     }
 }
 
-function getDotnetTasks(deploySubpath: string, subfolder: string): TaskDefinition[] {
+
+async function tryGetTargetFramework(projFilePath: string): Promise<string | undefined> {
+    const projContents: string = (await fse.readFile(projFilePath)).toString();
+    const matches: RegExpMatchArray | null = projContents.match(/<TargetFramework>(.*)<\/TargetFramework>/);
+    return matches === null ? undefined : matches[1];
+}
+
+
+function generateDotnetTasks(subfolder: string): TaskDefinition[] {
     // always use posix for debug config
     // tslint:disable-next-line: no-unsafe-any no-invalid-template-strings
     const cwd: string = path.posix.join('${workspaceFolder}', subfolder);
@@ -105,9 +126,7 @@ function getDotnetTasks(deploySubpath: string, subfolder: string): TaskDefinitio
             "build",
             cwd,
             "/property:GenerateFullPaths=true",
-            "/consoleloggerparameters:NoSummary",
-            "--output",
-            deploySubpath
+            "/consoleloggerparameters:NoSummary"
         ],
         problemMatcher: "$msCompile"
     };
@@ -120,9 +139,7 @@ function getDotnetTasks(deploySubpath: string, subfolder: string): TaskDefinitio
             "publish",
             cwd,
             "/property:GenerateFullPaths=true",
-            "/consoleloggerparameters:NoSummary",
-            "--output",
-            deploySubpath
+            "/consoleloggerparameters:NoSummary"
         ],
         problemMatcher: "$msCompile"
     };
