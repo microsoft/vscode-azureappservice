@@ -105,6 +105,9 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
         if (!context.advancedCreation) {
             await setDefaultRgAndPlanName(wizardContext, siteStep);
             wizardContext.newAppInsightsName = await wizardContext.relatedNameTask;
+            if (!wizardContext.newAppInsightsName) {
+                throw new Error('Failed to generate unique name for resources. Use advanced creation to manually enter resource names.');
+            }
         }
 
         await wizard.execute();
@@ -132,38 +135,39 @@ async function createWebAppSettings(context: IAppSettingsContext): Promise<WebSi
 
         // all these settings are set on the portal if AI is enabled for Windows apps
         if (context.os === WebsiteOS.windows) {
-            appSettings.push({
-                name: 'APPINSIGHTS_PROFILERFEATURE_VERSION',
-                value: disabled
-            });
-            appSettings.push({
-                name: 'APPINSIGHTS_SNAPSHOTFEATURE_VERSION',
-                value: disabled
-            });
-            appSettings.push({
-                name: 'ApplicationInsightsAgent_EXTENSION_VERSION',
-                value: '~2'
-            });
-            appSettings.push({
-                name: 'DiagnosticServices_EXTENSION_VERSION',
-                value: disabled
-            });
-            appSettings.push({
-                name: 'InstrumentationEngine_EXTENSION_VERSION',
-                value: disabled
-            });
-            appSettings.push({
-                name: 'SnapshotDebugger_EXTENSION_VERSION',
-                value: disabled
-            });
-            appSettings.push({
-                name: 'XDT_MicrosoftApplicationInsights_BaseExtensions',
-                value: disabled
-            });
-            appSettings.push({
-                name: 'XDT_MicrosoftApplicationInsights_Mode',
-                value: 'default'
-            });
+            appSettings.push(
+                {
+                    name: 'APPINSIGHTS_PROFILERFEATURE_VERSION',
+                    value: disabled
+                },
+                {
+                    name: 'APPINSIGHTS_SNAPSHOTFEATURE_VERSION',
+                    value: disabled
+                },
+                {
+                    name: 'ApplicationInsightsAgent_EXTENSION_VERSION',
+                    value: '~2'
+                },
+                {
+                    name: 'DiagnosticServices_EXTENSION_VERSION',
+                    value: disabled
+                },
+                {
+                    name: 'InstrumentationEngine_EXTENSION_VERSION',
+                    value: disabled
+                },
+                {
+                    name: 'SnapshotDebugger_EXTENSION_VERSION',
+                    value: disabled
+                },
+                {
+                    name: 'XDT_MicrosoftApplicationInsights_BaseExtensions',
+                    value: disabled
+                },
+                {
+                    name: 'XDT_MicrosoftApplicationInsights_Mode',
+                    value: 'default'
+                });
         } else {
             appSettings.push({
                 name: 'APPLICATIONINSIGHTSAGENT_EXTENSION_ENABLED',
