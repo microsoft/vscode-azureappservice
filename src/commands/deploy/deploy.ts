@@ -156,15 +156,15 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
 
     await appservice.runPreDeployTask(deployContext, deployContext.deployFsPath, siteConfig.scmType, constants.extensionPrefix);
 
-    await node.runWithTemporaryDescription("Deploying...", async () => {
-        await appservice.deploy(nonNullValue(node).root.client, <string>deployContext.deployFsPath, deployContext, constants.showOutputChannelCommandId);
-    });
-
     // moved to after prompts for telemetry purposes
     const previousTokenSource: vscode.CancellationTokenSource | undefined = postDeployCancelTokens.get(node.id);
     if (previousTokenSource) {
         previousTokenSource.cancel();
     }
+
+    await node.runWithTemporaryDescription("Deploying...", async () => {
+        await appservice.deploy(nonNullValue(node).root.client, <string>deployContext.deployFsPath, deployContext, constants.showOutputChannelCommandId);
+    });
 
     context.telemetry.properties.webAppSource = deployContext.webAppSource;
 
