@@ -49,6 +49,10 @@ export async function setDefaultRgAndPlanName(wizardContext: IAppServiceWizardCo
 
             // otherwise create a new rg and asp
             wizardContext.newResourceGroupName = wizardContext.newResourceGroupName || await siteNameStep.getRelatedName(wizardContext, defaultName);
+            if (!wizardContext.newResourceGroupName) {
+                throw new Error('Failed to generate unique name for resources. Use advanced creation to manually enter resource names.');
+            }
+
             wizardContext.newPlanName = wizardContext.newResourceGroupName;
         }
     } else {

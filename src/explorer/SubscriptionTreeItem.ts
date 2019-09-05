@@ -3,10 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { WebSiteManagementClient } from 'azure-arm-website';
+import { WebSiteManagementClient, WebSiteManagementModels } from 'azure-arm-website';
 import { Site, WebAppCollection } from 'azure-arm-website/lib/models';
-import { AppKind, AppServicePlanCreateStep, AppServicePlanListStep, IAppServiceWizardContext, SiteClient, SiteCreateStep, SiteNameStep, SiteOSStep, SiteRuntimeStep } from 'vscode-azureappservice';
-import { AzExtTreeItem, AzureTreeItem, AzureWizard, AzureWizardExecuteStep, AzureWizardPromptStep, createAzureClient, ICreateChildImplContext, parseError, ResourceGroupCreateStep, ResourceGroupListStep, SubscriptionTreeItemBase } from 'vscode-azureextensionui';
+import { AppInsightsCreateStep, AppInsightsListStep, AppKind, AppServicePlanCreateStep, AppServicePlanListStep, IAppServiceWizardContext, IAppSettingsContext, SiteClient, SiteCreateStep, SiteNameStep, SiteOSStep, SiteRuntimeStep, WebsiteOS } from 'vscode-azureappservice';
+import { AzExtTreeItem, AzureTreeItem, AzureWizard, AzureWizardExecuteStep, AzureWizardPromptStep, createAzureClient, ICreateChildImplContext, LocationListStep, parseError, ResourceGroupCreateStep, ResourceGroupListStep, SubscriptionTreeItemBase } from 'vscode-azureextensionui';
 import { setAppWizardContextDefault } from '../commands/createWebApp/setAppWizardContextDefault';
 import { setDefaultRgAndPlanName } from '../commands/createWebApp/setDefaultRgAndPlanName';
 import { ext } from '../extensionVariables';
@@ -79,13 +79,17 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
             promptSteps.push(new SiteOSStep());
             promptSteps.push(new SiteRuntimeStep());
             promptSteps.push(new AppServicePlanListStep());
+            promptSteps.push(new AppInsightsListStep());
         } else {
             promptSteps.push(new SiteOSStep()); // will be skipped if there is a smart default
             promptSteps.push(new SiteRuntimeStep());
             executeSteps.push(new ResourceGroupCreateStep());
             executeSteps.push(new AppServicePlanCreateStep());
+            executeSteps.push(new AppInsightsCreateStep());
         }
-        executeSteps.push(new SiteCreateStep());
+        LocationListStep.addStep(wizardContext, promptSteps);
+
+        executeSteps.push(new SiteCreateStep(createWebAppSettings));
 
         if (wizardContext.newSiteOS !== undefined) {
             SiteOSStep.setLocationsTask(wizardContext);
@@ -100,6 +104,10 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
 
         if (!context.advancedCreation) {
             await setDefaultRgAndPlanName(wizardContext, siteStep);
+            wizardContext.newAppInsightsName = await wizardContext.relatedNameTask;
+            if (!wizardContext.newAppInsightsName) {
+                throw new Error('Failed to generate unique name for resources. Use advanced creation to manually enter resource names.');
+            }
         }
 
         await wizard.execute();
@@ -111,7 +119,63 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
 
         const createdNewAppMsg: string = `Created new web app "${siteClient.fullName}": https://${siteClient.defaultHostName}`;
         ext.outputChannel.appendLine(createdNewAppMsg);
-
         return new WebAppTreeItem(this, siteClient);
     }
+}
+
+async function createWebAppSettings(context: IAppSettingsContext): Promise<WebSiteManagementModels.NameValuePair[]> {
+    const appSettings: WebSiteManagementModels.NameValuePair[] = [];
+    const disabled: string = 'disabled';
+
+    if (context.aiInstrumentationKey) {
+        appSettings.push({
+            name: 'APPINSIGHTS_INSTRUMENTATIONKEY',
+            value: context.aiInstrumentationKey
+        });
+
+        // all these settings are set on the portal if AI is enabled for Windows apps
+        if (context.os === WebsiteOS.windows) {
+            appSettings.push(
+                {
+                    name: 'APPINSIGHTS_PROFILERFEATURE_VERSION',
+                    value: disabled
+                },
+                {
+                    name: 'APPINSIGHTS_SNAPSHOTFEATURE_VERSION',
+                    value: disabled
+                },
+                {
+                    name: 'ApplicationInsightsAgent_EXTENSION_VERSION',
+                    value: '~2'
+                },
+                {
+                    name: 'DiagnosticServices_EXTENSION_VERSION',
+                    value: disabled
+                },
+                {
+                    name: 'InstrumentationEngine_EXTENSION_VERSION',
+                    value: disabled
+                },
+                {
+                    name: 'SnapshotDebugger_EXTENSION_VERSION',
+                    value: disabled
+                },
+                {
+                    name: 'XDT_MicrosoftApplicationInsights_BaseExtensions',
+                    value: disabled
+                },
+                {
+                    name: 'XDT_MicrosoftApplicationInsights_Mode',
+                    value: 'default'
+                });
+        } else {
+            appSettings.push({
+                name: 'APPLICATIONINSIGHTSAGENT_EXTENSION_ENABLED',
+                value: 'true'
+            });
+        }
+
+    }
+
+    return appSettings;
 }

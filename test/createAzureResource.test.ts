@@ -52,7 +52,7 @@ suite('Create Azure Resources', async function (this: ISuiteCallbackContext): Pr
     });
 
     test('Create New Web App (Advanced)', async () => {
-        const testInputs: (string | RegExp)[] = [resourceName, '$(plus) Create new resource group', resourceName, 'Linux', regExpLTS, '$(plus) Create new App Service plan', resourceName, 'B1', 'West US'];
+        const testInputs: (string | RegExp)[] = [resourceName, '$(plus) Create new resource group', resourceName, 'Linux', regExpLTS, '$(plus) Create new App Service plan', resourceName, 'B1', '$(plus) Create new Application Insights resource', resourceName, 'West US'];
 
         resourceGroupsToDelete.push(resourceName);
         await testUserInput.runWithInputs(testInputs, async () => {
