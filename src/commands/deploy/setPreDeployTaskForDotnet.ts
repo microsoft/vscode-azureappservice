@@ -105,13 +105,11 @@ async function tryGetCsprojFile(context: IDeployWizardContext, projectPath: stri
     }
 }
 
-
 async function tryGetTargetFramework(projFilePath: string): Promise<string | undefined> {
     const projContents: string = (await fse.readFile(projFilePath)).toString();
     const matches: RegExpMatchArray | null = projContents.match(/<TargetFramework>(.*)<\/TargetFramework>/);
     return matches === null ? undefined : matches[1];
 }
-
 
 function generateDotnetTasks(subfolder: string): TaskDefinition[] {
     // always use posix for debug config
