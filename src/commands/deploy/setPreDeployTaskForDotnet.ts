@@ -55,15 +55,7 @@ export async function setPreDeployTaskForDotnet(context: IDeployWizardContext): 
 
             // this will overwrite clean and publish tasks
             const existingTasks: tasks.ITask[] = tasks.getTasks(context.workspace);
-            let dotnetTasks: tasks.ITask[] = getDotnetTasks(deploySubpath, subfolder);
-            const filteredTasks: tasks.ITask[] = existingTasks.filter(t1 => {
-                if (dotnetTasks.find(t2 => t2.label === t1.label)) {
-                    return false;
-                }
-                return true;
-            });
-
-            dotnetTasks = filteredTasks.concat(dotnetTasks);
+            const dotnetTasks: tasks.ITask[] = tasks.insertNewTasks(existingTasks, getDotnetTasks(deploySubpath, subfolder));
 
             tasks.updateTasks(context.workspace, dotnetTasks);
         }
@@ -104,25 +96,50 @@ function getDotnetTasks(deploySubpath: string, subfolder: string): TaskDefinitio
     // always use posix for debug config
     // tslint:disable-next-line: no-unsafe-any no-invalid-template-strings
     const cwd: string = path.posix.join('${workspaceFolder}', subfolder);
-    return [
-        {
-            label: 'clean',
-            command: 'dotnet clean',
-            type: 'shell',
-            problemMatcher: '$msCompile',
-            options: {
-                cwd
-            }
-        },
-        {
-            label: 'publish',
-            command: `dotnet publish -o ${deploySubpath}`,
-            type: 'shell',
-            dependsOn: 'clean',
-            problemMatcher: '$msCompile',
-            options: {
-                cwd
-            }
-        }
-    ];
+
+    const buildTask: TaskDefinition = {
+        label: "build",
+        command: "dotnet",
+        type: "process",
+        args: [
+            "build",
+            cwd,
+            "/property:GenerateFullPaths=true",
+            "/consoleloggerparameters:NoSummary",
+            "--output",
+            deploySubpath
+        ],
+        problemMatcher: "$msCompile"
+    };
+
+    const publishTask: TaskDefinition = {
+        label: "publish",
+        command: "dotnet",
+        type: "process",
+        args: [
+            "publish",
+            cwd,
+            "/property:GenerateFullPaths=true",
+            "/consoleloggerparameters:NoSummary",
+            "--output",
+            deploySubpath
+        ],
+        problemMatcher: "$msCompile"
+    };
+
+    const watchTask: TaskDefinition = {
+        label: "watch",
+        command: "dotnet",
+        type: "process",
+        args: [
+            "watch",
+            "run",
+            cwd,
+            "/property:GenerateFullPaths=true",
+            "/consoleloggerparameters:NoSummary"
+        ],
+        problemMatcher: "$msCompile"
+    };
+
+    return [buildTask, publishTask, watchTask];
 }
