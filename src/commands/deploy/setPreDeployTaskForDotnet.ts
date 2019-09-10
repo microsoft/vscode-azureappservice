@@ -6,7 +6,6 @@
 import * as fse from 'fs-extra';
 import * as path from 'path';
 import { MessageItem, TaskDefinition } from 'vscode';
-import { DialogResponses } from 'vscode-azureextensionui';
 import * as constants from '../../constants';
 import { ext } from '../../extensionVariables';
 import { isPathEqual } from '../../utils/pathUtils';
@@ -42,17 +41,18 @@ export async function setPreDeployTaskForDotnet(context: IDeployWizardContext): 
             return;
         }
 
-        const notConfiguredForDeploy: string = `Required assets to build and deploy are missing from "${context.workspace.name}"? Add them?`;
+        const notConfiguredForDeploy: string = `Required assets to build and deploy are missing from "${context.workspace.name}".`;
+        const addAssetsButton: MessageItem = { title: "Add Assets" };
         const dontShowAgainButton: MessageItem = { title: "No, and don't show again" };
-        const input: MessageItem = await ext.ui.showWarningMessage(notConfiguredForDeploy, { modal: true }, DialogResponses.yes, dontShowAgainButton);
+        const input: MessageItem = await ext.ui.showWarningMessage(notConfiguredForDeploy, { modal: true }, addAssetsButton, dontShowAgainButton);
         if (input === dontShowAgainButton) {
             await updateWorkspaceSetting(showPreDeployWarningSetting, false, workspaceFspath);
         } else {
             // resolves to "."if it is not a subfolder
             const subfolder: string = path.dirname(path.relative(workspaceFspath, csprojFile));
 
-            // always use posix for debug config
-            const deploySubpath: string = path.posix.join(subfolder, 'bin', 'Release', targetFramework, 'publish');
+            // always use posix for debug config because it's committed to source control and works on all OS's
+            const deploySubpath: string = path.posix.join(subfolder, 'bin', 'Debug', targetFramework, 'publish');
 
             await updateWorkspaceSetting(preDeployTaskSetting, 'publish', workspaceFspath);
             await updateWorkspaceSetting(constants.configurationSettings.deploySubpath, deploySubpath, workspaceFspath);
@@ -61,16 +61,23 @@ export async function setPreDeployTaskForDotnet(context: IDeployWizardContext): 
             context.deployFsPath = path.join(workspaceFspath, deploySubpath);
 
             const existingTasks: tasks.ITask[] = tasks.getTasks(context.workspace);
+            const publishTask: tasks.ITask | undefined = existingTasks.find(t1 => {
+                return t1.label === 'publish';
+            });
 
-            // do not overwrite any dotnet commands the user may have
-            let dotnetTasks: tasks.ITask[] = generateDotnetTasks(subfolder);
-            dotnetTasks = dotnetTasks.filter(t1 => !existingTasks.find(t2 => {
+            if (publishTask) {
+                // if the "publish" task exists and it doesn't dependOn a task, have it depend on clean
+                // tslint:disable-next-line: strict-boolean-expressions
+                publishTask.dependsOn = publishTask.dependsOn || 'clean';
+            }
+
+            // do not overwrite any dotnet tasks the user already defined
+            let newTasks: tasks.ITask[] = generateDotnetTasks(subfolder);
+            newTasks = newTasks.filter(t1 => !existingTasks.find(t2 => {
                 return t1.label === t2.label;
             }));
 
-            const newTasks: tasks.ITask[] = existingTasks.concat(dotnetTasks);
-
-            tasks.updateTasks(context.workspace, newTasks);
+            tasks.updateTasks(context.workspace, existingTasks.concat(newTasks));
         }
 
     }
@@ -84,8 +91,9 @@ async function tryGetCsprojFile(context: IDeployWizardContext, projectPath: stri
         await Promise.all(subfolders.map(async folder => {
             const filePath: string = path.join(projectPath, folder);
             // check its existence as this will check .vscode even if the project doesn't contain that folder
-            if (fse.existsSync(filePath) && (await fse.stat(filePath)).isDirectory()) {
+            if (await fse.pathExists(filePath) && (await fse.stat(filePath)).isDirectory()) {
                 projectFiles = projectFiles.concat(await checkFolderForCsproj(filePath));
+                context.telemetry.properties.csprojInSubfolder = 'true';
             }
         }));
     }
@@ -94,15 +102,15 @@ async function tryGetCsprojFile(context: IDeployWizardContext, projectPath: stri
 
     // if multiple csprojs were found, ignore them
     return projectFiles.length === 1 ? projectFiles[0] : undefined;
+}
 
-    async function checkFolderForCsproj(filePath: string): Promise<string[]> {
-        const files: string[] = fse.readdirSync(filePath);
-        const filePaths: string[] = files.map((f: string) => {
-            return path.join(filePath, f);
-        });
+async function checkFolderForCsproj(filePath: string): Promise<string[]> {
+    const files: string[] = await fse.readdir(filePath);
+    const filePaths: string[] = files.map((f: string) => {
+        return path.join(filePath, f);
+    });
 
-        return filePaths.filter((f: string) => /\.csproj$/i.test(f));
-    }
+    return filePaths.filter((f: string) => /\.csproj$/i.test(f));
 }
 
 async function tryGetTargetFramework(projFilePath: string): Promise<string | undefined> {
@@ -112,16 +120,16 @@ async function tryGetTargetFramework(projFilePath: string): Promise<string | und
 }
 
 function generateDotnetTasks(subfolder: string): TaskDefinition[] {
-    // always use posix for debug config
+    // always use posix for debug config because it's committed to source control and works on all OS's
     // tslint:disable-next-line: no-unsafe-any no-invalid-template-strings
     const cwd: string = path.posix.join('${workspaceFolder}', subfolder);
 
-    const buildTask: TaskDefinition = {
-        label: "build",
+    const cleanTask: TaskDefinition = {
+        label: "clean",
         command: "dotnet",
         type: "process",
         args: [
-            "build",
+            "clean",
             cwd,
             "/property:GenerateFullPaths=true",
             "/consoleloggerparameters:NoSummary"
@@ -139,22 +147,9 @@ function generateDotnetTasks(subfolder: string): TaskDefinition[] {
             "/property:GenerateFullPaths=true",
             "/consoleloggerparameters:NoSummary"
         ],
-        problemMatcher: "$msCompile"
+        problemMatcher: "$msCompile",
+        dependsOn: "clean"
     };
 
-    const watchTask: TaskDefinition = {
-        label: "watch",
-        command: "dotnet",
-        type: "process",
-        args: [
-            "watch",
-            "run",
-            cwd,
-            "/property:GenerateFullPaths=true",
-            "/consoleloggerparameters:NoSummary"
-        ],
-        problemMatcher: "$msCompile"
-    };
-
-    return [buildTask, publishTask, watchTask];
+    return [cleanTask, publishTask];
 }
