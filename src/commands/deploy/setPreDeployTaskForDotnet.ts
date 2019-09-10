@@ -43,7 +43,7 @@ export async function setPreDeployTaskForDotnet(context: IDeployWizardContext): 
 
         const notConfiguredForDeploy: string = `Required assets to build and deploy are missing from "${context.workspace.name}".`;
         const addAssetsButton: MessageItem = { title: "Add Assets" };
-        const dontShowAgainButton: MessageItem = { title: "No, and don't show again" };
+        const dontShowAgainButton: MessageItem = { title: "Don't Show Again" };
         const input: MessageItem = await ext.ui.showWarningMessage(notConfiguredForDeploy, { modal: true }, addAssetsButton, dontShowAgainButton);
         if (input === dontShowAgainButton) {
             await updateWorkspaceSetting(showPreDeployWarningSetting, false, workspaceFspath);
