@@ -151,18 +151,17 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     }
 
     public async promptScmDoBuildDeploy(fsPath: string, runtime: string, context: IActionContext): Promise<void> {
-        const yesButton: MessageItem = { title: 'Yes' };
         const dontShowAgainButton: MessageItem = { title: "No, and don't show again" };
         const learnMoreButton: MessageItem = { title: 'Learn More' };
         const buildDuringDeploy: string = `Would you like to update your workspace configuration to run build commands on the target server? This should improve deployment performance.`;
         let input: MessageItem | undefined = learnMoreButton;
         while (input === learnMoreButton) {
-            input = await window.showInformationMessage(buildDuringDeploy, yesButton, dontShowAgainButton, learnMoreButton);
+            input = await window.showInformationMessage(buildDuringDeploy, DialogResponses.yes, dontShowAgainButton, learnMoreButton);
             if (input === learnMoreButton) {
                 await openUrl('https://aka.ms/Kwwkbd');
             }
         }
-        if (input === yesButton) {
+        if (input === DialogResponses.yes) {
             await this.enableScmDoBuildDuringDeploy(fsPath, runtime);
             context.telemetry.properties.enableScmInput = "Yes";
         } else {

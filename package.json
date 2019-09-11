@@ -792,6 +792,12 @@
                         }
                     }
                 },
+                "appService.showPreDeployWarning": {
+                    "scope": "resource",
+                    "type": "boolean",
+                    "description": "Shows warning that project is not configured for VS Code deployments",
+                    "default": true
+                },
                 "appService.preDeployTask": {
                     "scope": "resource",
                     "type": "string",
