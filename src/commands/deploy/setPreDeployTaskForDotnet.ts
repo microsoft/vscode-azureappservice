@@ -14,7 +14,7 @@ import * as tasks from '../../vsCodeConfig/tasks';
 import { IDeployWizardContext } from "./IDeployWizardContext";
 
 const cleanId: string = 'clean';
-const publishId: string = 'publish';
+const publishId: string = 'publish-release';
 
 export async function setPreDeployTaskForDotnet(context: IDeployWizardContext): Promise<void> {
     const preDeployTaskSetting: string = 'preDeployTask';
@@ -55,7 +55,7 @@ export async function setPreDeployTaskForDotnet(context: IDeployWizardContext): 
             const subfolder: string = path.dirname(path.relative(workspaceFspath, csprojFile));
 
             // always use posix for debug config because it's committed to source control and works on all OS's
-            const deploySubpath: string = path.posix.join(subfolder, 'bin', 'Debug', targetFramework, publishId);
+            const deploySubpath: string = path.posix.join(subfolder, 'bin', 'Release', targetFramework, 'publish');
 
             await updateWorkspaceSetting(preDeployTaskSetting, publishId, workspaceFspath);
             await updateWorkspaceSetting(constants.configurationSettings.deploySubpath, deploySubpath, workspaceFspath);
@@ -147,6 +147,8 @@ function generateDotnetTasks(subfolder: string): TaskDefinition[] {
         args: [
             'publish',
             cwd,
+            '--configuration',
+            'Release',
             "/property:GenerateFullPaths=true",
             "/consoleloggerparameters:NoSummary"
         ],
