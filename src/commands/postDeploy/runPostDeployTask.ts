@@ -12,22 +12,12 @@ export const postDeployCancelTokens: Map<string, CancellationTokenSource> = new 
 export async function runPostDeployTask(node: SiteTreeItem, correlationId: string, tokenSource: CancellationTokenSource): Promise<void> {
     // both of these should be happening in parallel so don't await either
 
-    validateWebSite(correlationId, node, tokenSource).then(
-        () => {
-            // ignore
-        },
-        () => {
-            // ignore
-        });
+    // tslint:disable-next-line: no-floating-promises
+    validateWebSite(correlationId, node, tokenSource);
 
     // this currently only works for Linux apps
     if (node.root.client.isLinux) {
-        checkLinuxWebAppDownDetector(correlationId, node, tokenSource).then(
-            () => {
-                // ignore
-            },
-            () => {
-                // ignore
-            });
+        // tslint:disable-next-line: no-floating-promises
+        checkLinuxWebAppDownDetector(correlationId, node, tokenSource);
     }
 }

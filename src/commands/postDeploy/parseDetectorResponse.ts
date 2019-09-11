@@ -3,7 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ColumnName, detectorDataset, detectorTable } from "./checkLinuxWebAppDownDetector";
+import { IActionContext } from "vscode-azureextensionui";
+import { ColumnName, detectorDataset, detectorTable } from "./getLinuxDetectorError";
 
 // the dataset contains several tables all with the same tableName and columnNames so to find the proper table, look for a specific value
 export function findTableByRowValue(datasets: detectorDataset[], searchValue: string): detectorTable | undefined {
@@ -32,17 +33,10 @@ export function findTableByColumnName(datasets: detectorDataset[], columnName: C
     return undefined;
 }
 
-export function getValuesByColumnName(table: detectorTable, columnName: ColumnName): string[] {
+export function getValuesByColumnName(context: IActionContext, table: detectorTable, columnName: ColumnName): string {
     // -1 indicates that findIndex returned nothing
-    let rowIndex: number = -1;
+    const rowIndex: number = table.columns.findIndex(column => column.columnName === columnName);
     const values: string[] = [];
-
-    for (let i = 0; i < table.columns.length; i++) {
-        if (table.columns[i].columnName === columnName) {
-            rowIndex = i;
-            break;
-        }
-    }
 
     if (rowIndex > 0) {
         for (const row of table.rows) {
@@ -50,5 +44,10 @@ export function getValuesByColumnName(table: detectorTable, columnName: ColumnNa
         }
     }
 
-    return values;
+    // keep track of how many values the detector is returning, but for now, we only use the first result
+    context.telemetry.properties.columnName = columnName;
+    context.telemetry.properties.numberOfValues = values.length.toString();
+
+    // tslint:disable-next-line: strict-boolean-expressions
+    return values[0] || '';
 }

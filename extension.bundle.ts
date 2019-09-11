@@ -25,5 +25,5 @@ export { SubscriptionTreeItem } from './src/explorer/SubscriptionTreeItem';
 export { AzureAccountTreeItem } from './src/explorer/AzureAccountTreeItem';
 export { getRandomHexString } from './src/utils/randomUtils';
 export { checkForRemoteDebugSupport } from './src/commands/remoteDebug/checkForRemoteDebugSupport';
-export { ColumnName, detectorResponseJSON, detectorTable, validateTimestamp } from "./src/commands/postDeploy/checkLinuxWebAppDownDetector";
+export { ColumnName, detectorResponseJSON, detectorTable, validateTimestamp } from "./src/commands/postDeploy/getLinuxDetectorError";
 export { findTableByColumnName, findTableByRowValue, getValuesByColumnName } from "./src/commands/postDeploy/parseDetectorResponse";
