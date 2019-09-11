@@ -1,8 +1,6 @@
 import * as assert from 'assert';
 import { IActionContext } from 'vscode-azureextensionui';
-import { ColumnName, detectorResponseJSON, detectorTable, validateTimestamp } from "../src/commands/postDeploy/getLinuxDetectorError";
-import { findTableByColumnName, findTableByRowValue, getValuesByColumnName } from "../src/commands/postDeploy/parseDetectorResponse";
-import { nonNullValue } from '../src/utils/nonNull';
+import { ColumnName, detectorResponseJSON, detectorTable, findTableByColumnName, findTableByRowValue, getValuesByColumnName, nonNullValue, validateTimestamp } from "../extension.bundle";
 
 const vsCodeIntegration: string = 'Latest time seen by detector. To be used in VSCode integration.';
 const context: IActionContext = { telemetry: { properties: {}, measurements: {} }, errorHandling: {} };
