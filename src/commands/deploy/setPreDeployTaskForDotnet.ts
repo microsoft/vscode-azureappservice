@@ -13,6 +13,9 @@ import { getWorkspaceSetting, updateWorkspaceSetting } from '../../vsCodeConfig/
 import * as tasks from '../../vsCodeConfig/tasks';
 import { IDeployWizardContext } from "./IDeployWizardContext";
 
+const cleanId: string = 'clean';
+const publishId: string = 'publish';
+
 export async function setPreDeployTaskForDotnet(context: IDeployWizardContext): Promise<void> {
     const preDeployTaskSetting: string = 'preDeployTask';
     const showPreDeployWarningSetting: string = 'showPreDeployWarning';
@@ -52,9 +55,9 @@ export async function setPreDeployTaskForDotnet(context: IDeployWizardContext): 
             const subfolder: string = path.dirname(path.relative(workspaceFspath, csprojFile));
 
             // always use posix for debug config because it's committed to source control and works on all OS's
-            const deploySubpath: string = path.posix.join(subfolder, 'bin', 'Debug', targetFramework, 'publish');
+            const deploySubpath: string = path.posix.join(subfolder, 'bin', 'Debug', targetFramework, publishId);
 
-            await updateWorkspaceSetting(preDeployTaskSetting, 'publish', workspaceFspath);
+            await updateWorkspaceSetting(preDeployTaskSetting, publishId, workspaceFspath);
             await updateWorkspaceSetting(constants.configurationSettings.deploySubpath, deploySubpath, workspaceFspath);
 
             // update the deployContext.deployFsPath with the .NET output path since getDeployFsPath is called prior to this
@@ -62,13 +65,13 @@ export async function setPreDeployTaskForDotnet(context: IDeployWizardContext): 
 
             const existingTasks: tasks.ITask[] = tasks.getTasks(context.workspace);
             const publishTask: tasks.ITask | undefined = existingTasks.find(t1 => {
-                return t1.label === 'publish';
+                return t1.label === publishId;
             });
 
             if (publishTask) {
                 // if the "publish" task exists and it doesn't dependOn a task, have it depend on clean
                 // tslint:disable-next-line: strict-boolean-expressions
-                publishTask.dependsOn = publishTask.dependsOn || 'clean';
+                publishTask.dependsOn = publishTask.dependsOn || cleanId;
             }
 
             // do not overwrite any dotnet tasks the user already defined
@@ -125,11 +128,11 @@ function generateDotnetTasks(subfolder: string): TaskDefinition[] {
     const cwd: string = path.posix.join('${workspaceFolder}', subfolder);
 
     const cleanTask: TaskDefinition = {
-        label: "clean",
+        label: cleanId,
         command: "dotnet",
         type: "process",
         args: [
-            "clean",
+            'clean',
             cwd,
             "/property:GenerateFullPaths=true",
             "/consoleloggerparameters:NoSummary"
@@ -138,17 +141,17 @@ function generateDotnetTasks(subfolder: string): TaskDefinition[] {
     };
 
     const publishTask: TaskDefinition = {
-        label: "publish",
+        label: publishId,
         command: "dotnet",
         type: "process",
         args: [
-            "publish",
+            'publish',
             cwd,
             "/property:GenerateFullPaths=true",
             "/consoleloggerparameters:NoSummary"
         ],
         problemMatcher: "$msCompile",
-        dependsOn: "clean"
+        dependsOn: cleanId
     };
 
     return [cleanTask, publishTask];
