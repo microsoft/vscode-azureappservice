@@ -812,6 +812,11 @@
                     "type": "boolean",
                     "description": "Show a warning when the \"deploySubpath\" setting does not match the selected folder for deploying.",
                     "default": true
+                },
+                "appService.enableOutputTimestamps": {
+                    "type": "boolean",
+                    "description": "blah",
+                    "default": true
                 }
             }
         },

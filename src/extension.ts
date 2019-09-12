@@ -58,7 +58,7 @@ export async function activateInternal(
     const ui: IAzureUserInput = new AzureUserInput(context.globalState);
     ext.ui = ui;
 
-    ext.outputChannel = new AzExtOutputChannel("Azure App Service", vscode.window.createOutputChannel("Azure App Service"));
+    ext.outputChannel = new AzExtOutputChannel("appService", vscode.window.createOutputChannel("Azure App Service"));
     context.subscriptions.push(ext.outputChannel);
 
     registerUIExtensionVariables(ext);
