@@ -165,7 +165,7 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
     });
 
     const deployComplete: string = `Deployment to "${node.root.client.fullName}" completed.`;
-    ext.outputChannel.appendLine(deployComplete);
+    ext.outputChannel.appendLog(deployComplete);
     const browseWebsite: vscode.MessageItem = { title: 'Browse Website' };
     const streamLogs: vscode.MessageItem = { title: 'Stream Logs' };
 

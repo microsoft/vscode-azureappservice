@@ -7,7 +7,7 @@
 
 import * as vscode from 'vscode';
 import { AppSettingsTreeItem, AppSettingTreeItem, DeploymentsTreeItem, ISiteTreeRoot, registerAppServiceExtensionVariables, SiteClient, stopStreamingLogs } from 'vscode-azureappservice';
-import { AzExtTreeDataProvider, AzureTreeItem, AzureUserInput, callWithTelemetryAndErrorHandling, createApiProvider, createTelemetryReporter, IActionContext, IAzureUserInput, openInPortal, registerCommand, registerEvent, registerUIExtensionVariables } from 'vscode-azureextensionui';
+import { AzExtOutputChannel, AzExtTreeDataProvider, AzureTreeItem, AzureUserInput, callWithTelemetryAndErrorHandling, createApiProvider, createTelemetryReporter, IActionContext, IAzureUserInput, openInPortal, registerCommand, registerEvent, registerUIExtensionVariables } from 'vscode-azureextensionui';
 import { AzureExtensionApiProvider } from 'vscode-azureextensionui/api';
 import { downloadAppSettings } from './commands/appSettings/downloadAppSettings';
 import { toggleSlotSetting } from './commands/appSettings/toggleSlotSetting';
@@ -58,7 +58,7 @@ export async function activateInternal(
     const ui: IAzureUserInput = new AzureUserInput(context.globalState);
     ext.ui = ui;
 
-    ext.outputChannel = vscode.window.createOutputChannel("Azure App Service");
+    ext.outputChannel = new AzExtOutputChannel("Azure App Service", vscode.window.createOutputChannel("Azure App Service"));
     context.subscriptions.push(ext.outputChannel);
 
     registerUIExtensionVariables(ext);
@@ -118,9 +118,9 @@ export async function activateInternal(
             const startingApp: string = `Starting "${client.fullName}"...`;
             const startedApp: string = `"${client.fullName}" has been started.`;
             await node.runWithTemporaryDescription("Starting...", async () => {
-                ext.outputChannel.appendLine(startingApp);
+                ext.outputChannel.appendLog(startingApp);
                 await client.start();
-                ext.outputChannel.appendLine(startedApp);
+                ext.outputChannel.appendLog(startedApp);
             });
         });
         registerCommand('appService.Stop', async (actionContext: IActionContext, node?: SiteTreeItem) => {
@@ -132,9 +132,9 @@ export async function activateInternal(
             const stoppingApp: string = `Stopping "${client.fullName}"...`;
             const stoppedApp: string = `"${client.fullName}" has been stopped. App Service plan charges still apply.`;
             await node.runWithTemporaryDescription("Stopping...", async () => {
-                ext.outputChannel.appendLine(stoppingApp);
+                ext.outputChannel.appendLog(stoppingApp);
                 await client.stop();
-                ext.outputChannel.appendLine(stoppedApp);
+                ext.outputChannel.appendLog(stoppedApp);
             });
 
         });
