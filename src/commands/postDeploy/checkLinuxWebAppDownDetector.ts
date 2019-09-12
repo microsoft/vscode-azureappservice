@@ -53,7 +53,6 @@ export async function checkLinuxWebAppDownDetector(correlationId: string, node: 
                 if (showOutput) {
                     const noIssuesFound: string = `Diagnosing for "${node.root.client.siteName}" has timed out.`;
                     ext.outputChannel.appendLine(noIssuesFound);
-                    context.telemetry.properties.failureCount = '0';
                     context.telemetry.properties.timedOut = 'true';
                 }
                 return undefined;

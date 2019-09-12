@@ -20,11 +20,13 @@ import { nonNullValue } from '../../utils/nonNull';
 import { getRandomHexString } from "../../utils/randomUtils";
 import * as workspaceUtil from '../../utils/workspace';
 import { getWorkspaceSetting, updateWorkspaceSetting } from '../../vsCodeConfig/settings';
-import { postDeployCancelTokens, runPostDeployTask } from '../postDeploy/runPostDeployTask';
+import { runPostDeployTask } from '../postDeploy/runPostDeployTask';
 import { startStreamingLogs } from '../startStreamingLogs';
 import { getWebAppToDeploy } from './getWebAppToDeploy';
 import { IDeployWizardContext, WebAppSource } from './IDeployWizardContext';
 import { setPreDeployTaskForDotnet } from './setPreDeployTaskForDotnet';
+
+const postDeployCancelTokens: Map<string, vscode.CancellationTokenSource> = new Map();
 
 // tslint:disable-next-line:max-func-body-length cyclomatic-complexity
 export async function deploy(context: IActionContext, confirmDeployment: boolean, target?: vscode.Uri | SiteTreeItem | undefined): Promise<void> {

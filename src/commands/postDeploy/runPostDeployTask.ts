@@ -8,7 +8,6 @@ import { SiteTreeItem } from "../../explorer/SiteTreeItem";
 import { checkLinuxWebAppDownDetector } from "./checkLinuxWebAppDownDetector";
 import { validateWebSite } from "./validateWebSite";
 
-export const postDeployCancelTokens: Map<string, CancellationTokenSource> = new Map();
 export async function runPostDeployTask(node: SiteTreeItem, correlationId: string, tokenSource: CancellationTokenSource): Promise<void> {
     // both of these should be happening in parallel so don't await either
 
