@@ -822,6 +822,11 @@
                     "type": "boolean",
                     "description": "Enables detectors that diagnose post-deployment Linux Container status",
                     "default": false
+                },
+                "appService.enablePythonRemoteDebugging": {
+                    "type": "boolean",
+                    "description": "Enable remote debugging for Python web apps (experimental)",
+                    "default": false
                 }
             }
         },
