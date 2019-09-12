@@ -14,20 +14,18 @@ import { resourceGroupsToDelete, webSiteClient } from './global.resource.test';
 // tslint:disable-next-line: max-func-body-length
 suite('Web App actions', async function (this: ISuiteCallbackContext): Promise<void> {
     this.timeout(350 * 1000);
-    let regExpLTS: RegExp;
     let resourceName: string;
 
     suiteSetup(async function (this: IHookCallbackContext): Promise<void> {
         if (!longRunningTestsEnabled) {
             this.skip();
         }
-        regExpLTS = /LTS/g;
-        resourceName = getRandomHexString().toLowerCase();
+        resourceName = getRandomHexString();
     });
 
     test('Create New Web App (Advanced)', async () => {
+        const regExpLTS: RegExp = /LTS/g;
         const testInputs: (string | RegExp)[] = [resourceName, '$(plus) Create new resource group', resourceName, 'Linux', regExpLTS, '$(plus) Create new App Service plan', resourceName, 'B1', '$(plus) Create new Application Insights resource', resourceName, 'West US'];
-
         resourceGroupsToDelete.push(resourceName);
         await testUserInput.runWithInputs(testInputs, async () => {
             await vscode.commands.executeCommand('appService.CreateWebAppAdvanced');
