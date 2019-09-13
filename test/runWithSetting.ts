@@ -5,7 +5,7 @@
 
 import { constants, getGlobalSetting, updateGlobalSetting } from "../extension.bundle";
 
-export async function runWithFuncSetting(key: string, value: string | undefined, callback: () => Promise<void>): Promise<void> {
+export async function runWithExtensionSetting(key: string, value: string | undefined, callback: () => Promise<void>): Promise<void> {
     await runWithSettingInternal(key, value, constants.extensionPrefix, callback);
 }
 
