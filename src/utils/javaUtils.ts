@@ -41,6 +41,10 @@ export namespace javaUtils {
         }
     }
 
+    export function getJavaArtifactExtensions(): string[] {
+        return ['jar', 'war'];
+    }
+
     function isJavaSERequiredPortConfigured(appSettings: StringDictionary | undefined): boolean {
         if (appSettings && appSettings.properties) {
             for (const key of Object.keys(appSettings.properties)) {

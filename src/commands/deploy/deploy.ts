@@ -42,12 +42,14 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
         siteConfig = await node.root.client.getSiteConfig();
     }
 
-    let fileExtension: string | undefined;
+    let fileExtensions: string | string[] | undefined;
     if (siteConfig && javaUtils.isJavaRuntime(siteConfig.linuxFxVersion)) {
-        fileExtension = javaUtils.getArtifactTypeByJavaRuntime(siteConfig.linuxFxVersion);
+        fileExtensions = javaUtils.getArtifactTypeByJavaRuntime(siteConfig.linuxFxVersion);
+    } else if (await javaUtils.isJavaProject()) {
+        fileExtensions = javaUtils.getJavaArtifactExtensions();
     }
 
-    const deployFsPath: string = await appservice.getDeployFsPath(target, constants.extensionPrefix, fileExtension);
+    const deployFsPath: string = await appservice.getDeployFsPath(target, constants.extensionPrefix, fileExtensions);
     const workspace: vscode.WorkspaceFolder | undefined = workspaceUtil.getContainingWorkspace(deployFsPath);
     if (!workspace) {
         throw new Error('Failed to deploy because the path is not part of an open workspace. Open in a workspace and try again.');
@@ -101,11 +103,13 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
     siteConfig = siteConfig ? siteConfig : await node.root.client.getSiteConfig();
 
     if (javaUtils.isJavaRuntime(siteConfig.linuxFxVersion)) {
-        const javaArtifactFiles: vscode.Uri[] = await workspaceUtil.findFilesByFileExtension(deployContext.deployFsPath, javaUtils.getArtifactTypeByJavaRuntime(siteConfig.linuxFxVersion));
-        if (javaArtifactFiles.length > 0) {
-            const javaArtifactQp: IAzureQuickPickItem<string>[] = workspaceUtil.mapFilesToQuickPickItems(javaArtifactFiles);
-            // check if there is a jar/war file in the fsPath that was provided
-            deployContext.deployFsPath = <string>(await ext.ui.showQuickPick(javaArtifactQp, { placeHolder: `Select the ${javaUtils.getArtifactTypeByJavaRuntime(siteConfig.linuxFxVersion)} file to deploy...` })).data;
+        if (!fileExtensions) {
+            const javaArtifactFiles: vscode.Uri[] = await workspaceUtil.findFilesByFileExtension(deployContext.deployFsPath, javaUtils.getArtifactTypeByJavaRuntime(siteConfig.linuxFxVersion));
+            if (javaArtifactFiles.length > 0) {
+                const javaArtifactQp: IAzureQuickPickItem<string>[] = workspaceUtil.mapFilesToQuickPickItems(javaArtifactFiles);
+                // check if there is a jar/war file in the fsPath that was provided
+                deployContext.deployFsPath = <string>(await ext.ui.showQuickPick(javaArtifactQp, { placeHolder: `Select the ${javaUtils.getArtifactTypeByJavaRuntime(siteConfig.linuxFxVersion)} file to deploy...` })).data;
+            }
         }
         await javaUtils.configureJavaSEAppSettings(node);
     }
