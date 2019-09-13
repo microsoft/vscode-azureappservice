@@ -28,3 +28,4 @@ export { nonNullValue } from './src/utils/nonNull';
 export { checkForRemoteDebugSupport } from './src/commands/remoteDebug/checkForRemoteDebugSupport';
 export { ColumnName, detectorResponseJSON, detectorTable, getLinuxDetectorError, validateTimestamp } from "./src/commands/postDeploy/getLinuxDetectorError";
 export { findTableByColumnName, findTableByRowValue, getValuesByColumnName } from "./src/commands/postDeploy/parseDetectorResponse";
+export { getGlobalSetting, updateGlobalSetting } from './src/vsCodeConfig/settings';
