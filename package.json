@@ -856,7 +856,7 @@
         "typescript": "^3.3.1",
         "vsce": "^1.55.0",
         "vscode": "^1.1.33",
-        "vscode-azureextensiondev": "^0.2.1",
+        "vscode-azureextensiondev": "^0.2.3",
         "webpack": "^4.25.1",
         "webpack-cli": "^3.1.2"
     },
@@ -868,7 +868,7 @@
         "portfinder": "^1.0.13",
         "request-promise": "^4.2.2",
         "vscode-azureappservice": "^0.44.3",
-        "vscode-azureextensionui": "^0.28.0",
+        "vscode-azureextensionui": "^0.27.1",
         "vscode-azurekudu": "^0.1.8"
     },
     "extensionDependencies": [
