@@ -10,7 +10,7 @@ import { DeployResult } from "vscode-azurekudu/lib/models";
 import { SiteTreeItem } from "../../explorer/SiteTreeItem";
 import { ext } from '../../extensionVariables';
 import { delay } from "../../utils/delay";
-import { getGlobalSetting } from '../../vsCodeConfig/settings';
+import { getWorkspaceSetting } from '../../vsCodeConfig/settings';
 import { getLinuxDetectorError } from "./getLinuxDetectorError";
 
 const linuxContainerStartFailureId: string = 'LinuxContainerStartFailure';
@@ -31,7 +31,7 @@ export async function checkLinuxWebAppDownDetector(correlationId: string, node: 
         const deployResultTime: Date = new Date(deployment.startTime);
 
         const enableDetectorsSetting: string = 'enableDetectors';
-        const showOutput: boolean | undefined = getGlobalSetting<boolean>(enableDetectorsSetting);
+        const showOutput: boolean | undefined = getWorkspaceSetting<boolean>(enableDetectorsSetting);
 
         if (showOutput) {
             const detectorOutput: string = `Diagnosing web app "${node.root.client.siteName}" for critical errors...`;
