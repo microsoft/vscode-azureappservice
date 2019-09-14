@@ -19,12 +19,14 @@ import { javaUtils } from '../../utils/javaUtils';
 import { nonNullValue } from '../../utils/nonNull';
 import { getRandomHexString } from "../../utils/randomUtils";
 import * as workspaceUtil from '../../utils/workspace';
-import { cancelWebsiteValidation, validateWebSite } from '../../validateWebSite';
 import { getWorkspaceSetting, updateWorkspaceSetting } from '../../vsCodeConfig/settings';
+import { runPostDeployTask } from '../postDeploy/runPostDeployTask';
 import { startStreamingLogs } from '../startStreamingLogs';
 import { getWebAppToDeploy } from './getWebAppToDeploy';
 import { IDeployWizardContext, WebAppSource } from './IDeployWizardContext';
 import { setPreDeployTaskForDotnet } from './setPreDeployTaskForDotnet';
+
+const postDeployCancelTokens: Map<string, vscode.CancellationTokenSource> = new Map();
 
 // tslint:disable-next-line:max-func-body-length cyclomatic-complexity
 export async function deploy(context: IActionContext, confirmDeployment: boolean, target?: vscode.Uri | SiteTreeItem | undefined): Promise<void> {
@@ -159,10 +161,19 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
     node.promptToSaveDeployDefaults(deployContext, deployContext.workspace.uri.fsPath, deployContext.deployFsPath);
     await appservice.runPreDeployTask(deployContext, deployContext.deployFsPath, siteConfig.scmType, constants.extensionPrefix);
 
-    cancelWebsiteValidation(node);
+    // cancellation moved to after prompts while gathering telemetry
+    // cancel the previous detector check from the same web app
+    const previousTokenSource: vscode.CancellationTokenSource | undefined = postDeployCancelTokens.get(node.id);
+    if (previousTokenSource) {
+        previousTokenSource.cancel();
+    }
+
     await node.runWithTemporaryDescription("Deploying...", async () => {
         await appservice.deploy(nonNullValue(node).root.client, <string>deployContext.deployFsPath, deployContext, constants.showOutputChannelCommandId);
     });
+
+    const tokenSource: vscode.CancellationTokenSource = new vscode.CancellationTokenSource();
+    postDeployCancelTokens.set(node.id, tokenSource);
 
     const deployComplete: string = `Deployment to "${node.root.client.fullName}" completed.`;
     ext.outputChannel.appendLine(deployComplete);
@@ -180,12 +191,7 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
         }
     });
 
-    // Don't wait
-    validateWebSite(correlationId, node).then(
-        () => {
-            // ignore
-        },
-        () => {
-            // ignore
-        });
+    // intentionally not waiting
+    // tslint:disable-next-line: no-floating-promises
+    runPostDeployTask(node, correlationId, tokenSource);
 }

@@ -812,6 +812,11 @@
                     "type": "boolean",
                     "description": "Show a warning when the \"deploySubpath\" setting does not match the selected folder for deploying.",
                     "default": true
+                },
+                "appService.enableDetectors": {
+                    "type": "boolean",
+                    "description": "Enables detectors that diagnose post-deployment Linux Container status",
+                    "default": false
                 }
             }
         },

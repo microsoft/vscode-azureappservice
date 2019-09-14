@@ -117,6 +117,7 @@ export async function activateInternal(
             const client: SiteClient = node.root.client;
             const startingApp: string = `Starting "${client.fullName}"...`;
             const startedApp: string = `"${client.fullName}" has been started.`;
+
             await node.runWithTemporaryDescription("Starting...", async () => {
                 ext.outputChannel.appendLine(startingApp);
                 await client.start();
