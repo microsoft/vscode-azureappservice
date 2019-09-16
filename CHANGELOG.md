@@ -1,6 +1,21 @@
 # Change Log
 All notable changes to the "azure-appservice" extension will be documented in this file.
 
+## 0.16.0 - 2019-09-18
+### Added
+- Smart defaults for deploying .NET projects (adds settings and tasks for one-click deployment)
+- Add "Collpase All" button to top right of Azure Explorer view
+- Web Apps support App Insights by default
+- Create New Web App... (Advanced) [`appService.advancedCreation` setting is no longer supported]
+- Timestamps are prepended to all output messages.  Turn this off by setting `appService.enableOutputTimestamps` to `false`
+- App Service Diagnostics runs post deployment (feature flag required)
+
+### Changed
+- Project must be opened in workspace to deploy it
+
+### Fixed
+- [Bugs fixed](https://github.com/microsoft/vscode-azureappservice/issues?q=is%3Aissue+is%3Aclosed+milestone%3A0.16.0)
+
 ## 0.15.0 - 2019-06-10
 ### Added
 - Free tier for Linux plans now available!
