@@ -9,7 +9,7 @@ import { pathExists } from 'fs-extra';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as appservice from 'vscode-azureappservice';
-import { DialogResponses, IActionContext, IAzureQuickPickItem, parseError } from 'vscode-azureextensionui';
+import { DialogResponses, IActionContext, parseError } from 'vscode-azureextensionui';
 import * as constants from '../../constants';
 import { SiteTreeItem } from '../../explorer/SiteTreeItem';
 import { WebAppTreeItem } from '../../explorer/WebAppTreeItem';
@@ -103,14 +103,6 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
     siteConfig = siteConfig ? siteConfig : await node.root.client.getSiteConfig();
 
     if (javaUtils.isJavaRuntime(siteConfig.linuxFxVersion)) {
-        if (!fileExtensions) {
-            const javaArtifactFiles: vscode.Uri[] = await workspaceUtil.findFilesByFileExtension(deployContext.deployFsPath, javaUtils.getArtifactTypeByJavaRuntime(siteConfig.linuxFxVersion));
-            if (javaArtifactFiles.length > 0) {
-                const javaArtifactQp: IAzureQuickPickItem<string>[] = workspaceUtil.mapFilesToQuickPickItems(javaArtifactFiles);
-                // check if there is a jar/war file in the fsPath that was provided
-                deployContext.deployFsPath = <string>(await ext.ui.showQuickPick(javaArtifactQp, { placeHolder: `Select the ${javaUtils.getArtifactTypeByJavaRuntime(siteConfig.linuxFxVersion)} file to deploy...` })).data;
-            }
-        }
         await javaUtils.configureJavaSEAppSettings(node);
     }
 
