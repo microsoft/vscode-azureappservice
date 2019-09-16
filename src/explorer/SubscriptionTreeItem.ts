@@ -118,7 +118,7 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
         const siteClient: SiteClient = new SiteClient(nonNullProp(wizardContext, 'site'), this.root);
 
         const createdNewAppMsg: string = `Created new web app "${siteClient.fullName}": https://${siteClient.defaultHostName}`;
-        ext.outputChannel.appendLine(createdNewAppMsg);
+        ext.outputChannel.appendLog(createdNewAppMsg);
         return new WebAppTreeItem(this, siteClient);
     }
 }
