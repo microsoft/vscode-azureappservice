@@ -31,7 +31,7 @@ import { showFile } from './commands/showFile';
 import { startSsh } from './commands/startSsh';
 import { startStreamingLogs } from './commands/startStreamingLogs';
 import { swapSlots } from './commands/swapSlots';
-import { showOutputChannelCommandId, toggleValueVisibilityCommandId } from './constants';
+import { extensionPrefix, showOutputChannelCommandId, toggleValueVisibilityCommandId } from './constants';
 import { AzureAccountTreeItem } from './explorer/AzureAccountTreeItem';
 import { DeploymentSlotsNATreeItem, DeploymentSlotsTreeItem, ScaleUpTreeItem } from './explorer/DeploymentSlotsTreeItem';
 import { DeploymentSlotTreeItem } from './explorer/DeploymentSlotTreeItem';
@@ -58,7 +58,7 @@ export async function activateInternal(
     const ui: IAzureUserInput = new AzureUserInput(context.globalState);
     ext.ui = ui;
 
-    ext.outputChannel = createAzExtOutputChannel("Azure App Service", "appService");
+    ext.outputChannel = createAzExtOutputChannel("Azure App Service", extensionPrefix);
     context.subscriptions.push(ext.outputChannel);
 
     registerUIExtensionVariables(ext);
