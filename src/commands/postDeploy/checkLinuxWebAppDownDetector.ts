@@ -35,7 +35,7 @@ export async function checkLinuxWebAppDownDetector(correlationId: string, node: 
 
         if (showOutput) {
             const detectorOutput: string = `Diagnosing web app "${node.root.client.siteName}" for critical errors...`;
-            ext.outputChannel.appendLine(detectorOutput);
+            ext.outputChannel.appendLog(detectorOutput);
         }
 
         let detectorErrorMessage: string | undefined;
@@ -52,7 +52,7 @@ export async function checkLinuxWebAppDownDetector(correlationId: string, node: 
             if (Date.now() > detectorTimeoutMs) {
                 if (showOutput) {
                     const noIssuesFound: string = `Diagnosing for "${node.root.client.siteName}" has timed out.`;
-                    ext.outputChannel.appendLine(noIssuesFound);
+                    ext.outputChannel.appendLog(noIssuesFound);
                     context.telemetry.properties.timedOut = 'true';
                 }
                 return undefined;
