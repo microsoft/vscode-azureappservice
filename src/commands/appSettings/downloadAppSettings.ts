@@ -28,7 +28,7 @@ export async function downloadAppSettings(context: IActionContext, node?: AppSet
     const envVarUri: vscode.Uri = vscode.Uri.file(envVarPath);
 
     await node.runWithTemporaryDescription('Downloading...', async () => {
-        ext.outputChannel.appendLine(`Downloading settings from "${client.fullName}"...`);
+        ext.outputChannel.appendLog(`Downloading settings from "${client.fullName}"...`);
         const localEnvVariables: DotenvParseOutput = await getLocalEnvironmentVariables(envVarPath, true /* allowOverwrite */);
         const remoteEnvVariables: WebSiteManagementModels.StringDictionary = await client.listApplicationSettings();
         if (remoteEnvVariables.properties) {

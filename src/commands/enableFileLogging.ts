@@ -13,10 +13,10 @@ export async function enableFileLogging(node: SiteTreeItem): Promise<void> {
     const enablingLogging: string = `Enabling Logging for "${node.root.client.fullName}"...`;
     const enabledLogging: string = `Enabled Logging for "${node.root.client.fullName}".`;
     await window.withProgress({ location: ProgressLocation.Notification, title: enablingLogging }, async (): Promise<void> => {
-        ext.outputChannel.appendLine(enablingLogging);
+        ext.outputChannel.appendLog(enablingLogging);
         await node.enableHttpLogs();
         await commands.executeCommand('appService.Restart', node);
         window.showInformationMessage(enabledLogging);
-        ext.outputChannel.appendLine(enabledLogging);
+        ext.outputChannel.appendLog(enabledLogging);
     });
 }

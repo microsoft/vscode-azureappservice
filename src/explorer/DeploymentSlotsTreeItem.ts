@@ -53,7 +53,7 @@ export class DeploymentSlotsTreeItem extends AzureParentTreeItem<ISiteTreeRoot> 
         const siteClient: SiteClient = new SiteClient(newSite, this.root);
 
         const createdNewSlotMsg: string = `Created new slot "${siteClient.fullName}": https://${siteClient.defaultHostName}`;
-        ext.outputChannel.appendLine(createdNewSlotMsg);
+        ext.outputChannel.appendLog(createdNewSlotMsg);
 
         return new DeploymentSlotTreeItem(this, siteClient);
     }

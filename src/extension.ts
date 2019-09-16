@@ -7,7 +7,7 @@
 
 import * as vscode from 'vscode';
 import { AppSettingsTreeItem, AppSettingTreeItem, DeploymentsTreeItem, ISiteTreeRoot, registerAppServiceExtensionVariables, SiteClient, stopStreamingLogs } from 'vscode-azureappservice';
-import { AzExtTreeDataProvider, AzureTreeItem, AzureUserInput, callWithTelemetryAndErrorHandling, createApiProvider, createTelemetryReporter, IActionContext, IAzureUserInput, openInPortal, registerCommand, registerEvent, registerUIExtensionVariables } from 'vscode-azureextensionui';
+import { AzExtTreeDataProvider, AzureTreeItem, AzureUserInput, callWithTelemetryAndErrorHandling, createApiProvider, createAzExtOutputChannel, createTelemetryReporter, IActionContext, IAzureUserInput, openInPortal, registerCommand, registerEvent, registerUIExtensionVariables } from 'vscode-azureextensionui';
 import { AzureExtensionApiProvider } from 'vscode-azureextensionui/api';
 import { downloadAppSettings } from './commands/appSettings/downloadAppSettings';
 import { toggleSlotSetting } from './commands/appSettings/toggleSlotSetting';
@@ -31,7 +31,7 @@ import { showFile } from './commands/showFile';
 import { startSsh } from './commands/startSsh';
 import { startStreamingLogs } from './commands/startStreamingLogs';
 import { swapSlots } from './commands/swapSlots';
-import { showOutputChannelCommandId, toggleValueVisibilityCommandId } from './constants';
+import { extensionPrefix, showOutputChannelCommandId, toggleValueVisibilityCommandId } from './constants';
 import { AzureAccountTreeItem } from './explorer/AzureAccountTreeItem';
 import { DeploymentSlotsNATreeItem, DeploymentSlotsTreeItem, ScaleUpTreeItem } from './explorer/DeploymentSlotsTreeItem';
 import { DeploymentSlotTreeItem } from './explorer/DeploymentSlotTreeItem';
@@ -58,7 +58,7 @@ export async function activateInternal(
     const ui: IAzureUserInput = new AzureUserInput(context.globalState);
     ext.ui = ui;
 
-    ext.outputChannel = vscode.window.createOutputChannel("Azure App Service");
+    ext.outputChannel = createAzExtOutputChannel("Azure App Service", extensionPrefix);
     context.subscriptions.push(ext.outputChannel);
 
     registerUIExtensionVariables(ext);
@@ -117,10 +117,11 @@ export async function activateInternal(
             const client: SiteClient = node.root.client;
             const startingApp: string = `Starting "${client.fullName}"...`;
             const startedApp: string = `"${client.fullName}" has been started.`;
+
             await node.runWithTemporaryDescription("Starting...", async () => {
-                ext.outputChannel.appendLine(startingApp);
+                ext.outputChannel.appendLog(startingApp);
                 await client.start();
-                ext.outputChannel.appendLine(startedApp);
+                ext.outputChannel.appendLog(startedApp);
             });
         });
         registerCommand('appService.Stop', async (actionContext: IActionContext, node?: SiteTreeItem) => {
@@ -132,9 +133,9 @@ export async function activateInternal(
             const stoppingApp: string = `Stopping "${client.fullName}"...`;
             const stoppedApp: string = `"${client.fullName}" has been stopped. App Service plan charges still apply.`;
             await node.runWithTemporaryDescription("Stopping...", async () => {
-                ext.outputChannel.appendLine(stoppingApp);
+                ext.outputChannel.appendLog(stoppingApp);
                 await client.stop();
-                ext.outputChannel.appendLine(stoppedApp);
+                ext.outputChannel.appendLog(stoppedApp);
             });
 
         });
