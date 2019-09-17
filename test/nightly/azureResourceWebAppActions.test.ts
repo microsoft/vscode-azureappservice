@@ -4,56 +4,28 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as assert from 'assert';
-import { ResourceManagementClient } from 'azure-arm-resource';
-import { WebSiteManagementClient, WebSiteManagementModels } from 'azure-arm-website';
+import { WebSiteManagementModels } from 'azure-arm-website';
 import { IHookCallbackContext, ISuiteCallbackContext } from 'mocha';
 import * as vscode from 'vscode';
-import { TestAzureAccount } from 'vscode-azureextensiondev';
-import { AzExtTreeDataProvider, AzureAccountTreeItem, constants, createAzureClient, DialogResponses, ext, getRandomHexString } from '../extension.bundle';
-import { longRunningTestsEnabled, testUserInput } from './global.test';
+import { constants, DialogResponses, getRandomHexString } from '../../extension.bundle';
+import { longRunningTestsEnabled, testUserInput } from '../global.test';
+import { resourceGroupsToDelete, webSiteClient } from './global.resource.test';
 
 // tslint:disable-next-line: max-func-body-length
-suite('Create Azure Resources', async function (this: ISuiteCallbackContext): Promise<void> {
-    this.timeout(1200 * 1000);
-    const resourceGroupsToDelete: string[] = [];
-    const testAccount: TestAzureAccount = new TestAzureAccount(vscode);
-    const regExpLTS: RegExp = /LTS/g;
-    const resourceName: string = getRandomHexString().toLowerCase();
-    let webSiteClient: WebSiteManagementClient;
+suite('Web App actions', async function (this: ISuiteCallbackContext): Promise<void> {
+    this.timeout(350 * 1000);
+    let resourceName: string;
 
     suiteSetup(async function (this: IHookCallbackContext): Promise<void> {
         if (!longRunningTestsEnabled) {
             this.skip();
         }
-        this.timeout(120 * 1000);
-        await testAccount.signIn();
-        ext.azureAccountTreeItem = new AzureAccountTreeItem(testAccount);
-        ext.tree = new AzExtTreeDataProvider(ext.azureAccountTreeItem, 'appService.loadMore');
-        webSiteClient = createAzureClient(testAccount.getSubscriptionContext(), WebSiteManagementClient);
-    });
-
-    suiteTeardown(async function (this: IHookCallbackContext): Promise<void> {
-        if (!longRunningTestsEnabled) {
-            this.skip();
-        }
-        this.timeout(1200 * 1000);
-        const client: ResourceManagementClient = createAzureClient(testAccount.getSubscriptionContext(), ResourceManagementClient);
-        await Promise.all(resourceGroupsToDelete.map(async resourceGroup => {
-            if (await client.resourceGroups.checkExistence(resourceGroup)) {
-                console.log(`Deleting resource group "${resourceGroup}"...`);
-                await client.resourceGroups.deleteMethod(resourceGroup);
-                console.log(`Resource group "${resourceGroup}" deleted.`);
-            } else {
-                // If the test failed, the resource group might not actually exist
-                console.log(`Ignoring resource group "${resourceGroup}" because it does not exist.`);
-            }
-        }));
-        ext.azureAccountTreeItem.dispose();
+        resourceName = getRandomHexString();
     });
 
     test('Create New Web App (Advanced)', async () => {
+        const regExpLTS: RegExp = /LTS/g;
         const testInputs: (string | RegExp)[] = [resourceName, '$(plus) Create new resource group', resourceName, 'Linux', regExpLTS, '$(plus) Create new App Service plan', resourceName, 'B1', '$(plus) Create new Application Insights resource', resourceName, 'West US'];
-
         resourceGroupsToDelete.push(resourceName);
         await testUserInput.runWithInputs(testInputs, async () => {
             await vscode.commands.executeCommand('appService.CreateWebAppAdvanced');
