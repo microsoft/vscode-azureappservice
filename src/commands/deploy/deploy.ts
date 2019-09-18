@@ -61,6 +61,9 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
         ...context, workspace, deployFsPath, webAppSource
     };
 
+    // because this is workspace dependant, do it before user selects app
+    await setPreDeployTaskForDotnet(deployContext);
+
     if (!node) {
         const onTreeItemCreatedFromQuickPickDisposable: vscode.Disposable = ext.tree.onTreeItemCreate((newNode: SiteTreeItem) => {
             // event is fired from azure-extensionui if node was created during deployment
@@ -122,8 +125,6 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
 
         }
     }
-
-    await setPreDeployTaskForDotnet(deployContext);
 
     if (confirmDeployment && siteConfig.scmType !== constants.ScmType.LocalGit && siteConfig !== constants.ScmType.GitHub) {
         const warning: string = `Are you sure you want to deploy to "${node.root.client.fullName}"? This will overwrite any previous deployment and cannot be undone.`;

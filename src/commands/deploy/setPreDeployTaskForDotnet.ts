@@ -39,55 +39,52 @@ export async function setPreDeployTaskForDotnet(context: IDeployWizardContext): 
     if (csprojFile) {
         const targetFramework: string | undefined = await tryGetTargetFramework(csprojFile);
         context.telemetry.properties.tfw = targetFramework ? targetFramework : 'N/A';
+
         if (!targetFramework) {
             // if the target framework cannot be found, don't try to set defaults
             return;
         }
 
-        const notConfiguredForDeploy: string = `Required assets to build and deploy are missing from "${context.workspace.name}".`;
-        const addAssetsButton: MessageItem = { title: "Add Assets" };
-        const dontShowAgainButton: MessageItem = { title: "Don't Show Again" };
-        const input: MessageItem = await ext.ui.showWarningMessage(notConfiguredForDeploy, { modal: true }, addAssetsButton, dontShowAgainButton);
-        if (input === dontShowAgainButton) {
-            await updateWorkspaceSetting(showPreDeployWarningSetting, false, workspaceFspath);
-        } else {
-            // resolves to "."if it is not a subfolder
-            const subfolder: string = path.dirname(path.relative(workspaceFspath, csprojFile));
+        const notConfiguredForDeploy: string = `Required configuration to deploy is missing from "${context.workspace.name}".`;
+        const addConfigButton: MessageItem = { title: "Add Config" };
+        await ext.ui.showWarningMessage(notConfiguredForDeploy, { modal: true }, addConfigButton);
 
-            // always use posix for debug config because it's committed to source control and works on all OS's
-            const deploySubpath: string = path.posix.join(subfolder, 'bin', 'Release', targetFramework, 'publish');
+        // resolves to "."if it is not a subfolder
+        const subfolder: string = path.dirname(path.relative(workspaceFspath, csprojFile));
 
-            await updateWorkspaceSetting(preDeployTaskSetting, publishId, workspaceFspath);
-            await updateWorkspaceSetting(constants.configurationSettings.deploySubpath, deploySubpath, workspaceFspath);
+        // always use posix for debug config because it's committed to source control and works on all OS's
+        const deploySubpath: string = path.posix.join(subfolder, 'bin', 'Release', targetFramework, 'publish');
 
-            // update the deployContext.deployFsPath with the .NET output path since getDeployFsPath is called prior to this
-            context.deployFsPath = path.join(workspaceFspath, deploySubpath);
+        await updateWorkspaceSetting(preDeployTaskSetting, publishId, workspaceFspath);
+        await updateWorkspaceSetting(constants.configurationSettings.deploySubpath, deploySubpath, workspaceFspath);
 
-            const existingTasks: tasks.ITask[] = tasks.getTasks(context.workspace);
-            const publishTask: tasks.ITask | undefined = existingTasks.find(t1 => {
-                return t1.label === publishId;
-            });
+        // update the deployContext.deployFsPath with the .NET output path since getDeployFsPath is called prior to this
+        context.deployFsPath = path.join(workspaceFspath, deploySubpath);
 
-            if (publishTask) {
-                // if the "publish" task exists and it doesn't dependOn a task, have it depend on clean
-                // tslint:disable-next-line: strict-boolean-expressions
-                publishTask.dependsOn = publishTask.dependsOn || cleanId;
-            }
+        const existingTasks: tasks.ITask[] = tasks.getTasks(context.workspace);
+        const publishTask: tasks.ITask | undefined = existingTasks.find(t1 => {
+            return t1.label === publishId;
+        });
 
-            // do not overwrite any dotnet tasks the user already defined
-            let newTasks: tasks.ITask[] = generateDotnetTasks(subfolder);
-            newTasks = newTasks.filter(t1 => !existingTasks.find(t2 => {
-                return t1.label === t2.label;
-            }));
+        if (publishTask) {
+            // if the "publish" task exists and it doesn't dependOn a task, have it depend on clean
+            // tslint:disable-next-line: strict-boolean-expressions
+            publishTask.dependsOn = publishTask.dependsOn || cleanId;
 
-            const currentVersion: string | undefined = tasks.getTasksVersion(context.workspace);
-            if (!currentVersion) {
-                tasks.updateTasksVersion(context.workspace, tasks.tasksVersion);
-            }
-
-            tasks.updateTasks(context.workspace, existingTasks.concat(newTasks));
         }
 
+        // do not overwrite any dotnet tasks the user already defined
+        let newTasks: tasks.ITask[] = generateDotnetTasks(subfolder);
+        newTasks = newTasks.filter(t1 => !existingTasks.find(t2 => {
+            return t1.label === t2.label;
+        }));
+
+        const currentVersion: string | undefined = tasks.getTasksVersion(context.workspace);
+        if (!currentVersion) {
+            tasks.updateTasksVersion(context.workspace, tasks.tasksVersion);
+        }
+
+        tasks.updateTasks(context.workspace, existingTasks.concat(newTasks));
     }
 }
 
@@ -161,5 +158,18 @@ function generateDotnetTasks(subfolder: string): TaskDefinition[] {
         dependsOn: cleanId
     };
 
-    return [cleanTask, publishTask];
+    const buildTask: TaskDefinition = {
+        label: "build",
+        command: "dotnet",
+        type: "process",
+        args: [
+            "build",
+            cwd,
+            "/property:GenerateFullPaths=true",
+            "/consoleloggerparameters:NoSummary"
+        ],
+        problemMatcher: "$msCompile"
+    };
+
+    return [cleanTask, publishTask, buildTask];
 }
