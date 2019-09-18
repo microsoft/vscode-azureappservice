@@ -68,7 +68,8 @@ export namespace javaUtils {
             return await isJavaFolder(deployFsPath) || isJavaArtifact(deployFsPath);
         }
 
-        if (!workspace.workspaceFolders) {
+        // if there's no workspace, it can return an empty array
+        if (!workspace.workspaceFolders || workspace.workspaceFolders.length === 0) {
             return false;
         }
 
