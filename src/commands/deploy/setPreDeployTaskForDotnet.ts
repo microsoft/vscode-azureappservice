@@ -80,6 +80,11 @@ export async function setPreDeployTaskForDotnet(context: IDeployWizardContext): 
                 return t1.label === t2.label;
             }));
 
+            const currentVersion: string | undefined = tasks.getTasksVersion(context.workspace);
+            if (!currentVersion) {
+                tasks.updateTasksVersion(context.workspace, tasks.tasksVersion);
+            }
+
             tasks.updateTasks(context.workspace, existingTasks.concat(newTasks));
         }
 
