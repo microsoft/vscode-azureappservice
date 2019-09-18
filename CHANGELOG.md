@@ -1,6 +1,12 @@
 # Change Log
 All notable changes to the "azure-appservice" extension will be documented in this file.
 
+## 0.16.1 - 2019-09-19
+### Added
+- Added `Azure Pipelines extension` as a dependency for this extension.
+- Added app service right click menu option: `Configure pipeline` for Windows webapp using `Azure Pipelines`.
+- Added app service right click menu option: `Browse pipeline` for exploring deployment source setup on app service.
+
 ## 0.16.0 - 2019-09-18
 ### Added
 - Smart defaults for deploying .NET projects (adds settings and tasks for one-click deployment)
