@@ -45,9 +45,9 @@ export async function setPreDeployTaskForDotnet(context: IDeployWizardContext): 
             return;
         }
 
-        const notConfiguredForDeploy: string = `Required configurations to deploy are missing from "${context.workspace.name}".`;
-        const addConfigsButton: MessageItem = { title: "Add Configs" };
-        await ext.ui.showWarningMessage(notConfiguredForDeploy, { modal: true }, addConfigsButton);
+        const notConfiguredForDeploy: string = `Required configuration to deploy is missing from "${context.workspace.name}".`;
+        const addConfigButton: MessageItem = { title: "Add Config" };
+        await ext.ui.showWarningMessage(notConfiguredForDeploy, { modal: true }, addConfigButton);
 
         // resolves to "."if it is not a subfolder
         const subfolder: string = path.dirname(path.relative(workspaceFspath, csprojFile));
