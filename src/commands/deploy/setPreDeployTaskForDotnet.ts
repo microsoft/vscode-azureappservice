@@ -158,18 +158,5 @@ function generateDotnetTasks(subfolder: string): TaskDefinition[] {
         dependsOn: cleanId
     };
 
-    const buildTask: TaskDefinition = {
-        label: "build",
-        command: "dotnet",
-        type: "process",
-        args: [
-            "build",
-            cwd,
-            "/property:GenerateFullPaths=true",
-            "/consoleloggerparameters:NoSummary"
-        ],
-        problemMatcher: "$msCompile"
-    };
-
-    return [cleanTask, publishTask, buildTask];
+    return [cleanTask, publishTask];
 }
