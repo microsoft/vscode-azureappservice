@@ -70,6 +70,7 @@ export async function setPreDeployTaskForDotnet(context: IDeployWizardContext): 
             // if the "publish" task exists and it doesn't dependOn a task, have it depend on clean
             // tslint:disable-next-line: strict-boolean-expressions
             publishTask.dependsOn = publishTask.dependsOn || cleanId;
+
         }
 
         // do not overwrite any dotnet tasks the user already defined
@@ -77,6 +78,11 @@ export async function setPreDeployTaskForDotnet(context: IDeployWizardContext): 
         newTasks = newTasks.filter(t1 => !existingTasks.find(t2 => {
             return t1.label === t2.label;
         }));
+
+        const currentVersion: string | undefined = tasks.getTasksVersion(context.workspace);
+        if (!currentVersion) {
+            tasks.updateTasksVersion(context.workspace, tasks.tasksVersion);
+        }
 
         tasks.updateTasks(context.workspace, existingTasks.concat(newTasks));
     }
