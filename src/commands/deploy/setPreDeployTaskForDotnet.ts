@@ -89,7 +89,7 @@ export async function setPreDeployTaskForDotnet(context: IDeployWizardContext): 
 }
 
 async function tryGetCsprojFile(context: IDeployWizardContext, projectPath: string): Promise<string | undefined> {
-    let projectFiles: string[] = await checkFolderForCsproj(projectPath);
+    const projectFiles: string[] = await checkFolderForCsproj(projectPath);
     // it's a common pattern to have the .csproj file in a subfolder so check one level deeper
     if (projectFiles.length === 0) {
         const subfolders: string[] = await fse.readdir(projectPath);
@@ -97,7 +97,7 @@ async function tryGetCsprojFile(context: IDeployWizardContext, projectPath: stri
             const filePath: string = path.join(projectPath, folder);
             // check its existence as this will check .vscode even if the project doesn't contain that folder
             if (await fse.pathExists(filePath) && (await fse.stat(filePath)).isDirectory()) {
-                projectFiles = projectFiles.concat(await checkFolderForCsproj(filePath));
+                projectFiles.push(...await checkFolderForCsproj(filePath));
                 context.telemetry.properties.csprojInSubfolder = 'true';
             }
         }));
