@@ -872,7 +872,7 @@
         "fs-extra": "^4.0.2",
         "portfinder": "^1.0.13",
         "request-promise": "^4.2.2",
-        "vscode-azureappservice": "^0.45.0",
+        "vscode-azureappservice": "^0.46.0",
         "vscode-azureextensionui": "^0.28.1",
         "vscode-azurekudu": "^0.1.8"
     },
