@@ -202,7 +202,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
 
         const appSettingKey: string = await ext.ui.showInputBox({
             prompt,
-            validateInput: (v?: string): string | undefined => validateAppSettingKey(appSettingsDict, v),
+            validateInput: (v?: string): string | undefined => validateAppSettingKey(appSettingsDict, this.root.client, v),
             value: defaultKey
         });
 
@@ -219,7 +219,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
                 if (!v) {
                     return "Connection setting prefix cannot be empty.";
                 } else {
-                    return validateAppSettingKey(appSettingsDict, v + this._endpointSuffix) || validateAppSettingKey(appSettingsDict, v + this._keySuffix) || validateAppSettingKey(appSettingsDict, v + this._databaseSuffix);
+                    return validateAppSettingKey(appSettingsDict, this.root.client, v + this._endpointSuffix) || validateAppSettingKey(appSettingsDict, this.root.client, v + this._keySuffix) || validateAppSettingKey(appSettingsDict, this.root.client, v + this._databaseSuffix);
                 }
             },
             value: defaultPrefix
