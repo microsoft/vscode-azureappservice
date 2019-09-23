@@ -6,7 +6,7 @@
 import * as cp from 'child_process';
 import * as gulp from 'gulp';
 import * as path from 'path';
-import { gulp_installAzureAccount, gulp_webpack } from 'vscode-azureextensiondev';
+import { gulp_installAzureAccount, gulp_webpack, gulp_installVSCodeExtension } from 'vscode-azureextensiondev';
 
 declare let exports: { [key: string]: unknown };
 
@@ -18,6 +18,11 @@ function test(): cp.ChildProcess {
     return cp.spawn('node', ['./node_modules/vscode/bin/test'], { stdio: 'inherit', env });
 }
 
+export async function install_AzurePipelinesExtension() {
+    await gulp_installVSCodeExtension('1.157.4', 'ms-azure-devops', 'azure-pipelines');
+}
+
 exports['webpack-dev'] = () => gulp_webpack('development');
 exports['webpack-prod'] = () => gulp_webpack('production');
-exports.test = gulp.series(gulp_installAzureAccount, test);
+
+exports.test = gulp.series(gulp_installAzureAccount, install_AzurePipelinesExtension, test);
