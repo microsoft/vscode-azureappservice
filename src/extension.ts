@@ -22,6 +22,7 @@ import { deploy } from './commands/deploy/deploy';
 import { connectToGitHub } from './commands/deployments/connectToGitHub';
 import { disconnectRepo } from './commands/deployments/disconnectRepo';
 import { editScmType } from './commands/deployments/editScmType';
+import { browse, configure } from './commands/deployments/pipelines';
 import { redeployDeployment } from './commands/deployments/redeployDeployment';
 import { viewCommitInGitHub } from './commands/deployments/viewCommitInGitHub';
 import { viewDeploymentLogs } from './commands/deployments/viewDeploymentLogs';
@@ -159,6 +160,8 @@ export async function activateInternal(
             await deploy(actionContext, true, target);
         });
         registerCommand('appService.ConfigureDeploymentSource', editScmType);
+        registerCommand('appService.configureAzureWebAppPipeline', configure);
+        registerCommand('appService.browseAzureWebAppPipeline', browse);
         registerCommand('appService.DeploymentScript', async (actionContext: IActionContext, node?: WebAppTreeItem) => {
             if (!node) {
                 node = <WebAppTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue, actionContext);

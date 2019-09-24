@@ -41,6 +41,8 @@
         "onCommand:appService.Delete",
         "onCommand:appService.Deploy",
         "onCommand:appService.ConfigureDeploymentSource",
+        "onCommand:appService.configureAzureWebAppPipeline",
+        "onCommand:appService.browseAzureWebAppPipeline",
         "onCommand:appService.DeploymentScript",
         "onCommand:appService.SwapSlots",
         "onCommand:appService.appSettings.Add",
@@ -154,6 +156,16 @@
             {
                 "command": "appService.ConfigureDeploymentSource",
                 "title": "Configure Deployment Source...",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.configureAzureWebAppPipeline",
+                "title": "Configure Pipeline",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.browseAzureWebAppPipeline",
+                "title": "Browse Pipeline",
                 "category": "Azure App Service"
             },
             {
@@ -347,6 +359,14 @@
                 {
                     "command": "appService.toggleValueVisibility",
                     "when": "never"
+                },
+                {
+                    "command": "appService.configureAzureWebAppPipeline",
+                    "when": "never"
+                },
+                {
+                    "command": "appService.browseAzureWebAppPipeline",
+                    "when": "never"
                 }
             ],
             "view/title": [
@@ -428,12 +448,12 @@
                     "group": "3_appServiceDeployCommands@1"
                 },
                 {
-                    "command": "configure-pipeline",
+                    "command": "appService.configureAzureWebAppPipeline",
                     "when": "view == azureAppService && viewItem == appService",
                     "group": "3_appServiceDeployCommands@2"
                 },
                 {
-                    "command": "browse-pipeline",
+                    "command": "appService.browseAzureWebAppPipeline",
                     "when": "view == azureAppService && viewItem == appService",
                     "group": "3_appServiceDeployCommands@3"
                 },
@@ -887,7 +907,6 @@
         "vscode-azurekudu": "^0.1.8"
     },
     "extensionDependencies": [
-        "ms-vscode.azure-account",
-        "ms-azure-devops.azure-pipelines"
+        "ms-vscode.azure-account"
     ]
 }
