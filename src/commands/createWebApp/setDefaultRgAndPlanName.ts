@@ -6,6 +6,9 @@
 import { Location } from "azure-arm-resource/lib/subscription/models";
 import WebSiteManagementClient from "azure-arm-website";
 import { AppServicePlan } from "azure-arm-website/lib/models";
+import * as fse from 'fs-extra';
+import * as os from 'os';
+import * as path from 'path';
 import { MessageItem } from "vscode";
 import { IAppServiceWizardContext, SiteNameStep, WebsiteOS } from "vscode-azureappservice";
 import { createAzureClient, DialogResponses, IActionContext } from "vscode-azureextensionui";
@@ -16,9 +19,32 @@ import { getWorkspaceSetting, updateGlobalSetting } from "../../vsCodeConfig/set
 const maxNumberOfSites: number = 3;
 
 export async function setDefaultRgAndPlanName(wizardContext: IAppServiceWizardContext, siteNameStep: SiteNameStep): Promise<void> {
+
+    let configuredGroupName: string | null = null;
+    let configuredPlanName: string | null = null;
+    const azureConfigPath: string = path.join(os.homedir(), '.azure', 'config');
+
+    if (await fse.pathExists(azureConfigPath)) {
+        fse.readFile(azureConfigPath, 'utf-8', (e, configStr) => {
+            if (configStr.search('[defaults]') !== -1) {
+                const groupMatches: RegExpMatchArray | null = configStr.match(/group[ \t]?=[ \t]?(.+)/);
+                const planMatches: RegExpMatchArray | null = configStr.match(/plan[ \t]?=[ \t]?(.+)/);
+
+                if (groupMatches && groupMatches.length === 2) {
+                    configuredGroupName = groupMatches[1].trim();
+                }
+                if (planMatches && planMatches.length === 2) {
+                    configuredPlanName = planMatches[1].trim();
+                }
+
+                console.log();
+            }
+        });
+    }
+
     // this should always be set when in the basic creation scenario
     const location: Location = nonNullProp(wizardContext, 'location');
-    const defaultName: string = `appsvc_${wizardContext.newSiteOS}_${location.name}`;
+    const defaultName: string = configuredGroupName ? configuredGroupName : `appsvc_${wizardContext.newSiteOS}_${location.name}`;
 
     const asp: AppServicePlan | null = await getAppServicePlan(wizardContext, defaultName, defaultName);
     if (asp && checkPlanForPerformanceDrop(asp)) {
