@@ -11,6 +11,7 @@ import { ICreateChildImplContext, LocationListStep } from 'vscode-azureextension
 import { javaUtils } from '../../utils/javaUtils';
 import { findFilesByFileExtension } from '../../utils/workspace';
 import { IDeployWizardContext } from '../deploy/IDeployWizardContext';
+import { AzConfig, AzConfigProperties, readAzConfig } from "./readAzConfig";
 
 export async function setAppWizardContextDefault(wizardContext: IAppServiceWizardContext & Partial<IDeployWizardContext> & Partial<ICreateChildImplContext>): Promise<void> {
     // if the user entered through "Deploy", we'll have a project to base our recommendations on
@@ -43,7 +44,8 @@ export async function setAppWizardContextDefault(wizardContext: IAppServiceWizar
 
     if (!wizardContext.advancedCreation) {
         if (!wizardContext.location) {
-            await LocationListStep.setLocation(wizardContext, 'centralus');
+            const config: AzConfig = await readAzConfig(AzConfigProperties.location);
+            await LocationListStep.setLocation(wizardContext, config.location ? config.location : 'centralus');
         }
 
         if (!wizardContext.newPlanSku) {
