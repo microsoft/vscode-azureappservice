@@ -13,8 +13,8 @@ export async function readAzConfig(...properties: AzConfigProperties[]): Promise
 
     if (await fse.pathExists(configPath)) {
         const configStr: string = await fse.readFile(configPath, 'utf-8');
+        const defaultsIndex: number = configStr.search('[defaults]');
 
-        const defaultsIndex = configStr.search('[defaults]');
         if (defaultsIndex !== -1) {
             for (const property of properties) {
                 const match: RegExpMatchArray | null = configStr.substring(defaultsIndex).match(RegExp(`${property}[ \\t]?=[ \\t]?(.+)`));
