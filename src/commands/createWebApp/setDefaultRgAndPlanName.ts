@@ -17,7 +17,7 @@ import { AzConfig, AzConfigProperties, readAzConfig } from "./readAzConfig";
 const maxNumberOfSites: number = 3;
 
 export async function setDefaultRgAndPlanName(wizardContext: IAppServiceWizardContext, siteNameStep: SiteNameStep): Promise<void> {
-    const config: AzConfig = await readAzConfig(AzConfigProperties.group, AzConfigProperties.plan);
+    const config: AzConfig = await readAzConfig(wizardContext, AzConfigProperties.group, AzConfigProperties.plan);
 
     // this should always be set when in the basic creation scenario
     const location: Location = nonNullProp(wizardContext, 'location');

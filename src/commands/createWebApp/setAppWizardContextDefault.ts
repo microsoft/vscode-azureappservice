@@ -44,7 +44,7 @@ export async function setAppWizardContextDefault(wizardContext: IAppServiceWizar
 
     if (!wizardContext.advancedCreation) {
         if (!wizardContext.location) {
-            const config: AzConfig = await readAzConfig(AzConfigProperties.location);
+            const config: AzConfig = await readAzConfig(wizardContext, AzConfigProperties.location);
             await LocationListStep.setLocation(wizardContext, config.location ? config.location : 'centralus');
         }
 

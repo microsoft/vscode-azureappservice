@@ -6,13 +6,14 @@
 import * as fse from 'fs-extra';
 import * as os from 'os';
 import * as path from 'path';
+import { IAppServiceWizardContext } from 'vscode-azureappservice';
 
 /**
  * Takes any number of Azure config properties and returns their configured values
  * found in `$AZURE_CONFIG_DIR/config`.
  * Azure CLI configuration docs: https://aka.ms/AA64syh
  */
-export async function readAzConfig(...properties: AzConfigProperties[]): Promise<AzConfig> {
+export async function readAzConfig(wizardContext: IAppServiceWizardContext, ...properties: AzConfigProperties[]): Promise<AzConfig> {
     const config: AzConfig = {};
     const configPath: string = path.join(os.homedir(), '.azure', 'config');
 
@@ -26,6 +27,7 @@ export async function readAzConfig(...properties: AzConfigProperties[]): Promise
 
                 if (match) {
                     config[property] = match[1].trim();
+                    wizardContext.telemetry.properties[`azConfig-${property}`] = 'true';
                 }
             }
         }
