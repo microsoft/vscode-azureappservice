@@ -1,3 +1,4 @@
+import * as utils from 'util';
 import * as vscode from 'vscode';
 import { IActionContext } from "vscode-azureextensionui";
 import { SiteTreeItem } from "../../explorer/SiteTreeItem";
@@ -6,27 +7,27 @@ import { ext } from "../../extensionVariables";
 import { openUrl } from '../../utils/openUrl';
 
 export async function configure(context: IActionContext, node: SiteTreeItem): Promise<void> {
-    if (await IsAzurePipelinesExtensionInstalled()) {
+    if (await isAzurePipelinesExtensionInstalled()) {
         node = await getWebAppNode(context, node);
-        executeAzurePipelineExtensionCommand(configurePipelineCommand, node);
+        await executeAzurePipelineExtensionCommand(configurePipelineCommand, node);
     }
 }
 
 export async function browse(context: IActionContext, node: SiteTreeItem): Promise<void> {
-    if (await IsAzurePipelinesExtensionInstalled()) {
+    if (await isAzurePipelinesExtensionInstalled()) {
         node = await getWebAppNode(context, node);
-        executeAzurePipelineExtensionCommand(browsePipelineCommand, node);
+        await executeAzurePipelineExtensionCommand(browsePipelineCommand, node);
     }
 }
 
-async function IsAzurePipelinesExtensionInstalled(): Promise<boolean> {
-    let pipelinesExtension = vscode.extensions.getExtension(azurePipelinesExtensionId);
+async function isAzurePipelinesExtensionInstalled(): Promise<boolean> {
+    const pipelinesExtension = vscode.extensions.getExtension(azurePipelinesExtensionId);
     if (!pipelinesExtension) {
         vscode.window.showInformationMessage('Please install `Azure Pipelines` extension to continue.');
         const commandToRun = 'extension.open';
         const listOfCommands = await vscode.commands.getCommands();
         if (listOfCommands.find((x: string) => x === commandToRun)) {
-            vscode.commands.executeCommand(commandToRun, azurePipelinesExtensionId);
+            await vscode.commands.executeCommand(commandToRun, azurePipelinesExtensionId);
         } else {
             await openUrl('https://marketplace.visualstudio.com/items?itemName=ms-azure-devops.azure-pipelines');
         }
@@ -38,18 +39,20 @@ async function IsAzurePipelinesExtensionInstalled(): Promise<boolean> {
 }
 
 async function getWebAppNode(context: IActionContext, node: SiteTreeItem): Promise<SiteTreeItem> {
-    if (!node) {
+    if (node === null || node === undefined) {
         return await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue, context);
     }
 
     return node;
 }
 
-async function executeAzurePipelineExtensionCommand(commandToRun: string, node: SiteTreeItem): Promise<any> {
+async function executeAzurePipelineExtensionCommand(commandToRun: string, node: SiteTreeItem): Promise<unknown> {
     const listOfCommands = await vscode.commands.getCommands();
-    if (listOfCommands.find((commmand) => commmand == commandToRun)) {
+    if (listOfCommands.find((commmand) => commmand === commandToRun)) {
         return vscode.commands.executeCommand(commandToRun, node);
     }
+
+    throw new Error(utils.format('Unable to find command %s. Make sure `Azure Pipelines` extension is installed and enabled.', commandToRun));
 }
 
 const azurePipelinesExtensionId = 'ms-azure-devops.azure-pipelines';
