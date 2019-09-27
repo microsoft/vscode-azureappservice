@@ -51,19 +51,18 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
         fileExtensions = javaUtils.getJavaArtifactExtensions();
     }
 
-    const deployFsPath: string = await appservice.getDeployFsPath(target, constants.extensionPrefix, fileExtensions);
-    const workspace: vscode.WorkspaceFolder | undefined = workspaceUtil.getContainingWorkspace(deployFsPath);
+    const { deployFsPath, deployFsSubpath } = await appservice.getDeployFsPath(target, constants.extensionPrefix, fileExtensions);
+    const workspace: vscode.WorkspaceFolder | undefined = workspaceUtil.getContainingWorkspace(deployFsSubpath);
     if (!workspace) {
         throw new Error('Failed to deploy because the path is not part of an open workspace. Open in a workspace and try again.');
     }
 
     const deployContext: IDeployWizardContext = {
-        ...context, workspace, deployFsPath, webAppSource
+        ...context, workspace, deployFsPath, deployFsSubpath, webAppSource
     };
 
     // because this is workspace dependant, do it before user selects app
     await setPreDeployTaskForDotnet(deployContext);
-
     if (!node) {
         const onTreeItemCreatedFromQuickPickDisposable: vscode.Disposable = ext.tree.onTreeItemCreate((newNode: SiteTreeItem) => {
             // event is fired from azure-extensionui if node was created during deployment
@@ -165,8 +164,11 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
         previousTokenSource.cancel();
     }
 
+    // only respect the deploySubpath settings for zipdeploys
+    const deployPath: string = siteConfig.scmType === constants.ScmType.None ? deployContext.deployFsSubpath : deployContext.deployFsPath;
+
     await node.runWithTemporaryDescription("Deploying...", async () => {
-        await appservice.deploy(nonNullValue(node).root.client, <string>deployContext.deployFsPath, deployContext, constants.showOutputChannelCommandId);
+        await appservice.deploy(nonNullValue(node).root.client, <string>deployPath, deployContext, constants.showOutputChannelCommandId);
     });
 
     const tokenSource: vscode.CancellationTokenSource = new vscode.CancellationTokenSource();
