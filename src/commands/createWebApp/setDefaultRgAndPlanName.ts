@@ -10,6 +10,7 @@ import { MessageItem } from "vscode";
 import { IAppServiceWizardContext, SiteNameStep, WebsiteOS } from "vscode-azureappservice";
 import { createAzureClient, DialogResponses, IActionContext } from "vscode-azureextensionui";
 import { ext } from "../../extensionVariables";
+import { getResourceGroupFromId } from '../../utils/azure';
 import { nonNullProp } from "../../utils/nonNull";
 import { getWorkspaceSetting, updateGlobalSetting } from "../../vsCodeConfig/settings";
 import { AzConfig, AzConfigProperties, readAzConfig } from "./readAzConfig";
@@ -17,12 +18,13 @@ import { AzConfig, AzConfigProperties, readAzConfig } from "./readAzConfig";
 const maxNumberOfSites: number = 3;
 
 export async function setDefaultRgAndPlanName(wizardContext: IAppServiceWizardContext, siteNameStep: SiteNameStep): Promise<void> {
-    const config: AzConfig = await readAzConfig(wizardContext, AzConfigProperties.group, AzConfigProperties.plan);
+    const config: AzConfig = await readAzConfig(wizardContext, AzConfigProperties.group);
 
     // this should always be set when in the basic creation scenario
     const location: Location = nonNullProp(wizardContext, 'location');
-    const defaultGroupName: string = config.group ? config.group : `appsvc_${wizardContext.newSiteOS}_${location.name}`;
-    const defaultPlanName: string = config.plan ? config.plan : defaultGroupName;
+    const defaultName: string = `appsvc_${wizardContext.newSiteOS}_${location.name}`;
+    const defaultGroupName: string = config.group ? config.group : defaultName;
+    const defaultPlanName: string = defaultName;
 
     const asp: AppServicePlan | null = await getAppServicePlan(wizardContext, defaultGroupName, defaultPlanName);
     if (asp && checkPlanForPerformanceDrop(asp)) {
@@ -42,9 +44,10 @@ export async function setDefaultRgAndPlanName(wizardContext: IAppServiceWizardCo
             // when using appServicePlans.list, the numOfSites are all set to 0 so individually get each plan and look for one with less than 3 sites
             for (const plan of defaultPlans) {
                 if (plan.name) {
-                    const fullPlanData: AppServicePlan | null = await getAppServicePlan(wizardContext, plan.name, plan.name);
+                    const groupName: string = getResourceGroupFromId(nonNullProp(plan, 'id'));
+                    const fullPlanData: AppServicePlan | null = await getAppServicePlan(wizardContext, groupName, plan.name);
                     if (fullPlanData && !checkPlanForPerformanceDrop(fullPlanData)) {
-                        wizardContext.newResourceGroupName = plan.name;
+                        wizardContext.newResourceGroupName = groupName;
                         wizardContext.newPlanName = plan.name;
                         break;
                     }
@@ -57,7 +60,10 @@ export async function setDefaultRgAndPlanName(wizardContext: IAppServiceWizardCo
                 throw new Error('Failed to generate unique name for resources. Use advanced creation to manually enter resource names.');
             }
 
-            wizardContext.newPlanName = wizardContext.newResourceGroupName;
+            wizardContext.newPlanName = await siteNameStep.getRelatedName(wizardContext, defaultPlanName);
+            if (!wizardContext.newPlanName) {
+                throw new Error('Failed to generate unique name for app service plan. Use advanced creation to manually enter plan names.');
+            }
         }
     } else {
         wizardContext.newResourceGroupName = defaultGroupName;
