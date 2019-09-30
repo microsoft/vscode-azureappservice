@@ -1,6 +1,7 @@
 import { SiteConfigResource } from "azure-arm-website/lib/models";
 import { MessageItem, window } from "vscode";
 import { IActionContext } from "vscode-azureextensionui";
+import { deploy } from '../commands/deploy/deploy';
 import { AppServiceDialogResponses, ScmType } from "../constants";
 import { DeploymentSlotsTreeItem } from "../explorer/DeploymentSlotsTreeItem";
 import { DeploymentSlotTreeItem } from "../explorer/DeploymentSlotTreeItem";
@@ -15,9 +16,12 @@ export async function createSlot(context: IActionContext, node?: DeploymentSlots
     const createdSlot = <DeploymentSlotTreeItem>await node.createChild(context);
     // Note: intentionally not waiting for the result of this before returning
     const createdNewSlotMsg: string = `Created new slot "${createdSlot.root.client.fullName}": https://${createdSlot.root.client.defaultHostName}`;
-    window.showInformationMessage(createdNewSlotMsg, AppServiceDialogResponses.viewOutput).then(async (result: MessageItem | undefined) => {
+    window.showInformationMessage(createdNewSlotMsg, AppServiceDialogResponses.deploy, AppServiceDialogResponses.viewOutput).then(async (result: MessageItem | undefined) => {
         if (result === AppServiceDialogResponses.viewOutput) {
             ext.outputChannel.show();
+        } else if (result === AppServiceDialogResponses.deploy) {
+            context.telemetry.properties.deploy = 'true';
+            await deploy(context, false, createdSlot);
         }
     });
 
