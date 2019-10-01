@@ -3,59 +3,60 @@
 *  Licensed under the MIT License. See License.txt in the project root for license information.
 *--------------------------------------------------------------------------------------------*/
 
-import { workspace } from 'vscode';
+import { WorkspaceFolder } from 'vscode';
 import { IAppServiceWizardContext } from 'vscode-azureappservice';
 import { cpUtils } from '../../utils/cpUtils';
+import { getSingleRootWorkspace } from '../../utils/workspace';
+import { IDeployWizardContext } from '../deploy/IDeployWizardContext';
 
 /**
  * Takes any number of Azure config properties to read and returns their configured values.
  * Azure CLI configuration docs: https://aka.ms/AA64syh
  */
-export async function readAzConfig(wizardContext: IAppServiceWizardContext, ...propertiesToRead: AzConfigProperties[]): Promise<AzConfig> {
+export async function readAzConfig(wizardContext: IAppServiceWizardContext & Partial<IDeployWizardContext>, ...propertiesToRead: AzConfigProperty[]): Promise<AzConfig> {
     const config: AzConfig = {};
-    const azCommandCheck: cpUtils.ICommandResult = await cpUtils.tryExecuteCommand(undefined, undefined, 'az --version');
+    const workspaceFolder: WorkspaceFolder | undefined = getSingleRootWorkspace(wizardContext);
+    const workspacePath: string | undefined = workspaceFolder ? workspaceFolder.uri.fsPath : undefined;
 
-    if (azCommandCheck.code === 0) {
-        const workspacePath: string | undefined = workspace.workspaceFolders ? workspace.workspaceFolders[0].uri.fsPath : undefined;
-        const azGlobalConfigListing = <IAzConfigListing | undefined>JSON.parse(await cpUtils.executeCommand(undefined, undefined, 'az configure --list-defaults --output json'));
-        const azLocalConfigListing = <IAzConfigListing | undefined>JSON.parse(await cpUtils.executeCommand(undefined, workspacePath, 'az configure --list-defaults --output json --scope local'));
+    try {
+        const azGlobalConfigListing = <IAzConfigItem[] | undefined>JSON.parse(await cpUtils.executeCommand(undefined, undefined, 'az configure --list-defaults --output json'));
+        const azLocalConfigListing = <IAzConfigItem[] | undefined>JSON.parse(await cpUtils.executeCommand(undefined, workspacePath, 'az configure --list-defaults --output json --scope local'));
 
         readAzConfigListing(wizardContext, propertiesToRead, azGlobalConfigListing, config);
 
         // Default to local config values if they exist
         readAzConfigListing(wizardContext, propertiesToRead, azLocalConfigListing, config);
+    } catch (error) {
+        // Azure CLI not installed so no config to read
     }
 
     return config;
 }
 
-function readAzConfigListing(wizardContext: IAppServiceWizardContext, propertiesToRead: AzConfigProperties[], azConfigListing: IAzConfigListing | undefined, config: AzConfig): void {
+function readAzConfigListing(wizardContext: IAppServiceWizardContext, propertiesToRead: AzConfigProperty[], azConfigListing: IAzConfigItem[] | undefined, config: AzConfig): void {
     if (azConfigListing) {
         for (const configItem of azConfigListing) {
             for (const propertyToRead of propertiesToRead) {
                 if (configItem.name === propertyToRead) {
                     config[propertyToRead] = configItem.value;
-                    wizardContext.telemetry.properties[`hasAz${propertyToRead.charAt(0).toUpperCase() + propertyToRead.slice(1)}Default`] = 'true';
+                    wizardContext.telemetry.properties[`hasAz${propertyToRead}Default`] = 'true';
                 }
             }
         }
     }
 }
 
-export type AzConfig = {
-    group?: string;
-    location?: string;
-};
-
-export enum AzConfigProperties {
+export enum AzConfigProperty {
     group = 'group',
     location = 'location'
 }
+
+export type AzConfig = {
+    [key in AzConfigProperty]?: string;
+};
 
 interface IAzConfigItem {
     name: string;
     source: string;
     value: string;
 }
-
-interface IAzConfigListing extends Array<IAzConfigItem> { }

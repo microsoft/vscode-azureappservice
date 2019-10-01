@@ -8,7 +8,7 @@ import { Site, WebAppCollection } from 'azure-arm-website/lib/models';
 import { AppInsightsCreateStep, AppInsightsListStep, AppKind, AppServicePlanCreateStep, AppServicePlanListStep, IAppServiceWizardContext, IAppSettingsContext, SiteClient, SiteCreateStep, SiteNameStep, SiteOSStep, SiteRuntimeStep, WebsiteOS } from 'vscode-azureappservice';
 import { AzExtTreeItem, AzureTreeItem, AzureWizard, AzureWizardExecuteStep, AzureWizardPromptStep, createAzureClient, ICreateChildImplContext, LocationListStep, parseError, ResourceGroupCreateStep, ResourceGroupListStep, SubscriptionTreeItemBase } from 'vscode-azureextensionui';
 import { setAppWizardContextDefault } from '../commands/createWebApp/setAppWizardContextDefault';
-import { setDefaultRgAndPlanName } from '../commands/createWebApp/setDefaultRgAndPlanName';
+import { setDefaultRgPlanNameLocation } from '../commands/createWebApp/setDefaultRgPlanNameLocation';
 import { ext } from '../extensionVariables';
 import { nonNullProp } from '../utils/nonNull';
 import { WebAppTreeItem } from './WebAppTreeItem';
@@ -103,7 +103,7 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
         context.showCreatingTreeItem(nonNullProp(wizardContext, 'newSiteName'));
 
         if (!context.advancedCreation) {
-            await setDefaultRgAndPlanName(wizardContext, siteStep);
+            await setDefaultRgPlanNameLocation(wizardContext, siteStep);
             wizardContext.newAppInsightsName = await wizardContext.relatedNameTask;
             if (!wizardContext.newAppInsightsName) {
                 throw new Error('Failed to generate unique name for resources. Use advanced creation to manually enter resource names.');

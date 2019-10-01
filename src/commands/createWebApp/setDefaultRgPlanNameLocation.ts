@@ -9,21 +9,25 @@ import { AppServicePlan } from "azure-arm-website/lib/models";
 import { MessageItem } from "vscode";
 import { IAppServiceWizardContext, SiteNameStep, WebsiteOS } from "vscode-azureappservice";
 import { createAzureClient, DialogResponses, IActionContext } from "vscode-azureextensionui";
+import { LocationListStep } from 'vscode-azureextensionui';
 import { ext } from "../../extensionVariables";
-import { getResourceGroupFromId } from '../../utils/azure';
+import { getResourceGroupFromId } from '../../utils/azureUtils';
 import { nonNullProp } from "../../utils/nonNull";
 import { getWorkspaceSetting, updateGlobalSetting } from "../../vsCodeConfig/settings";
-import { AzConfig, AzConfigProperties, readAzConfig } from "./readAzConfig";
+import { AzConfig, AzConfigProperty, readAzConfig } from "./readAzConfig";
 
 const maxNumberOfSites: number = 3;
 
-export async function setDefaultRgAndPlanName(wizardContext: IAppServiceWizardContext, siteNameStep: SiteNameStep): Promise<void> {
-    const config: AzConfig = await readAzConfig(wizardContext, AzConfigProperties.group);
+export async function setDefaultRgPlanNameLocation(wizardContext: IAppServiceWizardContext, siteNameStep: SiteNameStep): Promise<void> {
+    const config: AzConfig = await readAzConfig(wizardContext, AzConfigProperty.group, AzConfigProperty.location);
 
-    // this should always be set when in the basic creation scenario
+    // location should always be set when in the basic creation scenario
+    const defaultLocation: Location = nonNullProp(wizardContext, 'location');
+    await LocationListStep.setLocation(wizardContext, config.location || nonNullProp(defaultLocation, 'name'));
     const location: Location = nonNullProp(wizardContext, 'location');
+
     const defaultName: string = `appsvc_${wizardContext.newSiteOS}_${location.name}`;
-    const defaultGroupName: string = config.group ? config.group : defaultName;
+    const defaultGroupName: string = config.group || defaultName;
     const defaultPlanName: string = defaultName;
 
     const asp: AppServicePlan | null = await getAppServicePlan(wizardContext, defaultGroupName, defaultPlanName);
@@ -39,7 +43,9 @@ export async function setDefaultRgAndPlanName(wizardContext: IAppServiceWizardCo
 
             const client: WebSiteManagementClient = createAzureClient(wizardContext, WebSiteManagementClient);
             const allAppServicePlans: AppServicePlan[] = await client.appServicePlans.list();
-            const defaultPlans: AppServicePlan[] = allAppServicePlans.filter(plan => { return plan.name && plan.name.includes(defaultPlanName); });
+            const defaultPlans: AppServicePlan[] = allAppServicePlans.filter(plan => {
+                return plan.name && plan.name.includes(defaultPlanName) && getResourceGroupFromId(nonNullProp(plan, 'id')).includes(defaultGroupName);
+            });
 
             // when using appServicePlans.list, the numOfSites are all set to 0 so individually get each plan and look for one with less than 3 sites
             for (const plan of defaultPlans) {
