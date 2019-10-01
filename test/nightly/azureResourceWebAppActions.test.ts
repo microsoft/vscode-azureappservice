@@ -23,7 +23,7 @@ suite('Web App actions', async function (this: ISuiteCallbackContext): Promise<v
         resourceName = getRandomHexString();
     });
 
-    test('Create New Web App (Advanced)', async () => {
+    test('Create New Linux Web App (Advanced)', async () => {
         const regExpLTS: RegExp = /LTS/g;
         const testInputs: (string | RegExp)[] = [resourceName, '$(plus) Create new resource group', resourceName, 'Linux', regExpLTS, '$(plus) Create new App Service plan', resourceName, 'B1', '$(plus) Create new Application Insights resource', resourceName, 'West US'];
         resourceGroupsToDelete.push(resourceName);
@@ -31,6 +31,20 @@ suite('Web App actions', async function (this: ISuiteCallbackContext): Promise<v
             await vscode.commands.executeCommand('appService.CreateWebAppAdvanced');
         });
         const createdApp: WebSiteManagementModels.Site = await webSiteClient.webApps.get(resourceName, resourceName);
+        assert.ok(createdApp);
+    });
+
+    test('Create New Windows Web App (Advanced)', async () => {
+        const resourceGroupName: string = getRandomHexString();
+        const webAppName: string = getRandomHexString();
+        const appServicePlanName: string = getRandomHexString();
+        const applicationInsightsName: string = getRandomHexString();
+        resourceGroupsToDelete.push(resourceGroupName);
+        const testInputs: (string | RegExp)[] = [webAppName, '$(plus) Create new resource group', resourceGroupName, 'Windows', '$(plus) Create new App Service plan', appServicePlanName, 'S1', '$(plus) Create new Application Insights resource', applicationInsightsName, 'East US'];
+        await testUserInput.runWithInputs(testInputs, async () => {
+            await vscode.commands.executeCommand('appService.CreateWebAppAdvanced');
+        });
+        const createdApp: WebSiteManagementModels.Site = await webSiteClient.webApps.get(resourceGroupName, webAppName);
         assert.ok(createdApp);
     });
 
