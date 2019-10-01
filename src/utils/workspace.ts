@@ -6,6 +6,7 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { IAzureQuickPickItem } from 'vscode-azureextensionui';
+import { IDeployWizardContext } from '../commands/deploy/IDeployWizardContext';
 import { ext } from '../extensionVariables';
 import { isPathEqual, isSubpath } from '../utils/pathUtils';
 
@@ -78,7 +79,7 @@ export function mapFilesToQuickPickItems(files: vscode.Uri[]): IAzureQuickPickIt
     });
 }
 
-export function getSingleRootWorkspace(): vscode.WorkspaceFolder | undefined {
+export function getSingleRootWorkspace(wizardContext: Partial<IDeployWizardContext>): vscode.WorkspaceFolder | undefined {
     // if this is a multi-root workspace, return undefined
-    return vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length === 1 ? vscode.workspace.workspaceFolders[0] : undefined;
+    return wizardContext.workspace || (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length === 1 ? vscode.workspace.workspaceFolders[0] : undefined);
 }
