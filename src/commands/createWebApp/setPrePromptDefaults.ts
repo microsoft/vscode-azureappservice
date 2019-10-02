@@ -12,7 +12,7 @@ import { javaUtils } from '../../utils/javaUtils';
 import { findFilesByFileExtension, getSingleRootWorkspace } from '../../utils/workspace';
 import { IDeployWizardContext } from '../deploy/IDeployWizardContext';
 
-export async function setAppWizardContextDefault(wizardContext: IAppServiceWizardContext & Partial<IDeployWizardContext> & Partial<ICreateChildImplContext>): Promise<void> {
+export async function setPrePromptDefaults(wizardContext: IAppServiceWizardContext & Partial<IDeployWizardContext> & Partial<ICreateChildImplContext>): Promise<void> {
     // if the user entered through "Deploy", we'll have a project to base our recommendations on
     // otherwise, look at their current workspace and only suggest if one workspace is opened
     const workspaceForRecommendation: WorkspaceFolder | undefined = getSingleRootWorkspace(wizardContext);
