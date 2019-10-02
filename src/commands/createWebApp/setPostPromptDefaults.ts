@@ -18,7 +18,8 @@ import { AzConfig, AzConfigProperty, readAzConfig } from "./readAzConfig";
 
 const maxNumberOfSites: number = 3;
 
-export async function setDefaultRgPlanNameLocation(wizardContext: IAppServiceWizardContext, siteNameStep: SiteNameStep): Promise<void> {
+export async function setPostPromptDefaults(wizardContext: IAppServiceWizardContext, siteNameStep: SiteNameStep): Promise<void> {
+    // Reading az config should always happen after prompting because it can cause a few seconds delay
     const config: AzConfig = await readAzConfig(wizardContext, AzConfigProperty.group, AzConfigProperty.location);
 
     // location should always be set when in the basic creation scenario

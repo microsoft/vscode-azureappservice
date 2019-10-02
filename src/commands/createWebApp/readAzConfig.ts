@@ -27,7 +27,7 @@ export async function readAzConfig(wizardContext: IAppServiceWizardContext & Par
         // Default to local config values if they exist
         readAzConfigListing(wizardContext, propertiesToRead, azLocalConfigListing, config);
     } catch (error) {
-        // Azure CLI not installed so no config to read
+        // Suppress errors - this functionality should not block creating a web app
     }
 
     return config;
