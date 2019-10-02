@@ -51,14 +51,14 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
         fileExtensions = javaUtils.getJavaArtifactExtensions();
     }
 
-    const { deployFsPath, deployFsSubpath } = await appservice.getDeployFsPath(target, constants.extensionPrefix, fileExtensions);
-    const workspace: vscode.WorkspaceFolder | undefined = workspaceUtil.getContainingWorkspace(deployFsSubpath);
+    const { originalDeployFsPath, effectiveDeployFsPath } = await appservice.getDeployFsPath(target, constants.extensionPrefix, fileExtensions);
+    const workspace: vscode.WorkspaceFolder | undefined = workspaceUtil.getContainingWorkspace(effectiveDeployFsPath);
     if (!workspace) {
         throw new Error('Failed to deploy because the path is not part of an open workspace. Open in a workspace and try again.');
     }
 
     const deployContext: IDeployWizardContext = {
-        ...context, workspace, deployFsPath, deployFsSubpath, webAppSource
+        ...context, workspace, deployFsPath: originalDeployFsPath, deployFsSubpath: effectiveDeployFsPath, webAppSource
     };
 
     // because this is workspace dependant, do it before user selects app
