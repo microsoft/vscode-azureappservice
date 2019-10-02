@@ -167,6 +167,11 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
     // only respect the deploySubpath settings for zipdeploys
     const deployPath: string = siteConfig.scmType === constants.ScmType.None ? deployContext.effectiveDeployFsPath : deployContext.originalDeployFsPath;
 
+    if (siteConfig.scmType !== constants.ScmType.None && deployContext.effectiveDeployFsPath !== deployContext.originalDeployFsPath) {
+        const noSubpathWarning: string = `WARNING: Ignoring deploySubPath "${getWorkspaceSetting(constants.configurationSettings.deploySubpath)}" for non-zip deploy.`;
+        ext.outputChannel.appendLog(noSubpathWarning);
+    }
+
     await node.runWithTemporaryDescription("Deploying...", async () => {
         await appservice.deploy(nonNullValue(node).root.client, <string>deployPath, deployContext, constants.showOutputChannelCommandId);
     });
