@@ -51,19 +51,18 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
         fileExtensions = javaUtils.getJavaArtifactExtensions();
     }
 
-    const deployFsPath: string = await appservice.getDeployFsPath(target, constants.extensionPrefix, fileExtensions);
-    const workspace: vscode.WorkspaceFolder | undefined = workspaceUtil.getContainingWorkspace(deployFsPath);
+    const { originalDeployFsPath, effectiveDeployFsPath } = await appservice.getDeployFsPath(target, constants.extensionPrefix, fileExtensions);
+    const workspace: vscode.WorkspaceFolder | undefined = workspaceUtil.getContainingWorkspace(effectiveDeployFsPath);
     if (!workspace) {
         throw new Error('Failed to deploy because the path is not part of an open workspace. Open in a workspace and try again.');
     }
 
     const deployContext: IDeployWizardContext = {
-        ...context, workspace, deployFsPath, webAppSource
+        ...context, workspace, originalDeployFsPath, effectiveDeployFsPath, webAppSource
     };
 
     // because this is workspace dependant, do it before user selects app
     await setPreDeployTaskForDotnet(deployContext);
-
     if (!node) {
         const onTreeItemCreatedFromQuickPickDisposable: vscode.Disposable = ext.tree.onTreeItemCreate((newNode: SiteTreeItem) => {
             // event is fired from azure-extensionui if node was created during deployment
@@ -155,8 +154,8 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
     }
 
     // tslint:disable-next-line:no-floating-promises
-    node.promptToSaveDeployDefaults(deployContext, deployContext.workspace.uri.fsPath, deployContext.deployFsPath);
-    await appservice.runPreDeployTask(deployContext, deployContext.deployFsPath, siteConfig.scmType, constants.extensionPrefix);
+    node.promptToSaveDeployDefaults(deployContext, deployContext.workspace.uri.fsPath, deployContext.originalDeployFsPath);
+    await appservice.runPreDeployTask(deployContext, deployContext.originalDeployFsPath, siteConfig.scmType, constants.extensionPrefix);
 
     // cancellation moved to after prompts while gathering telemetry
     // cancel the previous detector check from the same web app
@@ -165,8 +164,16 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
         previousTokenSource.cancel();
     }
 
+    // only respect the deploySubpath settings for zipdeploys
+    const deployPath: string = siteConfig.scmType === constants.ScmType.None ? deployContext.effectiveDeployFsPath : deployContext.originalDeployFsPath;
+
+    if (siteConfig.scmType !== constants.ScmType.None && deployContext.effectiveDeployFsPath !== deployContext.originalDeployFsPath) {
+        const noSubpathWarning: string = `WARNING: Ignoring deploySubPath "${getWorkspaceSetting(constants.configurationSettings.deploySubpath)}" for non-zip deploy.`;
+        ext.outputChannel.appendLog(noSubpathWarning);
+    }
+
     await node.runWithTemporaryDescription("Deploying...", async () => {
-        await appservice.deploy(nonNullValue(node).root.client, <string>deployContext.deployFsPath, deployContext, constants.showOutputChannelCommandId);
+        await appservice.deploy(nonNullValue(node).root.client, <string>deployPath, deployContext, constants.showOutputChannelCommandId);
     });
 
     const tokenSource: vscode.CancellationTokenSource = new vscode.CancellationTokenSource();
