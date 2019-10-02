@@ -18,7 +18,7 @@
             "preLaunchTask": "npm: compile",
             "env": {
                 "AZCODE_APPSERVICE_IGNORE_BUNDLE": "1",
-                "DEBUGTELEMETRY": "1",
+                "DEBUGTELEMETRY": "v",
                 "NODE_DEBUG": ""
             }
         },
@@ -37,7 +37,7 @@
             ],
             "preLaunchTask": "npm: webpack",
             "env": {
-                "DEBUGTELEMETRY": "1",
+                "DEBUGTELEMETRY": "v",
                 "NODE_DEBUG": "",
                 "DEBUG_WEBPACK": "1"
             }
@@ -61,7 +61,7 @@
                 "AZCODE_APPSERVICE_IGNORE_BUNDLE": "1",
                 "MOCHA_grep": "", // RegExp of tests to run (empty for all)
                 "MOCHA_enableTimeouts": "0", // Disable time-outs
-                "DEBUGTELEMETRY": "1",
+                "DEBUGTELEMETRY": "v",
                 "NODE_DEBUG": "",
                 "DEBUG_WEBPACK": "",
                 "ENABLE_LONG_RUNNING_TESTS": ""
@@ -85,7 +85,7 @@
             "env": {
                 "MOCHA_grep": "", // RegExp of tests to run (empty for all)
                 "MOCHA_enableTimeouts": "0", // Disable time-outs
-                "DEBUGTELEMETRY": "1",
+                "DEBUGTELEMETRY": "v",
                 "NODE_DEBUG": "",
                 "DEBUG_WEBPACK": "",
                 "ENABLE_LONG_RUNNING_TESTS": ""
