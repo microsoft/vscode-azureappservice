@@ -29,7 +29,7 @@ export async function setPreDeployTaskForDotnet(context: IDeployWizardContext): 
     }
 
     // if the user is deploying a different folder than the root, use this folder without setting up defaults
-    if (!isPathEqual(context.deployFsPath, workspaceFspath)) {
+    if (!isPathEqual(context.originalDeployFsPath, workspaceFspath)) {
         return;
     }
 
@@ -59,7 +59,7 @@ export async function setPreDeployTaskForDotnet(context: IDeployWizardContext): 
         await updateWorkspaceSetting(constants.configurationSettings.deploySubpath, deploySubpath, workspaceFspath);
 
         // update the deployContext.deployFsPath with the .NET output path since getDeployFsPath is called prior to this
-        context.deployFsPath = path.join(workspaceFspath, deploySubpath);
+        context.originalDeployFsPath = path.join(workspaceFspath, deploySubpath);
 
         const existingTasks: tasks.ITask[] = tasks.getTasks(context.workspace);
         const publishTask: tasks.ITask | undefined = existingTasks.find(t1 => {

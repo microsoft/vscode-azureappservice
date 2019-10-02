@@ -58,7 +58,7 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
     }
 
     const deployContext: IDeployWizardContext = {
-        ...context, workspace, deployFsPath: originalDeployFsPath, deployFsSubpath: effectiveDeployFsPath, webAppSource
+        ...context, workspace, originalDeployFsPath, effectiveDeployFsPath, webAppSource
     };
 
     // because this is workspace dependant, do it before user selects app
@@ -154,8 +154,8 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
     }
 
     // tslint:disable-next-line:no-floating-promises
-    node.promptToSaveDeployDefaults(deployContext, deployContext.workspace.uri.fsPath, deployContext.deployFsPath);
-    await appservice.runPreDeployTask(deployContext, deployContext.deployFsPath, siteConfig.scmType, constants.extensionPrefix);
+    node.promptToSaveDeployDefaults(deployContext, deployContext.workspace.uri.fsPath, deployContext.originalDeployFsPath);
+    await appservice.runPreDeployTask(deployContext, deployContext.originalDeployFsPath, siteConfig.scmType, constants.extensionPrefix);
 
     // cancellation moved to after prompts while gathering telemetry
     // cancel the previous detector check from the same web app
@@ -165,7 +165,7 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
     }
 
     // only respect the deploySubpath settings for zipdeploys
-    const deployPath: string = siteConfig.scmType === constants.ScmType.None ? deployContext.deployFsSubpath : deployContext.deployFsPath;
+    const deployPath: string = siteConfig.scmType === constants.ScmType.None ? deployContext.effectiveDeployFsPath : deployContext.originalDeployFsPath;
 
     await node.runWithTemporaryDescription("Deploying...", async () => {
         await appservice.deploy(nonNullValue(node).root.client, <string>deployPath, deployContext, constants.showOutputChannelCommandId);
