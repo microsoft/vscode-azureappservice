@@ -20,7 +20,6 @@ export async function createSlot(context: IActionContext, node?: DeploymentSlots
         if (result === AppServiceDialogResponses.viewOutput) {
             ext.outputChannel.show();
         } else if (result === AppServiceDialogResponses.deploy) {
-            context.telemetry.properties.deploy = 'true';
             await deploy(context, false, createdSlot);
         }
     });
