@@ -11,12 +11,12 @@ import { ext } from '../../extensionVariables';
 import { isPathEqual } from '../../utils/pathUtils';
 import { getWorkspaceSetting, updateWorkspaceSetting } from '../../vsCodeConfig/settings';
 import * as tasks from '../../vsCodeConfig/tasks';
-import { IDeployWizardContext } from "./IDeployWizardContext";
+import { IDeployContext } from "./IDeployContext";
 
 const cleanId: string = 'clean';
 const publishId: string = 'publish-release';
 
-export async function setPreDeployTaskForDotnet(context: IDeployWizardContext): Promise<void> {
+export async function setPreDeployTaskForDotnet(context: IDeployContext): Promise<void> {
     const preDeployTaskSetting: string = 'preDeployTask';
     const showPreDeployWarningSetting: string = 'showPreDeployWarning';
     const workspaceFspath: string = context.workspace.uri.fsPath;
@@ -88,7 +88,7 @@ export async function setPreDeployTaskForDotnet(context: IDeployWizardContext): 
     }
 }
 
-async function tryGetCsprojFile(context: IDeployWizardContext, projectPath: string): Promise<string | undefined> {
+async function tryGetCsprojFile(context: IDeployContext, projectPath: string): Promise<string | undefined> {
     const projectFiles: string[] = await checkFolderForCsproj(projectPath);
     // it's a common pattern to have the .csproj file in a subfolder so check one level deeper
     if (projectFiles.length === 0) {

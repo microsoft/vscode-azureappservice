@@ -10,9 +10,9 @@ import { IAppServiceWizardContext, LinuxRuntimes, WebsiteOS } from 'vscode-azure
 import { ICreateChildImplContext, LocationListStep } from 'vscode-azureextensionui';
 import { javaUtils } from '../../utils/javaUtils';
 import { findFilesByFileExtension, getSingleRootWorkspace } from '../../utils/workspace';
-import { IDeployWizardContext } from '../deploy/IDeployWizardContext';
+import { IDeployContext } from '../deploy/IDeployContext';
 
-export async function setPrePromptDefaults(wizardContext: IAppServiceWizardContext & Partial<IDeployWizardContext> & Partial<ICreateChildImplContext>): Promise<void> {
+export async function setPrePromptDefaults(wizardContext: IAppServiceWizardContext & Partial<IDeployContext> & Partial<ICreateChildImplContext>): Promise<void> {
     // if the user entered through "Deploy", we'll have a project to base our recommendations on
     // otherwise, look at their current workspace and only suggest if one workspace is opened
     const workspaceForRecommendation: WorkspaceFolder | undefined = getSingleRootWorkspace(wizardContext);

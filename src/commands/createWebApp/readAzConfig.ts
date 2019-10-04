@@ -7,13 +7,13 @@ import { WorkspaceFolder } from 'vscode';
 import { IAppServiceWizardContext } from 'vscode-azureappservice';
 import { cpUtils } from '../../utils/cpUtils';
 import { getSingleRootWorkspace } from '../../utils/workspace';
-import { IDeployWizardContext } from '../deploy/IDeployWizardContext';
+import { IDeployContext } from '../deploy/IDeployContext';
 
 /**
  * Takes any number of Azure config properties to read and returns their configured values.
  * Azure CLI configuration docs: https://aka.ms/AA64syh
  */
-export async function readAzConfig(wizardContext: IAppServiceWizardContext & Partial<IDeployWizardContext>, ...propertiesToRead: AzConfigProperty[]): Promise<AzConfig> {
+export async function readAzConfig(wizardContext: IAppServiceWizardContext & Partial<IDeployContext>, ...propertiesToRead: AzConfigProperty[]): Promise<AzConfig> {
     const config: AzConfig = {};
     const workspaceFolder: WorkspaceFolder | undefined = getSingleRootWorkspace(wizardContext);
     const workspacePath: string | undefined = workspaceFolder ? workspaceFolder.uri.fsPath : undefined;

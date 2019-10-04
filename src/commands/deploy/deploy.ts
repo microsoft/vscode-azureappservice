@@ -23,7 +23,7 @@ import { getWorkspaceSetting, updateWorkspaceSetting } from '../../vsCodeConfig/
 import { runPostDeployTask } from '../postDeploy/runPostDeployTask';
 import { startStreamingLogs } from '../startStreamingLogs';
 import { getWebAppToDeploy } from './getWebAppToDeploy';
-import { IDeployWizardContext, WebAppSource } from './IDeployWizardContext';
+import { IDeployContext, WebAppSource } from './IDeployContext';
 import { setPreDeployTaskForDotnet } from './setPreDeployTaskForDotnet';
 
 const postDeployCancelTokens: Map<string, vscode.CancellationTokenSource> = new Map();
@@ -57,7 +57,7 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
         throw new Error('Failed to deploy because the path is not part of an open workspace. Open in a workspace and try again.');
     }
 
-    const deployContext: IDeployWizardContext = {
+    const deployContext: IDeployContext = {
         ...context, workspace, originalDeployFsPath, effectiveDeployFsPath, webAppSource
     };
 
