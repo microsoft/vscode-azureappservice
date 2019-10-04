@@ -128,7 +128,6 @@ export class WebAppTreeItem extends SiteTreeItem {
             if (result === AppServiceDialogResponses.viewOutput) {
                 ext.outputChannel.show();
             } else if (result === AppServiceDialogResponses.deploy) {
-                context.telemetry.properties.deploy = 'true';
                 await deploy(context, false, this);
             }
         });
