@@ -7,9 +7,9 @@ import { configurationSettings, none } from "../../constants";
 import { WebAppTreeItem } from "../../explorer/WebAppTreeItem";
 import { ext } from '../../extensionVariables';
 import { getWorkspaceSetting, updateWorkspaceSetting } from "../../vsCodeConfig/settings";
-import { IDeployWizardContext, WebAppSource } from "./IDeployWizardContext";
+import { IDeployContext, WebAppSource } from "./IDeployContext";
 
-export async function getWebAppToDeploy(context: IDeployWizardContext): Promise<WebAppTreeItem> {
+export async function getWebAppToDeploy(context: IDeployContext): Promise<WebAppTreeItem> {
     const defaultWebAppId: string | undefined = getWorkspaceSetting(configurationSettings.defaultWebAppToDeploy, context.workspace.uri.fsPath);
     if (defaultWebAppId && defaultWebAppId !== none) {
         const defaultWebApp: WebAppTreeItem | undefined = await ext.tree.findTreeItem(defaultWebAppId, context); // resolves to undefined if app can't be found
