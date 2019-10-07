@@ -12,5 +12,5 @@ export async function redeployDeployment(context: IActionContext, node?: Deploym
     if (!node) {
         node = <DeploymentTreeItem>(await ext.tree.showTreeItemPicker(DeploymentTreeItem.contextValue, context));
     }
-    await node.redeployDeployment(showOutputChannelCommandId);
+    await node.redeployDeployment(context, showOutputChannelCommandId);
 }
