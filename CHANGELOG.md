@@ -1,6 +1,10 @@
 # Change Log
 All notable changes to the "azure-appservice" extension will be documented in this file.
 
+## 0.16.1 - 2019-10-16
+### Fixed
+- [Bugs fixed](https://github.com/microsoft/vscode-azureappservice/issues?q=is%3Aissue+is%3Aclosed+milestone%3A0.16.1)
+
 ## 0.16.0 - 2019-09-18
 ### Added
 - Smart defaults for deploying .NET projects (adds settings and tasks for one-click deployment)
