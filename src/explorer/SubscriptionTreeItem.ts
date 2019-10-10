@@ -5,7 +5,7 @@
 
 import { WebSiteManagementClient, WebSiteManagementModels } from 'azure-arm-website';
 import { Site, WebAppCollection } from 'azure-arm-website/lib/models';
-import { AppInsightsCreateStep, AppInsightsListStep, AppKind, AppServicePlanCreateStep, AppServicePlanListStep, IAppServiceWizardContext, IAppSettingsContext, SiteClient, SiteCreateStep, SiteNameStep, SiteOSStep, SiteRuntimeStep, WebsiteOS } from 'vscode-azureappservice';
+import { AppInsightsCreateStep, AppInsightsListStep, AppKind, AppServicePlanCreateStep, AppServicePlanListStep, IAppServiceWizardContext, IAppSettingsContext, setLocationsTask, SiteClient, SiteCreateStep, SiteNameStep, SiteOSStep, SiteRuntimeStep, WebsiteOS } from 'vscode-azureappservice';
 import { AzExtTreeItem, AzureTreeItem, AzureWizard, AzureWizardExecuteStep, AzureWizardPromptStep, createAzureClient, ICreateChildImplContext, LocationListStep, parseError, ResourceGroupCreateStep, ResourceGroupListStep, SubscriptionTreeItemBase } from 'vscode-azureextensionui';
 import { setPostPromptDefaults } from '../commands/createWebApp/setPostPromptDefaults';
 import { setPrePromptDefaults } from '../commands/createWebApp/setPrePromptDefaults';
@@ -92,7 +92,7 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
         executeSteps.push(new SiteCreateStep(createWebAppSettings));
 
         if (wizardContext.newSiteOS !== undefined) {
-            SiteOSStep.setLocationsTask(wizardContext);
+            setLocationsTask(wizardContext);
         }
 
         const title: string = 'Create new web app';
