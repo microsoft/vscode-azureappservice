@@ -58,8 +58,8 @@ export async function setPreDeployTaskForDotnet(context: IDeployWizardContext): 
         await updateWorkspaceSetting(preDeployTaskSetting, publishId, workspaceFspath);
         await updateWorkspaceSetting(constants.configurationSettings.deploySubpath, deploySubpath, workspaceFspath);
 
-        // update the deployContext.deployFsPath with the .NET output path since getDeployFsPath is called prior to this
-        context.originalDeployFsPath = path.join(workspaceFspath, deploySubpath);
+        // update the deployContext.effectiveDeployFsPath with the .NET output path since getDeployFsPath is called prior to this
+        context.effectiveDeployFsPath = path.join(workspaceFspath, deploySubpath);
 
         const existingTasks: tasks.ITask[] = tasks.getTasks(context.workspace);
         const publishTask: tasks.ITask | undefined = existingTasks.find(t1 => {
