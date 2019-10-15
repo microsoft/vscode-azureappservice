@@ -24,19 +24,21 @@ export enum ColumnName {
 export async function getLinuxDetectorError(context: IActionContext, detectorId: string, node: SiteTreeItem, deployResultTime: Date, siteName: string): Promise<string | undefined> {
     const detectorUri: string = `${node.id}/detectors/${detectorId}`;
     const requestOptions: requestUtils.Request = await requestUtils.getDefaultAzureRequest(detectorUri, node.root);
-    const dayAfterDeployResultTime: Date = new Date(deployResultTime.getTime() + (24 * 60 * 60 * 1000));
+    const currentTime: Date = new Date();
 
     // these parameters were specified to retrieve the timestamp from the detector by Detectors team
     // string "Latest time seen by detector. To be used in VSCode integration."" is added to response
     // when val: 'vscode' is added
+    // https://github.com/microsoft/vscode-azureappservice/issues/1235
+
     requestOptions.qs = {
         'api-version': "2015-08-01",
         fId: "1",
         btnId: "2",
         val: "vscode",
         inpId: "1",
-        startTime: deployResultTime.toISOString(),
-        endTime: dayAfterDeployResultTime.toISOString()
+        startTime: new Date(currentTime.valueOf() - 1000),
+        endTime: currentTime
     };
 
     const detectorResponse: string = await requestUtils.sendRequest<string>(requestOptions);
