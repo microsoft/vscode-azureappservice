@@ -11,7 +11,7 @@ import * as vscode from 'vscode';
 import { ISiteTreeRoot } from 'vscode-azureappservice';
 import { AzExtTreeItem, AzureTreeItem, createAzureClient, IActionContext } from 'vscode-azureextensionui';
 import { deploy } from '../commands/deploy/deploy';
-import { AppServiceDialogResponses, extensionPrefix } from '../constants';
+import { AppServiceDialogResponses } from '../constants';
 import { ext } from '../extensionVariables';
 import { nonNullProp, nonNullValue } from '../utils/nonNull';
 import { getResourcesPath, getThemedIconPath, IThemedIconPath } from '../utils/pathUtils';
@@ -20,7 +20,7 @@ import { DeploymentSlotTreeItem } from './DeploymentSlotTreeItem';
 import { SiteTreeItem } from './SiteTreeItem';
 
 export class WebAppTreeItem extends SiteTreeItem {
-    public static contextValue: string = extensionPrefix;
+    public static contextValue: string = ext.prefix;
     public readonly contextValue: string = WebAppTreeItem.contextValue;
     public deploymentSlotsNode: DeploymentSlotsTreeItem | DeploymentSlotsNATreeItem;
 

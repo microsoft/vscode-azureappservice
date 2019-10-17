@@ -3,10 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { constants, getGlobalSetting, updateGlobalSetting } from "../extension.bundle";
+import { ext, getGlobalSetting, updateGlobalSetting } from "../extension.bundle";
 
 export async function runWithExtensionSetting(key: string, value: string | undefined, callback: () => Promise<void>): Promise<void> {
-    await runWithSettingInternal(key, value, constants.extensionPrefix, callback);
+    await runWithSettingInternal(key, value, ext.prefix, callback);
 }
 
 export async function runWithSetting(key: string, value: string | undefined, callback: () => Promise<void>): Promise<void> {

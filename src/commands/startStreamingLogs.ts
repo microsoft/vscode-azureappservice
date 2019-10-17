@@ -6,19 +6,16 @@
 import * as vscode from 'vscode';
 import * as appservice from 'vscode-azureappservice';
 import { IActionContext } from 'vscode-azureextensionui';
-import { LogStreamTreeItem } from '../explorer/LogStreamTreeItem';
 import { SiteTreeItem } from "../explorer/SiteTreeItem";
 import { WebAppTreeItem } from '../explorer/WebAppTreeItem';
 import { ext } from '../extensionVariables';
 import { enableFileLogging } from './enableFileLogging';
 
-export async function startStreamingLogs(context: IActionContext, node?: SiteTreeItem | LogStreamTreeItem): Promise<void> {
+export async function startStreamingLogs(context: IActionContext, node?: SiteTreeItem): Promise<void> {
     let siteTreeItem: SiteTreeItem;
 
     if (!node) {
         siteTreeItem = <WebAppTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue, context);
-    } else if (node instanceof LogStreamTreeItem) {
-        siteTreeItem = <SiteTreeItem>node.parent.parent;
     } else {
         siteTreeItem = node;
     }

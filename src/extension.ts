@@ -6,7 +6,7 @@
 'use strict';
 
 import * as vscode from 'vscode';
-import { AppSettingsTreeItem, AppSettingTreeItem, DeploymentsTreeItem, ISiteTreeRoot, registerAppServiceExtensionVariables, SiteClient, stopStreamingLogs } from 'vscode-azureappservice';
+import { AppSettingsTreeItem, AppSettingTreeItem, DeploymentsTreeItem, FileTreeItem, ISiteTreeRoot, LogFilesTreeItem, registerAppServiceExtensionVariables, SiteClient, stopStreamingLogs } from 'vscode-azureappservice';
 import { AzExtTreeDataProvider, AzureTreeItem, AzureUserInput, callWithTelemetryAndErrorHandling, createApiProvider, createAzExtOutputChannel, createTelemetryReporter, IActionContext, IAzureUserInput, openInPortal, registerCommand, registerEvent, registerUIExtensionVariables } from 'vscode-azureextensionui';
 import { AzureExtensionApiProvider } from 'vscode-azureextensionui/api';
 import { downloadAppSettings } from './commands/appSettings/downloadAppSettings';
@@ -31,13 +31,10 @@ import { showFile } from './commands/showFile';
 import { startSsh } from './commands/startSsh';
 import { startStreamingLogs } from './commands/startStreamingLogs';
 import { swapSlots } from './commands/swapSlots';
-import { extensionPrefix, showOutputChannelCommandId, toggleValueVisibilityCommandId } from './constants';
 import { AzureAccountTreeItem } from './explorer/AzureAccountTreeItem';
 import { DeploymentSlotsNATreeItem, DeploymentSlotsTreeItem, ScaleUpTreeItem } from './explorer/DeploymentSlotsTreeItem';
 import { DeploymentSlotTreeItem } from './explorer/DeploymentSlotTreeItem';
 import { FileEditor } from './explorer/editors/FileEditor';
-import { FileTreeItem } from './explorer/FileTreeItem';
-import { FolderTreeItem } from './explorer/FolderTreeItem';
 import { SiteTreeItem } from './explorer/SiteTreeItem';
 import { WebAppTreeItem } from './explorer/WebAppTreeItem';
 import { ext } from './extensionVariables';
@@ -58,7 +55,7 @@ export async function activateInternal(
     const ui: IAzureUserInput = new AzureUserInput(context.globalState);
     ext.ui = ui;
 
-    ext.outputChannel = createAzExtOutputChannel("Azure App Service", extensionPrefix);
+    ext.outputChannel = createAzExtOutputChannel("Azure App Service", ext.prefix);
     context.subscriptions.push(ext.outputChannel);
 
     registerUIExtensionVariables(ext);
@@ -212,7 +209,7 @@ export async function activateInternal(
         registerCommand('appService.appSettings.Download', downloadAppSettings);
         registerCommand('appService.appSettings.Upload', uploadAppSettings);
         registerCommand('appService.appSettings.ToggleSlotSetting', toggleSlotSetting);
-        registerCommand('appService.OpenLogStream', startStreamingLogs);
+        registerCommand('appService.startStreamingLogs', startStreamingLogs);
         registerCommand('appService.StopLogStream', async (actionContext: IActionContext, node?: SiteTreeItem) => {
             if (!node) {
                 node = <WebAppTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue, actionContext);
@@ -224,19 +221,19 @@ export async function activateInternal(
         registerCommand('appService.StartRemoteDebug', startRemoteDebug);
         registerCommand('appService.StartSsh', startSsh);
 
-        registerCommand('appService.showFile', async (_actionContext: IActionContext, node: FileTreeItem) => { await showFile(node, fileEditor); }, 500);
+        registerCommand('appService.openFile', async (_actionContext: IActionContext, node: FileTreeItem) => { await showFile(node, fileEditor); }, 500);
         registerCommand('appService.ScaleUp', async (_actionContext: IActionContext, node: DeploymentSlotsNATreeItem | ScaleUpTreeItem) => {
             await openInPortal(node.root, node.scaleUpId);
         });
 
         registerEvent('appService.fileEditor.onDidSaveTextDocument', vscode.workspace.onDidSaveTextDocument, async (actionContext: IActionContext, doc: vscode.TextDocument) => { await fileEditor.onDidSaveTextDocument(actionContext, context.globalState, doc); });
-        registerCommand('appService.EnableFileLogging', async (actionContext: IActionContext, node?: SiteTreeItem | FolderTreeItem) => {
+        registerCommand('appService.EnableFileLogging', async (actionContext: IActionContext, node?: SiteTreeItem | LogFilesTreeItem) => {
             if (!node) {
                 node = <SiteTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue, actionContext);
             }
 
-            if (node instanceof FolderTreeItem) {
-                // If the entry point was the Files/Log Files node, pass the parent as that's where the logic lives
+            if (node instanceof LogFilesTreeItem) {
+                // If the entry point was the Log Files node, pass the parent as that's where the logic lives
                 node = <SiteTreeItem>node.parent;
             }
             const isEnabled = await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async p => {
@@ -266,10 +263,10 @@ export async function activateInternal(
         registerCommand('appService.ViewDeploymentLogs', viewDeploymentLogs);
         registerCommand('appService.Redeploy', redeployDeployment);
         registerCommand('appService.DisconnectRepo', disconnectRepo);
-        registerCommand('appService.ConnectToGitHub', connectToGitHub);
-        registerCommand(toggleValueVisibilityCommandId, async (_actionContext: IActionContext, node: AppSettingTreeItem) => { await node.toggleValueVisibility(); }, 250);
+        registerCommand('appService.connectToGitHub', connectToGitHub);
+        registerCommand('appService.toggleAppSettingVisibility', async (_actionContext: IActionContext, node: AppSettingTreeItem) => { await node.toggleValueVisibility(); }, 250);
         registerCommand('appService.ViewCommitInGitHub', viewCommitInGitHub);
-        registerCommand(showOutputChannelCommandId, () => { ext.outputChannel.show(); });
+        registerCommand('appService.showOutputChannel', () => { ext.outputChannel.show(); });
     });
 
     return createApiProvider([]);

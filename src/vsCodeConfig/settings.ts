@@ -4,46 +4,46 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { ConfigurationTarget, Uri, workspace, WorkspaceConfiguration } from "vscode";
-import { extensionPrefix } from '../constants';
+import { ext } from "../extensionVariables";
 
 /**
- * Uses extensionPrefix 'appService' unless otherwise specified
+ * Uses ext.prefix 'appService' unless otherwise specified
  */
-export async function updateGlobalSetting<T = string>(section: string, value: T, prefix: string = extensionPrefix): Promise<void> {
+export async function updateGlobalSetting<T = string>(section: string, value: T, prefix: string = ext.prefix): Promise<void> {
     const projectConfiguration: WorkspaceConfiguration = workspace.getConfiguration(prefix);
     await projectConfiguration.update(section, value, ConfigurationTarget.Global);
 }
 
 /**
- * Uses extensionPrefix 'appService' unless otherwise specified
+ * Uses ext.prefix 'appService' unless otherwise specified
  */
-export async function updateWorkspaceSetting<T = string>(section: string, value: T, fsPath: string, prefix: string = extensionPrefix): Promise<void> {
+export async function updateWorkspaceSetting<T = string>(section: string, value: T, fsPath: string, prefix: string = ext.prefix): Promise<void> {
     const projectConfiguration: WorkspaceConfiguration = workspace.getConfiguration(prefix, Uri.file(fsPath));
     await projectConfiguration.update(section, value);
 }
 
 /**
- * Uses extensionPrefix 'appService' unless otherwise specified
+ * Uses ext.prefix 'appService' unless otherwise specified
  */
-export function getGlobalSetting<T>(key: string, prefix: string = extensionPrefix): T | undefined {
+export function getGlobalSetting<T>(key: string, prefix: string = ext.prefix): T | undefined {
     const projectConfiguration: WorkspaceConfiguration = workspace.getConfiguration(prefix);
     const result: { globalValue?: T } | undefined = projectConfiguration.inspect<T>(key);
     return result && result.globalValue;
 }
 
 /**
- * Uses extensionPrefix 'appService' unless otherwise specified
+ * Uses ext.prefix 'appService' unless otherwise specified
  */
-export function getWorkspaceSetting<T>(key: string, fsPath?: string, prefix: string = extensionPrefix): T | undefined {
+export function getWorkspaceSetting<T>(key: string, fsPath?: string, prefix: string = ext.prefix): T | undefined {
     const projectConfiguration: WorkspaceConfiguration = workspace.getConfiguration(prefix, fsPath ? Uri.file(fsPath) : undefined);
     return projectConfiguration.get<T>(key);
 }
 
 /**
  * Searches through all open folders and gets the current workspace setting (as long as there are no conflicts)
- * Uses extensionPrefix 'appService' unless otherwise specified
+ * Uses ext.prefix 'appService' unless otherwise specified
  */
-export function getWorkspaceSettingFromAnyFolder(key: string, prefix: string = extensionPrefix): string | undefined {
+export function getWorkspaceSettingFromAnyFolder(key: string, prefix: string = ext.prefix): string | undefined {
     if (workspace.workspaceFolders && workspace.workspaceFolders.length > 0) {
         let result: string | undefined;
         for (const folder of workspace.workspaceFolders) {
