@@ -7,9 +7,8 @@ import * as WebSiteModels from 'azure-arm-website/lib/models';
 import * as fse from 'fs-extra';
 import * as path from 'path';
 import { MessageItem, window } from 'vscode';
-import { AppSettingsTreeItem, AppSettingTreeItem, deleteSite, DeploymentsTreeItem, DeploymentTreeItem, ISiteTreeRoot, LinuxRuntimes, SiteClient } from 'vscode-azureappservice';
+import { AppSettingsTreeItem, AppSettingTreeItem, deleteSite, DeploymentsTreeItem, DeploymentTreeItem, FolderTreeItem, ISiteTreeRoot, LinuxRuntimes, LogFilesTreeItem, SiteClient, SiteFilesTreeItem } from 'vscode-azureappservice';
 import { AzExtTreeItem, AzureParentTreeItem, AzureTreeItem, DialogResponses, IActionContext } from 'vscode-azureextensionui';
-import { toggleValueVisibilityCommandId } from '../constants';
 import * as constants from '../constants';
 import { ext } from '../extensionVariables';
 import { openUrl } from '../utils/openUrl';
@@ -17,7 +16,6 @@ import { getWorkspaceSetting, updateWorkspaceSetting } from '../vsCodeConfig/set
 import { ConnectionsTreeItem } from './ConnectionsTreeItem';
 import { CosmosDBConnection } from './CosmosDBConnection';
 import { CosmosDBTreeItem } from './CosmosDBTreeItem';
-import { FolderTreeItem } from './FolderTreeItem';
 import { NotAvailableTreeItem } from './NotAvailableTreeItem';
 import { WebJobsNATreeItem, WebJobsTreeItem } from './WebJobsTreeItem';
 
@@ -29,8 +27,8 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     public deploymentsNode: DeploymentsTreeItem | undefined;
 
     private readonly _connectionsNode: ConnectionsTreeItem;
-    private readonly _folderNode: FolderTreeItem;
-    private readonly _logFolderNode: FolderTreeItem;
+    private readonly _siteFilesNode: SiteFilesTreeItem;
+    private readonly _logFilesNode: LogFilesTreeItem;
     private readonly _webJobsNode: WebJobsTreeItem | WebJobsNATreeItem;
 
     private readonly _root: ISiteTreeRoot;
@@ -41,10 +39,10 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         this._root = Object.assign({}, parent.root, { client });
         this._state = client.initialState;
 
-        this.appSettingsNode = new AppSettingsTreeItem(this, toggleValueVisibilityCommandId);
+        this.appSettingsNode = new AppSettingsTreeItem(this);
         this._connectionsNode = new ConnectionsTreeItem(this);
-        this._folderNode = new FolderTreeItem(this, 'Files', "/site/wwwroot");
-        this._logFolderNode = new FolderTreeItem(this, 'Logs', '/LogFiles', 'logFolder');
+        this._siteFilesNode = new SiteFilesTreeItem(this, false);
+        this._logFilesNode = new LogFilesTreeItem(this);
         // Can't find actual documentation on this, but the portal claims it and this feedback suggests it's not planned https://aka.ms/AA4q5gi
         this._webJobsNode = this.root.client.isLinux ? new WebJobsNATreeItem(this) : new WebJobsTreeItem(this);
     }
@@ -84,8 +82,8 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     public async loadMoreChildrenImpl(_clearCache: boolean): Promise<AzureTreeItem<ISiteTreeRoot>[]> {
         const siteConfig: WebSiteModels.SiteConfig = await this.root.client.getSiteConfig();
         const sourceControl: WebSiteModels.SiteSourceControl = await this.root.client.getSourceControl();
-        this.deploymentsNode = new DeploymentsTreeItem(this, siteConfig, sourceControl, 'appService.ConnectToGitHub');
-        return [this.appSettingsNode, this._connectionsNode, this.deploymentsNode, this._folderNode, this._logFolderNode, this._webJobsNode];
+        this.deploymentsNode = new DeploymentsTreeItem(this, siteConfig, sourceControl);
+        return [this.appSettingsNode, this._connectionsNode, this.deploymentsNode, this._siteFilesNode, this._logFilesNode, this._webJobsNode];
     }
 
     public compareChildrenImpl(ti1: AzureTreeItem<ISiteTreeRoot>, ti2: AzureTreeItem<ISiteTreeRoot>): number {
@@ -114,7 +112,7 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
                 case DeploymentTreeItem.contextValue:
                     return this.deploymentsNode;
                 case FolderTreeItem.contextValue:
-                    return this._folderNode;
+                    return this._siteFilesNode;
                 case WebJobsTreeItem.contextValue:
                     return this._webJobsNode;
                 default:

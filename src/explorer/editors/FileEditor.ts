@@ -6,12 +6,13 @@
 import * as fs from 'fs';
 import { Readable } from 'stream';
 import * as vscode from 'vscode';
-import { getFile, IFileResult, putFile } from 'vscode-azureappservice';
+import { FileTreeItem, getFile, IFileResult, putFile } from 'vscode-azureappservice';
 import { BaseEditor } from 'vscode-azureextensionui';
-import { nonNullProp } from '../../utils/nonNull';
-import { FileTreeItem } from '../FileTreeItem';
+import { nonNullValue } from '../../utils/nonNull';
 
 export class FileEditor extends BaseEditor<FileTreeItem> {
+    private _etags: Map<string, string> = new Map<string, string>();
+
     constructor() {
         super('appService.showSavePrompt');
     }
@@ -26,7 +27,7 @@ export class FileEditor extends BaseEditor<FileTreeItem> {
 
     public async getData(node: FileTreeItem): Promise<string> {
         const result: IFileResult = await getFile(node.root.client, node.path);
-        node.etag = result.etag;
+        this._etags.set(node.fullId, result.etag);
         return result.data;
     }
 
@@ -40,7 +41,9 @@ export class FileEditor extends BaseEditor<FileTreeItem> {
             throw new Error('Cannot update file after it has been closed.');
         }
         const localFile: Readable = fs.createReadStream(vscode.window.activeTextEditor.document.uri.fsPath);
-        node.etag = await putFile(node.root.client, localFile, node.path, nonNullProp(node, 'etag'));
+        let etag: string = nonNullValue(this._etags.get(node.fullId), 'etag');
+        etag = await putFile(node.root.client, localFile, node.path, etag);
+        this._etags.set(node.fullId, etag);
         return await this.getData(node);
     }
 }

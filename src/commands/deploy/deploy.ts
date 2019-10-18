@@ -51,7 +51,7 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
         fileExtensions = javaUtils.getJavaArtifactExtensions();
     }
 
-    const { originalDeployFsPath, effectiveDeployFsPath } = await appservice.getDeployFsPath(target, constants.extensionPrefix, fileExtensions);
+    const { originalDeployFsPath, effectiveDeployFsPath } = await appservice.getDeployFsPath(target, fileExtensions);
     const workspace: vscode.WorkspaceFolder | undefined = workspaceUtil.getContainingWorkspace(effectiveDeployFsPath);
     if (!workspace) {
         throw new Error('Failed to deploy because the path is not part of an open workspace. Open in a workspace and try again.');
@@ -155,7 +155,7 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
 
     // tslint:disable-next-line:no-floating-promises
     node.promptToSaveDeployDefaults(deployContext, deployContext.workspace.uri.fsPath, deployContext.originalDeployFsPath);
-    await appservice.runPreDeployTask(deployContext, deployContext.originalDeployFsPath, siteConfig.scmType, constants.extensionPrefix);
+    await appservice.runPreDeployTask(deployContext, deployContext.originalDeployFsPath, siteConfig.scmType);
 
     // cancellation moved to after prompts while gathering telemetry
     // cancel the previous detector check from the same web app
@@ -173,7 +173,7 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
     }
 
     await node.runWithTemporaryDescription("Deploying...", async () => {
-        await appservice.deploy(nonNullValue(node).root.client, <string>deployPath, deployContext, constants.showOutputChannelCommandId);
+        await appservice.deploy(nonNullValue(node).root.client, <string>deployPath, deployContext);
     });
 
     const tokenSource: vscode.CancellationTokenSource = new vscode.CancellationTokenSource();

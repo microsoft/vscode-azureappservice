@@ -11,8 +11,6 @@ SCM_DO_BUILD_DURING_DEPLOYMENT=true`;
 export const none: string = 'None';
 export const isWindows: boolean = /^win/.test(process.platform);
 
-export const extensionPrefix: string = 'appService';
-
 export enum configurationSettings {
     zipIgnorePattern = 'zipIgnorePattern',
     showBuildDuringDeployPrompt = 'showBuildDuringDeployPrompt',
@@ -33,5 +31,3 @@ export namespace AppServiceDialogResponses {
 }
 
 export const envFileName: string = '.env';
-export const toggleValueVisibilityCommandId: string = 'appService.toggleValueVisibility';
-export const showOutputChannelCommandId: string = 'appService.showOutputChannel';
