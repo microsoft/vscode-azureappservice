@@ -3,8 +3,8 @@ All notable changes to the "azure-appservice" extension will be documented in th
 
 ## 0.16.1 - 2019-10-16
 ### Fixed
-- Ignore deploySubPath task for local git deploys #1185
-- Render Linux runtime choices properly when creating web apps #1202
+- Ignore `deploySubPath` task for local git deploys [#1185](https://github.com/microsoft/vscode-azureappservice/issues/1185)
+- Render Linux runtime choices properly when creating web apps [#1202](https://github.com/microsoft/vscode-azureappservice/issues/1202)
 
 ## 0.16.0 - 2019-09-18
 ### Added
