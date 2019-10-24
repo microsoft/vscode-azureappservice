@@ -3,7 +3,7 @@
 *  Licensed under the MIT License. See License.txt in the project root for license information.
 *--------------------------------------------------------------------------------------------*/
 
-import { StringDictionary } from "azure-arm-website/lib/models";
+import { SiteConfigResource, StringDictionary } from "azure-arm-website/lib/models";
 import * as fse from 'fs-extra';
 import * as path from 'path';
 import { workspace } from "vscode";
@@ -31,7 +31,7 @@ export namespace javaUtils {
         return /^(.jar|.war)/i.test(path.extname(artifactPath));
     }
 
-    export function getArtifactTypeByJavaRuntime(runtime: string | undefined): string {
+    function getArtifactTypeByJavaRuntime(runtime: string | undefined): string {
         if (isJavaSERuntime(runtime)) {
             return 'jar';
         } else if (isJavaWebContainerRuntime(runtime)) {
@@ -41,7 +41,7 @@ export namespace javaUtils {
         }
     }
 
-    export function getJavaArtifactExtensions(): string[] {
+    function getJavaArtifactExtensions(): string[] {
         return ['jar', 'war'];
     }
 
@@ -109,4 +109,15 @@ export namespace javaUtils {
         appSettings.properties[PORT_KEY] = port;
         return node.root.client.updateApplicationSettings(appSettings);
     }
+
+    export async function getJavaFileExtensions(siteConfig: SiteConfigResource | undefined): Promise<string | string[] | undefined> {
+        if (siteConfig && isJavaRuntime(siteConfig.linuxFxVersion)) {
+            return getArtifactTypeByJavaRuntime(siteConfig.linuxFxVersion);
+        } else if (await isJavaProject()) {
+            return getJavaArtifactExtensions();
+        }
+
+        return;
+    }
+
 }
