@@ -9,7 +9,7 @@ import { IActionContext } from 'vscode-azureextensionui';
 import { SiteTreeItem } from '../../explorer/SiteTreeItem';
 import { WebAppTreeItem } from '../../explorer/WebAppTreeItem';
 import { ext } from '../../extensionVariables';
-import { checkForRemoteDebugSupport } from './checkForRemoteDebugSupport';
+import { getRemoteDebugLanguage } from './getRemoteDebugLanguage';
 
 export async function startRemoteDebug(context: IActionContext, node?: SiteTreeItem): Promise<void> {
     if (!node) {
@@ -22,7 +22,7 @@ export async function startRemoteDebug(context: IActionContext, node?: SiteTreeI
         return await siteClient.getSiteConfig();
     });
 
-    checkForRemoteDebugSupport(siteConfig, context);
+    const language: appservice.RemoteDebugLanguage = getRemoteDebugLanguage(siteConfig, context);
 
-    await appservice.startRemoteDebug(siteClient, siteConfig);
+    await appservice.startRemoteDebug(siteClient, siteConfig, language);
 }

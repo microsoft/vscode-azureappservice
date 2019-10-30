@@ -4,13 +4,17 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { SiteConfigResource } from 'azure-arm-website/lib/models';
+import { RemoteDebugLanguage } from 'vscode-azureappservice';
 import { IActionContext } from 'vscode-azureextensionui';
+import { getWorkspaceSetting } from '../../vsCodeConfig/settings';
 
-export function checkForRemoteDebugSupport(siteConfig: SiteConfigResource, context: IActionContext): void {
+export function getRemoteDebugLanguage(siteConfig: SiteConfigResource, context: IActionContext): RemoteDebugLanguage {
     // We read siteConfig.linuxFxVersion to find the image version:
     //   If the app is running Windows, it will be empty
     //   If the app is running a blessed Linux image, it will contain the language and version, e.g. "NODE|8.11"
     //   If the app is running a custom Docker image, it will contain the Docker registry information, e.g. "DOCKER|repo.azurecr.io/image:tag"
+
+    const enablePythonRemoteDebugging = getWorkspaceSetting<boolean>('enablePythonRemoteDebugging');
 
     if (siteConfig.linuxFxVersion) {
         let version = siteConfig.linuxFxVersion.toLowerCase();
@@ -26,13 +30,22 @@ export function checkForRemoteDebugSupport(siteConfig: SiteConfigResource, conte
         if (version.startsWith('node')) {
             const splitVersion = version.split('|');
             if (splitVersion.length > 1 && isNodeVersionSupported(splitVersion[1])) {
-                // Node version is supported, so return successfully
-                return;
+                return RemoteDebugLanguage.Node;
+            } else {
+                throw new Error('Azure Remote Debugging is currently only supported for Node.js version >= 8.11 on Linux.');
             }
+        }
+
+        if (enablePythonRemoteDebugging && version.startsWith('python')) {
+            return RemoteDebugLanguage.Python;
         }
     }
 
-    throw new Error('Azure Remote Debugging is currently only supported for Node.js version >= 8.11 on Linux.');
+    if (enablePythonRemoteDebugging) {
+        throw new Error('Azure Remote Debugging is currently only supported for Node.js and Python apps on Linux.');
+    } else {
+        throw new Error('Azure Remote Debugging is currently only supported for Node.js apps on Linux.');
+    }
 }
 
 // Remote debugging is currently only supported for Node.js >= 8.11
