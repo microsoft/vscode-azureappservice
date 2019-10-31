@@ -8,6 +8,8 @@ for VS Code to quickly create, manage, and deploy your websites.
 
 **Visit the [wiki](https://github.com/Microsoft/vscode-azureappservice/wiki) for more information about Azure App Service and how to use the advanced features of the extension.**
 
+>Sign up today for your free Azure account and receive 12 months of free popular services, $200 free credit and 25+ always free services 👉 [Start Free](https://azure.microsoft.com/free/open-source).
+
 ## Installation
 
 1. Download and install the [Azure App Service extension](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-azureappservice) for Visual Studio Code
