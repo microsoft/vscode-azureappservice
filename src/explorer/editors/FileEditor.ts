@@ -4,10 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { FileTreeItem, getFile, IFileResult, putFile } from 'vscode-azureappservice';
-import { BaseEditor } from 'vscode-azureextensionui';
+import { BaseEditor, IParsedError, parseError } from 'vscode-azureextensionui';
 import { ext } from '../../extensionVariables';
+import { nonNullValue } from '../../utils/nonNull';
 
 export class FileEditor extends BaseEditor<FileTreeItem> {
+    private _etags: Map<string, string> = new Map<string, string>();
 
     constructor() {
         super(`${ext.prefix}showSavePrompt`);
@@ -23,6 +25,7 @@ export class FileEditor extends BaseEditor<FileTreeItem> {
 
     public async getData(node: FileTreeItem): Promise<string> {
         const result: IFileResult = await getFile(node.root.client, node.path);
+        this._etags.set(node.fullId, result.etag);
         return result.data;
     }
 
@@ -32,9 +35,19 @@ export class FileEditor extends BaseEditor<FileTreeItem> {
     }
 
     public async updateData(node: FileTreeItem, data: string): Promise<string> {
-        // because the etag can become stale, get the latest before updating
-        const etag: string = (await getFile(node.root.client, node.path)).etag;
-        await putFile(node.root.client, data, node.path, etag);
+        let etag: string = nonNullValue(this._etags.get(node.fullId), 'etag');
+        try {
+            await putFile(node.root.client, data, node.path, etag);
+        } catch (error) {
+            const parsedError: IParsedError = parseError(error);
+            if (parsedError.message === 'ETag does not represent the latest state of the resource.') {
+                throw new Error(`ETag does not represent the latest state of the file "${node.label}". Download the file from Azure to get the latest version.`);
+            }
+            throw error;
+        }
+
+        etag = (await getFile(node.root.client, node.path)).etag;
+        this._etags.set(node.fullId, etag);
         return await this.getData(node);
     }
 }
