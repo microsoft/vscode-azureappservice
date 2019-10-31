@@ -12,7 +12,7 @@ export class FileEditor extends BaseEditor<FileTreeItem> {
     private _etags: Map<string, string> = new Map<string, string>();
 
     constructor() {
-        super(`${ext.prefix}showSavePrompt`);
+        super(`${ext.prefix}.showSavePrompt`);
     }
 
     public async getSaveConfirmationText(node: FileTreeItem): Promise<string> {
