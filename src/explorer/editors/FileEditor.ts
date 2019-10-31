@@ -40,7 +40,7 @@ export class FileEditor extends BaseEditor<FileTreeItem> {
             await putFile(node.root.client, data, node.path, etag);
         } catch (error) {
             const parsedError: IParsedError = parseError(error);
-            if (parsedError.message === 'ETag does not represent the latest state of the resource.') {
+            if (parsedError.errorType === '412' && /etag/i.test(parsedError.message)) {
                 throw new Error(`ETag does not represent the latest state of the file "${node.label}". Download the file from Azure to get the latest version.`);
             }
             throw error;
