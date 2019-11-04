@@ -152,9 +152,7 @@ export async function activateInternal(
         });
         registerCommand('appService.CreateWebApp', createWebApp);
         registerCommand('appService.CreateWebAppAdvanced', createWebAppAdvanced);
-        registerCommand('appService.Deploy', async (actionContext: IActionContext, target?: vscode.Uri | WebAppTreeItem | undefined) => {
-            await deploy(actionContext, true, target);
-        });
+        registerCommand('appService.Deploy', deploy);
         registerCommand('appService.ConfigureDeploymentSource', editScmType);
         registerCommand('appService.DeploymentScript', async (actionContext: IActionContext, node?: WebAppTreeItem) => {
             if (!node) {
@@ -175,7 +173,7 @@ export async function activateInternal(
             if (node instanceof ScaleUpTreeItem) {
                 await openInPortal(node.root, node.scaleUpId);
             } else {
-                await deploy(actionContext, true, node);
+                await deploy(actionContext, node);
             }
         });
         registerCommand('appService.SwapSlots', swapSlots);

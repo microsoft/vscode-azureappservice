@@ -16,12 +16,12 @@ export interface IDeployNode {
     isNewWebApp: boolean;
 }
 
-export async function getDeployNode(context: IDeployContext, target: Uri | string | SiteTreeItem | undefined, confirmDeployment: boolean): Promise<IDeployNode> {
+export async function getDeployNode(context: IDeployContext, target: Uri | string | SiteTreeItem | undefined, isTargetNewWebApp: boolean): Promise<IDeployNode> {
     const defaultWebAppId: string | undefined = getWorkspaceSetting(configurationSettings.defaultWebAppToDeploy, context.workspace.uri.fsPath);
     let node: SiteTreeItem | undefined;
 
     // if the entry point for deploy was via "Deploy" after creating, it is also a new web app (so confirmDeployment would be false)
-    let isNewWebApp: boolean = !confirmDeployment;
+    let isNewWebApp: boolean = isTargetNewWebApp;
     if (target instanceof SiteTreeItem) {
         node = target;
     } else if (defaultWebAppId && defaultWebAppId !== none) {

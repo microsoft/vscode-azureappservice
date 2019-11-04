@@ -27,7 +27,7 @@ import { setPreDeployTaskForDotnet } from './setPreDeployTaskForDotnet';
 
 const postDeployCancelTokens: Map<string, vscode.CancellationTokenSource> = new Map();
 
-export async function deploy(context: IActionContext, confirmDeployment: boolean, target?: vscode.Uri | SiteTreeItem | undefined): Promise<void> {
+export async function deploy(context: IActionContext, target?: vscode.Uri | SiteTreeItem | undefined, isTargetNewWebApp: boolean = false): Promise<void> {
     let webAppSource: WebAppSource | undefined;
     context.telemetry.properties.deployedWithConfigs = 'false';
     let siteConfig: WebSiteModels.SiteConfigResource | undefined;
@@ -52,7 +52,7 @@ export async function deploy(context: IActionContext, confirmDeployment: boolean
 
     // because this is workspace dependant, do it before user selects app
     await setPreDeployTaskForDotnet(deployContext);
-    const { node, isNewWebApp }: IDeployNode = await getDeployNode(deployContext, target, confirmDeployment);
+    const { node, isNewWebApp }: IDeployNode = await getDeployNode(deployContext, target, isTargetNewWebApp);
 
     context.telemetry.properties.webAppSource = deployContext.webAppSource;
 
