@@ -128,7 +128,7 @@ export class WebAppTreeItem extends SiteTreeItem {
             if (result === AppServiceDialogResponses.viewOutput) {
                 ext.outputChannel.show();
             } else if (result === AppServiceDialogResponses.deploy) {
-                await deploy(context, false, this);
+                await deploy(context, this, true);
             }
         });
     }

@@ -20,7 +20,7 @@ export async function createSlot(context: IActionContext, node?: DeploymentSlots
         if (result === AppServiceDialogResponses.viewOutput) {
             ext.outputChannel.show();
         } else if (result === AppServiceDialogResponses.deploy) {
-            await deploy(context, false, createdSlot);
+            await deploy(context, createdSlot, true);
         }
     });
 
