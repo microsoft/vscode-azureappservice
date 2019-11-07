@@ -6,7 +6,7 @@
 import * as WebSiteModels from 'azure-arm-website/lib/models';
 import * as fse from 'fs-extra';
 import * as path from 'path';
-import { MessageItem, window } from 'vscode';
+import { MessageItem } from 'vscode';
 import { AppSettingsTreeItem, AppSettingTreeItem, deleteSite, DeploymentsTreeItem, DeploymentTreeItem, FolderTreeItem, ISiteTreeRoot, LinuxRuntimes, LogFilesTreeItem, SiteClient, SiteFilesTreeItem } from 'vscode-azureappservice';
 import { AzExtTreeItem, AzureParentTreeItem, AzureTreeItem, DialogResponses, IActionContext } from 'vscode-azureextensionui';
 import * as constants from '../constants';
@@ -149,26 +149,19 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     }
 
     public async promptScmDoBuildDeploy(fsPath: string, runtime: string, context: IActionContext): Promise<void> {
-        const dontShowAgainButton: MessageItem = { title: "No, and don't show again" };
-        const learnMoreButton: MessageItem = { title: 'Learn More' };
+        context.telemetry.properties.enableScmInput = "Canceled";
+
+        const learnMoreLink: string = 'https://aka.ms/Kwwkbd';
+
         const buildDuringDeploy: string = `Would you like to update your workspace configuration to run build commands on the target server? This should improve deployment performance.`;
-        let input: MessageItem | undefined = learnMoreButton;
-        while (input === learnMoreButton) {
-            input = await window.showInformationMessage(buildDuringDeploy, DialogResponses.yes, dontShowAgainButton, learnMoreButton);
-            if (input === learnMoreButton) {
-                await openUrl('https://aka.ms/Kwwkbd');
-            }
-        }
+        const input: MessageItem | undefined = await ext.ui.showWarningMessage(buildDuringDeploy, { modal: true, learnMoreLink }, DialogResponses.yes, DialogResponses.no);
+
         if (input === DialogResponses.yes) {
             await this.enableScmDoBuildDuringDeploy(fsPath, runtime);
             context.telemetry.properties.enableScmInput = "Yes";
         } else {
             await updateWorkspaceSetting(constants.configurationSettings.showBuildDuringDeployPrompt, false, fsPath);
-            context.telemetry.properties.enableScmInput = "No, and don't show again";
-        }
-
-        if (!context.telemetry.properties.enableScmInput) {
-            context.telemetry.properties.enableScmInput = "Canceled";
+            context.telemetry.properties.enableScmInput = "No";
         }
     }
 
