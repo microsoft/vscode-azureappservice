@@ -31,3 +31,9 @@ export namespace AppServiceDialogResponses {
 }
 
 export const envFileName: string = '.env';
+
+export enum Platform {
+    Windows = 'win32',
+    MacOS = 'darwin',
+    Linux = 'linux'
+}

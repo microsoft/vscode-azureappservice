@@ -12,6 +12,7 @@ import { AzExtTreeItem, AzureParentTreeItem, AzureTreeItem, DialogResponses, IAc
 import * as constants from '../constants';
 import { ext } from '../extensionVariables';
 import { openUrl } from '../utils/openUrl';
+import { venvUtils } from '../utils/venvUtils';
 import { getWorkspaceSetting, updateWorkspaceSetting } from '../vsCodeConfig/settings';
 import { ConnectionsTreeItem } from './ConnectionsTreeItem';
 import { CosmosDBConnection } from './CosmosDBConnection';
@@ -173,7 +174,7 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     }
 
     public async enableScmDoBuildDuringDeploy(fsPath: string, runtime: string): Promise<void> {
-        const zipIgnoreFolders: string[] = this.getIgnoredFoldersForDeployment(runtime);
+        const zipIgnoreFolders: string[] = await this.getIgnoredFoldersForDeployment(fsPath, runtime);
         let oldSettings: string[] | string | undefined = getWorkspaceSetting(constants.configurationSettings.zipIgnorePattern, fsPath);
         if (!oldSettings) {
             oldSettings = [];
@@ -212,21 +213,22 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
 
     }
 
-    private getIgnoredFoldersForDeployment(runtime: string): string[] {
+    private async getIgnoredFoldersForDeployment(fsPath: string, runtime: string): Promise<string[]> {
         let ignoredFolders: string[];
         switch (runtime) {
             case LinuxRuntimes.node:
                 ignoredFolders = ['node_modules{,/**}'];
                 break;
             case LinuxRuntimes.python:
+                const venvsfsPaths: string[] = (await venvUtils.getExistingVenvs(fsPath)).map(venvPath => `${venvPath}{,/**}`);
                 // list of Python ignorables are pulled from here https://github.com/github/gitignore/blob/master/Python.gitignore
                 // Byte-compiled / optimized / DLL files
                 ignoredFolders = ['__pycache__{,/**}', '*.py[cod]', '*$py.class',
                     // Distribution / packaging
                     '.Python{,/**}', 'build{,/**}', 'develop-eggs{,/**}', 'dist{,/**}', 'downloads{,/**}', 'eggs{,/**}', '.eggs{,/**}', 'lib{,/**}', 'lib64{,/**}', 'parts{,/**}', 'sdist{,/**}', 'var{,/**}',
-                    'wheels{,/**}', 'share/python-wheels{,/**}', '*.egg-info{,/**}', '.installed.cfg', '*.egg', 'MANIFEST',
-                    // Environments
-                    '.env{,/**}', '.venv{,/**}', 'env{,/**}', 'venv{,/**}', 'ENV{,/**}', 'env.bak{,/**}', 'venv.bak{,/**}'];
+                    'wheels{,/**}', 'share/python-wheels{,/**}', '*.egg-info{,/**}', '.installed.cfg', '*.egg', 'MANIFEST'];
+                // Virtual Environments
+                ignoredFolders = ignoredFolders.concat(venvsfsPaths);
                 break;
             default:
                 ignoredFolders = [];
