@@ -26,6 +26,7 @@ import { redeployDeployment } from './commands/deployments/redeployDeployment';
 import { viewCommitInGitHub } from './commands/deployments/viewCommitInGitHub';
 import { viewDeploymentLogs } from './commands/deployments/viewDeploymentLogs';
 import { enableFileLogging } from './commands/enableFileLogging';
+import { installCosmosDBExtension } from './commands/installCosmosDBExtension';
 import { startRemoteDebug } from './commands/remoteDebug/startRemoteDebug';
 import { showFile } from './commands/showFile';
 import { startSsh } from './commands/startSsh';
@@ -39,7 +40,6 @@ import { SiteTreeItem } from './explorer/SiteTreeItem';
 import { WebAppTreeItem } from './explorer/WebAppTreeItem';
 import { ext } from './extensionVariables';
 import { nonNullProp, nonNullValue } from './utils/nonNull';
-import { openUrl } from './utils/openUrl';
 
 // tslint:disable-next-line:export-name
 // tslint:disable-next-line:max-func-body-length
@@ -245,15 +245,7 @@ export async function activateInternal(
                 vscode.window.showInformationMessage(`File logging has already been enabled for ${node.root.client.fullName}.`);
             }
         });
-        registerCommand('appService.InstallCosmosDBExtension', async () => {
-            const commandToRun = 'extension.open';
-            const listOfCommands = await vscode.commands.getCommands();
-            if (listOfCommands.find((x: string) => x === commandToRun)) {
-                vscode.commands.executeCommand(commandToRun, 'ms-azuretools.vscode-cosmosdb');
-            } else {
-                await openUrl('https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-cosmosdb');
-            }
-        });
+        registerCommand('appService.InstallCosmosDBExtension', installCosmosDBExtension);
         registerCommand('appService.AddCosmosDBConnection', addCosmosDBConnection);
         registerCommand('appService.RemoveCosmosDBConnection', removeCosmosDBConnection);
         registerCommand('appService.RevealConnection', revealConnection);
