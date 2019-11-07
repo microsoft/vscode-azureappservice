@@ -220,15 +220,31 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
                 ignoredFolders = ['node_modules{,/**}'];
                 break;
             case LinuxRuntimes.python:
-                const venvsfsPaths: string[] = (await venvUtils.getExistingVenvs(fsPath)).map(venvPath => `${venvPath}{,/**}`);
+                let venvFsPaths: string[];
+                try {
+                    venvFsPaths = (await venvUtils.getExistingVenvs(fsPath)).map(venvPath => `${venvPath}{,/**}`);
+                } catch (error) {
+                    // if there was an error here, don't block-- just assume none could be detected
+                    venvFsPaths = [];
+                }
+
                 // list of Python ignorables are pulled from here https://github.com/github/gitignore/blob/master/Python.gitignore
                 // Byte-compiled / optimized / DLL files
                 ignoredFolders = ['__pycache__{,/**}', '*.py[cod]', '*$py.class',
                     // Distribution / packaging
                     '.Python{,/**}', 'build{,/**}', 'develop-eggs{,/**}', 'dist{,/**}', 'downloads{,/**}', 'eggs{,/**}', '.eggs{,/**}', 'lib{,/**}', 'lib64{,/**}', 'parts{,/**}', 'sdist{,/**}', 'var{,/**}',
                     'wheels{,/**}', 'share/python-wheels{,/**}', '*.egg-info{,/**}', '.installed.cfg', '*.egg', 'MANIFEST'];
+
                 // Virtual Environments
-                ignoredFolders = ignoredFolders.concat(venvsfsPaths);
+                const defaultVenvPaths: string[] = ['.env{,/**}', '.venv{,/**}', 'env{,/**}', 'venv{,/**}', 'ENV{,/**}', 'env.bak{,/**}', 'venv.bak{,/**}'];
+                for (const venvPath of venvFsPaths) {
+                    // don't add duplicates
+                    if (!defaultVenvPaths.find(p => p === venvPath)) {
+                        defaultVenvPaths.push(venvPath);
+                    }
+                }
+
+                ignoredFolders = ignoredFolders.concat(defaultVenvPaths);
                 break;
             default:
                 ignoredFolders = [];
