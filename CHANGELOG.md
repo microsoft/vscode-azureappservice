@@ -1,6 +1,14 @@
 # Change Log
 All notable changes to the "azure-appservice" extension will be documented in this file.
 
+## 0.16.2 - 2019-12-04
+### Added
+- Python remote debugging (feature flag required)
+    - Set `appService.enablePythonRemoteDebugging` to true in VS Code Settings
+
+### Fixed
+- [Bugs fixed](https://github.com/microsoft/vscode-azureappservice/issues?q=is%3Aissue+is%3Aclosed+milestone%3A0.16.2)
+
 ## 0.16.1 - 2019-10-16
 ### Fixed
 - Ignore `deploySubPath` task for local git deploys [#1185](https://github.com/microsoft/vscode-azureappservice/issues/1185)
