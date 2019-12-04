@@ -54,7 +54,7 @@ function isNodeVersionSupported(nodeVersion: string): boolean {
     if (/lts/i.test(nodeVersion)) {
         const ltsVersionNumber: number = Number(nodeVersion.split('-')[0]);
         // if there is no version number, ltsVersionNumber will equal 'lts' which isNan
-        if (ltsVersionNumber < 8 && !isNaN(ltsVersionNumber)) {
+        if (!isNaN(ltsVersionNumber) && ltsVersionNumber < 8) {
             return false;
         }
 
