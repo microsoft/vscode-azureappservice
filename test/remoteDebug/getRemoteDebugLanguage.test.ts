@@ -16,7 +16,9 @@ suite('getRemoteDebugLanguage', () => {
                 properties: {},
                 measurements: {}
             },
-            errorHandling: {}
+            errorHandling: {
+                issueProperties: {}
+            }
         };
     }
 

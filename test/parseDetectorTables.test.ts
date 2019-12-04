@@ -8,7 +8,7 @@ import { IActionContext } from 'vscode-azureextensionui';
 import { ColumnName, detectorResponseJSON, detectorTable, findTableByColumnName, findTableByRowValue, getValuesByColumnName, nonNullValue, validateTimestamp } from "../extension.bundle";
 
 const vsCodeIntegration: string = 'Latest time seen by detector. To be used in VSCode integration.';
-const context: IActionContext = { telemetry: { properties: {}, measurements: {} }, errorHandling: {} };
+const context: IActionContext = { telemetry: { properties: {}, measurements: {} }, errorHandling: { issueProperties: {} } };
 
 suite('Detector Dataset Parser', () => {
     test('Find table by column name', async () => {
