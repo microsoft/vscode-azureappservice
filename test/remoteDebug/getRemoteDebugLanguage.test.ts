@@ -40,6 +40,7 @@ suite('getRemoteDebugLanguage', () => {
         assert.throws(() => { getRemoteDebugLanguage({ linuxFxVersion: 'node|not.number' }, context); }, Error);
         assert.throws(() => { getRemoteDebugLanguage({ linuxFxVersion: 'NODE|6.12' }, context); }, Error);
         assert.throws(() => { getRemoteDebugLanguage({ linuxFxVersion: 'node|8.10' }, context); }, Error);
+        assert.throws(() => { getRemoteDebugLanguage({ linuxFxVersion: 'node|6-lts' }, context); }, Error);
     });
 
     test('Returns language for good versions', async () => {
@@ -50,6 +51,9 @@ suite('getRemoteDebugLanguage', () => {
         assert.equal(getRemoteDebugLanguage({ linuxFxVersion: 'NODE|8.12' }, context), RemoteDebugLanguage.Node);
         assert.equal(getRemoteDebugLanguage({ linuxFxVersion: 'node|9.0' }, context), RemoteDebugLanguage.Node);
         assert.equal(getRemoteDebugLanguage({ linuxFxVersion: 'NODE|10.11' }, context), RemoteDebugLanguage.Node);
+        assert.equal(getRemoteDebugLanguage({ linuxFxVersion: 'NODE|lts' }, context), RemoteDebugLanguage.Node);
+        assert.equal(getRemoteDebugLanguage({ linuxFxVersion: 'node|8-lts' }, context), RemoteDebugLanguage.Node);
+        assert.equal(getRemoteDebugLanguage({ linuxFxVersion: 'node|12-lts' }, context), RemoteDebugLanguage.Node);
     });
 
     test('Respects the python remote debugging experimental flag', async () => {
