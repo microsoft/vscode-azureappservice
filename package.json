@@ -2,7 +2,7 @@
     "name": "vscode-azureappservice",
     "displayName": "Azure App Service",
     "description": "An Azure App Service management extension for Visual Studio Code.",
-    "version": "0.16.2",
+    "version": "0.17.0",
     "publisher": "ms-azuretools",
     "icon": "resources/windows-azure-web-site.png",
     "aiKey": "AIF-d9b70cd4-b9f9-4d70-929b-a071c400b217",
@@ -154,6 +154,11 @@
             {
                 "command": "appService.ConfigureDeploymentSource",
                 "title": "Configure Deployment Source...",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.configureAzureWebAppPipeline",
+                "title": "Configure CI/CD Pipeline",
                 "category": "Azure App Service"
             },
             {
@@ -347,6 +352,10 @@
                 {
                     "command": "appService.toggleAppSettingVisibility",
                     "when": "never"
+                },
+                {
+                    "command": "appService.configureAzureWebAppPipeline",
+                    "when": "never"
                 }
             ],
             "view/title": [
@@ -426,6 +435,11 @@
                     "command": "appService.Deploy",
                     "when": "view == azureAppService && viewItem == appService",
                     "group": "3_appServiceDeployCommands@1"
+                },
+                {
+                    "command": "appService.configureAzureWebAppPipeline",
+                    "when": "view == azureAppService && viewItem == appService",
+                    "group": "3_appServiceDeployCommands@2"
                 },
                 {
                     "command": "appService.ConfigureDeploymentSource",

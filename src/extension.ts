@@ -22,6 +22,7 @@ import { deploy } from './commands/deploy/deploy';
 import { connectToGitHub } from './commands/deployments/connectToGitHub';
 import { disconnectRepo } from './commands/deployments/disconnectRepo';
 import { editScmType } from './commands/deployments/editScmType';
+import { configure } from './commands/deployments/pipelines';
 import { redeployDeployment } from './commands/deployments/redeployDeployment';
 import { viewCommitInGitHub } from './commands/deployments/viewCommitInGitHub';
 import { viewDeploymentLogs } from './commands/deployments/viewDeploymentLogs';
@@ -153,6 +154,7 @@ export async function activateInternal(
         registerCommand('appService.CreateWebApp', createWebApp);
         registerCommand('appService.CreateWebAppAdvanced', createWebAppAdvanced);
         registerCommand('appService.Deploy', deploy);
+        registerCommand('appService.configureAzureWebAppPipeline', configure);
         registerCommand('appService.ConfigureDeploymentSource', editScmType);
         registerCommand('appService.DeploymentScript', async (actionContext: IActionContext, node?: WebAppTreeItem) => {
             if (!node) {

@@ -1,6 +1,10 @@
 # Change Log
 All notable changes to the "azure-appservice" extension will be documented in this file.
 
+## 0.17.0 - 2019-12-05
+### Added
+- Configure CI/CD pipeline on Linux and Windows WebApps
+
 ## 0.16.2 - 2019-12-04
 ### Added
 - Python remote debugging (feature flag required)
