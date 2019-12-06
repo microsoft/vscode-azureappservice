@@ -6,7 +6,7 @@ import { WebAppTreeItem } from "../../explorer/WebAppTreeItem";
 import { ext } from "../../extensionVariables";
 import { openUrl } from '../../utils/openUrl';
 
-export async function configure(context: IActionContext, node: SiteTreeItem): Promise<void> {
+export async function configurePipeline(context: IActionContext, node: SiteTreeItem): Promise<void> {
     if (await isAzurePipelinesExtensionInstalled()) {
         node = await getWebAppNode(context, node);
         await executeAzurePipelineExtensionCommand(configurePipelineCommand, node);
