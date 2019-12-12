@@ -12,6 +12,7 @@ import { AzureExtensionApiProvider } from 'vscode-azureextensionui/api';
 import { downloadAppSettings } from './commands/appSettings/downloadAppSettings';
 import { toggleSlotSetting } from './commands/appSettings/toggleSlotSetting';
 import { uploadAppSettings } from './commands/appSettings/uploadAppSettings';
+import { configurePipeline } from './commands/configurePipeline';
 import { addCosmosDBConnection } from './commands/connections/addCosmosDBConnection';
 import { removeCosmosDBConnection } from './commands/connections/removeCosmosDBConnection';
 import { revealConnection } from './commands/connections/revealConnection';
@@ -19,7 +20,6 @@ import { revealConnectionInAppSettings } from './commands/connections/revealConn
 import { createSlot } from './commands/createSlot';
 import { createWebApp, createWebAppAdvanced } from './commands/createWebApp/createWebApp';
 import { deploy } from './commands/deploy/deploy';
-import { configurePipeline } from './commands/deployments/configurePipeline';
 import { connectToGitHub } from './commands/deployments/connectToGitHub';
 import { disconnectRepo } from './commands/deployments/disconnectRepo';
 import { editScmType } from './commands/deployments/editScmType';

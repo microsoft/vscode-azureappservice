@@ -2,7 +2,7 @@
     "name": "vscode-azureappservice",
     "displayName": "Azure App Service",
     "description": "An Azure App Service management extension for Visual Studio Code.",
-    "version": "0.17.0",
+    "version": "0.16.2",
     "publisher": "ms-azuretools",
     "icon": "resources/windows-azure-web-site.png",
     "aiKey": "AIF-d9b70cd4-b9f9-4d70-929b-a071c400b217",
@@ -444,7 +444,7 @@
                 {
                     "command": "appService.ConfigureDeploymentSource",
                     "when": "view == azureAppService && viewItem == appService",
-                    "group": "3_appServiceDeployCommands@2"
+                    "group": "3_appServiceDeployCommands@3"
                 },
                 {
                     "command": "appService.startStreamingLogs",
