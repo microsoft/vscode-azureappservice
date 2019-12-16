@@ -5,6 +5,9 @@ import { SiteTreeItem } from "../explorer/SiteTreeItem";
 import { WebAppTreeItem } from "../explorer/WebAppTreeItem";
 import { ext } from "../extensionVariables";
 
+const azurePipelinesExtensionId = 'ms-vscode-deploy-azure.azure-deploy';
+const configurePipelineCommand = 'configure-cicd-pipeline';
+
 export async function configurePipeline(context: IActionContext, node?: SiteTreeItem): Promise<void> {
     if (await isAzurePipelinesExtensionInstalled()) {
         if (!node) {
@@ -39,6 +42,3 @@ async function executeAzurePipelineExtensionCommand(commandToRun: string, node: 
 
     throw new Error(utils.format('Unable to find command %s. Make sure `Deploy to Azure` extension is installed and enabled.', commandToRun));
 }
-
-const azurePipelinesExtensionId = 'ms-vscode-deploy-azure.azure-deploy';
-const configurePipelineCommand = 'configure-cicd-pipeline';

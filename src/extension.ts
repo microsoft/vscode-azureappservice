@@ -154,7 +154,7 @@ export async function activateInternal(
         registerCommand('appService.CreateWebApp', createWebApp);
         registerCommand('appService.CreateWebAppAdvanced', createWebAppAdvanced);
         registerCommand('appService.Deploy', deploy);
-        registerCommand('appService.configureAzureWebAppPipeline', configurePipeline);
+        registerCommand('appService.ConfigureAzureWebAppPipeline', configurePipeline);
         registerCommand('appService.ConfigureDeploymentSource', editScmType);
         registerCommand('appService.DeploymentScript', async (actionContext: IActionContext, node?: WebAppTreeItem) => {
             if (!node) {

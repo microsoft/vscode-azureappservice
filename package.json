@@ -157,7 +157,7 @@
                 "category": "Azure App Service"
             },
             {
-                "command": "appService.configureAzureWebAppPipeline",
+                "command": "appService.ConfigureAzureWebAppPipeline",
                 "title": "Configure CI/CD Pipeline",
                 "category": "Azure App Service"
             },
@@ -354,7 +354,7 @@
                     "when": "never"
                 },
                 {
-                    "command": "appService.configureAzureWebAppPipeline",
+                    "command": "appService.ConfigureAzureWebAppPipeline",
                     "when": "never"
                 }
             ],
@@ -437,7 +437,7 @@
                     "group": "3_appServiceDeployCommands@1"
                 },
                 {
-                    "command": "appService.configureAzureWebAppPipeline",
+                    "command": "appService.ConfigureAzureWebAppPipeline",
                     "when": "view == azureAppService && viewItem == appService",
                     "group": "3_appServiceDeployCommands@2"
                 },
