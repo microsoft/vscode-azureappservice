@@ -29,3 +29,4 @@ export { getRemoteDebugLanguage } from './src/commands/remoteDebug/getRemoteDebu
 export { ColumnName, detectorResponseJSON, detectorTable, getLinuxDetectorError, validateTimestamp } from "./src/commands/postDeploy/getLinuxDetectorError";
 export { findTableByColumnName, findTableByRowValue, getValuesByColumnName } from "./src/commands/postDeploy/parseDetectorResponse";
 export { getGlobalSetting, updateGlobalSetting } from './src/vsCodeConfig/settings';
+export * from './src/utils/requestUtils';
