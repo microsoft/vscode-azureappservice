@@ -13,7 +13,7 @@ import { longRunningTestsEnabled, testUserInput } from '../global.test';
 import { resourceGroupsToDelete, webSiteClient } from './global.resource.test';
 
 suite('Create Web App and deploy', async function (this: ISuiteCallbackContext): Promise<void> {
-    this.timeout(12000 * 1000);
+    this.timeout(20 * 6 * 1000);
 
     suiteSetup(async function (this: IHookCallbackContext): Promise<void> {
         if (!longRunningTestsEnabled) {
@@ -21,9 +21,9 @@ suite('Create Web App and deploy', async function (this: ISuiteCallbackContext):
         }
     });
 
-    test('PHP 7.2', async () => {
-        const testFolderPath: string = await getWorkspacePath('php-docs-hello-world');
-        await testCreateWebAppAndDeploy(['Linux', 'PHP 7.2'], testFolderPath);
+    test('Node LTS', async () => {
+        const testFolderPath: string = await getWorkspacePath('nodejs-docs-hello-world');
+        await testCreateWebAppAndDeploy(['Linux', 'Node LTS'], testFolderPath);
     });
 
     async function testCreateWebAppAndDeploy(options: string[], workspacePath: string): Promise<void> {
