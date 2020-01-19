@@ -8,7 +8,7 @@ import { WebSiteManagementModels } from 'azure-arm-website';
 import { IHookCallbackContext, ISuiteCallbackContext } from 'mocha';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { getRandomHexString, requestUtils } from '../../extension.bundle';
+import { DialogResponses, getRandomHexString, requestUtils } from '../../extension.bundle';
 import { longRunningTestsEnabled, testUserInput } from '../global.test';
 import { resourceGroupsToDelete, webSiteClient } from './global.resource.test';
 
@@ -38,7 +38,7 @@ suite('Create Web App and deploy', async function (this: ISuiteCallbackContext):
         assert.ok(createdApp);
 
         // Verify that the deployment is successful
-        await testUserInput.runWithInputs([workspacePath, resourceName, 'Deploy'], async () => {
+        await testUserInput.runWithInputs([workspacePath, resourceName, 'Deploy', DialogResponses.yes.title], async () => {
             await vscode.commands.executeCommand('appService.Deploy');
         });
         const request: requestUtils.Request = await requestUtils.getDefaultRequest(`https://${resourceName}.azurewebsites.net`);
