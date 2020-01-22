@@ -23,6 +23,7 @@ export { constants };
 export * from 'vscode-azureextensionui';
 export { SubscriptionTreeItem } from './src/explorer/SubscriptionTreeItem';
 export { AzureAccountTreeItem } from './src/explorer/AzureAccountTreeItem';
+export { WebAppTreeItem } from './src/explorer/WebAppTreeItem';
 export { getRandomHexString } from './src/utils/randomUtils';
 export { nonNullValue } from './src/utils/nonNull';
 export { getRemoteDebugLanguage } from './src/commands/remoteDebug/getRemoteDebugLanguage';
@@ -30,3 +31,4 @@ export { ColumnName, detectorResponseJSON, detectorTable, getLinuxDetectorError,
 export { findTableByColumnName, findTableByRowValue, getValuesByColumnName } from "./src/commands/postDeploy/parseDetectorResponse";
 export { getGlobalSetting, updateGlobalSetting } from './src/vsCodeConfig/settings';
 export * from './src/utils/requestUtils';
+

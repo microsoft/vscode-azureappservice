@@ -8,12 +8,12 @@ import { WebSiteManagementModels } from 'azure-arm-website';
 import { IHookCallbackContext, ISuiteCallbackContext } from 'mocha';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { DialogResponses, getRandomHexString, requestUtils } from '../../extension.bundle';
+import { DialogResponses, ext, getRandomHexString, IActionContext, requestUtils, WebAppTreeItem } from '../../extension.bundle';
 import { longRunningTestsEnabled, testUserInput } from '../global.test';
 import { resourceGroupsToDelete, webSiteClient } from './global.resource.test';
 
 suite('Create Web App and deploy', async function (this: ISuiteCallbackContext): Promise<void> {
-    this.timeout(20 * 6 * 1000);
+    this.timeout(35 * 6 * 1000);
 
     suiteSetup(async function (this: IHookCallbackContext): Promise<void> {
         if (!longRunningTestsEnabled) {
@@ -30,6 +30,7 @@ suite('Create Web App and deploy', async function (this: ISuiteCallbackContext):
         const resourceName: string = getRandomHexString();
         const resourceGroupName: string = getRandomHexString();
         resourceGroupsToDelete.push(resourceGroupName);
+        const context: IActionContext = { telemetry: { properties: {}, measurements: {} }, errorHandling: { issueProperties: {} } };
         const testInputs: (string | RegExp)[] = [resourceName, '$(plus) Create new resource group', resourceGroupName, ...options, '$(plus) Create new App Service plan', resourceName, 'B1', '$(plus) Create new Application Insights resource', resourceName, 'West US'];
         await testUserInput.runWithInputs(testInputs, async () => {
             await vscode.commands.executeCommand('appService.CreateWebAppAdvanced');
@@ -41,7 +42,8 @@ suite('Create Web App and deploy', async function (this: ISuiteCallbackContext):
         await testUserInput.runWithInputs([workspacePath, resourceName, 'Deploy', DialogResponses.yes.title], async () => {
             await vscode.commands.executeCommand('appService.Deploy');
         });
-        const request: requestUtils.Request = await requestUtils.getDefaultRequest(`https://${resourceName}.azurewebsites.net`);
+        const hostUrl: string | undefined = (<WebAppTreeItem>await ext.tree.findTreeItem(<string>createdApp.id, context)).root.client.defaultHostUrl;
+        const request: requestUtils.Request = await requestUtils.getDefaultRequest(hostUrl);
         request.json = true;
         const response: string = await requestUtils.sendRequest(request);
         assert.ok(response.includes('Hello World'), 'Expected function response to include "Hello World"');
@@ -55,7 +57,7 @@ async function getWorkspacePath(testWorkspaceName: string): Promise<string> {
     if (!workspaceFolders || workspaceFolders.length === 0) {
         throw new Error("No workspace is open");
     } else {
-        assert.equal(workspaceFolders.length, 1, "Expected three workspace to be open.");
+        assert.equal(workspaceFolders.length, 1, "Expected one workspace to be open.");
         for (const obj of workspaceFolders) {
             if (obj.name === testWorkspaceName) {
                 workspacePath = obj.uri.fsPath;
