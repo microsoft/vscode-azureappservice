@@ -31,4 +31,3 @@ export { ColumnName, detectorResponseJSON, detectorTable, getLinuxDetectorError,
 export { findTableByColumnName, findTableByRowValue, getValuesByColumnName } from "./src/commands/postDeploy/parseDetectorResponse";
 export { getGlobalSetting, updateGlobalSetting } from './src/vsCodeConfig/settings';
 export * from './src/utils/requestUtils';
-
