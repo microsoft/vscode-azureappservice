@@ -24,19 +24,21 @@ export enum ColumnName {
 export async function getLinuxDetectorError(context: IActionContext, detectorId: string, node: SiteTreeItem, deployResultTime: Date, siteName: string): Promise<string | undefined> {
     const detectorUri: string = `${node.id}/detectors/${detectorId}`;
     const requestOptions: requestUtils.Request = await requestUtils.getDefaultAzureRequest(detectorUri, node.root);
-    const dayAfterDeployResultTime: Date = new Date(deployResultTime.getTime() + (24 * 60 * 60 * 1000));
+    const nowTime: Date = new Date();
+    const startTimeDate: Date = new Date(nowTime.getTime() - (60 * 60 * 1000));
+    const endTimeDate: Date = new Date(nowTime.getTime() - (30 * 60 * 1000));
 
-    // these parameters were specified to retrieve the timestamp from the detector by Detectors team
-    // string "Latest time seen by detector. To be used in VSCode integration."" is added to response
-    // when val: 'vscode' is added
+    // need to remove the miliseconds from the ISOstring for request
+    const startTimeArray: string[] = startTimeDate.toISOString().split(':');
+    const startTime: string = `${startTimeArray[0]}:${startTimeArray[1]}`;
+
+    const endTimeArray: string[] = endTimeDate.toISOString().split(':');
+    const endTime: string = `${endTimeArray[0]}:${endTimeArray[1]}`;
+
     requestOptions.qs = {
         'api-version': "2015-08-01",
-        fId: "1",
-        btnId: "2",
-        val: "vscode",
-        inpId: "1",
-        startTime: deployResultTime.toISOString(),
-        endTime: dayAfterDeployResultTime.toISOString()
+        startTime,
+        endTime
     };
 
     const detectorResponse: string = await requestUtils.sendRequest<string>(requestOptions);

@@ -13,7 +13,7 @@ import { delay } from "../../utils/delay";
 import { getWorkspaceSetting } from '../../vsCodeConfig/settings';
 import { getLinuxDetectorError } from "./getLinuxDetectorError";
 
-const linuxContainerStartFailureId: string = 'LinuxContainerStartFailure';
+const linuxLogViewer: string = 'LinuxLogViewer';
 
 export async function checkLinuxWebAppDownDetector(correlationId: string, node: SiteTreeItem, tokenSource: CancellationTokenSource): Promise<void> {
     return await callWithTelemetryAndErrorHandling('appService.linuxWebAppDownDetector', async (context: IActionContext): Promise<void> => {
@@ -22,13 +22,12 @@ export async function checkLinuxWebAppDownDetector(correlationId: string, node: 
 
         const kuduClient: KuduClient = await node.root.client.getKuduClient();
         const deployment: DeployResult = await kuduClient.deployment.getResult('latest');
+
         if (!deployment.startTime) {
             // if there's no deployment detected, nothing can be done
             context.telemetry.properties.cancelStep = 'noDeployResult';
             return;
         }
-
-        const deployResultTime: Date = new Date(deployment.startTime);
 
         const enableDetectorsSetting: string = 'enableDetectors';
         const showOutput: boolean | undefined = getWorkspaceSetting<boolean>(enableDetectorsSetting);
@@ -59,7 +58,7 @@ export async function checkLinuxWebAppDownDetector(correlationId: string, node: 
             }
 
             // tslint:disable-next-line: no-unsafe-any
-            detectorErrorMessage = await getLinuxDetectorError(context, linuxContainerStartFailureId, node, deployResultTime, node.root.client.fullName);
+            detectorErrorMessage = await getLinuxDetectorError(context, linuxLogViewer, node, deployment.startTime, node.root.client.fullName);
 
             if (!detectorErrorMessage) {
                 // poll every minute
@@ -69,7 +68,7 @@ export async function checkLinuxWebAppDownDetector(correlationId: string, node: 
 
         if (showOutput) {
             await ext.ui.showWarningMessage(detectorErrorMessage, { title: 'Open in Portal' });
-            await openInPortal(node.root, `${node.root.client.id}/troubleshoot`, { queryPrefix: `websitesextension_ext=asd.featurePath%3Ddetectors%2F${linuxContainerStartFailureId}` });
+            await openInPortal(node.root, `${node.root.client.id}/troubleshoot`, { queryPrefix: `websitesextension_ext=asd.featurePath%3Ddetectors%2F${linuxLogViewer}` });
             context.telemetry.properties.didClick = 'true';
         }
 
