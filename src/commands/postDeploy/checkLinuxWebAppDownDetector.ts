@@ -57,8 +57,21 @@ export async function checkLinuxWebAppDownDetector(correlationId: string, node: 
                 return undefined;
             }
 
+            // time constraint of being less than the current time by 14.5 minutes is enforced system wide for all detectors
+            // however this detector ignores it and gets the most recent data nonetheless
+            const nowTime: Date = new Date();
+            const startTimeDate: Date = new Date(nowTime.getTime() - (60 * 60 * 1000));
+            const endTimeDate: Date = new Date(nowTime.getTime() - (30 * 60 * 1000));
+
+            // need to remove the miliseconds from the ISOstring for request
+            const startTimeArray: string[] = startTimeDate.toISOString().split(':');
+            const startTime: string = `${startTimeArray[0]}:${startTimeArray[1]}`;
+
+            const endTimeArray: string[] = endTimeDate.toISOString().split(':');
+            const endTime: string = `${endTimeArray[0]}:${endTimeArray[1]}`;
+
             // tslint:disable-next-line: no-unsafe-any
-            detectorErrorMessage = await getLinuxDetectorError(context, linuxLogViewer, node, deployment.startTime, node.root.client.fullName);
+            detectorErrorMessage = await getLinuxDetectorError(context, linuxLogViewer, node, startTime, endTime, deployment.startTime, node.root.client.fullName);
 
             if (!detectorErrorMessage) {
                 // poll every minute

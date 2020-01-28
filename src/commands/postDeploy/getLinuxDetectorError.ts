@@ -21,19 +21,9 @@ export enum ColumnName {
     failureCount = "FailureCount"
 }
 
-export async function getLinuxDetectorError(context: IActionContext, detectorId: string, node: SiteTreeItem, deployResultTime: Date, siteName: string): Promise<string | undefined> {
+export async function getLinuxDetectorError(context: IActionContext, detectorId: string, node: SiteTreeItem, startTime: string, endTime: string, deployResultTime: Date, siteName: string): Promise<string | undefined> {
     const detectorUri: string = `${node.id}/detectors/${detectorId}`;
     const requestOptions: requestUtils.Request = await requestUtils.getDefaultAzureRequest(detectorUri, node.root);
-    const nowTime: Date = new Date();
-    const startTimeDate: Date = new Date(nowTime.getTime() - (60 * 60 * 1000));
-    const endTimeDate: Date = new Date(nowTime.getTime() - (30 * 60 * 1000));
-
-    // need to remove the miliseconds from the ISOstring for request
-    const startTimeArray: string[] = startTimeDate.toISOString().split(':');
-    const startTime: string = `${startTimeArray[0]}:${startTimeArray[1]}`;
-
-    const endTimeArray: string[] = endTimeDate.toISOString().split(':');
-    const endTime: string = `${endTimeArray[0]}:${endTimeArray[1]}`;
 
     requestOptions.qs = {
         'api-version': "2015-08-01",
@@ -44,33 +34,39 @@ export async function getLinuxDetectorError(context: IActionContext, detectorId:
     const detectorResponse: string = await requestUtils.sendRequest<string>(requestOptions);
     const responseJson: detectorResponseJSON = <detectorResponseJSON>JSON.parse(detectorResponse);
 
-    const datasets: detectorDataset[] = responseJson.properties.dataset;
-    const vsCodeIntegration: string = 'Latest time seen by detector. To be used in VSCode integration.';
-    const timestampTable: detectorTable | undefined = findTableByRowValue(datasets, vsCodeIntegration);
+    const jsonTables: detectorTable[] = responseJson.properties.dataset[0].table;
+    // const tableWithJsonString: detectorTable = datasets;
+    // const vsCodeIntegration: string = 'Latest time seen by detector. To be used in VSCode integration.';
+    // const timestampTable: detectorTable | undefined = findTableByRowValue(datasets, 'Critical');
+    let selectedRow: string[] | undefined;
+
+    for (const row of jsonTables.rows) {
+        if (row[2]) {
+            selectedRow = row;
+        }
+    }
 
     // if we can't find the timestamp, exit and try again
-    if (!timestampTable) {
+    if (!selectedRow) {
         return undefined;
     }
 
-    const timestamp: Date = new Date(getValuesByColumnName(context, timestampTable, ColumnName.value));
+    const detectorDataset: detectorDataset = JSON.parse(selectedRow[3]);
+    const detectorTable: detectorTable = detectorDataset[0].table;
+
+    // if this fails, then there was no critical error
+    const timestamp: Date = new Date(detectorTable.rows[0][2].substring(4) + 'z');
     if (validateTimestamp(context, timestamp, deployResultTime)) {
 
-        const criticalErrorTable: detectorTable | undefined = findTableByRowValue(datasets, 'Critical');
-        const failureCountTable: detectorTable | undefined = findTableByColumnName(datasets, ColumnName.failureCount);
-
-        // if the criticalError table or failureCounts aren't defined, we can't display anything to the user
-        if (!criticalErrorTable || !failureCountTable) {
+        const criticalError = detectorTable.rows[0][0];
+        // if there is no criticalError, exit
+        if (!criticalError) {
             return undefined;
         }
 
-        const errorMessages: string | undefined = getValuesByColumnName(context, criticalErrorTable, ColumnName.message);
-        const failureCount: string | undefined = getValuesByColumnName(context, failureCountTable, ColumnName.failureCount);
+        context.telemetry.properties.errorMessages = JSON.stringify(detectorTable[3]);
 
-        context.telemetry.properties.errorMessages = JSON.stringify(errorMessages);
-        context.telemetry.properties.failureCount = failureCount;
-
-        return `Critical insights found for "${siteName}": ${failureCount} as of ${new Date(timestamp).toLocaleString()}. Critical insight preview: "${errorMessages}". Click here to access "App Service Diagnostics" for recommendations.`;
+        return `"${node.root.client.siteName}" - ${detectorTable.rows[0][1]}: ${detectorTable.rows[0][3]}`;
     }
 
     return undefined;
@@ -79,7 +75,7 @@ export async function getLinuxDetectorError(context: IActionContext, detectorId:
 export function validateTimestamp(context: IActionContext, detectorTime: Date, deployResultTime: Date): boolean {
     const secondsBetweenTimes: number = Math.abs((detectorTime.getTime() - deployResultTime.getTime()) / 1000);
 
-    // we don't know how long it takes for the deployResult startTime and the detector timestamp
+    // the log timestamp is typically about 30 seconds apart
     context.telemetry.properties.timeBetweenDeployAndDetector = secondsBetweenTimes.toString();
     if (secondsBetweenTimes <= 60) {
         return true;
