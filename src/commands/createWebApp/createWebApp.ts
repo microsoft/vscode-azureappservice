@@ -5,6 +5,7 @@
 
 import { AzureParentTreeItem, IActionContext, ICreateChildImplContext } from "vscode-azureextensionui";
 import { SubscriptionTreeItem } from '../../explorer/SubscriptionTreeItem';
+import { WebAppTreeItem } from "../../explorer/WebAppTreeItem";
 import { ext } from "../../extensionVariables";
 
 export async function createWebApp(context: IActionContext & Partial<ICreateChildImplContext>, node?: AzureParentTreeItem | undefined): Promise<void> {
@@ -12,7 +13,8 @@ export async function createWebApp(context: IActionContext & Partial<ICreateChil
         node = <AzureParentTreeItem>await ext.tree.showTreeItemPicker(SubscriptionTreeItem.contextValue, context);
     }
 
-    await node.createChild(context);
+    const newSite: WebAppTreeItem = <WebAppTreeItem>await node.createChild(context);
+    await newSite.enableHttpLogs();
 }
 
 export async function createWebAppAdvanced(context: IActionContext, node?: AzureParentTreeItem | undefined): Promise<void> {
