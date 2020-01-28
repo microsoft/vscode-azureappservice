@@ -13,9 +13,7 @@ export async function createWebApp(context: IActionContext & Partial<ICreateChil
         node = <AzureParentTreeItem>await ext.tree.showTreeItemPicker(SubscriptionTreeItem.contextValue, context);
     }
 
-    const newSite: WebAppTreeItem = <WebAppTreeItem>await node.createChild(context);
-    await newSite.enableHttpLogs();
-    newSite.promptToDeploy(context);
+    await node.createChild(context);
 }
 
 export async function createWebAppAdvanced(context: IActionContext, node?: AzureParentTreeItem | undefined): Promise<void> {
