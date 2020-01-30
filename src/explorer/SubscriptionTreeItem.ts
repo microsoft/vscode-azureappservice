@@ -119,8 +119,13 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
         ext.outputChannel.appendLog(createdNewAppMsg);
 
         const newSite: WebAppTreeItem = new WebAppTreeItem(this, siteClient);
-        // enable HTTP logs by default
-        await newSite.enableHttpLogs();
+        try {
+            // enable HTTP logs by default
+            await newSite.enableHttpLogs();
+        } catch (error) {
+            // optional part of creating web app, so not worth blocking on error
+            context.telemetry.properties.fileLoggingError = parseError(error).message;
+        }
         return newSite;
     }
 }
