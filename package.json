@@ -827,6 +827,11 @@
                     "type": "boolean",
                     "description": "Enable remote debugging for Python web apps (experimental)",
                     "default": false
+                },
+                "appService.showDeployConfirmation": {
+                    "type": "boolean",
+                    "description": "Ask for confirmation before deploying to Azure App Service (deploying will overwrite any previous deployment and cannot be undone).",
+                    "default": true
                 }
             }
         },

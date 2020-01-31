@@ -82,7 +82,7 @@ export async function deploy(context: IActionContext, target?: vscode.Uri | Site
         }
     }
 
-    if (!isNewWebApp && isZipDeploy) {
+    if (getWorkspaceSetting<boolean>('showDeployConfirmation', workspace.uri.fsPath) && !isNewWebApp && isZipDeploy) {
         await confirmDeploymentPrompt(deployContext, context, node.root.client.fullName);
     }
 
