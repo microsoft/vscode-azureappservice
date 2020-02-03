@@ -13,7 +13,7 @@ import { resourceGroupsToDelete, webSiteClient } from './global.resource.test';
 
 // tslint:disable-next-line: max-func-body-length
 suite('Web App actions', async function (this: ISuiteCallbackContext): Promise<void> {
-    this.timeout(350 * 1000);
+    this.timeout(6 * 60 * 1000);
     let resourceName: string;
 
     suiteSetup(async function (this: IHookCallbackContext): Promise<void> {

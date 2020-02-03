@@ -13,7 +13,7 @@ import { longRunningTestsEnabled, testUserInput } from '../global.test';
 import { resourceGroupsToDelete, webSiteClient } from './global.resource.test';
 
 suite('Create Web App and deploy', async function (this: ISuiteCallbackContext): Promise<void> {
-    this.timeout(35 * 6 * 1000);
+    this.timeout(5 * 60 * 1000);
 
     suiteSetup(async function (this: IHookCallbackContext): Promise<void> {
         if (!longRunningTestsEnabled) {
@@ -52,18 +52,12 @@ suite('Create Web App and deploy', async function (this: ISuiteCallbackContext):
 
 // The workspace folder that vscode is opened against for tests
 async function getWorkspacePath(testWorkspaceName: string): Promise<string> {
-    let workspacePath: string = '';
     const workspaceFolders: vscode.WorkspaceFolder[] | undefined = vscode.workspace.workspaceFolders;
     if (!workspaceFolders || workspaceFolders.length === 0) {
         throw new Error("No workspace is open");
     } else {
-        assert.equal(workspaceFolders.length, 1, "Expected one workspace to be open.");
-        for (const obj of workspaceFolders) {
-            if (obj.name === testWorkspaceName) {
-                workspacePath = obj.uri.fsPath;
-            }
-        }
+        const workspacePath: string = workspaceFolders[0].uri.fsPath;
+        assert.equal(path.basename(workspacePath), testWorkspaceName, "Opened against an unexpected workspace.");
+        return workspacePath;
     }
-    assert.equal(path.basename(workspacePath), testWorkspaceName, "Opened against an unexpected workspace.");
-    return workspacePath;
 }
