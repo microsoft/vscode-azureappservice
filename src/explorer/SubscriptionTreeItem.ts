@@ -115,9 +115,17 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
 
         // site is set as a result of SiteCreateStep.execute()
         const siteClient: SiteClient = new SiteClient(nonNullProp(wizardContext, 'site'), this.root);
-
         const createdNewAppMsg: string = `Created new web app "${siteClient.fullName}": https://${siteClient.defaultHostName}`;
         ext.outputChannel.appendLog(createdNewAppMsg);
-        return new WebAppTreeItem(this, siteClient);
+
+        const newSite: WebAppTreeItem = new WebAppTreeItem(this, siteClient);
+        try {
+            // enable HTTP logs by default
+            await newSite.enableHttpLogs();
+        } catch (error) {
+            // optional part of creating web app, so not worth blocking on error
+            context.telemetry.properties.fileLoggingError = parseError(error).message;
+        }
+        return newSite;
     }
 }

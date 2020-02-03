@@ -70,10 +70,10 @@ export class WebAppTreeItem extends SiteTreeItem {
         ]);
 
         const taskResults = await tasks;
-        const rg = taskResults[0];
+        const rg = nonNullValue(taskResults[0]);
         const plan = taskResults[1];
-        const siteConfig = taskResults[2];
-        const appSettings = taskResults[3];
+        const siteConfig = nonNullValue(taskResults[2]);
+        const appSettings = nonNullValue(taskResults[3]);
 
         let script: string;
 
