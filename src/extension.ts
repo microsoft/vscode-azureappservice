@@ -6,7 +6,7 @@
 'use strict';
 
 import * as vscode from 'vscode';
-import { AppSettingsTreeItem, AppSettingTreeItem, DeploymentsTreeItem, FileTreeItem, ISiteTreeRoot, LogFilesTreeItem, registerAppServiceExtensionVariables, SiteClient, stopStreamingLogs } from 'vscode-azureappservice';
+import { AppSettingsTreeItem, AppSettingTreeItem, DeploymentsTreeItem, FileTreeItem, ISiteTreeRoot, LogFilesTreeItem, registerAppServiceExtensionVariables, registerSiteCommand, SiteClient, stopStreamingLogs } from 'vscode-azureappservice';
 import { AzExtTreeDataProvider, AzureTreeItem, AzureUserInput, callWithTelemetryAndErrorHandling, createApiProvider, createAzExtOutputChannel, createTelemetryReporter, IActionContext, IAzureUserInput, openInPortal, registerCommand, registerEvent, registerUIExtensionVariables } from 'vscode-azureextensionui';
 import { AzureExtensionApiProvider } from 'vscode-azureextensionui/api';
 import { downloadAppSettings } from './commands/appSettings/downloadAppSettings';
@@ -152,7 +152,7 @@ export async function activateInternal(
         });
         registerCommand('appService.CreateWebApp', createWebApp);
         registerCommand('appService.CreateWebAppAdvanced', createWebAppAdvanced);
-        registerCommand('appService.Deploy', deploy);
+        registerSiteCommand('appService.Deploy', deploy);
         registerCommand('appService.ConfigureDeploymentSource', editScmType);
         registerCommand('appService.DeploymentScript', async (actionContext: IActionContext, node?: WebAppTreeItem) => {
             if (!node) {
@@ -165,7 +165,7 @@ export async function activateInternal(
             });
         });
         registerCommand('appService.CreateSlot', createSlot);
-        registerCommand('appService.DeploySlot', async (actionContext: IActionContext, node?: DeploymentSlotTreeItem | ScaleUpTreeItem | undefined) => {
+        registerSiteCommand('appService.DeploySlot', async (actionContext: IActionContext, node?: DeploymentSlotTreeItem | ScaleUpTreeItem | undefined) => {
             if (!node) {
                 node = <DeploymentSlotTreeItem | ScaleUpTreeItem>await ext.tree.showTreeItemPicker([DeploymentSlotTreeItem.contextValue, ScaleUpTreeItem.contextValue], actionContext);
             }
@@ -250,8 +250,8 @@ export async function activateInternal(
         registerCommand('appService.RemoveCosmosDBConnection', removeCosmosDBConnection);
         registerCommand('appService.RevealConnection', revealConnection);
         registerCommand('appService.RevealConnectionInAppSettings', revealConnectionInAppSettings);
-        registerCommand('appService.ViewDeploymentLogs', viewDeploymentLogs);
-        registerCommand('appService.Redeploy', redeployDeployment);
+        registerSiteCommand('appService.viewDeploymentLogs', viewDeploymentLogs);
+        registerSiteCommand('appService.Redeploy', redeployDeployment);
         registerCommand('appService.DisconnectRepo', disconnectRepo);
         registerCommand('appService.connectToGitHub', connectToGitHub);
         registerCommand('appService.toggleAppSettingVisibility', async (_actionContext: IActionContext, node: AppSettingTreeItem) => { await node.toggleValueVisibility(); }, 250);
