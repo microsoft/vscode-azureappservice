@@ -9,12 +9,14 @@ import { ScmType } from "../constants";
 import { DeploymentSlotsTreeItem } from "../explorer/DeploymentSlotsTreeItem";
 import { DeploymentSlotTreeItem } from "../explorer/DeploymentSlotTreeItem";
 import { ext } from "../extensionVariables";
+import { localize } from "../localize";
 import { showCreatedWebAppMessage } from "./createWebApp/showCreatedWebAppMessage";
 import { editScmType } from "./deployments/editScmType";
 
 export async function createSlot(context: IActionContext, node?: DeploymentSlotsTreeItem | undefined): Promise<void> {
     if (!node) {
-        node = <DeploymentSlotsTreeItem>await ext.tree.showTreeItemPicker(DeploymentSlotsTreeItem.contextValue, context);
+        const noItemFoundErrorMessage: string = localize('noWebAppForSlot', 'The selected web app does not support slots. View supported plans [here](https://aka.ms/AA7aoe4).');
+        node = <DeploymentSlotsTreeItem>await ext.tree.showTreeItemPicker(DeploymentSlotsTreeItem.contextValue, { ...context, noItemFoundErrorMessage });
     }
 
     const createdSlot = <DeploymentSlotTreeItem>await node.createChild(context);
