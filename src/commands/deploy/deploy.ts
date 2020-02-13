@@ -22,8 +22,8 @@ import { runPostDeployTask } from '../postDeploy/runPostDeployTask';
 import { confirmDeploymentPrompt } from './confirmDeploymentPrompt';
 import { getDeployNode, IDeployNode } from './getDeployNode';
 import { IDeployContext, WebAppSource } from './IDeployContext';
-import { postDeploymentPrompt } from './postDeploymentPrompt';
 import { setPreDeployTaskForDotnet } from './setPreDeployTaskForDotnet';
+import { showDeployCompletedMessage } from './showDeployCompletedMessage';
 
 const postDeployCancelTokens: Map<string, vscode.CancellationTokenSource> = new Map();
 
@@ -112,9 +112,7 @@ export async function deploy(context: IActionContext, target?: vscode.Uri | Site
     const tokenSource: vscode.CancellationTokenSource = new vscode.CancellationTokenSource();
     postDeployCancelTokens.set(node.id, tokenSource);
 
-    // don't wait
-    // tslint:disable-next-line: no-floating-promises
-    postDeploymentPrompt(deployContext, node);
+    showDeployCompletedMessage(node);
 
     // intentionally not waiting
     // tslint:disable-next-line: no-floating-promises

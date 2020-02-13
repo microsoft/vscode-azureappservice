@@ -1,11 +1,15 @@
+/*---------------------------------------------------------------------------------------------
+ *  Copyright (c) Microsoft Corporation. All rights reserved.
+ *  Licensed under the MIT License. See License.txt in the project root for license information.
+ *--------------------------------------------------------------------------------------------*/
+
 import { SiteConfigResource } from "azure-arm-website/lib/models";
-import { MessageItem, window } from "vscode";
 import { IActionContext } from "vscode-azureextensionui";
-import { deploy } from '../commands/deploy/deploy';
-import { AppServiceDialogResponses, ScmType } from "../constants";
+import { ScmType } from "../constants";
 import { DeploymentSlotsTreeItem } from "../explorer/DeploymentSlotsTreeItem";
 import { DeploymentSlotTreeItem } from "../explorer/DeploymentSlotTreeItem";
 import { ext } from "../extensionVariables";
+import { showCreatedWebAppMessage } from "./createWebApp/showCreatedWebAppMessage";
 import { editScmType } from "./deployments/editScmType";
 
 export async function createSlot(context: IActionContext, node?: DeploymentSlotsTreeItem | undefined): Promise<void> {
@@ -14,15 +18,7 @@ export async function createSlot(context: IActionContext, node?: DeploymentSlots
     }
 
     const createdSlot = <DeploymentSlotTreeItem>await node.createChild(context);
-    // Note: intentionally not waiting for the result of this before returning
-    const createdNewSlotMsg: string = `Created new slot "${createdSlot.root.client.fullName}": https://${createdSlot.root.client.defaultHostName}`;
-    window.showInformationMessage(createdNewSlotMsg, AppServiceDialogResponses.deploy, AppServiceDialogResponses.viewOutput).then(async (result: MessageItem | undefined) => {
-        if (result === AppServiceDialogResponses.viewOutput) {
-            ext.outputChannel.show();
-        } else if (result === AppServiceDialogResponses.deploy) {
-            await deploy(context, createdSlot, true);
-        }
-    });
+    showCreatedWebAppMessage(createdSlot);
 
     // set the deploy source as the same as its production slot
     const siteConfig: SiteConfigResource = await node.root.client.getSiteConfig();
