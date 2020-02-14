@@ -9,9 +9,7 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { ISiteTreeRoot } from 'vscode-azureappservice';
-import { AzExtTreeItem, AzureTreeItem, createAzureClient, IActionContext } from 'vscode-azureextensionui';
-import { deploy } from '../commands/deploy/deploy';
-import { AppServiceDialogResponses } from '../constants';
+import { AzExtTreeItem, AzureTreeItem, createAzureClient } from 'vscode-azureextensionui';
 import { ext } from '../extensionVariables';
 import { nonNullProp, nonNullValue } from '../utils/nonNull';
 import { getResourcesPath, getThemedIconPath, IThemedIconPath } from '../utils/pathUtils';
@@ -118,19 +116,6 @@ export class WebAppTreeItem extends SiteTreeItem {
 
         const doc = await vscode.workspace.openTextDocument({ language: 'shellscript', content: script });
         await vscode.window.showTextDocument(doc);
-    }
-
-    public promptToDeploy(context: IActionContext): void {
-        const createdNewAppMsg: string = `Created new web app "${this.root.client.fullName}": https://${this.root.client.defaultHostName}`;
-
-        // Note: intentionally not waiting for the result of this before returning
-        vscode.window.showInformationMessage(createdNewAppMsg, AppServiceDialogResponses.deploy, AppServiceDialogResponses.viewOutput).then(async (result: vscode.MessageItem | undefined) => {
-            if (result === AppServiceDialogResponses.viewOutput) {
-                ext.outputChannel.show();
-            } else if (result === AppServiceDialogResponses.deploy) {
-                await deploy(context, this, true);
-            }
-        });
     }
 
     private async loadScriptTemplate(scriptName: string): Promise<string> {
