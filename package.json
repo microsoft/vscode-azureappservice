@@ -390,33 +390,38 @@
                 },
                 {
                     "command": "appService.OpenInPortal",
-                    "when": "view == azureAppService && viewItem == appService",
+                    "when": "view == azureAppService && viewItem =~ /^(appService|deploymentSlot)$/",
                     "group": "1_appServiceGeneralCommands@1"
                 },
                 {
                     "command": "appService.Browse",
-                    "when": "view == azureAppService && viewItem == appService",
+                    "when": "view == azureAppService && viewItem =~ /^(appService|deploymentSlot)$/",
                     "group": "1_appServiceGeneralCommands@2"
                 },
                 {
                     "command": "appService.Start",
-                    "when": "view == azureAppService && viewItem == appService",
+                    "when": "view == azureAppService && viewItem =~ /^(appService|deploymentSlot)$/",
                     "group": "2_appServiceControlCommands@1"
                 },
                 {
                     "command": "appService.Stop",
-                    "when": "view == azureAppService && viewItem == appService",
+                    "when": "view == azureAppService && viewItem =~ /^(appService|deploymentSlot)$/",
                     "group": "2_appServiceControlCommands@2"
                 },
                 {
                     "command": "appService.Restart",
-                    "when": "view == azureAppService && viewItem == appService",
+                    "when": "view == azureAppService && viewItem =~ /^(appService|deploymentSlot)$/",
                     "group": "2_appServiceControlCommands@3"
                 },
                 {
-                    "command": "appService.Delete",
-                    "when": "view == azureAppService && viewItem == appService",
+                    "command": "appService.SwapSlots",
+                    "when": "view == azureAppService && viewItem == deploymentSlot",
                     "group": "2_appServiceControlCommands@4"
+                },
+                {
+                    "command": "appService.Delete",
+                    "when": "view == azureAppService && viewItem =~ /^(appService|deploymentSlot)$/",
+                    "group": "2_appServiceControlCommands@5"
                 },
                 {
                     "command": "appService.Deploy",
@@ -424,18 +429,23 @@
                     "group": "3_appServiceDeployCommands@1"
                 },
                 {
+                    "command": "appService.DeploySlot",
+                    "when": "view == azureAppService && viewItem == deploymentSlot",
+                    "group": "3_appServiceDeployCommands@1"
+                },
+                {
                     "command": "appService.ConfigureDeploymentSource",
-                    "when": "view == azureAppService && viewItem == appService",
+                    "when": "view == azureAppService && viewItem =~ /^(appService|deploymentSlot)$/",
                     "group": "3_appServiceDeployCommands@2"
                 },
                 {
                     "command": "appService.startStreamingLogs",
-                    "when": "view == azureAppService && viewItem == appService",
+                    "when": "view == azureAppService && viewItem =~ /^(appService|deploymentSlot)$/",
                     "group": "4_appServiceDiagnosticsCommands@1"
                 },
                 {
                     "command": "appService.StopLogStream",
-                    "when": "view == azureAppService && viewItem == appService",
+                    "when": "view == azureAppService && viewItem =~ /^(appService|deploymentSlot)$/",
                     "group": "4_appServiceDiagnosticsCommands@2"
                 },
                 {
@@ -445,17 +455,17 @@
                 },
                 {
                     "command": "appService.Refresh",
-                    "when": "view == azureAppService && viewItem == appService",
+                    "when": "view == azureAppService && viewItem =~ /^(appService|deploymentSlot)$/",
                     "group": "7_appServiceRefreshCommands@1"
                 },
                 {
                     "command": "appService.StartRemoteDebug",
-                    "when": "view == azureAppService && viewItem == appService",
+                    "when": "view == azureAppService && viewItem =~ /^(appService|deploymentSlot)$/",
                     "group": "5_appServiceRemoteCommands@1"
                 },
                 {
                     "command": "appService.StartSsh",
-                    "when": "view == azureAppService && viewItem == appService",
+                    "when": "view == azureAppService && viewItem =~ /^(appService|deploymentSlot)$/",
                     "group": "5_appServiceRemoteCommands@2"
                 },
                 {
@@ -472,71 +482,6 @@
                     "command": "appService.Refresh",
                     "when": "view == azureAppService && viewItem == deploymentSlots",
                     "group": "2_deploymentSlotsGeneralCommands@1"
-                },
-                {
-                    "command": "appService.OpenInPortal",
-                    "when": "view == azureAppService && viewItem == deploymentSlot",
-                    "group": "1_deploymentSlotGeneralCommands@1"
-                },
-                {
-                    "command": "appService.Browse",
-                    "when": "view == azureAppService && viewItem == deploymentSlot",
-                    "group": "1_deploymentSlotGeneralCommands@2"
-                },
-                {
-                    "command": "appService.Start",
-                    "when": "view == azureAppService && viewItem == deploymentSlot",
-                    "group": "2_deploymentSlotControlCommands@1"
-                },
-                {
-                    "command": "appService.Stop",
-                    "when": "view == azureAppService && viewItem == deploymentSlot",
-                    "group": "2_deploymentSlotControlCommands@2"
-                },
-                {
-                    "command": "appService.Restart",
-                    "when": "view == azureAppService && viewItem == deploymentSlot",
-                    "group": "2_deploymentSlotControlCommands@3"
-                },
-                {
-                    "command": "appService.SwapSlots",
-                    "when": "view == azureAppService && viewItem == deploymentSlot",
-                    "group": "2_deploymentSlotControlCommands@4"
-                },
-                {
-                    "command": "appService.Delete",
-                    "when": "view == azureAppService && viewItem == deploymentSlot",
-                    "group": "2_deploymentSlotControlCommands@5"
-                },
-                {
-                    "command": "appService.DeploySlot",
-                    "when": "view == azureAppService && viewItem == deploymentSlot",
-                    "group": "3_deploymentSlotDeployCommands@1"
-                },
-                {
-                    "command": "appService.ConfigureDeploymentSource",
-                    "when": "view == azureAppService && viewItem == deploymentSlot",
-                    "group": "3_deploymentSlotDeployCommands@2"
-                },
-                {
-                    "command": "appService.startStreamingLogs",
-                    "when": "view == azureAppService && viewItem == deploymentSlot",
-                    "group": "4_deploymentSlotDiagnosticsCommands@1"
-                },
-                {
-                    "command": "appService.StopLogStream",
-                    "when": "view == azureAppService && viewItem == deploymentSlot",
-                    "group": "4_deploymentSlotDiagnosticsCommands@2"
-                },
-                {
-                    "command": "appService.StartRemoteDebug",
-                    "when": "view == azureAppService && viewItem == deploymentSlot",
-                    "group": "5_appServiceRemoteCommands@1"
-                },
-                {
-                    "command": "appService.Refresh",
-                    "when": "view == azureAppService && viewItem == deploymentSlot",
-                    "group": "5_appServiceRemoteCommands@2"
                 },
                 {
                     "command": "appService.EnableFileLogging",
