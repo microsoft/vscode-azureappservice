@@ -26,6 +26,11 @@ suite('Create Web App and deploy', async function (this: ISuiteCallbackContext):
         await testCreateWebAppAndDeploy(['Linux', 'Node LTS'], testFolderPath);
     });
 
+    test('Node 12 LTS', async () => {
+        const testFolderPath: string = await getWorkspacePath('nodejs-docs-hello-world');
+        await testCreateWebAppAndDeploy(['Linux', 'Node 12 LTS'], testFolderPath);
+    });
+
     async function testCreateWebAppAndDeploy(options: string[], workspacePath: string): Promise<void> {
         const resourceName: string = getRandomHexString();
         const resourceGroupName: string = getRandomHexString();
@@ -39,7 +44,7 @@ suite('Create Web App and deploy', async function (this: ISuiteCallbackContext):
         assert.ok(createdApp);
 
         // Verify that the deployment is successful
-        await testUserInput.runWithInputs([workspacePath, resourceName, 'Deploy', DialogResponses.yes.title], async () => {
+        await testUserInput.runWithInputs([workspacePath, resourceName, 'Deploy', DialogResponses.skipForNow.title], async () => {
             await vscode.commands.executeCommand('appService.Deploy');
         });
         const hostUrl: string | undefined = (<WebAppTreeItem>await ext.tree.findTreeItem(<string>createdApp.id, context)).root.client.defaultHostUrl;
