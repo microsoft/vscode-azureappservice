@@ -9,10 +9,10 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { ISiteTreeRoot } from 'vscode-azureappservice';
-import { AzExtTreeItem, AzureTreeItem, createAzureClient } from 'vscode-azureextensionui';
+import { AzExtTreeItem, AzureTreeItem, createAzureClient, TreeItemIconPath } from 'vscode-azureextensionui';
 import { ext } from '../extensionVariables';
 import { nonNullProp, nonNullValue } from '../utils/nonNull';
-import { getResourcesPath, getThemedIconPath, IThemedIconPath } from '../utils/pathUtils';
+import { getIconPath, getResourcesPath } from '../utils/pathUtils';
 import { DeploymentSlotsNATreeItem, DeploymentSlotsTreeItem } from './DeploymentSlotsTreeItem';
 import { DeploymentSlotTreeItem } from './DeploymentSlotTreeItem';
 import { SiteTreeItem } from './SiteTreeItem';
@@ -26,8 +26,8 @@ export class WebAppTreeItem extends SiteTreeItem {
         return this.root.client.siteName;
     }
 
-    public get iconPath(): IThemedIconPath {
-        return getThemedIconPath('WebApp_color');
+    public get iconPath(): TreeItemIconPath {
+        return getIconPath('WebApp');
     }
 
     public async loadMoreChildrenImpl(clearCache: boolean): Promise<AzureTreeItem<ISiteTreeRoot>[]> {
