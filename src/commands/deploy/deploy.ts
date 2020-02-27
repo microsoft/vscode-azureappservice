@@ -16,7 +16,6 @@ import { javaUtils } from '../../utils/javaUtils';
 import { nonNullValue } from '../../utils/nonNull';
 import { isPathEqual } from '../../utils/pathUtils';
 import { getRandomHexString } from "../../utils/randomUtils";
-import * as workspaceUtil from '../../utils/workspace';
 import { getWorkspaceSetting } from '../../vsCodeConfig/settings';
 import { runPostDeployTask } from '../postDeploy/runPostDeployTask';
 import { confirmDeploymentPrompt } from './confirmDeploymentPrompt';
@@ -40,14 +39,10 @@ export async function deploy(context: IActionContext, target?: vscode.Uri | Site
 
     const fileExtensions: string | string[] | undefined = await javaUtils.getJavaFileExtensions(siteConfig);
 
-    const { originalDeployFsPath, effectiveDeployFsPath } = await appservice.getDeployFsPath(target, fileExtensions);
-    const workspace: vscode.WorkspaceFolder | undefined = workspaceUtil.getContainingWorkspace(effectiveDeployFsPath);
-    if (!workspace) {
-        throw new Error('Failed to deploy because the path is not part of an open workspace. Open in a workspace and try again.');
-    }
+    const { originalDeployFsPath, effectiveDeployFsPath, workspaceFolder } = await appservice.getDeployFsPath(context, target, fileExtensions);
 
     const deployContext: IDeployContext = {
-        ...context, workspace, originalDeployFsPath, effectiveDeployFsPath, webAppSource
+        ...context, workspace: workspaceFolder, originalDeployFsPath, effectiveDeployFsPath, webAppSource
     };
 
     // because this is workspace dependant, do it before user selects app
@@ -82,7 +77,7 @@ export async function deploy(context: IActionContext, target?: vscode.Uri | Site
         }
     }
 
-    if (getWorkspaceSetting<boolean>('showDeployConfirmation', workspace.uri.fsPath) && !isNewWebApp && isZipDeploy) {
+    if (getWorkspaceSetting<boolean>('showDeployConfirmation', workspaceFolder.uri.fsPath) && !isNewWebApp && isZipDeploy) {
         await confirmDeploymentPrompt(deployContext, context, node.root.client.fullName);
     }
 

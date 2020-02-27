@@ -8,7 +8,6 @@ import * as vscode from 'vscode';
 import { IAzureQuickPickItem } from 'vscode-azureextensionui';
 import { IDeployContext } from '../commands/deploy/IDeployContext';
 import { ext } from '../extensionVariables';
-import { isPathEqual, isSubpath } from '../utils/pathUtils';
 
 export async function selectWorkspaceFile(placeHolder: string, getSubPath?: (f: vscode.WorkspaceFolder) => string | undefined): Promise<string> {
     let defaultUri: vscode.Uri | undefined;
@@ -53,14 +52,6 @@ async function selectWorkspaceItem(placeHolder: string, options: vscode.OpenDial
     }
 
     return folder && folder.data ? folder.data : (await ext.ui.showOpenDialog(options))[0].fsPath;
-}
-
-export function getContainingWorkspace(fsPath: string): vscode.WorkspaceFolder | undefined {
-    // tslint:disable-next-line:strict-boolean-expressions
-    const openFolders: vscode.WorkspaceFolder[] = vscode.workspace.workspaceFolders || [];
-    return openFolders.find((f: vscode.WorkspaceFolder): boolean => {
-        return isPathEqual(f.uri.fsPath, fsPath) || isSubpath(f.uri.fsPath, fsPath);
-    });
 }
 
 export async function findFilesByFileExtension(fsPath: string | undefined, fileExtension: string): Promise<vscode.Uri[]> {
