@@ -1,5 +1,16 @@
 # Change Log
-All notable changes to the "azure-appservice" extension will be documented in this file.
+
+## 0.16.3 - 2020-03-04
+### Added
+- SSH into Linux deployment slots
+- Added setting "appService.showDeployConfirmation" to turn off "Are you sure you want to deploy..." dialog
+- Logging is enabled by default when creating a web app
+
+### Changed
+- Inline button to view deployment logs was removed. Left or right click the tree item instead
+
+### [Fixed](https://github.com/microsoft/vscode-azureappservice/issues?q=is%3Aissue+is%3Aclosed+milestone%3A0.16.3)
+- Prompt to select existing resource group instead of "403" error when subscription doesn't have permissions to create
 
 ## 0.16.2 - 2019-12-04
 ### Added
