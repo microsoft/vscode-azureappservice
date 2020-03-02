@@ -23,7 +23,7 @@ export function showCreatedWebAppMessage(node: SiteTreeItem): void {
             if (result === AppServiceDialogResponses.viewOutput) {
                 ext.outputChannel.show();
             } else if (result === AppServiceDialogResponses.deploy) {
-                await deploy(context, node, true);
+                await deploy(context, node, [], true);
             }
         });
     });

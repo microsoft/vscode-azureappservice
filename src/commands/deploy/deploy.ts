@@ -26,7 +26,7 @@ import { showDeployCompletedMessage } from './showDeployCompletedMessage';
 
 const postDeployCancelTokens: Map<string, vscode.CancellationTokenSource> = new Map();
 
-export async function deploy(context: IActionContext, target?: vscode.Uri | SiteTreeItem | undefined, isTargetNewWebApp: boolean = false): Promise<void> {
+export async function deploy(context: IActionContext, target?: vscode.Uri | SiteTreeItem, _multiTargets?: (vscode.Uri | SiteTreeItem)[], isTargetNewWebApp: boolean = false): Promise<void> {
     let webAppSource: WebAppSource | undefined;
     context.telemetry.properties.deployedWithConfigs = 'false';
     let siteConfig: WebSiteModels.SiteConfigResource | undefined;
