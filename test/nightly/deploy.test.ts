@@ -26,6 +26,11 @@ suite('Create Web App and deploy', async function (this: ISuiteCallbackContext):
         await testCreateWebAppAndDeploy(['Linux', 'Node LTS'], testFolderPath);
     });
 
+    test('Node 10 LTS', async () => {
+        const testFolderPath: string = await getWorkspacePath('nodejs-docs-hello-world');
+        await testCreateWebAppAndDeploy(['Linux', 'Node 10 LTS'], testFolderPath);
+    });
+
     test('Node 12 LTS', async () => {
         const testFolderPath: string = await getWorkspacePath('nodejs-docs-hello-world');
         await testCreateWebAppAndDeploy(['Linux', 'Node 12 LTS'], testFolderPath);
