@@ -48,9 +48,11 @@ export async function activateInternal(
     context: vscode.ExtensionContext,
     perfStats: {
         loadStartTime: number, loadEndTime: number
-    }
+    },
+    ignoreBundle?: boolean
 ): Promise<AzureExtensionApiProvider> {
     ext.context = context;
+    ext.ignoreBundle = ignoreBundle;
     ext.reporter = createTelemetryReporter(context);
 
     const ui: IAzureUserInput = new AzureUserInput(context.globalState);

@@ -15,8 +15,7 @@ export namespace ext {
     export let ui: IAzureUserInput;
     export let reporter: ITelemetryReporter;
     export let context: ExtensionContext;
-    // tslint:disable-next-line: strict-boolean-expressions
-    export let ignoreBundle: boolean = !/^(false|0)?$/i.test(process.env.AZCODE_APPSERVICE_IGNORE_BUNDLE || '');
+    export let ignoreBundle: boolean | undefined;
     export const prefix: string = 'appService';
 
     export let tree: AzExtTreeDataProvider;
