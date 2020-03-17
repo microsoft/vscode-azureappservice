@@ -116,7 +116,7 @@ export async function deploy(context: IActionContext, target?: vscode.Uri | Site
     // tslint:disable-next-line: no-floating-promises
     postDeploymentPrompt(deployContext, node);
 
-    // intentionally not waiting
+    // don't wait
     // tslint:disable-next-line: no-floating-promises
     runPostDeployTask(node, correlationId, tokenSource);
 }

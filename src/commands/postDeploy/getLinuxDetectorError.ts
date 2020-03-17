@@ -1,3 +1,4 @@
+
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
@@ -5,77 +6,90 @@
 
 import { IActionContext } from "vscode-azureextensionui";
 import { SiteTreeItem } from "../../explorer/SiteTreeItem";
+import { localize } from "../../localize";
 import { requestUtils } from "../../utils/requestUtils";
-import { findTableByColumnName, findTableByRowValue, getValuesByColumnName } from "./parseDetectorResponse";
+import { findTableByName, getValuesByColumnName } from "./parseDetectorResponse";
 
 export enum ColumnName {
     status = "Status",
     message = "Message",
-    name = "Data.Name",
-    value = "Data.Value",
+    name = "Name",
+    value = "Value",
     expanded = "Expanded",
     solutions = "Solutions",
     time = "Time",
     instance = "Instance",
     facility = "Facility",
-    failureCount = "FailureCount"
+    failureCount = "FailureCount",
+    dataValue = 'Data.Value',
+    dataName = 'Data.Name'
 }
+const timestampFormat: RegExp = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/;
 
-export async function getLinuxDetectorError(context: IActionContext, detectorId: string, node: SiteTreeItem, startTime: string, endTime: string, deployResultTime: Date, siteName: string): Promise<string | undefined> {
+export async function getLinuxDetectorError(context: IActionContext, detectorId: string, node: SiteTreeItem, startTime: string, endTime: string, deployResultTime: Date): Promise<string | undefined> {
     const detectorUri: string = `${node.id}/detectors/${detectorId}`;
     const requestOptions: requestUtils.Request = await requestUtils.getDefaultAzureRequest(detectorUri, node.root);
 
     requestOptions.qs = {
         'api-version': "2015-08-01",
         startTime,
-        endTime
+        endTime,
+        logFormat: 'plain'
     };
 
     const detectorResponse: string = await requestUtils.sendRequest<string>(requestOptions);
     const responseJson: detectorResponseJSON = <detectorResponseJSON>JSON.parse(detectorResponse);
 
-    const jsonTables: detectorTable[] = responseJson.properties.dataset[0].table;
-    // const tableWithJsonString: detectorTable = datasets;
-    // const vsCodeIntegration: string = 'Latest time seen by detector. To be used in VSCode integration.';
-    // const timestampTable: detectorTable | undefined = findTableByRowValue(datasets, 'Critical');
-    let selectedRow: string[] | undefined;
+    const insightLogTable: detectorTable | undefined = findTableByName(responseJson.properties.dataset, 'insight/logs');
 
-    for (const row of jsonTables.rows) {
-        if (row[2]) {
-            selectedRow = row;
-        }
-    }
-
-    // if we can't find the timestamp, exit and try again
-    if (!selectedRow) {
+    if (!insightLogTable) {
         return undefined;
     }
 
-    const detectorDataset: detectorDataset = JSON.parse(selectedRow[3]);
-    const detectorTable: detectorTable = detectorDataset[0].table;
+    const rawApplicationLog: string = getValuesByColumnName(context, insightLogTable, ColumnName.value);
+    const insightDataset: detectorDataset[] = <detectorDataset[]>JSON.parse(rawApplicationLog);
 
-    // if this fails, then there was no critical error
-    const timestamp: Date = new Date(detectorTable.rows[0][2].substring(4) + 'z');
-    if (validateTimestamp(context, timestamp, deployResultTime)) {
+    let insightTable: detectorTable;
+    let detectorTimestamp: RegExpMatchArray | null;
 
-        const criticalError = detectorTable.rows[0][0];
-        // if there is no criticalError, exit
-        if (!criticalError) {
+    const appInsightTable: detectorTable | undefined = findTableByName(insightDataset, 'application/insight');
+    if (appInsightTable) {
+        insightTable = appInsightTable;
+        context.telemetry.properties.insight = 'app';
+        detectorTimestamp = getValuesByColumnName(context, appInsightTable, ColumnName.dataName).match(timestampFormat);
+    } else {
+        // if there are no app insights, defer to the Docker container
+        const dockerInsightTable: detectorTable | undefined = findTableByName(insightDataset, 'docker/insight');
+        if (!dockerInsightTable) {
             return undefined;
         }
 
-        context.telemetry.properties.errorMessages = JSON.stringify(detectorTable[3]);
+        insightTable = dockerInsightTable;
+        context.telemetry.properties.insight = 'docker';
+        detectorTimestamp = getValuesByColumnName(context, dockerInsightTable, ColumnName.dataName).match(timestampFormat);
+    }
 
-        return `"${node.root.client.siteName}" - ${detectorTable.rows[0][1]}: ${detectorTable.rows[0][3]}`;
+    const deployTimestamp: RegExpMatchArray | null = deployResultTime.toISOString().match(timestampFormat);
+    if (!detectorTimestamp || !deployTimestamp || !validateTimestamp(context, detectorTimestamp[0], deployTimestamp[0])) {
+        return undefined;
+    }
+
+    const criticalError: string = localize('insightError', '"{0}" reported a critical error:', node.root.client.siteName);
+
+    if (getValuesByColumnName(context, insightTable, ColumnName.status) === 'Critical') {
+        const insightError: string = getValuesByColumnName(context, insightTable, ColumnName.dataValue);
+        context.telemetry.properties.errorMessages = JSON.stringify(insightError);
+
+        return `${criticalError} ${insightError}".`;
     }
 
     return undefined;
 }
 
-export function validateTimestamp(context: IActionContext, detectorTime: Date, deployResultTime: Date): boolean {
-    const secondsBetweenTimes: number = Math.abs((detectorTime.getTime() - deployResultTime.getTime()) / 1000);
+export function validateTimestamp(context: IActionContext, detectorTime: string, deployResultTime: string): boolean {
+    const secondsBetweenTimes: number = Math.abs((new Date(detectorTime).getTime() - new Date(deployResultTime).getTime()) / 1000);
 
-    // the log timestamp is typically about 30 seconds apart
+    // the log timestamp is typically ~20 seconds after the deployResult time
     context.telemetry.properties.timeBetweenDeployAndDetector = secondsBetweenTimes.toString();
     if (secondsBetweenTimes <= 60) {
         return true;
@@ -96,6 +110,7 @@ export type detectorDataset = {
 };
 
 export type detectorTable = {
+    tableName: string,
     columns: detectorColumn[],
     rows: string[]
 };
