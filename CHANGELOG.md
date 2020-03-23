@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.16.4 - 2020-03-24
+### Fixed
+- Deployment stuck at "Creating zip package..." [#1447](https://github.com/microsoft/vscode-azureappservice/issues/1447)
+
 ## 0.16.3 - 2020-03-04
 ### Added
 - SSH into Linux deployment slots
