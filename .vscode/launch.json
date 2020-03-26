@@ -11,7 +11,7 @@
                 "--extensionDevelopmentPath=${workspaceFolder}"
             ],
             "outFiles": [
-                "${workspaceFolder}/**/*.js"
+                "${workspaceFolder}/out/**/*.js"
             ],
             "preLaunchTask": "${defaultBuildTask}",
             "env": {
@@ -28,7 +28,7 @@
                 "--extensionDevelopmentPath=${workspaceFolder}"
             ],
             "outFiles": [
-                "${workspaceFolder}/**/*.js"
+                "${workspaceFolder}/dist/**/*.js"
             ],
             "preLaunchTask": "npm: webpack",
             "env": {
@@ -78,7 +78,7 @@
                 "MOCHA_timeout": "0", // Disable time-outs
                 "DEBUGTELEMETRY": "v",
                 "NODE_DEBUG": "",
-                "DEBUG_WEBPACK": "",
+                "DEBUG_WEBPACK": "1",
                 "ENABLE_LONG_RUNNING_TESTS": ""
             }
         }

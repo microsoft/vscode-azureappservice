@@ -784,15 +784,17 @@
     },
     "scripts": {
         "vscode:prepublish": "npm run webpack-prod",
-        "build": "tsc -p ./",
-        "compile": "tsc -watch -p ./",
+        "build": "tsc",
+        "compile": "tsc -watch",
         "package": "vsce package",
-        "lint": "tslint --project tsconfig.json -t verbose",
+        "lint": "tslint --project tsconfig.json -e src/*.d.ts -t verbose",
+        "lint-fix": "tslint --project tsconfig.json -t verbose --fix",
         "pretest": "npm run webpack-prod && gulp preTest",
         "test": "node ./out/test/runTest.js",
         "webpack": "npm run build && gulp webpack-dev",
         "webpack-prod": "npm run build && gulp webpack-prod",
-        "webpack-profile": "webpack --profile --json --mode production > webpack-stats.json && echo Use http://webpack.github.io/analyse to analyze the stats"
+        "webpack-profile": "webpack --profile --json --mode production > webpack-stats.json && echo Use http://webpack.github.io/analyse to analyze the stats",
+        "all": "npm i && npm run lint && npm test"
     },
     "devDependencies": {
         "@types/dotenv": "^6.1.1",
