@@ -41,6 +41,11 @@ suite('Create Web App and deploy', async function (this: ISuiteCallbackContext):
         await testCreateWebAppAndDeploy(['Linux', 'Node 12 LTS'], testFolderPath);
     });
 
+    test('.NET Core LTS', async () => {
+        const testFolderPath: string = await getWorkspacePath('dotnet-hello-world');
+        await testCreateWebAppAndDeploy(['Linux', '.NET Core LTS'], testFolderPath);
+    });
+
     async function testCreateWebAppAndDeploy(options: string[], workspacePath: string): Promise<void> {
         const resourceName: string = getRandomHexString();
         const resourceGroupName: string = getRandomHexString();
@@ -67,11 +72,16 @@ suite('Create Web App and deploy', async function (this: ISuiteCallbackContext):
 
 // The workspace folder that vscode is opened against for tests
 async function getWorkspacePath(testWorkspaceName: string): Promise<string> {
+    let workspacePath: string = '';
     const workspaceFolders: vscode.WorkspaceFolder[] | undefined = vscode.workspace.workspaceFolders;
     if (!workspaceFolders || workspaceFolders.length === 0) {
         throw new Error("No workspace is open");
     } else {
-        const workspacePath: string = workspaceFolders[0].uri.fsPath;
+        for (const obj of workspaceFolders) {
+            if (obj.name === testWorkspaceName) {
+                workspacePath = obj.uri.fsPath;
+            }
+        }
         assert.equal(path.basename(workspacePath), testWorkspaceName, "Opened against an unexpected workspace.");
         return workspacePath;
     }
