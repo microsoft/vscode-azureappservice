@@ -5,18 +5,17 @@
 
 import * as assert from 'assert';
 import { WebSiteManagementModels } from 'azure-arm-website';
-import { IHookCallbackContext, ISuiteCallbackContext } from 'mocha';
 import * as vscode from 'vscode';
 import { constants, DialogResponses, getRandomHexString } from '../../extension.bundle';
 import { longRunningTestsEnabled, testUserInput } from '../global.test';
 import { resourceGroupsToDelete, webSiteClient } from './global.resource.test';
 
 // tslint:disable-next-line: max-func-body-length
-suite('Web App actions', async function (this: ISuiteCallbackContext): Promise<void> {
+suite('Web App actions', async function (this: Mocha.Suite): Promise<void> {
     this.timeout(6 * 60 * 1000);
     let resourceName: string;
 
-    suiteSetup(async function (this: IHookCallbackContext): Promise<void> {
+    suiteSetup(async function (this: Mocha.Context): Promise<void> {
         if (!longRunningTestsEnabled) {
             this.skip();
         }
