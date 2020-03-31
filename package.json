@@ -744,6 +744,11 @@
                     "type": "string",
                     "description": "The name of the task to run before deploying."
                 },
+                "appService.postDeployTask": {
+                    "scope": "resource",
+                    "type": "string",
+                    "description": "%appService.postDeployTask%"
+                },
                 "appService.showPlanPerformanceWarning": {
                     "type": "boolean",
                     "default": true,
@@ -826,7 +831,7 @@
         "fs-extra": "^8.0.0",
         "portfinder": "^1.0.25",
         "request-promise": "^4.2.5",
-        "vscode-azureappservice": "^0.57.2",
+        "vscode-azureappservice": "^0.57.3",
         "vscode-azureextensionui": "^0.29.12",
         "vscode-azurekudu": "^0.1.8",
         "vscode-nls": "^4.1.1"
