@@ -1,7 +1,7 @@
 {
     "folders": [
         {
-            "path": "./nightly/testFolder/dotnet-hello-world"
+            "path": "./nightly/testFolder/dotnet-hello-world/2.1"
         },
         {
             "path": "./nightly/testFolder/nodejs-docs-hello-world"
