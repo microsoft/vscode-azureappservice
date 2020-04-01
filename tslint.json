@@ -61,6 +61,8 @@
         "radix": false
     },
     "linterOptions": {
-        "exclude": []
+        "exclude": [
+            "**/*.d.ts"
+        ]
     }
 }

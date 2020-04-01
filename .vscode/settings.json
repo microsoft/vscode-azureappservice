@@ -1,8 +1,12 @@
 {
+    "editor.codeActionsOnSave": {
+        "source.fixAll.tslint": true,
+        "source.organizeImports": true
+    },
+    "editor.detectIndentation": false,
     "editor.formatOnSave": true,
     "editor.insertSpaces": true,
     "editor.tabSize": 4,
-    "editor.detectIndentation": false,
     "files.insertFinalNewline": true,
     "files.trimTrailingWhitespace": true,
     "search.exclude": {
@@ -10,11 +14,9 @@
         "**/node_modules": true,
         ".vscode-test": true
     },
-    "editor.codeActionsOnSave": {
-        "source.fixAll.tslint": true,
-    },
     "tslint.ignoreDefinitionFiles": true,
     "typescript.preferences.importModuleSpecifier": "relative",
+    "typescript.tsdk": "node_modules/typescript/lib",
     "cSpell.words": [
         "Affordance",
         "appservice",
