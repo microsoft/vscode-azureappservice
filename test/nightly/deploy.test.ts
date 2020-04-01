@@ -5,7 +5,6 @@
 
 import * as assert from 'assert';
 import { WebSiteManagementModels } from 'azure-arm-website';
-import { IHookCallbackContext, ISuiteCallbackContext } from 'mocha';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { DialogResponses, ext, getRandomHexString, IActionContext, requestUtils, WebAppTreeItem } from '../../extension.bundle';
@@ -17,14 +16,14 @@ interface ITestCase {
     runtimes: string[];
 }
 
-suite('Create Web App and deploy', async function (this: ISuiteCallbackContext): Promise<void> {
+suite('Create Web App and deploy', async function (this: Mocha.Suite): Promise<void> {
     this.timeout(5 * 60 * 1000);
     const testCases: ITestCase[] = [
         { workspaceFolder: 'nodejs-docs-hello-world', runtimes: ['Node LTS', 'Node 8 LTS', 'Node 10 LTS', 'Node 12 LTS'] },
         { workspaceFolder: '2.1', runtimes: ['.NET Core LTS'] }
     ];
 
-    suiteSetup(async function (this: IHookCallbackContext): Promise<void> {
+    suiteSetup(async function (this: Mocha.Context): Promise<void> {
         if (!longRunningTestsEnabled) {
             this.skip();
         }
