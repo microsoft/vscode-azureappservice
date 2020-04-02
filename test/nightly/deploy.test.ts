@@ -11,8 +11,17 @@ import { DialogResponses, ext, getRandomHexString, IActionContext, requestUtils,
 import { longRunningTestsEnabled, testUserInput } from '../global.test';
 import { resourceGroupsToDelete, webSiteClient } from './global.resource.test';
 
+interface ITestCase {
+    workspaceFolder: string;
+    runtimes: string[];
+}
+
 suite('Create Web App and deploy', async function (this: Mocha.Suite): Promise<void> {
     this.timeout(5 * 60 * 1000);
+    const testCases: ITestCase[] = [
+        { workspaceFolder: 'nodejs-docs-hello-world', runtimes: ['Node LTS', 'Node 8 LTS', 'Node 10 LTS', 'Node 12 LTS'] },
+        { workspaceFolder: '2.1', runtimes: ['.NET Core LTS'] }
+    ];
 
     suiteSetup(async function (this: Mocha.Context): Promise<void> {
         if (!longRunningTestsEnabled) {
@@ -20,25 +29,14 @@ suite('Create Web App and deploy', async function (this: Mocha.Suite): Promise<v
         }
     });
 
-    test('Node LTS', async () => {
-        const testFolderPath: string = await getWorkspacePath('nodejs-docs-hello-world');
-        await testCreateWebAppAndDeploy(['Linux', 'Node LTS'], testFolderPath);
-    });
-
-    test('Node 8 LTS', async () => {
-        const testFolderPath: string = await getWorkspacePath('nodejs-docs-hello-world');
-        await testCreateWebAppAndDeploy(['Linux', 'Node 8 LTS'], testFolderPath);
-    });
-
-    test('Node 10 LTS', async () => {
-        const testFolderPath: string = await getWorkspacePath('nodejs-docs-hello-world');
-        await testCreateWebAppAndDeploy(['Linux', 'Node 10 LTS'], testFolderPath);
-    });
-
-    test('Node 12 LTS', async () => {
-        const testFolderPath: string = await getWorkspacePath('nodejs-docs-hello-world');
-        await testCreateWebAppAndDeploy(['Linux', 'Node 12 LTS'], testFolderPath);
-    });
+    for (const testCase of testCases) {
+        for (const runtime of testCase.runtimes) {
+            test(runtime, async () => {
+                const testFolderPath: string = await getWorkspacePath(testCase.workspaceFolder);
+                await testCreateWebAppAndDeploy(['Linux', runtime], testFolderPath);
+            });
+        }
+    }
 
     async function testCreateWebAppAndDeploy(options: string[], workspacePath: string): Promise<void> {
         const resourceName: string = getRandomHexString();
@@ -66,11 +64,16 @@ suite('Create Web App and deploy', async function (this: Mocha.Suite): Promise<v
 
 // The workspace folder that vscode is opened against for tests
 async function getWorkspacePath(testWorkspaceName: string): Promise<string> {
+    let workspacePath: string = '';
     const workspaceFolders: vscode.WorkspaceFolder[] | undefined = vscode.workspace.workspaceFolders;
     if (!workspaceFolders || workspaceFolders.length === 0) {
         throw new Error("No workspace is open");
     } else {
-        const workspacePath: string = workspaceFolders[0].uri.fsPath;
+        for (const obj of workspaceFolders) {
+            if (obj.name === testWorkspaceName) {
+                workspacePath = obj.uri.fsPath;
+            }
+        }
         assert.equal(path.basename(workspacePath), testWorkspaceName, "Opened against an unexpected workspace.");
         return workspacePath;
     }
