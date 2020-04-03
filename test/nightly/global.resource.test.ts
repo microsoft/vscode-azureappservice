@@ -37,9 +37,9 @@ async function deleteResourceGroups(): Promise<void> {
     const client: ResourceManagementClient = createAzureClient(testAccount.getSubscriptionContext(), ResourceManagementClient);
     await Promise.all(resourceGroupsToDelete.map(async resourceGroup => {
         if (await client.resourceGroups.checkExistence(resourceGroup)) {
-            console.log(`Deleting resource group "${resourceGroup}"...`);
-            await client.resourceGroups.deleteMethod(resourceGroup);
-            console.log(`Resource group "${resourceGroup}" deleted.`);
+            console.log(`Started delete of resource group "${resourceGroup}"...`);
+            await client.resourceGroups.beginDeleteMethod(resourceGroup);
+            console.log(`Successfully started delete of resource group "${resourceGroup}".`);
         } else {
             // If the test failed, the resource group might not actually exist
             console.log(`Ignoring resource group "${resourceGroup}" because it does not exist.`);

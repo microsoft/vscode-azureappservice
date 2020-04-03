@@ -17,10 +17,11 @@ interface ITestCase {
 }
 
 suite('Create Web App and deploy', async function (this: Mocha.Suite): Promise<void> {
-    this.timeout(5 * 60 * 1000);
+    this.timeout(7 * 60 * 1000);
     const testCases: ITestCase[] = [
         { workspaceFolder: 'nodejs-docs-hello-world', runtimes: ['Node LTS', 'Node 8 LTS', 'Node 10 LTS', 'Node 12 LTS'] },
-        { workspaceFolder: '2.1', runtimes: ['.NET Core LTS', '.NET Core 2.1'] }
+        { workspaceFolder: '2.1', runtimes: ['.NET Core LTS', '.NET Core 2.1'] },
+        { workspaceFolder: 'python-docs-hello-world', runtimes: ['Python 2.7', 'Python 3.6', 'Python 3.7', 'Python 3.8'] }
     ];
 
     suiteSetup(async function (this: Mocha.Context): Promise<void> {
