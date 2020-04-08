@@ -17,7 +17,7 @@ interface ITestCase {
 }
 
 suite('Create Web App and deploy', async function (this: Mocha.Suite): Promise<void> {
-    this.timeout(7 * 60 * 1000);
+    this.timeout(12 * 60 * 1000);
     const testCases: ITestCase[] = [
         { workspaceFolder: 'nodejs-docs-hello-world', runtimes: ['Node LTS', 'Node 8 LTS', 'Node 10 LTS', 'Node 12 LTS'] },
         { workspaceFolder: '2.1', runtimes: ['.NET Core LTS', '.NET Core 2.1'] },
@@ -44,7 +44,7 @@ suite('Create Web App and deploy', async function (this: Mocha.Suite): Promise<v
         const resourceGroupName: string = getRandomHexString();
         resourceGroupsToDelete.push(resourceGroupName);
         const context: IActionContext = { telemetry: { properties: {}, measurements: {} }, errorHandling: { issueProperties: {} } };
-        const testInputs: (string | RegExp)[] = [resourceName, '$(plus) Create new resource group', resourceGroupName, ...options, '$(plus) Create new App Service plan', resourceName, 'B1', '$(plus) Create new Application Insights resource', resourceName, 'West US'];
+        const testInputs: (string | RegExp)[] = [resourceName, '$(plus) Create new resource group', resourceGroupName, ...options, '$(plus) Create new App Service plan', resourceName, 'S1', '$(plus) Create new Application Insights resource', resourceName, 'West US'];
         await testUserInput.runWithInputs(testInputs, async () => {
             await vscode.commands.executeCommand('appService.CreateWebAppAdvanced');
         });
