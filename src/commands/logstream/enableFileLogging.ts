@@ -10,7 +10,11 @@ import { SiteTreeItem } from "../../explorer/SiteTreeItem";
 import { WebAppTreeItem } from '../../explorer/WebAppTreeItem';
 import { ext } from '../../extensionVariables';
 
-export async function enableFileLogging(context: IActionContext, node?: SiteTreeItem | LogFilesTreeItem): Promise<void> {
+export interface IEnableFileLoggingContext extends IActionContext {
+    suppressAlreadyEnabledMessage?: boolean;
+}
+
+export async function enableFileLogging(context: IEnableFileLoggingContext, node?: SiteTreeItem | LogFilesTreeItem): Promise<void> {
     if (!node) {
         node = await ext.tree.showTreeItemPicker<SiteTreeItem>(WebAppTreeItem.contextValue, context);
     }
@@ -19,9 +23,12 @@ export async function enableFileLogging(context: IActionContext, node?: SiteTree
         // If the entry point was the Log Files node, pass the parent as that's where the logic lives
         node = <SiteTreeItem>node.parent;
     }
-    const isEnabled = await vscode.window.withProgress({ location: vscode.ProgressLocation.Window }, async p => {
+
+    const siteNode: SiteTreeItem = node;
+
+    const isEnabled = await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification }, async p => {
         p.report({ message: 'Checking container diagnostics settings...' });
-        return await (<SiteTreeItem>node).isHttpLogsEnabled();
+        return await siteNode.isHttpLogsEnabled();
     });
 
     if (!isEnabled) {
@@ -30,12 +37,13 @@ export async function enableFileLogging(context: IActionContext, node?: SiteTree
         const enabledLogging: string = `Enabled Logging for "${node.root.client.fullName}".`;
         await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification, title: enablingLogging }, async (): Promise<void> => {
             ext.outputChannel.appendLog(enablingLogging);
-            await (<SiteTreeItem>node).enableHttpLogs();
+            await siteNode.enableHttpLogs();
+
             await vscode.commands.executeCommand('appService.Restart', node);
             vscode.window.showInformationMessage(enabledLogging);
             ext.outputChannel.appendLog(enabledLogging);
         });
-    } else {
+    } else if (!context.suppressAlreadyEnabledMessage) {
         vscode.window.showInformationMessage(`File logging has already been enabled for ${node.root.client.fullName}.`);
     }
 }
