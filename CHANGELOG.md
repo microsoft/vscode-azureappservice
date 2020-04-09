@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.16.5 - 2020-04-10
+### Fixed
+- Deployment stuck at "Running preDeployTask..." [#1478](https://github.com/microsoft/vscode-azureappservice/issues/1478)
+
 ## 0.16.4 - 2020-03-24
 ### Fixed
 - Deployment stuck at "Creating zip package..." [#1447](https://github.com/microsoft/vscode-azureappservice/issues/1447)
