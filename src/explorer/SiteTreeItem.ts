@@ -11,7 +11,6 @@ import { AppSettingsTreeItem, AppSettingTreeItem, deleteSite, DeploymentsTreeIte
 import { AzExtTreeItem, AzureParentTreeItem, AzureTreeItem, DialogResponses, IActionContext } from 'vscode-azureextensionui';
 import * as constants from '../constants';
 import { ext } from '../extensionVariables';
-import { openUrl } from '../utils/openUrl';
 import { venvUtils } from '../utils/venvUtils';
 import { getWorkspaceSetting, updateWorkspaceSetting } from '../vsCodeConfig/settings';
 import { ConnectionsTreeItem } from './ConnectionsTreeItem';
@@ -74,10 +73,6 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
 
     public get id(): string {
         return this.root.client.id;
-    }
-
-    public async browse(): Promise<void> {
-        await openUrl(this.root.client.defaultHostUrl);
     }
 
     public async loadMoreChildrenImpl(_clearCache: boolean): Promise<AzureTreeItem<ISiteTreeRoot>[]> {
