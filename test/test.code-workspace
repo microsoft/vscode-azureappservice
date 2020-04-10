@@ -5,6 +5,9 @@
         },
         {
             "path": "./nightly/testFolder/nodejs-docs-hello-world"
+        },
+        {
+            "path": "./nightly/testFolder/python-docs-hello-world"
         }
     ],
     "settings": {}

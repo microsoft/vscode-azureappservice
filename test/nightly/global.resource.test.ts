@@ -28,21 +28,21 @@ suiteSetup(async function (this: Mocha.Context): Promise<void> {
 suiteTeardown(async function (this: Mocha.Context): Promise<void> {
     if (longRunningTestsEnabled) {
         this.timeout(10 * 60 * 1000);
-        await deleteResourceGroups();
+        await Promise.all(resourceGroupsToDelete.map(async resource => {
+            await beginDeleteResourceGroup(resource);
+        }));
         ext.azureAccountTreeItem.dispose();
     }
 });
 
-async function deleteResourceGroups(): Promise<void> {
+export async function beginDeleteResourceGroup(resourceGroup: string): Promise<void> {
     const client: ResourceManagementClient = createAzureClient(testAccount.getSubscriptionContext(), ResourceManagementClient);
-    await Promise.all(resourceGroupsToDelete.map(async resourceGroup => {
-        if (await client.resourceGroups.checkExistence(resourceGroup)) {
-            console.log(`Deleting resource group "${resourceGroup}"...`);
-            await client.resourceGroups.deleteMethod(resourceGroup);
-            console.log(`Resource group "${resourceGroup}" deleted.`);
-        } else {
-            // If the test failed, the resource group might not actually exist
-            console.log(`Ignoring resource group "${resourceGroup}" because it does not exist.`);
-        }
-    }));
+    if (await client.resourceGroups.checkExistence(resourceGroup)) {
+        console.log(`Started delete of resource group "${resourceGroup}"...`);
+        await client.resourceGroups.beginDeleteMethod(resourceGroup);
+        console.log(`Successfully started delete of resource group "${resourceGroup}".`);
+    } else {
+        // If the test failed, the resource group might not actually exist
+        console.log(`Ignoring resource group "${resourceGroup}" because it does not exist.`);
+    }
 }
