@@ -9,7 +9,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { DialogResponses, ext, getRandomHexString, IActionContext, requestUtils, WebAppTreeItem } from '../../extension.bundle';
 import { longRunningTestsEnabled, testUserInput } from '../global.test';
-import { deleteResourceGroup, webSiteClient } from './global.resource.test';
+import { beginDeleteResourceGroup, webSiteClient } from './global.resource.test';
 
 interface ITestCase {
     workspaceFolder: string;
@@ -34,7 +34,7 @@ suite('Create Web App and deploy', async function (this: Mocha.Suite): Promise<v
     teardown(async function (this: Mocha.Context): Promise<void> {
         if (longRunningTestsEnabled) {
             this.timeout(2 * 60 * 1000);
-            await deleteResourceGroup(resourceGroupName);
+            await beginDeleteResourceGroup(resourceGroupName);
             resourceGroupName = '';
         }
     });
