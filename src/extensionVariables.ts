@@ -6,6 +6,7 @@
 import { ExtensionContext, TreeView } from "vscode";
 import { AzExtTreeDataProvider, AzExtTreeItem, IAzExtOutputChannel, IAzureUserInput, ITelemetryReporter } from "vscode-azureextensionui";
 import { AzureAccountTreeItem } from "./explorer/AzureAccountTreeItem";
+import { FileEditor } from "./explorer/editors/FileEditor";
 
 /**
  * Namespace for common variables used throughout the extension. They must be initialized in the activate() method of extension.ts
@@ -16,6 +17,7 @@ export namespace ext {
     export let reporter: ITelemetryReporter;
     export let context: ExtensionContext;
     export let ignoreBundle: boolean | undefined;
+    export let fileEditor: FileEditor;
     export const prefix: string = 'appService';
 
     export let tree: AzExtTreeDataProvider;

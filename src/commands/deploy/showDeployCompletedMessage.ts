@@ -9,22 +9,23 @@ import { AppServiceDialogResponses } from "../../constants";
 import { SiteTreeItem } from "../../explorer/SiteTreeItem";
 import { ext } from "../../extensionVariables";
 import { localize } from "../../localize";
-import { startStreamingLogs } from '../startStreamingLogs';
+import { browseWebsite } from '../browseWebsite';
+import { startStreamingLogs } from '../logstream/startStreamingLogs';
 
 export function showDeployCompletedMessage(node: SiteTreeItem): void {
     const message: string = localize('deployCompleted', 'Deployment to "{0}" completed.', node.root.client.fullName);
     ext.outputChannel.appendLog(message);
-    const browseWebsite: MessageItem = { title: localize('browseWebsite', 'Browse Website') };
+    const browseWebsiteBtn: MessageItem = { title: localize('browseWebsite', 'Browse Website') };
     const streamLogs: MessageItem = { title: localize('streamLogs', 'Stream Logs') };
 
     // don't wait
-    window.showInformationMessage(message, browseWebsite, streamLogs, AppServiceDialogResponses.viewOutput).then(async (result: MessageItem | undefined) => {
+    window.showInformationMessage(message, browseWebsiteBtn, streamLogs, AppServiceDialogResponses.viewOutput).then(async (result: MessageItem | undefined) => {
         await callWithTelemetryAndErrorHandling('postDeploy', async (context: IActionContext) => {
             context.telemetry.properties.dialogResult = result?.title;
             if (result === AppServiceDialogResponses.viewOutput) {
                 ext.outputChannel.show();
-            } else if (result === browseWebsite) {
-                await node.browse();
+            } else if (result === browseWebsiteBtn) {
+                await browseWebsite(context, node);
             } else if (result === streamLogs) {
                 await startStreamingLogs(context, node);
             }
