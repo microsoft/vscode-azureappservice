@@ -30,8 +30,7 @@ export async function setPrePromptDefaults(wizardContext: IAppServiceWizardConte
         } else if (await javaUtils.isJavaProject(fsPath)) {
             wizardContext.recommendedSiteRuntime = [
                 LinuxRuntimes.java,
-                LinuxRuntimes.tomcat,
-                LinuxRuntimes.wildfly
+                LinuxRuntimes.tomcat
             ];
 
             // considering high resource requirement for Java applications, a higher plan sku is set here
