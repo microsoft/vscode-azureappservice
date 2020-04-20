@@ -16,13 +16,14 @@
         "baseUrl": "./",
         "paths": {
             "*": [
-                "node_modules/vscode/*",
+                "node_modules/@types/*",
                 "*"
             ]
         }
     },
     "exclude": [
         "node_modules",
-        ".vscode-test"
+        ".vscode-test",
+        "gulpfile.ts"
     ]
 }

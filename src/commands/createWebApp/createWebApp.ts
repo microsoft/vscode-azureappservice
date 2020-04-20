@@ -7,6 +7,7 @@ import { AzureParentTreeItem, IActionContext, ICreateChildImplContext } from "vs
 import { SubscriptionTreeItem } from '../../explorer/SubscriptionTreeItem';
 import { WebAppTreeItem } from "../../explorer/WebAppTreeItem";
 import { ext } from "../../extensionVariables";
+import { showCreatedWebAppMessage } from "./showCreatedWebAppMessage";
 
 export async function createWebApp(context: IActionContext & Partial<ICreateChildImplContext>, node?: AzureParentTreeItem | undefined): Promise<void> {
     if (!node) {
@@ -14,7 +15,7 @@ export async function createWebApp(context: IActionContext & Partial<ICreateChil
     }
 
     const newSite: WebAppTreeItem = <WebAppTreeItem>await node.createChild(context);
-    newSite.promptToDeploy(context);
+    showCreatedWebAppMessage(newSite);
 }
 
 export async function createWebAppAdvanced(context: IActionContext, node?: AzureParentTreeItem | undefined): Promise<void> {

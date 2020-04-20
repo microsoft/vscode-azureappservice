@@ -3,12 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { WebSiteManagementClient, WebSiteManagementModels } from 'azure-arm-website';
+import { WebSiteManagementClient } from 'azure-arm-website';
 import { Site, WebAppCollection } from 'azure-arm-website/lib/models';
-import { AppInsightsCreateStep, AppInsightsListStep, AppKind, AppServicePlanCreateStep, AppServicePlanListStep, IAppServiceWizardContext, IAppSettingsContext, setLocationsTask, SiteClient, SiteCreateStep, SiteNameStep, SiteOSStep, SiteRuntimeStep, WebsiteOS } from 'vscode-azureappservice';
-import { AzExtTreeItem, AzureTreeItem, AzureWizard, AzureWizardExecuteStep, AzureWizardPromptStep, createAzureClient, ICreateChildImplContext, LocationListStep, parseError, ResourceGroupCreateStep, ResourceGroupListStep, SubscriptionTreeItemBase } from 'vscode-azureextensionui';
+import { AppInsightsCreateStep, AppInsightsListStep, AppKind, AppServicePlanCreateStep, AppServicePlanListStep, IAppServiceWizardContext, setLocationsTask, SiteClient, SiteNameStep, SiteOSStep, SiteRuntimeStep } from 'vscode-azureappservice';
+import { AzExtTreeItem, AzureTreeItem, AzureWizard, AzureWizardExecuteStep, AzureWizardPromptStep, createAzureClient, ICreateChildImplContext, LocationListStep, parseError, ResourceGroupCreateStep, ResourceGroupListStep, SubscriptionTreeItemBase, VerifyProvidersStep } from 'vscode-azureextensionui';
 import { setPostPromptDefaults } from '../commands/createWebApp/setPostPromptDefaults';
 import { setPrePromptDefaults } from '../commands/createWebApp/setPrePromptDefaults';
+import { WebAppCreateStep } from '../commands/createWebApp/WebAppCreateStep';
 import { ext } from '../extensionVariables';
 import { nonNullProp } from '../utils/nonNull';
 import { WebAppTreeItem } from './WebAppTreeItem';
@@ -89,7 +90,8 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
         }
         LocationListStep.addStep(wizardContext, promptSteps);
 
-        executeSteps.push(new SiteCreateStep(createWebAppSettings));
+        executeSteps.push(new VerifyProvidersStep(['Microsoft.Web', 'Microsoft.Insights']));
+        executeSteps.push(new WebAppCreateStep());
 
         if (wizardContext.newSiteOS !== undefined) {
             setLocationsTask(wizardContext);
@@ -111,71 +113,20 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
         }
 
         await wizard.execute();
-        context.telemetry.properties.os = wizardContext.newSiteOS;
-        context.telemetry.properties.runtime = wizardContext.newSiteRuntime;
 
         // site is set as a result of SiteCreateStep.execute()
         const siteClient: SiteClient = new SiteClient(nonNullProp(wizardContext, 'site'), this.root);
-
         const createdNewAppMsg: string = `Created new web app "${siteClient.fullName}": https://${siteClient.defaultHostName}`;
         ext.outputChannel.appendLog(createdNewAppMsg);
-        return new WebAppTreeItem(this, siteClient);
-    }
-}
 
-async function createWebAppSettings(context: IAppSettingsContext): Promise<WebSiteManagementModels.NameValuePair[]> {
-    const appSettings: WebSiteManagementModels.NameValuePair[] = [];
-    const disabled: string = 'disabled';
-
-    if (context.aiInstrumentationKey) {
-        appSettings.push({
-            name: 'APPINSIGHTS_INSTRUMENTATIONKEY',
-            value: context.aiInstrumentationKey
-        });
-
-        // all these settings are set on the portal if AI is enabled for Windows apps
-        if (context.os === WebsiteOS.windows) {
-            appSettings.push(
-                {
-                    name: 'APPINSIGHTS_PROFILERFEATURE_VERSION',
-                    value: disabled
-                },
-                {
-                    name: 'APPINSIGHTS_SNAPSHOTFEATURE_VERSION',
-                    value: disabled
-                },
-                {
-                    name: 'ApplicationInsightsAgent_EXTENSION_VERSION',
-                    value: '~2'
-                },
-                {
-                    name: 'DiagnosticServices_EXTENSION_VERSION',
-                    value: disabled
-                },
-                {
-                    name: 'InstrumentationEngine_EXTENSION_VERSION',
-                    value: disabled
-                },
-                {
-                    name: 'SnapshotDebugger_EXTENSION_VERSION',
-                    value: disabled
-                },
-                {
-                    name: 'XDT_MicrosoftApplicationInsights_BaseExtensions',
-                    value: disabled
-                },
-                {
-                    name: 'XDT_MicrosoftApplicationInsights_Mode',
-                    value: 'default'
-                });
-        } else {
-            appSettings.push({
-                name: 'APPLICATIONINSIGHTSAGENT_EXTENSION_ENABLED',
-                value: 'true'
-            });
+        const newSite: WebAppTreeItem = new WebAppTreeItem(this, siteClient);
+        try {
+            // enable HTTP logs by default
+            await newSite.enableHttpLogs();
+        } catch (error) {
+            // optional part of creating web app, so not worth blocking on error
+            context.telemetry.properties.fileLoggingError = parseError(error).message;
         }
-
+        return newSite;
     }
-
-    return appSettings;
 }

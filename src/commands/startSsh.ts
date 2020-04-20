@@ -52,24 +52,24 @@ async function startSshInternal(node: SiteTreeItem): Promise<void> {
         throw new Error('Azure SSH is only supported for Linux web apps.');
     }
 
-    await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification }, async (progress: vscode.Progress<{}>): Promise<void> => {
+    await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification, cancellable: true }, async (progress, token): Promise<void> => {
 
-        reportMessage('Checking app settings...', progress);
+        reportMessage('Checking app settings...', progress, token);
 
         const confirmDisableMessage: string = 'Remote debugging must be disabled in order to SSH. This will restart the app.';
         const siteConfig: SiteConfigResource = await siteClient.getSiteConfig();
         // remote debugging has to be disabled in order to tunnel to the 2222 port
-        await setRemoteDebug(false, confirmDisableMessage, undefined, siteClient, siteConfig, progress);
+        await setRemoteDebug(false, confirmDisableMessage, undefined, siteClient, siteConfig, progress, token);
 
-        reportMessage('Initializing SSH...', progress);
+        reportMessage('Initializing SSH...', progress, token);
         const publishCredential: User = await siteClient.getWebAppPublishCredential();
         const localHostPortNumber: number = await portfinder.getPortPromise();
         // should always be an unbound port
         const tunnelProxy: TunnelProxy = new TunnelProxy(localHostPortNumber, siteClient, publishCredential, true);
 
-        await tunnelProxy.startProxy();
+        await tunnelProxy.startProxy(token);
 
-        reportMessage('Connecting to SSH...', progress);
+        reportMessage('Connecting to SSH...', progress, token);
         await connectToTunnelProxy(node, tunnelProxy, localHostPortNumber);
     });
 }

@@ -16,18 +16,17 @@ import { javaUtils } from '../../utils/javaUtils';
 import { nonNullValue } from '../../utils/nonNull';
 import { isPathEqual } from '../../utils/pathUtils';
 import { getRandomHexString } from "../../utils/randomUtils";
-import * as workspaceUtil from '../../utils/workspace';
 import { getWorkspaceSetting } from '../../vsCodeConfig/settings';
 import { runPostDeployTask } from '../postDeploy/runPostDeployTask';
 import { confirmDeploymentPrompt } from './confirmDeploymentPrompt';
 import { getDeployNode, IDeployNode } from './getDeployNode';
 import { IDeployContext, WebAppSource } from './IDeployContext';
-import { postDeploymentPrompt } from './postDeploymentPrompt';
 import { setPreDeployTaskForDotnet } from './setPreDeployTaskForDotnet';
+import { showDeployCompletedMessage } from './showDeployCompletedMessage';
 
 const postDeployCancelTokens: Map<string, vscode.CancellationTokenSource> = new Map();
 
-export async function deploy(context: IActionContext, target?: vscode.Uri | SiteTreeItem | undefined, isTargetNewWebApp: boolean = false): Promise<void> {
+export async function deploy(context: IActionContext, target?: vscode.Uri | SiteTreeItem, _multiTargets?: (vscode.Uri | SiteTreeItem)[], isTargetNewWebApp: boolean = false): Promise<void> {
     let webAppSource: WebAppSource | undefined;
     context.telemetry.properties.deployedWithConfigs = 'false';
     let siteConfig: WebSiteModels.SiteConfigResource | undefined;
@@ -40,14 +39,10 @@ export async function deploy(context: IActionContext, target?: vscode.Uri | Site
 
     const fileExtensions: string | string[] | undefined = await javaUtils.getJavaFileExtensions(siteConfig);
 
-    const { originalDeployFsPath, effectiveDeployFsPath } = await appservice.getDeployFsPath(target, fileExtensions);
-    const workspace: vscode.WorkspaceFolder | undefined = workspaceUtil.getContainingWorkspace(effectiveDeployFsPath);
-    if (!workspace) {
-        throw new Error('Failed to deploy because the path is not part of an open workspace. Open in a workspace and try again.');
-    }
+    const { originalDeployFsPath, effectiveDeployFsPath, workspaceFolder } = await appservice.getDeployFsPath(context, target, fileExtensions);
 
     const deployContext: IDeployContext = {
-        ...context, workspace, originalDeployFsPath, effectiveDeployFsPath, webAppSource
+        ...context, workspace: workspaceFolder, originalDeployFsPath, effectiveDeployFsPath, webAppSource
     };
 
     // because this is workspace dependant, do it before user selects app
@@ -68,21 +63,21 @@ export async function deploy(context: IActionContext, target?: vscode.Uri | Site
 
     const isZipDeploy: boolean = siteConfig.scmType !== constants.ScmType.LocalGit && siteConfig !== constants.ScmType.GitHub;
     // only check enableScmDoBuildDuringDeploy if currentWorkspace matches the workspace being deployed as a user can "Browse" to a different project
-    if (getWorkspaceSetting<boolean>(constants.configurationSettings.showBuildDuringDeployPrompt, deployContext.workspace.uri.fsPath)) {
+    if (getWorkspaceSetting<boolean>(constants.configurationSettings.showBuildDuringDeployPrompt, deployContext.effectiveDeployFsPath)) {
         //check if node is being zipdeployed and that there is no .deployment file
-        if (siteConfig.linuxFxVersion && isZipDeploy && !(await pathExists(path.join(deployContext.workspace.uri.fsPath, constants.deploymentFileName)))) {
+        if (siteConfig.linuxFxVersion && isZipDeploy && !(await pathExists(path.join(deployContext.effectiveDeployFsPath, constants.deploymentFileName)))) {
             const linuxFxVersion: string = siteConfig.linuxFxVersion.toLowerCase();
             if (linuxFxVersion.startsWith(appservice.LinuxRuntimes.node)) {
                 // if it is node or python, prompt the user (as we can break them)
-                await node.promptScmDoBuildDeploy(deployContext.workspace.uri.fsPath, appservice.LinuxRuntimes.node, context);
+                await node.promptScmDoBuildDeploy(deployContext.effectiveDeployFsPath, appservice.LinuxRuntimes.node, context);
             } else if (linuxFxVersion.startsWith(appservice.LinuxRuntimes.python)) {
-                await node.promptScmDoBuildDeploy(deployContext.workspace.uri.fsPath, appservice.LinuxRuntimes.python, context);
+                await node.promptScmDoBuildDeploy(deployContext.effectiveDeployFsPath, appservice.LinuxRuntimes.python, context);
             }
 
         }
     }
 
-    if (!isNewWebApp && isZipDeploy) {
+    if (getWorkspaceSetting<boolean>('showDeployConfirmation', workspaceFolder.uri.fsPath) && !isNewWebApp && isZipDeploy) {
         await confirmDeploymentPrompt(deployContext, context, node.root.client.fullName);
     }
 
@@ -112,9 +107,7 @@ export async function deploy(context: IActionContext, target?: vscode.Uri | Site
     const tokenSource: vscode.CancellationTokenSource = new vscode.CancellationTokenSource();
     postDeployCancelTokens.set(node.id, tokenSource);
 
-    // don't wait
-    // tslint:disable-next-line: no-floating-promises
-    postDeploymentPrompt(deployContext, node);
+    showDeployCompletedMessage(node);
 
     // don't wait
     // tslint:disable-next-line: no-floating-promises

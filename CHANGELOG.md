@@ -1,5 +1,32 @@
 # Change Log
-All notable changes to the "azure-appservice" extension will be documented in this file.
+
+## 0.16.5 - 2020-04-10
+### Fixed
+- Deployment stuck at "Running preDeployTask..." [#1478](https://github.com/microsoft/vscode-azureappservice/issues/1478)
+
+## 0.16.4 - 2020-03-24
+### Fixed
+- Deployment stuck at "Creating zip package..." [#1447](https://github.com/microsoft/vscode-azureappservice/issues/1447)
+
+## 0.16.3 - 2020-03-04
+### Added
+- SSH into Linux deployment slots
+- Added setting "appService.showDeployConfirmation" to turn off "Are you sure you want to deploy..." dialog
+- Logging is enabled by default when creating a web app
+
+### Changed
+- Inline button to view deployment logs was removed. Left or right click the tree item instead
+
+### [Fixed](https://github.com/microsoft/vscode-azureappservice/issues?q=is%3Aissue+is%3Aclosed+milestone%3A0.16.3)
+- Prompt to select existing resource group instead of "403" error when subscription doesn't have permissions to create
+
+## 0.16.2 - 2019-12-04
+### Added
+- Python remote debugging (feature flag required)
+    - Set `appService.enablePythonRemoteDebugging` to true in VS Code Settings
+
+### Fixed
+- [Bugs fixed](https://github.com/microsoft/vscode-azureappservice/issues?q=is%3Aissue+is%3Aclosed+milestone%3A0.16.2)
 
 ## 0.16.1 - 2019-10-16
 ### Fixed

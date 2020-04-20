@@ -9,7 +9,7 @@ import { ColumnName, detectorResponseJSON, detectorTable, getValuesByColumnName,
 import { findTableByName } from '../src/commands/postDeploy/parseDetectorResponse';
 
 const vsCodeIntegration: string = 'Latest time seen by detector. To be used in VSCode integration.';
-const context: IActionContext = { telemetry: { properties: {}, measurements: {} }, errorHandling: {} };
+const context: IActionContext = { telemetry: { properties: {}, measurements: {} }, errorHandling: { issueProperties: {} } };
 
 suite('Detector Dataset Parser', () => {
     test('Find table by table name', async () => {

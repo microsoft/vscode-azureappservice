@@ -1,0 +1,14 @@
+{
+    "folders": [
+        {
+            "path": "./nightly/testFolder/dotnet-hello-world/2.1"
+        },
+        {
+            "path": "./nightly/testFolder/nodejs-docs-hello-world"
+        },
+        {
+            "path": "./nightly/testFolder/python-docs-hello-world"
+        }
+    ],
+    "settings": {}
+}

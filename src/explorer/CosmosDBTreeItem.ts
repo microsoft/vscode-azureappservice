@@ -21,29 +21,33 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     public readonly label: string = 'Cosmos DB';
     public readonly childTypeLabel: string = 'Connection';
     public readonly parent: ConnectionsTreeItem;
+    public cosmosDBExtension: vscode.Extension<AzureExtensionApiProvider | undefined> | undefined;
 
     private readonly _endpointSuffix: string = '_ENDPOINT';
     private readonly _keySuffix: string = '_MASTER_KEY';
     private readonly _databaseSuffix: string = '_DATABASE_ID';
 
-    private _cosmosDBExtension: vscode.Extension<AzureExtensionApiProvider | undefined> | undefined;
     private _cosmosDBApi: CosmosDBExtensionApi | undefined;
 
     constructor(parent: ConnectionsTreeItem) {
         super(parent);
-        this._cosmosDBExtension = vscode.extensions.getExtension('ms-azuretools.vscode-cosmosdb');
+        this.cosmosDBExtension = vscode.extensions.getExtension('ms-azuretools.vscode-cosmosdb');
     }
 
     public get contextValue(): string {
-        return this._cosmosDBExtension ? CosmosDBTreeItem.contextValueInstalled : CosmosDBTreeItem.contextValueNotInstalled;
+        return this.cosmosDBExtension ? CosmosDBTreeItem.contextValueInstalled : CosmosDBTreeItem.contextValueNotInstalled;
     }
 
     public get iconPath(): IThemedIconPath {
         return getThemedIconPath('CosmosDBAccount');
     }
 
+    public async refreshImpl(): Promise<void> {
+        this.cosmosDBExtension = vscode.extensions.getExtension('ms-azuretools.vscode-cosmosdb');
+    }
+
     public async loadMoreChildrenImpl(_clearCache: boolean): Promise<AzExtTreeItem[]> {
-        if (!this._cosmosDBExtension) {
+        if (!this.cosmosDBExtension) {
             return [new GenericTreeItem(this, {
                 commandId: 'appService.InstallCosmosDBExtension',
                 contextValue: 'InstallCosmosDBExtension',
@@ -124,14 +128,14 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     private async getCosmosDBApi(): Promise<CosmosDBExtensionApi> {
         if (this._cosmosDBApi) {
             return this._cosmosDBApi;
-        } else if (this._cosmosDBExtension) {
-            if (!this._cosmosDBExtension.isActive) {
-                await this._cosmosDBExtension.activate();
+        } else if (this.cosmosDBExtension) {
+            if (!this.cosmosDBExtension.isActive) {
+                await this.cosmosDBExtension.activate();
             }
 
             // The Cosmos DB extension just recently added support for 'AzureExtensionApiProvider' so we should do an additional check just to makes sure it's defined
-            if (this._cosmosDBExtension.exports) {
-                this._cosmosDBApi = this._cosmosDBExtension.exports.getApi<CosmosDBExtensionApi>('^1.0.0');
+            if (this.cosmosDBExtension.exports) {
+                this._cosmosDBApi = this.cosmosDBExtension.exports.getApi<CosmosDBExtensionApi>('^1.0.0');
                 return this._cosmosDBApi;
             }
         }
