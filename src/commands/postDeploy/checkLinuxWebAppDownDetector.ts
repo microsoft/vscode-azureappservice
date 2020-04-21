@@ -51,8 +51,9 @@ export async function checkLinuxWebAppDownDetector(correlationId: string, node: 
             const startTimeDate: Date = new Date(nowTime - (60 * 60 * 1000));
             const endTimeDate: Date = new Date(nowTime - (30 * 60 * 1000));
 
-            const startTime: string = moment.utc(startTimeDate).format('YYYY-MM-DDTHH:mm');
-            const endTime: string = moment.utc(endTimeDate).format('YYYY-MM-DDTHH:mm');
+            const timeFormat: string = 'YYYY-MM-DDTHH:mm';
+            const startTime: string = moment.utc(startTimeDate).format(timeFormat);
+            const endTime: string = moment.utc(endTimeDate).format(timeFormat);
 
             detectorErrorMessage = await getLinuxDetectorError(context, linuxLogViewer, node, startTime, endTime, deployment.endTime);
 

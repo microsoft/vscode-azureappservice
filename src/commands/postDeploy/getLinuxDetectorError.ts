@@ -31,6 +31,7 @@ export async function getLinuxDetectorError(context: IActionContext, detectorId:
         'api-version': "2015-08-01",
         startTime,
         endTime,
+        // query param to return plain text rather than html
         logFormat: 'plain'
     };
 
@@ -49,6 +50,7 @@ export async function getLinuxDetectorError(context: IActionContext, detectorId:
     let insightTable: detectorTable;
     let detectorTimestamp: RegExpMatchArray | null;
 
+    // [1] 2020-04-21T18:23:50 is the format of the timestamp in the insight response
     const timestampFormat: RegExp = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/;
 
     const appInsightTable: detectorTable | undefined = findTableByName(insightDataset, 'application/insight');
