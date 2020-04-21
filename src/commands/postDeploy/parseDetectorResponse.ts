@@ -33,5 +33,5 @@ export function getValuesByColumnName(context: IActionContext, table: detectorTa
 
     // the last one should be the most recent
     // tslint:disable-next-line: strict-boolean-expressions
-    return values[values.length - 1] || '';
+    return values.pop() || '';
 }

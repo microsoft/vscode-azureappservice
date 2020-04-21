@@ -1,4 +1,3 @@
-
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
@@ -24,8 +23,6 @@ export enum ColumnName {
     dataValue = 'Data.Value',
     dataName = 'Data.Name'
 }
-const timestampFormat: RegExp = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/;
-
 export async function getLinuxDetectorError(context: IActionContext, detectorId: string, node: SiteTreeItem, startTime: string, endTime: string, deployResultTime: Date): Promise<string | undefined> {
     const detectorUri: string = `${node.id}/detectors/${detectorId}`;
     const requestOptions: requestUtils.Request = await requestUtils.getDefaultAzureRequest(detectorUri, node.root);
@@ -52,6 +49,8 @@ export async function getLinuxDetectorError(context: IActionContext, detectorId:
     let insightTable: detectorTable;
     let detectorTimestamp: RegExpMatchArray | null;
 
+    const timestampFormat: RegExp = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/;
+
     const appInsightTable: detectorTable | undefined = findTableByName(insightDataset, 'application/insight');
     if (appInsightTable) {
         insightTable = appInsightTable;
@@ -74,13 +73,10 @@ export async function getLinuxDetectorError(context: IActionContext, detectorId:
         return undefined;
     }
 
-    const criticalError: string = localize('insightError', '"{0}" reported a critical error:', node.root.client.siteName);
-
     if (getValuesByColumnName(context, insightTable, ColumnName.status) === 'Critical') {
         const insightError: string = getValuesByColumnName(context, insightTable, ColumnName.dataValue);
         context.telemetry.properties.errorMessages = JSON.stringify(insightError);
-
-        return `${criticalError} ${insightError}".`;
+        return localize('criticalError', '"{0}" reported a critical error: {1}', node.root.client.siteName, insightError);
     }
 
     return undefined;

@@ -3,13 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import moment = require("moment");
 import { CancellationTokenSource } from "vscode";
 import { callWithTelemetryAndErrorHandling, IActionContext, openInPortal, UserCancelledError } from "vscode-azureextensionui";
 import { KuduClient } from "vscode-azurekudu";
 import { DeployResult } from "vscode-azurekudu/lib/models";
 import { SiteTreeItem } from "../../explorer/SiteTreeItem";
 import { ext } from '../../extensionVariables';
-import { localize } from "../../localize";
 import { delay } from "../../utils/delay";
 import { getWorkspaceSetting } from '../../vsCodeConfig/settings';
 import { getLinuxDetectorError } from "./getLinuxDetectorError";
@@ -30,14 +30,6 @@ export async function checkLinuxWebAppDownDetector(correlationId: string, node: 
             return;
         }
 
-        const enableDetectorsSetting: string = 'enableDetectors';
-        const showOutput: boolean | undefined = getWorkspaceSetting<boolean>(enableDetectorsSetting);
-
-        if (showOutput) {
-            const detectorOutput: string = `Diagnosing web app "${node.root.client.siteName}" for critical errors...`;
-            ext.outputChannel.appendLog(detectorOutput);
-        }
-
         let detectorErrorMessage: string | undefined;
         const detectorTimeoutMs: number = Date.now() + 5 * 60 * 1000;
 
@@ -49,26 +41,18 @@ export async function checkLinuxWebAppDownDetector(correlationId: string, node: 
             }
 
             if (Date.now() > detectorTimeoutMs) {
-                if (showOutput) {
-                    const noIssuesFound: string = `Diagnosing for "${node.root.client.siteName}" has timed out.`;
-                    ext.outputChannel.appendLog(noIssuesFound);
-                    context.telemetry.properties.timedOut = 'true';
-                }
+                context.telemetry.properties.timedOut = 'true';
                 return undefined;
             }
 
             // time constraint of being less than the current time by 14.5 minutes is enforced system wide for all detectors
             // however LinuxLogViewer detector ignores it and gets the most recent data
-            const nowTime: Date = new Date();
-            const startTimeDate: Date = new Date(nowTime.getTime() - (60 * 60 * 1000));
-            const endTimeDate: Date = new Date(nowTime.getTime() - (30 * 60 * 1000));
+            const nowTime: number = Date.now();
+            const startTimeDate: Date = new Date(nowTime - (60 * 60 * 1000));
+            const endTimeDate: Date = new Date(nowTime - (30 * 60 * 1000));
 
-            // need to remove the miliseconds from the ISOstring for request
-            const startTimeArray: string[] = startTimeDate.toISOString().split(':');
-            const startTime: string = `${startTimeArray[0]}:${startTimeArray[1]}`;
-
-            const endTimeArray: string[] = endTimeDate.toISOString().split(':');
-            const endTime: string = `${endTimeArray[0]}:${endTimeArray[1]}`;
+            const startTime: string = moment.utc(startTimeDate).format('YYYY-MM-DDTHH:mm');
+            const endTime: string = moment.utc(endTimeDate).format('YYYY-MM-DDTHH:mm');
 
             detectorErrorMessage = await getLinuxDetectorError(context, linuxLogViewer, node, startTime, endTime, deployment.endTime);
 
@@ -78,10 +62,11 @@ export async function checkLinuxWebAppDownDetector(correlationId: string, node: 
             }
         }
 
+        const enableDetectorsSetting: string = 'enableDetectors';
+        const showOutput: boolean | undefined = getWorkspaceSetting<boolean>(enableDetectorsSetting);
         if (showOutput) {
             ext.outputChannel.appendLog(detectorErrorMessage);
-            const openInPortalMsg: string = localize('openInPortal', 'Open in Portal for more details.');
-            await ext.ui.showWarningMessage(`${detectorErrorMessage} ${openInPortalMsg}`, { title: 'Open in Portal' });
+            await ext.ui.showWarningMessage(detectorErrorMessage, { title: 'View details' });
             await openInPortal(node.root, `${node.root.client.id}/troubleshoot`, { queryPrefix: `websitesextension_ext=asd.featurePath%3Ddetectors%2F${linuxLogViewer}` });
             context.telemetry.properties.didClick = 'true';
         }
