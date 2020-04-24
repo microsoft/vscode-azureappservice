@@ -5,8 +5,7 @@
 
 import * as assert from 'assert';
 import { IActionContext } from 'vscode-azureextensionui';
-import { ColumnName, detectorTable, getValuesByColumnName, validateTimestamp } from "../extension.bundle";
-import { findTableByName } from '../src/commands/postDeploy/parseDetectorResponse';
+import { ColumnName, detectorTable, findTableByName, getValuesByColumnName, validateTimestamp } from "../extension.bundle";
 
 const context: IActionContext = { telemetry: { properties: {}, measurements: {} }, errorHandling: { issueProperties: {} } };
 
@@ -28,17 +27,14 @@ suite('Detector Dataset Parser', () => {
         const staleTimestamp: string = "2020-04-21T17:24:28";
         // a day stale
         const staleTimestamp2: string = "2020-04-20T18:24:28";
-        const timestampFormat: RegExp = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/;
-        const appInsightTable: any = JSON.parse(detectorResponse.properties.dataset[1].table.rows[0][3])[0].table;
-        const timestampRegExp: RegExpMatchArray | null = getValuesByColumnName(context, appInsightTable, ColumnName.dataName).match(timestampFormat);
-        assert.ok(timestampRegExp);
 
-        if (timestampRegExp) {
-            const parsedTimestamp: string = timestampRegExp[0];
-            assert.equal(validateTimestamp(context, parsedTimestamp, expectedTimestamp), true);
-            assert.equal(validateTimestamp(context, parsedTimestamp, staleTimestamp), false);
-            assert.equal(validateTimestamp(context, parsedTimestamp, staleTimestamp2), false);
-        }
+        const bracketsAndSpace: RegExp = /\[.*?\]\s/;
+        const appInsightTable: any = JSON.parse(detectorResponse.properties.dataset[1].table.rows[0][3])[0].table;
+        const detectorTimestamp: string = getValuesByColumnName(context, appInsightTable, ColumnName.dataName).replace(bracketsAndSpace, '');
+
+        assert.equal(validateTimestamp(context, detectorTimestamp, expectedTimestamp), true);
+        assert.equal(validateTimestamp(context, detectorTimestamp, staleTimestamp), false);
+        assert.equal(validateTimestamp(context, detectorTimestamp, staleTimestamp2), false);
     });
 
     test('Get error messages', async () => {
