@@ -3,7 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import moment = require("moment");
 import { IActionContext } from "vscode-azureextensionui";
+import { timeFormat } from "../../constants";
 import { SiteTreeItem } from "../../explorer/SiteTreeItem";
 import { localize } from "../../localize";
 import { requestUtils } from "../../utils/requestUtils";
@@ -23,7 +25,7 @@ export enum ColumnName {
     dataValue = 'Data.Value',
     dataName = 'Data.Name'
 }
-export async function getLinuxDetectorError(context: IActionContext, detectorId: string, node: SiteTreeItem, startTime: string, endTime: string, deployResultTime: Date): Promise<string | undefined> {
+export async function getLinuxDetectorError(context: IActionContext, detectorId: string, node: SiteTreeItem, startTime: string, endTime: string, deployEndTime: string): Promise<string | undefined> {
     const detectorUri: string = `${node.id}/detectors/${detectorId}`;
     const requestOptions: requestUtils.Request = await requestUtils.getDefaultAzureRequest(detectorUri, node.root);
 
@@ -48,16 +50,15 @@ export async function getLinuxDetectorError(context: IActionContext, detectorId:
     const insightDataset: detectorDataset[] = <detectorDataset[]>JSON.parse(rawApplicationLog);
 
     let insightTable: detectorTable;
-    let detectorTimestamp: RegExpMatchArray | null;
+    let detectorTimestamp: string;
 
-    // [1] 2020-04-21T18:23:50 is the format of the timestamp in the insight response
-    const timestampFormat: RegExp = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/;
-
+    // [1] 2020-04-21T18:23:50 is the format of the timestamp in the insight response, this RegExp will remove the brackets
+    const bracketsAndSpace: RegExp = /\[.*?\]\s/;
     const appInsightTable: detectorTable | undefined = findTableByName(insightDataset, 'application/insight');
     if (appInsightTable) {
         insightTable = appInsightTable;
         context.telemetry.properties.insight = 'app';
-        detectorTimestamp = getValuesByColumnName(context, appInsightTable, ColumnName.dataName).match(timestampFormat);
+        detectorTimestamp = getValuesByColumnName(context, appInsightTable, ColumnName.dataName).replace(bracketsAndSpace, '');
     } else {
         // if there are no app insights, defer to the Docker container
         const dockerInsightTable: detectorTable | undefined = findTableByName(insightDataset, 'docker/insight');
@@ -67,11 +68,12 @@ export async function getLinuxDetectorError(context: IActionContext, detectorId:
 
         insightTable = dockerInsightTable;
         context.telemetry.properties.insight = 'docker';
-        detectorTimestamp = getValuesByColumnName(context, dockerInsightTable, ColumnName.dataName).match(timestampFormat);
+        detectorTimestamp = getValuesByColumnName(context, dockerInsightTable, ColumnName.dataName).replace(bracketsAndSpace, '');
     }
 
-    const deployTimestamp: RegExpMatchArray | null = deployResultTime.toISOString().match(timestampFormat);
-    if (!detectorTimestamp || !deployTimestamp || !validateTimestamp(context, detectorTimestamp[0], deployTimestamp[0])) {
+    detectorTimestamp = moment.utc(detectorTimestamp).format(timeFormat);
+
+    if (!detectorTimestamp || !validateTimestamp(context, detectorTimestamp, deployEndTime)) {
         return undefined;
     }
 

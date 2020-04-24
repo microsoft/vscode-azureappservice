@@ -8,6 +8,7 @@ import { CancellationTokenSource } from "vscode";
 import { callWithTelemetryAndErrorHandling, IActionContext, openInPortal, UserCancelledError } from "vscode-azureextensionui";
 import { KuduClient } from "vscode-azurekudu";
 import { DeployResult } from "vscode-azurekudu/lib/models";
+import { timeFormat } from '../../constants';
 import { SiteTreeItem } from "../../explorer/SiteTreeItem";
 import { ext } from '../../extensionVariables';
 import { delay } from "../../utils/delay";
@@ -17,7 +18,7 @@ import { getLinuxDetectorError } from "./getLinuxDetectorError";
 const linuxLogViewer: string = 'LinuxLogViewer';
 
 export async function checkLinuxWebAppDownDetector(correlationId: string, node: SiteTreeItem, tokenSource: CancellationTokenSource): Promise<void> {
-    return await callWithTelemetryAndErrorHandling('appService.linuxWebAppDownDetector', async (context: IActionContext): Promise<void> => {
+    return await callWithTelemetryAndErrorHandling('linuxWebAppDownDetector', async (context: IActionContext): Promise<void> => {
         context.errorHandling.suppressDisplay = true;
         context.telemetry.properties.correlationId = correlationId;
 
@@ -45,17 +46,18 @@ export async function checkLinuxWebAppDownDetector(correlationId: string, node: 
                 return undefined;
             }
 
-            // time constraint of being less than the current time by 14.5 minutes is enforced system wide for all detectors
-            // however LinuxLogViewer detector ignores it and gets the most recent data
+            // There's a requirement (outside the control of the LinuxLogDetector team) that these times have to be less than the current time
+            // by 14.5 minutes. That being said, the LinuxLogDetector team ignores the times and always gets the most recent entry.
+            // We'll use 30/60 minutes just to make sure we're well over 14.5
             const nowTime: number = Date.now();
             const startTimeDate: Date = new Date(nowTime - (60 * 60 * 1000));
             const endTimeDate: Date = new Date(nowTime - (30 * 60 * 1000));
 
-            const timeFormat: string = 'YYYY-MM-DDTHH:mm';
             const startTime: string = moment.utc(startTimeDate).format(timeFormat);
             const endTime: string = moment.utc(endTimeDate).format(timeFormat);
+            const deployEndTime: string = moment.utc(deployment.endTime).format(timeFormat);
 
-            detectorErrorMessage = await getLinuxDetectorError(context, linuxLogViewer, node, startTime, endTime, deployment.endTime);
+            detectorErrorMessage = await getLinuxDetectorError(context, linuxLogViewer, node, startTime, endTime, deployEndTime);
 
             if (!detectorErrorMessage) {
                 // poll every 10 seconds
@@ -67,10 +69,14 @@ export async function checkLinuxWebAppDownDetector(correlationId: string, node: 
         const showOutput: boolean | undefined = getWorkspaceSetting<boolean>(enableDetectorsSetting);
         if (showOutput) {
             ext.outputChannel.appendLog(detectorErrorMessage);
-            await ext.ui.showWarningMessage(detectorErrorMessage, { title: 'View details' });
-            await openInPortal(node.root, `${node.root.client.id}/troubleshoot`, { queryPrefix: `websitesextension_ext=asd.featurePath%3Ddetectors%2F${linuxLogViewer}` });
-            context.telemetry.properties.didClick = 'true';
-        }
 
+            // tslint:disable-next-line: no-floating-promises
+            ext.ui.showWarningMessage(detectorErrorMessage, { title: 'View details' }).then(async () => {
+                await callWithTelemetryAndErrorHandling('viewedDetectorDetails', async (context2: IActionContext) => {
+                    context2.telemetry.properties.viewed = 'true';
+                    await openInPortal(node.root, `${node.root.client.id}/troubleshoot`, { queryPrefix: `websitesextension_ext=asd.featurePath%3Ddetectors%2F${linuxLogViewer}` });
+                });
+            });
+        }
     });
 }

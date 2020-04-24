@@ -5,84 +5,285 @@
 
 import * as assert from 'assert';
 import { IActionContext } from 'vscode-azureextensionui';
-import { ColumnName, detectorResponseJSON, detectorTable, getValuesByColumnName, nonNullValue, validateTimestamp } from "../extension.bundle";
+import { ColumnName, detectorTable, getValuesByColumnName, validateTimestamp } from "../extension.bundle";
 import { findTableByName } from '../src/commands/postDeploy/parseDetectorResponse';
 
-const vsCodeIntegration: string = 'Latest time seen by detector. To be used in VSCode integration.';
 const context: IActionContext = { telemetry: { properties: {}, measurements: {} }, errorHandling: { issueProperties: {} } };
 
 suite('Detector Dataset Parser', () => {
     test('Find table by table name', async () => {
-        const table: detectorTable | undefined = findTableByName(detectorResponse.properties.dataset, 'insights/logs');
+        const table: detectorTable | undefined = findTableByName(detectorResponse.properties.dataset, 'insight/logs');
         assert.equal(table, detectorResponse.properties.dataset[1].table);
     });
 
     test('Get values by column name', async () => {
-        const timestamp: string = "7/26/2019 8:40:00 PM UTC ";
-        const table: detectorTable | undefined = findTableByRowValue(detectorJSONWithCriticalErrors.properties.dataset, vsCodeIntegration);
-        assert.ok(table);
-        const values: string = getValuesByColumnName(context, nonNullValue(table), ColumnName.value);
-        assert.equal(values, timestamp);
+        const insightTable: any = detectorResponse.properties.dataset[1].table;
+        const rawApplicationLog: string = getValuesByColumnName(context, insightTable, ColumnName.value);
+        assert.equal(rawApplicationLog, detectorResponse.properties.dataset[1].table.rows[0][3]);
     });
 
     test('Verify validateTimestamp', async () => {
-        const timestamp: Date = new Date("7/26/2019 8:40:05 PM UTC ");
-        const staleTimestamp: Date = new Date("7/26/2019 8:55:05 PM UTC ");
-        const table: detectorTable | undefined = findTableByRowValue(detectorJSONWithCriticalErrors.properties.dataset, vsCodeIntegration);
-        assert.ok(table);
-        const parsedTimestamp: Date = new Date(getValuesByColumnName(context, nonNullValue(table), ColumnName.value));
-        assert.equal(validateTimestamp(context, parsedTimestamp, timestamp), true);
-        assert.equal(validateTimestamp(context, parsedTimestamp, staleTimestamp), false);
-    });
+        const expectedTimestamp: string = "2020-04-21T18:24:28";
+        // an hour stale
+        const staleTimestamp: string = "2020-04-21T17:24:28";
+        // a day stale
+        const staleTimestamp2: string = "2020-04-20T18:24:28";
+        const timestampFormat: RegExp = /\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/;
+        const appInsightTable: any = JSON.parse(detectorResponse.properties.dataset[1].table.rows[0][3])[0].table;
+        const timestampRegExp: RegExpMatchArray | null = getValuesByColumnName(context, appInsightTable, ColumnName.dataName).match(timestampFormat);
+        assert.ok(timestampRegExp);
 
-    test('Return undefined if no timestamp value is found', async () => {
-        const timestampTable: detectorTable | undefined = findTableByRowValue(detectorJSONWithoutCriticalErrors.properties.dataset, vsCodeIntegration);
-        assert.equal(timestampTable, undefined);
-    });
-
-    test('Get failure counts', async () => {
-        const table: detectorTable | undefined = findTableByColumnName(detectorJSONWithCriticalErrors.properties.dataset, ColumnName.failureCount);
-        assert.ok(table);
-        const failureCount: string = getValuesByColumnName(context, nonNullValue(table), ColumnName.failureCount);
-        assert.equal(failureCount, 1);
+        if (timestampRegExp) {
+            const parsedTimestamp: string = timestampRegExp[0];
+            assert.equal(validateTimestamp(context, parsedTimestamp, expectedTimestamp), true);
+            assert.equal(validateTimestamp(context, parsedTimestamp, staleTimestamp), false);
+            assert.equal(validateTimestamp(context, parsedTimestamp, staleTimestamp2), false);
+        }
     });
 
     test('Get error messages', async () => {
-        const table: detectorTable | undefined = findTableByRowValue(detectorJSONWithCriticalErrors.properties.dataset, 'Critical');
-        assert.ok(table);
-        const errorMessages: string = getValuesByColumnName(context, nonNullValue(table), ColumnName.value);
-        const expectedErrorMessage: string = 'Your app failed to start almost immediately.';
-        assert.equal(errorMessages, expectedErrorMessage);
+        const expectedErrorMessage: string = "Cannot find module 'yenv'";
+        const appInsightTable: any = JSON.parse(detectorResponse.properties.dataset[1].table.rows[0][3])[0].table;
+        const insightError: string = getValuesByColumnName(context, appInsightTable, ColumnName.dataValue);
+        assert.equal(insightError, expectedErrorMessage);
     });
 });
 
-// tslint:disable-next-line:one-variable-per-declaration
-const rawDetectorResponse: string = `[{"table":{"tableName":"application/insight","columns":[{"columnName":"Status","dataType":"String","columnType":null},{"columnName":"Message","dataType":"String",
-"columnType":null},{"columnName":"Data.Name","dataType":"String","columnType":null},{"columnName":"Data.Value","dataType":"String","columnType":null},{"columnName":"Expanded","dataType":"String","columnType":null},
-{"columnName":"Solutions","dataType":"String","columnType":null}],"rows":[["Critical","Application logs from instance: RD0003FF119BD4 contain an error or a warning","[1] 2020-03-17T18:46:07","tar (child): node_modules.tar.gz:
-Cannot open: No such file or directory","True","null"]]},"renderingProperties":{"type":7,"title":null,"description":null}},{"table":{"tableName":"application/log","columns":[{"columnName":"Markdown","dataType":"String","columnType":null}],
-"rows":[["\n2020-03-17T18:46:04.104832118Z Documentation: http://aka.ms/webapp-linux\n2020-03-17T18:46:04.104835718Z NodeJS quickstart: https://aka.ms/node-qs\n2020-03-17T18:46:04.104850118Z NodeJS Version : v12.13.0\n2020-03-17T18:46:04.104853418Z
-Note: Any data outside '/home' is not persisted\n2020-03-17T18:46:04.104856718Z \n2020-03-17T18:46:04.313645164Z Oryx Version: 0.2.20191105.2, Commit: 67e159d71419415435cb5d10c05a0f0758ee8809, ReleaseTagName: 20191105.2\n2020-03-17T18:46:04.313994966Z
-Found build manifest file at '/home/site/wwwroot/oryx-manifest.toml'. Deserializing it...\n2020-03-17T18:46:04.322767810Z Build Operation ID: |jpbcyF+xyAE=.63e4a6cf_\n2020-03-17T18:46:04.971120759Z Writing output script to '/opt/startup/startup.sh'
-\n2020-03-17T18:46:05.213664974Z Running #!/bin/sh\n2020-03-17T18:46:05.214350678Z \n2020-03-17T18:46:05.214660979Z # Enter the source directory to make sure the script runs where the user expects\n2020-03-17T18:46:05.215022181Z cd \"/home/site/wwwroot\
-"\n2020-03-17T18:46:05.215375783Z \n2020-03-17T18:46:05.215646484Z export NODE_PATH=$(npm root --quiet -g):$NODE_PATH\n2020-03-17T18:46:05.216680489Z if [ -z \"$PORT\" ]; then\n2020-03-17T18:46:05.217029791Z \t\texport PORT=8080\n2020-03-17T18:46:05.217341793Z
- fi\n2020-03-17T18:46:05.217623294Z \n2020-03-17T18:46:05.218001196Z echo Found tar.gz based node_modules.\n2020-03-17T18:46:05.218105696Z extractionCommand=\"tar -xzf node_modules.tar.gz -C /node_modules\"\n2020-03-17T18:46:05.218689899Z echo \"Removing existing
- modules directory from root...\"\n2020-03-17T18:46:05.218820300Z rm -fr /node_modules\n2020-03-17T18:46:05.218912900Z mkdir -p /node_modules\n2020-03-17T18:46:05.219660304Z echo Extracting modules...\n2020-03-17T18:46:05.219695804Z $extractionCommand
- \n2020-03-17T18:46:05.219760305Z export NODE_PATH=\"/node_modules\":$NODE_PATH\n2020-03-17T18:46:05.219778805Z export PATH=/node_modules/.bin:$PATH\n2020-03-17T18:46:05.227172942Z if [ -d node_modules ] || [ -L node_modules ]; then
- \n2020-03-17T18:46:05.227205942Z     mv -f node_modules _del_node_modules || true\n2020-03-17T18:46:05.227266442Z fi\n2020-03-17T18:46:05.227302942Z \n2020-03-17T18:46:05.227352643Z if [ -d /node_modules ]; then\n2020-03-17T18:46:05.227370243Z
-      ln -s /node_modules ./node_modules \n2020-03-17T18:46:05.227405443Z fi\n2020-03-17T18:46:05.227432643Z \n2020-03-17T18:46:05.227462843Z echo \"Done.\"\n2020-03-17T18:46:05.227477043Z pm2 start --no-daemon /opt/startup/default-static-site.js
-      \n2020-03-17T18:46:07.007570963Z Found tar.gz based node_modules.\n2020-03-17T18:46:07.007735264Z Removing existing modules directory from root...\n2020-03-17T18:46:07.047362762Z Extracting modules...\n2020-03-17T18:46:07.073633894Z tar (child):
-      node_modules.tar.gz: Cannot open: No such file or directory\n2020-03-17T18:46:07.079866925Z tar (child): Error is not recoverable: exiting now\n2020-03-17T18:46:07.080403428Z tar: Child returned status 2\n2020-03-17T18:46:07.080633829Z tar: Error
-       is not recoverable: exiting now\n2020-03-17T18:46:07.120897831Z Done.\n2020-03-17T18:46:09.468330892Z \n2020-03-17T18:46:09.468367293Z                         -------------\n2020-03-17T18:46:09.468373393Z \n2020-03-17T18:46:09.468377593Z __/
-       \\\\\\\\\\\\\\\\\\\\\\\\\\____/\\\\\\\\____________/\\\\\\\\____/\\\\\\\\\\\\\\\\\\_____\n2020-03-17T18:46:09.468382393Z  _\\/\\\\\\/////////\\\\\\_\\/\\\\\\\\\\\\________/\\\\\\\\\\\\__/\\\\\\///////\\\\\\___\n2020-03-17T18:46:09.468387093Z   _
-       \\/\\\\\\_______\\/\\\\\\_\\/\\\\\\//\\\\\\____/\\\\\\//\\\\\\_\\///______\\//\\\\\\__\n2020-03-17T18:46:09.468391793Z    _\\/\\\\\\\\\\\\\\\\\\\\\\\\\\/__\\/\\\\\\\\///\\\\\\/\\\\\\/_\\/\\\\\\___________/\\\\\\/___\n2020-03-17T18:46:09.468396793Z     _
-       \\/\\\\\\/////////____\\/\\\\\\__\\///\\\\\\/___\\/\\\\\\________/\\\\\\//_____\n2020-03-17T18:46:09.468401293Z      _\\/\\\\\\_____________\\/\\\\\\____\\///_____\\/\\\\\\_____/\\\\\\//________\n2020-03-17T18:46:09.468405693Z       _\\/\\\\\\_____________
-       \\/\\\\\\_____________\\/\\\\\\___/\\\\\\/___________\n2020-03-17T18:46:09.468409993Z        _\\/\\\\\\_____________\\/\\\\\\_____________\\/\\\\\\__/\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\_\n2020-03-17T18:46:09.468414493Z         _\\///______________\\///
-       ______________\\///__\\///////////////__\n2020-03-17T18:46:09.468418793Z \n2020-03-17T18:46:09.468422493Z \n2020-03-17T18:46:09.468426393Z                           Runtime Edition\n2020-03-17T18:46:09.468430293Z \n2020-03-17T18:46:09.468434193Z
-                PM2 is a Production Process Manager for Node.js applications\n2020-03-17T18:46:09.468438293Z                      with a built-in Load Balancer.\n2020-03-17T18:46:09.468442193Z \n2020-03-17T18:46:09.468445993Z
-                Start and Daemonize any application:\n2020-03-17T18:46:09.468449993Z                 $ pm2 start app.js\n2020-03-17T18:46:09.468472393Z \n2020-03-17T18:46:09.468487593Z                 Load Balance 4 instances of
-                api.js:\n2020-03-17T18:46:09.468491293Z                 $ pm2 start api.js -i 4\n2020-03-17T18:46:09.468495093Z \n2020-03-17T18:46:09.468498593Z                 Monitor in production:\n2020-03-17T18:46:09.468502193Z
-                $ pm2 monitor\n2020-03-17T18:46:09.468516393Z \n2020-03-17T18:46:09.468519593Z                 Make pm2 auto-boot at server restart:\n2020-03-17T18:46:09.468523093Z                 $ pm2 startup\n2020-03-17T18:46:09.468526493Z \
-                n2020-03-17T18:46:09.468529793Z                 To go further checkout:\n2020-03-17T18:46:09.468533193Z                 http://pm2.io/\n2020-03-17T18:46:09.468536593Z \n2020-03-17T18:46:09.468539793Z \n2020-03-17T18:46:09.468543094Z                         -------------\n2020-03-17T18:46:09.468546594Z \n2020-03-17T18:46:09.487986391Z pm2 launched in no-daemon mode (you can add DEBUG=\"*\" env variable to get more messages)\n2020-03-17T18:46:10.540603265Z 2020-03-17T18:46:10: PM2 log: Launching in no daemon mode\n2020-03-17T18:46:10.846597198Z 2020-03-17T18:46:10: PM2 log: [PM2] Starting /opt/startup/default-static-site.js in fork_mode (1 instance)\n2020-03-17T18:46:10.850114216Z 2020-03-17T18:46:10: PM2 log: App [default-static-site:0] starting in -fork mode-\n2020-03-17T18:46:10.887412103Z 2020-03-17T18:46:10: PM2 log: App [default-static-site:0] online\n2020-03-17T18:46:10.898641259Z 2020-03-17T18:46:10: PM2 log: [PM2] Done.\n2020-03-17T18:46:10.991671125Z 2020-03-17T18:46:10: PM2 log: ┌─────────────────────┬────┬─────────┬──────┬─────┬────────┬─────────┬────────┬─────┬──────────┬──────┬──────────┐\n2020-03-17T18:46:10.991706125Z │ App name            │ id │ version │ mode │ pid │ status │ restart │ uptime │ cpu │ mem      │ user │ watching │\n2020-03-17T18:46:10.991713525Z ├─────────────────────┼────┼─────────┼──────┼─────┼────────┼─────────┼────────┼─────┼──────────┼──────┼──────────┤\n2020-03-17T18:46:10.991718625Z │ default-static-site │ 0  │ 1.0.0   │ fork │ 67  │ online │ 0       │ 0s     │ 0%  │ 5.8 MB   │ root │ disabled │\n2020-03-17T18:46:10.991722825Z └─────────────────────┴────┴─────────┴──────┴─────┴────────┴─────────┴────────┴─────┴──────────┴──────┴──────────┘\n2020-03-17T18:46:11.008065807Z 2020-03-17T18:46:10: PM2 log:  Use pm2 show; <id | name> to get more details about an app\n2020-03-17T18:46:11.008087607Z 2020-03-17T18:46:11: PM2 log: [--no-daemon] Continue to stream logs\n2020-03-17T18:46:11.008094907Z 2020-03-17T18:46:11: PM2 log: [--no-daemon] Exit on target PM2 exit pid=52\n\n2020-03-17T18:47:01.621338849Z 18:47:01 0|default-static-site  | (node:67) [DEP0066] DeprecationWarning: OutgoingMessage.prototype._headers is deprecated\n\n"]]},"renderingProperties":{"enableEmailButtons":false,"isContainerNeeded":true,"type":9,"title":null,"description":null}},{"table":{"tableName":"docker/insight","columns":[{"columnName":"Status","dataType":"String","columnType":null},{"columnName":"Message","dataType":"String","columnType":null},{"columnName":"Data.Name","dataType":"String","columnType":null},{"columnName":"Data.Value","dataType":"String","columnType":null},{"columnName":"Expanded","dataType":"String","columnType":null},{"columnName":"Solutions","dataType":"String","columnType":null}],"rows":[["Critical","Docker on instance: RD0003FF119BD4 experienced container start failures.","","","True","null"]]},"renderingProperties":{"type":7,"title":null,"description":null}},{"table":{"tableName":"docker/log","columns":[{"columnName":"Markdown","dataType":"String","columnType":null}],"rows":[["2020-03-17 18:31:13.040 INFO  - Starting container for site\n2020-03-17 18:31:13.040 INFO  - docker run -d -p 9008:8080 --name naturins-node-awesome_0_af0ad279 -e WEBSITE_NODE_DEFAULT_VERSION=12-lts -e APPSETTING_WEBSITE_NODE_DEFAULT_VERSION=12-lts -e WEBSITE_SITE_NAME=naturins-node-awesome -e WEBSITE_AUTH_ENABLED=False -e WEBSITE_ROLE_INSTANCE_ID=0 -e WEBSITE_HOSTNAME=naturins-node-awesome.azurewebsites.net -e WEBSITE_INSTANCE_ID=2d81217236c12dee3b920ef52d54d0d1a725b7c965cbd7887d87a7ecd1390208 appsvc/node:12-lts  \n\n2020-03-17 18:31:13.040 INFO  - Logging is not enabled for this container.\nPlease use https://aka.ms/linux-diagnostics to enable logging to see container logs here.\n2020-03-17 18:31:15.739 INFO  - Initiating warmup request to container naturins-node-awesome_0_af0ad279 for site naturins-node-awesome\n2020-03-17 18:31:24.938 INFO  - Container naturins-node-awesome_0_af0ad279 for site naturins-node-awesome initialized successfully and is ready to serve requests.\n2020-03-17 18:41:30.918 INFO  - Starting container for site\n2020-03-17 18:41:30.919 INFO  - docker run -d -p 1858:8080 --name naturins-node-awesome_0_4c5b4271 -e WEBSITE_NODE_DEFAULT_VERSION=12-lts -e APPSETTING_WEBSITE_NODE_DEFAULT_VERSION=12-lts -e WEBSITE_SITE_NAME=naturins-node-awesome -e WEBSITE_AUTH_ENABLED=False -e WEBSITE_ROLE_INSTANCE_ID=0 -e WEBSITE_HOSTNAME=naturins-node-awesome.azurewebsites.net -e WEBSITE_INSTANCE_ID=2d81217236c12dee3b920ef52d54d0d1a725b7c965cbd7887d87a7ecd1390208 appsvc/node:12-lts  \n\n2020-03-17 18:41:30.920 INFO  - Logging is not enabled for this container.\nPlease use https://aka.ms/linux-diagnostics to enable logging to see container logs here.\n2020-03-17 18:41:33.468 INFO  - Initiating warmup request to container naturins-node-awesome_0_4c5b4271 for site naturins-node-awesome\n2020-03-17 18:41:40.632 INFO  - Container naturins-node-awesome_0_4c5b4271 for site naturins-node-awesome initialized successfully and is ready to serve requests.\n2020-03-17 18:44:59.542 INFO  - Recycling container because of HttpLoggingEnabledChange and httpLoggingEnabled = True\n2020-03-17 18:44:59.632 INFO  - Starting container for site\n2020-03-17 18:44:59.638 INFO  - docker run -d -p 6276:8080 --name naturins-node-awesome_1_22eb643e -e WEBSITE_NODE_DEFAULT_VERSION=12-lts -e APPSETTING_WEBSITE_NODE_DEFAULT_VERSION=12-lts -e WEBSITE_SITE_NAME=naturins-node-awesome -e WEBSITE_AUTH_ENABLED=False -e WEBSITE_ROLE_INSTANCE_ID=0 -e WEBSITE_HOSTNAME=naturins-node-awesome.azurewebsites.net -e WEBSITE_INSTANCE_ID=2d81217236c12dee3b920ef52d54d0d1a725b7c965cbd7887d87a7ecd1390208 -e HTTP_LOGGING_ENABLED=1 appsvc/node:12-lts  \n\n2020-03-17 18:45:05.954 INFO  - Initiating warmup request to container naturins-node-awesome_1_22eb643e for site naturins-node-awesome\n2020-03-17 18:45:21.625 INFO  - Waiting for response to warmup request for container naturins-node-awesome_1_22eb643e. Elapsed time = 15.6711869 sec\n2020-03-17 18:45:31.482 INFO  - Container naturins-node-awesome_1_22eb643e for site naturins-node-awesome initialized successfully and is ready to serve requests.\n2020-03-17 18:46:01.345 INFO  - Starting container for site\n2020-03-17 18:46:01.346 INFO  - docker run -d -p 8041:8080 --name naturins-node-awesome_0_71fd9e17 -e WEBSITE_NODE_DEFAULT_VERSION=12-lts -e APPSETTING_WEBSITE_NODE_DEFAULT_VERSION=12-lts -e WEBSITE_SITE_NAME=naturins-node-awesome -e WEBSITE_AUTH_ENABLED=False -e WEBSITE_ROLE_INSTANCE_ID=0 -e WEBSITE_HOSTNAME=naturins-node-awesome.azurewebsites.net -e WEBSITE_INSTANCE_ID=2d81217236c12dee3b920ef52d54d0d1a725b7c965cbd7887d87a7ecd1390208 -e HTTP_LOGGING_ENABLED=1 appsvc/node:12-lts  \n\n2020-03-17 18:46:04.955 INFO  - Initiating warmup request to container naturins-node-awesome_0_71fd9e17 for site naturins-node-awesome\n2020-03-17 18:46:20.436 INFO  - Container naturins-node-awesome_0_71fd9e17 for site naturins-node-awesome initialized successfully and is ready to serve requests."]]},"renderingProperties":{"enableEmailButtons":false,"isContainerNeeded":true,"type":9,"title":null,"description":null}}]`;
-
-const detectorResponse: detectorResponseJSON = JSON.parse(rawDetectorResponse);
+const detectorResponse: any = {
+    id: "/subscriptions/9b5c7ccb-9857-4307-843b-8875e83f65e9/resourceGroups/appsvc_linux_centralus/providers/Microsoft.Web/sites/naturins-node-awesome/detectors/LinuxLogViewer",
+    name: "LinuxLogViewer",
+    type: "Microsoft.Web/sites/detectors",
+    location: "Central US",
+    properties: {
+        metadata: {
+            id: "LinuxLogViewer",
+            name: "Application Logs",
+            category: "Availability and Performance",
+            author: "",
+            description: "Check the summary of your latest logs. This allows you to view the relevant logs from your app, and highlights the specific text in the logs that might be a potential issue.",
+            type: "Detector",
+            supportTopicList: [],
+            analysisTypes: [
+                "LinuxAppDown"
+            ],
+            score: 0.0,
+            typeId: "Diagnostics.ModelsAndUtils.Attributes.Definition, Diagnostics.ModelsAndUtils, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
+        },
+        dataset: [
+            {
+                table: {
+                    tableName: "insight/top",
+                    columns: [
+                        {
+                            columnName: "Status",
+                            dataType: "String",
+                            columnType: null
+                        },
+                        {
+                            columnName: "Message",
+                            dataType: "String",
+                            columnType: null
+                        },
+                        {
+                            columnName: "Data.Name",
+                            dataType: "String",
+                            columnType: null
+                        },
+                        {
+                            columnName: "Data.Value",
+                            dataType: "String",
+                            columnType: null
+                        },
+                        {
+                            columnName: "Expanded",
+                            dataType: "String",
+                            columnType: null
+                        },
+                        {
+                            columnName: "Solutions",
+                            dataType: "String",
+                            columnType: null
+                        }
+                    ],
+                    rows: [
+                        [
+                            "Critical",
+                            "Application logs from instance: RD0003FF625538 contain an error or a warning",
+                            "",
+                            "",
+                            "False",
+                            "null"
+                        ]
+                    ]
+                },
+                renderingProperties: {
+                    type: 7,
+                    title: null,
+                    description: null
+                }
+            },
+            {
+                table: {
+                    tableName: "insight/logs",
+                    columns: [
+                        {
+                            columnName: "Label",
+                            dataType: "String",
+                            columnType: null
+                        },
+                        {
+                            columnName: "Key",
+                            dataType: "String",
+                            columnType: null
+                        },
+                        {
+                            columnName: "Selected",
+                            dataType: "Boolean",
+                            columnType: null
+                        },
+                        {
+                            columnName: "Value",
+                            dataType: "String",
+                            columnType: null
+                        },
+                        {
+                            columnName: "DropdownType",
+                            dataType: "String",
+                            columnType: null
+                        },
+                        {
+                            columnName: "DropdownPosition",
+                            dataType: "String",
+                            columnType: null
+                        }
+                    ],
+                    rows: [
+                        [
+                            "Select instance here (1 instances): ",
+                            "RD0003FF625538",
+                            true,
+                            "[{\"table\":{\"tableName\":\"application/insight\",\"columns\":[{\"columnName\":\"Status\",\"dataType\":\"String\",\"columnType\":null},{\"columnName\":\"Message\",\"dataType\":\"String\",\"columnType\":null},{\"columnName\":\"Data.Name\",\"dataType\":\"String\",\"columnType\":null},{\"columnName\":\"Data.Value\",\"dataType\":\"String\",\"columnType\":null},{\"columnName\":\"Expanded\",\"dataType\":\"String\",\"columnType\":null},{\"columnName\":\"Solutions\",\"dataType\":\"String\",\"columnType\":null}],\"rows\":[[\"Critical\",\"Application logs from instance: RD0003FF625538 contain an error or a warning\",\"[1] 2020-04-21T18:24:28\",\"Cannot find module 'yenv'\",\"True\",\"null\"]]},\"renderingProperties\":{\"type\":7,\"title\":null,\"description\":null}},{\"table\":{\"tableName\":\"application/log\",\"columns\":[{\"columnName\":\"Markdown\",\"dataType\":\"String\",\"columnType\":null}],\"rows\":[[\"\\n2020-04-21T18:23:49.984267010Z \\n2020-04-21T18:23:49.984325412Z > express-cart@1.1.17 start /home/site/wwwroot\\n2020-04-21T18:23:49.984336612Z > node app.js\\n2020-04-21T18:23:49.984344812Z \\n2020-04-21T18:23:50.524784539Z internal/modules/cjs/loader.js:797\\n2020-04-21T18:23:50.524824240Z     throw err;\\n2020-04-21T18:23:50.524834740Z     ^\\n2020-04-21T18:23:50.524842541Z \\n2020-04-21T18:23:50.524850141Z Error: Cannot find module 'yenv'\\n2020-04-21T18:23:50.524858041Z Require stack:\\n2020-04-21T18:23:50.524865541Z - /home/site/wwwroot/app.js\\n2020-04-21T18:23:50.524873242Z     at Function.Module._resolveFilename (internal/modules/cjs/loader.js:794:15)\\n2020-04-21T18:23:50.524892642Z     at Function.Module._load (internal/modules/cjs/loader.js:687:27)\\n2020-04-21T18:23:50.524901242Z     at Module.require (internal/modules/cjs/loader.js:849:19)\\n2020-04-21T18:23:50.524909043Z     at require (internal/modules/cjs/helpers.js:74:18)\\n2020-04-21T18:23:50.524916743Z     at Object.<anonymous> (/home/site/wwwroot/app.js:2:14)\\n2020-04-21T18:23:50.524925043Z     at Module._compile (internal/modules/cjs/loader.js:956:30)\\n2020-04-21T18:23:50.524932643Z     at Object.Module._extensions..js (internal/modules/cjs/loader.js:973:10)\\n2020-04-21T18:23:50.524940344Z     at Module.load (internal/modules/cjs/loader.js:812:32)\\n2020-04-21T18:23:50.524948044Z     at Function.Module._load (internal/modules/cjs/loader.js:724:14)\\n2020-04-21T18:23:50.524955744Z     at Function.Module.runMain (internal/modules/cjs/loader.js:1025:10) {\\n2020-04-21T18:23:50.524963545Z   code: 'MODULE_NOT_FOUND',\\n2020-04-21T18:23:50.524970945Z   requireStack: [ '/home/site/wwwroot/app.js' ]\\n2020-04-21T18:23:50.524978345Z }\\n2020-04-21T18:23:50.554714626Z npm ERR! code ELIFECYCLE\\n2020-04-21T18:23:50.556544486Z npm ERR! errno 1\\n2020-04-21T18:23:50.566290708Z npm ERR! express-cart@1.1.17 start: `node app.js`\\n2020-04-21T18:23:50.572499512Z npm ERR! Exit status 1\\n2020-04-21T18:23:50.572520813Z npm ERR! \\n2020-04-21T18:23:50.572544814Z npm ERR! Failed at the express-cart@1.1.17 start script.\\n2020-04-21T18:23:50.572555314Z npm ERR! This is probably not a problem with npm. There is likely additional logging output above.\\n2020-04-21T18:23:50.594397235Z npm WARN Local package.json exists, but node_modules missing, did you mean to install?\\n2020-04-21T18:23:50.603758244Z \\n2020-04-21T18:23:50.609965348Z npm ERR! A complete log of this run can be found in:\\n2020-04-21T18:23:50.610895879Z npm ERR!     /root/.npm/_logs/2020-04-21T18_23_50_572Z-debug.log\\n\\n2020-04-21T18:24:23.321266180Z   _____                               \\n2020-04-21T18:24:23.321301081Z   /  _  \\\\ __________ _________   ____  \\n2020-04-21T18:24:23.321310882Z  /  /_\\\\  \\\\___   /  |  \\\\_  __ \\\\_/ __ \\\\ \\n2020-04-21T18:24:23.321318982Z /    |    \\\\/    /|  |  /|  | \\\\/\\\\  ___/ \\n2020-04-21T18:24:23.321326382Z \\\\____|__  /_____ \\\\____/ |__|    \\\\___  >\\n2020-04-21T18:24:23.321334083Z         \\\\/      \\\\/                  \\\\/ \\n2020-04-21T18:24:23.321341583Z A P P   S E R V I C E   O N   L I N U X\\n2020-04-21T18:24:23.321348683Z \\n2020-04-21T18:24:23.321355383Z Documentation: http://aka.ms/webapp-linux\\n2020-04-21T18:24:23.321363384Z NodeJS quickstart: https://aka.ms/node-qs\\n2020-04-21T18:24:23.321370684Z NodeJS Version : v12.13.0\\n2020-04-21T18:24:23.321377384Z Note: Any data outside '/home' is not persisted\\n2020-04-21T18:24:23.321384584Z \\n2020-04-21T18:24:23.454116961Z Oryx Version: 0.2.20191105.2, Commit: 67e159d71419415435cb5d10c05a0f0758ee8809, ReleaseTagName: 20191105.2\\n2020-04-21T18:24:23.455006994Z Cound not find build manifest file at '/home/site/wwwroot/oryx-manifest.toml'\\n2020-04-21T18:24:23.455753222Z Could not find operation ID in manifest. Generating an operation id...\\n2020-04-21T18:24:23.456281742Z Build Operation ID: c9262b5e-3a10-4692-9fc3-ca9607639000\\n2020-04-21T18:24:25.733012398Z Writing output script to '/opt/startup/startup.sh'\\n2020-04-21T18:24:26.112031407Z Running #!/bin/sh\\n2020-04-21T18:24:26.112846238Z \\n2020-04-21T18:24:26.112864938Z # Enter the source directory to make sure the script runs where the user expects\\n2020-04-21T18:24:26.112874739Z cd \\\"/home/site/wwwroot\\\"\\n2020-04-21T18:24:26.112882839Z \\n2020-04-21T18:24:26.114202789Z export NODE_PATH=$(npm root --quiet -g):$NODE_PATH\\n2020-04-21T18:24:26.114221489Z if [ -z \\\"$PORT\\\" ]; then\\n2020-04-21T18:24:26.118717658Z \\t\\texport PORT=8080\\n2020-04-21T18:24:26.118742159Z fi\\n2020-04-21T18:24:26.119091472Z \\n2020-04-21T18:24:26.119107873Z npm start\\n2020-04-21T18:24:28.701085633Z \\n2020-04-21T18:24:28.701136135Z > express-cart@1.1.17 start /home/site/wwwroot\\n2020-04-21T18:24:28.701147835Z > node app.js\\n2020-04-21T18:24:28.701155935Z \\n2020-04-21T18:24:28.951487592Z internal/modules/cjs/loader.js:797\\n2020-04-21T18:24:28.951530394Z     throw err;\\n2020-04-21T18:24:28.951540594Z     ^\\n2020-04-21T18:24:28.951548594Z \\n2020-04-21T18:24:28.951556295Z Error: Cannot find module 'yenv'\\n2020-04-21T18:24:28.951563995Z Require stack:\\n2020-04-21T18:24:28.951571495Z - /home/site/wwwroot/app.js\\n2020-04-21T18:24:28.951578996Z     at Function.Module._resolveFilename (internal/modules/cjs/loader.js:794:15)\\n2020-04-21T18:24:28.951598296Z     at Function.Module._load (internal/modules/cjs/loader.js:687:27)\\n2020-04-21T18:24:28.951606697Z     at Module.require (internal/modules/cjs/loader.js:849:19)\\n2020-04-21T18:24:28.951614497Z     at require (internal/modules/cjs/helpers.js:74:18)\\n2020-04-21T18:24:28.951622097Z     at Object.<anonymous> (/home/site/wwwroot/app.js:2:14)\\n2020-04-21T18:24:28.951630597Z     at Module._compile (internal/modules/cjs/loader.js:956:30)\\n2020-04-21T18:24:28.951638298Z     at Object.Module._extensions..js (internal/modules/cjs/loader.js:973:10)\\n2020-04-21T18:24:28.951646198Z     at Module.load (internal/modules/cjs/loader.js:812:32)\\n2020-04-21T18:24:28.951653498Z     at Function.Module._load (internal/modules/cjs/loader.js:724:14)\\n2020-04-21T18:24:28.951660899Z     at Function.Module.runMain (internal/modules/cjs/loader.js:1025:10) {\\n2020-04-21T18:24:28.951669599Z   code: 'MODULE_NOT_FOUND',\\n2020-04-21T18:24:28.951677099Z   requireStack: [ '/home/site/wwwroot/app.js' ]\\n2020-04-21T18:24:28.951684399Z }\\n2020-04-21T18:24:28.979364101Z npm ERR! code ELIFECYCLE\\n2020-04-21T18:24:28.980970459Z npm ERR! errno 1\\n2020-04-21T18:24:28.983463649Z npm ERR! express-cart@1.1.17 start: `node app.js`\\n2020-04-21T18:24:28.984807998Z npm ERR! Exit status 1\\n2020-04-21T18:24:28.992094961Z npm ERR! \\n2020-04-21T18:24:28.993262604Z npm ERR! Failed at the express-cart@1.1.17 start script.\\n2020-04-21T18:24:28.994279240Z npm ERR! This is probably not a problem with npm. There is likely additional logging output above.\\n2020-04-21T18:24:29.013987554Z npm WARN Local package.json exists, but node_modules missing, did you mean to install?\\n2020-04-21T18:24:29.015641513Z \\n2020-04-21T18:24:29.016600848Z npm ERR! A complete log of this run can be found in:\\n2020-04-21T18:24:29.021478125Z npm ERR!     /root/.npm/_logs/2020-04-21T18_24_28_999Z-debug.log\\n\"]]},\"renderingProperties\":{\"enableEmailButtons\":false,\"isContainerNeeded\":true,\"type\":9,\"title\":null,\"description\":null}},{\"table\":{\"tableName\":\"docker/insight\",\"columns\":[{\"columnName\":\"Status\",\"dataType\":\"String\",\"columnType\":null},{\"columnName\":\"Message\",\"dataType\":\"String\",\"columnType\":null},{\"columnName\":\"Data.Name\",\"dataType\":\"String\",\"columnType\":null},{\"columnName\":\"Data.Value\",\"dataType\":\"String\",\"columnType\":null},{\"columnName\":\"Expanded\",\"dataType\":\"String\",\"columnType\":null},{\"columnName\":\"Solutions\",\"dataType\":\"String\",\"columnType\":null}],\"rows\":[[\"Critical\",\"Docker on instance: RD0003FF625538 experienced container start failures.\",\"[1] 2020-04-21 18:23:26\",\"Container naturins-node-awesome_5_a186a675 didn't respond to HTTP pings on port: 8080, failing site start\",\"True\",\"null\"],[\"Critical\",\"Docker on instance: RD0003FF625538 experienced container start failures.\",\"[2] 2020-04-21 18:23:26\",\"Container naturins-node-awesome_5_a186a675 for site naturins-node-awesome has exited, failing site start\",\"True\",\"null\"],[\"Critical\",\"Docker on instance: RD0003FF625538 experienced container start failures.\",\"[3] 2020-04-21 18:23:38\",\"Container naturins-node-awesome_0_686f4651 didn't respond to HTTP pings on port: 8080, failing site start\",\"True\",\"null\"],[\"Critical\",\"Docker on instance: RD0003FF625538 experienced container start failures.\",\"[4] 2020-04-21 18:23:38\",\"Container naturins-node-awesome_0_686f4651 for site naturins-node-awesome has exited, failing site start\",\"True\",\"null\"],[\"Critical\",\"Docker on instance: RD0003FF625538 experienced container start failures.\",\"[5] 2020-04-21 18:23:51\",\"Container naturins-node-awesome_0_0e3fd480 didn't respond to HTTP pings on port: 8080, failing site start\",\"True\",\"null\"],[\"Critical\",\"Docker on instance: RD0003FF625538 experienced container start failures.\",\"[6] 2020-04-21 18:23:51\",\"Container naturins-node-awesome_0_0e3fd480 for site naturins-node-awesome has exited, failing site start\",\"True\",\"null\"],[\"Critical\",\"Docker on instance: RD0003FF625538 experienced container start failures.\",\"[7] 2020-04-21 18:24:29\",\"Container naturins-node-awesome_0_c01e0c28 didn't respond to HTTP pings on port: 8080, failing site start\",\"True\",\"null\"],[\"Critical\",\"Docker on instance: RD0003FF625538 experienced container start failures.\",\"[8] 2020-04-21 18:24:29\",\"Container naturins-node-awesome_0_c01e0c28 for site naturins-node-awesome has exited, failing site start\",\"True\",\"null\"]]},\"renderingProperties\":{\"type\":7,\"title\":null,\"description\":null}},{\"table\":{\"tableName\":\"docker/log\",\"columns\":[{\"columnName\":\"Markdown\",\"dataType\":\"String\",\"columnType\":null}],\"rows\":[[\"2020-04-21 01:54:22.577 INFO  - Starting container for site\\n2020-04-21 01:54:22.621 INFO  - docker run -d -p 8784:8080 --name naturins-node-awesome_1_6a195661 -e WEBSITE_NODE_DEFAULT_VERSION=12-lts -e APPSETTING_WEBSITE_NODE_DEFAULT_VERSION=12-lts -e WEBSITE_SITE_NAME=naturins-node-awesome -e WEBSITE_AUTH_ENABLED=False -e WEBSITE_ROLE_INSTANCE_ID=0 -e WEBSITE_HOSTNAME=naturins-node-awesome.azurewebsites.net -e WEBSITE_INSTANCE_ID=b7e72dec7e4cc8a4736179c6176e926e1a9bf791a689d53c7c98cb9379127d31 -e HTTP_LOGGING_ENABLED=1 appsvc/node:12-lts  \\n\\n2020-04-21 01:54:24.543 INFO  - Initiating warmup request to container naturins-node-awesome_1_6a195661 for site naturins-node-awesome\\n2020-04-21 01:54:33.718 INFO  - Container naturins-node-awesome_1_6a195661 for site naturins-node-awesome initialized successfully and is ready to serve requests.\\n2020-04-21 02:02:34.670 INFO  - Starting container for site\\n2020-04-21 02:02:34.670 INFO  - docker run -d -p 7540:8080 --name naturins-node-awesome_2_4873ba74 -e WEBSITE_NODE_DEFAULT_VERSION=12-lts -e APPSETTING_WEBSITE_NODE_DEFAULT_VERSION=12-lts -e WEBSITE_SITE_NAME=naturins-node-awesome -e WEBSITE_AUTH_ENABLED=False -e WEBSITE_ROLE_INSTANCE_ID=0 -e WEBSITE_HOSTNAME=naturins-node-awesome.azurewebsites.net -e WEBSITE_INSTANCE_ID=b7e72dec7e4cc8a4736179c6176e926e1a9bf791a689d53c7c98cb9379127d31 -e HTTP_LOGGING_ENABLED=1 appsvc/node:12-lts  \\n\\n2020-04-21 02:02:35.846 INFO  - Initiating warmup request to container naturins-node-awesome_2_4873ba74 for site naturins-node-awesome\\n2020-04-21 02:02:43.047 INFO  - Container naturins-node-awesome_2_4873ba74 for site naturins-node-awesome initialized successfully and is ready to serve requests.\\n2020-04-21 02:28:25.452 INFO  - Starting container for site\\n2020-04-21 02:28:25.454 INFO  - docker run -d -p 6804:8080 --name naturins-node-awesome_3_c991a6a2 -e WEBSITE_NODE_DEFAULT_VERSION=12-lts -e APPSETTING_WEBSITE_NODE_DEFAULT_VERSION=12-lts -e WEBSITE_SITE_NAME=naturins-node-awesome -e WEBSITE_AUTH_ENABLED=False -e WEBSITE_ROLE_INSTANCE_ID=0 -e WEBSITE_HOSTNAME=naturins-node-awesome.azurewebsites.net -e WEBSITE_INSTANCE_ID=b7e72dec7e4cc8a4736179c6176e926e1a9bf791a689d53c7c98cb9379127d31 -e HTTP_LOGGING_ENABLED=1 appsvc/node:12-lts  \\n\\n2020-04-21 02:28:26.502 INFO  - Initiating warmup request to container naturins-node-awesome_3_c991a6a2 for site naturins-node-awesome\\n2020-04-21 02:28:32.652 INFO  - Container naturins-node-awesome_3_c991a6a2 for site naturins-node-awesome initialized successfully and is ready to serve requests.\\n2020-04-21 02:42:56.847 INFO  - Starting container for site\\n2020-04-21 02:42:56.849 INFO  - docker run -d -p 3814:8080 --name naturins-node-awesome_4_d2e05968 -e WEBSITE_NODE_DEFAULT_VERSION=12-lts -e APPSETTING_WEBSITE_NODE_DEFAULT_VERSION=12-lts -e WEBSITE_SITE_NAME=naturins-node-awesome -e WEBSITE_AUTH_ENABLED=False -e WEBSITE_ROLE_INSTANCE_ID=0 -e WEBSITE_HOSTNAME=naturins-node-awesome.azurewebsites.net -e WEBSITE_INSTANCE_ID=b7e72dec7e4cc8a4736179c6176e926e1a9bf791a689d53c7c98cb9379127d31 -e HTTP_LOGGING_ENABLED=1 appsvc/node:12-lts  \\n\\n2020-04-21 02:43:00.792 INFO  - Initiating warmup request to container naturins-node-awesome_4_d2e05968 for site naturins-node-awesome\\n2020-04-21 02:43:06.380 INFO  - Container naturins-node-awesome_4_d2e05968 for site naturins-node-awesome initialized successfully and is ready to serve requests.\\n2020-04-21 18:23:15.761 INFO  - Starting container for site\\n2020-04-21 18:23:15.764 INFO  - docker run -d -p 6739:8080 --name naturins-node-awesome_5_a186a675 -e WEBSITE_NODE_DEFAULT_VERSION=12-lts -e APPSETTING_WEBSITE_NODE_DEFAULT_VERSION=12-lts -e WEBSITE_SITE_NAME=naturins-node-awesome -e WEBSITE_AUTH_ENABLED=False -e WEBSITE_ROLE_INSTANCE_ID=0 -e WEBSITE_HOSTNAME=naturins-node-awesome.azurewebsites.net -e WEBSITE_INSTANCE_ID=b7e72dec7e4cc8a4736179c6176e926e1a9bf791a689d53c7c98cb9379127d31 -e HTTP_LOGGING_ENABLED=1 appsvc/node:12-lts  \\n\\n2020-04-21 18:23:17.241 INFO  - Initiating warmup request to container naturins-node-awesome_5_a186a675 for site naturins-node-awesome\\n2020-04-21 18:23:26.453 ERROR - Container naturins-node-awesome_5_a186a675 for site naturins-node-awesome has exited, failing site start\\n2020-04-21 18:23:26.498 ERROR - Container naturins-node-awesome_5_a186a675 didn't respond to HTTP pings on port: 8080, failing site start. See container logs for debugging.\\n2020-04-21 18:23:31.325 INFO  - Starting container for site\\n2020-04-21 18:23:31.328 INFO  - docker run -d -p 5504:8080 --name naturins-node-awesome_0_686f4651 -e WEBSITE_NODE_DEFAULT_VERSION=12-lts -e APPSETTING_WEBSITE_NODE_DEFAULT_VERSION=12-lts -e WEBSITE_SITE_NAME=naturins-node-awesome -e WEBSITE_AUTH_ENABLED=False -e WEBSITE_ROLE_INSTANCE_ID=0 -e WEBSITE_HOSTNAME=naturins-node-awesome.azurewebsites.net -e WEBSITE_INSTANCE_ID=b7e72dec7e4cc8a4736179c6176e926e1a9bf791a689d53c7c98cb9379127d31 -e HTTP_LOGGING_ENABLED=1 appsvc/node:12-lts  \\n\\n2020-04-21 18:23:32.940 INFO  - Initiating warmup request to container naturins-node-awesome_0_686f4651 for site naturins-node-awesome\\n2020-04-21 18:23:38.160 ERROR - Container naturins-node-awesome_0_686f4651 for site naturins-node-awesome has exited, failing site start\\n2020-04-21 18:23:38.188 ERROR - Container naturins-node-awesome_0_686f4651 didn't respond to HTTP pings on port: 8080, failing site start. See container logs for debugging.\\n2020-04-21 18:23:38.210 INFO  - Stoping site naturins-node-awesome because it failed during startup.\\n2020-04-21 18:23:43.927 INFO  - Starting container for site\\n2020-04-21 18:23:43.931 INFO  - docker run -d -p 4647:8080 --name naturins-node-awesome_0_0e3fd480 -e WEBSITE_NODE_DEFAULT_VERSION=12-lts -e APPSETTING_WEBSITE_NODE_DEFAULT_VERSION=12-lts -e WEBSITE_SITE_NAME=naturins-node-awesome -e WEBSITE_AUTH_ENABLED=False -e WEBSITE_ROLE_INSTANCE_ID=0 -e WEBSITE_HOSTNAME=naturins-node-awesome.azurewebsites.net -e WEBSITE_INSTANCE_ID=b7e72dec7e4cc8a4736179c6176e926e1a9bf791a689d53c7c98cb9379127d31 -e HTTP_LOGGING_ENABLED=1 appsvc/node:12-lts  \\n\\n2020-04-21 18:23:45.511 INFO  - Initiating warmup request to container naturins-node-awesome_0_0e3fd480 for site naturins-node-awesome\\n2020-04-21 18:23:51.658 ERROR - Container naturins-node-awesome_0_0e3fd480 for site naturins-node-awesome has exited, failing site start\\n2020-04-21 18:23:51.675 ERROR - Container naturins-node-awesome_0_0e3fd480 didn't respond to HTTP pings on port: 8080, failing site start. See container logs for debugging.\\n2020-04-21 18:23:51.680 INFO  - Stoping site naturins-node-awesome because it failed during startup.\\n2020-04-21 18:24:21.705 INFO  - Starting container for site\\n2020-04-21 18:24:21.707 INFO  - docker run -d -p 8369:8080 --name naturins-node-awesome_0_c01e0c28 -e WEBSITE_NODE_DEFAULT_VERSION=12-lts -e APPSETTING_WEBSITE_NODE_DEFAULT_VERSION=12-lts -e WEBSITE_SITE_NAME=naturins-node-awesome -e WEBSITE_AUTH_ENABLED=False -e WEBSITE_ROLE_INSTANCE_ID=0 -e WEBSITE_HOSTNAME=naturins-node-awesome.azurewebsites.net -e WEBSITE_INSTANCE_ID=b7e72dec7e4cc8a4736179c6176e926e1a9bf791a689d53c7c98cb9379127d31 -e HTTP_LOGGING_ENABLED=1 appsvc/node:12-lts  \\n\\n2020-04-21 18:24:23.412 INFO  - Initiating warmup request to container naturins-node-awesome_0_c01e0c28 for site naturins-node-awesome\\n2020-04-21 18:24:29.565 ERROR - Container naturins-node-awesome_0_c01e0c28 for site naturins-node-awesome has exited, failing site start\\n2020-04-21 18:24:29.590 ERROR - Container naturins-node-awesome_0_c01e0c28 didn't respond to HTTP pings on port: 8080, failing site start. See container logs for debugging.\\n2020-04-21 18:24:29.595 INFO  - Stoping site naturins-node-awesome because it failed during startup.\\n2020-04-21 20:54:13.202 INFO  - Starting container for site\\n2020-04-21 20:54:13.205 INFO  - docker run -d -p 8288:8080 --name naturins-node-awesome_0_f694fec2 -e WEBSITE_NODE_DEFAULT_VERSION=12-lts -e APPSETTING_WEBSITE_NODE_DEFAULT_VERSION=12-lts -e WEBSITE_SITE_NAME=naturins-node-awesome -e WEBSITE_AUTH_ENABLED=False -e WEBSITE_ROLE_INSTANCE_ID=0 -e WEBSITE_HOSTNAME=naturins-node-awesome.azurewebsites.net -e WEBSITE_INSTANCE_ID=b7e72dec7e4cc8a4736179c6176e926e1a9bf791a689d53c7c98cb9379127d31 -e HTTP_LOGGING_ENABLED=1 appsvc/node:12-lts  \\n\\n\"]]},\"renderingProperties\":{\"enableEmailButtons\":false,\"isContainerNeeded\":true,\"type\":9,\"title\":null,\"description\":null}}]",
+                            "Legacy",
+                            "FloatLeft"
+                        ]
+                    ]
+                },
+                renderingProperties: {
+                    type: 11,
+                    title: "Logs and Insights",
+                    description: null
+                }
+            },
+            {
+                table: {
+                    tableName: "logging/on",
+                    columns: [
+                        {
+                            columnName: "Status",
+                            dataType: "String",
+                            columnType: null
+                        },
+                        {
+                            columnName: "Message",
+                            dataType: "String",
+                            columnType: null
+                        },
+                        {
+                            columnName: "Data.Name",
+                            dataType: "String",
+                            columnType: null
+                        },
+                        {
+                            columnName: "Data.Value",
+                            dataType: "String",
+                            columnType: null
+                        },
+                        {
+                            columnName: "Expanded",
+                            dataType: "String",
+                            columnType: null
+                        },
+                        {
+                            columnName: "Solutions",
+                            dataType: "String",
+                            columnType: null
+                        }
+                    ],
+                    rows: [
+                        [
+                            "Success",
+                            "Verbose application logging is on.",
+                            "Observation",
+                            "HTTP Logging is set to true. This means that you will be able to see any logs from your app itself. This should be turned on when you're troubleshooting your app.",
+                            "True",
+                            "null"
+                        ]
+                    ]
+                },
+                renderingProperties: {
+                    type: 7,
+                    title: null,
+                    description: null
+                }
+            },
+            {
+                table: {
+                    tableName: "",
+                    columns: [
+                        {
+                            columnName: "Status",
+                            dataType: "String",
+                            columnType: null
+                        },
+                        {
+                            columnName: "Message",
+                            dataType: "String",
+                            columnType: null
+                        },
+                        {
+                            columnName: "Data.Name",
+                            dataType: "String",
+                            columnType: null
+                        },
+                        {
+                            columnName: "Data.Value",
+                            dataType: "String",
+                            columnType: null
+                        },
+                        {
+                            columnName: "Expanded",
+                            dataType: "String",
+                            columnType: null
+                        },
+                        {
+                            columnName: "Solutions",
+                            dataType: "String",
+                            columnType: null
+                        }
+                    ],
+                    rows: [
+                        [
+                            "Info",
+                            "Link to Full Logs",
+                            "Link to Full Logs",
+                            "You can access the full logs from the Kudu/SCM site <a href=\"https://naturins-node-awesome.scm.azurewebsites.net/api/logs/docker\" target=\"_blank\">here</a>.",
+                            "True",
+                            "null"
+                        ]
+                    ]
+                },
+                renderingProperties: {
+                    type: 7,
+                    title: null,
+                    description: null
+                }
+            }
+        ],
+        status: {
+            message: null,
+            statusId: 0
+        },
+        dataProvidersMetadata: null,
+        suggestedUtterances: null
+    }
+};
