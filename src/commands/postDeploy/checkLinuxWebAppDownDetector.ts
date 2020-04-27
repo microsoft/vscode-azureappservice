@@ -12,7 +12,6 @@ import { timeFormat } from '../../constants';
 import { SiteTreeItem } from "../../explorer/SiteTreeItem";
 import { ext } from '../../extensionVariables';
 import { delay } from "../../utils/delay";
-import { getWorkspaceSetting } from '../../vsCodeConfig/settings';
 import { getLinuxDetectorError } from "./getLinuxDetectorError";
 
 const linuxLogViewer: string = 'LinuxLogViewer';
@@ -65,18 +64,14 @@ export async function checkLinuxWebAppDownDetector(correlationId: string, node: 
             }
         }
 
-        const enableDetectorsSetting: string = 'enableDetectors';
-        const showOutput: boolean | undefined = getWorkspaceSetting<boolean>(enableDetectorsSetting);
-        if (showOutput) {
-            ext.outputChannel.appendLog(detectorErrorMessage);
+        ext.outputChannel.appendLog(detectorErrorMessage);
 
-            // tslint:disable-next-line: no-floating-promises
-            ext.ui.showWarningMessage(detectorErrorMessage, { title: 'View details' }).then(async () => {
-                await callWithTelemetryAndErrorHandling('viewedDetectorDetails', async (context2: IActionContext) => {
-                    context2.telemetry.properties.viewed = 'true';
-                    await openInPortal(node.root, `${node.root.client.id}/troubleshoot`, { queryPrefix: `websitesextension_ext=asd.featurePath%3Ddetectors%2F${linuxLogViewer}` });
-                });
+        // tslint:disable-next-line: no-floating-promises
+        ext.ui.showWarningMessage(detectorErrorMessage, { title: 'View details' }).then(async () => {
+            await callWithTelemetryAndErrorHandling('viewedDetectorDetails', async (context2: IActionContext) => {
+                context2.telemetry.properties.viewed = 'true';
+                await openInPortal(node.root, `${node.root.client.id}/troubleshoot`, { queryPrefix: `websitesextension_ext=asd.featurePath%3Ddetectors%2F${linuxLogViewer}` });
             });
-        }
+        });
     });
 }

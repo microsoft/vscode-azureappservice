@@ -87,11 +87,13 @@ export async function getLinuxDetectorError(context: IActionContext, detectorId:
 }
 
 export function validateTimestamp(context: IActionContext, detectorTime: string, deployResultTime: string): boolean {
-    const secondsBetweenTimes: number = Math.abs((new Date(detectorTime).getTime() - new Date(deployResultTime).getTime()) / 1000);
+    const secondsBetweenTimes: number = (new Date(detectorTime).getTime() - new Date(deployResultTime).getTime()) / 1000;
 
     // the log timestamp is typically ~20 seconds after the deployResult time
     context.telemetry.properties.timeBetweenDeployAndDetector = secondsBetweenTimes.toString();
-    if (secondsBetweenTimes <= 60) {
+
+    // detector time must be more recent than deployResultTime
+    if (secondsBetweenTimes >= 0) {
         return true;
     }
 
