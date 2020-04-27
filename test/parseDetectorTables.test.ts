@@ -23,10 +23,10 @@ suite('Detector Dataset Parser', () => {
 
     test('Verify validateTimestamp', async () => {
         const expectedTimestamp: string = "2020-04-21T18:24:28";
-        // an hour stale
+        // an hour earlier (stale)
         const staleTimestamp: string = "2020-04-21T17:24:28";
-        // an hour early, meaning our deployment is more recent than the detector timestamp
-        const futureTimestamp: string = "2020-04-20T18:24:28";
+        // an hour in the future, meaning our deployment is more recent than the detector timestamp
+        const futureTimestamp: string = "2020-04-21T19:24:28";
 
         const bracketsAndSpace: RegExp = /\[.*?\]\s/;
         const appInsightTable: any = JSON.parse(detectorResponse.properties.dataset[1].table.rows[0][3])[0].table;
