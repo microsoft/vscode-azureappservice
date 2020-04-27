@@ -28,6 +28,6 @@ export { getRandomHexString } from './src/utils/randomUtils';
 export { nonNullValue } from './src/utils/nonNull';
 export { getRemoteDebugLanguage } from './src/commands/remoteDebug/getRemoteDebugLanguage';
 export { ColumnName, detectorResponseJSON, detectorTable, getLinuxDetectorError, validateTimestamp } from "./src/commands/postDeploy/getLinuxDetectorError";
-export { findTableByColumnName, findTableByRowValue, getValuesByColumnName } from "./src/commands/postDeploy/parseDetectorResponse";
+export { findTableByName, getValuesByColumnName } from "./src/commands/postDeploy/parseDetectorResponse";
 export { getGlobalSetting, updateGlobalSetting } from './src/vsCodeConfig/settings';
 export * from './src/utils/requestUtils';

@@ -6,27 +6,10 @@
 import { IActionContext } from "vscode-azureextensionui";
 import { ColumnName, detectorDataset, detectorTable } from "./getLinuxDetectorError";
 
-// the dataset contains several tables all with the same tableName and columnNames so to find the proper table, look for a specific value
-export function findTableByRowValue(datasets: detectorDataset[], searchValue: string): detectorTable | undefined {
+export function findTableByName(datasets: detectorDataset[], tableName: string): detectorTable | undefined {
     for (const dataset of datasets) {
-        for (const row of dataset.table.rows) {
-            for (const value of row) {
-                if (value === searchValue) {
-                    return dataset.table;
-                }
-            }
-        }
-    }
-
-    return undefined;
-}
-
-export function findTableByColumnName(datasets: detectorDataset[], columnName: ColumnName): detectorTable | undefined {
-    for (const dataset of datasets) {
-        for (const col of dataset.table.columns) {
-            if (col.columnName === columnName) {
-                return dataset.table;
-            }
+        if (dataset.table.tableName === tableName) {
+            return dataset.table;
         }
     }
 
@@ -38,7 +21,7 @@ export function getValuesByColumnName(context: IActionContext, table: detectorTa
     const rowIndex: number = table.columns.findIndex(column => column.columnName === columnName);
     const values: string[] = [];
 
-    if (rowIndex > 0) {
+    if (rowIndex >= 0) {
         for (const row of table.rows) {
             values.push(row[rowIndex]);
         }
@@ -48,6 +31,7 @@ export function getValuesByColumnName(context: IActionContext, table: detectorTa
     context.telemetry.properties.columnName = columnName;
     context.telemetry.properties.numberOfValues = values.length.toString();
 
+    // the last one should be the most recent
     // tslint:disable-next-line: strict-boolean-expressions
-    return values[0] || '';
+    return values.pop() || '';
 }

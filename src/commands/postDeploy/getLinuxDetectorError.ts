@@ -3,83 +3,98 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import moment = require("moment");
 import { IActionContext } from "vscode-azureextensionui";
+import { detectorTimestampFormat } from "../../constants";
 import { SiteTreeItem } from "../../explorer/SiteTreeItem";
+import { localize } from "../../localize";
 import { requestUtils } from "../../utils/requestUtils";
-import { findTableByColumnName, findTableByRowValue, getValuesByColumnName } from "./parseDetectorResponse";
+import { findTableByName, getValuesByColumnName } from "./parseDetectorResponse";
 
 export enum ColumnName {
     status = "Status",
     message = "Message",
-    name = "Data.Name",
-    value = "Data.Value",
+    name = "Name",
+    value = "Value",
     expanded = "Expanded",
     solutions = "Solutions",
     time = "Time",
     instance = "Instance",
     facility = "Facility",
-    failureCount = "FailureCount"
+    failureCount = "FailureCount",
+    dataValue = 'Data.Value',
+    dataName = 'Data.Name'
 }
-
-export async function getLinuxDetectorError(context: IActionContext, detectorId: string, node: SiteTreeItem, deployResultTime: Date, siteName: string): Promise<string | undefined> {
+export async function getLinuxDetectorError(context: IActionContext, detectorId: string, node: SiteTreeItem, startTime: string, endTime: string, deployEndTime: string): Promise<string | undefined> {
     const detectorUri: string = `${node.id}/detectors/${detectorId}`;
     const requestOptions: requestUtils.Request = await requestUtils.getDefaultAzureRequest(detectorUri, node.root);
-    const dayAfterDeployResultTime: Date = new Date(deployResultTime.getTime() + (24 * 60 * 60 * 1000));
 
-    // these parameters were specified to retrieve the timestamp from the detector by Detectors team
-    // string "Latest time seen by detector. To be used in VSCode integration."" is added to response
-    // when val: 'vscode' is added
     requestOptions.qs = {
         'api-version': "2015-08-01",
-        fId: "1",
-        btnId: "2",
-        val: "vscode",
-        inpId: "1",
-        startTime: deployResultTime.toISOString(),
-        endTime: dayAfterDeployResultTime.toISOString()
+        startTime,
+        endTime,
+        // query param to return plain text rather than html
+        logFormat: 'plain'
     };
 
     const detectorResponse: string = await requestUtils.sendRequest<string>(requestOptions);
     const responseJson: detectorResponseJSON = <detectorResponseJSON>JSON.parse(detectorResponse);
 
-    const datasets: detectorDataset[] = responseJson.properties.dataset;
-    const vsCodeIntegration: string = 'Latest time seen by detector. To be used in VSCode integration.';
-    const timestampTable: detectorTable | undefined = findTableByRowValue(datasets, vsCodeIntegration);
+    const insightLogTable: detectorTable | undefined = findTableByName(responseJson.properties.dataset, 'insight/logs');
 
-    // if we can't find the timestamp, exit and try again
-    if (!timestampTable) {
+    if (!insightLogTable) {
         return undefined;
     }
 
-    const timestamp: Date = new Date(getValuesByColumnName(context, timestampTable, ColumnName.value));
-    if (validateTimestamp(context, timestamp, deployResultTime)) {
+    const rawApplicationLog: string = getValuesByColumnName(context, insightLogTable, ColumnName.value);
+    const insightDataset: detectorDataset[] = <detectorDataset[]>JSON.parse(rawApplicationLog);
 
-        const criticalErrorTable: detectorTable | undefined = findTableByRowValue(datasets, 'Critical');
-        const failureCountTable: detectorTable | undefined = findTableByColumnName(datasets, ColumnName.failureCount);
+    let insightTable: detectorTable;
+    let detectorTimestamp: string;
 
-        // if the criticalError table or failureCounts aren't defined, we can't display anything to the user
-        if (!criticalErrorTable || !failureCountTable) {
+    const appInsightTable: detectorTable | undefined = findTableByName(insightDataset, 'application/insight');
+    if (appInsightTable) {
+        insightTable = appInsightTable;
+        context.telemetry.properties.insight = 'app';
+        detectorTimestamp = getValuesByColumnName(context, appInsightTable, ColumnName.dataName);
+    } else {
+        // if there are no app insights, defer to the Docker container
+        const dockerInsightTable: detectorTable | undefined = findTableByName(insightDataset, 'docker/insight');
+        if (!dockerInsightTable) {
             return undefined;
         }
 
-        const errorMessages: string | undefined = getValuesByColumnName(context, criticalErrorTable, ColumnName.message);
-        const failureCount: string | undefined = getValuesByColumnName(context, failureCountTable, ColumnName.failureCount);
+        insightTable = dockerInsightTable;
+        context.telemetry.properties.insight = 'docker';
+        detectorTimestamp = getValuesByColumnName(context, dockerInsightTable, ColumnName.dataName);
+    }
 
-        context.telemetry.properties.errorMessages = JSON.stringify(errorMessages);
-        context.telemetry.properties.failureCount = failureCount;
+    // The format of the timestamp in the insight response is [1] 2020-04-21T18:23:50
+    // The bracket are prefixed because internally the table is a Dictionary<string,object> so if the key is non-unique, it will throw an error
+    const bracketsAndSpace: RegExp = /\[.*?\]\s/;
+    detectorTimestamp = moment.utc(detectorTimestamp.replace(bracketsAndSpace, '')).format(detectorTimestampFormat);
 
-        return `Critical insights found for "${siteName}": ${failureCount} as of ${new Date(timestamp).toLocaleString()}. Critical insight preview: "${errorMessages}". Click here to access "App Service Diagnostics" for recommendations.`;
+    if (!detectorTimestamp || !validateTimestamp(context, detectorTimestamp, deployEndTime)) {
+        return undefined;
+    }
+
+    if (getValuesByColumnName(context, insightTable, ColumnName.status) === 'Critical') {
+        const insightError: string = getValuesByColumnName(context, insightTable, ColumnName.dataValue);
+        context.telemetry.properties.errorMessages = JSON.stringify(insightError);
+        return localize('criticalError', '"{0}" reported a critical error: {1}', node.root.client.siteName, insightError);
     }
 
     return undefined;
 }
 
-export function validateTimestamp(context: IActionContext, detectorTime: Date, deployResultTime: Date): boolean {
-    const secondsBetweenTimes: number = Math.abs((detectorTime.getTime() - deployResultTime.getTime()) / 1000);
-
-    // we don't know how long it takes for the deployResult startTime and the detector timestamp
+export function validateTimestamp(context: IActionContext, detectorTime: string, deployResultTime: string): boolean {
+    const secondsBetweenTimes: number = (new Date(detectorTime).getTime() - new Date(deployResultTime).getTime()) / 1000;
+    // the detector can be as fast as ~20 seconds for app errors, but Docker container errors seem to timeout at
+    // about 5 minutes
     context.telemetry.properties.timeBetweenDeployAndDetector = secondsBetweenTimes.toString();
-    if (secondsBetweenTimes <= 60) {
+
+    // detector time must be more recent than deployResultTime
+    if (secondsBetweenTimes >= 0) {
         return true;
     }
 
@@ -98,6 +113,7 @@ export type detectorDataset = {
 };
 
 export type detectorTable = {
+    tableName: string,
     columns: detectorColumn[],
     rows: string[]
 };

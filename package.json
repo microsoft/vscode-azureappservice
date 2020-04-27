@@ -764,11 +764,6 @@
                     "description": "Prepends each line displayed in the Azure App Service output channel with a timestamp",
                     "default": true
                 },
-                "appService.enableDetectors": {
-                    "type": "boolean",
-                    "description": "Enables detectors that diagnose post-deployment Linux Container status",
-                    "default": false
-                },
                 "appService.enablePythonRemoteDebugging": {
                     "type": "boolean",
                     "description": "Enable remote debugging for Python web apps (experimental)",
@@ -829,6 +824,7 @@
         "azure-arm-website": "^5.3.0",
         "dotenv": "^6.2.0",
         "fs-extra": "^8.0.0",
+        "moment": "^2.24.0",
         "portfinder": "^1.0.25",
         "request-promise": "^4.2.5",
         "vscode-azureappservice": "^0.57.5",

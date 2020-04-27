@@ -109,7 +109,7 @@ export async function deploy(context: IActionContext, target?: vscode.Uri | Site
 
     showDeployCompletedMessage(node);
 
-    // intentionally not waiting
+    // don't wait
     // tslint:disable-next-line: no-floating-promises
     runPostDeployTask(node, correlationId, tokenSource);
 }

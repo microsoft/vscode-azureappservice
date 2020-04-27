@@ -3,44 +3,35 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import moment = require("moment");
 import { CancellationTokenSource } from "vscode";
 import { callWithTelemetryAndErrorHandling, IActionContext, openInPortal, UserCancelledError } from "vscode-azureextensionui";
 import { KuduClient } from "vscode-azurekudu";
 import { DeployResult } from "vscode-azurekudu/lib/models";
+import { detectorTimestampFormat } from '../../constants';
 import { SiteTreeItem } from "../../explorer/SiteTreeItem";
 import { ext } from '../../extensionVariables';
 import { delay } from "../../utils/delay";
-import { getWorkspaceSetting } from '../../vsCodeConfig/settings';
 import { getLinuxDetectorError } from "./getLinuxDetectorError";
 
-const linuxContainerStartFailureId: string = 'LinuxContainerStartFailure';
+const linuxLogViewer: string = 'LinuxLogViewer';
 
 export async function checkLinuxWebAppDownDetector(correlationId: string, node: SiteTreeItem, tokenSource: CancellationTokenSource): Promise<void> {
-    return await callWithTelemetryAndErrorHandling('appService.linuxWebAppDownDetector', async (context: IActionContext): Promise<void> => {
+    return await callWithTelemetryAndErrorHandling('linuxWebAppDownDetector', async (context: IActionContext): Promise<void> => {
         context.errorHandling.suppressDisplay = true;
         context.telemetry.properties.correlationId = correlationId;
 
         const kuduClient: KuduClient = await node.root.client.getKuduClient();
         const deployment: DeployResult = await kuduClient.deployment.getResult('latest');
-        if (!deployment.startTime) {
+
+        if (!deployment.endTime) {
             // if there's no deployment detected, nothing can be done
             context.telemetry.properties.cancelStep = 'noDeployResult';
             return;
         }
 
-        const deployResultTime: Date = new Date(deployment.startTime);
-
-        const enableDetectorsSetting: string = 'enableDetectors';
-        const showOutput: boolean | undefined = getWorkspaceSetting<boolean>(enableDetectorsSetting);
-
-        if (showOutput) {
-            const detectorOutput: string = `Diagnosing web app "${node.root.client.siteName}" for critical errors...`;
-            ext.outputChannel.appendLog(detectorOutput);
-        }
-
         let detectorErrorMessage: string | undefined;
-        // for telemetry's sake, wait for 30 minutes from after "deployment complete" prompt
-        const detectorTimeoutMs: number = Date.now() + 30 * 60 * 1000;
+        const detectorTimeoutMs: number = Date.now() + 5 * 60 * 1000;
 
         while (!detectorErrorMessage) {
             if (tokenSource.token.isCancellationRequested) {
@@ -50,28 +41,37 @@ export async function checkLinuxWebAppDownDetector(correlationId: string, node: 
             }
 
             if (Date.now() > detectorTimeoutMs) {
-                if (showOutput) {
-                    const noIssuesFound: string = `Diagnosing for "${node.root.client.siteName}" has timed out.`;
-                    ext.outputChannel.appendLog(noIssuesFound);
-                    context.telemetry.properties.timedOut = 'true';
-                }
+                context.telemetry.properties.timedOut = 'true';
                 return undefined;
             }
 
-            // tslint:disable-next-line: no-unsafe-any
-            detectorErrorMessage = await getLinuxDetectorError(context, linuxContainerStartFailureId, node, deployResultTime, node.root.client.fullName);
+            // There's a requirement (outside the control of the LinuxLogDetector team) that these times have to be less than the current time
+            // by 14.5 minutes. That being said, the LinuxLogDetector team ignores the times and always gets the most recent entry.
+            // We'll use 30/60 minutes just to make sure we're well over 14.5
+            const nowTime: number = Date.now();
+            const startTimeDate: Date = new Date(nowTime - (60 * 60 * 1000));
+            const endTimeDate: Date = new Date(nowTime - (30 * 60 * 1000));
+
+            const startTime: string = moment.utc(startTimeDate).format(detectorTimestampFormat);
+            const endTime: string = moment.utc(endTimeDate).format(detectorTimestampFormat);
+            const deployEndTime: string = moment.utc(deployment.endTime).format(detectorTimestampFormat);
+
+            detectorErrorMessage = await getLinuxDetectorError(context, linuxLogViewer, node, startTime, endTime, deployEndTime);
 
             if (!detectorErrorMessage) {
-                // poll every minute
-                await delay(1000 * 60);
+                // poll every 10 seconds
+                await delay(1000 * 10);
             }
         }
 
-        if (showOutput) {
-            await ext.ui.showWarningMessage(detectorErrorMessage, { title: 'Open in Portal' });
-            await openInPortal(node.root, `${node.root.client.id}/troubleshoot`, { queryPrefix: `websitesextension_ext=asd.featurePath%3Ddetectors%2F${linuxContainerStartFailureId}` });
-            context.telemetry.properties.didClick = 'true';
-        }
+        ext.outputChannel.appendLog(detectorErrorMessage);
 
+        // tslint:disable-next-line: no-floating-promises
+        ext.ui.showWarningMessage(detectorErrorMessage, { title: 'View details' }).then(async () => {
+            await callWithTelemetryAndErrorHandling('viewedDetectorDetails', async (context2: IActionContext) => {
+                context2.telemetry.properties.viewed = 'true';
+                await openInPortal(node.root, `${node.root.client.id}/troubleshoot`, { queryPrefix: `websitesextension_ext=asd.featurePath%3Ddetectors%2F${linuxLogViewer}` });
+            });
+        });
     });
 }
