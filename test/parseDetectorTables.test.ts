@@ -25,16 +25,16 @@ suite('Detector Dataset Parser', () => {
         const expectedTimestamp: string = "2020-04-21T18:24:28";
         // an hour stale
         const staleTimestamp: string = "2020-04-21T17:24:28";
-        // a day stale
-        const staleTimestamp2: string = "2020-04-20T18:24:28";
+        // an hour early, meaning our deployment is more recent than the detector timestamp
+        const futureTimestamp: string = "2020-04-20T18:24:28";
 
         const bracketsAndSpace: RegExp = /\[.*?\]\s/;
         const appInsightTable: any = JSON.parse(detectorResponse.properties.dataset[1].table.rows[0][3])[0].table;
         const detectorTimestamp: string = getValuesByColumnName(context, appInsightTable, ColumnName.dataName).replace(bracketsAndSpace, '');
 
         assert.equal(validateTimestamp(context, detectorTimestamp, expectedTimestamp), true);
-        assert.equal(validateTimestamp(context, detectorTimestamp, staleTimestamp), false);
-        assert.equal(validateTimestamp(context, detectorTimestamp, staleTimestamp2), false);
+        assert.equal(validateTimestamp(context, detectorTimestamp, staleTimestamp), true);
+        assert.equal(validateTimestamp(context, detectorTimestamp, futureTimestamp), false);
     });
 
     test('Get error messages', async () => {

@@ -8,7 +8,7 @@ import { CancellationTokenSource } from "vscode";
 import { callWithTelemetryAndErrorHandling, IActionContext, openInPortal, UserCancelledError } from "vscode-azureextensionui";
 import { KuduClient } from "vscode-azurekudu";
 import { DeployResult } from "vscode-azurekudu/lib/models";
-import { timeFormat } from '../../constants';
+import { detectorTimestampFormat } from '../../constants';
 import { SiteTreeItem } from "../../explorer/SiteTreeItem";
 import { ext } from '../../extensionVariables';
 import { delay } from "../../utils/delay";
@@ -52,9 +52,9 @@ export async function checkLinuxWebAppDownDetector(correlationId: string, node: 
             const startTimeDate: Date = new Date(nowTime - (60 * 60 * 1000));
             const endTimeDate: Date = new Date(nowTime - (30 * 60 * 1000));
 
-            const startTime: string = moment.utc(startTimeDate).format(timeFormat);
-            const endTime: string = moment.utc(endTimeDate).format(timeFormat);
-            const deployEndTime: string = moment.utc(deployment.endTime).format(timeFormat);
+            const startTime: string = moment.utc(startTimeDate).format(detectorTimestampFormat);
+            const endTime: string = moment.utc(endTimeDate).format(detectorTimestampFormat);
+            const deployEndTime: string = moment.utc(deployment.endTime).format(detectorTimestampFormat);
 
             detectorErrorMessage = await getLinuxDetectorError(context, linuxLogViewer, node, startTime, endTime, deployEndTime);
 

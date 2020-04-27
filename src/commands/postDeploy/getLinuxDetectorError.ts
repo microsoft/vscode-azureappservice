@@ -5,7 +5,7 @@
 
 import moment = require("moment");
 import { IActionContext } from "vscode-azureextensionui";
-import { timeFormat } from "../../constants";
+import { detectorTimestampFormat } from "../../constants";
 import { SiteTreeItem } from "../../explorer/SiteTreeItem";
 import { localize } from "../../localize";
 import { requestUtils } from "../../utils/requestUtils";
@@ -52,13 +52,11 @@ export async function getLinuxDetectorError(context: IActionContext, detectorId:
     let insightTable: detectorTable;
     let detectorTimestamp: string;
 
-    // [1] 2020-04-21T18:23:50 is the format of the timestamp in the insight response, this RegExp will remove the brackets
-    const bracketsAndSpace: RegExp = /\[.*?\]\s/;
     const appInsightTable: detectorTable | undefined = findTableByName(insightDataset, 'application/insight');
     if (appInsightTable) {
         insightTable = appInsightTable;
         context.telemetry.properties.insight = 'app';
-        detectorTimestamp = getValuesByColumnName(context, appInsightTable, ColumnName.dataName).replace(bracketsAndSpace, '');
+        detectorTimestamp = getValuesByColumnName(context, appInsightTable, ColumnName.dataName);
     } else {
         // if there are no app insights, defer to the Docker container
         const dockerInsightTable: detectorTable | undefined = findTableByName(insightDataset, 'docker/insight');
@@ -68,10 +66,13 @@ export async function getLinuxDetectorError(context: IActionContext, detectorId:
 
         insightTable = dockerInsightTable;
         context.telemetry.properties.insight = 'docker';
-        detectorTimestamp = getValuesByColumnName(context, dockerInsightTable, ColumnName.dataName).replace(bracketsAndSpace, '');
+        detectorTimestamp = getValuesByColumnName(context, dockerInsightTable, ColumnName.dataName);
     }
 
-    detectorTimestamp = moment.utc(detectorTimestamp).format(timeFormat);
+    // The format of the timestamp in the insight response is [1] 2020-04-21T18:23:50
+    // The bracket are prefixed because internally the table is a Dictionary<string,object> so if the key is non-unique, it will throw an error
+    const bracketsAndSpace: RegExp = /\[.*?\]\s/;
+    detectorTimestamp = moment.utc(detectorTimestamp.replace(bracketsAndSpace, '')).format(detectorTimestampFormat);
 
     if (!detectorTimestamp || !validateTimestamp(context, detectorTimestamp, deployEndTime)) {
         return undefined;

@@ -32,4 +32,4 @@ export namespace AppServiceDialogResponses {
 
 export const envFileName: string = '.env';
 
-export const timeFormat: string = 'YYYY-MM-DDTHH:mm';
+export const detectorTimestampFormat: string = 'YYYY-MM-DDTHH:mm';
