@@ -88,8 +88,8 @@ export async function getLinuxDetectorError(context: IActionContext, detectorId:
 
 export function validateTimestamp(context: IActionContext, detectorTime: string, deployResultTime: string): boolean {
     const secondsBetweenTimes: number = (new Date(detectorTime).getTime() - new Date(deployResultTime).getTime()) / 1000;
-
-    // the log timestamp is typically ~20 seconds after the deployResult time
+    // the detector can be as fast as ~20 seconds for app errors, but Docker container errors seem to timeout at
+    // about 5 minutes
     context.telemetry.properties.timeBetweenDeployAndDetector = secondsBetweenTimes.toString();
 
     // detector time must be more recent than deployResultTime
