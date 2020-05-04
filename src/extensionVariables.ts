@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { ExtensionContext, TreeView } from "vscode";
-import { AzExtTreeDataProvider, AzExtTreeItem, IAzExtOutputChannel, IAzureUserInput, ITelemetryReporter } from "vscode-azureextensionui";
+import { AzExtTreeDataProvider, AzExtTreeItem, IAzExtOutputChannel, IAzureUserInput } from "vscode-azureextensionui";
 import { AzureAccountTreeItem } from "./explorer/AzureAccountTreeItem";
 import { FileEditor } from "./explorer/editors/FileEditor";
 
@@ -14,7 +14,6 @@ import { FileEditor } from "./explorer/editors/FileEditor";
 export namespace ext {
     export let outputChannel: IAzExtOutputChannel;
     export let ui: IAzureUserInput;
-    export let reporter: ITelemetryReporter;
     export let context: ExtensionContext;
     export let ignoreBundle: boolean | undefined;
     export let fileEditor: FileEditor;
