@@ -23,6 +23,10 @@ export class FileEditor extends BaseEditor<FileTreeItem> {
         return node.label;
     }
 
+    public async getResourceName(node: FileTreeItem): Promise<string> {
+        return node.root.client.fullName;
+    }
+
     public async getData(node: FileTreeItem): Promise<string> {
         const result: IFileResult = await getFile(node.root.client, node.path);
         this._etags.set(node.fullId, result.etag);
