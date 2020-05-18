@@ -248,7 +248,7 @@
             },
             {
                 "command": "appService.AddCosmosDBConnection",
-                "title": "Add New Connection...",
+                "title": "Add Database Connection to Web App...",
                 "category": "Azure App Service"
             },
             {
