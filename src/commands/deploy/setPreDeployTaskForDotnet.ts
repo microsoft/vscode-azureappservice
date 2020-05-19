@@ -33,7 +33,7 @@ export async function setPreDeployTaskForDotnet(context: IDeployContext): Promis
         return;
     }
 
-    // if the user has scmDoBuild configured in a ".deployment" file - assume they've already configured their project's deploy settings
+    // if the user has a ".deployment" file - assume they've already configured their project's deploy settings
     if (await fse.pathExists(path.join(context.effectiveDeployFsPath, constants.deploymentFileName))) {
         return;
     }
