@@ -6,8 +6,9 @@
 import { MessageItem } from "vscode";
 
 export const deploymentFileName: string = '.deployment';
+export const scmDoBuildSetting: string = 'SCM_DO_BUILD_DURING_DEPLOYMENT';
 export const deploymentFile: string = `[config]
-SCM_DO_BUILD_DURING_DEPLOYMENT=true`;
+${scmDoBuildSetting}=true`;
 export const none: string = 'None';
 export const isWindows: boolean = /^win/.test(process.platform);
 

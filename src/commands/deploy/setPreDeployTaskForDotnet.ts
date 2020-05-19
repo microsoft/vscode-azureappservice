@@ -33,6 +33,16 @@ export async function setPreDeployTaskForDotnet(context: IDeployContext): Promis
         return;
     }
 
+    // if the user has scmDoBuild configured in a ".deployment" file - assume they've already configured their project's deploy settings
+    const deploymentFilePath: string = path.join(context.effectiveDeployFsPath, constants.deploymentFileName);
+    if (await fse.pathExists(deploymentFilePath)) {
+        const deploymentFileContents: string = (await fse.readFile(deploymentFilePath)).toString();
+        // NOTE: not worth checking the value of scmDoBuild. Could get complicated and these users are probably advanced enough to handle their own deploy settings anyway
+        if (deploymentFileContents.includes(constants.scmDoBuildSetting)) {
+            return;
+        }
+    }
+
     const csprojFile: string | undefined = await tryGetCsprojFile(context, workspaceFspath);
 
     // if we found a .csproj file set the tasks and workspace settings
