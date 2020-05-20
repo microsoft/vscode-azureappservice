@@ -10,7 +10,7 @@ import { ext } from "../extensionVariables";
 
 export async function deleteWebApp(context: IActionContext, node?: SiteTreeItem): Promise<void> {
     if (!node) {
-        node = await ext.tree.showTreeItemPicker<WebAppTreeItem>(WebAppTreeItem.contextValue, context);
+        node = await ext.tree.showTreeItemPicker<WebAppTreeItem>(WebAppTreeItem.contextValue, { ...context, suppressCreatePick: true });
     }
 
     await node.deleteTreeItem(context);

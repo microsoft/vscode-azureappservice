@@ -9,7 +9,7 @@ import { ext } from "../../extensionVariables";
 
 export async function viewDeploymentLogs(context: IActionContext, node?: DeploymentTreeItem): Promise<void> {
     if (!node) {
-        node = <DeploymentTreeItem>(await ext.tree.showTreeItemPicker(DeploymentTreeItem.contextValue, context));
+        node = await ext.tree.showTreeItemPicker<DeploymentTreeItem>(DeploymentTreeItem.contextValue, { ...context, suppressCreatePick: true });
     }
     await node.viewDeploymentLogs(context);
 }

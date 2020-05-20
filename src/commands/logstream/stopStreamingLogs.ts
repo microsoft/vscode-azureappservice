@@ -11,7 +11,7 @@ import { ext } from '../../extensionVariables';
 
 export async function stopStreamingLogs(context: IActionContext, node?: SiteTreeItem): Promise<void> {
     if (!node) {
-        node = await ext.tree.showTreeItemPicker<WebAppTreeItem>(WebAppTreeItem.contextValue, context);
+        node = await ext.tree.showTreeItemPicker<WebAppTreeItem>(WebAppTreeItem.contextValue, { ...context, suppressCreatePick: true });
     }
 
     await appservice.stopStreamingLogs(node.root.client);
