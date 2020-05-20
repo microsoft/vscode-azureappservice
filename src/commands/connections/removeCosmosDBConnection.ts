@@ -9,7 +9,7 @@ import { ext } from "../../extensionVariables";
 
 export async function removeCosmosDBConnection(context: IActionContext, node?: CosmosDBConnection): Promise<void> {
     if (!node) {
-        node = <CosmosDBConnection>await ext.tree.showTreeItemPicker(CosmosDBConnection.contextValue, context);
+        node = <CosmosDBConnection>await ext.tree.showTreeItemPicker(CosmosDBConnection.contextValue, { ...context, suppressCreatePick: true });
     }
 
     await node.deleteTreeItem(context);
