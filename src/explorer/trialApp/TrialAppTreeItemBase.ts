@@ -6,7 +6,7 @@
 import { AzExtParentTreeItem, AzExtTreeItem, TreeItemIconPath } from 'vscode-azureextensionui';
 import { localize } from '../../localize';
 import { getIconPath } from '../../utils/pathUtils';
-import { ITrialAppMetadata } from '../ITrialAppMetadata';
+import { ITrialAppMetadata } from './ITrialAppMetadata';
 
 export abstract class TrialAppTreeItemBase extends AzExtTreeItem {
 

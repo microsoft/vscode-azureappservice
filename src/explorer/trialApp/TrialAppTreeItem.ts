@@ -7,7 +7,7 @@ import { openUrl } from '../../utils/openUrl';
 import { requestUtils } from '../../utils/requestUtils';
 import { AzureAccountTreeItem } from '../AzureAccountTreeItem';
 import { ISiteTreeItem } from '../ISiteTreeItem';
-import { ITrialAppMetadata } from '../ITrialAppMetadata';
+import { ITrialAppMetadata } from './ITrialAppMetadata';
 import { TrialAppTreeItemBase } from './TrialAppTreeItemBase';
 
 export class TrialAppTreeItem extends TrialAppTreeItemBase implements ISiteTreeItem {
