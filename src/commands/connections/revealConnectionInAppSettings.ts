@@ -9,7 +9,7 @@ import { ext } from "../../extensionVariables";
 
 export async function revealConnectionInAppSettings(context: IActionContext, node?: CosmosDBConnection): Promise<void> {
     if (!node) {
-        node = <CosmosDBConnection>await ext.tree.showTreeItemPicker(CosmosDBConnection.contextValue, { ...context, suppressCreatePick: true });
+        node = await ext.tree.showTreeItemPicker<CosmosDBConnection>(CosmosDBConnection.contextValue, { ...context, suppressCreatePick: true });
     }
 
     // Ideally this reveals all appSettingKeys, but for now just reveal the first one
