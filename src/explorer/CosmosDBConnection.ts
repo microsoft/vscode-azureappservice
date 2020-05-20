@@ -3,9 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as vscode from 'vscode';
 import { ISiteTreeRoot } from 'vscode-azureappservice';
-import { AzureTreeItem, DialogResponses, UserCancelledError } from 'vscode-azureextensionui';
+import { AzureTreeItem, DialogResponses } from 'vscode-azureextensionui';
 import { ext } from '../extensionVariables';
 import { getThemedIconPath, IThemedIconPath } from '../utils/pathUtils';
 import { DatabaseAccountTreeItem, DatabaseTreeItem } from '../vscode-cosmos.api';
@@ -52,11 +51,7 @@ export class CosmosDBConnection extends AzureTreeItem<ISiteTreeRoot> {
         const properties = appSettings.properties;
         if (properties) {
             const warning: string = `Are you sure you want to remove connection "${this.label}"? This will delete the following application settings: ${this.appSettingKeys.map((s) => `"${s}"`).join(', ')}.`;
-            const items: vscode.MessageItem[] = [DialogResponses.deleteResponse, DialogResponses.cancel];
-            const result: vscode.MessageItem = await ext.ui.showWarningMessage(warning, { modal: true }, ...items);
-            if (result === DialogResponses.cancel) {
-                throw new UserCancelledError();
-            }
+            await ext.ui.showWarningMessage(warning, { modal: true }, DialogResponses.deleteResponse);
             this.appSettingKeys.forEach((key) => {
                 delete properties[key];
             });
