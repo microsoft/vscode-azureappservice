@@ -8,9 +8,9 @@ import WebSiteManagementClient from "azure-arm-website";
 import { AppServicePlan } from "azure-arm-website/lib/models";
 import { MessageItem } from "vscode";
 import { IAppServiceWizardContext, SiteNameStep, WebsiteOS } from "vscode-azureappservice";
-import { createAzureClient, DialogResponses, IActionContext } from "vscode-azureextensionui";
-import { LocationListStep } from 'vscode-azureextensionui';
+import { createAzureClient, DialogResponses, IActionContext, LocationListStep } from "vscode-azureextensionui";
 import { ext } from "../../extensionVariables";
+import { localize } from "../../localize";
 import { getResourceGroupFromId } from '../../utils/azureUtils';
 import { nonNullProp } from "../../utils/nonNull";
 import { getWorkspaceSetting, updateGlobalSetting } from "../../vsCodeConfig/settings";
@@ -107,8 +107,8 @@ async function promptPerformanceWarning(context: IActionContext, asp: AppService
 
         const numberOfSites: number = nonNullProp(asp, 'numberOfSites');
         const createAnyway: MessageItem = { title: 'Create anyway' };
-        const inputs: MessageItem[] = [createAnyway, DialogResponses.dontWarnAgain, DialogResponses.cancel];
-        const input: MessageItem = await ext.ui.showWarningMessage(`The selected plan currently has ${numberOfSites} apps. Deploying more than ${maxNumberOfSites} apps may degrade the performance on the apps in the plan.  Use "Create Web App... (Advanced)" to change the default resource names.`, { modal: true }, ...inputs);
+        const message: string = localize('tooManyPlansWarning', 'The selected plan currently has {0} apps. Deploying more than {1} apps may degrade the performance on the apps in the plan.  Use "Create Web App... (Advanced)" to change the default resource names.', numberOfSites, maxNumberOfSites);
+        const input: MessageItem = await ext.ui.showWarningMessage(message, { modal: true }, createAnyway, DialogResponses.dontWarnAgain);
 
         if (input === DialogResponses.dontWarnAgain) {
             context.telemetry.properties.turnOffPerfWarning = 'true';
