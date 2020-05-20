@@ -3,7 +3,7 @@
 *  Licensed under the MIT License. See License.txt in the project root for license information.
 *--------------------------------------------------------------------------------------------*/
 
-import { MessageItem } from "vscode";
+import { MessageItem } from 'vscode';
 
 export const deploymentFileName: string = '.deployment';
 export const deploymentFile: string = `[config]
@@ -33,3 +33,5 @@ export namespace AppServiceDialogResponses {
 export const envFileName: string = '.env';
 
 export const detectorTimestampFormat: string = 'YYYY-MM-DDTHH:mm';
+
+export const TrialAppLoginSession: string = 'TrialApp.LoginSession';

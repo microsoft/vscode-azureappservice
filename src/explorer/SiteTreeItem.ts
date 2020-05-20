@@ -7,19 +7,23 @@ import * as WebSiteModels from 'azure-arm-website/lib/models';
 import * as fse from 'fs-extra';
 import * as path from 'path';
 import { MessageItem } from 'vscode';
-import { AppSettingsTreeItem, AppSettingTreeItem, deleteSite, DeploymentsTreeItem, DeploymentTreeItem, FolderTreeItem, ISiteTreeRoot, LinuxRuntimes, LogFilesTreeItem, SiteClient, SiteFilesTreeItem } from 'vscode-azureappservice';
+import {
+    AppSettingsTreeItem, AppSettingTreeItem, deleteSite, DeploymentsTreeItem, DeploymentTreeItem, FolderTreeItem, ISiteTreeRoot, LinuxRuntimes, LogFilesTreeItem, SiteClient, SiteFilesTreeItem
+} from 'vscode-azureappservice';
 import { AzExtTreeItem, AzureParentTreeItem, AzureTreeItem, DialogResponses, IActionContext } from 'vscode-azureextensionui';
 import * as constants from '../constants';
 import { ext } from '../extensionVariables';
+import { openUrl } from '../utils/openUrl';
 import { venvUtils } from '../utils/venvUtils';
 import { getWorkspaceSetting, updateWorkspaceSetting } from '../vsCodeConfig/settings';
 import { ConnectionsTreeItem } from './ConnectionsTreeItem';
 import { CosmosDBConnection } from './CosmosDBConnection';
 import { CosmosDBTreeItem } from './CosmosDBTreeItem';
+import { ISiteTreeItem } from './ISiteTreeItem';
 import { NotAvailableTreeItem } from './NotAvailableTreeItem';
 import { WebJobsNATreeItem, WebJobsTreeItem } from './WebJobsTreeItem';
 
-export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
+export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> implements ISiteTreeItem {
     public readonly abstract contextValue: string;
     public readonly abstract label: string;
 
@@ -45,6 +49,18 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         this._logFilesNode = new LogFilesTreeItem(this);
         // Can't find actual documentation on this, but the portal claims it and this feedback suggests it's not planned https://aka.ms/AA4q5gi
         this._webJobsNode = this.root.client.isLinux ? new WebJobsNATreeItem(this) : new WebJobsTreeItem(this);
+    }
+
+    public get defaultHostUrl(): string {
+        return this.root.client.defaultHostUrl;
+    }
+
+    public get defaultHostName(): string {
+        return this.root.client.defaultHostName;
+    }
+
+    public async browse(): Promise<void> {
+        await openUrl(this.root.client.defaultHostUrl);
     }
 
     public get root(): ISiteTreeRoot {

@@ -29,6 +29,9 @@
     ],
     "preview": true,
     "activationEvents": [
+        "onUri",
+        "onCommand:appService.ImportTrialApp",
+        "onCommand:appService.RemoveTrialApp",
         "onCommand:appService.CreateWebApp",
         "onCommand:appService.CreateWebAppAdvanced",
         "onCommand:appService.Refresh",
@@ -71,6 +74,16 @@
     "main": "./main.js",
     "contributes": {
         "commands": [
+            {
+                "command": "appService.ImportTrialApp",
+                "title": "Import Trial App",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.RemoveTrialApp",
+                "title": "Remove Trial App",
+                "category": "Azure App Service"
+            },
             {
                 "command": "appService.selectSubscriptions",
                 "title": "Select Subscriptions...",
@@ -317,6 +330,14 @@
         "menus": {
             "commandPalette": [
                 {
+                    "command": "appService.ImportTrialApp",
+                    "when": "never"
+                },
+                {
+                    "command": "appService.RemoveTrialApp",
+                    "when": "never"
+                },
+                {
                     "command": "appService.selectSubscriptions",
                     "when": "never"
                 },
@@ -389,13 +410,18 @@
                     "group": "2_subscriptionGeneralCommands@1"
                 },
                 {
+                    "command": "appService.RemoveTrialApp",
+                    "when": "view == azureAppService && viewItem == trialApp",
+                    "group": "1_trialAppCommands@1"
+                },
+                {
                     "command": "appService.OpenInPortal",
                     "when": "view == azureAppService && viewItem =~ /^(appService|deploymentSlot)$/",
                     "group": "1_appServiceGeneralCommands@1"
                 },
                 {
                     "command": "appService.Browse",
-                    "when": "view == azureAppService && viewItem =~ /^(appService|deploymentSlot)$/",
+                    "when": "view == azureAppService && viewItem =~ /^(appService|deploymentSlot|trialApp)$/",
                     "group": "1_appServiceGeneralCommands@2"
                 },
                 {
