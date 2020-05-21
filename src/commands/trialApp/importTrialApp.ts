@@ -44,6 +44,7 @@ export class ImportUriHandler implements UriHandler {
 
         if (!data.url) {
             await ext.ui.showWarningMessage(`Failed to import URI: ${uri}`);
+            return;
         }
 
         await callWithTelemetryAndErrorHandling<void>('importTrialApp', async (context: IActionContext): Promise<void> => {
