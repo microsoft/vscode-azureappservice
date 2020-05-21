@@ -331,7 +331,7 @@
             "commandPalette": [
                 {
                     "command": "appService.ImportTrialApp",
-                    "when": "view == azureAppService && viewItem == trialApp"
+                    "when": "never"
                 },
                 {
                     "command": "appService.RemoveTrialApp",
