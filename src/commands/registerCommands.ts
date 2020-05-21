@@ -8,7 +8,6 @@ import { AppSettingTreeItem, FileTreeItem, registerSiteCommand } from 'vscode-az
 import { AzureTreeItem, IActionContext, openInPortal as uiOpenInPortal, registerCommand, registerEvent } from 'vscode-azureextensionui';
 import { DeploymentSlotsNATreeItem, ScaleUpTreeItem } from '../explorer/DeploymentSlotsTreeItem';
 import { ext } from '../extensionVariables';
-import { ExternalUriHandler } from '../ExternalUriHandler';
 import { addAppSetting } from './appSettings/addAppSetting';
 import { deleteAppSetting } from './appSettings/deleteAppSettings';
 import { downloadAppSettings } from './appSettings/downloadAppSettings';
@@ -45,12 +44,12 @@ import { startSsh } from './startSsh';
 import { startWebApp } from './startWebApp';
 import { stopWebApp } from './stopWebApp';
 import { swapSlots } from './swapSlots';
-import { importTrialApp } from './trialApp/importTrialApp';
+import { importTrialApp, ImportUriHandler } from './trialApp/importTrialApp';
 import { removeTrialApp } from './trialApp/removeTrialApp';
 
 export function registerCommands(): void {
     // tslint:disable-next-line: no-unused-expression
-    new ExternalUriHandler();
+    new ImportUriHandler();
     registerCommand('appService.ImportTrialApp', importTrialApp);
     registerCommand('appService.RemoveTrialApp', removeTrialApp);
     registerCommand('appService.AddCosmosDBConnection', addCosmosDBConnection);

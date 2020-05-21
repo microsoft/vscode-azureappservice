@@ -331,11 +331,11 @@
             "commandPalette": [
                 {
                     "command": "appService.ImportTrialApp",
-                    "when": "never"
+                    "when": "view == azureAppService && viewItem == trialApp"
                 },
                 {
                     "command": "appService.RemoveTrialApp",
-                    "when": "never"
+                    "when": "view == azureAppService && viewItem == trialApp"
                 },
                 {
                     "command": "appService.selectSubscriptions",
