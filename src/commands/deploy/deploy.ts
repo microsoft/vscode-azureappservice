@@ -71,9 +71,9 @@ export async function deploy(context: IActionContext, target?: vscode.Uri | Site
             const linuxFxVersion: string = siteConfig.linuxFxVersion.toLowerCase();
             if (linuxFxVersion.startsWith(appservice.LinuxRuntimes.node)) {
                 // if it is node or python, prompt the user (as we can break them)
-                await promptScmDoBuildDeploy(deployContext, deployContext.effectiveDeployFsPath, appservice.LinuxRuntimes.node);
+                await promptScmDoBuildDeploy(context, deployContext.effectiveDeployFsPath, appservice.LinuxRuntimes.node);
             } else if (linuxFxVersion.startsWith(appservice.LinuxRuntimes.python)) {
-                await promptScmDoBuildDeploy(deployContext, deployContext.effectiveDeployFsPath, appservice.LinuxRuntimes.python);
+                await promptScmDoBuildDeploy(context, deployContext.effectiveDeployFsPath, appservice.LinuxRuntimes.python);
             }
 
         }
@@ -84,7 +84,7 @@ export async function deploy(context: IActionContext, target?: vscode.Uri | Site
     }
 
     // tslint:disable-next-line:no-floating-promises
-    promptToSaveDeployDefaults(deployContext, node, deployContext.workspace.uri.fsPath, deployContext.effectiveDeployFsPath);
+    promptToSaveDeployDefaults(node, deployContext.workspace.uri.fsPath, deployContext.effectiveDeployFsPath);
     await appservice.runPreDeployTask(deployContext, deployContext.originalDeployFsPath, siteConfig.scmType);
 
     // cancellation moved to after prompts while gathering telemetry
