@@ -4,15 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as WebSiteModels from 'azure-arm-website/lib/models';
-import * as fse from 'fs-extra';
-import * as path from 'path';
-import { MessageItem } from 'vscode';
-import { AppSettingsTreeItem, AppSettingTreeItem, deleteSite, DeploymentsTreeItem, DeploymentTreeItem, FolderTreeItem, ISiteTreeRoot, LinuxRuntimes, LogFilesTreeItem, SiteClient, SiteFilesTreeItem } from 'vscode-azureappservice';
-import { AzExtTreeItem, AzureParentTreeItem, AzureTreeItem, DialogResponses, IActionContext } from 'vscode-azureextensionui';
-import * as constants from '../constants';
-import { ext } from '../extensionVariables';
-import { venvUtils } from '../utils/venvUtils';
-import { getWorkspaceSetting, updateWorkspaceSetting } from '../vsCodeConfig/settings';
+import { AppSettingsTreeItem, AppSettingTreeItem, deleteSite, DeploymentsTreeItem, DeploymentTreeItem, FolderTreeItem, ISiteTreeRoot, LogFilesTreeItem, SiteClient, SiteFilesTreeItem } from 'vscode-azureappservice';
+import { AzExtTreeItem, AzureParentTreeItem, AzureTreeItem } from 'vscode-azureextensionui';
 import { ConnectionsTreeItem } from './ConnectionsTreeItem';
 import { CosmosDBConnection } from './CosmosDBConnection';
 import { CosmosDBTreeItem } from './CosmosDBTreeItem';
@@ -142,106 +135,5 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         };
 
         await this.root.client.updateLogsConfig(logsConfig);
-    }
-
-    public async promptScmDoBuildDeploy(fsPath: string, runtime: string, context: IActionContext): Promise<void> {
-        context.telemetry.properties.enableScmInput = "Canceled";
-
-        const learnMoreLink: string = 'https://aka.ms/Kwwkbd';
-
-        const buildDuringDeploy: string = `Would you like to update your workspace configuration to run build commands on the target server? This should improve deployment performance.`;
-        const input: MessageItem | undefined = await ext.ui.showWarningMessage(buildDuringDeploy, { modal: true, learnMoreLink }, DialogResponses.yes, DialogResponses.no);
-
-        if (input === DialogResponses.yes) {
-            await this.enableScmDoBuildDuringDeploy(fsPath, runtime);
-            context.telemetry.properties.enableScmInput = "Yes";
-        } else {
-            await updateWorkspaceSetting(constants.configurationSettings.showBuildDuringDeployPrompt, false, fsPath);
-            context.telemetry.properties.enableScmInput = "No";
-        }
-    }
-
-    public async enableScmDoBuildDuringDeploy(fsPath: string, runtime: string): Promise<void> {
-        const zipIgnoreFolders: string[] = await this.getIgnoredFoldersForDeployment(fsPath, runtime);
-        let oldSettings: string[] | string | undefined = getWorkspaceSetting(constants.configurationSettings.zipIgnorePattern, fsPath);
-        if (!oldSettings) {
-            oldSettings = [];
-        } else if (typeof oldSettings === "string") {
-            oldSettings = [oldSettings];
-            // settings have to be an array to concat the proper zipIgnoreFolders
-        }
-        const newSettings: string[] = oldSettings;
-        for (const folder of zipIgnoreFolders) {
-            if (oldSettings.indexOf(folder) < 0) {
-                newSettings.push(folder);
-            }
-        }
-        await updateWorkspaceSetting(constants.configurationSettings.zipIgnorePattern, newSettings, fsPath);
-        await fse.writeFile(path.join(fsPath, constants.deploymentFileName), constants.deploymentFile);
-    }
-
-    public async promptToSaveDeployDefaults(context: IActionContext, workspacePath: string, deployPath: string): Promise<void> {
-        const defaultWebAppToDeploySetting: string | undefined = getWorkspaceSetting(constants.configurationSettings.defaultWebAppToDeploy, workspacePath);
-        // only prompt if setting is unset
-        if (!defaultWebAppToDeploySetting) {
-            const saveDeploymentConfig: string = `Always deploy the workspace "${path.basename(workspacePath)}" to "${this.root.client.fullName}"?`;
-            const dontShowAgain: MessageItem = { title: "Don't show again" };
-            const result: MessageItem = await ext.ui.showWarningMessage(saveDeploymentConfig, DialogResponses.yes, dontShowAgain, DialogResponses.skipForNow);
-            if (result === DialogResponses.yes) {
-                await updateWorkspaceSetting(constants.configurationSettings.defaultWebAppToDeploy, this.fullId, deployPath);
-                // tslint:disable-next-line: strict-boolean-expressions
-                const subPath: string = path.relative(workspacePath, deployPath) || '.';
-                await updateWorkspaceSetting(constants.configurationSettings.deploySubpath, subPath, deployPath);
-                context.telemetry.properties.promptToSaveDeployConfigs = 'Yes';
-            } else if (result === dontShowAgain) {
-                await updateWorkspaceSetting(constants.configurationSettings.defaultWebAppToDeploy, constants.none, deployPath);
-                context.telemetry.properties.promptToSaveDeployConfigs = "Don't show again";
-            } else {
-                context.telemetry.properties.promptToSaveDeployConfigs = 'Skip for now';
-            }
-        }
-
-    }
-
-    private async getIgnoredFoldersForDeployment(fsPath: string, runtime: string): Promise<string[]> {
-        let ignoredFolders: string[];
-        switch (runtime) {
-            case LinuxRuntimes.node:
-                ignoredFolders = ['node_modules{,/**}'];
-                break;
-            case LinuxRuntimes.python:
-                let venvFsPaths: string[];
-                try {
-                    venvFsPaths = (await venvUtils.getExistingVenvs(fsPath)).map(venvPath => `${venvPath}{,/**}`);
-                } catch (error) {
-                    // if there was an error here, don't block-- just assume none could be detected
-                    venvFsPaths = [];
-                }
-
-                // list of Python ignorables are pulled from here https://github.com/github/gitignore/blob/master/Python.gitignore
-                // Byte-compiled / optimized / DLL files
-                ignoredFolders = ['__pycache__{,/**}', '*.py[cod]', '*$py.class',
-                    // Distribution / packaging
-                    '.Python{,/**}', 'build{,/**}', 'develop-eggs{,/**}', 'dist{,/**}', 'downloads{,/**}', 'eggs{,/**}', '.eggs{,/**}', 'lib{,/**}', 'lib64{,/**}', 'parts{,/**}', 'sdist{,/**}', 'var{,/**}',
-                    'wheels{,/**}', 'share/python-wheels{,/**}', '*.egg-info{,/**}', '.installed.cfg', '*.egg', 'MANIFEST'];
-
-                // Virtual Environments
-                const defaultVenvPaths: string[] = ['.env{,/**}', '.venv{,/**}', 'env{,/**}', 'venv{,/**}', 'ENV{,/**}', 'env.bak{,/**}', 'venv.bak{,/**}'];
-                for (const venvPath of venvFsPaths) {
-                    // don't add duplicates
-                    if (!defaultVenvPaths.find(p => p === venvPath)) {
-                        defaultVenvPaths.push(venvPath);
-                    }
-                }
-
-                ignoredFolders = ignoredFolders.concat(defaultVenvPaths);
-                break;
-            default:
-                ignoredFolders = [];
-        }
-
-        // add .vscode to the ignorePattern since it will never be needed for deployment
-        ignoredFolders.push('.vscode{,/**}');
-        return ignoredFolders;
     }
 }
