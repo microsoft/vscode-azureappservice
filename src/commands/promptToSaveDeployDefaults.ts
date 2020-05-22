@@ -34,6 +34,6 @@ export async function promptToSaveDeployDefaults(node: SiteTreeItem, workspacePa
         } else {
             context.telemetry.properties.promptToSaveDeployConfigs = defaultWebAppToDeploySetting === constants.none ? constants.none : 'usesDefault';
         }
-    };
+    });
 
 }
