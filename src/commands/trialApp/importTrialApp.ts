@@ -36,7 +36,7 @@ export class ImportUriHandler implements UriHandler {
     }
 
     public dispose(): void {
-        this.disposables = dispose(this.disposables);
+        Disposable.from(...this.disposables).dispose();
     }
 
     private async importTrialApp(uri: Uri): Promise<void> {
@@ -50,16 +50,9 @@ export class ImportUriHandler implements UriHandler {
         await callWithTelemetryAndErrorHandling<void>('importTrialApp', async (context: IActionContext): Promise<void> => {
             if (typeof data.loginSession === 'string') {
                 await importTrialApp(context, data.loginSession);
+            } else {
+                throw Error(localize('loginSessionIsNotString', 'Loginsession parameter must be a string.'));
             }
         });
     }
-}
-
-interface IDisposable {
-    dispose(): void;
-}
-
-function dispose<T extends IDisposable>(disposables: T[]): T[] {
-    disposables.forEach(d => d.dispose());
-    return [];
 }
