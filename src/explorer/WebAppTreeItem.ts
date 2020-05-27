@@ -4,8 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { AppServicePlan } from 'azure-arm-website/lib/models';
-import { ISiteTreeRoot } from 'vscode-azureappservice';
-import { AzExtTreeItem, AzureTreeItem, TreeItemIconPath } from 'vscode-azureextensionui';
+import { AzExtTreeItem, TreeItemIconPath } from 'vscode-azureextensionui';
 import { ext } from '../extensionVariables';
 import { nonNullProp, nonNullValue } from '../utils/nonNull';
 import { getIconPath } from '../utils/pathUtils';
@@ -26,7 +25,7 @@ export class WebAppTreeItem extends SiteTreeItem {
         return getIconPath('WebApp');
     }
 
-    public async loadMoreChildrenImpl(clearCache: boolean): Promise<AzureTreeItem<ISiteTreeRoot>[]> {
+    public async loadMoreChildrenImpl(clearCache: boolean): Promise<AzExtTreeItem[]> {
         let tier: string | undefined;
         let asp: AppServicePlan | undefined;
         try {

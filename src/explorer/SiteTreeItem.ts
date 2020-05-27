@@ -41,8 +41,8 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
 
         this.appSettingsNode = new AppSettingsTreeItem(this);
         this._connectionsNode = new ConnectionsTreeItem(this);
-        this._siteFilesNode = new SiteFilesTreeItem(this, false);
-        this._logFilesNode = new LogFilesTreeItem(this);
+        this._siteFilesNode = new SiteFilesTreeItem(this, client, false);
+        this._logFilesNode = new LogFilesTreeItem(this, client);
         // Can't find actual documentation on this, but the portal claims it and this feedback suggests it's not planned https://aka.ms/AA4q5gi
         this._webJobsNode = this.root.client.isLinux ? new WebJobsNATreeItem(this) : new WebJobsTreeItem(this);
     }
@@ -75,7 +75,7 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         return this.root.client.id;
     }
 
-    public async loadMoreChildrenImpl(_clearCache: boolean): Promise<AzureTreeItem<ISiteTreeRoot>[]> {
+    public async loadMoreChildrenImpl(_clearCache: boolean): Promise<AzExtTreeItem[]> {
         const siteConfig: WebSiteModels.SiteConfig = await this.root.client.getSiteConfig();
         const sourceControl: WebSiteModels.SiteSourceControl = await this.root.client.getSourceControl();
         this.deploymentsNode = new DeploymentsTreeItem(this, siteConfig, sourceControl);
