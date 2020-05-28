@@ -10,6 +10,9 @@ export interface ITrialAppMetadata {
     contentDownloadUrl: string;
     gitUrl: string;
     bashGitUrl: string;
+    /**
+     * Time left of trial app in seconds.
+     */
     timeLeft: number;
     AppService: string;
     IsRbacEnabled: boolean;
