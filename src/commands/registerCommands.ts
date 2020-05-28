@@ -32,6 +32,7 @@ import { redeployDeployment } from './deployments/redeployDeployment';
 import { viewCommitInGitHub } from './deployments/viewCommitInGitHub';
 import { viewDeploymentLogs } from './deployments/viewDeploymentLogs';
 import { generateDeploymentScript } from './generateDeploymentScript';
+import { ImportUriHandler } from './ImportUriHandler';
 import { installCosmosDBExtension } from './installCosmosDBExtension';
 import { enableFileLogging } from './logstream/enableFileLogging';
 import { startStreamingLogs } from './logstream/startStreamingLogs';
@@ -44,7 +45,7 @@ import { startSsh } from './startSsh';
 import { startWebApp } from './startWebApp';
 import { stopWebApp } from './stopWebApp';
 import { swapSlots } from './swapSlots';
-import { importTrialApp, ImportUriHandler } from './trialApp/importTrialApp';
+import { importTrialApp } from './trialApp/importTrialApp';
 import { removeTrialApp } from './trialApp/removeTrialApp';
 
 export function registerCommands(): void {
