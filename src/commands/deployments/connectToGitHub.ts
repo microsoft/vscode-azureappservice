@@ -19,7 +19,9 @@ export async function connectToGitHub(context: IActionContext, target?: GenericT
         node = <DeploymentsTreeItem>target.parent;
     }
 
-    await editScmType(node.root.client, node, context, ScmType.GitHub);
+    if (node.root) {
+        await editScmType(node.root.client, node, context, ScmType.GitHub);
+    }
 
     if (node instanceof SiteTreeItem) {
         if (node.deploymentsNode) {

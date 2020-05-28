@@ -7,10 +7,8 @@ import * as WebSiteModels from 'azure-arm-website/lib/models';
 import * as fse from 'fs-extra';
 import * as path from 'path';
 import { MessageItem } from 'vscode';
-import {
-    AppSettingsTreeItem, AppSettingTreeItem, deleteSite, DeploymentsTreeItem, DeploymentTreeItem, FolderTreeItem, ISiteTreeRoot, LinuxRuntimes, LogFilesTreeItem, SiteClient, SiteFilesTreeItem
-} from 'vscode-azureappservice';
-import { AzExtTreeItem, AzureParentTreeItem, AzureTreeItem, DialogResponses, IActionContext } from 'vscode-azureextensionui';
+import { AppSettingsTreeItem, AppSettingTreeItem, deleteSite, DeploymentsTreeItem, DeploymentTreeItem, FolderTreeItem, ISiteTreeRoot, LinuxRuntimes, LogFilesTreeItem, SiteClient, SiteFilesTreeItem } from 'vscode-azureappservice';
+import { AzExtParentTreeItem, AzExtTreeItem, AzureParentTreeItem, AzureTreeItem, DialogResponses, IActionContext } from 'vscode-azureextensionui';
 import * as constants from '../constants';
 import { ext } from '../extensionVariables';
 import { openUrl } from '../utils/openUrl';
@@ -43,10 +41,10 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> im
         this._root = Object.assign({}, parent.root, { client });
         this._state = client.initialState;
 
-        this.appSettingsNode = new AppSettingsTreeItem(this);
+        this.appSettingsNode = new AppSettingsTreeItem(this, client);
         this._connectionsNode = new ConnectionsTreeItem(this);
-        this._siteFilesNode = new SiteFilesTreeItem(this, false);
-        this._logFilesNode = new LogFilesTreeItem(this);
+        this._siteFilesNode = new SiteFilesTreeItem(this, client, false);
+        this._logFilesNode = new LogFilesTreeItem(this, client);
         // Can't find actual documentation on this, but the portal claims it and this feedback suggests it's not planned https://aka.ms/AA4q5gi
         this._webJobsNode = this.root.client.isLinux ? new WebJobsNATreeItem(this) : new WebJobsTreeItem(this);
     }
@@ -91,10 +89,10 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> im
         return this.root.client.id;
     }
 
-    public async loadMoreChildrenImpl(_clearCache: boolean): Promise<AzureTreeItem<ISiteTreeRoot>[]> {
+    public async loadMoreChildrenImpl(_clearCache: boolean): Promise<AzExtParentTreeItem[]> {
         const siteConfig: WebSiteModels.SiteConfig = await this.root.client.getSiteConfig();
         const sourceControl: WebSiteModels.SiteSourceControl = await this.root.client.getSourceControl();
-        this.deploymentsNode = new DeploymentsTreeItem(this, siteConfig, sourceControl);
+        this.deploymentsNode = new DeploymentsTreeItem(this, this.root.client, siteConfig, sourceControl);
         return [this.appSettingsNode, this._connectionsNode, this.deploymentsNode, this._siteFilesNode, this._logFilesNode, this._webJobsNode];
     }
 

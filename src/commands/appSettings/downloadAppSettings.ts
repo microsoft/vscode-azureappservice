@@ -9,7 +9,7 @@ import * as fse from 'fs-extra';
 import * as os from 'os';
 import * as vscode from 'vscode';
 import { window } from "vscode";
-import { AppSettingsTreeItem, confirmOverwriteSettings, SiteClient } from "vscode-azureappservice";
+import { AppSettingsTreeItem, confirmOverwriteSettings, IAppSettingsClient } from "vscode-azureappservice";
 import { IActionContext, UserCancelledError } from "vscode-azureextensionui";
 import { envFileName } from "../../constants";
 import { ext } from "../../extensionVariables";
@@ -21,7 +21,7 @@ export async function downloadAppSettings(context: IActionContext, node?: AppSet
         node = <AppSettingsTreeItem>await ext.tree.showTreeItemPicker(AppSettingsTreeItem.contextValue, context);
     }
 
-    const client: SiteClient = node.root.client;
+    const client: IAppSettingsClient = node.client;
 
     const message: string = 'Select the destination file for your downloaded settings.';
     const envVarPath: string = await workspaceUtil.selectWorkspaceFile(message, () => envFileName);

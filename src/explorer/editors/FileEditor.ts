@@ -16,7 +16,7 @@ export class FileEditor extends BaseEditor<FileTreeItem> {
     }
 
     public async getSaveConfirmationText(node: FileTreeItem): Promise<string> {
-        return `Saving '${node.label}' will update the file "${node.label}" in "${node.root.client.fullName}".`;
+        return `Saving '${node.label}' will update the file "${node.label}" in "${node.client.fullName}".`;
     }
 
     public async getFilename(node: FileTreeItem): Promise<string> {
@@ -24,11 +24,11 @@ export class FileEditor extends BaseEditor<FileTreeItem> {
     }
 
     public async getResourceName(node: FileTreeItem): Promise<string> {
-        return node.root.client.fullName;
+        return node.client.fullName;
     }
 
     public async getData(node: FileTreeItem): Promise<string> {
-        const result: IFileResult = await getFile(node.root.client, node.path);
+        const result: IFileResult = await getFile(node.client, node.path);
         this._etags.set(node.fullId, result.etag);
         return result.data;
     }
@@ -41,7 +41,7 @@ export class FileEditor extends BaseEditor<FileTreeItem> {
     public async updateData(node: FileTreeItem, data: string): Promise<string> {
         let etag: string = nonNullValue(this._etags.get(node.fullId), 'etag');
         try {
-            await putFile(node.root.client, data, node.path, etag);
+            await putFile(node.client, data, node.path, etag);
         } catch (error) {
             const parsedError: IParsedError = parseError(error);
             if (parsedError.errorType === '412' && /etag/i.test(parsedError.message)) {
@@ -50,7 +50,7 @@ export class FileEditor extends BaseEditor<FileTreeItem> {
             throw error;
         }
 
-        etag = (await getFile(node.root.client, node.path)).etag;
+        etag = (await getFile(node.client, node.path)).etag;
         this._etags.set(node.fullId, etag);
         return await this.getData(node);
     }

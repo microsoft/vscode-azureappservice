@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { DeploymentsTreeItem } from "vscode-azureappservice";
+import { DeploymentsTreeItem, disconnectRepo as disconnectRepository } from "vscode-azureappservice";
 import { IActionContext } from "vscode-azureextensionui";
 import { ext } from "../../extensionVariables";
 
@@ -11,5 +11,5 @@ export async function disconnectRepo(context: IActionContext, node?: Deployments
     if (!node) {
         node = <DeploymentsTreeItem>await ext.tree.showTreeItemPicker(DeploymentsTreeItem.contextValueConnected, context);
     }
-    await node.disconnectRepo(context);
+    await disconnectRepository(context, node);
 }
