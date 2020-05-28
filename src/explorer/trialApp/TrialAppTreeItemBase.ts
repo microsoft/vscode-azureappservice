@@ -19,7 +19,7 @@ export abstract class TrialAppTreeItemBase extends AzExtTreeItem {
     }
 
     private get minutesLeft(): number {
-        return (this.metadata?.timeLeft / 60);
+        return (this.metadata.timeLeft / 60);
     }
 
     public get description(): string {
@@ -30,8 +30,6 @@ export abstract class TrialAppTreeItemBase extends AzExtTreeItem {
     public get id(): string {
         return `trialApp${this._defaultHostName}`;
     }
-
-    abstract get timeLeft(): number;
 
     public abstract metadata: ITrialAppMetadata;
 

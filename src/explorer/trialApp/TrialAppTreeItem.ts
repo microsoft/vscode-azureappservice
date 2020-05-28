@@ -3,6 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { RequestError } from 'request-promise/errors';
+import { localize } from '../../localize';
 import { openUrl } from '../../utils/openUrl';
 import { requestUtils } from '../../utils/requestUtils';
 import { AzureAccountTreeItem } from '../AzureAccountTreeItem';
@@ -12,9 +14,6 @@ import { TrialAppTreeItemBase } from './TrialAppTreeItemBase';
 
 export class TrialAppTreeItem extends TrialAppTreeItemBase implements ISiteTreeItem {
 
-    public get timeLeft(): number {
-        return this.metadata.timeLeft / 60;
-    }
     public static contextValue: string = 'trialApp';
     public contextValue: string = TrialAppTreeItem.contextValue;
 
@@ -26,7 +25,6 @@ export class TrialAppTreeItem extends TrialAppTreeItemBase implements ISiteTreeI
 
     private constructor(parent: AzureAccountTreeItem, metadata: ITrialAppMetadata) {
         super(parent, metadata.hostName);
-
         this.metadata = metadata;
         this.defaultHostName = this.metadata.hostName;
         this.defaultHostUrl = `https://${this.defaultHostName}`;
@@ -34,11 +32,7 @@ export class TrialAppTreeItem extends TrialAppTreeItemBase implements ISiteTreeI
 
     public static async createTrialAppTreeItem(parent: AzureAccountTreeItem, loginSession: string): Promise<TrialAppTreeItem> {
         const metadata: ITrialAppMetadata = await this.getTrialAppMetaData(loginSession);
-        if (metadata.siteName) {
-            return new TrialAppTreeItem(parent, metadata);
-        } else {
-            return Promise.reject('Could not get trial app metadata');
-        }
+        return new TrialAppTreeItem(parent, metadata);
     }
 
     public static async getTrialAppMetaData(loginSession: string): Promise<ITrialAppMetadata> {
@@ -56,8 +50,14 @@ export class TrialAppTreeItem extends TrialAppTreeItemBase implements ISiteTreeI
         try {
             const result: string = await requestUtils.sendRequest<string>(metadataRequest);
             return <ITrialAppMetadata>JSON.parse(result);
-        } catch (error) {
-            throw error;
+        } catch (e) {
+            if (e instanceof RequestError) {
+                throw Error(localize('errorMetadataRequest', 'Could not get trial app metadata: RequestError.'));
+            } else if (e instanceof SyntaxError) {
+                throw Error(localize('errorMetadataParse', 'Could not get trial app metadata. Could not parse response body.'));
+            } else {
+                throw e;
+            }
         }
     }
 
