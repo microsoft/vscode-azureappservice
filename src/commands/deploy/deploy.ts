@@ -18,11 +18,11 @@ import { isPathEqual } from '../../utils/pathUtils';
 import { getRandomHexString } from "../../utils/randomUtils";
 import { getWorkspaceSetting } from '../../vsCodeConfig/settings';
 import { runPostDeployTask } from '../postDeploy/runPostDeployTask';
-import { promptScmDoBuildDeploy } from '../promptScmDoBuildDeploy';
-import { promptToSaveDeployDefaults } from '../promptToSaveDeployDefaults';
 import { confirmDeploymentPrompt } from './confirmDeploymentPrompt';
 import { getDeployNode, IDeployNode } from './getDeployNode';
 import { IDeployContext, WebAppSource } from './IDeployContext';
+import { promptScmDoBuildDeploy } from './promptScmDoBuildDeploy';
+import { promptToSaveDeployDefaults } from './promptToSaveDeployDefaults';
 import { setPreDeployTaskForDotnet } from './setPreDeployTaskForDotnet';
 import { showDeployCompletedMessage } from './showDeployCompletedMessage';
 
