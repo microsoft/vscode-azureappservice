@@ -19,22 +19,5 @@
     },
     "tslint.ignoreDefinitionFiles": true,
     "typescript.preferences.importModuleSpecifier": "relative",
-    "typescript.tsdk": "node_modules/typescript/lib",
-    "cSpell.words": [
-        "Affordance",
-        "appservice",
-        "azureappservice",
-        "azurecr",
-        "azureextensionui",
-        "azurekudu",
-        "azuretools",
-        "debugadapter",
-        "etag",
-        "mailto",
-        "opencode",
-        "repo",
-        "repos",
-        "runtimes",
-        "vsce"
-    ]
+    "typescript.tsdk": "node_modules/typescript/lib"
 }
