@@ -189,7 +189,9 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
             const result: MessageItem = await ext.ui.showWarningMessage(saveDeploymentConfig, DialogResponses.yes, dontShowAgain, DialogResponses.skipForNow);
             if (result === DialogResponses.yes) {
                 await updateWorkspaceSetting(constants.configurationSettings.defaultWebAppToDeploy, this.fullId, deployPath);
-                await updateWorkspaceSetting(constants.configurationSettings.deploySubpath, path.relative(workspacePath, deployPath), deployPath); // '' is a falsey value
+                // tslint:disable-next-line: strict-boolean-expressions
+                const subPath: string = path.relative(workspacePath, deployPath) || '.';
+                await updateWorkspaceSetting(constants.configurationSettings.deploySubpath, subPath, deployPath);
                 context.telemetry.properties.promptToSaveDeployConfigs = 'Yes';
             } else if (result === dontShowAgain) {
                 await updateWorkspaceSetting(constants.configurationSettings.defaultWebAppToDeploy, constants.none, deployPath);

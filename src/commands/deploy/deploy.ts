@@ -82,7 +82,7 @@ export async function deploy(context: IActionContext, target?: vscode.Uri | Site
     }
 
     // tslint:disable-next-line:no-floating-promises
-    node.promptToSaveDeployDefaults(deployContext, deployContext.workspace.uri.fsPath, deployContext.originalDeployFsPath);
+    node.promptToSaveDeployDefaults(deployContext, deployContext.workspace.uri.fsPath, deployContext.effectiveDeployFsPath);
     await appservice.runPreDeployTask(deployContext, deployContext.originalDeployFsPath, siteConfig.scmType);
 
     // cancellation moved to after prompts while gathering telemetry

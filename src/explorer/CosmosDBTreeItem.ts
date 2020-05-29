@@ -206,7 +206,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
 
         const appSettingKey: string = await ext.ui.showInputBox({
             prompt,
-            validateInput: (v?: string): string | undefined => validateAppSettingKey(appSettingsDict, this.root.client, v),
+            validateInput: (v: string): string | undefined => validateAppSettingKey(appSettingsDict, this.root.client, v),
             value: defaultKey
         });
 
