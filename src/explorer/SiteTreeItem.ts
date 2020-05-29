@@ -8,7 +8,7 @@ import * as fse from 'fs-extra';
 import * as path from 'path';
 import { MessageItem } from 'vscode';
 import { AppSettingsTreeItem, AppSettingTreeItem, deleteSite, DeploymentsTreeItem, DeploymentTreeItem, FolderTreeItem, ISiteTreeRoot, LinuxRuntimes, LogFilesTreeItem, SiteClient, SiteFilesTreeItem } from 'vscode-azureappservice';
-import { AzExtParentTreeItem, AzExtTreeItem, AzureParentTreeItem, AzureTreeItem, DialogResponses, IActionContext } from 'vscode-azureextensionui';
+import { AzExtParentTreeItem, AzExtTreeItem, AzureParentTreeItem, AzureTreeItem, DialogResponses, IActionContext, openInPortal } from 'vscode-azureextensionui';
 import * as constants from '../constants';
 import { ext } from '../extensionVariables';
 import { openUrl } from '../utils/openUrl';
@@ -19,15 +19,13 @@ import { CosmosDBConnection } from './CosmosDBConnection';
 import { CosmosDBTreeItem } from './CosmosDBTreeItem';
 import { ISiteTreeItem } from './ISiteTreeItem';
 import { NotAvailableTreeItem } from './NotAvailableTreeItem';
+import { SiteTreeItemBase } from './SiteTreeItemBase';
 import { WebJobsNATreeItem, WebJobsTreeItem } from './WebJobsTreeItem';
 
-export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> implements ISiteTreeItem {
-    public readonly abstract contextValue: string;
-    public readonly abstract label: string;
-
+export abstract class SiteTreeItem extends SiteTreeItemBase implements ISiteTreeItem {
     public readonly appSettingsNode: AppSettingsTreeItem;
     public deploymentsNode: DeploymentsTreeItem | undefined;
-
+    public parent: AzureParentTreeItem;
     private readonly _connectionsNode: ConnectionsTreeItem;
     private readonly _siteFilesNode: SiteFilesTreeItem;
     private readonly _logFilesNode: LogFilesTreeItem;
@@ -46,7 +44,7 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> im
         this._siteFilesNode = new SiteFilesTreeItem(this, client, false);
         this._logFilesNode = new LogFilesTreeItem(this, client);
         // Can't find actual documentation on this, but the portal claims it and this feedback suggests it's not planned https://aka.ms/AA4q5gi
-        this._webJobsNode = this.root.client.isLinux ? new WebJobsNATreeItem(this) : new WebJobsTreeItem(this);
+        this._webJobsNode = this.root.client.isLinux ? new WebJobsNATreeItem(parent) : new WebJobsTreeItem(this);
     }
 
     public get defaultHostUrl(): string {
@@ -55,6 +53,10 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> im
 
     public get defaultHostName(): string {
         return this.root.client.defaultHostName;
+    }
+
+    public async openInPortal(): Promise<void> {
+        await openInPortal(this._root, this.id);
     }
 
     public async browse(): Promise<void> {
@@ -92,7 +94,7 @@ export abstract class SiteTreeItem extends AzureParentTreeItem<ISiteTreeRoot> im
     public async loadMoreChildrenImpl(_clearCache: boolean): Promise<AzExtParentTreeItem[]> {
         const siteConfig: WebSiteModels.SiteConfig = await this.root.client.getSiteConfig();
         const sourceControl: WebSiteModels.SiteSourceControl = await this.root.client.getSourceControl();
-        this.deploymentsNode = new DeploymentsTreeItem(this, this.root.client, siteConfig, sourceControl);
+        this.deploymentsNode = new DeploymentsTreeItem(this, this.root.client, siteConfig, sourceControl, this.root);
         return [this.appSettingsNode, this._connectionsNode, this.deploymentsNode, this._siteFilesNode, this._logFilesNode, this._webJobsNode];
     }
 

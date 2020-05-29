@@ -4,16 +4,17 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { RequestError } from 'request-promise/errors';
+import { IActionContext, TreeItemIconPath } from 'vscode-azureextensionui';
 import { localize } from '../../localize';
 import { openUrl } from '../../utils/openUrl';
+import { getIconPath } from '../../utils/pathUtils';
 import { requestUtils } from '../../utils/requestUtils';
 import { AzureAccountTreeItem } from '../AzureAccountTreeItem';
 import { ISiteTreeItem } from '../ISiteTreeItem';
+import { SiteTreeItemBase } from '../SiteTreeItemBase';
 import { ITrialAppMetadata } from './ITrialAppMetadata';
-import { TrialAppTreeItemBase } from './TrialAppTreeItemBase';
 
-export class TrialAppTreeItem extends TrialAppTreeItemBase implements ISiteTreeItem {
-
+export class TrialAppTreeItem extends SiteTreeItemBase implements ISiteTreeItem {
     public static contextValue: string = 'trialApp';
     public contextValue: string = TrialAppTreeItem.contextValue;
 
@@ -23,8 +24,31 @@ export class TrialAppTreeItem extends TrialAppTreeItemBase implements ISiteTreeI
 
     public defaultHostUrl: string;
 
+    private readonly _defaultHostName: string;
+
+    public get iconPath(): TreeItemIconPath {
+        return getIconPath('WebApp');
+    }
+
+    public get label(): string {
+        return this.metadata.siteName ? this.metadata.siteName : localize('nodeJsTrialApp', 'NodeJS Trial App');
+    }
+
+    private get minutesLeft(): number {
+        return (this.metadata.timeLeft / 60);
+    }
+
+    public get description(): string {
+        return isNaN(this.minutesLeft) ?
+            localize('expired', 'Expired') : `${this.minutesLeft.toFixed(0)} ${localize('minutesRemaining', 'min. remaining')}`;
+    }
+
+    public get id(): string {
+        return `trialApp${this._defaultHostName}`;
+    }
+
     private constructor(parent: AzureAccountTreeItem, metadata: ITrialAppMetadata) {
-        super(parent, metadata.hostName);
+        super(parent);
         this.metadata = metadata;
         this.defaultHostName = this.metadata.hostName;
         this.defaultHostUrl = `https://${this.defaultHostName}`;
@@ -59,6 +83,12 @@ export class TrialAppTreeItem extends TrialAppTreeItemBase implements ISiteTreeI
                 throw e;
             }
         }
+    }
+    public loadMoreChildrenImpl(_clearCache: boolean, _context: IActionContext): Promise<import("vscode-azureextensionui").AzExtTreeItem[]> {
+        return Promise.resolve([]);
+    }
+    public hasMoreChildrenImpl(): boolean {
+        return false;
     }
 
     public async browse(): Promise<void> {
