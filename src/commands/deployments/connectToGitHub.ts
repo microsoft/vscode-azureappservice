@@ -9,6 +9,7 @@ import { ScmType } from "../../constants";
 import { SiteTreeItem } from "../../explorer/SiteTreeItem";
 import { WebAppTreeItem } from "../../explorer/WebAppTreeItem";
 import { ext } from "../../extensionVariables";
+import { localize } from '../../localize';
 
 export async function connectToGitHub(context: IActionContext, target?: GenericTreeItem): Promise<void> {
     let node: WebAppTreeItem | DeploymentsTreeItem;
@@ -19,8 +20,13 @@ export async function connectToGitHub(context: IActionContext, target?: GenericT
         node = <DeploymentsTreeItem>target.parent;
     }
 
-    if (node.root) {
+    if (node instanceof WebAppTreeItem) {
+        node.deploymentsNode = new DeploymentsTreeItem(node.parent, node.client, await node.client.getSiteConfig(), await node.client.getSourceControl());
+        await editScmType(node.client, node.deploymentsNode, context, ScmType.GitHub);
+    } else if (node.root) {
         await editScmType(node.root.client, node, context, ScmType.GitHub);
+    } else {
+        throw Error(localize('actionNotSupported', 'Action not supported.'));
     }
 
     if (node instanceof SiteTreeItem) {
