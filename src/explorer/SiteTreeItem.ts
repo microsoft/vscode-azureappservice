@@ -94,7 +94,7 @@ export abstract class SiteTreeItem extends SiteTreeItemBase implements ISiteTree
     public async loadMoreChildrenImpl(_clearCache: boolean): Promise<AzExtParentTreeItem[]> {
         const siteConfig: WebSiteModels.SiteConfig = await this.root.client.getSiteConfig();
         const sourceControl: WebSiteModels.SiteSourceControl = await this.root.client.getSourceControl();
-        this.deploymentsNode = new DeploymentsTreeItem(this, this.root.client, siteConfig, sourceControl, this.root);
+        this.deploymentsNode = new DeploymentsTreeItem(this, this.root.client, siteConfig, sourceControl);
         return [this.appSettingsNode, this._connectionsNode, this.deploymentsNode, this._siteFilesNode, this._logFilesNode, this._webJobsNode];
     }
 

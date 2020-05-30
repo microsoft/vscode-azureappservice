@@ -19,9 +19,9 @@ export async function editScmType(context: IActionContext, node?: SiteTreeItem |
     }
 
     if (node instanceof DeploymentsTreeItem && node.parent instanceof AzureParentTreeItem) {
-        await appservice.editScmType(node.root.client, node, context, newScmType, showToast);
+        await appservice.editScmType(context, node.root.client, node.root, newScmType, showToast);
     } else if (node instanceof SiteTreeItem && node.deploymentsNode) {
-        await appservice.editScmType(node.root.client, node.deploymentsNode, context, newScmType, showToast);
+        await appservice.editScmType(context, node.root.client, node.root, newScmType, showToast);
     }
 
     if (node.deploymentsNode) {
