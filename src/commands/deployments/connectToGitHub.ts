@@ -23,6 +23,9 @@ export async function connectToGitHub(context: IActionContext, target?: GenericT
         node.deploymentsNode = new DeploymentsTreeItem(node.parent, node.client, await node.client.getSiteConfig(), await node.client.getSourceControl());
         await editScmType(context, node.client, node.root, ScmType.GitHub);
         await node.deploymentsNode.refresh();
+    } else if (node.parent instanceof WebAppTreeItem) {
+        await editScmType(context, node.parent.client, node.parent.root, ScmType.GitHub);
+        await node.refresh();
     } else {
         throw Error(localize('actionNotSupported', 'Action not supported.'));
     }
