@@ -7,6 +7,7 @@ import { WebSiteManagementClient } from 'azure-arm-website';
 import { Site, WebAppCollection } from 'azure-arm-website/lib/models';
 import { createSlot, ISiteTreeRoot, SiteClient } from 'vscode-azureappservice';
 import { AzureParentTreeItem, AzureTreeItem, createAzureClient, ICreateChildImplContext } from 'vscode-azureextensionui';
+import { getCreatedWebAppMessage } from '../commands/createWebApp/showCreatedWebAppMessage';
 import { ext } from '../extensionVariables';
 import { getThemedIconPath, IThemedIconPath } from '../utils/pathUtils';
 import { DeploymentSlotTreeItem } from './DeploymentSlotTreeItem';
@@ -51,10 +52,7 @@ export class DeploymentSlotsTreeItem extends AzureParentTreeItem<ISiteTreeRoot> 
         const existingSlots: DeploymentSlotTreeItem[] = <DeploymentSlotTreeItem[]>await this.getCachedChildren(context);
         const newSite: Site = await createSlot(this.root, existingSlots, context);
         const siteClient: SiteClient = new SiteClient(newSite, this.root);
-
-        const createdNewSlotMsg: string = `Created new slot "${siteClient.fullName}": https://${siteClient.defaultHostName}`;
-        ext.outputChannel.appendLog(createdNewSlotMsg);
-
+        ext.outputChannel.appendLog(getCreatedWebAppMessage(siteClient));
         return new DeploymentSlotTreeItem(this, siteClient);
     }
 }
