@@ -1,5 +1,16 @@
 # Change Log
 
+## 0.17.0 - 2020-05-26
+### Added
+- Enhanced deployment logs to show more information and more accurately detect failures
+- Added critical insight notification to help diagnose issues when a deploy succeeds, but the app fails to start
+
+### [Fixed](https://github.com/microsoft/vscode-azureappservice/issues?q=is%3Aissue+is%3Aclosed+milestone%3A0.17.0)
+- Error "App is started, but port is unreachable" when ssh-ing into a web app
+
+### Changed
+- Minimum version of VS Code is now 1.40.0
+
 ## 0.16.5 - 2020-04-10
 ### Fixed
 - Deployment stuck at "Running preDeployTask..." [#1478](https://github.com/microsoft/vscode-azureappservice/issues/1478)

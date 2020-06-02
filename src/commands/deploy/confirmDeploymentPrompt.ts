@@ -5,7 +5,7 @@
 
 import { join } from 'path';
 import { commands, MessageItem, Uri, window, workspace } from "vscode";
-import { DialogResponses, IActionContext, UserCancelledError } from "vscode-azureextensionui";
+import { IActionContext, UserCancelledError } from "vscode-azureextensionui";
 import { AppServiceDialogResponses, configurationSettings } from '../../constants';
 import { ext } from '../../extensionVariables';
 import { delay } from '../../utils/delay';
@@ -20,7 +20,6 @@ export async function confirmDeploymentPrompt(deployContext: IDeployContext, con
     if (deployContext.webAppSource === WebAppSource.setting) {
         items.push(resetDefault);
     }
-    items.push(DialogResponses.cancel);
 
     // a temporary workaround for this issue:
     // https://github.com/Microsoft/vscode-azureappservice/issues/844

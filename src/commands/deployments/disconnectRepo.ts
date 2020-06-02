@@ -11,7 +11,7 @@ import { localize } from '../../localize';
 
 export async function disconnectRepo(context: IActionContext, node?: DeploymentsTreeItem): Promise<void> {
     if (!node) {
-        node = <DeploymentsTreeItem>await ext.tree.showTreeItemPicker(DeploymentsTreeItem.contextValueConnected, context);
+        node = await ext.tree.showTreeItemPicker<DeploymentsTreeItem>(DeploymentsTreeItem.contextValueConnected, { ...context, suppressCreatePick: true });
     }
 
     if (node.parent instanceof WebAppTreeItem) {
