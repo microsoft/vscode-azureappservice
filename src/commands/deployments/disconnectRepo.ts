@@ -5,7 +5,7 @@
 
 import { DeploymentsTreeItem, disconnectRepo as disconnectRepository } from "vscode-azureappservice";
 import { IActionContext } from "vscode-azureextensionui";
-import { WebAppTreeItem } from '../../explorer/WebAppTreeItem';
+import { SiteTreeItem } from '../../explorer/SiteTreeItem';
 import { ext } from "../../extensionVariables";
 import { localize } from '../../localize';
 
@@ -14,8 +14,8 @@ export async function disconnectRepo(context: IActionContext, node?: Deployments
         node = await ext.tree.showTreeItemPicker<DeploymentsTreeItem>(DeploymentsTreeItem.contextValueConnected, { ...context, suppressCreatePick: true });
     }
 
-    if (node.parent instanceof WebAppTreeItem) {
-        await disconnectRepository(context, node.parent.client, node.parent.root);
+    if (node.parent instanceof SiteTreeItem) {
+        await disconnectRepository(context, node.parent.root.client, node.parent.root);
     } else {
         throw Error(localize('actionNotSupported', 'Action not supported.'));
     }
