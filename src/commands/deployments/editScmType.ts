@@ -20,7 +20,10 @@ export async function editScmType(context: IActionContext, node?: SiteTreeItem |
 
     if (node instanceof DeploymentsTreeItem && node.parent instanceof AzureParentTreeItem) {
         await appservice.editScmType(context, node.root.client, node.root, newScmType, showToast);
-    } else if (node instanceof SiteTreeItem && node.deploymentsNode) {
+    } else if (node instanceof SiteTreeItem) {
+        if (node.deploymentsNode === undefined) {
+            await node.refresh();
+        }
         await appservice.editScmType(context, node.root.client, node.root, newScmType, showToast);
     }
 

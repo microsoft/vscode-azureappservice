@@ -6,6 +6,7 @@
 import { DeploymentsTreeItem, editScmType } from "vscode-azureappservice";
 import { GenericTreeItem, IActionContext } from "vscode-azureextensionui";
 import { ScmType } from "../../constants";
+import { SiteTreeItem } from "../../explorer/SiteTreeItem";
 import { WebAppTreeItem } from "../../explorer/WebAppTreeItem";
 import { ext } from "../../extensionVariables";
 import { localize } from '../../localize';
@@ -19,12 +20,16 @@ export async function connectToGitHub(context: IActionContext, target?: GenericT
         node = <DeploymentsTreeItem>target.parent;
     }
 
-    if (node instanceof WebAppTreeItem) {
-        node.deploymentsNode = new DeploymentsTreeItem(node.parent, node.client, await node.client.getSiteConfig(), await node.client.getSourceControl());
-        await editScmType(context, node.client, node.root, ScmType.GitHub);
-        await node.deploymentsNode.refresh();
-    } else if (node.parent instanceof WebAppTreeItem) {
-        await editScmType(context, node.parent.client, node.parent.root, ScmType.GitHub);
+    if (node instanceof SiteTreeItem) {
+        if (node.deploymentsNode === undefined) {
+            await node.refresh();
+        }
+        if (node.deploymentsNode) {
+            await editScmType(context, node.client, node.root, ScmType.GitHub);
+            await node.deploymentsNode.refresh();
+        }
+    } else if (node.parent instanceof SiteTreeItem) {
+        await editScmType(context, node.parent.root.client, node.parent.root, ScmType.GitHub);
         await node.refresh();
     } else {
         throw Error(localize('actionNotSupported', 'Action not supported.'));

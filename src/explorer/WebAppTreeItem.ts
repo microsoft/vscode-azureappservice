@@ -19,7 +19,7 @@ export class WebAppTreeItem extends SiteTreeItem {
     public deploymentSlotsNode: DeploymentSlotsTreeItem | DeploymentSlotsNATreeItem;
 
     public get client(): SiteClient {
-        return this.client;
+        return this.root.client;
     }
 
     public get label(): string {
