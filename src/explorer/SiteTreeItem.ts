@@ -4,16 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as WebSiteModels from 'azure-arm-website/lib/models';
-import * as fse from 'fs-extra';
-import * as path from 'path';
-import { MessageItem } from 'vscode';
-import { AppSettingsTreeItem, AppSettingTreeItem, deleteSite, DeploymentsTreeItem, DeploymentTreeItem, FolderTreeItem, ISiteTreeRoot, LinuxRuntimes, LogFilesTreeItem, SiteClient, SiteFilesTreeItem } from 'vscode-azureappservice';
-import { AzExtTreeItem, AzureParentTreeItem, AzureTreeItem, DialogResponses, IActionContext, openInPortal } from 'vscode-azureextensionui';
-import * as constants from '../constants';
-import { ext } from '../extensionVariables';
+import { AppSettingsTreeItem, AppSettingTreeItem, deleteSite, DeploymentsTreeItem, DeploymentTreeItem, FolderTreeItem, ISiteTreeRoot, LogFilesTreeItem, SiteClient, SiteFilesTreeItem } from 'vscode-azureappservice';
+import { AzExtTreeItem, AzureParentTreeItem, AzureTreeItem, openInPortal } from 'vscode-azureextensionui';
 import { openUrl } from '../utils/openUrl';
-import { venvUtils } from '../utils/venvUtils';
-import { getWorkspaceSetting, updateWorkspaceSetting } from '../vsCodeConfig/settings';
 import { ConnectionsTreeItem } from './ConnectionsTreeItem';
 import { CosmosDBConnection } from './CosmosDBConnection';
 import { CosmosDBTreeItem } from './CosmosDBTreeItem';
