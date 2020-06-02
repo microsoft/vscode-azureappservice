@@ -4,10 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { RequestError } from 'request-promise/errors';
-import { IActionContext, TreeItemIconPath } from 'vscode-azureextensionui';
+import { AzExtTreeItem, IActionContext } from 'vscode-azureextensionui';
 import { localize } from '../../localize';
 import { openUrl } from '../../utils/openUrl';
-import { getIconPath } from '../../utils/pathUtils';
 import { requestUtils } from '../../utils/requestUtils';
 import { AzureAccountTreeItem } from '../AzureAccountTreeItem';
 import { ISiteTreeItem } from '../ISiteTreeItem';
@@ -25,10 +24,6 @@ export class TrialAppTreeItem extends SiteTreeItemBase implements ISiteTreeItem 
     public defaultHostUrl: string;
 
     private readonly _defaultHostName: string;
-
-    public get iconPath(): TreeItemIconPath {
-        return getIconPath('WebApp');
-    }
 
     public get label(): string {
         return this.metadata.siteName ? this.metadata.siteName : localize('nodeJsTrialApp', 'NodeJS Trial App');
@@ -84,7 +79,7 @@ export class TrialAppTreeItem extends SiteTreeItemBase implements ISiteTreeItem 
             }
         }
     }
-    public loadMoreChildrenImpl(_clearCache: boolean, _context: IActionContext): Promise<import("vscode-azureextensionui").AzExtTreeItem[]> {
+    public loadMoreChildrenImpl(_clearCache: boolean, _context: IActionContext): Promise<AzExtTreeItem[]> {
         return Promise.resolve([]);
     }
     public hasMoreChildrenImpl(): boolean {

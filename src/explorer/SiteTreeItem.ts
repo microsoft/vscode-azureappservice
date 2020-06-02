@@ -56,7 +56,7 @@ export abstract class SiteTreeItem extends SiteTreeItemBase implements ISiteTree
     }
 
     public async openInPortal(): Promise<void> {
-        await openInPortal(this._root, this.id);
+        await openInPortal(this.root, this.id);
     }
 
     public async browse(): Promise<void> {
