@@ -32,7 +32,7 @@ import { redeployDeployment } from './deployments/redeployDeployment';
 import { viewCommitInGitHub } from './deployments/viewCommitInGitHub';
 import { viewDeploymentLogs } from './deployments/viewDeploymentLogs';
 import { generateDeploymentScript } from './generateDeploymentScript';
-import { ImportUriHandler } from './ImportUriHandler';
+import { ImportTrialAppUriHandler } from './ImportTrialAppUriHandler';
 import { installCosmosDBExtension } from './installCosmosDBExtension';
 import { enableFileLogging } from './logstream/enableFileLogging';
 import { startStreamingLogs } from './logstream/startStreamingLogs';
@@ -50,7 +50,7 @@ import { removeTrialApp } from './trialApp/removeTrialApp';
 
 export function registerCommands(): void {
     // tslint:disable-next-line: no-unused-expression
-    new ImportUriHandler();
+    new ImportTrialAppUriHandler();
     registerCommand('appService.ImportTrialApp', importTrialApp);
     registerCommand('appService.RemoveTrialApp', removeTrialApp);
     registerCommand('appService.AddCosmosDBConnection', addCosmosDBConnection);

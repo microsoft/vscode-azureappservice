@@ -5,7 +5,7 @@ import { callWithTelemetryAndErrorHandling, IActionContext } from '../../extensi
 import { localize } from '../localize';
 import { importTrialApp } from './trialApp/importTrialApp';
 
-export class ImportUriHandler implements UriHandler {
+export class ImportTrialAppUriHandler implements UriHandler {
     private disposables: Disposable[] = [];
 
     constructor() {
