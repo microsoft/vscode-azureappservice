@@ -1,5 +1,5 @@
 import * as querystring from 'querystring';
-import { Disposable, Uri, UriHandler, window } from 'vscode';
+import { Disposable, Uri, UriHandler } from 'vscode';
 import { ext } from 'vscode-azureappservice/out/src/extensionVariables';
 import { callWithTelemetryAndErrorHandling, IActionContext } from '../../extension.bundle';
 import { localize } from '../localize';
@@ -7,10 +7,6 @@ import { importTrialApp } from './trialApp/importTrialApp';
 
 export class ImportTrialAppUriHandler implements UriHandler {
     private disposables: Disposable[] = [];
-
-    constructor() {
-        this.disposables.push(window.registerUriHandler(this));
-    }
 
     public async handleUri(uri: Uri): Promise<void> {
         if (uri.path === './ImportTrialApp') {
