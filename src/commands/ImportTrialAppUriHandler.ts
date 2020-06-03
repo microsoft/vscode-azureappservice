@@ -7,7 +7,7 @@ import { importTrialApp } from './trialApp/importTrialApp';
 export class ImportTrialAppUriHandler implements UriHandler {
 
     public async handleUri(uri: Uri): Promise<void> {
-        if (uri.path === './ImportTrialApp') {
+        if (uri.path === '/ImportTrialApp') {
             const data = querystring.parse(uri.query);
 
             if (!data.url) {
