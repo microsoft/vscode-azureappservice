@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { RequestError } from 'request-promise/errors';
 import { AzExtTreeItem, IActionContext } from 'vscode-azureextensionui';
 import { localize } from '../../localize';
 import { openUrl } from '../../utils/openUrl';
@@ -66,21 +65,11 @@ export class TrialAppTreeItem extends SiteTreeItemBase implements ISiteTreeItem 
             cookie: `loginsession=${loginSession}`
         };
 
-        try {
-            const result: string = await requestUtils.sendRequest<string>(metadataRequest);
-            return <ITrialAppMetadata>JSON.parse(result);
-        } catch (e) {
-            if (e instanceof RequestError) {
-                throw Error(localize('errorMetadataRequest', 'Could not get trial app metadata: RequestError.'));
-            } else if (e instanceof SyntaxError) {
-                throw Error(localize('errorMetadataParse', 'Could not get trial app metadata. Could not parse response body.'));
-            } else {
-                throw e;
-            }
-        }
+        const result: string = await requestUtils.sendRequest<string>(metadataRequest);
+        return <ITrialAppMetadata>JSON.parse(result);
     }
-    public loadMoreChildrenImpl(_clearCache: boolean, _context: IActionContext): Promise<AzExtTreeItem[]> {
-        return Promise.resolve([]);
+    public async loadMoreChildrenImpl(_clearCache: boolean, _context: IActionContext): Promise<AzExtTreeItem[]> {
+        return [];
     }
     public hasMoreChildrenImpl(): boolean {
         return false;
