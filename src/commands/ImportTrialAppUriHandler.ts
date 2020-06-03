@@ -10,10 +10,6 @@ export class ImportTrialAppUriHandler implements UriHandler {
         if (uri.path === '/ImportTrialApp') {
             const data = querystring.parse(uri.query);
 
-            if (!data.url) {
-                throw Error(`${localize('failedToImportUri', 'Failed to import Uri')} ${uri}`);
-            }
-
             await callWithTelemetryAndErrorHandling<void>('importTrialApp', async (context: IActionContext): Promise<void> => {
                 if (typeof data.loginSession === 'string') {
                     await importTrialApp(context, data.loginSession);
