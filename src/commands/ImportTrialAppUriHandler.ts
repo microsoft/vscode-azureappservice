@@ -1,6 +1,5 @@
 import * as querystring from 'querystring';
 import { Uri, UriHandler } from 'vscode';
-import { ext } from 'vscode-azureappservice/out/src/extensionVariables';
 import { callWithTelemetryAndErrorHandling, IActionContext } from '../../extension.bundle';
 import { localize } from '../localize';
 import { importTrialApp } from './trialApp/importTrialApp';
@@ -17,8 +16,7 @@ export class ImportTrialAppUriHandler implements UriHandler {
         const data = querystring.parse(uri.query);
 
         if (!data.url) {
-            await ext.ui.showWarningMessage(`Failed to import URI: ${uri}`);
-            return;
+            throw Error(`${localize('failedToImportUri', 'Failed to import Uri')}: ${uri}`);
         }
 
         await callWithTelemetryAndErrorHandling<void>('importTrialApp', async (context: IActionContext): Promise<void> => {
