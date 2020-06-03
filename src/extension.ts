@@ -52,8 +52,7 @@ export async function activateInternal(
         ext.fileEditor = new FileEditor();
         context.subscriptions.push(ext.fileEditor);
 
-        const uriHandler = new ImportTrialAppUriHandler();
-        ext.context.subscriptions.push(uriHandler);
+        vscode.window.registerUriHandler(new ImportTrialAppUriHandler());
 
         registerCommands();
     });
