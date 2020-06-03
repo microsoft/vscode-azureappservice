@@ -5,7 +5,7 @@
 
 import * as appservice from "vscode-azureappservice";
 import { DeploymentsTreeItem } from "vscode-azureappservice";
-import { AzureParentTreeItem, IActionContext } from "vscode-azureextensionui";
+import { IActionContext } from "vscode-azureextensionui";
 import { ScmType } from "../../constants";
 import { SiteTreeItem } from "../../explorer/SiteTreeItem";
 import { WebAppTreeItem } from "../../explorer/WebAppTreeItem";
@@ -18,16 +18,11 @@ export async function editScmType(context: IActionContext, node?: SiteTreeItem |
         node = <SiteTreeItem>node.parent;
     }
 
-    if (node instanceof DeploymentsTreeItem && node.parent instanceof AzureParentTreeItem) {
-        await appservice.editScmType(context, node.root.client, node.root, newScmType, showToast);
-    } else if (node instanceof SiteTreeItem) {
+    if (node instanceof SiteTreeItem) {
         if (node.deploymentsNode === undefined) {
             await node.refresh();
         }
         await appservice.editScmType(context, node.root.client, node.root, newScmType, showToast);
     }
-
-    if (node.deploymentsNode) {
-        await node.deploymentsNode.refresh();
-    }
+    await node.deploymentsNode?.refresh();
 }
