@@ -94,7 +94,7 @@ export class TrialAppTreeItem extends SiteTreeItemBase implements ISiteTreeItem 
         this.metadata = await TrialAppTreeItem.getTrialAppMetaData(this.metadata.loginSession);
     }
 
-    public isAncestorOfImpl?(_contextValue: string | RegExp): boolean {
-        return _contextValue === TrialAppTreeItem.contextValue;
+    public isAncestorOfImpl?(contextValue: string | RegExp): boolean {
+        return contextValue === TrialAppTreeItem.contextValue;
     }
 }
