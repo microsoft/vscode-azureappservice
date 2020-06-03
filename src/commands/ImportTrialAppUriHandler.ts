@@ -1,21 +1,16 @@
 import * as querystring from 'querystring';
-import { Disposable, Uri, UriHandler } from 'vscode';
+import { Uri, UriHandler } from 'vscode';
 import { ext } from 'vscode-azureappservice/out/src/extensionVariables';
 import { callWithTelemetryAndErrorHandling, IActionContext } from '../../extension.bundle';
 import { localize } from '../localize';
 import { importTrialApp } from './trialApp/importTrialApp';
 
 export class ImportTrialAppUriHandler implements UriHandler {
-    private disposables: Disposable[] = [];
 
     public async handleUri(uri: Uri): Promise<void> {
         if (uri.path === './ImportTrialApp') {
             await this.importTrialApp(uri);
         }
-    }
-
-    public dispose(): void {
-        Disposable.from(...this.disposables).dispose();
     }
 
     private async importTrialApp(uri: Uri): Promise<void> {
