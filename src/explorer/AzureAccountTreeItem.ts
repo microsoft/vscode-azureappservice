@@ -28,7 +28,7 @@ export class AzureAccountTreeItem extends AzureAccountTreeItemBase {
                 [loginSession],
                 'trialAppInvalid',
                 async (source: string): Promise<AzExtTreeItem> => {
-                    return await TrialAppTreeItem.createTrialAppTreeItem(this, 'source');
+                    return await TrialAppTreeItem.createTrialAppTreeItem(this, source);
                 },
                 (_source: unknown): string => {
                     return 'Could not import trial app';
