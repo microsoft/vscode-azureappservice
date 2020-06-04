@@ -6,6 +6,7 @@
 import * as assert from 'assert';
 import { WebSiteManagementModels } from 'azure-arm-website';
 import * as vscode from 'vscode';
+import { WebsiteOS } from 'vscode-azureappservice';
 import { constants, DialogResponses, getRandomHexString } from '../../extension.bundle';
 import { longRunningTestsEnabled, testUserInput } from '../global.test';
 import { resourceGroupsToDelete, webSiteClient } from './global.resource.test';
@@ -15,8 +16,8 @@ suite('Web App actions', async function (this: Mocha.Suite): Promise<void> {
     let resourceName: string;
     let appSettingKey: string;
     let appSettingValue: string;
-    const WebsiteOS0: string = (new Date().getDate()) % 2 === 0 ? 'Linux' : 'Windows';
-    const WebsiteOS1: string = WebsiteOS0 === 'Windows' ? 'Linux' : 'Windows';
+    const WebsiteOS0: WebsiteOS = (new Date().getDate()) % 2 === 0 ? WebsiteOS.linux : WebsiteOS.windows;
+    const WebsiteOS1: WebsiteOS = WebsiteOS0 === WebsiteOS.windows ? WebsiteOS.linux : WebsiteOS.windows;
 
     suiteSetup(async function (this: Mocha.Context): Promise<void> {
         if (!longRunningTestsEnabled) {
@@ -132,11 +133,12 @@ suite('Web App actions', async function (this: Mocha.Suite): Promise<void> {
         return value;
     }
 
-    async function getInput(inputOS: string): Promise<(string | RegExp)[]> {
+    async function getInput(inputOS: WebsiteOS): Promise<(string | RegExp)[]> {
         const regExpLTS: RegExp = /LTS/g;
-        if (inputOS === 'Linux') {
-            return [inputOS, regExpLTS];
+        const webAppOS: string | RegExp = inputOS.charAt(0).toUpperCase() + inputOS.slice(1);
+        if (inputOS.toLowerCase() === WebsiteOS.linux) {
+            return [webAppOS, regExpLTS];
         }
-        return [inputOS];
+        return [webAppOS];
     }
 });
