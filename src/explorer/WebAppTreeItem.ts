@@ -5,10 +5,9 @@
 
 import { AppServicePlan } from 'azure-arm-website/lib/models';
 import { SiteClient } from 'vscode-azureappservice';
-import { AzExtTreeItem, TreeItemIconPath } from 'vscode-azureextensionui';
+import { AzExtTreeItem } from 'vscode-azureextensionui';
 import { ext } from '../extensionVariables';
 import { nonNullProp, nonNullValue } from '../utils/nonNull';
-import { getIconPath } from '../utils/pathUtils';
 import { DeploymentSlotsNATreeItem, DeploymentSlotsTreeItem } from './DeploymentSlotsTreeItem';
 import { DeploymentSlotTreeItem } from './DeploymentSlotTreeItem';
 import { SiteTreeItem } from './SiteTreeItem';
@@ -24,10 +23,6 @@ export class WebAppTreeItem extends SiteTreeItem {
 
     public get label(): string {
         return this.root.client.siteName;
-    }
-
-    public get iconPath(): TreeItemIconPath {
-        return getIconPath('WebApp');
     }
 
     public async loadMoreChildrenImpl(clearCache: boolean): Promise<AzExtTreeItem[]> {

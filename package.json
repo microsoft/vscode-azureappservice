@@ -81,7 +81,7 @@
             },
             {
                 "command": "appService.RemoveTrialApp",
-                "title": "Remove Trial App",
+                "title": "Remove",
                 "category": "Azure App Service"
             },
             {
@@ -335,7 +335,7 @@
                 },
                 {
                     "command": "appService.RemoveTrialApp",
-                    "when": "view == azureAppService && viewItem == trialApp"
+                    "when": "never"
                 },
                 {
                     "command": "appService.selectSubscriptions",

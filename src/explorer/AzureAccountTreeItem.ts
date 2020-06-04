@@ -24,7 +24,19 @@ export class AzureAccountTreeItem extends AzureAccountTreeItemBase {
         const loginSession: string | undefined = ext.context.globalState.get(TrialAppLoginSession);
 
         if (loginSession) {
-            children.push(await TrialAppTreeItem.createTrialAppTreeItem(this, loginSession));
+            const ti: AzExtTreeItem[] = await this.createTreeItemsWithErrorHandling(
+                [loginSession],
+                'trialAppInvalid',
+                async (source: string): Promise<AzExtTreeItem> => {
+                    return await TrialAppTreeItem.createTrialAppTreeItem(this, 'source');
+                },
+                (_source: unknown): string => {
+                    return 'Could not import trial app';
+                });
+
+            if (ti.length > 0) {
+                children.push(ti[0]);
+            }
         }
 
         return children;
