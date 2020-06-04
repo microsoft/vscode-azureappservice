@@ -17,6 +17,6 @@ export async function disconnectRepo(context: IActionContext, node?: Deployments
     if (node.parent instanceof SiteTreeItem) {
         await disconnectRepository(context, node.parent.root.client, node.parent.root);
     } else {
-        throw Error(localize('actionNotSupported', 'Action not supported.'));
+        throw Error(localize('notSupported', 'This operation is not supported.'));
     }
 }
