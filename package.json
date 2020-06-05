@@ -75,6 +75,11 @@
     "contributes": {
         "commands": [
             {
+                "command": "appService.CloneTrialApp",
+                "title": "Clone",
+                "category": "Azure App Service"
+            },
+            {
                 "command": "appService.ImportTrialApp",
                 "title": "Import Trial App",
                 "category": "Azure App Service"
@@ -331,6 +336,10 @@
             "commandPalette": [
                 {
                     "command": "appService.ImportTrialApp",
+                    "when": "never"
+                },
+                {
+                    "command": "appService.CloneTrialApp",
                     "when": "never"
                 },
                 {
