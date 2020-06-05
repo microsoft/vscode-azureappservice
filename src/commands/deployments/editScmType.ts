@@ -18,11 +18,10 @@ export async function editScmType(context: IActionContext, node?: SiteTreeItem |
         node = <SiteTreeItem>node.parent;
     }
 
-    if (node instanceof SiteTreeItem) {
-        if (node.deploymentsNode === undefined) {
-            await node.refresh();
-        }
-        await appservice.editScmType(context, node.root.client, node.root, newScmType, showToast);
+    if (node.deploymentsNode === undefined) {
+        await node.refresh();
     }
+
+    await appservice.editScmType(context, node.root.client, node.root, newScmType, showToast);
     await node.deploymentsNode?.refresh();
 }
