@@ -411,7 +411,7 @@
                 },
                 {
                     "command": "appService.RemoveTrialApp",
-                    "when": "view == azureAppService && viewItem == trialApp",
+                    "when": "view == azureAppService && viewItem =~ /^(trialApp|trialAppInvalid)$/",
                     "group": "1_trialAppCommands@1"
                 },
                 {
