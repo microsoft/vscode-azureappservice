@@ -15,14 +15,7 @@ import { ITrialAppMetadata } from './ITrialAppMetadata';
 export class TrialAppTreeItem extends SiteTreeItemBase implements ISiteTreeItem {
     public static contextValue: string = 'trialApp';
     public contextValue: string = TrialAppTreeItem.contextValue;
-
     public metadata: ITrialAppMetadata;
-
-    public defaultHostName: string;
-
-    public defaultHostUrl: string;
-
-    private readonly _defaultHostName: string;
 
     public get label(): string {
         return this.metadata.siteName ? this.metadata.siteName : localize('nodeJsTrialApp', 'NodeJS Trial App');
@@ -38,14 +31,20 @@ export class TrialAppTreeItem extends SiteTreeItemBase implements ISiteTreeItem 
     }
 
     public get id(): string {
-        return `trialApp${this._defaultHostName}`;
+        return `trialApp${this.defaultHostName}`;
+    }
+
+    public get defaultHostName(): string {
+        return this.metadata.hostName;
+    }
+
+    public get defaultHostUrl(): string {
+        return `https://${this.defaultHostName}`;
     }
 
     private constructor(parent: AzureAccountTreeItem, metadata: ITrialAppMetadata) {
         super(parent);
         this.metadata = metadata;
-        this.defaultHostName = this.metadata.hostName;
-        this.defaultHostUrl = `https://${this.defaultHostName}`;
     }
 
     public static async createTrialAppTreeItem(parent: AzureAccountTreeItem, loginSession: string): Promise<TrialAppTreeItem> {
