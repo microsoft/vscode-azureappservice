@@ -4,11 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { AppServicePlan } from 'azure-arm-website/lib/models';
-import { ISiteTreeRoot } from 'vscode-azureappservice';
-import { AzExtTreeItem, AzureTreeItem, TreeItemIconPath } from 'vscode-azureextensionui';
+import { SiteClient } from 'vscode-azureappservice';
+import { AzExtTreeItem } from 'vscode-azureextensionui';
 import { ext } from '../extensionVariables';
 import { nonNullProp, nonNullValue } from '../utils/nonNull';
-import { getIconPath } from '../utils/pathUtils';
 import { DeploymentSlotsNATreeItem, DeploymentSlotsTreeItem } from './DeploymentSlotsTreeItem';
 import { DeploymentSlotTreeItem } from './DeploymentSlotTreeItem';
 import { SiteTreeItem } from './SiteTreeItem';
@@ -18,15 +17,15 @@ export class WebAppTreeItem extends SiteTreeItem {
     public readonly contextValue: string = WebAppTreeItem.contextValue;
     public deploymentSlotsNode: DeploymentSlotsTreeItem | DeploymentSlotsNATreeItem;
 
+    public get client(): SiteClient {
+        return this.root.client;
+    }
+
     public get label(): string {
         return this.root.client.siteName;
     }
 
-    public get iconPath(): TreeItemIconPath {
-        return getIconPath('WebApp');
-    }
-
-    public async loadMoreChildrenImpl(clearCache: boolean): Promise<AzureTreeItem<ISiteTreeRoot>[]> {
+    public async loadMoreChildrenImpl(clearCache: boolean): Promise<AzExtTreeItem[]> {
         let tier: string | undefined;
         let asp: AppServicePlan | undefined;
         try {

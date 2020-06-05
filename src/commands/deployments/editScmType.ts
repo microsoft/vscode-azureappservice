@@ -3,8 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { DeploymentsTreeItem } from "vscode-azureappservice";
 import * as appservice from "vscode-azureappservice";
+import { DeploymentsTreeItem } from "vscode-azureappservice";
 import { IActionContext } from "vscode-azureextensionui";
 import { ScmType } from "../../constants";
 import { SiteTreeItem } from "../../explorer/SiteTreeItem";
@@ -18,9 +18,10 @@ export async function editScmType(context: IActionContext, node?: SiteTreeItem |
         node = <SiteTreeItem>node.parent;
     }
 
-    await appservice.editScmType(node.root.client, node, context, newScmType, showToast);
-
-    if (node.deploymentsNode) {
-        await node.deploymentsNode.refresh();
+    if (node.deploymentsNode === undefined) {
+        await node.refresh();
     }
+
+    await appservice.editScmType(context, node.root.client, node.root, newScmType, showToast);
+    await node.deploymentsNode?.refresh();
 }

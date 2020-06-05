@@ -10,6 +10,7 @@ import { registerAppServiceExtensionVariables } from 'vscode-azureappservice';
 import { AzExtTreeDataProvider, AzureUserInput, callWithTelemetryAndErrorHandling, createApiProvider, createAzExtOutputChannel, IActionContext, IAzureUserInput, registerUIExtensionVariables } from 'vscode-azureextensionui';
 import { AzureExtensionApi, AzureExtensionApiProvider } from 'vscode-azureextensionui/api';
 import { revealTreeItem } from './commands/api/revealTreeItem';
+import { ImportTrialAppUriHandler } from './commands/ImportTrialAppUriHandler';
 import { registerCommands } from './commands/registerCommands';
 import { AzureAccountTreeItem } from './explorer/AzureAccountTreeItem';
 import { FileEditor } from './explorer/editors/FileEditor';
@@ -50,6 +51,8 @@ export async function activateInternal(
 
         ext.fileEditor = new FileEditor();
         context.subscriptions.push(ext.fileEditor);
+
+        vscode.window.registerUriHandler(new ImportTrialAppUriHandler());
 
         registerCommands();
     });
