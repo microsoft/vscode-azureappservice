@@ -3,20 +3,15 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { commands, ProgressLocation, window } from 'vscode';
+import { commands } from 'vscode';
 import { IActionContext } from 'vscode-azureextensionui';
 import { TrialAppTreeItem } from '../../explorer/trialApp/TrialAppTreeItem';
 import { ext } from '../../extensionVariables';
-import { localize } from '../../localize';
 
 export async function cloneTrialApp(context: IActionContext, node?: TrialAppTreeItem): Promise<void> {
     if (!node) {
         node = await ext.tree.showTreeItemPicker<TrialAppTreeItem>(TrialAppTreeItem.contextValue, context);
     }
 
-    await window.withProgress({ location: ProgressLocation.Notification, cancellable: false }, async p => {
-        p.report({ message: localize('importingTrialApp', 'Cloning trial app...') });
-
-        await commands.executeCommand('git.clone', node?.metadata.gitUrl);
-    });
+    await commands.executeCommand('git.clone', node?.metadata.gitUrl);
 }

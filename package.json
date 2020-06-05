@@ -419,6 +419,11 @@
                     "group": "2_subscriptionGeneralCommands@1"
                 },
                 {
+                    "command": "appService.CloneTrialApp",
+                    "when": "view == azureAppService && viewItem == trialApp",
+                    "group": "1_trialAppCommands@1"
+                },
+                {
                     "command": "appService.RemoveTrialApp",
                     "when": "view == azureAppService && viewItem == trialApp",
                     "group": "1_trialAppCommands@1"
