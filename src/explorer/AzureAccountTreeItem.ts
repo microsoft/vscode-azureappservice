@@ -31,7 +31,7 @@ export class AzureAccountTreeItem extends AzureAccountTreeItemBase {
                     return await TrialAppTreeItem.createTrialAppTreeItem(this, source);
                 },
                 (_source: unknown): string => {
-                    return 'Could not import trial app';
+                    return 'Trial App';
                 });
 
             if (ti.length > 0) {
