@@ -6,12 +6,20 @@
 import { AzExtTreeItem, AzureAccountTreeItemBase, GenericTreeItem, IActionContext, ISubscriptionContext } from 'vscode-azureextensionui';
 import { TrialAppLoginSession } from '../constants';
 import { ext } from '../extensionVariables';
+import { localize } from '../localize';
 import { SubscriptionTreeItem } from './SubscriptionTreeItem';
 import { TrialAppTreeItem } from './trialApp/TrialAppTreeItem';
 
 export class AzureAccountTreeItem extends AzureAccountTreeItemBase {
 
     public trialAppNode: TrialAppTreeItem | undefined;
+    public get childTypeLabel(): string {
+        return this.trialAppTreeItem ?
+            localize('subscriptionOrTrialApp', 'subscription or trial app') :
+            localize('subscription', 'subscription');
+    }
+
+    public trialAppTreeItem: TrialAppTreeItem | undefined;
 
     public constructor(testAccount?: {}) {
         super(undefined, testAccount);
@@ -24,21 +32,26 @@ export class AzureAccountTreeItem extends AzureAccountTreeItemBase {
     public async loadMoreChildrenImpl(clearCache: boolean, context: IActionContext): Promise<AzExtTreeItem[]> {
         const children: AzExtTreeItem[] = await super.loadMoreChildrenImpl(clearCache, context);
 
-        const loginSession: string | undefined = ext.context.globalState.get(TrialAppLoginSession);
-
-        if (loginSession) {
-            const ti: AzExtTreeItem[] = await this.createTreeItemsWithErrorHandling(
-                [loginSession],
-                'trialAppInvalid',
-                async (source: string): Promise<AzExtTreeItem> => {
-                    return await TrialAppTreeItem.createTrialAppTreeItem(this, source);
-                },
-                (_source: unknown): string => {
-                    return 'Trial App';
-                });
-
-            if (ti.length > 0) {
-                children.push(ti[0]);
+        if (this.trialAppTreeItem) {
+            await this.trialAppTreeItem.refresh();
+            children.push(this.trialAppTreeItem);
+        } else {
+            const loginSession: string | undefined = ext.context.globalState.get(TrialAppLoginSession);
+            if (loginSession) {
+                const ti: AzExtTreeItem[] = await this.createTreeItemsWithErrorHandling(
+                    [loginSession],
+                    'trialAppInvalid',
+                    async (source: string): Promise<AzExtTreeItem> => {
+                        return await TrialAppTreeItem.createTrialAppTreeItem(this, source);
+                    },
+                    (_source: unknown): string => {
+                        return 'Trial App';
+                    });
+                if (ti.length > 0) {
+                    const treeItem: AzExtTreeItem = ti[0];
+                    children.push(treeItem);
+                    this.trialAppTreeItem = treeItem instanceof TrialAppTreeItem ? treeItem : this.trialAppTreeItem;
+                }
             }
         }
 

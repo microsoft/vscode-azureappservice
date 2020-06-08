@@ -14,5 +14,6 @@ export async function removeTrialApp(context: IActionContext, node?: TrialAppTre
     }
 
     ext.context.globalState.update(TrialAppLoginSession, undefined);
+    delete ext.azureAccountTreeItem.trialAppTreeItem;
     await ext.tree.refresh();
 }
