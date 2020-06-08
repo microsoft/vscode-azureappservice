@@ -114,6 +114,14 @@ suite('Web App actions', async function (this: Mocha.Suite): Promise<void> {
         assert.equal(await getAppSettingValue(resourceName, resourceName, appSettingKey), appSettingValue);
     });
 
+    test(`Delete setting for ${WebsiteOS0} Web App`, async () => {
+        assert.equal(await getAppSettingValue(resourceName, resourceName, appSettingKey), appSettingValue);
+        await testUserInput.runWithInputs([resourceName, `${appSettingKey}=Hidden value. Click to view.`, DialogResponses.deleteResponse.title], async () => {
+            await vscode.commands.executeCommand('appService.appSettings.Delete');
+        });
+        assert.ifError(await getAppSettingValue(resourceName, resourceName, appSettingKey));
+    });
+
     test(`Delete Web App for ${WebsiteOS0} Web App`, async () => {
         const createdApp: WebSiteManagementModels.Site = await webSiteClient.webApps.get(resourceName, resourceName);
         assert.ok(createdApp);
