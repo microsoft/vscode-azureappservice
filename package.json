@@ -466,7 +466,7 @@
                 },
                 {
                     "command": "appService.Deploy",
-                    "when": "view == azureAppService && viewItem == appService",
+                    "when": "view == azureAppService && viewItem =~ /^(appService|trialApp)$/",
                     "group": "3_appServiceDeployCommands@1"
                 },
                 {
