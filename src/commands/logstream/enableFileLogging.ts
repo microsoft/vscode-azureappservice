@@ -32,20 +32,20 @@ export async function enableFileLogging(context: IEnableFileLoggingContext, node
         return await siteNode.isHttpLogsEnabled();
     });
 
-    if (!isEnabled && siteNode instanceof SiteTreeItem && node instanceof SiteTreeItem) {
-        await ext.ui.showWarningMessage(`Do you want to enable file logging for ${node.root.client.fullName}? The web app will be restarted.`, { modal: true }, DialogResponses.yes);
-        const enablingLogging: string = `Enabling Logging for "${node.root.client.fullName}"...`;
-        const enabledLogging: string = `Enabled Logging for "${node.root.client.fullName}".`;
+    if (!isEnabled && siteNode instanceof SiteTreeItem) {
+        await ext.ui.showWarningMessage(`Do you want to enable file logging for ${siteNode.root.client.fullName}? The web app will be restarted.`, { modal: true }, DialogResponses.yes);
+        const enablingLogging: string = `Enabling Logging for "${siteNode.root.client.fullName}"...`;
+        const enabledLogging: string = `Enabled Logging for "${siteNode.root.client.fullName}".`;
         await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification, title: enablingLogging }, async (): Promise<void> => {
             ext.outputChannel.appendLog(enablingLogging);
             await siteNode.enableHttpLogs();
 
-            await vscode.commands.executeCommand('appService.Restart', node);
+            await vscode.commands.executeCommand('appService.Restart', siteNode);
             vscode.window.showInformationMessage(enabledLogging);
             ext.outputChannel.appendLog(enabledLogging);
         });
     } else if (!context.suppressAlreadyEnabledMessage) {
-        const fullName: string = (node instanceof TrialAppTreeItem) ? node.client.fullName : node.root.client.fullName;
+        const fullName: string = (siteNode instanceof TrialAppTreeItem) ? siteNode.client.fullName : siteNode.root.client.fullName;
         vscode.window.showInformationMessage(`File logging has already been enabled for ${fullName}.`);
     }
 }
