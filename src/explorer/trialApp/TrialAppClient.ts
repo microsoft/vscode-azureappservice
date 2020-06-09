@@ -4,7 +4,7 @@
 *--------------------------------------------------------------------------------------------*/
 
 import { BasicAuthenticationCredentials, ServiceClientCredentials } from 'ms-rest';
-import { IFilesClient, IHostKeys } from 'vscode-azureappservice';
+import { IFilesClient } from 'vscode-azureappservice';
 import { addExtensionUserAgent } from 'vscode-azureextensionui';
 import KuduClient from 'vscode-azurekudu';
 import { localize } from '../../localize';
@@ -62,10 +62,6 @@ export class TrialAppClient implements IFilesClient {
 
         const result: string = await requestUtils.sendRequest<string>(metadataRequest);
         return <ITrialAppMetadata>JSON.parse(result);
-    }
-
-    public async listHostKeys(): Promise<IHostKeys> {
-        throw new Error('Method not implemented.');
     }
 
     public async getKuduClient(): Promise<KuduClient> {
