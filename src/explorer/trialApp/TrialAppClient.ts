@@ -7,7 +7,6 @@ import { BasicAuthenticationCredentials, ServiceClientCredentials } from 'ms-res
 import { IFilesClient } from 'vscode-azureappservice';
 import { addExtensionUserAgent } from 'vscode-azureextensionui';
 import KuduClient from 'vscode-azurekudu';
-import { localize } from '../../localize';
 import { requestUtils } from '../../utils/requestUtils';
 import { ITrialAppMetadata } from './ITrialAppMetadata';
 
@@ -65,11 +64,7 @@ export class TrialAppClient implements IFilesClient {
     }
 
     public async getKuduClient(): Promise<KuduClient> {
-        if (!this.metadata.scmHostName) {
-            throw new Error(localize('notSupportedLinux', 'This operation is not supported by this app service plan.'));
-        }
-
-        const kuduClient: KuduClient = new KuduClient(this.credentials, `https://${this.metadata.scmHostName}`);
+        const kuduClient: KuduClient = new KuduClient(this.credentials, this.kuduUrl);
         addExtensionUserAgent(kuduClient);
         return kuduClient;
     }
