@@ -5,7 +5,6 @@
 
 import { StringDictionary } from 'azure-arm-website/lib/models';
 import { BasicAuthenticationCredentials, ServiceClientCredentials } from 'ms-rest';
-import * as request from 'request';
 import { IAppSettingsClient, IFilesClient } from 'vscode-azureappservice';
 import { addExtensionUserAgent } from 'vscode-azureextensionui';
 import KuduClient from 'vscode-azurekudu';
@@ -83,44 +82,21 @@ export class TrialAppClient implements IAppSettingsClient, IFilesClient {
             }
         }));
 
-        const options: request.Options = {
-            method: 'POST',
-            url: `https://${this.metadata.scmHostName}/api/settings`,
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(appSettings.properties),
-            auth: {
-                username: this.metadata.publishingUserName,
-                password: this.metadata.publishingPassword
-            }
-        };
+        const request: requestUtils.Request = await requestUtils.getDefaultRequest(`https://${this.metadata.scmHostName}/api/settings`, this._credentials, 'POST');
+        request.body = JSON.stringify(appSettings.properties);
+        request.headers['Content-Type'] = 'application/json';
 
-        request(options, (error: Error, _response: request.Response) => {
-            if (error !== undefined) { throw error; }
-        });
-
+        await requestUtils.sendRequest(request);
         return appSettings;
     }
 
     private async deleteApplicationSetting(appSettings: StringDictionary, key: string): Promise<StringDictionary> {
 
-        const options: request.Options = {
-            method: 'DELETE',
-            url: `https://${this.metadata.scmHostName}/api/settings/${key}`,
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(appSettings.properties),
-            auth: {
-                username: this.metadata.publishingUserName,
-                password: this.metadata.publishingPassword
-            }
-        };
+        const deleteRequest: requestUtils.Request = await requestUtils.getDefaultRequest(`https://${this.metadata.scmHostName}/api/settings/${key}`, this._credentials, 'DELETE');
+        deleteRequest.body = JSON.stringify(appSettings.properties);
+        deleteRequest.headers['Content-Type'] = 'application/json';
 
-        request(options, (error: Error, _response: request.Response) => {
-            if (error !== undefined) { throw error; }
-        });
+        await requestUtils.sendRequest<string>(deleteRequest);
         return appSettings;
     }
 }
