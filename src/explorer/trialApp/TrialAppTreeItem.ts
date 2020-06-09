@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { AppSettingsTreeItem, AppSettingTreeItem, IAppSettingsClient, LogFilesTreeItem, SiteFilesTreeItem } from 'vscode-azureappservice';
+import { AppSettingsTreeItem, LogFilesTreeItem, SiteFilesTreeItem } from 'vscode-azureappservice';
 import { AzExtTreeItem, IActionContext } from 'vscode-azureextensionui';
 import { localize } from '../../localize';
 import { openUrl } from '../../utils/openUrl';
@@ -25,7 +25,7 @@ export class TrialAppTreeItem extends SiteTreeItemBase implements ISiteTreeItem 
     private constructor(parent: AzureAccountTreeItem, client: TrialAppClient) {
         super(parent);
         this.client = client;
-        this._appSettingsTreeItem = new TrialAppApplicationSettingsTreeItem(this, this.client);
+        this._appSettingsTreeItem = new TrialAppApplicationSettingsTreeItem(this, this.client, false);
         this._siteFilesNode = new SiteFilesTreeItem(this, this.client, false);
         this.logFilesNode = new LogFilesTreeItem(this, client);
     }
@@ -95,8 +95,4 @@ export class TrialAppTreeItem extends SiteTreeItemBase implements ISiteTreeItem 
 // different context value to change actions in context menu
 class TrialAppApplicationSettingsTreeItem extends AppSettingsTreeItem {
     public contextValue: string = 'applicationSettingsTrialApp';
-
-    public async createAppSettingTreeItem(parent: AppSettingsTreeItem, client: IAppSettingsClient, key: string, value: string): Promise<AppSettingTreeItem> {
-        return await AppSettingTreeItem.createAppSettingTreeItem(parent, client, key, value, false);
-    }
 }
