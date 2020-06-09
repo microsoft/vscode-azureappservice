@@ -75,6 +75,11 @@
     "contributes": {
         "commands": [
             {
+                "command": "appService.CloneTrialApp",
+                "title": "Clone",
+                "category": "Azure App Service"
+            },
+            {
                 "command": "appService.ImportTrialApp",
                 "title": "Import Trial App",
                 "category": "Azure App Service"
@@ -334,6 +339,10 @@
                     "when": "never"
                 },
                 {
+                    "command": "appService.CloneTrialApp",
+                    "when": "never"
+                },
+                {
                     "command": "appService.RemoveTrialApp",
                     "when": "never"
                 },
@@ -408,6 +417,11 @@
                     "command": "appService.Refresh",
                     "when": "view == azureAppService && viewItem == azureextensionui.azureSubscription",
                     "group": "2_subscriptionGeneralCommands@1"
+                },
+                {
+                    "command": "appService.CloneTrialApp",
+                    "when": "view == azureAppService && viewItem == trialApp",
+                    "group": "1_trialAppCommands@1"
                 },
                 {
                     "command": "appService.RemoveTrialApp",
