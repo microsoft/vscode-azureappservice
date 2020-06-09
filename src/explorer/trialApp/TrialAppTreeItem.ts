@@ -16,7 +16,7 @@ import { TrialAppClient } from './TrialAppClient';
 export class TrialAppTreeItem extends SiteTreeItemBase implements ISiteTreeItem {
     public static contextValue: string = 'trialApp';
     public contextValue: string = TrialAppTreeItem.contextValue;
-    public readonly client: TrialAppClient;
+    public client: TrialAppClient;
     public logFilesNode: LogFilesTreeItem;
 
     private readonly _siteFilesNode: SiteFilesTreeItem;
@@ -82,7 +82,7 @@ export class TrialAppTreeItem extends SiteTreeItemBase implements ISiteTreeItem 
     }
 
     public async refreshImpl(): Promise<void> {
-        this.client.metadata = await TrialAppClient.getTrialAppMetaData(this.metadata.loginSession);
+        this.client = await TrialAppClient.createTrialAppClient(this.metadata.loginSession);
     }
 
     public isAncestorOfImpl?(contextValue: string | RegExp): boolean {

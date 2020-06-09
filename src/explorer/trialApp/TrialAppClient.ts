@@ -23,7 +23,19 @@ export class TrialAppClient implements IFilesClient {
     }
 
     public static async createTrialAppClient(loginSession: string): Promise<TrialAppClient> {
-        const metadata: ITrialAppMetadata = await this.getTrialAppMetaData(loginSession);
+        const metadataRequest: requestUtils.Request = await requestUtils.getDefaultRequest('https://tryappservice.azure.com/api/vscoderesource', undefined, 'GET');
+
+        metadataRequest.headers = {
+            accept: "*/*",
+            "accept-language": "en-US,en;q=0.9",
+            "sec-fetch-dest": "empty",
+            "sec-fetch-mode": "cors",
+            "sec-fetch-site": "same-origin",
+            cookie: `loginsession=${loginSession}`
+        };
+
+        const result: string = await requestUtils.sendRequest<string>(metadataRequest);
+        const metadata: ITrialAppMetadata = <ITrialAppMetadata>JSON.parse(result);
         return new TrialAppClient(metadata);
     }
 
@@ -45,22 +57,6 @@ export class TrialAppClient implements IFilesClient {
 
     public get defaultHostUrl(): string {
         return `https://${this.metadata.hostName}`;
-    }
-
-    public static async getTrialAppMetaData(loginSession: string): Promise<ITrialAppMetadata> {
-        const metadataRequest: requestUtils.Request = await requestUtils.getDefaultRequest('https://tryappservice.azure.com/api/vscoderesource', undefined, 'GET');
-
-        metadataRequest.headers = {
-            accept: "*/*",
-            "accept-language": "en-US,en;q=0.9",
-            "sec-fetch-dest": "empty",
-            "sec-fetch-mode": "cors",
-            "sec-fetch-site": "same-origin",
-            cookie: `loginsession=${loginSession}`
-        };
-
-        const result: string = await requestUtils.sendRequest<string>(metadataRequest);
-        return <ITrialAppMetadata>JSON.parse(result);
     }
 
     public async getKuduClient(): Promise<KuduClient> {
