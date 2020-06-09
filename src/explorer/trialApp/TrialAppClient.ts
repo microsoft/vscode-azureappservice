@@ -15,11 +15,11 @@ export class TrialAppClient implements IFilesClient {
     public isFunctionApp: boolean = false;
     public metadata: ITrialAppMetadata;
 
-    private credentials: ServiceClientCredentials;
+    private _credentials: ServiceClientCredentials;
 
     private constructor(metadata: ITrialAppMetadata) {
         this.metadata = metadata;
-        this.credentials = new BasicAuthenticationCredentials(metadata.publishingUserName, metadata.publishingPassword);
+        this._credentials = new BasicAuthenticationCredentials(metadata.publishingUserName, metadata.publishingPassword);
     }
 
     public static async createTrialAppClient(loginSession: string): Promise<TrialAppClient> {
@@ -60,7 +60,7 @@ export class TrialAppClient implements IFilesClient {
     }
 
     public async getKuduClient(): Promise<KuduClient> {
-        const kuduClient: KuduClient = new KuduClient(this.credentials, this.kuduUrl);
+        const kuduClient: KuduClient = new KuduClient(this._credentials, this.kuduUrl);
         addExtensionUserAgent(kuduClient);
         return kuduClient;
     }
