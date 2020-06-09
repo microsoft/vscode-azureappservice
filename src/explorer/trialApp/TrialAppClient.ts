@@ -3,16 +3,19 @@
 *  Licensed under the MIT License. See License.txt in the project root for license information.
 *--------------------------------------------------------------------------------------------*/
 
+import { StringDictionary } from 'azure-arm-website/lib/models';
 import { BasicAuthenticationCredentials, ServiceClientCredentials } from 'ms-rest';
-import { IFilesClient } from 'vscode-azureappservice';
+import * as request from 'request';
+import { IAppSettingsClient, IFilesClient } from 'vscode-azureappservice';
 import { addExtensionUserAgent } from 'vscode-azureextensionui';
 import KuduClient from 'vscode-azurekudu';
 import { requestUtils } from '../../utils/requestUtils';
 import { ITrialAppMetadata } from './ITrialAppMetadata';
 
-export class TrialAppClient implements IFilesClient {
+export class TrialAppClient implements IAppSettingsClient, IFilesClient {
 
     public isFunctionApp: boolean = false;
+    public isLinux: boolean = true;
     public metadata: ITrialAppMetadata;
 
     private _credentials: ServiceClientCredentials;
@@ -51,17 +54,73 @@ export class TrialAppClient implements IFilesClient {
         return `https://${this.metadata.scmHostName}`;
     }
 
-    public get defaultHostName(): string {
-        return this.metadata.hostName;
-    }
-
     public get defaultHostUrl(): string {
-        return `https://${this.metadata.hostName}`;
+        return `https://${this.fullName}`;
     }
 
     public async getKuduClient(): Promise<KuduClient> {
         const kuduClient: KuduClient = new KuduClient(this._credentials, this.kuduUrl);
         addExtensionUserAgent(kuduClient);
         return kuduClient;
+    }
+
+    public async listApplicationSettings(): Promise<StringDictionary> {
+        const kuduClient: KuduClient = await this.getKuduClient();
+        const settings: StringDictionary = {};
+        settings.properties = <{ [name: string]: string }>await kuduClient.settings.getAll();
+        return settings;
+    }
+
+    public async updateApplicationSettings(appSettings: StringDictionary): Promise<StringDictionary> {
+        const currentSettings: StringDictionary = await this.listApplicationSettings();
+
+        // To handle renaming app settings, we need to delete the old setting.
+        // tslint:disable-next-line:strict-boolean-expressions
+        const properties: { [name: string]: string } = currentSettings.properties || {};
+        await Promise.all(Object.keys(properties).map(async (key: string) => {
+            if (appSettings.properties && appSettings.properties[key] === undefined) {
+                await this.deleteApplicationSetting(appSettings, key);
+            }
+        }));
+
+        const options: request.Options = {
+            method: 'POST',
+            url: `https://${this.metadata.scmHostName}/api/settings`,
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(appSettings.properties),
+            auth: {
+                username: this.metadata.publishingUserName,
+                password: this.metadata.publishingPassword
+            }
+        };
+
+        request(options, (error: Error, _response: request.Response) => {
+            if (error !== undefined) { throw error; }
+        });
+
+        return appSettings;
+    }
+
+    private async deleteApplicationSetting(appSettings: StringDictionary, key: string): Promise<StringDictionary> {
+
+        const options: request.Options = {
+            method: 'DELETE',
+            url: `https://${this.metadata.scmHostName}/api/settings/${key}`,
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(appSettings.properties),
+            auth: {
+                username: this.metadata.publishingUserName,
+                password: this.metadata.publishingPassword
+            }
+        };
+
+        request(options, (error: Error, _response: request.Response) => {
+            if (error !== undefined) { throw error; }
+        });
+        return appSettings;
     }
 }

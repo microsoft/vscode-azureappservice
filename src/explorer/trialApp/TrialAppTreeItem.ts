@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { LogFilesTreeItem, SiteFilesTreeItem } from 'vscode-azureappservice';
+import { AppSettingsTreeItem, AppSettingTreeItem, IAppSettingsClient, LogFilesTreeItem, SiteFilesTreeItem } from 'vscode-azureappservice';
 import { AzExtTreeItem, IActionContext } from 'vscode-azureextensionui';
 import { localize } from '../../localize';
 import { openUrl } from '../../utils/openUrl';
@@ -19,11 +19,13 @@ export class TrialAppTreeItem extends SiteTreeItemBase implements ISiteTreeItem 
     public client: TrialAppClient;
     public logFilesNode: LogFilesTreeItem;
 
+    private readonly _appSettingsTreeItem: TrialAppApplicationSettingsTreeItem;
     private readonly _siteFilesNode: SiteFilesTreeItem;
 
     private constructor(parent: AzureAccountTreeItem, client: TrialAppClient) {
         super(parent);
         this.client = client;
+        this._appSettingsTreeItem = new TrialAppApplicationSettingsTreeItem(this, this.client);
         this._siteFilesNode = new SiteFilesTreeItem(this, this.client, false);
         this.logFilesNode = new LogFilesTreeItem(this, client);
     }
@@ -59,11 +61,11 @@ export class TrialAppTreeItem extends SiteTreeItemBase implements ISiteTreeItem 
     }
 
     public get defaultHostName(): string {
-        return this.metadata.hostName;
+        return this.client.fullName;
     }
 
     public get defaultHostUrl(): string {
-        return `https://${this.defaultHostName}`;
+        return this.client.defaultHostUrl;
     }
 
     public async isHttpLogsEnabled(): Promise<boolean> {
@@ -71,7 +73,7 @@ export class TrialAppTreeItem extends SiteTreeItemBase implements ISiteTreeItem 
     }
 
     public async loadMoreChildrenImpl(_clearCache: boolean, _context: IActionContext): Promise<AzExtTreeItem[]> {
-        return [this._siteFilesNode, this.logFilesNode];
+        return [this._appSettingsTreeItem, this._siteFilesNode, this.logFilesNode];
     }
     public hasMoreChildrenImpl(): boolean {
         return false;
@@ -87,5 +89,14 @@ export class TrialAppTreeItem extends SiteTreeItemBase implements ISiteTreeItem 
 
     public isAncestorOfImpl?(contextValue: string | RegExp): boolean {
         return contextValue === TrialAppTreeItem.contextValue;
+    }
+}
+
+// different context value to change actions in context menu
+class TrialAppApplicationSettingsTreeItem extends AppSettingsTreeItem {
+    public contextValue: string = 'applicationSettingsTrialApp';
+
+    public async createAppSettingTreeItem(parent: AppSettingsTreeItem, client: IAppSettingsClient, key: string, value: string): Promise<AppSettingTreeItem> {
+        return await AppSettingTreeItem.createAppSettingTreeItem(parent, client, key, value, false);
     }
 }

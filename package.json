@@ -555,7 +555,7 @@
                 },
                 {
                     "command": "appService.appSettings.Add",
-                    "when": "view == azureAppService && viewItem == applicationSettings",
+                    "when": "view == azureAppService && viewItem =~ /^(applicationSettings|applicationSettingsTrialApp)$/",
                     "group": "1_appSettingsEdit@1"
                 },
                 {
@@ -565,32 +565,32 @@
                 },
                 {
                     "command": "appService.Refresh",
-                    "when": "view == azureAppService && viewItem == applicationSettings",
+                    "when": "view == azureAppService && viewItem =~ /^(applicationSettings|applicationSettingsTrialApp)$/",
                     "group": "2_appSettingsGeneral@1"
                 },
                 {
                     "command": "appService.appSettings.Download",
-                    "when": "view == azureAppService && viewItem == applicationSettings",
+                    "when": "view == azureAppService && viewItem =~ /^(applicationSettings|applicationSettingsTrialApp)$/",
                     "group": "1_appSettingEnv@1"
                 },
                 {
                     "command": "appService.appSettings.Upload",
-                    "when": "view == azureAppService && viewItem == applicationSettings",
+                    "when": "view == azureAppService && viewItem =~ /^(applicationSettings|applicationSettingsTrialApp)$/",
                     "group": "1_appSettingEnv@2"
                 },
                 {
                     "command": "appService.appSettings.Edit",
-                    "when": "view == azureAppService && viewItem == applicationSettingItem",
+                    "when": "view == azureAppService && viewItem =~ /^(applicationSettingItem|applicationSettingItemNoSlots)$/",
                     "group": "1_appSettingItemEdit@1"
                 },
                 {
                     "command": "appService.appSettings.Rename",
-                    "when": "view == azureAppService && viewItem == applicationSettingItem",
+                    "when": "view == azureAppService && viewItem =~ /^(applicationSettingItem|applicationSettingItemNoSlots)$/",
                     "group": "1_appSettingItemEdit@2"
                 },
                 {
                     "command": "appService.appSettings.Delete",
-                    "when": "view == azureAppService && viewItem == applicationSettingItem",
+                    "when": "view == azureAppService && viewItem =~ /^(applicationSettingItem|applicationSettingItemNoSlots)$/",
                     "group": "1_appSettingItemEdit@3"
                 },
                 {
@@ -600,7 +600,7 @@
                 },
                 {
                     "command": "appService.toggleAppSettingVisibility",
-                    "when": "view == azureAppService && viewItem == applicationSettingItem",
+                    "when": "view == azureAppService && viewItem =~ /^(applicationSettingItem|applicationSettingItemNoSlots)$/",
                     "group": "inline"
                 },
                 {
