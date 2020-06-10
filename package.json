@@ -69,6 +69,7 @@
         "onCommand:appService.RemoveCosmosDBConnection",
         "onCommand:appService.RevealConnection",
         "onCommand:appService.RevealConnectionInAppSettings",
+        "onFileSystem:azureAppService",
         "onView:azureAppService"
     ],
     "main": "./main.js",
