@@ -42,7 +42,7 @@ export class TrialAppClient implements IAppSettingsClient, IFilesClient {
     }
 
     public get fullName(): string {
-        return this.metadata.hostName;
+        return this.metadata.siteName;
     }
 
     public get id(): string {
@@ -54,7 +54,7 @@ export class TrialAppClient implements IAppSettingsClient, IFilesClient {
     }
 
     public get defaultHostUrl(): string {
-        return `https://${this.fullName}`;
+        return `https://${this.metadata.url}`;
     }
 
     public async getKuduClient(): Promise<KuduClient> {
