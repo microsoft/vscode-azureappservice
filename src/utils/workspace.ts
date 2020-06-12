@@ -8,6 +8,19 @@ import * as vscode from 'vscode';
 import { IAzureQuickPickItem } from 'vscode-azureextensionui';
 import { IDeployContext } from '../commands/deploy/IDeployContext';
 import { ext } from '../extensionVariables';
+import { localize } from '../localize';
+
+export async function selectWorkspaceFolder(placeHolder: string): Promise<string> {
+    return await selectWorkspaceItem(
+        placeHolder,
+        {
+            canSelectFiles: false,
+            canSelectFolders: true,
+            canSelectMany: false,
+            defaultUri: vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0 ? vscode.workspace.workspaceFolders[0].uri : undefined,
+            openLabel: localize('select', 'Select')
+        });
+}
 
 export async function selectWorkspaceFile(placeHolder: string, getSubPath?: (f: vscode.WorkspaceFolder) => string | undefined): Promise<string> {
     let defaultUri: vscode.Uri | undefined;

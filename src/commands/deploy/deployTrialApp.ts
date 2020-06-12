@@ -5,13 +5,14 @@
 
 import * as vscode from 'vscode';
 import { MessageItem, ProgressLocation, window, workspace, WorkspaceFolder } from 'vscode';
-import { getDeployFsPath, localGitDeploy } from 'vscode-azureappservice';
+import { localGitDeploy } from 'vscode-azureappservice';
 import { AzExtTreeItem, IActionContext } from 'vscode-azureextensionui';
 import { WebAppTreeItem } from '../../../extension.bundle';
 import { SiteTreeItem } from '../../explorer/SiteTreeItem';
 import { TrialAppTreeItem } from '../../explorer/trialApp/TrialAppTreeItem';
 import { ext } from '../../extensionVariables';
 import { localize } from '../../localize';
+import { selectWorkspaceFolder } from '../../utils/workspace';
 import { cloneTrialApp } from '../trialApp/cloneTrialApp';
 
 export async function deployTrialApp(context: IActionContext, trialAppTreeItem: TrialAppTreeItem): Promise<void> {
@@ -31,7 +32,7 @@ export async function deployTrialApp(context: IActionContext, trialAppTreeItem: 
     if (workspaceFolders.length === 1 && workspaceFolders[0].name === trialAppTreeItem.metadata.siteName) {
         path = workspaceFolders[0].uri.fsPath;
     } else {
-        path = (await getDeployFsPath(context, trialAppTreeItem)).effectiveDeployFsPath;
+        path = await selectWorkspaceFolder('Select folder containing a repository to deploy');
     }
     const title: string = localize('deploying', 'Deploying to "{0}"... Check [output window](command:{1}) for status.', trialAppTreeItem.client.fullName, `${ext.prefix}.showOutputChannel`);
     await window.withProgress({ location: ProgressLocation.Notification, title }, async () => {

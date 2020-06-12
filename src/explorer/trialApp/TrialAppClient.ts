@@ -3,17 +3,18 @@
 *  Licensed under the MIT License. See License.txt in the project root for license information.
 *--------------------------------------------------------------------------------------------*/
 
+import { SiteConfigResource, SiteSourceControl, StringDictionary, User } from 'azure-arm-website/lib/models';
 import { BasicAuthenticationCredentials, ServiceClientCredentials } from 'ms-rest';
-import { IFilesClient } from 'vscode-azureappservice';
+import { IDeploymentsClient, IFilesClient } from 'vscode-azureappservice';
 import { addExtensionUserAgent } from 'vscode-azureextensionui';
 import KuduClient from 'vscode-azurekudu';
 import { requestUtils } from '../../utils/requestUtils';
 import { ITrialAppMetadata } from './ITrialAppMetadata';
 
-export class TrialAppClient implements IFilesClient {
-
+export class TrialAppClient implements IDeploymentsClient, IFilesClient {
     public isFunctionApp: boolean = false;
     public metadata: ITrialAppMetadata;
+    public isLinux: boolean = true;
 
     private _credentials: ServiceClientCredentials;
 
@@ -58,10 +59,59 @@ export class TrialAppClient implements IFilesClient {
     public get defaultHostUrl(): string {
         return `https://${this.metadata.hostName}`;
     }
+    public get gitUrl(): string {
+        return this.metadata.gitUrl.split('@')[1];
+    }
+
+    public async listApplicationSettings(): Promise<StringDictionary> {
+        const kuduClient: KuduClient = await this.getKuduClient();
+        const settings: StringDictionary = {};
+        settings.properties = <{ [name: string]: string }>await kuduClient.settings.getAll();
+        return settings;
+    }
+
+    public async updateApplicationSettings(appSettings: StringDictionary): Promise<StringDictionary> {
+        const currentSettings: StringDictionary = await this.listApplicationSettings();
+
+        // To handle renaming app settings, we need to delete the old setting.
+        // tslint:disable-next-line:strict-boolean-expressions
+        const properties: { [name: string]: string } = currentSettings.properties || {};
+        await Promise.all(Object.keys(properties).map(async (key: string) => {
+            if (appSettings.properties && appSettings.properties[key] === undefined) {
+                await this.deleteApplicationSetting(appSettings, key);
+            }
+        }));
+
+        const request: requestUtils.Request = await requestUtils.getDefaultRequest(`https://${this.metadata.scmHostName}/api/settings`, this._credentials, 'POST');
+        request.body = JSON.stringify(appSettings.properties);
+        request.headers['Content-Type'] = 'application/json';
+
+        await requestUtils.sendRequest(request);
+        return appSettings;
+    }
+    public async getWebAppPublishCredential(): Promise<User> {
+        return { publishingUserName: this.metadata.publishingUserName, publishingPassword: this.metadata.publishingPassword };
+    }
+    public async getSiteConfig(): Promise<SiteConfigResource> {
+        return {};
+    }
+    public async getSourceControl(): Promise<SiteSourceControl> {
+        return {};
+    }
 
     public async getKuduClient(): Promise<KuduClient> {
         const kuduClient: KuduClient = new KuduClient(this._credentials, this.kuduUrl);
         addExtensionUserAgent(kuduClient);
         return kuduClient;
+    }
+
+    private async deleteApplicationSetting(appSettings: StringDictionary, key: string): Promise<StringDictionary> {
+
+        const deleteRequest: requestUtils.Request = await requestUtils.getDefaultRequest(`https://${this.metadata.scmHostName}/api/settings/${key}`, this._credentials, 'DELETE');
+        deleteRequest.body = JSON.stringify(appSettings.properties);
+        deleteRequest.headers['Content-Type'] = 'application/json';
+
+        await requestUtils.sendRequest<string>(deleteRequest);
+        return appSettings;
     }
 }
