@@ -7,7 +7,6 @@ import * as WebSiteModels from 'azure-arm-website/lib/models';
 import { pathExists } from 'fs-extra';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { workspace, WorkspaceFolder } from 'vscode';
 import * as appservice from 'vscode-azureappservice';
 import { IActionContext } from 'vscode-azureextensionui';
 import * as constants from '../../constants';
@@ -47,21 +46,7 @@ export async function deploy(context: IActionContext, target?: vscode.Uri | Site
     }
 
     if (target instanceof TrialAppTreeItem) {
-
-        const workspaceFolders: WorkspaceFolder[] | undefined = workspace.workspaceFolders;
-        if (!workspaceFolders) {
-            return;
-        }
-        if (workspaceFolders.length === 1 && workspaceFolders[0].name === target.metadata.siteName) {
-            // trial app template is only folder open
-            return await deployTrialApp(context, target);
-        } else if (workspaceFolders.length === 0) {
-            // clone trial app source
-            return;
-        } else {
-            const { originalDeployFsPath, effectiveDeployFsPath, workspaceFolder } = await appservice.getDeployFsPath(context, target);
-            return appservice.localGitDeploy(target.client, effectiveDeployFsPath, context);
-        }
+        return await deployTrialApp(context, target);
     }
 
     const fileExtensions: string | string[] | undefined = await javaUtils.getJavaFileExtensions(siteConfig);
