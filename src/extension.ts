@@ -9,11 +9,11 @@ import * as vscode from 'vscode';
 import { registerAppServiceExtensionVariables } from 'vscode-azureappservice';
 import { AzExtTreeDataProvider, AzureUserInput, callWithTelemetryAndErrorHandling, createApiProvider, createAzExtOutputChannel, IActionContext, IAzureUserInput, registerUIExtensionVariables } from 'vscode-azureextensionui';
 import { AzureExtensionApi, AzureExtensionApiProvider } from 'vscode-azureextensionui/api';
+import { AppServiceFileSystem } from './AppServiceFileSystem';
 import { revealTreeItem } from './commands/api/revealTreeItem';
 import { ImportTrialAppUriHandler } from './commands/ImportTrialAppUriHandler';
 import { registerCommands } from './commands/registerCommands';
 import { AzureAccountTreeItem } from './explorer/AzureAccountTreeItem';
-import { FileEditor } from './explorer/editors/FileEditor';
 import { ext } from './extensionVariables';
 
 // tslint:disable-next-line:export-name
@@ -37,7 +37,6 @@ export async function activateInternal(
     registerUIExtensionVariables(ext);
     registerAppServiceExtensionVariables(ext);
 
-    // tslint:disable-next-line:max-func-body-length
     await callWithTelemetryAndErrorHandling('appService.activate', async (activateContext: IActionContext) => {
         activateContext.telemetry.properties.isActivationEvent = 'true';
         activateContext.telemetry.measurements.mainFileLoad = (perfStats.loadEndTime - perfStats.loadStartTime) / 1000;
@@ -49,8 +48,8 @@ export async function activateInternal(
         ext.treeView = vscode.window.createTreeView('azureAppService', { treeDataProvider: ext.tree, showCollapseAll: true });
         context.subscriptions.push(ext.treeView);
 
-        ext.fileEditor = new FileEditor();
-        context.subscriptions.push(ext.fileEditor);
+        ext.fileSystem = new AppServiceFileSystem(ext.tree);
+        context.subscriptions.push(vscode.workspace.registerFileSystemProvider(AppServiceFileSystem.scheme, ext.fileSystem));
 
         vscode.window.registerUriHandler(new ImportTrialAppUriHandler());
 

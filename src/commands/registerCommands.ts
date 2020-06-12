@@ -3,9 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { commands, TextDocument, workspace } from 'vscode';
-import { AppSettingTreeItem, FileTreeItem, registerSiteCommand } from 'vscode-azureappservice';
-import { AzureTreeItem, IActionContext, openInPortal as uiOpenInPortal, registerCommand, registerEvent } from 'vscode-azureextensionui';
+import { commands } from 'vscode';
+import { AppSettingTreeItem, registerSiteCommand } from 'vscode-azureappservice';
+import { AzureTreeItem, IActionContext, openInPortal as uiOpenInPortal, registerCommand } from 'vscode-azureextensionui';
 import { DeploymentSlotsNATreeItem, ScaleUpTreeItem } from '../explorer/DeploymentSlotsTreeItem';
 import { ext } from '../extensionVariables';
 import { addAppSetting } from './appSettings/addAppSetting';
@@ -72,7 +72,7 @@ export function registerCommands(): void {
     registerCommand('appService.EnableFileLogging', enableFileLogging);
     registerCommand('appService.InstallCosmosDBExtension', installCosmosDBExtension);
     registerCommand('appService.LoadMore', async (actionContext: IActionContext, node: AzureTreeItem) => await ext.tree.loadMore(node, actionContext));
-    registerCommand('appService.openFile', async (_context: IActionContext, node: FileTreeItem) => { await showFile(node, ext.fileEditor); }, 500);
+    registerCommand('appService.openFile', showFile, 500);
     registerCommand('appService.OpenInPortal', openInPortal);
     registerCommand('appService.Refresh', async (_actionContext: IActionContext, node?: AzureTreeItem) => await ext.tree.refresh(node));
     registerCommand('appService.RemoveCosmosDBConnection', removeCosmosDBConnection);
@@ -91,7 +91,6 @@ export function registerCommands(): void {
     registerCommand('appService.SwapSlots', swapSlots);
     registerCommand('appService.toggleAppSettingVisibility', async (_actionContext: IActionContext, node: AppSettingTreeItem) => { await node.toggleValueVisibility(); }, 250);
     registerCommand('appService.ViewCommitInGitHub', viewCommitInGitHub);
-    registerEvent('appService.fileEditor.onDidSaveTextDocument', workspace.onDidSaveTextDocument, async (actionContext: IActionContext, doc: TextDocument) => { await ext.fileEditor.onDidSaveTextDocument(actionContext, ext.context.globalState, doc); });
     registerSiteCommand('appService.Deploy', deploy);
     registerSiteCommand('appService.DeploySlot', deploySlot);
     registerSiteCommand('appService.Redeploy', redeployDeployment);
