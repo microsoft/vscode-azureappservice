@@ -14,6 +14,7 @@ import { ext } from '../../extensionVariables';
 import { localize } from '../../localize';
 import { selectWorkspaceFolder } from '../../utils/workspace';
 import { cloneTrialApp } from '../trialApp/cloneTrialApp';
+import { showDeployCompletedMessage } from './showDeployCompletedMessage';
 
 export async function deployTrialApp(context: IActionContext, trialAppTreeItem: TrialAppTreeItem): Promise<void> {
 
@@ -36,7 +37,8 @@ export async function deployTrialApp(context: IActionContext, trialAppTreeItem: 
     }
     const title: string = localize('deploying', 'Deploying to "{0}"... Check [output window](command:{1}) for status.', trialAppTreeItem.client.fullName, `${ext.prefix}.showOutputChannel`);
     await window.withProgress({ location: ProgressLocation.Notification, title }, async () => {
-        return await localGitDeploy(trialAppTreeItem.client, path, context);
+        await localGitDeploy(trialAppTreeItem.client, path, context, 'RELEASE', true);
+        return showDeployCompletedMessage(trialAppTreeItem);
     });
 }
 
