@@ -40,6 +40,9 @@ export abstract class SiteTreeItem extends SiteTreeItemBase implements ISiteTree
         this._webJobsNode = this.root.client.isLinux ? new WebJobsNATreeItem(parent) : new WebJobsTreeItem(this);
     }
 
+    public get client(): SiteClient {
+        return this.root.client;
+    }
     public get defaultHostUrl(): string {
         return this.root.client.defaultHostUrl;
     }
