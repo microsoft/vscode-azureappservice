@@ -13,16 +13,16 @@ import { TrialAppTreeItem } from './trialApp/TrialAppTreeItem';
 export class AzureAccountTreeItem extends AzureAccountTreeItemBase {
 
     public trialAppNode: TrialAppTreeItem | undefined;
-    public get childTypeLabel(): string {
-        return this.trialAppTreeItem ?
-            localize('subscriptionOrTrialApp', 'subscription or trial app') :
-            localize('subscription', 'subscription');
-    }
-
     public trialAppTreeItem: TrialAppTreeItem | undefined;
 
     public constructor(testAccount?: {}) {
         super(undefined, testAccount);
+    }
+
+    public get childTypeLabel(): string {
+        return this.trialAppTreeItem ?
+            localize('subscriptionOrTrialApp', 'subscription or trial app') :
+            localize('subscription', 'subscription');
     }
 
     public createSubscriptionTreeItem(root: ISubscriptionContext): SubscriptionTreeItem {
