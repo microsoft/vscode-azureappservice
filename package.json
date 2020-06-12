@@ -555,7 +555,7 @@
                 },
                 {
                     "command": "appService.appSettings.Add",
-                    "when": "view == azureAppService && viewItem =~ /^(applicationSettings|applicationSettingsTrialApp)$/",
+                    "when": "view == azureAppService && viewItem =~ /^applicationSettings(|TrialApp)$/",
                     "group": "1_appSettingsEdit@1"
                 },
                 {
@@ -565,17 +565,17 @@
                 },
                 {
                     "command": "appService.Refresh",
-                    "when": "view == azureAppService && viewItem =~ /^(applicationSettings|applicationSettingsTrialApp)$/",
+                    "when": "view == azureAppService && viewItem =~ /^applicationSettings(|TrialApp)$/",
                     "group": "2_appSettingsGeneral@1"
                 },
                 {
                     "command": "appService.appSettings.Download",
-                    "when": "view == azureAppService && viewItem =~ /^(applicationSettings|applicationSettingsTrialApp)$/",
+                    "when": "view == azureAppService && viewItem =~ /^applicationSettings(|TrialApp)$/",
                     "group": "1_appSettingEnv@1"
                 },
                 {
                     "command": "appService.appSettings.Upload",
-                    "when": "view == azureAppService && viewItem =~ /^(applicationSettings|applicationSettingsTrialApp)$/",
+                    "when": "view == azureAppService && viewItem =~ /^applicationSettings(|TrialApp)$/",
                     "group": "1_appSettingEnv@2"
                 },
                 {
