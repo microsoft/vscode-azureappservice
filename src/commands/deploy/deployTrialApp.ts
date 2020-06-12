@@ -33,7 +33,7 @@ export async function deployTrialApp(context: IActionContext, trialAppTreeItem: 
     } else {
         path = (await getDeployFsPath(context, trialAppTreeItem)).effectiveDeployFsPath;
     }
-    const title: string = localize('deploying', 'Deploying to "{0}"... Check [output window](command:{1}) for status.', trialAppTreeItem.client.fullName, `${ext.prefix}showOutputChannel`);
+    const title: string = localize('deploying', 'Deploying to "{0}"... Check [output window](command:{1}) for status.', trialAppTreeItem.client.fullName, `${ext.prefix}.showOutputChannel`);
     await window.withProgress({ location: ProgressLocation.Notification, title }, async () => {
         return await localGitDeploy(trialAppTreeItem.client, path, context);
     });
