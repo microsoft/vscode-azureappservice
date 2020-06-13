@@ -581,17 +581,17 @@
                 },
                 {
                     "command": "appService.appSettings.Edit",
-                    "when": "view == azureAppService && viewItem =~ /^(applicationSettingItem|applicationSettingItemNoSlots)$/",
+                    "when": "view == azureAppService && viewItem =~ /^applicationSettingItem(|NoSlots)$/",
                     "group": "1_appSettingItemEdit@1"
                 },
                 {
                     "command": "appService.appSettings.Rename",
-                    "when": "view == azureAppService && viewItem =~ /^(applicationSettingItem|applicationSettingItemNoSlots)$/",
+                    "when": "view == azureAppService && viewItem =~ /^applicationSettingItem(|NoSlots)$/",
                     "group": "1_appSettingItemEdit@2"
                 },
                 {
                     "command": "appService.appSettings.Delete",
-                    "when": "view == azureAppService && viewItem =~ /^(applicationSettingItem|applicationSettingItemNoSlots)$/",
+                    "when": "view == azureAppService && viewItem =~ /^applicationSettingItem(|NoSlots)$/",
                     "group": "1_appSettingItemEdit@3"
                 },
                 {
@@ -601,7 +601,7 @@
                 },
                 {
                     "command": "appService.toggleAppSettingVisibility",
-                    "when": "view == azureAppService && viewItem =~ /^(applicationSettingItem|applicationSettingItemNoSlots)$/",
+                    "when": "view == azureAppService && viewItem =~ /^applicationSettingItem(|NoSlots)$/",
                     "group": "inline"
                 },
                 {
