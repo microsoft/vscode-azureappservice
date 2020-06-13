@@ -73,7 +73,12 @@ export class TrialAppClient implements IAppSettingsClient, IFilesClient {
     public async updateApplicationSettings(appSettings: StringDictionary): Promise<StringDictionary> {
         const currentSettings: StringDictionary = await this.listApplicationSettings();
 
-        // To handle renaming app settings, we need to delete the old setting.
+        /**
+         * We cannot use websiteManagementClient for trial apps since we do not have a subscription. And KuduClient.settings.set was not
+         * working for an unknown reason (and is lacking documentation), so we are making our own https requests.
+         * Since Azure 'merges' the app settings JSON sent in the request we have to make an explicit call to delete the old app setting when renaming.
+         */
+
         // tslint:disable-next-line:strict-boolean-expressions
         const properties: { [name: string]: string } = currentSettings.properties || {};
         await Promise.all(Object.keys(properties).map(async (key: string) => {
