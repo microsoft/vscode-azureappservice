@@ -13,8 +13,8 @@ import { ITrialAppMetadata } from './ITrialAppMetadata';
 
 export class TrialAppClient implements IAppSettingsClient, IDeploymentsClient, IFilesClient {
     public isFunctionApp: boolean = false;
-    public metadata: ITrialAppMetadata;
     public isLinux: boolean = true;
+    public metadata: ITrialAppMetadata;
 
     private _credentials: ServiceClientCredentials;
 
@@ -41,7 +41,7 @@ export class TrialAppClient implements IAppSettingsClient, IDeploymentsClient, I
     }
 
     public get fullName(): string {
-        return this.metadata.hostName;
+        return this.metadata.siteName;
     }
 
     public get id(): string {
@@ -52,43 +52,13 @@ export class TrialAppClient implements IAppSettingsClient, IDeploymentsClient, I
         return `https://${this.metadata.scmHostName}`;
     }
 
-    public get defaultHostName(): string {
-        return this.metadata.hostName;
-    }
-
     public get defaultHostUrl(): string {
-        return `https://${this.metadata.hostName}`;
+        return `https://${this.metadata.url}`;
     }
     public get gitUrl(): string {
         return this.metadata.gitUrl.split('@')[1];
     }
 
-    public async listApplicationSettings(): Promise<StringDictionary> {
-        const kuduClient: KuduClient = await this.getKuduClient();
-        const settings: StringDictionary = {};
-        settings.properties = <{ [name: string]: string }>await kuduClient.settings.getAll();
-        return settings;
-    }
-
-    public async updateApplicationSettings(appSettings: StringDictionary): Promise<StringDictionary> {
-        const currentSettings: StringDictionary = await this.listApplicationSettings();
-
-        // To handle renaming app settings, we need to delete the old setting.
-        // tslint:disable-next-line:strict-boolean-expressions
-        const properties: { [name: string]: string } = currentSettings.properties || {};
-        await Promise.all(Object.keys(properties).map(async (key: string) => {
-            if (appSettings.properties && appSettings.properties[key] === undefined) {
-                await this.deleteApplicationSetting(appSettings, key);
-            }
-        }));
-
-        const request: requestUtils.Request = await requestUtils.getDefaultRequest(`https://${this.metadata.scmHostName}/api/settings`, this._credentials, 'POST');
-        request.body = JSON.stringify(appSettings.properties);
-        request.headers['Content-Type'] = 'application/json';
-
-        await requestUtils.sendRequest(request);
-        return appSettings;
-    }
     public async getWebAppPublishCredential(): Promise<User> {
         return { publishingUserName: this.metadata.publishingUserName, publishingPassword: this.metadata.publishingPassword };
     }
@@ -103,6 +73,38 @@ export class TrialAppClient implements IAppSettingsClient, IDeploymentsClient, I
         const kuduClient: KuduClient = new KuduClient(this._credentials, this.kuduUrl);
         addExtensionUserAgent(kuduClient);
         return kuduClient;
+    }
+
+    public async listApplicationSettings(): Promise<StringDictionary> {
+        const kuduClient: KuduClient = await this.getKuduClient();
+        const settings: StringDictionary = {};
+        settings.properties = <{ [name: string]: string }>await kuduClient.settings.getAll();
+        return settings;
+    }
+
+    public async updateApplicationSettings(appSettings: StringDictionary): Promise<StringDictionary> {
+        const currentSettings: StringDictionary = await this.listApplicationSettings();
+
+        /**
+         * We cannot use websiteManagementClient for trial apps since we do not have a subscription. And KuduClient.settings.set was not
+         * working for an unknown reason (and is lacking documentation), so we are making our own https requests.
+         * Since Azure 'merges' the app settings JSON sent in the request we have to make an explicit call to delete the old app setting when renaming.
+         */
+
+        // tslint:disable-next-line:strict-boolean-expressions
+        const properties: { [name: string]: string } = currentSettings.properties || {};
+        await Promise.all(Object.keys(properties).map(async (key: string) => {
+            if (appSettings.properties && appSettings.properties[key] === undefined) {
+                await this.deleteApplicationSetting(appSettings, key);
+            }
+        }));
+
+        const request: requestUtils.Request = await requestUtils.getDefaultRequest(`https://${this.metadata.scmHostName}/api/settings`, this._credentials, 'POST');
+        request.body = JSON.stringify(appSettings.properties);
+        request.headers['Content-Type'] = 'application/json';
+
+        await requestUtils.sendRequest(request);
+        return appSettings;
     }
 
     private async deleteApplicationSetting(appSettings: StringDictionary, key: string): Promise<StringDictionary> {
