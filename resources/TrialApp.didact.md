@@ -12,14 +12,9 @@ Your trial will last 60 minutes. Follow the below steps below to edit your free 
 
 ### Step 1: Clone the trial app source code
 
-Clone the source code, then open the folder in VS Code.
+Clone the source code, then either open the folder in VS Code or add it to the workspace.
 
 [Click here](didact://?commandId=appService.CloneTrialApp) to clone the source code.
-
-Make sure to add the folder to the workspace.
-[This link verifies that at least one folder exists in the workspace](didact://?commandId=vscode.didact.workspaceFolderExistsCheck&text=workspace-folder-status "Ensures that at least one folder exists in the user workspace"){.didact}
-
-*Status: unknown*{#workspace-folder-status}
 
 ### Step 2: Make some changes to your app
 
@@ -29,7 +24,7 @@ Make some changes to your trial app. Try changing some text in `template.html`.
 
 ### Step 3: Deploy your changes
 
-[Click here](didact://?commandId=appService.deploy) to deploy your changes to Azure.
+[Click here](didact://?commandId=appService.Deploy) to deploy your changes to Azure.
 
 ### Step 5: View your changes live
 
@@ -37,7 +32,7 @@ Make some changes to your trial app. Try changing some text in `template.html`.
 
 ### Step 6: Transfer to an Azure account
 
-[Click here]() to sign in/sign up for an Azure account and transfer your trial app to your subscription.
+[Click here](didact://?commandId=appService.Deploy) to sign in/sign up for an Azure account and transfer your trial app to your subscription.
 
 ---
 

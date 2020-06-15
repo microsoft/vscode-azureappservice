@@ -73,6 +73,7 @@ export class TrialAppTreeItem extends SiteTreeItemBase implements ISiteTreeItem 
     public get defaultHostUrl(): string {
         return this.client.defaultHostUrl;
     }
+
     public async isHttpLogsEnabled(): Promise<boolean> {
         return true;
     }
@@ -94,6 +95,13 @@ export class TrialAppTreeItem extends SiteTreeItemBase implements ISiteTreeItem 
 
     public isAncestorOfImpl?(contextValue: string | RegExp): boolean {
         return contextValue === TrialAppTreeItem.contextValue;
+    }
+
+    public compareChildrenImpl(item1: AzExtTreeItem, item2: AzExtTreeItem): number {
+        if (item2 instanceof GenericTreeItem) {
+            return 1; // tutorial node at top
+        }
+        return super.compareChildrenImpl(item1, item2);
     }
 }
 
