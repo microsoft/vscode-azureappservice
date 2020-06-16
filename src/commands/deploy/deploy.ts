@@ -41,7 +41,7 @@ export async function deploy(context: IActionContext, target?: vscode.Uri | Site
         siteConfig = await target.root.client.getSiteConfig();
     }
 
-    if (ext.azureAccountTreeItem.trialAppTreeItem) {
+    if (ext.azureAccountTreeItem.trialAppNode) {
         target = await getDeployNodeWithTrialApp(context, target);
     }
 

@@ -44,7 +44,7 @@ export async function deployTrialApp(context: IActionContext, trialAppTreeItem: 
 
 export async function getDeployNodeWithTrialApp(context: IActionContext, target?: vscode.Uri | TrialAppTreeItem | SiteTreeItem): Promise<vscode.Uri | SiteTreeItem | TrialAppTreeItem | undefined> {
     if (!target) {
-        const trialApp: TrialAppTreeItem | undefined = ext.azureAccountTreeItem.trialAppTreeItem;
+        const trialApp: TrialAppTreeItem | undefined = ext.azureAccountTreeItem.trialAppNode;
         if (trialApp) {
             const children: AzExtTreeItem[] = await ext.azureAccountTreeItem.getCachedChildren(context);
             // check if user is signed out with a trial app

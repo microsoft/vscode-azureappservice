@@ -14,7 +14,7 @@ export async function importTrialApp(_context: IActionContext, loginSession: str
 
     await window.withProgress({ location: ProgressLocation.Notification, cancellable: false }, async p => {
         p.report({ message: localize('importingTrialApp', 'Importing trial app...') });
-        ext.azureAccountTreeItem.trialAppTreeItem = await TrialAppTreeItem.createTrialAppTreeItem(ext.azureAccountTreeItem, loginSession);
+        ext.azureAccountTreeItem.trialAppNode = await TrialAppTreeItem.createTrialAppTreeItem(ext.azureAccountTreeItem, loginSession);
         ext.context.globalState.update(TrialAppLoginSession, loginSession);
         await commands.executeCommand('workbench.view.extension.azure');
         await ext.azureAccountTreeItem.refresh();

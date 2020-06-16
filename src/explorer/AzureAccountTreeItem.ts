@@ -13,14 +13,13 @@ import { TrialAppTreeItem } from './trialApp/TrialAppTreeItem';
 export class AzureAccountTreeItem extends AzureAccountTreeItemBase {
 
     public trialAppNode: TrialAppTreeItem | undefined;
-    public trialAppTreeItem: TrialAppTreeItem | undefined;
 
     public constructor(testAccount?: {}) {
         super(undefined, testAccount);
     }
 
     public get childTypeLabel(): string {
-        return this.trialAppTreeItem ?
+        return this.trialAppNode ?
             localize('subscriptionOrTrialApp', 'subscription or trial app') :
             localize('subscription', 'subscription');
     }
@@ -32,9 +31,9 @@ export class AzureAccountTreeItem extends AzureAccountTreeItemBase {
     public async loadMoreChildrenImpl(clearCache: boolean, context: IActionContext): Promise<AzExtTreeItem[]> {
         const children: AzExtTreeItem[] = await super.loadMoreChildrenImpl(clearCache, context);
 
-        if (this.trialAppTreeItem) {
-            await this.trialAppTreeItem.refresh();
-            children.push(this.trialAppTreeItem);
+        if (this.trialAppNode) {
+            await this.trialAppNode.refresh();
+            children.push(this.trialAppNode);
         } else {
             const loginSession: string | undefined = ext.context.globalState.get(TrialAppLoginSession);
             if (loginSession) {
@@ -50,7 +49,7 @@ export class AzureAccountTreeItem extends AzureAccountTreeItemBase {
                 if (ti.length > 0) {
                     const treeItem: AzExtTreeItem = ti[0];
                     children.push(treeItem);
-                    this.trialAppTreeItem = treeItem instanceof TrialAppTreeItem ? treeItem : this.trialAppTreeItem;
+                    this.trialAppNode = treeItem instanceof TrialAppTreeItem ? treeItem : this.trialAppNode;
                 }
             }
         }
