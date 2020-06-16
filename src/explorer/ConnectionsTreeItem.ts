@@ -3,23 +3,25 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ISiteTreeRoot } from 'vscode-azureappservice';
-import { AzExtTreeItem, AzureParentTreeItem, AzureTreeItem } from 'vscode-azureextensionui';
+import { IAppSettingsClient, ISiteTreeRoot } from 'vscode-azureappservice';
+import { AzExtParentTreeItem, AzExtTreeItem, AzureTreeItem } from 'vscode-azureextensionui';
 import { getThemedIconPath, IThemedIconPath } from '../utils/pathUtils';
 import { CosmosDBConnection } from './CosmosDBConnection';
 import { CosmosDBTreeItem } from './CosmosDBTreeItem';
 import { SiteTreeItem } from './SiteTreeItem';
 
-export class ConnectionsTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
+export class ConnectionsTreeItem extends AzExtParentTreeItem {
     public static contextValue: string = 'connections';
     public readonly contextValue: string = ConnectionsTreeItem.contextValue;
     public readonly label: string = 'Connections';
     public readonly parent: SiteTreeItem;
+    public readonly client: IAppSettingsClient;
 
     private readonly _cosmosDBNode: CosmosDBTreeItem;
 
-    constructor(parent: SiteTreeItem) {
+    constructor(parent: AzExtParentTreeItem, client: IAppSettingsClient) {
         super(parent);
+        this.client = client;
         this._cosmosDBNode = new CosmosDBTreeItem(this);
     }
 
