@@ -5,13 +5,13 @@
 
 import { SiteConfigResource, SiteSourceControl, StringDictionary, User } from 'azure-arm-website/lib/models';
 import { BasicAuthenticationCredentials, ServiceClientCredentials } from 'ms-rest';
-import { IAppSettingsClient, ISimplifiedSiteClient } from 'vscode-azureappservice';
+import { ISimplifiedSiteClient } from 'vscode-azureappservice';
 import { addExtensionUserAgent } from 'vscode-azureextensionui';
 import KuduClient from 'vscode-azurekudu';
 import { requestUtils } from '../../utils/requestUtils';
 import { ITrialAppMetadata } from './ITrialAppMetadata';
 
-export class TrialAppClient implements IAppSettingsClient, ISimplifiedSiteClient, ISimplifiedSiteClient {
+export class TrialAppClient implements ISimplifiedSiteClient {
     public isFunctionApp: boolean = false;
     public isLinux: boolean = true;
     public metadata: ITrialAppMetadata;
