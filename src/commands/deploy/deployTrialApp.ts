@@ -37,7 +37,7 @@ export async function deployTrialApp(context: IActionContext, trialAppTreeItem: 
     }
     const title: string = localize('deploying', 'Deploying to "{0}"... Check [output window](command:{1}) for status.', trialAppTreeItem.client.fullName, `${ext.prefix}.showOutputChannel`);
     await window.withProgress({ location: ProgressLocation.Notification, title }, async () => {
-        await localGitDeploy(trialAppTreeItem.client, path, context, 'RELEASE', true);
+        await localGitDeploy(trialAppTreeItem.client, { fsPath: path, branch: 'RELEASE', commit: true }, context);
         return showDeployCompletedMessage(trialAppTreeItem);
     });
 }
