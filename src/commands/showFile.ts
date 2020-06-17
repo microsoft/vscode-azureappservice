@@ -4,12 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { FileTreeItem } from "vscode-azureappservice";
-import { FileEditor } from "../explorer/editors/FileEditor";
+import { IActionContext } from "vscode-azureextensionui";
+import { ext } from "../extensionVariables";
 
-export async function showFile(node: FileTreeItem, fileEditor: FileEditor): Promise<void> {
+export async function showFile(_context: IActionContext, node: FileTreeItem): Promise<void> {
     if (node.isReadOnly) {
         await node.openReadOnly();
     } else {
-        await fileEditor.showEditor(node);
+        await ext.fileSystem.showTextDocument(node);
     }
 }

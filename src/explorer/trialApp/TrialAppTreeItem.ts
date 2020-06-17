@@ -3,19 +3,48 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { AppSettingsTreeItem, LogFilesTreeItem, SiteFilesTreeItem } from 'vscode-azureappservice';
 import { AzExtTreeItem, IActionContext } from 'vscode-azureextensionui';
 import { localize } from '../../localize';
 import { openUrl } from '../../utils/openUrl';
-import { requestUtils } from '../../utils/requestUtils';
 import { AzureAccountTreeItem } from '../AzureAccountTreeItem';
+import { ConnectionsTreeItem } from '../ConnectionsTreeItem';
 import { ISiteTreeItem } from '../ISiteTreeItem';
 import { SiteTreeItemBase } from '../SiteTreeItemBase';
 import { ITrialAppMetadata } from './ITrialAppMetadata';
+import { TrialAppClient } from './TrialAppClient';
 
 export class TrialAppTreeItem extends SiteTreeItemBase implements ISiteTreeItem {
     public static contextValue: string = 'trialApp';
     public contextValue: string = TrialAppTreeItem.contextValue;
-    public metadata: ITrialAppMetadata;
+    public client: TrialAppClient;
+    public logFilesNode: LogFilesTreeItem;
+
+    private readonly _appSettingsTreeItem: TrialAppApplicationSettingsTreeItem;
+    private readonly _siteFilesNode: SiteFilesTreeItem;
+    private readonly _connectionsNode: ConnectionsTreeItem;
+
+    private constructor(parent: AzureAccountTreeItem, client: TrialAppClient) {
+        super(parent);
+        this.client = client;
+        this._appSettingsTreeItem = new TrialAppApplicationSettingsTreeItem(this, this.client, false);
+        this._siteFilesNode = new SiteFilesTreeItem(this, this.client, false);
+        this._connectionsNode = new ConnectionsTreeItem(this, this.client);
+        this.logFilesNode = new LogFilesTreeItem(this, this.client);
+    }
+
+    public static async createTrialAppTreeItem(parent: AzureAccountTreeItem, loginSession: string): Promise<TrialAppTreeItem> {
+        const client: TrialAppClient = await TrialAppClient.createTrialAppClient(loginSession);
+        return new TrialAppTreeItem(parent, client);
+    }
+
+    public get logStreamLabel(): string {
+        return this.metadata.hostName;
+    }
+
+    public get metadata(): ITrialAppMetadata {
+        return this.client.metadata;
+    }
 
     public get label(): string {
         return this.metadata.siteName ? this.metadata.siteName : localize('nodeJsTrialApp', 'NodeJS Trial App');
@@ -35,40 +64,19 @@ export class TrialAppTreeItem extends SiteTreeItemBase implements ISiteTreeItem 
     }
 
     public get defaultHostName(): string {
-        return this.metadata.hostName;
+        return this.client.fullName;
     }
 
     public get defaultHostUrl(): string {
-        return `https://${this.defaultHostName}`;
+        return this.client.defaultHostUrl;
     }
 
-    private constructor(parent: AzureAccountTreeItem, metadata: ITrialAppMetadata) {
-        super(parent);
-        this.metadata = metadata;
+    public async isHttpLogsEnabled(): Promise<boolean> {
+        return true;
     }
 
-    public static async createTrialAppTreeItem(parent: AzureAccountTreeItem, loginSession: string): Promise<TrialAppTreeItem> {
-        const metadata: ITrialAppMetadata = await this.getTrialAppMetaData(loginSession);
-        return new TrialAppTreeItem(parent, metadata);
-    }
-
-    public static async getTrialAppMetaData(loginSession: string): Promise<ITrialAppMetadata> {
-        const metadataRequest: requestUtils.Request = await requestUtils.getDefaultRequest('https://tryappservice.azure.com/api/vscoderesource', undefined, 'GET');
-
-        metadataRequest.headers = {
-            accept: "*/*",
-            "accept-language": "en-US,en;q=0.9",
-            "sec-fetch-dest": "empty",
-            "sec-fetch-mode": "cors",
-            "sec-fetch-site": "same-origin",
-            cookie: `loginsession=${loginSession}`
-        };
-
-        const result: string = await requestUtils.sendRequest<string>(metadataRequest);
-        return <ITrialAppMetadata>JSON.parse(result);
-    }
     public async loadMoreChildrenImpl(_clearCache: boolean, _context: IActionContext): Promise<AzExtTreeItem[]> {
-        return [];
+        return [this._appSettingsTreeItem, this._connectionsNode, this._siteFilesNode, this.logFilesNode];
     }
     public hasMoreChildrenImpl(): boolean {
         return false;
@@ -79,10 +87,15 @@ export class TrialAppTreeItem extends SiteTreeItemBase implements ISiteTreeItem 
     }
 
     public async refreshImpl(): Promise<void> {
-        this.metadata = await TrialAppTreeItem.getTrialAppMetaData(this.metadata.loginSession);
+        this.client = await TrialAppClient.createTrialAppClient(this.metadata.loginSession);
     }
 
     public isAncestorOfImpl?(contextValue: string | RegExp): boolean {
         return contextValue === TrialAppTreeItem.contextValue;
     }
+}
+
+// different context value to change actions in context menu
+class TrialAppApplicationSettingsTreeItem extends AppSettingsTreeItem {
+    public contextValue: string = 'applicationSettingsTrialApp';
 }

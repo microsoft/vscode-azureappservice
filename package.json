@@ -69,11 +69,17 @@
         "onCommand:appService.RemoveCosmosDBConnection",
         "onCommand:appService.RevealConnection",
         "onCommand:appService.RevealConnectionInAppSettings",
+        "onFileSystem:azureAppService",
         "onView:azureAppService"
     ],
     "main": "./main.js",
     "contributes": {
         "commands": [
+            {
+                "command": "appService.CloneTrialApp",
+                "title": "Clone",
+                "category": "Azure App Service"
+            },
             {
                 "command": "appService.ImportTrialApp",
                 "title": "Import Trial App",
@@ -334,6 +340,10 @@
                     "when": "never"
                 },
                 {
+                    "command": "appService.CloneTrialApp",
+                    "when": "never"
+                },
+                {
                     "command": "appService.RemoveTrialApp",
                     "when": "never"
                 },
@@ -408,6 +418,11 @@
                     "command": "appService.Refresh",
                     "when": "view == azureAppService && viewItem == azureextensionui.azureSubscription",
                     "group": "2_subscriptionGeneralCommands@1"
+                },
+                {
+                    "command": "appService.CloneTrialApp",
+                    "when": "view == azureAppService && viewItem == trialApp",
+                    "group": "1_trialAppCommands@1"
                 },
                 {
                     "command": "appService.RemoveTrialApp",
@@ -541,7 +556,7 @@
                 },
                 {
                     "command": "appService.appSettings.Add",
-                    "when": "view == azureAppService && viewItem == applicationSettings",
+                    "when": "view == azureAppService && viewItem =~ /^applicationSettings(|TrialApp)$/",
                     "group": "1_appSettingsEdit@1"
                 },
                 {
@@ -551,32 +566,32 @@
                 },
                 {
                     "command": "appService.Refresh",
-                    "when": "view == azureAppService && viewItem == applicationSettings",
+                    "when": "view == azureAppService && viewItem =~ /^applicationSettings(|TrialApp)$/",
                     "group": "2_appSettingsGeneral@1"
                 },
                 {
                     "command": "appService.appSettings.Download",
-                    "when": "view == azureAppService && viewItem == applicationSettings",
+                    "when": "view == azureAppService && viewItem =~ /^applicationSettings(|TrialApp)$/",
                     "group": "1_appSettingEnv@1"
                 },
                 {
                     "command": "appService.appSettings.Upload",
-                    "when": "view == azureAppService && viewItem == applicationSettings",
+                    "when": "view == azureAppService && viewItem =~ /^applicationSettings(|TrialApp)$/",
                     "group": "1_appSettingEnv@2"
                 },
                 {
                     "command": "appService.appSettings.Edit",
-                    "when": "view == azureAppService && viewItem == applicationSettingItem",
+                    "when": "view == azureAppService && viewItem =~ /^applicationSettingItem(|NoSlots)$/",
                     "group": "1_appSettingItemEdit@1"
                 },
                 {
                     "command": "appService.appSettings.Rename",
-                    "when": "view == azureAppService && viewItem == applicationSettingItem",
+                    "when": "view == azureAppService && viewItem =~ /^applicationSettingItem(|NoSlots)$/",
                     "group": "1_appSettingItemEdit@2"
                 },
                 {
                     "command": "appService.appSettings.Delete",
-                    "when": "view == azureAppService && viewItem == applicationSettingItem",
+                    "when": "view == azureAppService && viewItem =~ /^applicationSettingItem(|NoSlots)$/",
                     "group": "1_appSettingItemEdit@3"
                 },
                 {
@@ -586,7 +601,7 @@
                 },
                 {
                     "command": "appService.toggleAppSettingVisibility",
-                    "when": "view == azureAppService && viewItem == applicationSettingItem",
+                    "when": "view == azureAppService && viewItem =~ /^applicationSettingItem(|NoSlots)$/",
                     "group": "inline"
                 },
                 {
@@ -853,8 +868,8 @@
         "moment": "^2.24.0",
         "portfinder": "^1.0.25",
         "request-promise": "^4.2.5",
-        "vscode-azureappservice": "^0.61.0",
-        "vscode-azureextensionui": "^0.33.1",
+        "vscode-azureappservice": "^0.61.5",
+        "vscode-azureextensionui": "^0.33.5",
         "vscode-azurekudu": "^0.1.8",
         "vscode-nls": "^4.1.1"
     },
