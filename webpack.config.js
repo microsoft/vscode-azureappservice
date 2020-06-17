@@ -27,6 +27,29 @@ let config = dev.getDefaultWebpackConfig({
         '../build/Release/bufferutil': 'commonjs ../build/Release/bufferutil',
         '../build/default/bufferutil': 'commonjs ../build/default/bufferutil',
     },
+    /**
+     *  The simple-git package was causing the following webpack error. This rule makes sure to use ts-loader to load the package.
+     *
+     * ERROR in ./node_modules/simple-git/src/lib/runners/promise.ts 71:28
+     *  Module parse failed: Unexpected token(71:28)
+     *  You may need an appropriate loader to handle this file type, currently no loaders are configured to process this file. See https://webpack.js.org/concepts#loaders
+     *  | const { gitInstanceFactory } = require('../../git-factory');
+     *  |
+     *  > export function gitP(baseDir?: string): SimpleGit {
+     *  |
+     *  | let git: any;
+     */
+
+    loaderRules: [
+        {
+            test: /\.ts$/,
+            include: /node_modules[\\\/]simple-git/,
+            use: [{
+                // Note: the TS loader will transpile the .ts file directly during webpack (i.e., webpack is directly pulling the .ts files, not .js files from out/)
+                loader: require.resolve('ts-loader')
+            }]
+        }
+    ]
 });
 
 if (DEBUG_WEBPACK) {
