@@ -18,12 +18,6 @@ export class AzureAccountTreeItem extends AzureAccountTreeItemBase {
         super(undefined, testAccount);
     }
 
-    public get childTypeLabel(): string {
-        return this.trialAppNode ?
-            localize('subscriptionOrTrialApp', 'subscription or trial app') :
-            localize('subscription', 'subscription');
-    }
-
     public createSubscriptionTreeItem(root: ISubscriptionContext): SubscriptionTreeItem {
         return new SubscriptionTreeItem(this, root);
     }
@@ -65,5 +59,17 @@ export class AzureAccountTreeItem extends AzureAccountTreeItemBase {
             return -1; // trial apps on top of subscription items
         }
         return super.compareChildrenImpl(item1, item2);
+    }
+
+    public async pickTreeItemImpl(expectedContextValues: (string | RegExp)[]): Promise<AzExtTreeItem | undefined> {
+        const subscription: string = localize('subscription', 'subscription');
+        const subscriptionOrTrialApp: string = localize('subscriptionOrTrialApp', 'subscription or trial app');
+        if (expectedContextValues.includes(TrialAppTreeItem.contextValue) && this.trialAppNode) {
+            this.childTypeLabel = subscriptionOrTrialApp;
+        } else {
+            this.childTypeLabel = subscription;
+        }
+
+        return super.pickTreeItemImpl(expectedContextValues);
     }
 }
