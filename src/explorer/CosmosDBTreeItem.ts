@@ -57,7 +57,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
 
         const cosmosDBApi = await this.getCosmosDBApi();
         // tslint:disable-next-line:strict-boolean-expressions
-        const appSettings = (await this.root.client.listApplicationSettings()).properties || {};
+        const appSettings = (await this.parent.client.listApplicationSettings()).properties || {};
         const connections: IDetectedConnection[] = this.detectMongoConnections(appSettings).concat(this.detectDocDBConnections(appSettings));
         const treeItems = await this.createTreeItemsWithErrorHandling(
             connections,
@@ -90,7 +90,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         if (!databaseToAdd) {
             throw new UserCancelledError();
         }
-        const appSettingsDict = await this.root.client.listApplicationSettings();
+        const appSettingsDict = await this.parent.client.listApplicationSettings();
         // tslint:disable-next-line:strict-boolean-expressions
         appSettingsDict.properties = appSettingsDict.properties || {};
 
@@ -102,7 +102,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
             appSettingsDict.properties[k] = v;
         }
 
-        await this.root.client.updateApplicationSettings(appSettingsDict);
+        await this.parent.client.updateApplicationSettings(appSettingsDict);
         await this.parent.parent.appSettingsNode.refresh();
 
         const createdDatabase = new CosmosDBConnection(this, databaseToAdd, Array.from(newAppSettings.keys()));
@@ -110,7 +110,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
 
         const ok: vscode.MessageItem = { title: 'OK' };
         const revealDatabase: vscode.MessageItem = { title: 'Reveal Database' };
-        const message: string = `Database "${createdDatabase.label}" connected to web app "${this.root.client.fullName}". Created the following application settings: "${Array.from(newAppSettings.keys()).join(', ')}".`;
+        const message: string = `Database "${createdDatabase.label}" connected to web app "${this.parent.client.fullName}". Created the following application settings: "${Array.from(newAppSettings.keys()).join(', ')}".`;
         // Don't wait
         vscode.window.showInformationMessage(message, ok, revealDatabase).then(async (result: vscode.MessageItem | undefined) => {
             if (result === revealDatabase) {
@@ -206,7 +206,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
 
         const appSettingKey: string = await ext.ui.showInputBox({
             prompt,
-            validateInput: (v: string): string | undefined => validateAppSettingKey(appSettingsDict, this.root.client, v),
+            validateInput: (v: string): string | undefined => validateAppSettingKey(appSettingsDict, this.parent.client, v),
             value: defaultKey
         });
 
@@ -223,7 +223,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
                 if (!v) {
                     return "Connection setting prefix cannot be empty.";
                 } else {
-                    return validateAppSettingKey(appSettingsDict, this.root.client, v + this._endpointSuffix) || validateAppSettingKey(appSettingsDict, this.root.client, v + this._keySuffix) || validateAppSettingKey(appSettingsDict, this.root.client, v + this._databaseSuffix);
+                    return validateAppSettingKey(appSettingsDict, this.parent.client, v + this._endpointSuffix) || validateAppSettingKey(appSettingsDict, this.parent.client, v + this._keySuffix) || validateAppSettingKey(appSettingsDict, this.parent.client, v + this._databaseSuffix);
                 }
             },
             value: defaultPrefix

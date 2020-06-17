@@ -8,6 +8,7 @@ import { AzExtTreeItem, IActionContext } from 'vscode-azureextensionui';
 import { localize } from '../../localize';
 import { openUrl } from '../../utils/openUrl';
 import { AzureAccountTreeItem } from '../AzureAccountTreeItem';
+import { ConnectionsTreeItem } from '../ConnectionsTreeItem';
 import { ISiteTreeItem } from '../ISiteTreeItem';
 import { SiteTreeItemBase } from '../SiteTreeItemBase';
 import { ITrialAppMetadata } from './ITrialAppMetadata';
@@ -21,13 +22,15 @@ export class TrialAppTreeItem extends SiteTreeItemBase implements ISiteTreeItem 
 
     private readonly _appSettingsTreeItem: TrialAppApplicationSettingsTreeItem;
     private readonly _siteFilesNode: SiteFilesTreeItem;
+    private readonly _connectionsNode: ConnectionsTreeItem;
 
     private constructor(parent: AzureAccountTreeItem, client: TrialAppClient) {
         super(parent);
         this.client = client;
         this._appSettingsTreeItem = new TrialAppApplicationSettingsTreeItem(this, this.client, false);
         this._siteFilesNode = new SiteFilesTreeItem(this, this.client, false);
-        this.logFilesNode = new LogFilesTreeItem(this, client);
+        this._connectionsNode = new ConnectionsTreeItem(this, this.client);
+        this.logFilesNode = new LogFilesTreeItem(this, this.client);
     }
 
     public static async createTrialAppTreeItem(parent: AzureAccountTreeItem, loginSession: string): Promise<TrialAppTreeItem> {
@@ -73,7 +76,7 @@ export class TrialAppTreeItem extends SiteTreeItemBase implements ISiteTreeItem 
     }
 
     public async loadMoreChildrenImpl(_clearCache: boolean, _context: IActionContext): Promise<AzExtTreeItem[]> {
-        return [this._appSettingsTreeItem, this._siteFilesNode, this.logFilesNode];
+        return [this._appSettingsTreeItem, this._connectionsNode, this._siteFilesNode, this.logFilesNode];
     }
     public hasMoreChildrenImpl(): boolean {
         return false;

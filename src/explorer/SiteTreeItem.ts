@@ -33,7 +33,7 @@ export abstract class SiteTreeItem extends SiteTreeItemBase implements ISiteTree
         this._state = client.initialState;
 
         this.appSettingsNode = new AppSettingsTreeItem(this, client);
-        this._connectionsNode = new ConnectionsTreeItem(this);
+        this._connectionsNode = new ConnectionsTreeItem(this, client);
         this._siteFilesNode = new SiteFilesTreeItem(this, client, false);
         this._logFilesNode = new LogFilesTreeItem(this, client);
         // Can't find actual documentation on this, but the portal claims it and this feedback suggests it's not planned https://aka.ms/AA4q5gi
