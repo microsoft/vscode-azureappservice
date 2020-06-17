@@ -105,17 +105,13 @@ suite('Web App actions', async function (this: Mocha.Suite): Promise<void> {
         assert.equal(createdApp.scmType, constants.ScmType.None, `Web App scmType's property value should be ${constants.ScmType.None} rather than ${createdApp.scmType}.`);
     });
 
-    test(`Add new setting for ${WebsiteOS0} Web App`, async () => {
+    test(`Add and delete settings for ${WebsiteOS0} Web App`, async () => {
         const createdApp: WebSiteManagementModels.Site = await webSiteClient.webApps.get(resourceName, resourceName);
         assert.ok(createdApp);
         await testUserInput.runWithInputs([resourceName, appSettingKey, appSettingValue], async () => {
             await vscode.commands.executeCommand('appService.appSettings.Add');
         });
-        assert.equal(await getAppSettingValue(resourceName, resourceName, appSettingKey), appSettingValue);
-    });
-
-    test(`Delete setting for ${WebsiteOS0} Web App`, async () => {
-        assert.equal(await getAppSettingValue(resourceName, resourceName, appSettingKey), appSettingValue);
+        assert.equal(await getAppSettingValue(resourceName, resourceName, appSettingKey), appSettingValue, `Fail to add setting "${appSettingKey}"`);
         await testUserInput.runWithInputs([resourceName, `${appSettingKey}=Hidden value. Click to view.`, DialogResponses.deleteResponse.title], async () => {
             await vscode.commands.executeCommand('appService.appSettings.Delete');
         });
