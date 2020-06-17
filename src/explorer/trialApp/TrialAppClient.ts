@@ -6,6 +6,7 @@
 import { SiteConfigResource, SiteSourceControl, StringDictionary, User } from 'azure-arm-website/lib/models';
 import { BasicAuthenticationCredentials, ServiceClientCredentials } from 'ms-rest';
 import { ISimplifiedSiteClient } from 'vscode-azureappservice';
+import { ScmType } from 'vscode-azureappservice/out/src/ScmType';
 import { addExtensionUserAgent } from 'vscode-azureextensionui';
 import KuduClient from 'vscode-azurekudu';
 import { requestUtils } from '../../utils/requestUtils';
@@ -63,9 +64,10 @@ export class TrialAppClient implements ISimplifiedSiteClient {
         return { publishingUserName: this.metadata.publishingUserName, publishingPassword: this.metadata.publishingPassword };
     }
     public async getSiteConfig(): Promise<SiteConfigResource> {
-        return {};
+        return { scmType: ScmType.LocalGit };
     }
     public async getSourceControl(): Promise<SiteSourceControl> {
+        // Not relevant for trial apps.
         return {};
     }
 
