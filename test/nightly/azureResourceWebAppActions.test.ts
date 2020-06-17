@@ -14,8 +14,6 @@ import { resourceGroupsToDelete, webSiteClient } from './global.resource.test';
 suite('Web App actions', async function (this: Mocha.Suite): Promise<void> {
     this.timeout(6 * 60 * 1000);
     let resourceName: string;
-    let appSettingKey: string;
-    let appSettingValue: string;
     const WebsiteOS0: WebsiteOS = (new Date().getDate()) % 2 === 0 ? WebsiteOS.linux : WebsiteOS.windows;
     const WebsiteOS1: WebsiteOS = WebsiteOS0 === WebsiteOS.windows ? WebsiteOS.linux : WebsiteOS.windows;
 
@@ -24,8 +22,6 @@ suite('Web App actions', async function (this: Mocha.Suite): Promise<void> {
             this.skip();
         }
         resourceName = getRandomHexString();
-        appSettingKey = getRandomHexString();
-        appSettingValue = getRandomHexString();
     });
 
     test(`Create New ${WebsiteOS0} Web App (Advanced)`, async () => {
@@ -106,6 +102,8 @@ suite('Web App actions', async function (this: Mocha.Suite): Promise<void> {
     });
 
     test(`Add and delete settings for ${WebsiteOS0} Web App`, async () => {
+        const appSettingKey: string = getRandomHexString();
+        const appSettingValue: string = getRandomHexString();
         const createdApp: WebSiteManagementModels.Site = await webSiteClient.webApps.get(resourceName, resourceName);
         assert.ok(createdApp);
         await testUserInput.runWithInputs([resourceName, appSettingKey, appSettingValue], async () => {
