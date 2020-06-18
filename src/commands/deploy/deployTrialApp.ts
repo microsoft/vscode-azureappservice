@@ -6,7 +6,7 @@
 import * as vscode from 'vscode';
 import { ProgressLocation, window, workspace, WorkspaceFolder } from 'vscode';
 import { localGitDeploy } from 'vscode-azureappservice';
-import { AzExtTreeItem, GenericTreeItem, IActionContext } from 'vscode-azureextensionui';
+import { IActionContext } from 'vscode-azureextensionui';
 import { WebAppTreeItem } from '../../../extension.bundle';
 import { SiteTreeItem } from '../../explorer/SiteTreeItem';
 import { TrialAppTreeItem } from '../../explorer/trialApp/TrialAppTreeItem';
@@ -39,16 +39,12 @@ export async function getDeployNodeWithTrialApp(context: IActionContext, target?
     if (!target) {
         const trialApp: TrialAppTreeItem | undefined = ext.azureAccountTreeItem.trialAppNode;
         if (trialApp) {
-            const children: AzExtTreeItem[] = await ext.azureAccountTreeItem.getCachedChildren(context);
-            // check if user is signed out with a trial app
-            if (children[0] instanceof GenericTreeItem) {
+            if (ext.azureAccountTreeItem.isLoggedIn) {
                 return trialApp;
             } else {
-                // user is signed in and has trial app
                 return await ext.tree.showTreeItemPicker<SiteTreeItem | TrialAppTreeItem>([WebAppTreeItem.contextValue, TrialAppTreeItem.contextValue], context);
             }
         }
     }
-
     return target;
 }
