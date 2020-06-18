@@ -54,7 +54,7 @@ export class TrialAppClient implements ISimplifiedSiteClient {
     }
 
     public get defaultHostUrl(): string {
-        return `https://${this.metadata.url}`;
+        return this.metadata.url;
     }
     public get gitUrl(): string {
         return this.metadata.gitUrl.split('@')[1];
