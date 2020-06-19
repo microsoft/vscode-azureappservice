@@ -43,9 +43,9 @@ export async function getDeployNodeWithTrialApp(context: IActionContext, target?
         const trialApp: TrialAppTreeItem | undefined = ext.azureAccountTreeItem.trialAppNode;
         if (trialApp) {
             if (ext.azureAccountTreeItem.isLoggedIn) {
-                return trialApp;
-            } else {
                 return await ext.tree.showTreeItemPicker<SiteTreeItem | TrialAppTreeItem>([WebAppTreeItem.contextValue, TrialAppTreeItem.contextValue], context);
+            } else {
+                return trialApp;
             }
         }
     }
