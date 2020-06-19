@@ -30,6 +30,7 @@ import { showDeployCompletedMessage } from './showDeployCompletedMessage';
 
 const postDeployCancelTokens: Map<string, vscode.CancellationTokenSource> = new Map();
 
+// tslint:disable-next-line: cyclomatic-complexity
 export async function deploy(context: IActionContext, target?: vscode.Uri | SiteTreeItem | TrialAppTreeItem, _multiTargets?: (vscode.Uri | SiteTreeItem)[], isTargetNewWebApp: boolean = false): Promise<void> {
     let webAppSource: WebAppSource | undefined;
     context.telemetry.properties.deployedWithConfigs = 'false';
@@ -39,10 +40,10 @@ export async function deploy(context: IActionContext, target?: vscode.Uri | Site
         webAppSource = WebAppSource.tree;
         // we can only get the siteConfig earlier if the entry point was a treeItem
         siteConfig = await target.root.client.getSiteConfig();
-    }
-
-    if (ext.azureAccountTreeItem.trialAppNode) {
-        target = await getDeployNodeWithTrialApp(context, target);
+    } else if (!target) {
+        if (ext.azureAccountTreeItem.trialAppNode) {
+            target = await getDeployNodeWithTrialApp(context, target);
+        }
     }
 
     if (target instanceof TrialAppTreeItem) {
