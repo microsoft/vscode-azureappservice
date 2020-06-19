@@ -19,16 +19,17 @@ export async function deployTrialApp(context: IActionContext, trialAppTreeItem: 
     const workspaceFolders: WorkspaceFolder[] | undefined = workspace.workspaceFolders;
 
     let path: string;
-    let commit: boolean = false;
-
+    let workspaceFolder: WorkspaceFolder | undefined;
     if (workspaceFolders?.length === 1) {
-        path = workspaceFolders[0].uri.fsPath;
-        commit = workspaceFolders[0].name === trialAppTreeItem.metadata.siteName;
+        workspaceFolder = workspaceFolders[0];
+        path = workspaceFolder.uri.fsPath;
     } else {
-        path = await selectWorkspaceFolder('Select a folder containing a repository to deploy');
-        const workspaceFolder: WorkspaceFolder | undefined = workspace.getWorkspaceFolder(vscode.Uri.file(path));
-        commit = workspaceFolder?.name === trialAppTreeItem.metadata.siteName;
+        const selectFolderWithRepo: string = localize('selectFolderWithRepo', 'Select a folder containing a repository to deploy');
+        path = await selectWorkspaceFolder(selectFolderWithRepo);
+        workspaceFolder = workspace.getWorkspaceFolder(vscode.Uri.file(path));
     }
+
+    const commit: boolean = workspaceFolder?.name === trialAppTreeItem.metadata.siteName;
 
     const title: string = localize('deploying', 'Deploying to "{0}"... Check [output window](command:{1}) for status.', trialAppTreeItem.client.fullName, `${ext.prefix}.showOutputChannel`);
     await window.withProgress({ location: ProgressLocation.Notification, title }, async () => {
