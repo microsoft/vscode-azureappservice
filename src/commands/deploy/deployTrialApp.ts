@@ -25,7 +25,7 @@ export async function deployTrialApp(context: IActionContext, trialAppTreeItem: 
         path = workspaceFolders[0].uri.fsPath;
         commit = workspaceFolders[0].name === trialAppTreeItem.metadata.siteName;
     } else {
-        path = await selectWorkspaceFolder('Select folder containing a repository to deploy');
+        path = await selectWorkspaceFolder('Select a folder containing a repository to deploy');
         const workspaceFolder: WorkspaceFolder | undefined = workspace.getWorkspaceFolder(vscode.Uri.file(path));
         commit = workspaceFolder?.name === trialAppTreeItem.metadata.siteName;
     }

@@ -43,6 +43,7 @@ export abstract class SiteTreeItem extends SiteTreeItemBase implements ISiteTree
     public get client(): SiteClient {
         return this.root.client;
     }
+
     public get defaultHostUrl(): string {
         return this.root.client.defaultHostUrl;
     }
