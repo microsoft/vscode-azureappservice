@@ -12,10 +12,12 @@ import { IDeployContext } from './IDeployContext';
 import { showDeployCompletedMessage } from './showDeployCompletedMessage';
 
 export async function deployTrialApp(deployContext: IDeployContext, node: TrialAppTreeItem): Promise<void> {
-    const commit: boolean = deployContext.workspace.name === node.metadata.siteName;
-    const title: string = localize('deploying', 'Deploying to "{0}"... Check [output window](command:{1}) for status.', node.client.fullName, `${ext.prefix}.showOutputChannel`);
-    return await window.withProgress({ location: ProgressLocation.Notification, title }, async () => {
-        await localGitDeploy(node.client, { fsPath: deployContext.workspace.uri.fsPath, branch: 'RELEASE', commit: commit }, deployContext);
-        return showDeployCompletedMessage(node);
+    await node.runWithTemporaryDescription("Deploying...", async () => {
+        const commit: boolean = deployContext.workspace.name === node.metadata.siteName;
+        const title: string = localize('deploying', 'Deploying to "{0}"... Check [output window](command:{1}) for status.', node.client.fullName, `${ext.prefix}.showOutputChannel`);
+        return await window.withProgress({ location: ProgressLocation.Notification, title }, async () => {
+            await localGitDeploy(node.client, { fsPath: deployContext.workspace.uri.fsPath, branch: 'RELEASE', commit: commit }, deployContext);
+        });
     });
+    showDeployCompletedMessage(node);
 }

@@ -54,7 +54,7 @@ export async function deploy(context: IActionContext, target?: vscode.Uri | Site
     const { node, isNewWebApp }: IDeployNode = await getDeployNode(deployContext, target, isTargetNewWebApp);
 
     if (node instanceof TrialAppTreeItem) {
-        return deployTrialApp(deployContext, node);
+        return await deployTrialApp(deployContext, node);
     }
 
     context.telemetry.properties.webAppSource = deployContext.webAppSource;
