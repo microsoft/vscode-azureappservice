@@ -44,14 +44,10 @@ export class AzureAccountTreeItem extends AzureAccountTreeItemBase {
     public async pickTreeItemImpl(expectedContextValues: (string | RegExp)[]): Promise<AzExtTreeItem | undefined> {
         const subscription: string = localize('subscription', 'subscription');
         const subscriptionOrTrialApp: string = localize('subscriptionOrTrialApp', 'subscription or trial app');
-        const trialAppOrSignIn: string = localize('trialAppOrSignIn', 'trial app, sign in, or create a free Azure account');
+        const trialApp: string = localize('trialApp', 'trial app');
 
         if (expectedContextValues.includes(TrialAppTreeItem.contextValue) && this.trialAppNode) {
-            if (this.isLoggedIn) {
-                this.childTypeLabel = subscriptionOrTrialApp;
-            } else {
-                this.childTypeLabel = trialAppOrSignIn;
-            }
+            this.childTypeLabel = this.isLoggedIn ? subscriptionOrTrialApp : trialApp;
         } else {
             this.childTypeLabel = subscription;
         }
@@ -60,12 +56,14 @@ export class AzureAccountTreeItem extends AzureAccountTreeItemBase {
     }
 
     public async refreshImpl(): Promise<void> {
+        await this.loadTrialAppNode();
         await this.trialAppNode?.refresh();
     }
 
     private async loadTrialAppNode(): Promise<AzExtTreeItem | undefined> {
         const loginSession: string | undefined = ext.context.globalState.get(TrialAppLoginSession);
         if (!loginSession) {
+            this.trialAppNode = undefined;
             return undefined;
         }
 
