@@ -56,6 +56,7 @@ export class TrialAppClient implements ISimplifiedSiteClient {
     public get defaultHostUrl(): string {
         return this.metadata.url;
     }
+
     public get gitUrl(): string {
         return this.metadata.gitUrl.split('@')[1];
     }
@@ -63,9 +64,11 @@ export class TrialAppClient implements ISimplifiedSiteClient {
     public async getWebAppPublishCredential(): Promise<User> {
         return { publishingUserName: this.metadata.publishingUserName, publishingPassword: this.metadata.publishingPassword };
     }
+
     public async getSiteConfig(): Promise<SiteConfigResource> {
         return { scmType: ScmType.LocalGit };
     }
+
     public async getSourceControl(): Promise<SiteSourceControl> {
         // Not relevant for trial apps.
         return {};
@@ -110,7 +113,6 @@ export class TrialAppClient implements ISimplifiedSiteClient {
     }
 
     private async deleteApplicationSetting(appSettings: StringDictionary, key: string): Promise<StringDictionary> {
-
         const deleteRequest: requestUtils.Request = await requestUtils.getDefaultRequest(`https://${this.metadata.scmHostName}/api/settings/${key}`, this._credentials, 'DELETE');
         deleteRequest.body = JSON.stringify(appSettings.properties);
         deleteRequest.headers['Content-Type'] = 'application/json';
