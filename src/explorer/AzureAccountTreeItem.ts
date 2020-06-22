@@ -23,13 +23,11 @@ export class AzureAccountTreeItem extends AzureAccountTreeItemBase {
     }
 
     public async loadMoreChildrenImpl(clearCache: boolean, context: IActionContext): Promise<AzExtTreeItem[]> {
+        const ti: AzExtTreeItem | undefined = this.trialAppNode ?? await this.loadTrialAppNode();
         const children: AzExtTreeItem[] = await super.loadMoreChildrenImpl(clearCache, context);
-
-        const ti: AzExtTreeItem | undefined = await this.loadTrialAppNode();
         if (ti) {
             children.push(ti);
         }
-
         return children;
     }
 
@@ -46,8 +44,14 @@ export class AzureAccountTreeItem extends AzureAccountTreeItemBase {
     public async pickTreeItemImpl(expectedContextValues: (string | RegExp)[]): Promise<AzExtTreeItem | undefined> {
         const subscription: string = localize('subscription', 'subscription');
         const subscriptionOrTrialApp: string = localize('subscriptionOrTrialApp', 'subscription or trial app');
+        const trialAppOrSignIn: string = localize('trialAppOrSignIn', 'trial app, sign in, or create a free Azure account');
+
         if (expectedContextValues.includes(TrialAppTreeItem.contextValue) && this.trialAppNode) {
-            this.childTypeLabel = subscriptionOrTrialApp;
+            if (this.isLoggedIn) {
+                this.childTypeLabel = subscriptionOrTrialApp;
+            } else {
+                this.childTypeLabel = trialAppOrSignIn;
+            }
         } else {
             this.childTypeLabel = subscription;
         }
@@ -55,29 +59,28 @@ export class AzureAccountTreeItem extends AzureAccountTreeItemBase {
         return super.pickTreeItemImpl(expectedContextValues);
     }
 
+    public async refreshImpl(): Promise<void> {
+        await this.trialAppNode?.refresh();
+    }
+
     private async loadTrialAppNode(): Promise<AzExtTreeItem | undefined> {
-        if (this.trialAppNode) {
-            await this.trialAppNode.refresh();
-            return this.trialAppNode;
-        } else {
-            const loginSession: string | undefined = ext.context.globalState.get(TrialAppLoginSession);
-            if (loginSession) {
-                const ti: AzExtTreeItem[] = await this.createTreeItemsWithErrorHandling(
-                    [loginSession],
-                    'trialAppInvalid',
-                    async (source: string): Promise<AzExtTreeItem> => {
-                        return await TrialAppTreeItem.createTrialAppTreeItem(this, source);
-                    },
-                    (_source: unknown): string => {
-                        return 'Trial App';
-                    });
-                if (ti.length > 0) {
-                    const treeItem: AzExtTreeItem = ti[0];
-                    this.trialAppNode = treeItem instanceof TrialAppTreeItem ? treeItem : this.trialAppNode;
-                    return treeItem;
-                }
-            }
+        const loginSession: string | undefined = ext.context.globalState.get(TrialAppLoginSession);
+        if (!loginSession) {
+            return undefined;
         }
-        return undefined;
+
+        const ti: AzExtTreeItem[] = await this.createTreeItemsWithErrorHandling(
+            [loginSession],
+            'trialAppInvalid',
+            async (source: string): Promise<AzExtTreeItem> => {
+                return await TrialAppTreeItem.createTrialAppTreeItem(this, source);
+            },
+            (_source: unknown): string => {
+                return 'Trial App';
+            });
+
+        const treeItem: AzExtTreeItem | undefined = ti.pop();
+        this.trialAppNode = treeItem instanceof TrialAppTreeItem ? treeItem : undefined;
+        return treeItem;
     }
 }
