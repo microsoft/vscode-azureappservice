@@ -6,6 +6,7 @@
 import { Disposable, Uri } from "vscode";
 import { configurationSettings, none } from "../../constants";
 import { SiteTreeItem } from "../../explorer/SiteTreeItem";
+import { SiteTreeItemBase } from '../../explorer/SiteTreeItemBase';
 import { TrialAppTreeItem } from '../../explorer/trialApp/TrialAppTreeItem';
 import { WebAppTreeItem } from "../../explorer/WebAppTreeItem";
 import { ext } from '../../extensionVariables';
@@ -23,7 +24,7 @@ export async function getDeployNode(context: IDeployContext, target: Uri | strin
 
     // if the entry point for deploy was via "Deploy" after creating, it is also a new web app (so confirmDeployment would be false)
     let isNewWebApp: boolean = isTargetNewWebApp;
-    if (target instanceof SiteTreeItem || target instanceof TrialAppTreeItem) {
+    if (target instanceof SiteTreeItemBase) {
         node = target;
     } else if (defaultWebAppId && defaultWebAppId !== none) {
         node = await ext.tree.findTreeItem(defaultWebAppId, context); // resolves to undefined if app can't be found
