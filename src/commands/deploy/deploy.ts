@@ -7,15 +7,12 @@ import * as WebSiteModels from 'azure-arm-website/lib/models';
 import { pathExists } from 'fs-extra';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { ProgressLocation, window } from 'vscode';
 import * as appservice from 'vscode-azureappservice';
-import { localGitDeploy } from 'vscode-azureappservice';
 import { IActionContext } from 'vscode-azureextensionui';
 import * as constants from '../../constants';
 import { SiteTreeItem } from '../../explorer/SiteTreeItem';
 import { TrialAppTreeItem } from '../../explorer/trialApp/TrialAppTreeItem';
 import { ext } from '../../extensionVariables';
-import { localize } from '../../localize';
 import { javaUtils } from '../../utils/javaUtils';
 import { nonNullValue } from '../../utils/nonNull';
 import { isPathEqual } from '../../utils/pathUtils';
@@ -23,6 +20,7 @@ import { getRandomHexString } from "../../utils/randomUtils";
 import { getWorkspaceSetting } from '../../vsCodeConfig/settings';
 import { runPostDeployTask } from '../postDeploy/runPostDeployTask';
 import { confirmDeploymentPrompt } from './confirmDeploymentPrompt';
+import { deployTrialApp } from './deployTrialApp';
 import { getDeployNode, IDeployNode } from './getDeployNode';
 import { IDeployContext, WebAppSource } from './IDeployContext';
 import { promptScmDoBuildDeploy } from './promptScmDoBuildDeploy';
@@ -56,12 +54,7 @@ export async function deploy(context: IActionContext, target?: vscode.Uri | Site
     const { node, isNewWebApp }: IDeployNode = await getDeployNode(deployContext, target, isTargetNewWebApp);
 
     if (node instanceof TrialAppTreeItem) {
-        const commit: boolean = deployContext.workspace.name === node.metadata.siteName;
-        const title: string = localize('deploying', 'Deploying to "{0}"... Check [output window](command:{1}) for status.', node.client.fullName, `${ext.prefix}.showOutputChannel`);
-        return await window.withProgress({ location: ProgressLocation.Notification, title }, async () => {
-            await localGitDeploy(node.client, { fsPath: deployContext.workspace.uri.fsPath, branch: 'RELEASE', commit: commit }, deployContext);
-            return showDeployCompletedMessage(node);
-        });
+        return deployTrialApp(deployContext, node);
     }
 
     context.telemetry.properties.webAppSource = deployContext.webAppSource;
