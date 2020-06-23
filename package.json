@@ -655,17 +655,17 @@
                 },
                 {
                     "command": "appService.Refresh",
-                    "when": "view == azureAppService && viewItem =~ /^deployments(C|Unc)onnected$/",
+                    "when": "view == azureAppService && viewItem =~ /^deployments(C|Unc)onnected(|NoPortal)$/",
                     "group": "2@1"
                 },
                 {
                     "command": "appService.viewDeploymentLogs",
-                    "when": "view == azureAppService && viewItem =~ /deployment//",
+                    "when": "view == azureAppService && viewItem =~ /deployment(|noportal)//",
                     "group": "1@1"
                 },
                 {
                     "command": "appService.Redeploy",
-                    "when": "view == azureAppService && viewItem =~ /deployment//",
+                    "when": "view == azureAppService && viewItem =~ /deployment(|noportal)//",
                     "group": "1@2"
                 },
                 {
