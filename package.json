@@ -77,7 +77,7 @@
         "commands": [
             {
                 "command": "appService.TransferToSubscription",
-                "title": "Transfer to Subscription",
+                "title": "Transfer to Subscription...",
                 "category": "Azure App Service"
             },
             {
