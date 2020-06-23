@@ -8,7 +8,7 @@ import { AzExtParentTreeItem, IActionContext, openInPortal as uiOpenInPortal } f
 import { DeploymentSlotsTreeItem } from "../explorer/DeploymentSlotsTreeItem";
 import { WebAppTreeItem } from "../explorer/WebAppTreeItem";
 import { ext } from "../extensionVariables";
-import { nonNullProp } from '../utils/nonNull';
+import { nonNullProp } from "../utils/nonNull";
 
 export async function openInPortal(context: IActionContext, node?: AzExtParentTreeItem): Promise<void> {
     if (!node) {
@@ -18,7 +18,7 @@ export async function openInPortal(context: IActionContext, node?: AzExtParentTr
     switch (node.contextValue) {
         // the deep link for slots does not follow the conventional pattern of including its parent in the path name so this is how we extract the slot's id
         case DeploymentSlotsTreeItem.contextValue:
-            await uiOpenInPortal(node, `/deploymentSlots`);
+            await uiOpenInPortal(node, `${nonNullProp(node, 'parent').fullId}/deploymentSlots`);
             return;
         // the deep link for "Deployments" do not follow the conventional pattern of including its parent in the path name so we need to pass the "Deployment Center" url directly
         case DeploymentsTreeItem.contextValueConnected:
