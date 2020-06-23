@@ -427,7 +427,7 @@
                 {
                     "command": "appService.TransferToSubscription",
                     "when": "view == azureAppService && viewItem == trialApp",
-                    "group": "1_trialAppCommands@1"
+                    "group": "3_appServiceDeployCommands@1"
                 },
                 {
                     "command": "appService.CloneTrialApp",
