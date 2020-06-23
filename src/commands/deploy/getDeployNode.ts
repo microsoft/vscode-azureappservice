@@ -41,7 +41,8 @@ export async function getDeployNode(context: IDeployContext, target: Uri | strin
         const newNodes: SiteTreeItem[] = [];
         const disposable: Disposable = ext.tree.onTreeItemCreate((newNode: SiteTreeItem) => { newNodes.push(newNode); });
         try {
-            node = await ext.tree.showTreeItemPicker<SiteTreeItem>([WebAppTreeItem.contextValue, TrialAppTreeItem.contextValue], context);
+            const contextValues: string[] = isTargetNewWebApp ? [WebAppTreeItem.contextValue] : [WebAppTreeItem.contextValue, TrialAppTreeItem.contextValue];
+            node = await ext.tree.showTreeItemPicker<SiteTreeItem>(contextValues, context);
         } finally {
             disposable.dispose();
         }

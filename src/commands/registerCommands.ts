@@ -47,8 +47,10 @@ import { swapSlots } from './swapSlots';
 import { cloneTrialApp } from './trialApp/cloneTrialApp';
 import { importTrialApp } from './trialApp/importTrialApp';
 import { removeTrialApp } from './trialApp/removeTrialApp';
+import { transferToSubscription } from './trialApp/transferToSubscription';
 
 export function registerCommands(): void {
+    registerCommand('appService.TransferToSubscription', transferToSubscription);
     registerCommand('appService.CloneTrialApp', cloneTrialApp);
     registerCommand('appService.ImportTrialApp', importTrialApp);
     registerCommand('appService.RemoveTrialApp', removeTrialApp);

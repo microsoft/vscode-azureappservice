@@ -76,6 +76,11 @@
     "contributes": {
         "commands": [
             {
+                "command": "appService.TransferToSubscription",
+                "title": "Transfer to Subscription",
+                "category": "Azure App Service"
+            },
+            {
                 "command": "appService.CloneTrialApp",
                 "title": "Clone",
                 "category": "Azure App Service"
@@ -418,6 +423,11 @@
                     "command": "appService.Refresh",
                     "when": "view == azureAppService && viewItem == azureextensionui.azureSubscription",
                     "group": "2_subscriptionGeneralCommands@1"
+                },
+                {
+                    "command": "appService.TransferToSubscription",
+                    "when": "view == azureAppService && viewItem == trialApp",
+                    "group": "1_trialAppCommands@1"
                 },
                 {
                     "command": "appService.CloneTrialApp",
