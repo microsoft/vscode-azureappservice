@@ -6,6 +6,7 @@
 import { IActionContext } from 'vscode-azureextensionui';
 import { TrialAppTreeItem } from '../../explorer/trialApp/TrialAppTreeItem';
 import { ext } from '../../extensionVariables';
+import { localize } from '../../localize';
 import { deploy } from '../deploy/deploy';
 
 export async function transferToSubscription(context: IActionContext, node?: TrialAppTreeItem): Promise<void> {
@@ -16,6 +17,6 @@ export async function transferToSubscription(context: IActionContext, node?: Tri
     if (node) {
         await deploy(context, undefined, undefined, true);
     } else {
-        throw Error('Trial app not found');
+        throw Error(localize('trialAppNotFound', 'Trial app not found.'));
     }
 }
