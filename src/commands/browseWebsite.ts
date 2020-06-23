@@ -4,11 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { IActionContext } from 'vscode-azureextensionui';
-import { SiteTreeItem } from '../explorer/SiteTreeItem';
+import { ISiteTreeItem } from '../explorer/ISiteTreeItem';
 import { WebAppTreeItem } from '../explorer/WebAppTreeItem';
 import { ext } from '../extensionVariables';
 
-export async function browseWebsite(context: IActionContext, node?: SiteTreeItem): Promise<void> {
+export async function browseWebsite(context: IActionContext, node?: ISiteTreeItem): Promise<void> {
     if (!node) {
         node = await ext.tree.showTreeItemPicker<WebAppTreeItem>(WebAppTreeItem.contextValue, context);
     }

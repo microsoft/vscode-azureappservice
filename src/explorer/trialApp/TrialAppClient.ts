@@ -3,16 +3,16 @@
 *  Licensed under the MIT License. See License.txt in the project root for license information.
 *--------------------------------------------------------------------------------------------*/
 
-import { StringDictionary } from 'azure-arm-website/lib/models';
+import { SiteConfigResource, SiteSourceControl, StringDictionary, User } from 'azure-arm-website/lib/models';
 import { BasicAuthenticationCredentials, ServiceClientCredentials } from 'ms-rest';
-import { IAppSettingsClient, IFilesClient } from 'vscode-azureappservice';
+import { ISimplifiedSiteClient } from 'vscode-azureappservice';
+import { ScmType } from 'vscode-azureappservice/out/src/ScmType';
 import { addExtensionUserAgent } from 'vscode-azureextensionui';
 import KuduClient from 'vscode-azurekudu';
 import { requestUtils } from '../../utils/requestUtils';
 import { ITrialAppMetadata } from './ITrialAppMetadata';
 
-export class TrialAppClient implements IAppSettingsClient, IFilesClient {
-
+export class TrialAppClient implements ISimplifiedSiteClient {
     public isFunctionApp: boolean = false;
     public isLinux: boolean = true;
     public metadata: ITrialAppMetadata;
@@ -54,7 +54,24 @@ export class TrialAppClient implements IAppSettingsClient, IFilesClient {
     }
 
     public get defaultHostUrl(): string {
-        return `https://${this.metadata.url}`;
+        return this.metadata.url;
+    }
+
+    public get gitUrl(): string {
+        return this.metadata.gitUrl.split('@')[1];
+    }
+
+    public async getWebAppPublishCredential(): Promise<User> {
+        return { publishingUserName: this.metadata.publishingUserName, publishingPassword: this.metadata.publishingPassword };
+    }
+
+    public async getSiteConfig(): Promise<SiteConfigResource> {
+        return { scmType: ScmType.LocalGit };
+    }
+
+    public async getSourceControl(): Promise<SiteSourceControl> {
+        // Not relevant for trial apps.
+        return {};
     }
 
     public async getKuduClient(): Promise<KuduClient> {
@@ -96,7 +113,6 @@ export class TrialAppClient implements IAppSettingsClient, IFilesClient {
     }
 
     private async deleteApplicationSetting(appSettings: StringDictionary, key: string): Promise<StringDictionary> {
-
         const deleteRequest: requestUtils.Request = await requestUtils.getDefaultRequest(`https://${this.metadata.scmHostName}/api/settings/${key}`, this._credentials, 'DELETE');
         deleteRequest.body = JSON.stringify(appSettings.properties);
         deleteRequest.headers['Content-Type'] = 'application/json';

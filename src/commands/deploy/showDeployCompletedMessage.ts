@@ -7,13 +7,13 @@ import { MessageItem, window } from "vscode";
 import { callWithTelemetryAndErrorHandling, IActionContext } from "vscode-azureextensionui";
 import { AppServiceDialogResponses } from "../../constants";
 import { SiteTreeItem } from "../../explorer/SiteTreeItem";
+import { TrialAppTreeItem } from '../../explorer/trialApp/TrialAppTreeItem';
 import { ext } from "../../extensionVariables";
 import { localize } from "../../localize";
-import { browseWebsite } from '../browseWebsite';
 import { startStreamingLogs } from '../logstream/startStreamingLogs';
 
-export function showDeployCompletedMessage(node: SiteTreeItem): void {
-    const message: string = localize('deployCompleted', 'Deployment to "{0}" completed.', node.root.client.fullName);
+export function showDeployCompletedMessage(node: SiteTreeItem | TrialAppTreeItem): void {
+    const message: string = localize('deployCompleted', 'Deployment to "{0}" completed.', node.client.fullName);
     ext.outputChannel.appendLog(message);
     const browseWebsiteBtn: MessageItem = { title: localize('browseWebsite', 'Browse Website') };
     const streamLogs: MessageItem = { title: localize('streamLogs', 'Stream Logs') };
@@ -25,7 +25,7 @@ export function showDeployCompletedMessage(node: SiteTreeItem): void {
             if (result === AppServiceDialogResponses.viewOutput) {
                 ext.outputChannel.show();
             } else if (result === browseWebsiteBtn) {
-                await browseWebsite(context, node);
+                await node.browse();
             } else if (result === streamLogs) {
                 await startStreamingLogs(context, node);
             }
