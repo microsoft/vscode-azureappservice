@@ -45,10 +45,12 @@ import { startWebApp } from './startWebApp';
 import { stopWebApp } from './stopWebApp';
 import { swapSlots } from './swapSlots';
 import { cloneTrialApp } from './trialApp/cloneTrialApp';
+import { createTrialApp } from './trialApp/createTrialApp';
 import { importTrialApp } from './trialApp/importTrialApp';
 import { removeTrialApp } from './trialApp/removeTrialApp';
 
 export function registerCommands(): void {
+    registerCommand('appService.CreateTrialApp', createTrialApp);
     registerCommand('appService.CloneTrialApp', cloneTrialApp);
     registerCommand('appService.ImportTrialApp', importTrialApp);
     registerCommand('appService.RemoveTrialApp', removeTrialApp);

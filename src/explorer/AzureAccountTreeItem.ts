@@ -7,6 +7,7 @@ import { AzExtTreeItem, AzureAccountTreeItemBase, GenericTreeItem, IActionContex
 import { TrialAppLoginSession } from '../constants';
 import { ext } from '../extensionVariables';
 import { localize } from '../localize';
+import { getIconPath } from '../utils/pathUtils';
 import { SubscriptionTreeItem } from './SubscriptionTreeItem';
 import { TrialAppTreeItem } from './trialApp/TrialAppTreeItem';
 
@@ -25,8 +26,14 @@ export class AzureAccountTreeItem extends AzureAccountTreeItemBase {
     public async loadMoreChildrenImpl(clearCache: boolean, context: IActionContext): Promise<AzExtTreeItem[]> {
         const ti: AzExtTreeItem | undefined = this.trialAppNode ?? await this.loadTrialAppNode();
         const children: AzExtTreeItem[] = await super.loadMoreChildrenImpl(clearCache, context);
+
         if (ti) {
             children.push(ti);
+        } else {
+            // Must check children[0] instanceof GenericTreeItem because if Azure account is still loading then isLoggedIn is false.
+            if (!this.isLoggedIn && children[0] instanceof GenericTreeItem) {
+                children.push(new GenericTreeItem(this, { label: 'Create free trial app...', contextValue: 'createTrialApp', commandId: `${ext.prefix}.CreateTrialApp`, iconPath: getIconPath('WebApp') }));
+            }
         }
         return children;
     }
