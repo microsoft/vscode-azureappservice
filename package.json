@@ -655,17 +655,17 @@
                 },
                 {
                     "command": "appService.Refresh",
-                    "when": "view == azureAppService && viewItem =~ /^deployments(C|Unc)onnected(|NoPortal)$/",
+                    "when": "view == azureAppService && viewItem =~ /^deployments(C|Unc)onnected$/",
                     "group": "2@1"
                 },
                 {
                     "command": "appService.viewDeploymentLogs",
-                    "when": "view == azureAppService && viewItem =~ /deployment(|noportal)//",
+                    "when": "view == azureAppService && viewItem =~ /deployment//",
                     "group": "1@1"
                 },
                 {
                     "command": "appService.Redeploy",
-                    "when": "view == azureAppService && viewItem =~ /deployment(|noportal)//",
+                    "when": "view == azureAppService && viewItem =~ /deployment//",
                     "group": "1@2"
                 },
                 {
@@ -869,7 +869,7 @@
         "portfinder": "^1.0.25",
         "request-promise": "^4.2.5",
         "vscode-azureappservice": "^0.62.2",
-        "vscode-azureextensionui": "^0.33.6",
+        "vscode-azureextensionui": "^0.33.7",
         "vscode-azurekudu": "^0.1.8",
         "vscode-nls": "^4.1.1"
     },

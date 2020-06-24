@@ -19,7 +19,7 @@ export class TrialAppTreeItem extends SiteTreeItemBase implements ISiteTreeItem 
     public contextValue: string = TrialAppTreeItem.contextValue;
     public client: TrialAppClient;
     public logFilesNode: LogFilesTreeItem;
-    public deploymentsNode: DeploymentsTreeItem;
+    public deploymentsNode: TrialAppDeploymentsTreeItem;
 
     private readonly _appSettingsTreeItem: TrialAppApplicationSettingsTreeItem;
     private readonly _siteFilesNode: SiteFilesTreeItem;
@@ -32,7 +32,7 @@ export class TrialAppTreeItem extends SiteTreeItemBase implements ISiteTreeItem 
         this._siteFilesNode = new SiteFilesTreeItem(this, this.client, false);
         this._connectionsNode = new ConnectionsTreeItem(this, this.client);
         this.logFilesNode = new LogFilesTreeItem(this, this.client);
-        this.deploymentsNode = new DeploymentsTreeItem(this, this.client, {}, {}, false);
+        this.deploymentsNode = new TrialAppDeploymentsTreeItem(this, this.client, {}, {});
     }
 
     public static async createTrialAppTreeItem(parent: AzureAccountTreeItem, loginSession: string): Promise<TrialAppTreeItem> {
@@ -101,3 +101,5 @@ export class TrialAppTreeItem extends SiteTreeItemBase implements ISiteTreeItem 
 class TrialAppApplicationSettingsTreeItem extends AppSettingsTreeItem {
     public contextValue: string = 'applicationSettingsTrialApp';
 }
+
+export class TrialAppDeploymentsTreeItem extends DeploymentsTreeItem { }
