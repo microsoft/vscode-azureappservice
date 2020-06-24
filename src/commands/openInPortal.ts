@@ -4,13 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { DeploymentsTreeItem } from "vscode-azureappservice";
-import { AzExtParentTreeItem, IActionContext, openInPortal as uiOpenInPortal } from "vscode-azureextensionui";
+import { AzExtTreeItem, IActionContext, openInPortal as uiOpenInPortal } from "vscode-azureextensionui";
 import { DeploymentSlotsTreeItem } from "../explorer/DeploymentSlotsTreeItem";
 import { WebAppTreeItem } from "../explorer/WebAppTreeItem";
 import { ext } from "../extensionVariables";
 import { nonNullProp } from "../utils/nonNull";
 
-export async function openInPortal(context: IActionContext, node?: AzExtParentTreeItem): Promise<void> {
+export async function openInPortal(context: IActionContext, node?: AzExtTreeItem): Promise<void> {
     if (!node) {
         node = await ext.tree.showTreeItemPicker<WebAppTreeItem>(WebAppTreeItem.contextValue, context);
     }
