@@ -6,13 +6,19 @@
 import { DeploymentsTreeItem } from "vscode-azureappservice";
 import { AzExtTreeItem, IActionContext, openInPortal as uiOpenInPortal } from "vscode-azureextensionui";
 import { DeploymentSlotsTreeItem } from "../explorer/DeploymentSlotsTreeItem";
+import { TrialAppDeploymentsTreeItem } from '../explorer/trialApp/TrialAppTreeItem';
 import { WebAppTreeItem } from "../explorer/WebAppTreeItem";
 import { ext } from "../extensionVariables";
+import { localize } from '../localize';
 import { nonNullProp } from "../utils/nonNull";
 
 export async function openInPortal(context: IActionContext, node?: AzExtTreeItem): Promise<void> {
     if (!node) {
         node = await ext.tree.showTreeItemPicker<WebAppTreeItem>(WebAppTreeItem.contextValue, context);
+    }
+
+    if (node instanceof TrialAppDeploymentsTreeItem || node.parent instanceof TrialAppDeploymentsTreeItem) {
+        throw Error(localize('notSupported', 'This operation is not supported.'));
     }
 
     switch (node.contextValue) {
