@@ -30,6 +30,7 @@
     "preview": true,
     "activationEvents": [
         "onUri",
+        "onCommand:appService.CreateTrialApp",
         "onCommand:appService.ImportTrialApp",
         "onCommand:appService.RemoveTrialApp",
         "onCommand:appService.CreateWebApp",
@@ -75,6 +76,11 @@
     "main": "./main.js",
     "contributes": {
         "commands": [
+            {
+                "command": "appService.CreateTrialApp",
+                "title": "Create Trial App",
+                "category": "Azure App Service"
+            },
             {
                 "command": "appService.CloneTrialApp",
                 "title": "Clone",
@@ -335,6 +341,10 @@
         },
         "menus": {
             "commandPalette": [
+                {
+                    "command": "appService.CreateTrialApp",
+                    "when": "never"
+                },
                 {
                     "command": "appService.ImportTrialApp",
                     "when": "never"

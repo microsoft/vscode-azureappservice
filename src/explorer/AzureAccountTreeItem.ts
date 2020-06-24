@@ -7,6 +7,7 @@ import { AzExtTreeItem, AzureAccountTreeItemBase, GenericTreeItem, IActionContex
 import { TrialAppLoginSession } from '../constants';
 import { ext } from '../extensionVariables';
 import { localize } from '../localize';
+import { getIconPath } from '../utils/pathUtils';
 import { SubscriptionTreeItem } from './SubscriptionTreeItem';
 import { TrialAppTreeItem } from './trialApp/TrialAppTreeItem';
 
@@ -25,8 +26,13 @@ export class AzureAccountTreeItem extends AzureAccountTreeItemBase {
     public async loadMoreChildrenImpl(clearCache: boolean, context: IActionContext): Promise<AzExtTreeItem[]> {
         const ti: AzExtTreeItem | undefined = this.trialAppNode ?? await this.loadTrialAppNode();
         const children: AzExtTreeItem[] = await super.loadMoreChildrenImpl(clearCache, context);
+
         if (ti) {
             children.push(ti);
+        } else {
+            if (!this.isLoggedIn) {
+                children.push(new GenericTreeItem(this, { label: 'Create Free Trial App...', contextValue: 'createTrialApp', commandId: `${ext.prefix}.CreateTrialApp`, iconPath: getIconPath('WebApp') }));
+            }
         }
         return children;
     }
