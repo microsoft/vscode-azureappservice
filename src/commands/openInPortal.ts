@@ -4,14 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { DeploymentsTreeItem } from "vscode-azureappservice";
-import { IActionContext, openInPortal as uiOpenInPortal } from "vscode-azureextensionui";
+import { AzExtTreeItem, IActionContext, openInPortal as uiOpenInPortal } from "vscode-azureextensionui";
 import { DeploymentSlotsTreeItem } from "../explorer/DeploymentSlotsTreeItem";
-import { SiteTreeItem } from "../explorer/SiteTreeItem";
 import { WebAppTreeItem } from "../explorer/WebAppTreeItem";
 import { ext } from "../extensionVariables";
 import { nonNullProp } from "../utils/nonNull";
 
-export async function openInPortal(context: IActionContext, node?: SiteTreeItem): Promise<void> {
+export async function openInPortal(context: IActionContext, node?: AzExtTreeItem): Promise<void> {
     if (!node) {
         node = await ext.tree.showTreeItemPicker<WebAppTreeItem>(WebAppTreeItem.contextValue, context);
     }
@@ -19,15 +18,15 @@ export async function openInPortal(context: IActionContext, node?: SiteTreeItem)
     switch (node.contextValue) {
         // the deep link for slots does not follow the conventional pattern of including its parent in the path name so this is how we extract the slot's id
         case DeploymentSlotsTreeItem.contextValue:
-            await uiOpenInPortal(node.root, `${nonNullProp(node, 'parent').fullId}/deploymentSlots`);
+            await uiOpenInPortal(node, `${nonNullProp(node, 'parent').fullId}/deploymentSlots`);
             return;
         // the deep link for "Deployments" do not follow the conventional pattern of including its parent in the path name so we need to pass the "Deployment Center" url directly
         case DeploymentsTreeItem.contextValueConnected:
         case DeploymentsTreeItem.contextValueUnconnected:
-            await uiOpenInPortal(node.root, `${node.root.client.id}/vstscd`);
+            await uiOpenInPortal(node, `${nonNullProp(node, 'parent').fullId}/vstscd`);
             return;
         default:
-            await node.openInPortal();
+            await uiOpenInPortal(node, node.fullId);
             return;
     }
 }
