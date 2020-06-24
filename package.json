@@ -30,6 +30,7 @@
     "preview": true,
     "activationEvents": [
         "onUri",
+        "onCommand:appService.CreateTrialApp",
         "onCommand:appService.ImportTrialApp",
         "onCommand:appService.RemoveTrialApp",
         "onCommand:appService.CreateWebApp",
@@ -78,6 +79,11 @@
             {
                 "command": "appService.TransferToSubscription",
                 "title": "Transfer to Subscription...",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.CreateTrialApp",
+                "title": "Create Trial App",
                 "category": "Azure App Service"
             },
             {
@@ -340,6 +346,10 @@
         },
         "menus": {
             "commandPalette": [
+                {
+                    "command": "appService.CreateTrialApp",
+                    "when": "never"
+                },
                 {
                     "command": "appService.ImportTrialApp",
                     "when": "never"
@@ -879,7 +889,7 @@
         "portfinder": "^1.0.25",
         "request-promise": "^4.2.5",
         "vscode-azureappservice": "^0.62.2",
-        "vscode-azureextensionui": "^0.33.6",
+        "vscode-azureextensionui": "^0.33.7",
         "vscode-azurekudu": "^0.1.8",
         "vscode-nls": "^4.1.1"
     },
