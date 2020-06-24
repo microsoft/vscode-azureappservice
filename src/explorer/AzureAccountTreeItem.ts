@@ -31,8 +31,8 @@ export class AzureAccountTreeItem extends AzureAccountTreeItemBase {
             children.push(ti);
         } else {
             // Must check children[0] instanceof GenericTreeItem because if Azure account is still loading then isLoggedIn is false.
-            if (!this.isLoggedIn && children[0] instanceof GenericTreeItem) {
-                children.push(new GenericTreeItem(this, { label: 'Create free trial app...', contextValue: 'azureCommand', commandId: `${ext.prefix}.CreateTrialApp`, iconPath: getIconPath('WebApp'), includeInTreeItemPicker: true }));
+            if (!this.isLoggedIn) {
+                children.push(new GenericTreeItem(this, { label: 'Create Free Trial App...', contextValue: 'createTrialApp', commandId: `${ext.prefix}.CreateTrialApp`, iconPath: getIconPath('WebApp') }));
             }
         }
         return children;
