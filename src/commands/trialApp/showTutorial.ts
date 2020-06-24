@@ -43,6 +43,7 @@ export async function showTutorial(context: IActionContext, node?: TrialAppTreeI
 }
 
 function showDidact(): void {
+
     const tutorialUri: Uri = Uri.file(ext.context.asAbsolutePath('resources/TrialApp.didact.md'));
     commands.executeCommand('vscode.didact.startDidact', tutorialUri);
 }
