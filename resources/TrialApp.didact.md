@@ -1,20 +1,24 @@
 # Welcome to your Trial App Didact Tutorial
 
-Your trial will last 60 minutes. Follow the below steps below to edit your free app. You can find more information about Azure App Service [here](https://docs.microsoft.com/en-us/azure/app-service/).
-
-## Requirements
-
-| Requirement (Click to Verify)  | Status | Additional Information/Solution |
-| :--- | :--- | :--- |
-| [Check if git is installed](didact://?commandId=vscode.didact.cliCommandSuccessful&text=git-install-status$$git%20version "Tests to see if git version returns sucessful."){.didact} | *Status: unknown*{#git-install-status} | Download and install git from [here](https://git-scm.com/download) |
+This guide will show you how to make and deploy changes to your Azure App Service Trial App. Your trial will last 60 minutes. You can find more information about Azure App Service [here](https://docs.microsoft.com/en-us/azure/app-service/).
 
 ## Getting Started
 
 ### Step 1: Clone the trial app source code
 
-Clone the source code, then either open the folder in VS Code or add it to the workspace.
+1. Locate your imported Trial App in the Azure view.
 
-[Click here](didact://?commandId=appService.CloneTrialApp) to clone the source code.
+<img src="./trialAppTutorial/viewTrialAppScreenshot.png" style="width: 256px;">
+
+2. Right click on the Trial App.
+3. Select `clone`.
+
+<img src="./trialAppTutorial/rightClickCloneScreenshot.png" style="width: 256px;">
+
+4. Choose a folder to clone the Trial App source code to.
+5. When the repository has finished cloning a notification like the one below will appear. Open the folder in VS Code or add it to the workspace.
+
+<img src="./trialAppTutorial/cloneNotificationScreenshot.png" style="width: 256px;">
 
 ### Step 2: Make some changes to your app
 
@@ -24,15 +28,27 @@ Make some changes to your trial app. Try changing some text in `template.html`.
 
 ### Step 3: Deploy your changes
 
-[Click here](didact://?commandId=appService.Deploy) to deploy your changes to Azure.
+1. Select the blue up arrow icon to deploy your code to your Trial App.
+
+<img src="./trialAppTutorial/deployButtonScreenshot.png" style="width: 256px;">
+
+2. Select the folder containing the Trial App code you cloned and modified.
+
+<img src="./trialAppTutorial/selectFolderToDeployScreenshot.png" style="width: 512px;">
+
+3. Select your Trial App.
+
+<img src="./trialAppTutorial/selectTrialAppDeployScreenshot.png" style="width: 512px;">
+
+You will see the following notification once your deployment is complete.
+
+<img src="./trialAppTutorial/deployCompleteScreenshot.png" style="width: 512px;">
 
 ### Step 5: View your changes live
 
-[Click here](didact://?commandId=appService.Browse) to browse your updated trial app site.
+Now that you've deployed changes to your Trial App. You can browse your website to view the changes live.
 
-### Step 6: Transfer to an Azure account
-
-[Click here](didact://?commandId=appService.Deploy) to sign in/sign up for an Azure account and transfer your trial app to your subscription.
+<img src="./trialAppTutorial/browseWebsiteRedScreenshot.png" style="width: 256px;">
 
 ---
 
