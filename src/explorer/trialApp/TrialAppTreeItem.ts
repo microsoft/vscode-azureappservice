@@ -14,7 +14,7 @@ import { SiteTreeItemBase } from '../SiteTreeItemBase';
 import { ITrialAppMetadata } from './ITrialAppMetadata';
 import { TrialAppClient } from './TrialAppClient';
 
-const filteredSettings: string[] = [
+const settingsToHide: string[] = [
     'SCM_BUILD_ARGS',
     'SCM_COMMAND_IDLE_TIMEOUT',
     'SCM_LOGSTREAM_TIMEOUT',
@@ -43,7 +43,7 @@ export class TrialAppTreeItem extends SiteTreeItemBase implements ISiteTreeItem 
     private constructor(parent: AzureAccountTreeItem, client: TrialAppClient) {
         super(parent);
         this.client = client;
-        this._appSettingsTreeItem = new TrialAppApplicationSettingsTreeItem(this, this.client, false, filteredSettings);
+        this._appSettingsTreeItem = new TrialAppApplicationSettingsTreeItem(this, this.client, false, settingsToHide);
         this._siteFilesNode = new SiteFilesTreeItem(this, this.client, false);
         this._connectionsNode = new ConnectionsTreeItem(this, this.client);
         this.logFilesNode = new LogFilesTreeItem(this, this.client);
