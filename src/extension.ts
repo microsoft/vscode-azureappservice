@@ -5,7 +5,6 @@
 
 'use strict';
 
-import * as path from 'path';
 import * as vscode from 'vscode';
 import { registerAppServiceExtensionVariables } from 'vscode-azureappservice';
 import { AzExtTreeDataProvider, AzureUserInput, callWithTelemetryAndErrorHandling, createApiProvider, createAzExtOutputChannel, IActionContext, IAzureUserInput, registerUIExtensionVariables } from 'vscode-azureextensionui';
@@ -16,7 +15,6 @@ import { ImportTrialAppUriHandler } from './commands/ImportTrialAppUriHandler';
 import { registerCommands } from './commands/registerCommands';
 import { AzureAccountTreeItem } from './explorer/AzureAccountTreeItem';
 import { ext } from './extensionVariables';
-import { getResourcesPath } from './utils/pathUtils';
 
 // tslint:disable-next-line:export-name
 // tslint:disable-next-line:max-func-body-length
@@ -54,8 +52,6 @@ export async function activateInternal(
         context.subscriptions.push(vscode.workspace.registerFileSystemProvider(AppServiceFileSystem.scheme, ext.fileSystem));
 
         vscode.window.registerUriHandler(new ImportTrialAppUriHandler());
-        const tutorialUri: vscode.Uri = vscode.Uri.parse(path.join(getResourcesPath(), 'TrialApp.didact.md'));
-        vscode.commands.executeCommand('vscode.didact.register', 'Azure App Service Trial', tutorialUri, 'Azure');
 
         registerCommands();
     });
