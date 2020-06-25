@@ -7,7 +7,7 @@
     "icon": "resources/WebApp.png",
     "aiKey": "AIF-d9b70cd4-b9f9-4d70-929b-a071c400b217",
     "engines": {
-        "vscode": "^1.40.0"
+        "vscode": "^1.42.0"
     },
     "repository": {
         "type": "git",
@@ -854,7 +854,7 @@
         "@types/mocha": "^7.0.2",
         "@types/node": "^12.0.0",
         "@types/request-promise": "4.1.41",
-        "@types/vscode": "1.40.0",
+        "@types/vscode": "1.42.0",
         "glob": "^7.1.6",
         "gulp": "^4.0.2",
         "mocha": "^7.1.1",
