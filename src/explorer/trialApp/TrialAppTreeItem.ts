@@ -33,7 +33,7 @@ export class TrialAppTreeItem extends SiteTreeItemBase implements ISiteTreeItem 
         this._appSettingsTreeItem = new TrialAppApplicationSettingsTreeItem(this, this.client, false);
         this._siteFilesNode = new SiteFilesTreeItem(this, this.client, false);
         this._connectionsNode = new ConnectionsTreeItem(this, this.client);
-        this._tutorialNode = new GenericTreeItem(this, { label: 'Show tutorial', commandId: 'appService.ShowTutorial', contextValue: 'showTutorial', iconPath: new ThemeIcon('book') })
+        this._tutorialNode = new GenericTreeItem(this, { label: 'Show tutorial', commandId: 'appService.ShowTutorial', contextValue: 'showTutorial', iconPath: new ThemeIcon('book') });
         this.logFilesNode = new LogFilesTreeItem(this, this.client);
         this.deploymentsNode = new TrialAppDeploymentsTreeItem(this, this.client, {}, {});
     }
