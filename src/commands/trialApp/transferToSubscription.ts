@@ -18,6 +18,15 @@ export async function transferToSubscription(context: IActionContext, node?: Tri
 
     if (node) {
         const newSite: WebAppTreeItem = await createWebApp(context, undefined, true);
+        const settings = await newSite.client.listApplicationSettings();
+
+        // Must set SCM_DO_BUILD_DURING_DEPLOYMENT to '1' for trial apps to successfully deploy
+        // tslint:disable-next-line:strict-boolean-expressions
+        const properties: { [name: string]: string } = settings.properties || {};
+        // tslint:disable-next-line: no-string-literal
+        properties['SCM_DO_BUILD_DURING_DEPLOYMENT'] = '1';
+        await newSite.client.updateApplicationSettings(settings);
+
         await deploy(context, newSite, undefined, true);
     } else {
         throw Error(localize('trialAppNotFound', 'Trial app not found.'));
