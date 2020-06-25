@@ -10,11 +10,12 @@ import { AzureWizardExecuteStep, createAzureClient } from 'vscode-azureextension
 import { ext } from '../../extensionVariables';
 import { localize } from '../../localize';
 import { nonNullProp } from '../../utils/nonNull';
+import { ITransferContext } from '../trialApp/transferToSubscription';
 
 export class WebAppCreateStep extends AzureWizardExecuteStep<IAppServiceWizardContext> {
     public priority: number = 140;
 
-    public async execute(context: IAppServiceWizardContext, progress: Progress<{ message?: string; increment?: number }>): Promise<void> {
+    public async execute(context: IAppServiceWizardContext & ITransferContext, progress: Progress<{ message?: string; increment?: number }>): Promise<void> {
         context.telemetry.properties.newSiteOS = context.newSiteOS;
         context.telemetry.properties.newSiteRuntime = context.newSiteRuntime;
         context.telemetry.properties.planSkuTier = context.plan && context.plan.sku && context.plan.sku.tier;
@@ -49,9 +50,16 @@ export class WebAppCreateStep extends AzureWizardExecuteStep<IAppServiceWizardCo
         return !context.site;
     }
 
-    private async getAppSettings(context: IAppServiceWizardContext): Promise<WebSiteManagementModels.NameValuePair[]> {
+    private async getAppSettings(context: IAppServiceWizardContext & ITransferContext): Promise<WebSiteManagementModels.NameValuePair[]> {
         const appSettings: WebSiteManagementModels.NameValuePair[] = [];
         const disabled: string = 'disabled';
+
+        if (context.trialApp) {
+            appSettings.push({
+                name: 'SCM_DO_BUILD_DURING_DEPLOYMENT',
+                value: '1'
+            });
+        }
 
         if (context.appInsightsComponent) {
             appSettings.push({
