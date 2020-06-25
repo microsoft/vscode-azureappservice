@@ -14,21 +14,23 @@ import { SiteTreeItemBase } from '../SiteTreeItemBase';
 import { ITrialAppMetadata } from './ITrialAppMetadata';
 import { TrialAppClient } from './TrialAppClient';
 
+const filteredSettings: string[] = [
+    'SCM_BUILD_ARGS',
+    'SCM_COMMAND_IDLE_TIMEOUT',
+    'SCM_LOGSTREAM_TIMEOUT',
+    'SCM_TRACE_LEVEL',
+    'SCM_USE_LIBGIT2SHARP_REPOSITORY',
+    'SITE_BASH_GIT_URL',
+    'SITE_GIT_URL',
+    'SITE_SITEKEY',
+    'WEBSITE_AUTH_ENABLED',
+    'WEBSITE_NODE_DEFAULT_VERSION',
+    'WEBSITE_SITE_NAME'
+];
+
 export class TrialAppTreeItem extends SiteTreeItemBase implements ISiteTreeItem {
     public static contextValue: string = 'trialApp';
-    private static _settingsToHide: string[] = [
-        'SCM_BUILD_ARGS',
-        'SCM_COMMAND_IDLE_TIMEOUT',
-        'SCM_LOGSTREAM_TIMEOUT',
-        'SCM_TRACE_LEVEL',
-        'SCM_USE_LIBGIT2SHARP_REPOSITORY',
-        'SITE_BASH_GIT_URL',
-        'SITE_GIT_URL',
-        'SITE_SITEKEY',
-        'WEBSITE_AUTH_ENABLED',
-        'WEBSITE_NODE_DEFAULT_VERSION',
-        'WEBSITE_SITE_NAME'
-    ];
+
     public contextValue: string = TrialAppTreeItem.contextValue;
     public client: TrialAppClient;
     public logFilesNode: LogFilesTreeItem;
@@ -41,7 +43,7 @@ export class TrialAppTreeItem extends SiteTreeItemBase implements ISiteTreeItem 
     private constructor(parent: AzureAccountTreeItem, client: TrialAppClient) {
         super(parent);
         this.client = client;
-        this._appSettingsTreeItem = new TrialAppApplicationSettingsTreeItem(this, this.client, false, TrialAppTreeItem._settingsToHide);
+        this._appSettingsTreeItem = new TrialAppApplicationSettingsTreeItem(this, this.client, false, filteredSettings);
         this._siteFilesNode = new SiteFilesTreeItem(this, this.client, false);
         this._connectionsNode = new ConnectionsTreeItem(this, this.client);
         this.logFilesNode = new LogFilesTreeItem(this, this.client);
