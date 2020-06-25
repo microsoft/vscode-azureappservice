@@ -12,10 +12,6 @@ import { localize } from '../../localize';
 import { createWebApp } from '../createWebApp/createWebApp';
 import { deploy } from '../deploy/deploy';
 
-export interface ITransferContext extends IActionContext {
-    trialApp: boolean;
-}
-
 export async function transferToSubscription(context: IActionContext, node?: TrialAppTreeItem): Promise<void> {
     if (!node) {
         node = ext.azureAccountTreeItem.trialAppNode;
