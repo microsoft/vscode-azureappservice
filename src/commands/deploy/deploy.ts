@@ -54,7 +54,9 @@ export async function deploy(context: IActionContext, target?: vscode.Uri | Site
     const { node, isNewWebApp }: IDeployNode = await getDeployNode(deployContext, target, isTargetNewWebApp);
 
     if (node instanceof TrialAppTreeItem) {
-        await saveDeployDefaults(node.fullId, workspaceFolder.uri.fsPath, deployContext.effectiveDeployFsPath);
+        if (!ext.azureAccountTreeItem.isLoggedIn) {
+            await saveDeployDefaults(node.fullId, workspaceFolder.uri.fsPath, deployContext.effectiveDeployFsPath);
+        }
         await deployTrialApp(deployContext, node);
         return;
     }
