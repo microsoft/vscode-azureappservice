@@ -6,6 +6,12 @@
 import { commands, extensions } from 'vscode';
 import { delay } from '../utils/delay';
 
+/**
+ * Returns `true` as soon as the extension is installed, or if the the extension is already installed. Returns `false` if the
+ * extension isn't installed within `timeoutInSeconds` seconds.
+ * @param extensionId id of the extension to install
+ * @param timeoutInSeconds Maximum time to wait for the user to install the extension. Defaults to 60 seconds.
+ */
 export async function installExtension(extensionId: string, timeoutInSeconds: number = 60): Promise<boolean> {
     const commandToRun: string = 'extension.open';
     commands.executeCommand(commandToRun, extensionId);
