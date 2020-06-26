@@ -48,10 +48,12 @@ import { cloneTrialApp } from './trialApp/cloneTrialApp';
 import { createTrialApp } from './trialApp/createTrialApp';
 import { importTrialApp } from './trialApp/importTrialApp';
 import { removeTrialApp } from './trialApp/removeTrialApp';
+import { showTutorial } from './trialApp/showTutorial';
 
 export function registerCommands(): void {
     registerCommand('appService.CreateTrialApp', createTrialApp);
     registerCommand('appService.CloneTrialApp', cloneTrialApp);
+    registerCommand('appService.ShowTutorial', showTutorial);
     registerCommand('appService.ImportTrialApp', importTrialApp);
     registerCommand('appService.RemoveTrialApp', removeTrialApp);
     registerCommand('appService.AddCosmosDBConnection', addCosmosDBConnection);
