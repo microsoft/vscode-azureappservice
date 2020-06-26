@@ -26,7 +26,7 @@ export async function getDeployNode(context: IDeployContext, target: Uri | strin
     let isNewWebApp: boolean = isTargetNewWebApp;
     if (target instanceof SiteTreeItemBase) {
         node = target;
-    } else if (defaultWebAppId && defaultWebAppId !== none && !(ext.azureAccountTreeItem.trialAppNode && ext.azureAccountTreeItem.isLoggedIn)) {
+    } else if (defaultWebAppId && defaultWebAppId !== none) {
         node = await ext.tree.findTreeItem(defaultWebAppId, context); // resolves to undefined if app can't be found
         if (node) {
             context.webAppSource = WebAppSource.setting;
