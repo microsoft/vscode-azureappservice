@@ -11,11 +11,11 @@ This guide will show you how to make and deploy changes to your Azure App Servic
 <img src="./trialAppTutorial/viewTrialAppScreenshot.png" style="width: 256px;">
 
 2. Right click on the Trial App.
-3. Select `clone`.
+3. Select `Clone`.
 
 <img src="./trialAppTutorial/rightClickCloneScreenshot.png" style="width: 256px;">
 
-4. Choose a folder to clone the Trial App source code to.
+4. Select the cloned repository's location.
 5. When the repository has finished cloning a notification like the one below will appear. Open the folder in VS Code or add it to the workspace.
 
 <img src="./trialAppTutorial/cloneNotificationScreenshot.png" style="width: 256px;">
@@ -23,6 +23,8 @@ This guide will show you how to make and deploy changes to your Azure App Servic
 ### Step 2: Make some changes to your app
 
 Make some changes to your trial app. Try changing some text in `template.html`.
+
+For example, change line 26 from: `<h1> Welcome to Azure! </h1>` to this: `<h1> Hello, world! </h1>`
 
 [Click here](didact://?commandId=workbench.view.explorer) to view the project files in the Explorer.
 
@@ -40,13 +42,11 @@ Make some changes to your trial app. Try changing some text in `template.html`.
 
 <img src="./trialAppTutorial/selectTrialAppDeployScreenshot.png" style="width: 512px;">
 
-You will see the following notification once your deployment is complete.
+4. You will see the following notification once your deployment is complete. You can click `Browse` to view the changes live.
 
 <img src="./trialAppTutorial/deployCompleteScreenshot.png" style="width: 512px;">
 
-### Step 5: View your changes live
-
-Now that you've deployed changes to your Trial App. You can browse your website to view the changes live.
+You can also browse your website by right-clicking your Trial app and selecting `Browse`.
 
 <img src="./trialAppTutorial/browseWebsiteRedScreenshot.png" style="width: 256px;">
 
