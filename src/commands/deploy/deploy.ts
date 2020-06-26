@@ -24,7 +24,7 @@ import { deployTrialApp } from './deployTrialApp';
 import { getDeployNode, IDeployNode } from './getDeployNode';
 import { IDeployContext, WebAppSource } from './IDeployContext';
 import { enableScmDoBuildDuringDeploy, promptScmDoBuildDeploy } from './promptScmDoBuildDeploy';
-import { promptToSaveDeployDefaults } from './promptToSaveDeployDefaults';
+import { promptToSaveDeployDefaults, saveDeployDefaults } from './promptToSaveDeployDefaults';
 import { setPreDeployTaskForDotnet } from './setPreDeployTaskForDotnet';
 import { showDeployCompletedMessage } from './showDeployCompletedMessage';
 
