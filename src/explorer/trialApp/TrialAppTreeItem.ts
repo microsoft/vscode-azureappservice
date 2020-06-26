@@ -100,11 +100,12 @@ export class TrialAppTreeItem extends SiteTreeItemBase implements ISiteTreeItem 
     }
 
     public compareChildrenImpl(item1: AzExtTreeItem, item2: AzExtTreeItem): number {
+        // tutorial node at top
         if (item1 instanceof GenericTreeItem) {
             return -1;
         }
         if (item2 instanceof GenericTreeItem) {
-            return 1; // tutorial node at top
+            return 1;
         }
         return super.compareChildrenImpl(item1, item2);
     }
