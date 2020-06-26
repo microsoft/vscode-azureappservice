@@ -23,7 +23,7 @@ import { confirmDeploymentPrompt } from './confirmDeploymentPrompt';
 import { deployTrialApp } from './deployTrialApp';
 import { getDeployNode, IDeployNode } from './getDeployNode';
 import { IDeployContext, WebAppSource } from './IDeployContext';
-import { promptScmDoBuildDeploy } from './promptScmDoBuildDeploy';
+import { enableScmDoBuildDuringDeploy, promptScmDoBuildDeploy } from './promptScmDoBuildDeploy';
 import { promptToSaveDeployDefaults } from './promptToSaveDeployDefaults';
 import { setPreDeployTaskForDotnet } from './setPreDeployTaskForDotnet';
 import { showDeployCompletedMessage } from './showDeployCompletedMessage';
@@ -54,7 +54,9 @@ export async function deploy(context: IActionContext, target?: vscode.Uri | Site
     const { node, isNewWebApp }: IDeployNode = await getDeployNode(deployContext, target, isTargetNewWebApp);
 
     if (node instanceof TrialAppTreeItem) {
-        return await deployTrialApp(deployContext, node);
+        await enableScmDoBuildDuringDeploy(deployContext.effectiveDeployFsPath, 'NODE|12-lts');
+        await deployTrialApp(deployContext, node);
+        return;
     }
 
     context.telemetry.properties.webAppSource = deployContext.webAppSource;
