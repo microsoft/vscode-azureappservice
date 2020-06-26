@@ -55,6 +55,9 @@ export async function deploy(context: IActionContext, target?: vscode.Uri | Site
 
     if (node instanceof TrialAppTreeItem) {
         await enableScmDoBuildDuringDeploy(deployContext.effectiveDeployFsPath, 'NODE|12-lts');
+        if (!ext.azureAccountTreeItem.isLoggedIn) {
+            await saveDeployDefaults(node.fullId, workspaceFolder.uri.fsPath, deployContext.effectiveDeployFsPath);
+        }
         await deployTrialApp(deployContext, node);
         return;
     }
