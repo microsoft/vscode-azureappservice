@@ -19,10 +19,7 @@ export async function promptToSaveDeployDefaults(context: IActionContext, node: 
         const dontShowAgain: MessageItem = { title: "Don't show again" };
         const result: MessageItem = await ext.ui.showWarningMessage(saveDeploymentConfig, DialogResponses.yes, dontShowAgain, DialogResponses.skipForNow);
         if (result === DialogResponses.yes) {
-            await updateWorkspaceSetting(constants.configurationSettings.defaultWebAppToDeploy, node.fullId, deployPath);
-            // tslint:disable-next-line: strict-boolean-expressions
-            const subPath: string = path.relative(workspacePath, deployPath) || '.';
-            await updateWorkspaceSetting(constants.configurationSettings.deploySubpath, subPath, deployPath);
+            await saveDeployDefaults(node.fullId, workspacePath, deployPath);
             context.telemetry.properties.promptToSaveDeployConfigs = 'Yes';
         } else if (result === dontShowAgain) {
             await updateWorkspaceSetting(constants.configurationSettings.defaultWebAppToDeploy, constants.none, deployPath);
@@ -33,4 +30,11 @@ export async function promptToSaveDeployDefaults(context: IActionContext, node: 
     } else {
         context.telemetry.properties.promptToSaveDeployConfigs = defaultWebAppToDeploySetting === constants.none ? constants.none : 'usesDefault';
     }
+}
+
+export async function saveDeployDefaults(nodeFullId: string, workspacePath: string, deployPath: string): Promise<void> {
+    await updateWorkspaceSetting(constants.configurationSettings.defaultWebAppToDeploy, nodeFullId, deployPath);
+    // tslint:disable-next-line: strict-boolean-expressions
+    const subPath: string = path.relative(workspacePath, deployPath) || '.';
+    await updateWorkspaceSetting(constants.configurationSettings.deploySubpath, subPath, deployPath);
 }
