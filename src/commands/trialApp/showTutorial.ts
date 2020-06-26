@@ -4,25 +4,23 @@
 *--------------------------------------------------------------------------------------------*/
 
 import { commands, Uri } from 'vscode';
-import { AzExtTreeItem, IActionContext } from 'vscode-azureextensionui';
+import { IActionContext } from 'vscode-azureextensionui';
 import { TrialAppTreeItem } from '../../explorer/trialApp/TrialAppTreeItem';
+import { localize } from '../../localize';
 import { installExtension } from '../../utils/installExtension';
 import { ext } from './../../extensionVariables';
 
-export async function showTutorial(context: IActionContext, node?: TrialAppTreeItem): Promise<void> {
+export async function showTutorial(_context: IActionContext): Promise<void> {
     const extensionId: string = 'redhat.vscode-didact';
 
-    if (!node) {
-        const children: AzExtTreeItem[] = await ext.azureAccountTreeItem.getCachedChildren(context);
-        children.forEach((child: AzExtTreeItem) => {
-            if (child instanceof TrialAppTreeItem) {
-                node = child;
-            }
-        });
-    }
+    const trialAppNode: TrialAppTreeItem | undefined = ext.azureAccountTreeItem.trialAppNode;
 
-    if (await installExtension(extensionId)) {
-        const tutorialUri: Uri = Uri.file(ext.context.asAbsolutePath('resources/TrialApp.didact.md'));
-        commands.executeCommand('vscode.didact.startDidact', tutorialUri);
+    if (trialAppNode) {
+        if (await installExtension(extensionId)) {
+            const tutorialUri: Uri = Uri.file(ext.context.asAbsolutePath('resources/TrialApp.didact.md'));
+            commands.executeCommand('vscode.didact.startDidact', tutorialUri);
+        }
+    } else {
+        throw Error(localize('trialAppNotFound', 'Trial app not found.'));
     }
 }
