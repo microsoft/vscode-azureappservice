@@ -31,7 +31,7 @@ export class AzureAccountTreeItem extends AzureAccountTreeItemBase {
             children.push(ti);
         } else {
             if (!this.isLoggedIn) {
-                children.push(new GenericTreeItem(this, { label: 'Create Free Trial App...', contextValue: 'createTrialApp', commandId: `${ext.prefix}.CreateTrialApp`, iconPath: getIconPath('WebApp') }));
+                children.push(new GenericTreeItem(this, { label: 'Create a Free Trial App...', contextValue: 'createTrialApp', commandId: `${ext.prefix}.CreateTrialApp`, iconPath: getIconPath('WebApp') }));
             }
         }
         return children;
