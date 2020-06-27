@@ -77,6 +77,11 @@
     "contributes": {
         "commands": [
             {
+                "command": "appService.TransferToSubscription",
+                "title": "Transfer to Subscription...",
+                "category": "Azure App Service"
+            },
+            {
                 "command": "appService.CreateTrialApp",
                 "title": "Create Trial App",
                 "category": "Azure App Service"
@@ -342,6 +347,10 @@
         "menus": {
             "commandPalette": [
                 {
+                    "command": "appService.TransferToSubscription",
+                    "when": "never"
+                },
+                {
                     "command": "appService.CreateTrialApp",
                     "when": "never"
                 },
@@ -428,6 +437,11 @@
                     "command": "appService.Refresh",
                     "when": "view == azureAppService && viewItem == azureextensionui.azureSubscription",
                     "group": "2_subscriptionGeneralCommands@1"
+                },
+                {
+                    "command": "appService.TransferToSubscription",
+                    "when": "view == azureAppService && viewItem == trialApp",
+                    "group": "3_appServiceDeployCommands@1"
                 },
                 {
                     "command": "appService.CloneTrialApp",

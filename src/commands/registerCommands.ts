@@ -49,8 +49,10 @@ import { createTrialApp } from './trialApp/createTrialApp';
 import { importTrialApp } from './trialApp/importTrialApp';
 import { removeTrialApp } from './trialApp/removeTrialApp';
 import { showTutorial } from './trialApp/showTutorial';
+import { transferToSubscription } from './trialApp/transferToSubscription';
 
 export function registerCommands(): void {
+    registerCommand('appService.TransferToSubscription', transferToSubscription);
     registerCommand('appService.CreateTrialApp', createTrialApp);
     registerCommand('appService.CloneTrialApp', cloneTrialApp);
     registerCommand('appService.ShowTutorial', showTutorial);

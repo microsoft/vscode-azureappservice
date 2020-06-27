@@ -30,7 +30,7 @@ export async function promptScmDoBuildDeploy(context: IActionContext, fsPath: st
     }
 }
 
-async function enableScmDoBuildDuringDeploy(fsPath: string, runtime: string): Promise<void> {
+export async function enableScmDoBuildDuringDeploy(fsPath: string, runtime: string): Promise<void> {
     const zipIgnoreFolders: string[] = await getIgnoredFoldersForDeployment(fsPath, runtime);
     let oldSettings: string[] | string | undefined = getWorkspaceSetting(constants.configurationSettings.zipIgnorePattern, fsPath);
     if (!oldSettings) {

@@ -9,15 +9,18 @@ import { WebAppTreeItem } from "../../explorer/WebAppTreeItem";
 import { ext } from "../../extensionVariables";
 import { showCreatedWebAppMessage } from "./showCreatedWebAppMessage";
 
-export async function createWebApp(context: IActionContext & Partial<ICreateChildImplContext>, node?: AzureParentTreeItem | undefined): Promise<void> {
+export async function createWebApp(context: IActionContext & Partial<ICreateChildImplContext>, node?: AzureParentTreeItem | undefined, suppressCreatedWebAppMessage: boolean = false): Promise<WebAppTreeItem> {
     if (!node) {
         node = <AzureParentTreeItem>await ext.tree.showTreeItemPicker(SubscriptionTreeItem.contextValue, context);
     }
 
     const newSite: WebAppTreeItem = <WebAppTreeItem>await node.createChild(context);
-    showCreatedWebAppMessage(newSite);
+    if (!suppressCreatedWebAppMessage) {
+        showCreatedWebAppMessage(newSite);
+    }
+    return newSite;
 }
 
-export async function createWebAppAdvanced(context: IActionContext, node?: AzureParentTreeItem | undefined): Promise<void> {
+export async function createWebAppAdvanced(context: IActionContext, node?: AzureParentTreeItem | undefined): Promise<WebAppTreeItem> {
     return await createWebApp({ ...context, advancedCreation: true }, node);
 }
