@@ -347,6 +347,10 @@
         "menus": {
             "commandPalette": [
                 {
+                    "command": "appService.TransferToSubscription",
+                    "when": "never"
+                },
+                {
                     "command": "appService.CreateTrialApp",
                     "when": "never"
                 },
