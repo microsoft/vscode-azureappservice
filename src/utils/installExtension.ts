@@ -13,8 +13,6 @@ import { delay } from '../utils/delay';
  * @param timeoutInSeconds Maximum time to wait for the user to install the extension. Defaults to 60 seconds.
  */
 export async function installExtension(extensionId: string, timeoutInSeconds: number = 60): Promise<boolean> {
-    const commandToRun: string = 'extension.open';
-    commands.executeCommand(commandToRun, extensionId);
 
     // poll to see if the extension was installed for a minute
     const maxTime: number = Date.now() + timeoutInSeconds * 1000;
@@ -23,6 +21,8 @@ export async function installExtension(extensionId: string, timeoutInSeconds: nu
         if (extensions.getExtension(extensionId)) {
             return true;
         }
+        const commandToRun: string = 'extension.open';
+        commands.executeCommand(commandToRun, extensionId);
         await delay(5000);
     }
     return false;
