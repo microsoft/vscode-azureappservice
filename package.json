@@ -440,7 +440,7 @@
                 },
                 {
                     "command": "appService.TransferToSubscription",
-                    "when": "view == azureAppService && viewItem == trialApp",
+                    "when": "view == azureAppService && viewItem =~ /^trialApp(|Expired)$/",
                     "group": "3_appServiceDeployCommands@1"
                 },
                 {
@@ -450,7 +450,7 @@
                 },
                 {
                     "command": "appService.RemoveTrialApp",
-                    "when": "view == azureAppService && viewItem =~ /^(trialApp|trialAppInvalid)$/",
+                    "when": "view == azureAppService && viewItem =~ /^trialApp(|Invalid|Expired)$/",
                     "group": "1_trialAppCommands@1"
                 },
                 {
