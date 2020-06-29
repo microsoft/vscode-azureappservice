@@ -52,6 +52,10 @@ You can also browse your website by right-clicking your Trial app and selecting 
 
 ### Step 4: Transfer your App to an Azure Subscription
 
+Transferring your App to an Azure Subscription will create a new Web App and automatically deploy the Trial app from your local workspace.
+
+[Click here](didact://?commandId=appService.TransferToSubscription) or follow the steps below to Transfer your Trial App to an Azure Subscription.
+
 1. Right click your Trial app, then select `Transfer to Subscription...`
 
 2. Sign-in or Create an Azure account
