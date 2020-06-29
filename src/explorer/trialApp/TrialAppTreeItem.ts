@@ -99,7 +99,7 @@ export class TrialAppTreeItem extends SiteTreeItemBase implements ISiteTreeItem 
     }
 
     public async loadMoreChildrenImpl(_clearCache: boolean, _context: IActionContext): Promise<AzExtTreeItem[]> {
-        if (isNaN(this.minutesLeft)) {
+        if (this.client.isExpired) {
             return [new GenericTreeItem(this, { label: 'Transfer to Subscription...', commandId: `${ext.prefix}.TransferToSubscription`, contextValue: 'transferToSubscription' })];
         }
         return [this._tutorialNode, this._appSettingsTreeItem, this._connectionsNode, this.deploymentsNode, this._siteFilesNode, this.logFilesNode];
