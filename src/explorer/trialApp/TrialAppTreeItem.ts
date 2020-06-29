@@ -4,8 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { AppSettingsTreeItem, DeploymentsTreeItem, LogFilesTreeItem, SiteFilesTreeItem } from 'vscode-azureappservice';
-import { ext } from 'vscode-azureappservice/out/src/extensionVariables';
 import { AzExtTreeItem, GenericTreeItem, IActionContext } from 'vscode-azureextensionui';
+import { ext } from '../../extensionVariables';
 import { localize } from '../../localize';
 import { openUrl } from '../../utils/openUrl';
 import { getThemedIconPath } from '../../utils/pathUtils';
@@ -100,7 +100,7 @@ export class TrialAppTreeItem extends SiteTreeItemBase implements ISiteTreeItem 
 
     public async loadMoreChildrenImpl(_clearCache: boolean, _context: IActionContext): Promise<AzExtTreeItem[]> {
         if (this.client.isExpired) {
-            return [new GenericTreeItem(this, { label: 'Transfer to Subscription...', commandId: `${ext.prefix}.TransferToSubscription`, contextValue: 'transferToSubscription' })];
+            return [new GenericTreeItem(this, { label: localize('transferToSubscription', 'Transfer to Subscription...'), commandId: `${ext.prefix}.TransferToSubscription`, contextValue: 'transferToSubscription' })];
         }
         return [this._tutorialNode, this._appSettingsTreeItem, this._connectionsNode, this.deploymentsNode, this._siteFilesNode, this.logFilesNode];
     }
