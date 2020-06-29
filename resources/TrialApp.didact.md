@@ -50,6 +50,16 @@ You can also browse your website by right-clicking your Trial app and selecting 
 
 <img src="./trialAppTutorial/browseWebsiteRedScreenshot.png" style="width: 256px;">
 
+### Step 4: Transfer your App to an Azure Subscription
+
+1. Right click your Trial app, then select `Transfer to Subscription...`
+
+2. Sign-in or Create an Azure account
+
+3. Enter a name for your new Web App
+
+Once your Web App is created, your Trial app will automatically be deployed.
+
 ---
 
 This tutorial is made with [vscode-didact](https://github.com/redhat-developer/vscode-didact).
