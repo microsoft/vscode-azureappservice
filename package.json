@@ -505,12 +505,12 @@
                 },
                 {
                     "command": "appService.startStreamingLogs",
-                    "when": "view == azureAppService && viewItem =~ /^(appService|deploymentSlot)$/",
+                    "when": "view == azureAppService && viewItem =~ /^(appService|deploymentSlot|trialApp)$/",
                     "group": "4_appServiceDiagnosticsCommands@1"
                 },
                 {
                     "command": "appService.StopLogStream",
-                    "when": "view == azureAppService && viewItem =~ /^(appService|deploymentSlot)$/",
+                    "when": "view == azureAppService && viewItem =~ /^(appService|deploymentSlot|trialApp)$/",
                     "group": "4_appServiceDiagnosticsCommands@2"
                 },
                 {

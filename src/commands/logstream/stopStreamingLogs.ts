@@ -6,13 +6,14 @@
 import * as appservice from 'vscode-azureappservice';
 import { IActionContext } from 'vscode-azureextensionui';
 import { SiteTreeItem } from '../../explorer/SiteTreeItem';
+import { TrialAppTreeItem } from '../../explorer/trialApp/TrialAppTreeItem';
 import { WebAppTreeItem } from '../../explorer/WebAppTreeItem';
 import { ext } from '../../extensionVariables';
 
-export async function stopStreamingLogs(context: IActionContext, node?: SiteTreeItem): Promise<void> {
+export async function stopStreamingLogs(context: IActionContext, node?: SiteTreeItem | TrialAppTreeItem): Promise<void> {
     if (!node) {
         node = await ext.tree.showTreeItemPicker<WebAppTreeItem>(WebAppTreeItem.contextValue, { ...context, suppressCreatePick: true });
     }
 
-    await appservice.stopStreamingLogs(node.root.client);
+    await appservice.stopStreamingLogs(node.client);
 }
