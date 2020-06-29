@@ -43,7 +43,7 @@ export async function deploy(context: IActionContext, target?: vscode.Uri | Site
 
     const fileExtensions: string | string[] | undefined = await javaUtils.getJavaFileExtensions(siteConfig);
 
-    const { originalDeployFsPath, effectiveDeployFsPath, workspaceFolder } = await appservice.getDeployFsPath(context, target, fileExtensions);
+    const { originalDeployFsPath, effectiveDeployFsPath, workspaceFolder } = await appservice.getDeployFsPath(context, target, fileExtensions, target instanceof TrialAppTreeItem);
 
     const deployContext: IDeployContext = {
         ...context, workspace: workspaceFolder, originalDeployFsPath, effectiveDeployFsPath, webAppSource
