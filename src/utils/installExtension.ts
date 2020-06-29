@@ -17,12 +17,16 @@ export async function installExtension(extensionId: string, timeoutInSeconds: nu
     // poll to see if the extension was installed for a minute
     const maxTime: number = Date.now() + timeoutInSeconds * 1000;
 
+    if (!extensions.getExtension(extensionId)) {
+        const commandToRun: string = 'extension.open';
+        commands.executeCommand(commandToRun, extensionId);
+    }
+
     while (Date.now() < maxTime) {
         if (extensions.getExtension(extensionId)) {
             return true;
         }
-        const commandToRun: string = 'extension.open';
-        commands.executeCommand(commandToRun, extensionId);
+
         await delay(5000);
     }
     return false;
