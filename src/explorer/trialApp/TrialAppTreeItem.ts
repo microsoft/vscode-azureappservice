@@ -5,6 +5,7 @@
 
 import { AppSettingsTreeItem, DeploymentsTreeItem, LogFilesTreeItem, SiteFilesTreeItem } from 'vscode-azureappservice';
 import { AzExtTreeItem, GenericTreeItem, IActionContext } from 'vscode-azureextensionui';
+import { ext } from '../../extensionVariables';
 import { localize } from '../../localize';
 import { openUrl } from '../../utils/openUrl';
 import { getThemedIconPath } from '../../utils/pathUtils';
@@ -31,6 +32,7 @@ const settingsToHide: string[] = [
 
 export class TrialAppTreeItem extends SiteTreeItemBase implements ISiteTreeItem {
     public static contextValue: string = 'trialApp';
+    public static contextValueExpired: string = 'trialAppExpired';
 
     public contextValue: string = TrialAppTreeItem.contextValue;
     public client: TrialAppClient;
@@ -45,6 +47,7 @@ export class TrialAppTreeItem extends SiteTreeItemBase implements ISiteTreeItem 
     private constructor(parent: AzureAccountTreeItem, client: TrialAppClient) {
         super(parent);
         this.client = client;
+        this.contextValue = this.client.isExpired ? TrialAppTreeItem.contextValueExpired : TrialAppTreeItem.contextValue;
         this._appSettingsTreeItem = new TrialAppApplicationSettingsTreeItem(this, this.client, false, settingsToHide);
         this._siteFilesNode = new SiteFilesTreeItem(this, this.client, false);
         this._connectionsNode = new ConnectionsTreeItem(this, this.client);
@@ -75,7 +78,7 @@ export class TrialAppTreeItem extends SiteTreeItemBase implements ISiteTreeItem 
     }
 
     public get description(): string {
-        return isNaN(this.minutesLeft) ?
+        return this.client.isExpired ?
             localize('expired', 'Expired') : `${this.minutesLeft.toFixed(0)} ${localize('minutesRemaining', 'min. remaining')}`;
     }
 
@@ -96,6 +99,9 @@ export class TrialAppTreeItem extends SiteTreeItemBase implements ISiteTreeItem 
     }
 
     public async loadMoreChildrenImpl(_clearCache: boolean, _context: IActionContext): Promise<AzExtTreeItem[]> {
+        if (this.client.isExpired) {
+            return [new GenericTreeItem(this, { label: localize('transferToSubscription', 'Transfer to Subscription...'), commandId: `${ext.prefix}.TransferToSubscription`, contextValue: 'transferToSubscription' })];
+        }
         return [this._tutorialNode, this._appSettingsTreeItem, this._connectionsNode, this.deploymentsNode, this._siteFilesNode, this.logFilesNode];
     }
     public hasMoreChildrenImpl(): boolean {
