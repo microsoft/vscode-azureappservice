@@ -47,7 +47,7 @@ export class TrialAppTreeItem extends SiteTreeItemBase implements ISiteTreeItem 
     private constructor(parent: AzureAccountTreeItem, client: TrialAppClient) {
         super(parent);
         this.client = client;
-        this.contextValue = isNaN(this.minutesLeft) ? TrialAppTreeItem.contextValueExpired : TrialAppTreeItem.contextValue;
+        this.contextValue = this.client.isExpired ? TrialAppTreeItem.contextValueExpired : TrialAppTreeItem.contextValue;
         this._appSettingsTreeItem = new TrialAppApplicationSettingsTreeItem(this, this.client, false, settingsToHide);
         this._siteFilesNode = new SiteFilesTreeItem(this, this.client, false);
         this._connectionsNode = new ConnectionsTreeItem(this, this.client);
@@ -78,7 +78,7 @@ export class TrialAppTreeItem extends SiteTreeItemBase implements ISiteTreeItem 
     }
 
     public get description(): string {
-        return isNaN(this.minutesLeft) ?
+        return this.client.isExpired ?
             localize('expired', 'Expired') : `${this.minutesLeft.toFixed(0)} ${localize('minutesRemaining', 'min. remaining')}`;
     }
 

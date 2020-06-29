@@ -41,6 +41,10 @@ export class TrialAppClient implements ISimplifiedSiteClient {
         return new TrialAppClient(metadata);
     }
 
+    public get isExpired(): boolean {
+        return isNaN(this.metadata.timeLeft);
+    }
+
     public get fullName(): string {
         return this.metadata.siteName;
     }
