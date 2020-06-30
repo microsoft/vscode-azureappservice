@@ -4,7 +4,8 @@
 ### Added
 - Added support for Free App Service Trial Apps! Visit [here](https://code.visualstudio.com/tryappservice/) to Create and Import your own Free NodeJS Trial App.
 
-### [Bugs Fixed](https://github.com/microsoft/vscode-azureappservice/issues?q=is%3Aissue+milestone%3A0.18.0+is%3Aclosed)
+### Fixed
+- [Bugs Fixed](https://github.com/microsoft/vscode-azureappservice/issues?q=is%3Aissue+milestone%3A0.18.0+is%3Aclosed)
 
 ## 0.17.0 - 2020-05-26
 ### Added
