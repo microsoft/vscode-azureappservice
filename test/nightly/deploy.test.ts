@@ -20,9 +20,9 @@ suite('Create Web App and deploy', async function (this: Mocha.Suite): Promise<v
     this.timeout(12 * 60 * 1000);
     let resourceGroupName: string = '';
     const testCases: ITestCase[] = [
-        { workspaceFolder: 'nodejs-docs-hello-world', runtimes: ['Node LTS', 'Node 8 LTS', 'Node 10 LTS', 'Node 12 LTS'] },
-        { workspaceFolder: '2.1', runtimes: ['.NET Core LTS', '.NET Core 2.1'] },
-        { workspaceFolder: 'python-docs-hello-world', runtimes: ['Python 2.7', 'Python 3.6', 'Python 3.7', 'Python 3.8'] }
+        { workspaceFolder: 'nodejs-docs-hello-world', runtimes: ['Node 10 LTS', 'Node 12 LTS', 'Node 14 LTS'] },
+        { workspaceFolder: '2.1', runtimes: ['.NET Core 2.1'] },
+        { workspaceFolder: 'python-docs-hello-world', runtimes: ['Python 3.6', 'Python 3.7', 'Python 3.8'] }
     ];
 
     suiteSetup(async function (this: Mocha.Context): Promise<void> {
