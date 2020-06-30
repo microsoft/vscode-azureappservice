@@ -5,9 +5,9 @@
 
 import { DeploymentsTreeItem, disconnectRepo as disconnectRepository } from "vscode-azureappservice";
 import { IActionContext } from "vscode-azureextensionui";
+import { OperationNotSupportedError } from '../../errors';
 import { SiteTreeItem } from '../../explorer/SiteTreeItem';
 import { ext } from "../../extensionVariables";
-import { localize } from '../../localize';
 
 export async function disconnectRepo(context: IActionContext, node?: DeploymentsTreeItem): Promise<void> {
     if (!node) {
@@ -17,6 +17,6 @@ export async function disconnectRepo(context: IActionContext, node?: Deployments
     if (node.parent instanceof SiteTreeItem) {
         await disconnectRepository(context, node.parent.root.client, node.parent.root);
     } else {
-        throw Error(localize('notSupported', 'This operation is not supported.'));
+        throw OperationNotSupportedError;
     }
 }
