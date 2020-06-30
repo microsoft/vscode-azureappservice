@@ -7,5 +7,5 @@ import { IActionContext } from 'vscode-azureextensionui';
 import { openUrl } from '../../utils/openUrl';
 
 export async function createTrialApp(_context: IActionContext): Promise<void> {
-    await openUrl('https://code.visualstudio.com/tryappservice/');
+    await openUrl('https://code.visualstudio.com/tryappservice/?utm_source=appservice-extension');
 }
