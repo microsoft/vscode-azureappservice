@@ -22,6 +22,7 @@ suite('Create Web App and deploy', async function (this: Mocha.Suite): Promise<v
     const testCases: ITestCase[] = [
         { workspaceFolder: 'nodejs-docs-hello-world', runtimes: ['Node 10 LTS', 'Node 12 LTS', 'Node 14 LTS'] },
         { workspaceFolder: '2.1', runtimes: ['.NET Core 2.1'] },
+        { workspaceFolder: '3.1', runtimes: ['.NET Core 3.1'] },
         { workspaceFolder: 'python-docs-hello-world', runtimes: ['Python 3.6', 'Python 3.7', 'Python 3.8'] }
     ];
 
