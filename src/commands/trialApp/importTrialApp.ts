@@ -29,7 +29,7 @@ export async function importTrialApp(_context: IActionContext, loginSession: str
             name: trialAppNode.client.fullName,
             expirationDate: expirationDate,
             loginSession: loginSession
-        }
+        };
 
         ext.context.globalState.update(TrialAppContext, trialAppContext);
         await commands.executeCommand('workbench.view.extension.azure');
