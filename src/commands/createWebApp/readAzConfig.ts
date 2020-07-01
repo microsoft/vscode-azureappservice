@@ -4,10 +4,9 @@
 *--------------------------------------------------------------------------------------------*/
 
 import { WorkspaceFolder } from 'vscode';
-import { IAppServiceWizardContext } from 'vscode-azureappservice';
+import { IAppServiceWizardContext, IDeployContext } from 'vscode-azureappservice';
 import { cpUtils } from '../../utils/cpUtils';
 import { getSingleRootWorkspace } from '../../utils/workspace';
-import { IDeployContext } from '../deploy/IDeployContext';
 
 /**
  * Takes any number of Azure config properties to read and returns their configured values.

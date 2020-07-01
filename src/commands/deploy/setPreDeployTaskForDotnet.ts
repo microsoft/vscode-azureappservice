@@ -6,12 +6,12 @@
 import * as fse from 'fs-extra';
 import * as path from 'path';
 import { MessageItem, TaskDefinition } from 'vscode';
+import { IDeployContext } from 'vscode-azureappservice';
 import * as constants from '../../constants';
 import { ext } from '../../extensionVariables';
 import { isPathEqual } from '../../utils/pathUtils';
 import { getWorkspaceSetting, updateWorkspaceSetting } from '../../vsCodeConfig/settings';
 import * as tasks from '../../vsCodeConfig/tasks';
-import { IDeployContext } from "./IDeployContext";
 
 const cleanId: string = 'clean';
 const publishId: string = 'publish-release';
@@ -19,7 +19,7 @@ const publishId: string = 'publish-release';
 export async function setPreDeployTaskForDotnet(context: IDeployContext): Promise<void> {
     const preDeployTaskSetting: string = 'preDeployTask';
     const showPreDeployWarningSetting: string = 'showPreDeployWarning';
-    const workspaceFspath: string = context.workspace.uri.fsPath;
+    const workspaceFspath: string = context.workspaceFolder.uri.fsPath;
 
     // don't overwrite preDeploy or deploySubpath if it exists and respect configurePreDeployTasks setting
     if (!getWorkspaceSetting<boolean>(showPreDeployWarningSetting, workspaceFspath)
@@ -50,7 +50,7 @@ export async function setPreDeployTaskForDotnet(context: IDeployContext): Promis
             return;
         }
 
-        const notConfiguredForDeploy: string = `Required configuration to deploy is missing from "${context.workspace.name}".`;
+        const notConfiguredForDeploy: string = `Required configuration to deploy is missing from "${context.workspaceFolder.name}".`;
         const addConfigButton: MessageItem = { title: "Add Config" };
         await ext.ui.showWarningMessage(notConfiguredForDeploy, { modal: true }, addConfigButton);
 
@@ -66,7 +66,7 @@ export async function setPreDeployTaskForDotnet(context: IDeployContext): Promis
         // update the deployContext.effectiveDeployPath with the .NET output path since getDeployFsPath is called prior to this
         context.effectiveDeployFsPath = path.join(workspaceFspath, deploySubpath);
 
-        const existingTasks: tasks.ITask[] = tasks.getTasks(context.workspace);
+        const existingTasks: tasks.ITask[] = tasks.getTasks(context.workspaceFolder);
         const publishTask: tasks.ITask | undefined = existingTasks.find(t1 => {
             return t1.label === publishId;
         });
@@ -84,12 +84,12 @@ export async function setPreDeployTaskForDotnet(context: IDeployContext): Promis
             return t1.label === t2.label;
         }));
 
-        const currentVersion: string | undefined = tasks.getTasksVersion(context.workspace);
+        const currentVersion: string | undefined = tasks.getTasksVersion(context.workspaceFolder);
         if (!currentVersion) {
-            tasks.updateTasksVersion(context.workspace, tasks.tasksVersion);
+            tasks.updateTasksVersion(context.workspaceFolder, tasks.tasksVersion);
         }
 
-        tasks.updateTasks(context.workspace, existingTasks.concat(newTasks));
+        tasks.updateTasks(context.workspaceFolder, existingTasks.concat(newTasks));
     }
 }
 

@@ -6,11 +6,10 @@
 import * as fse from 'fs-extra';
 import * as path from 'path';
 import { WorkspaceFolder } from 'vscode';
-import { IAppServiceWizardContext, LinuxRuntimes, WebsiteOS } from 'vscode-azureappservice';
+import { IAppServiceWizardContext, IDeployContext, LinuxRuntimes, WebsiteOS } from 'vscode-azureappservice';
 import { ICreateChildImplContext, LocationListStep } from 'vscode-azureextensionui';
 import { javaUtils } from '../../utils/javaUtils';
 import { findFilesByFileExtension, getSingleRootWorkspace } from '../../utils/workspace';
-import { IDeployContext } from '../deploy/IDeployContext';
 
 export async function setPrePromptDefaults(wizardContext: IAppServiceWizardContext & Partial<IDeployContext> & Partial<ICreateChildImplContext>): Promise<void> {
     // if the user entered through "Deploy", we'll have a project to base our recommendations on
