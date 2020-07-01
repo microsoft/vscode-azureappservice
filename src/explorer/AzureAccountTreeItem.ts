@@ -75,13 +75,15 @@ export class AzureAccountTreeItem extends AzureAccountTreeItemBase {
             return undefined;
         }
 
+        if (trialAppContext.expirationDate < Date.now()) {
+            this.trialAppNode = undefined;
+            return new ExpiredTrialAppTreeItem(this, trialAppContext.name);
+        }
+
         const ti: AzExtTreeItem[] = await this.createTreeItemsWithErrorHandling(
             [trialAppContext.loginSession],
             'trialAppInvalid',
             async (source: string): Promise<AzExtTreeItem> => {
-                if (new Date(trialAppContext.expirationDate) < new Date()) {
-                    return new ExpiredTrialAppTreeItem(this, trialAppContext.name);
-                }
                 return await TrialAppTreeItem.createTrialAppTreeItem(this, source);
             },
             (_source: unknown): string => {

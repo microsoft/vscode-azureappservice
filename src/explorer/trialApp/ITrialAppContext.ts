@@ -5,6 +5,10 @@
 
 export interface ITrialAppContext {
     name: string;
-    expirationDate: Date;
+
+    /**
+     * When the trial app expires in milliseconds
+     */
+    expirationDate: number;
     loginSession: string;
 }

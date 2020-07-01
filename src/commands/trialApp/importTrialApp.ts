@@ -18,13 +18,13 @@ export async function importTrialApp(_context: IActionContext, loginSession: str
         ext.azureAccountTreeItem.trialAppNode = await TrialAppTreeItem.createTrialAppTreeItem(ext.azureAccountTreeItem, loginSession);
         const trialAppNode = ext.azureAccountTreeItem.trialAppNode;
 
+        // When a trial app is expired, sometimes we can get the metadata still, if we can
+        // then we know it's expired if the timeLeft is undefined
         if (trialAppNode.client.metadata.timeLeft === undefined) {
             throw new Error(localize('trialAppExpired', 'Trial app is expired. Could not import.'));
         }
 
-        const expirationDate: Date = new Date();
-        expirationDate.setSeconds(expirationDate.getSeconds() + trialAppNode.client.metadata.timeLeft);
-
+        const expirationDate: number = Date.now() + (trialAppNode.client.metadata.timeLeft * 1000);
         const trialAppContext: ITrialAppContext = {
             name: trialAppNode.client.fullName,
             expirationDate: expirationDate,
