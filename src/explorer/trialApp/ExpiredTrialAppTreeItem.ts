@@ -11,12 +11,7 @@ import { getIconPath } from "../../utils/pathUtils";
 export class ExpiredTrialAppTreeItem extends AzExtParentTreeItem {
     public label: string;
     public contextValue: string = 'trialAppExpired';
-
     public description: string = 'Expired';
-
-    public isAncestorOfImpl(contextValue: string | RegExp): boolean {
-        return contextValue === this.contextValue;
-    }
 
     public constructor(parent: AzExtParentTreeItem, name: string) {
         super(parent);
@@ -26,6 +21,10 @@ export class ExpiredTrialAppTreeItem extends AzExtParentTreeItem {
 
     public async loadMoreChildrenImpl(_clearCache: boolean, _context: IActionContext): Promise<AzExtTreeItem[]> {
         return [new GenericTreeItem(this, { label: localize('transferToSubscription', 'Transfer to Subscription...'), commandId: `${ext.prefix}.TransferToSubscription`, contextValue: 'transferToSubscription', includeInTreeItemPicker: false })];
+    }
+
+    public isAncestorOfImpl(contextValue: string | RegExp): boolean {
+        return contextValue === this.contextValue;
     }
 
     public hasMoreChildrenImpl(): boolean {
