@@ -5,7 +5,7 @@
 
 import { MessageItem } from 'vscode';
 import { IActionContext } from 'vscode-azureextensionui';
-import { TrialAppLoginSession } from '../../constants';
+import { TrialAppContext } from '../../constants';
 import { TrialAppTreeItem } from '../../explorer/trialApp/TrialAppTreeItem';
 import { ext } from '../../extensionVariables';
 import { localize } from '../../localize';
@@ -19,7 +19,7 @@ export async function removeTrialApp(context: IActionContext, node?: TrialAppTre
     const remove: MessageItem = { title: 'Remove' };
     await ext.ui.showWarningMessage(message, { modal: true }, remove);
 
-    ext.context.globalState.update(TrialAppLoginSession, undefined);
+    ext.context.globalState.update(TrialAppContext, undefined);
     delete ext.azureAccountTreeItem.trialAppNode;
     await ext.tree.refresh();
 }

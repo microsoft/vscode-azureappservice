@@ -4,11 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { AzExtTreeItem, AzureAccountTreeItemBase, GenericTreeItem, IActionContext, ISubscriptionContext } from 'vscode-azureextensionui';
-import { TrialAppLoginSession } from '../constants';
+import { TrialAppContext } from '../constants';
 import { ext } from '../extensionVariables';
 import { localize } from '../localize';
 import { getIconPath } from '../utils/pathUtils';
 import { SubscriptionTreeItem } from './SubscriptionTreeItem';
+import { ExpiredTrialAppTreeItem } from './trialApp/ExpiredTrialAppTreeItem';
+import { ITrialAppContext } from './trialApp/ITrialAppContext';
 import { TrialAppTreeItem } from './trialApp/TrialAppTreeItem';
 
 export class AzureAccountTreeItem extends AzureAccountTreeItemBase {
@@ -67,14 +69,19 @@ export class AzureAccountTreeItem extends AzureAccountTreeItemBase {
     }
 
     private async loadTrialAppNode(): Promise<AzExtTreeItem | undefined> {
-        const loginSession: string | undefined = ext.context.globalState.get(TrialAppLoginSession);
-        if (!loginSession) {
+        const trialAppContext: ITrialAppContext | undefined = ext.context.globalState.get(TrialAppContext);
+        if (!trialAppContext) {
             this.trialAppNode = undefined;
             return undefined;
         }
 
+        if (trialAppContext.expirationDate < Date.now()) {
+            this.trialAppNode = undefined;
+            return new ExpiredTrialAppTreeItem(this, trialAppContext.name);
+        }
+
         const ti: AzExtTreeItem[] = await this.createTreeItemsWithErrorHandling(
-            [loginSession],
+            [trialAppContext.loginSession],
             'trialAppInvalid',
             async (source: string): Promise<AzExtTreeItem> => {
                 return await TrialAppTreeItem.createTrialAppTreeItem(this, source);
