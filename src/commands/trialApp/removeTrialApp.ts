@@ -17,11 +17,9 @@ export async function removeTrialApp(context: IActionContext, node?: TrialAppTre
 
     const message: string = localize('removeTrialApp', 'Are you sure you want to remove trial app "{0}"?', node.client.fullName);
     const remove: MessageItem = { title: 'Remove' };
-    const response: MessageItem | undefined = await ext.ui.showWarningMessage(message, { modal: true }, remove);
+    await ext.ui.showWarningMessage(message, { modal: true }, remove);
 
-    if (response === remove) {
-        ext.context.globalState.update(TrialAppLoginSession, undefined);
-        delete ext.azureAccountTreeItem.trialAppNode;
-        await ext.tree.refresh();
-    }
+    ext.context.globalState.update(TrialAppLoginSession, undefined);
+    delete ext.azureAccountTreeItem.trialAppNode;
+    await ext.tree.refresh();
 }
