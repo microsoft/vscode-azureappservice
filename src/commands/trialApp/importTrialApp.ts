@@ -11,7 +11,7 @@ import { TrialAppTreeItem } from '../../explorer/trialApp/TrialAppTreeItem';
 import { ext } from '../../extensionVariables';
 import { localize } from '../../localize';
 
-export async function importTrialApp(_context: IActionContext, loginSession: string): Promise<void> {
+export async function importTrialApp(context: IActionContext, loginSession: string): Promise<void> {
 
     await window.withProgress({ location: ProgressLocation.Notification, cancellable: false }, async p => {
         p.report({ message: localize('importingTrialApp', 'Importing trial app...') });
@@ -30,7 +30,7 @@ export async function importTrialApp(_context: IActionContext, loginSession: str
             expirationDate: expirationDate,
             loginSession: loginSession
         };
-
+        context.telemetry.properties.timeLeft = String(trialAppNode.metadata.timeLeft);
         ext.context.globalState.update(TrialAppContext, trialAppContext);
         await commands.executeCommand('workbench.view.extension.azure');
         await ext.azureAccountTreeItem.refresh();

@@ -15,5 +15,10 @@ export async function stopStreamingLogs(context: IActionContext, node?: SiteTree
         node = await ext.tree.showTreeItemPicker<WebAppTreeItem>(WebAppTreeItem.contextValue, { ...context, suppressCreatePick: true });
     }
 
+    if (node instanceof TrialAppTreeItem) {
+        context.telemetry.properties.trialApp = 'true';
+        context.telemetry.properties.timeLeft = String(node.metadata.timeLeft);
+    }
+
     await appservice.stopStreamingLogs(node.client);
 }
