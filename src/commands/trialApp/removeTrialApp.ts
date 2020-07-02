@@ -19,7 +19,7 @@ export async function removeTrialApp(context: IActionContext, node?: TrialAppTre
     const remove: MessageItem = { title: 'Remove' };
     await ext.ui.showWarningMessage(message, { modal: true }, remove);
 
-    context.telemetry.properties.timeLeft = String(node.metadata.timeLeft);
+    context.telemetry.properties.trialTimeRemaining = String(node.metadata.timeLeft);
 
     ext.context.globalState.update(TrialAppContext, undefined);
     delete ext.azureAccountTreeItem.trialAppNode;

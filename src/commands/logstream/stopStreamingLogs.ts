@@ -17,7 +17,7 @@ export async function stopStreamingLogs(context: IActionContext, node?: SiteTree
 
     if (node instanceof TrialAppTreeItem) {
         context.telemetry.properties.trialApp = 'true';
-        context.telemetry.properties.timeLeft = String(node.metadata.timeLeft);
+        context.telemetry.properties.trialTimeRemaining = String(node.metadata.timeLeft);
     }
 
     await appservice.stopStreamingLogs(node.client);

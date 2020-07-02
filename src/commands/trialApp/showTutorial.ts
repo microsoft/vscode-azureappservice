@@ -19,7 +19,7 @@ export async function showTutorial(context: IActionContext): Promise<void> {
             const tutorialUri: Uri = Uri.file(ext.context.asAbsolutePath('resources/TrialApp.didact.md'));
             commands.executeCommand('vscode.didact.startDidact', tutorialUri);
             context.telemetry.properties.installedDidact = 'true';
-            context.telemetry.properties.timeLeft = String(trialAppNode.metadata.timeLeft);
+            context.telemetry.properties.trialTimeRemaining = String(trialAppNode.metadata.timeLeft);
         }
     } else {
         throw Error(localize('trialAppNotFound', 'Trial app not found.'));

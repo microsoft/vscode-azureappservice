@@ -16,7 +16,7 @@ export async function deployTrialApp(context: IDeployContext, node: TrialAppTree
     context.telemetry.properties.trialApp = 'true';
     context.telemetry.properties.loggedIn = ext.azureAccountTreeItem.isLoggedIn ? 'true' : 'false';
     context.telemetry.properties.commit = commit ? 'true' : 'false';
-    context.telemetry.properties.timeLeft = String(node.metadata.timeLeft);
+    context.telemetry.properties.trialTimeRemaining = String(node.metadata.timeLeft);
 
     await node.runWithTemporaryDescription("Deploying...", async () => {
         const title: string = localize('deploying', 'Deploying to "{0}"... Check [output window](command:{1}) for status.', node.client.fullName, `${ext.prefix}.showOutputChannel`);
