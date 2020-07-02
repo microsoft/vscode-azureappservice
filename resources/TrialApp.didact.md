@@ -1,16 +1,16 @@
 # Welcome to your Trial App Didact Tutorial
 
-This guide will show you how to make and deploy changes to your Azure App Service Trial App. Your trial will last 60 minutes. You can find more information about Azure App Service [here](https://docs.microsoft.com/en-us/azure/app-service/).
+This tutorial will show you how to make and deploy changes to your Azure App Service trial app. Your trial will last 60 minutes. You can find more information about Azure App Service [here](https://docs.microsoft.com/en-us/azure/app-service/).
 
 ## Getting Started
 
 ### Step 1: Clone the trial app source code
 
-1. Locate your imported Trial App in the Azure view.
+1. Locate your imported trial app in the Azure view.
 
 <img src="./trialAppTutorial/viewTrialAppScreenshot.png" style="width: 256px;">
 
-2. Right click on the Trial App.
+2. Right click on the trial app.
 3. Select `Clone`.
 
 <img src="./trialAppTutorial/rightClickCloneScreenshot.png" style="width: 256px;">
@@ -30,15 +30,15 @@ For example, change line 26 from: `<h1> Welcome to Azure! </h1>` to this: `<h1> 
 
 ### Step 3: Deploy your changes
 
-1. Select the blue up arrow icon to deploy your code to your Trial App.
+1. Select the blue up arrow icon to deploy your code to your trial app.
 
 <img src="./trialAppTutorial/deployButtonScreenshot.png" style="width: 256px;">
 
-2. Select the folder containing the Trial App code you cloned and modified.
+2. Select the folder containing the trial app code you cloned and modified.
 
 <img src="./trialAppTutorial/selectFolderToDeployScreenshot.png" style="width: 512px;">
 
-3. Select your Trial App.
+3. Select your trial app.
 
 <img src="./trialAppTutorial/selectTrialAppDeployScreenshot.png" style="width: 512px;">
 
@@ -46,23 +46,23 @@ For example, change line 26 from: `<h1> Welcome to Azure! </h1>` to this: `<h1> 
 
 <img src="./trialAppTutorial/deployCompleteScreenshot.png" style="width: 512px;">
 
-You can also browse your website by right-clicking your Trial app and selecting `Browse`.
+You can also browse your website by right-clicking your trial app and selecting `Browse`.
 
 <img src="./trialAppTutorial/browseWebsiteRedScreenshot.png" style="width: 256px;">
 
 ### Step 4: Transfer your App to an Azure Subscription
 
-Transferring your App to an Azure Subscription will create a new Web App and automatically deploy the Trial app from your local workspace.
+Transferring your App to an Azure Subscription will create a new Web App and automatically deploy the trial app from your local workspace.
 
-[Click here](didact://?commandId=appService.TransferToSubscription) or follow the steps below to Transfer your Trial App to an Azure Subscription.
+[Click here](didact://?commandId=appService.TransferToSubscription) or follow the steps below to Transfer your trial app to an Azure Subscription.
 
-1. Right click your Trial app, then select `Transfer to Subscription...`
+1. Right click your trial app, then select `Transfer to Subscription...`
 
 2. Sign-in or Create an Azure account
 
 3. Enter a name for your new Web App
 
-Once your Web App is created, your Trial app will automatically be deployed.
+Once your Web App is created, your trial app will automatically be deployed.
 
 ---
 
