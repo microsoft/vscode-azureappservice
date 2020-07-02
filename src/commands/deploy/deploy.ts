@@ -8,10 +8,12 @@ import { pathExists } from 'fs-extra';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as appservice from 'vscode-azureappservice';
+import { getDeployFsPath, getDeployNode, IDeployContext, IDeployPaths, showDeployConfirmation } from 'vscode-azureappservice';
 import { IActionContext } from 'vscode-azureextensionui';
 import * as constants from '../../constants';
 import { SiteTreeItem } from '../../explorer/SiteTreeItem';
 import { TrialAppTreeItem } from '../../explorer/trialApp/TrialAppTreeItem';
+import { WebAppTreeItem } from '../../explorer/WebAppTreeItem';
 import { ext } from '../../extensionVariables';
 import { javaUtils } from '../../utils/javaUtils';
 import { nonNullValue } from '../../utils/nonNull';
@@ -19,10 +21,7 @@ import { isPathEqual } from '../../utils/pathUtils';
 import { getRandomHexString } from "../../utils/randomUtils";
 import { getWorkspaceSetting } from '../../vsCodeConfig/settings';
 import { runPostDeployTask } from '../postDeploy/runPostDeployTask';
-import { confirmDeploymentPrompt } from './confirmDeploymentPrompt';
 import { deployTrialApp } from './deployTrialApp';
-import { getDeployNode, IDeployNode } from './getDeployNode';
-import { IDeployContext, WebAppSource } from './IDeployContext';
 import { enableScmDoBuildDuringDeploy, promptScmDoBuildDeploy } from './promptScmDoBuildDeploy';
 import { promptToSaveDeployDefaults, saveDeployDefaults } from './promptToSaveDeployDefaults';
 import { setPreDeployTaskForDotnet } from './setPreDeployTaskForDotnet';
@@ -30,39 +29,32 @@ import { showDeployCompletedMessage } from './showDeployCompletedMessage';
 
 const postDeployCancelTokens: Map<string, vscode.CancellationTokenSource> = new Map();
 
-export async function deploy(context: IActionContext, target?: vscode.Uri | SiteTreeItem | TrialAppTreeItem, _multiTargets?: (vscode.Uri | SiteTreeItem)[], isTargetNewWebApp: boolean = false): Promise<void> {
-    let webAppSource: WebAppSource | undefined;
-    context.telemetry.properties.deployedWithConfigs = 'false';
+export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | SiteTreeItem | TrialAppTreeItem, arg2?: (vscode.Uri | SiteTreeItem)[], isNewApp: boolean = false): Promise<void> {
+    actionContext.telemetry.properties.deployedWithConfigs = 'false';
     let siteConfig: WebSiteModels.SiteConfigResource | undefined;
 
-    if (target instanceof SiteTreeItem) {
-        webAppSource = WebAppSource.tree;
+    if (arg1 instanceof SiteTreeItem) {
         // we can only get the siteConfig earlier if the entry point was a treeItem
-        siteConfig = await target.root.client.getSiteConfig();
+        siteConfig = await arg1.root.client.getSiteConfig();
     }
 
     const fileExtensions: string | string[] | undefined = await javaUtils.getJavaFileExtensions(siteConfig);
 
-    const { originalDeployFsPath, effectiveDeployFsPath, workspaceFolder } = await appservice.getDeployFsPath(context, target, fileExtensions);
-
-    const deployContext: IDeployContext = {
-        ...context, workspace: workspaceFolder, originalDeployFsPath, effectiveDeployFsPath, webAppSource
-    };
+    const deployPaths: IDeployPaths = await getDeployFsPath(actionContext, arg1, fileExtensions);
+    const context: IDeployContext = Object.assign(actionContext, deployPaths, { defaultAppSetting: constants.configurationSettings.defaultWebAppToDeploy, isNewApp });
 
     // because this is workspace dependant, do it before user selects app
-    await setPreDeployTaskForDotnet(deployContext);
-    const { node, isNewWebApp }: IDeployNode = await getDeployNode(deployContext, target, isTargetNewWebApp);
+    await setPreDeployTaskForDotnet(context);
+    const node: SiteTreeItem | TrialAppTreeItem = await getDeployNode(context, arg1, arg2, [WebAppTreeItem.contextValue, TrialAppTreeItem.contextValue]);
 
     if (node instanceof TrialAppTreeItem) {
-        await enableScmDoBuildDuringDeploy(deployContext.effectiveDeployFsPath, 'NODE|12-lts');
+        await enableScmDoBuildDuringDeploy(context.effectiveDeployFsPath, 'NODE|12-lts');
         if (!ext.azureAccountTreeItem.isLoggedIn) {
-            await saveDeployDefaults(node.fullId, workspaceFolder.uri.fsPath, deployContext.effectiveDeployFsPath);
+            await saveDeployDefaults(node.fullId, context.workspaceFolder.uri.fsPath, context.effectiveDeployFsPath);
         }
-        await deployTrialApp(deployContext, node);
+        await deployTrialApp(context, node);
         return;
     }
-
-    context.telemetry.properties.webAppSource = deployContext.webAppSource;
 
     const correlationId = getRandomHexString();
     context.telemetry.properties.correlationId = correlationId;
@@ -76,27 +68,27 @@ export async function deploy(context: IActionContext, target?: vscode.Uri | Site
 
     const isZipDeploy: boolean = siteConfig.scmType !== constants.ScmType.LocalGit && siteConfig !== constants.ScmType.GitHub;
     // only check enableScmDoBuildDuringDeploy if currentWorkspace matches the workspace being deployed as a user can "Browse" to a different project
-    if (getWorkspaceSetting<boolean>(constants.configurationSettings.showBuildDuringDeployPrompt, deployContext.effectiveDeployFsPath)) {
+    if (getWorkspaceSetting<boolean>(constants.configurationSettings.showBuildDuringDeployPrompt, context.effectiveDeployFsPath)) {
         //check if node is being zipdeployed and that there is no .deployment file
-        if (siteConfig.linuxFxVersion && isZipDeploy && !(await pathExists(path.join(deployContext.effectiveDeployFsPath, constants.deploymentFileName)))) {
+        if (siteConfig.linuxFxVersion && isZipDeploy && !(await pathExists(path.join(context.effectiveDeployFsPath, constants.deploymentFileName)))) {
             const linuxFxVersion: string = siteConfig.linuxFxVersion.toLowerCase();
             if (linuxFxVersion.startsWith(appservice.LinuxRuntimes.node)) {
                 // if it is node or python, prompt the user (as we can break them)
-                await promptScmDoBuildDeploy(context, deployContext.effectiveDeployFsPath, appservice.LinuxRuntimes.node);
+                await promptScmDoBuildDeploy(context, context.effectiveDeployFsPath, appservice.LinuxRuntimes.node);
             } else if (linuxFxVersion.startsWith(appservice.LinuxRuntimes.python)) {
-                await promptScmDoBuildDeploy(context, deployContext.effectiveDeployFsPath, appservice.LinuxRuntimes.python);
+                await promptScmDoBuildDeploy(context, context.effectiveDeployFsPath, appservice.LinuxRuntimes.python);
             }
 
         }
     }
 
-    if (getWorkspaceSetting<boolean>('showDeployConfirmation', workspaceFolder.uri.fsPath) && !isNewWebApp && isZipDeploy) {
-        await confirmDeploymentPrompt(deployContext, context, node.root.client.fullName);
+    if (getWorkspaceSetting<boolean>('showDeployConfirmation', context.workspaceFolder.uri.fsPath) && !context.isNewApp && isZipDeploy) {
+        await showDeployConfirmation(context, node.client, 'appService.Deploy');
     }
 
     // tslint:disable-next-line:no-floating-promises
-    promptToSaveDeployDefaults(context, node, deployContext.workspace.uri.fsPath, deployContext.effectiveDeployFsPath);
-    await appservice.runPreDeployTask(deployContext, deployContext.originalDeployFsPath, siteConfig.scmType);
+    promptToSaveDeployDefaults(context, node, context.workspaceFolder.uri.fsPath, context.effectiveDeployFsPath);
+    await appservice.runPreDeployTask(context, context.originalDeployFsPath, siteConfig.scmType);
 
     // cancellation moved to after prompts while gathering telemetry
     // cancel the previous detector check from the same web app
@@ -106,15 +98,15 @@ export async function deploy(context: IActionContext, target?: vscode.Uri | Site
     }
 
     // only respect the deploySubpath settings for zipdeploys
-    const deployPath: string = isZipDeploy ? deployContext.effectiveDeployFsPath : deployContext.originalDeployFsPath;
+    const deployPath: string = isZipDeploy ? context.effectiveDeployFsPath : context.originalDeployFsPath;
 
-    if (!isZipDeploy && isPathEqual(deployContext.effectiveDeployFsPath, deployContext.originalDeployFsPath)) {
+    if (!isZipDeploy && isPathEqual(context.effectiveDeployFsPath, context.originalDeployFsPath)) {
         const noSubpathWarning: string = `WARNING: Ignoring deploySubPath "${getWorkspaceSetting(constants.configurationSettings.deploySubpath)}" for non-zip deploy.`;
         ext.outputChannel.appendLog(noSubpathWarning);
     }
 
     await node.runWithTemporaryDescription("Deploying...", async () => {
-        await appservice.deploy(nonNullValue(node).root.client, <string>deployPath, deployContext);
+        await appservice.deploy(nonNullValue(node).root.client, <string>deployPath, context);
     });
 
     const tokenSource: vscode.CancellationTokenSource = new vscode.CancellationTokenSource();

@@ -892,7 +892,7 @@
         "moment": "^2.24.0",
         "portfinder": "^1.0.25",
         "request-promise": "^4.2.5",
-        "vscode-azureappservice": "^0.62.4",
+        "vscode-azureappservice": "^0.63.0",
         "vscode-azureextensionui": "^0.33.7",
         "vscode-azurekudu": "^0.1.8",
         "vscode-nls": "^4.1.1"
