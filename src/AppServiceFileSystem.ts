@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { FileStat, FileType, MessageItem, Uri } from "vscode";
-import { FileTreeItem, getFile, IFileResult, putFile } from "vscode-azureappservice";
+import { FileTreeItem, getFile, ISiteFile, putFile } from "vscode-azureappservice";
 import { AzExtTreeFileSystem, DialogResponses, IActionContext, IParsedError, parseError, UserCancelledError } from 'vscode-azureextensionui';
 import { ext } from "./extensionVariables";
 import { localize } from "./localize";
@@ -26,7 +26,7 @@ export class AppServiceFileSystem extends AzExtTreeFileSystem<FileTreeItem> {
     }
 
     public async readFileImpl(_context: IActionContext, node: FileTreeItem): Promise<Uint8Array> {
-        const result: IFileResult = await getFile(node.client, node.path);
+        const result: ISiteFile = await getFile(node.client, node.path);
         this._etags.set(node.fullId, result.etag);
         return Buffer.from(result.data);
     }
