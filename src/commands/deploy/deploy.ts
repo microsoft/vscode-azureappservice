@@ -8,7 +8,7 @@ import { pathExists } from 'fs-extra';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as appservice from 'vscode-azureappservice';
-import { AppSource, getDeployFsPath, getDeployNode, IDeployContext, IDeployPaths, showDeployConfirmation } from 'vscode-azureappservice';
+import { getDeployFsPath, getDeployNode, IDeployContext, IDeployPaths, showDeployConfirmation } from 'vscode-azureappservice';
 import { IActionContext } from 'vscode-azureextensionui';
 import * as constants from '../../constants';
 import { SiteTreeItem } from '../../explorer/SiteTreeItem';
@@ -30,12 +30,10 @@ import { showDeployCompletedMessage } from './showDeployCompletedMessage';
 const postDeployCancelTokens: Map<string, vscode.CancellationTokenSource> = new Map();
 
 export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | SiteTreeItem | TrialAppTreeItem, arg2?: (vscode.Uri | SiteTreeItem)[], isNewApp: boolean = false): Promise<void> {
-    let webAppSource: AppSource | undefined;
     actionContext.telemetry.properties.deployedWithConfigs = 'false';
     let siteConfig: WebSiteModels.SiteConfigResource | undefined;
 
     if (arg1 instanceof SiteTreeItem) {
-        webAppSource = AppSource.tree;
         // we can only get the siteConfig earlier if the entry point was a treeItem
         siteConfig = await arg1.root.client.getSiteConfig();
     }
