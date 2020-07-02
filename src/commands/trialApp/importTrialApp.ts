@@ -5,7 +5,8 @@
 
 import { commands, ProgressLocation, window } from 'vscode';
 import { IActionContext } from 'vscode-azureextensionui';
-import { TrialAppLoginSession } from '../../constants';
+import { TrialAppContext } from '../../constants';
+import { ITrialAppContext } from '../../explorer/trialApp/ITrialAppContext';
 import { TrialAppTreeItem } from '../../explorer/trialApp/TrialAppTreeItem';
 import { ext } from '../../extensionVariables';
 import { localize } from '../../localize';
@@ -15,7 +16,22 @@ export async function importTrialApp(_context: IActionContext, loginSession: str
     await window.withProgress({ location: ProgressLocation.Notification, cancellable: false }, async p => {
         p.report({ message: localize('importingTrialApp', 'Importing trial app...') });
         ext.azureAccountTreeItem.trialAppNode = await TrialAppTreeItem.createTrialAppTreeItem(ext.azureAccountTreeItem, loginSession);
-        ext.context.globalState.update(TrialAppLoginSession, loginSession);
+        const trialAppNode = ext.azureAccountTreeItem.trialAppNode;
+
+        // When a trial app is expired, sometimes we can get the metadata still, if we can
+        // then we know it's expired if the timeLeft is undefined
+        if (trialAppNode.client.metadata.timeLeft === undefined) {
+            throw new Error(localize('trialAppExpired', 'Trial app is expired. Could not import.'));
+        }
+
+        const expirationDate: number = Date.now() + (trialAppNode.client.metadata.timeLeft * 1000);
+        const trialAppContext: ITrialAppContext = {
+            name: trialAppNode.client.fullName,
+            expirationDate: expirationDate,
+            loginSession: loginSession
+        };
+
+        ext.context.globalState.update(TrialAppContext, trialAppContext);
         await commands.executeCommand('workbench.view.extension.azure');
         await ext.azureAccountTreeItem.refresh();
     });

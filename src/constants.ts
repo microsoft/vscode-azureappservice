@@ -34,4 +34,4 @@ export const envFileName: string = '.env';
 
 export const detectorTimestampFormat: string = 'YYYY-MM-DDTHH:mm';
 
-export const TrialAppLoginSession: string = 'TrialApp.LoginSession';
+export const TrialAppContext: string = 'TrialAppContext';
