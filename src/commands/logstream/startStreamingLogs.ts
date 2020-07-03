@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as appservice from 'vscode-azureappservice';
-import { ISimplifiedSiteClient } from 'vscode-azureappservice';
 import { IActionContext } from 'vscode-azureextensionui';
 import { SiteTreeItem } from '../../explorer/SiteTreeItem';
 import { TrialAppTreeItem } from '../../explorer/trialApp/TrialAppTreeItem';
@@ -25,6 +24,5 @@ export async function startStreamingLogs(context: IActionContext, node?: SiteTre
         }
     };
 
-    const client: ISimplifiedSiteClient = (node instanceof TrialAppTreeItem) ? node.client : node.root.client;
-    await appservice.startStreamingLogs(client, verifyLoggingEnabled, node.logStreamLabel);
+    await appservice.startStreamingLogs(node.client, verifyLoggingEnabled, node.logStreamLabel);
 }
