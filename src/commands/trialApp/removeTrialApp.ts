@@ -9,6 +9,7 @@ import { TrialAppContext } from '../../constants';
 import { TrialAppTreeItem } from '../../explorer/trialApp/TrialAppTreeItem';
 import { ext } from '../../extensionVariables';
 import { localize } from '../../localize';
+import { addTrialAppTelemetry } from './addTrialAppTelemetry';
 
 export async function removeTrialApp(context: IActionContext, node?: TrialAppTreeItem): Promise<void> {
     if (!node) {
@@ -19,7 +20,7 @@ export async function removeTrialApp(context: IActionContext, node?: TrialAppTre
     const remove: MessageItem = { title: 'Remove' };
     await ext.ui.showWarningMessage(message, { modal: true }, remove);
 
-    context.telemetry.properties.trialTimeRemaining = String(node.metadata.timeLeft);
+    addTrialAppTelemetry(context, node);
 
     ext.context.globalState.update(TrialAppContext, undefined);
     delete ext.azureAccountTreeItem.trialAppNode;
