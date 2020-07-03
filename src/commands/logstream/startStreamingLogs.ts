@@ -24,10 +24,5 @@ export async function startStreamingLogs(context: IActionContext, node?: SiteTre
         }
     };
 
-    if (node instanceof TrialAppTreeItem) {
-        context.telemetry.properties.trialApp = 'true';
-        context.telemetry.properties.trialTimeRemaining = String(node.metadata.timeLeft);
-    }
-
     await appservice.startStreamingLogs(node.client, verifyLoggingEnabled, node.logStreamLabel);
 }
