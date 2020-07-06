@@ -18,6 +18,7 @@ export async function editScmType(context: IActionContext, node?: SiteTreeItem |
         node = <SiteTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue, context);
     } else if (node instanceof DeploymentsTreeItem) {
         if (node.parent instanceof TrialAppTreeItem) {
+            context.errorHandling.suppressReportIssue = true;
             throw new OperationNotSupportedError();
         }
         node = <SiteTreeItem>node.parent;
