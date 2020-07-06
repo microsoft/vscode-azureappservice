@@ -9,7 +9,6 @@ import { localize } from '../../localize';
 import { openUrl } from '../../utils/openUrl';
 import { getThemedIconPath } from '../../utils/pathUtils';
 import { AzureAccountTreeItem } from '../AzureAccountTreeItem';
-import { ConnectionsTreeItem } from '../ConnectionsTreeItem';
 import { ISiteTreeItem } from '../ISiteTreeItem';
 import { SiteTreeItemBase } from '../SiteTreeItemBase';
 import { ITrialAppMetadata } from './ITrialAppMetadata';
@@ -39,7 +38,6 @@ export class TrialAppTreeItem extends SiteTreeItemBase implements ISiteTreeItem 
 
     private readonly _appSettingsTreeItem: TrialAppApplicationSettingsTreeItem;
     private readonly _siteFilesNode: SiteFilesTreeItem;
-    private readonly _connectionsNode: ConnectionsTreeItem;
     private readonly _tutorialNode: GenericTreeItem;
 
     private constructor(parent: AzureAccountTreeItem, client: TrialAppClient) {
@@ -47,7 +45,6 @@ export class TrialAppTreeItem extends SiteTreeItemBase implements ISiteTreeItem 
         this.client = client;
         this._appSettingsTreeItem = new TrialAppApplicationSettingsTreeItem(this, this.client, false, settingsToHide);
         this._siteFilesNode = new SiteFilesTreeItem(this, this.client, false);
-        this._connectionsNode = new ConnectionsTreeItem(this, this.client);
         this._tutorialNode = new GenericTreeItem(this, { label: 'Show tutorial', commandId: 'appService.ShowTutorial', contextValue: 'showTutorial', iconPath: getThemedIconPath('book') });
         this.logFilesNode = new LogFilesTreeItem(this, this.client);
         this.deploymentsNode = new TrialAppDeploymentsTreeItem(this, this.client, {}, {});
@@ -96,7 +93,7 @@ export class TrialAppTreeItem extends SiteTreeItemBase implements ISiteTreeItem 
     }
 
     public async loadMoreChildrenImpl(_clearCache: boolean, _context: IActionContext): Promise<AzExtTreeItem[]> {
-        return [this._tutorialNode, this._appSettingsTreeItem, this._connectionsNode, this.deploymentsNode, this._siteFilesNode, this.logFilesNode];
+        return [this._tutorialNode, this._appSettingsTreeItem, this.deploymentsNode, this._siteFilesNode, this.logFilesNode];
     }
     public hasMoreChildrenImpl(): boolean {
         return false;
