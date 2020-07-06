@@ -7,7 +7,6 @@ import { MessageItem } from 'vscode';
 import { IActionContext } from 'vscode-azureextensionui';
 import { TrialAppContext } from '../../constants';
 import { ExpiredTrialAppTreeItem } from '../../explorer/trialApp/ExpiredTrialAppTreeItem';
-import { ITrialAppContext } from '../../explorer/trialApp/ITrialAppContext';
 import { TrialAppTreeItem } from '../../explorer/trialApp/TrialAppTreeItem';
 import { ext } from '../../extensionVariables';
 import { localize } from '../../localize';
@@ -18,12 +17,7 @@ export async function removeTrialApp(context: IActionContext, node?: TrialAppTre
         node = await ext.tree.showTreeItemPicker<TrialAppTreeItem>(TrialAppTreeItem.contextValue, context);
     }
 
-    const trialAppContext: ITrialAppContext | undefined = ext.context.globalState.get(TrialAppContext);
-    if (!trialAppContext) {
-        throw Error(localize('noTrialAppContext', 'Could not find trial app context.'));
-    }
-
-    const message: string = localize('removeTrialApp', 'Are you sure you want to remove trial app "{0}"?', trialAppContext.name);
+    const message: string = localize('removeTrialApp', 'Are you sure you want to remove trial app "{0}"?', node.label);
     const remove: MessageItem = { title: 'Remove' };
     await ext.ui.showWarningMessage(message, { modal: true }, remove);
 
