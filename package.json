@@ -520,7 +520,7 @@
                 },
                 {
                     "command": "appService.Refresh",
-                    "when": "view == azureAppService && viewItem =~ /^(appService|deploymentSlot)$/",
+                    "when": "view == azureAppService && viewItem =~ /^(appService|deploymentSlot|trialApp)$/",
                     "group": "7_appServiceRefreshCommands@1"
                 },
                 {
