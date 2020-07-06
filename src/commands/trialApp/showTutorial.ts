@@ -3,7 +3,7 @@
 *  Licensed under the MIT License. See License.txt in the project root for license information.
 *--------------------------------------------------------------------------------------------*/
 
-import { commands, Uri } from 'vscode';
+import { commands, extensions, Uri, window } from 'vscode';
 import { IActionContext } from 'vscode-azureextensionui';
 import { TrialAppTreeItem } from '../../explorer/trialApp/TrialAppTreeItem';
 import { localize } from '../../localize';
@@ -15,6 +15,9 @@ export async function showTutorial(context: IActionContext): Promise<void> {
 
     if (trialAppNode) {
         const extensionId: string = 'redhat.vscode-didact';
+        if (!extensions.getExtension(extensionId)) {
+            window.showInformationMessage('The Didact extension must be installed to view the trial app tutorial.');
+        }
         if (await installExtension(extensionId)) {
             const tutorialUri: Uri = Uri.file(ext.context.asAbsolutePath('resources/TrialApp.didact.md'));
             commands.executeCommand('vscode.didact.startDidact', tutorialUri);
