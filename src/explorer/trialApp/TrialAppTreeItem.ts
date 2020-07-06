@@ -42,7 +42,6 @@ export class TrialAppTreeItem extends SiteTreeItemBase implements ISiteTreeItem 
     private readonly _siteFilesNode: SiteFilesTreeItem;
     private readonly _connectionsNode: ConnectionsTreeItem;
     private readonly _tutorialNode: GenericTreeItem;
-    private readonly _refreshTimeout: NodeJS.Timeout;
 
     private constructor(parent: AzureAccountTreeItem, client: TrialAppClient) {
         super(parent);
@@ -56,12 +55,15 @@ export class TrialAppTreeItem extends SiteTreeItemBase implements ISiteTreeItem 
 
         // seconds * ms
         const interval: number = 60 * 1000;
-
-        this._refreshTimeout = setInterval(
-            async () => {
-                await this.refresh();
+        setTimeout(
+            // tslint:disable-next-line: no-function-expression
+            async function refresh(node: TrialAppTreeItem): Promise<void> {
+                await node.refresh();
+                if (ext.azureAccountTreeItem.trialAppNode) {
+                    setTimeout(refresh, interval, node);
+                }
             },
-            interval);
+            interval, this);
     }
 
     public static async createTrialAppTreeItem(parent: AzureAccountTreeItem, loginSession: string): Promise<TrialAppTreeItem> {
@@ -118,11 +120,7 @@ export class TrialAppTreeItem extends SiteTreeItemBase implements ISiteTreeItem 
     }
 
     public async refreshImpl(): Promise<void> {
-        if (ext.azureAccountTreeItem.trialAppNode) {
-            this.client = await TrialAppClient.createTrialAppClient(this.metadata.loginSession);
-        } else {
-            clearInterval(this._refreshTimeout);
-        }
+        this.client = await TrialAppClient.createTrialAppClient(this.metadata.loginSession);
     }
 
     public isAncestorOfImpl?(contextValue: string | RegExp): boolean {
