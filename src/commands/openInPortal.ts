@@ -18,7 +18,7 @@ export async function openInPortal(context: IActionContext, node?: AzExtTreeItem
     }
 
     if (node instanceof TrialAppDeploymentsTreeItem || node.parent instanceof TrialAppDeploymentsTreeItem) {
-        throw new OperationNotSupportedError();
+        throw new OperationNotSupportedError(context);
     }
 
     switch (node.contextValue) {
