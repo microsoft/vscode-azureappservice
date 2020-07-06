@@ -3,11 +3,13 @@
 *  Licensed under the MIT License. See License.txt in the project root for license information.
 *--------------------------------------------------------------------------------------------*/
 
+import { IActionContext } from 'vscode-azureextensionui';
 import { localize } from './localize';
 
 // tslint:disable: export-name
 export class OperationNotSupportedError extends Error {
-    constructor() {
+    constructor(context: IActionContext) {
+        context.errorHandling.suppressReportIssue = true;
         super(localize('notSupported', 'This operation is not supported.'));
     }
 }

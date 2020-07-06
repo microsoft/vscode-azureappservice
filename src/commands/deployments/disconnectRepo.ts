@@ -17,7 +17,6 @@ export async function disconnectRepo(context: IActionContext, node?: Deployments
     if (node.parent instanceof SiteTreeItem) {
         await disconnectRepository(context, node.parent.root.client, node.parent.root);
     } else {
-        context.errorHandling.suppressReportIssue = true;
-        throw new OperationNotSupportedError();
+        throw new OperationNotSupportedError(context);
     }
 }
