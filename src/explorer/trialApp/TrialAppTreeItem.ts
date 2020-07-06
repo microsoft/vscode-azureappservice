@@ -104,7 +104,6 @@ export class TrialAppTreeItem extends SiteTreeItemBase implements ISiteTreeItem 
     }
 
     public async loadMoreChildrenImpl(_clearCache: boolean, _context: IActionContext): Promise<AzExtTreeItem[]> {
-
         return [this._tutorialNode, this._appSettingsTreeItem, this._connectionsNode, this.deploymentsNode, this._siteFilesNode, this.logFilesNode];
     }
     public hasMoreChildrenImpl(): boolean {
