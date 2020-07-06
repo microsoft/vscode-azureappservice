@@ -16,7 +16,7 @@ export async function showTutorial(context: IActionContext): Promise<void> {
     if (trialAppNode) {
         const extensionId: string = 'redhat.vscode-didact';
         if (!extensions.getExtension(extensionId)) {
-            window.showInformationMessage('The Didact extension must be installed to view the trial app tutorial.');
+            window.showInformationMessage(localize('mustInstallDidact', 'The Didact extension must be installed to view the trial app tutorial.'));
         }
         if (await installExtension(extensionId)) {
             const tutorialUri: Uri = Uri.file(ext.context.asAbsolutePath('resources/TrialApp.didact.md'));
