@@ -98,7 +98,7 @@
             },
             {
                 "command": "appService.RemoveTrialApp",
-                "title": "Remove",
+                "title": "Remove...",
                 "category": "Azure App Service"
             },
             {
