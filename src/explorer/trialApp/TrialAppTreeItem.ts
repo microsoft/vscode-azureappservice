@@ -5,6 +5,7 @@
 
 import { AppSettingsTreeItem, DeploymentsTreeItem, LogFilesTreeItem, SiteFilesTreeItem } from 'vscode-azureappservice';
 import { AzExtTreeItem, GenericTreeItem, IActionContext } from 'vscode-azureextensionui';
+import { ext } from '../../extensionVariables';
 import { localize } from '../../localize';
 import { openUrl } from '../../utils/openUrl';
 import { getThemedIconPath } from '../../utils/pathUtils';
@@ -41,6 +42,7 @@ export class TrialAppTreeItem extends SiteTreeItemBase implements ISiteTreeItem 
     private readonly _siteFilesNode: SiteFilesTreeItem;
     private readonly _connectionsNode: ConnectionsTreeItem;
     private readonly _tutorialNode: GenericTreeItem;
+    private readonly _refreshTimeout: NodeJS.Timeout;
 
     private constructor(parent: AzureAccountTreeItem, client: TrialAppClient) {
         super(parent);
@@ -52,9 +54,10 @@ export class TrialAppTreeItem extends SiteTreeItemBase implements ISiteTreeItem 
         this.logFilesNode = new LogFilesTreeItem(this, this.client);
         this.deploymentsNode = new TrialAppDeploymentsTreeItem(this, this.client, {}, {});
 
-        // minutes * seconds * ms
-        const interval: number = 5 * 60 * 1000;
-        setInterval(
+        // seconds * ms
+        const interval: number = 60 * 1000;
+
+        this._refreshTimeout = setInterval(
             async () => {
                 await this.refresh();
             },
@@ -115,7 +118,11 @@ export class TrialAppTreeItem extends SiteTreeItemBase implements ISiteTreeItem 
     }
 
     public async refreshImpl(): Promise<void> {
-        this.client = await TrialAppClient.createTrialAppClient(this.metadata.loginSession);
+        if (ext.azureAccountTreeItem.trialAppNode) {
+            this.client = await TrialAppClient.createTrialAppClient(this.metadata.loginSession);
+        } else {
+            clearInterval(this._refreshTimeout);
+        }
     }
 
     public isAncestorOfImpl?(contextValue: string | RegExp): boolean {
