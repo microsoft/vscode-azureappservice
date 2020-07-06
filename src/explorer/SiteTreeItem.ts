@@ -37,7 +37,7 @@ export abstract class SiteTreeItem extends SiteTreeItemBase implements ISiteTree
         this._siteFilesNode = new SiteFilesTreeItem(this, client, false);
         this._logFilesNode = new LogFilesTreeItem(this, client);
         // Can't find actual documentation on this, but the portal claims it and this feedback suggests it's not planned https://aka.ms/AA4q5gi
-        this._webJobsNode = this.root.client.isLinux ? new WebJobsNATreeItem(parent) : new WebJobsTreeItem(this);
+        this._webJobsNode = this.root.client.isLinux ? new WebJobsNATreeItem(this) : new WebJobsTreeItem(this);
     }
 
     public get client(): SiteClient {
