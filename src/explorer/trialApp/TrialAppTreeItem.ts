@@ -51,6 +51,14 @@ export class TrialAppTreeItem extends SiteTreeItemBase implements ISiteTreeItem 
         this._tutorialNode = new GenericTreeItem(this, { label: 'Show tutorial', commandId: 'appService.ShowTutorial', contextValue: 'showTutorial', iconPath: getThemedIconPath('book') });
         this.logFilesNode = new LogFilesTreeItem(this, this.client);
         this.deploymentsNode = new TrialAppDeploymentsTreeItem(this, this.client, {}, {});
+
+        // minutes * seconds * ms
+        const interval: number = 5 * 60 * 1000;
+        setInterval(
+            async () => {
+                await this.refresh();
+            },
+            interval);
     }
 
     public static async createTrialAppTreeItem(parent: AzureAccountTreeItem, loginSession: string): Promise<TrialAppTreeItem> {
@@ -96,6 +104,7 @@ export class TrialAppTreeItem extends SiteTreeItemBase implements ISiteTreeItem 
     }
 
     public async loadMoreChildrenImpl(_clearCache: boolean, _context: IActionContext): Promise<AzExtTreeItem[]> {
+
         return [this._tutorialNode, this._appSettingsTreeItem, this._connectionsNode, this.deploymentsNode, this._siteFilesNode, this.logFilesNode];
     }
     public hasMoreChildrenImpl(): boolean {
