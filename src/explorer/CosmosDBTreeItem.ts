@@ -18,7 +18,7 @@ import { CosmosDBConnection } from './CosmosDBConnection';
 export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     public static contextValueInstalled: string = 'сosmosDBConnections';
     public static contextValueNotInstalled: string = 'сosmosDBNotInstalled';
-    public readonly label: string = 'Cosmos DB';
+    public readonly label: string = 'Azure Databases';
     public readonly childTypeLabel: string = 'Connection';
     public readonly parent: ConnectionsTreeItem;
     public cosmosDBExtension: vscode.Extension<AzureExtensionApiProvider | undefined> | undefined;
@@ -51,7 +51,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
             return [new GenericTreeItem(this, {
                 commandId: 'appService.InstallCosmosDBExtension',
                 contextValue: 'InstallCosmosDBExtension',
-                label: 'Install Cosmos DB Extension...'
+                label: 'Install Azure Databases Extension...'
             })];
         }
 
