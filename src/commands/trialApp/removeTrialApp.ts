@@ -20,7 +20,7 @@ export async function removeTrialApp(context: IActionContext, node?: TrialAppTre
 
     const trialAppContext: ITrialAppContext | undefined = ext.context.globalState.get(TrialAppContext);
     if (!trialAppContext) {
-        return;
+        throw Error(localize('noTrialAppContext', 'Could not find trial app context.'));
     }
 
     const message: string = localize('removeTrialApp', 'Are you sure you want to remove trial app "{0}"?', trialAppContext.name);
