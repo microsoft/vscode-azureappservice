@@ -32,7 +32,6 @@ export async function importTrialApp(context: IActionContext, loginSession: stri
         };
         context.telemetry.properties.trialTimeRemaining = String(trialAppNode.metadata.timeLeft);
         ext.context.globalState.update(TrialAppContext, trialAppContext);
-        await commands.executeCommand('setContext', 'hasTrialApp', true);
         await commands.executeCommand('workbench.view.extension.azure');
         await ext.azureAccountTreeItem.refresh();
     });

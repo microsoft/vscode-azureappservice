@@ -29,6 +29,7 @@ export class AzureAccountTreeItem extends AzureAccountTreeItemBase {
     public async loadMoreChildrenImpl(clearCache: boolean, context: IActionContext): Promise<AzExtTreeItem[]> {
         const ti: AzExtTreeItem | undefined = this.trialAppNode ?? await this.loadTrialAppNode();
         const children: AzExtTreeItem[] = await super.loadMoreChildrenImpl(clearCache, context);
+        await this.setContext(ti);
 
         if (ti) {
             children.push(ti);
@@ -69,6 +70,17 @@ export class AzureAccountTreeItem extends AzureAccountTreeItemBase {
         await this.trialAppNode?.refresh();
     }
 
+    private async setContext(treeItem: AzExtTreeItem | undefined): Promise<void> {
+        if (!treeItem) {
+            await commands.executeCommand('setContext', 'hasTrialApp', false);
+            return;
+        }
+        await commands.executeCommand('setContext', 'trialAppExpired', treeItem instanceof ExpiredTrialAppTreeItem);
+        if (treeItem instanceof TrialAppTreeItem || treeItem instanceof ExpiredTrialAppTreeItem) {
+            await commands.executeCommand('setContext', 'hasTrialApp', true);
+        }
+    }
+
     private async loadTrialAppNode(): Promise<AzExtTreeItem | undefined> {
         const trialAppContext: ITrialAppContext | undefined = ext.context.globalState.get(TrialAppContext);
         if (!trialAppContext) {
@@ -78,8 +90,6 @@ export class AzureAccountTreeItem extends AzureAccountTreeItemBase {
 
         if (trialAppContext.expirationDate < Date.now()) {
             this.trialAppNode = undefined;
-            await commands.executeCommand('setContext', 'trialAppExpired', true);
-            await commands.executeCommand('setContext', 'hasTrialApp', true);
             return new ExpiredTrialAppTreeItem(this, trialAppContext.name);
         }
 
@@ -87,7 +97,6 @@ export class AzureAccountTreeItem extends AzureAccountTreeItemBase {
             [trialAppContext.loginSession],
             'trialAppInvalid',
             async (source: string): Promise<AzExtTreeItem> => {
-                await commands.executeCommand('setContext', 'hasTrialApp', true);
                 return await TrialAppTreeItem.createTrialAppTreeItem(this, source);
             },
             (_source: unknown): string => {

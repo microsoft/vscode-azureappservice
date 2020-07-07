@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { commands, MessageItem } from 'vscode';
+import { MessageItem } from 'vscode';
 import { IActionContext } from 'vscode-azureextensionui';
 import { TrialAppContext } from '../../constants';
 import { ITrialAppContext } from '../../explorer/trialApp/ITrialAppContext';
@@ -30,7 +30,6 @@ export async function removeTrialApp(context: IActionContext, node?: TrialAppTre
         addTrialAppTelemetry(context, node);
     }
     ext.context.globalState.update(TrialAppContext, undefined);
-    await commands.executeCommand('setContext', 'hasTrialApp', false);
     delete ext.azureAccountTreeItem.trialAppNode;
     await ext.tree.refresh();
 }
