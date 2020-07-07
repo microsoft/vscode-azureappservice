@@ -3,7 +3,7 @@
 *  Licensed under the MIT License. See License.txt in the project root for license information.
 *--------------------------------------------------------------------------------------------*/
 
-import { commands, Uri } from 'vscode';
+import { commands, extensions, Uri } from 'vscode';
 import { IActionContext } from 'vscode-azureextensionui';
 import { TrialAppTreeItem } from '../../explorer/trialApp/TrialAppTreeItem';
 import { localize } from '../../localize';
@@ -15,12 +15,17 @@ export async function showTutorial(context: IActionContext): Promise<void> {
 
     if (trialAppNode) {
         const extensionId: string = 'redhat.vscode-didact';
-        if (await installExtension(extensionId)) {
-            const tutorialUri: Uri = Uri.file(ext.context.asAbsolutePath('resources/TrialApp.didact.md'));
-            commands.executeCommand('vscode.didact.startDidact', tutorialUri);
-            context.telemetry.properties.installedDidact = 'true';
-            context.telemetry.properties.trialTimeRemaining = String(trialAppNode.metadata.timeLeft);
+        if (!extensions.getExtension(extensionId)) {
+            await ext.ui.showWarningMessage(localize('didactInstall', 'You must have the "Didact" extension installed to perform this operation.'), { title: 'Install' });
+            if (await installExtension(extensionId)) {
+                context.telemetry.properties.installedDidact = 'true';
+            } else {
+                return;
+            }
         }
+        const tutorialUri: Uri = Uri.file(ext.context.asAbsolutePath('resources/TrialApp.didact.md'));
+        context.telemetry.properties.trialTimeRemaining = String(trialAppNode.metadata.timeLeft);
+        commands.executeCommand('vscode.didact.startDidact', tutorialUri);
     } else {
         throw Error(localize('trialAppNotFound', 'Trial app not found.'));
     }
