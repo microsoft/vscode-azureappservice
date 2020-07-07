@@ -9,8 +9,9 @@ import { localize } from "../../localize";
 import { getIconPath } from "../../utils/pathUtils";
 
 export class ExpiredTrialAppTreeItem extends AzExtParentTreeItem {
+    public static contextValue: string = 'trialAppExpired';
+    public contextValue: string = ExpiredTrialAppTreeItem.contextValue;
     public label: string;
-    public contextValue: string = 'trialAppExpired';
     public description: string = 'Expired';
 
     public constructor(parent: AzExtParentTreeItem, name: string) {

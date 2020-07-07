@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { commands } from 'vscode';
 import { AzExtTreeItem, AzureAccountTreeItemBase, GenericTreeItem, IActionContext, ISubscriptionContext } from 'vscode-azureextensionui';
 import { TrialAppContext } from '../constants';
 import { ext } from '../extensionVariables';
@@ -77,6 +78,7 @@ export class AzureAccountTreeItem extends AzureAccountTreeItemBase {
 
         if (trialAppContext.expirationDate < Date.now()) {
             this.trialAppNode = undefined;
+            await commands.executeCommand('setContext', 'trialAppExpired', true);
             return new ExpiredTrialAppTreeItem(this, trialAppContext.name);
         }
 
@@ -84,6 +86,7 @@ export class AzureAccountTreeItem extends AzureAccountTreeItemBase {
             [trialAppContext.loginSession],
             'trialAppInvalid',
             async (source: string): Promise<AzExtTreeItem> => {
+                await commands.executeCommand('setContext', 'hasTrialApp', true);
                 return await TrialAppTreeItem.createTrialAppTreeItem(this, source);
             },
             (_source: unknown): string => {
