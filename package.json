@@ -88,7 +88,7 @@
             },
             {
                 "command": "appService.CloneTrialApp",
-                "title": "Clone trial app...",
+                "title": "Clone Trial App...",
                 "category": "Azure App Service"
             },
             {
@@ -98,7 +98,7 @@
             },
             {
                 "command": "appService.RemoveTrialApp",
-                "title": "Remove trial app...",
+                "title": "Remove Trial App...",
                 "category": "Azure App Service"
             },
             {
