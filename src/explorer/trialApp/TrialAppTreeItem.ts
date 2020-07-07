@@ -55,15 +55,16 @@ export class TrialAppTreeItem extends SiteTreeItemBase implements ISiteTreeItem 
 
         // seconds * ms
         const interval: number = 60 * 1000;
-        setTimeout(
-            // tslint:disable-next-line: no-function-expression
-            async function refresh(node: TrialAppTreeItem): Promise<void> {
-                await node.refresh();
-                if (ext.azureAccountTreeItem.trialAppNode) {
-                    setTimeout(refresh, interval, node);
+        const intervalId: NodeJS.Timeout = setInterval(
+            async () => {
+                if (!ext.azureAccountTreeItem.trialAppNode) {
+                    clearInterval(intervalId);
+                } else {
+                    await ext.azureAccountTreeItem.trialAppNode.refresh();
                 }
             },
-            interval, this);
+            interval
+        );
     }
 
     public static async createTrialAppTreeItem(parent: AzureAccountTreeItem, loginSession: string): Promise<TrialAppTreeItem> {
