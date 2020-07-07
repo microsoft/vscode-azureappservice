@@ -5,6 +5,7 @@
 
 import { AppSettingsTreeItem, DeploymentsTreeItem, LogFilesTreeItem, SiteFilesTreeItem } from 'vscode-azureappservice';
 import { AzExtTreeItem, GenericTreeItem, IActionContext } from 'vscode-azureextensionui';
+import { TrialAppContext } from '../../constants';
 import { ext } from '../../extensionVariables';
 import { localize } from '../../localize';
 import { openUrl } from '../../utils/openUrl';
@@ -13,6 +14,7 @@ import { AzureAccountTreeItem } from '../AzureAccountTreeItem';
 import { ConnectionsTreeItem } from '../ConnectionsTreeItem';
 import { ISiteTreeItem } from '../ISiteTreeItem';
 import { SiteTreeItemBase } from '../SiteTreeItemBase';
+import { ITrialAppContext } from './ITrialAppContext';
 import { ITrialAppMetadata } from './ITrialAppMetadata';
 import { TrialAppClient } from './TrialAppClient';
 
@@ -57,7 +59,7 @@ export class TrialAppTreeItem extends SiteTreeItemBase implements ISiteTreeItem 
         const interval: number = 60 * 1000;
         const intervalId: NodeJS.Timeout = setInterval(
             async () => {
-                if (!ext.azureAccountTreeItem.trialAppNode) {
+                if (!ext.azureAccountTreeItem.trialAppNode || await this.isTrialAppExpired()) {
                     clearInterval(intervalId);
                 } else {
                     await ext.azureAccountTreeItem.trialAppNode.refresh();
@@ -137,6 +139,18 @@ export class TrialAppTreeItem extends SiteTreeItemBase implements ISiteTreeItem 
             return 1;
         }
         return super.compareChildrenImpl(item1, item2);
+    }
+
+    private async isTrialAppExpired(): Promise<boolean> {
+        const trialAppContext: ITrialAppContext | undefined = ext.context.globalState.get(TrialAppContext);
+        if (!trialAppContext) {
+            throw new Error(localize('noTrialContext', 'Could not get trial app context.'));
+        }
+
+        if (trialAppContext.expirationDate < Date.now()) {
+            return true;
+        }
+        return false;
     }
 }
 
