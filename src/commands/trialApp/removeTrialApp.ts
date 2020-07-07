@@ -6,6 +6,7 @@
 import { commands, MessageItem } from 'vscode';
 import { IActionContext } from 'vscode-azureextensionui';
 import { TrialAppContext } from '../../constants';
+import { ITrialAppContext } from '../../explorer/trialApp/ITrialAppContext';
 import { TrialAppTreeItem } from '../../explorer/trialApp/TrialAppTreeItem';
 import { ext } from '../../extensionVariables';
 import { localize } from '../../localize';
@@ -16,18 +17,20 @@ export async function removeTrialApp(context: IActionContext, node?: TrialAppTre
         node = ext.azureAccountTreeItem.trialAppNode;
     }
 
-    if (node) {
-        const message: string = localize('removeTrialApp', 'Are you sure you want to remove trial app "{0}"?', node.client.fullName);
-        const remove: MessageItem = { title: 'Remove' };
-        await ext.ui.showWarningMessage(message, { modal: true }, remove);
-
-        addTrialAppTelemetry(context, node);
-
-        ext.context.globalState.update(TrialAppContext, undefined);
-        await commands.executeCommand('setContext', 'hasTrialApp', false);
-        delete ext.azureAccountTreeItem.trialAppNode;
-        await ext.tree.refresh();
-    } else {
-        throw Error(localize('trialAppNotFound', 'Trial app not found.'));
+    const trialAppContext: ITrialAppContext | undefined = ext.context.globalState.get(TrialAppContext);
+    if (!trialAppContext) {
+        throw new Error(localize('noTrialContext', 'Cannot get trial app context.'));
     }
+
+    const message: string = localize('removeTrialApp', 'Are you sure you want to remove trial app "{0}"?', trialAppContext.name);
+    const remove: MessageItem = { title: 'Remove' };
+    await ext.ui.showWarningMessage(message, { modal: true }, remove);
+
+    if (node) {
+        addTrialAppTelemetry(context, node);
+    }
+    ext.context.globalState.update(TrialAppContext, undefined);
+    await commands.executeCommand('setContext', 'hasTrialApp', false);
+    delete ext.azureAccountTreeItem.trialAppNode;
+    await ext.tree.refresh();
 }

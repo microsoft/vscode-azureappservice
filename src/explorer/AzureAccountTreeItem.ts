@@ -79,6 +79,7 @@ export class AzureAccountTreeItem extends AzureAccountTreeItemBase {
         if (trialAppContext.expirationDate < Date.now()) {
             this.trialAppNode = undefined;
             await commands.executeCommand('setContext', 'trialAppExpired', true);
+            await commands.executeCommand('setContext', 'hasTrialApp', true);
             return new ExpiredTrialAppTreeItem(this, trialAppContext.name);
         }
 
