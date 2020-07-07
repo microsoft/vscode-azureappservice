@@ -140,7 +140,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
             }
         }
 
-        throw new Error('You must have the "Cosmos DB" extension installed to perform this operation.');
+        throw new Error('You must have the "Azure Databases" extension installed to perform this operation.');
     }
 
     private detectMongoConnections(appSettings: { [propertyName: string]: string }): IDetectedConnection[] {
