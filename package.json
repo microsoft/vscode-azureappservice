@@ -268,12 +268,12 @@
             },
             {
                 "command": "appService.InstallCosmosDBExtension",
-                "title": "Install Cosmos DB Extension",
+                "title": "Install Azure Databases Extension",
                 "category": "Azure App Service"
             },
             {
                 "command": "appService.RevealConnection",
-                "title": "Reveal in Cosmos DB Extension",
+                "title": "Reveal in Azure Databases Extension",
                 "category": "Azure App Service"
             },
             {
