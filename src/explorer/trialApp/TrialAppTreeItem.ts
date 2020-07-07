@@ -59,10 +59,11 @@ export class TrialAppTreeItem extends SiteTreeItemBase implements ISiteTreeItem 
         const interval: number = 60 * 1000;
         const intervalId: NodeJS.Timeout = setInterval(
             async () => {
-                if (!ext.azureAccountTreeItem.trialAppNode || await this.isTrialAppExpired()) {
+                if (ext.azureAccountTreeItem.trialAppNode !== this || this.client.isExpired) {
                     clearInterval(intervalId);
+                    await ext.azureAccountTreeItem.refresh();
                 } else {
-                    await ext.azureAccountTreeItem.trialAppNode.refresh();
+                    await this.refresh();
                 }
             },
             interval
