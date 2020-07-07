@@ -5,6 +5,7 @@
 
 import { AppSettingsTreeItem, DeploymentsTreeItem, LogFilesTreeItem, SiteFilesTreeItem } from 'vscode-azureappservice';
 import { AzExtTreeItem, GenericTreeItem, IActionContext } from 'vscode-azureextensionui';
+import { ext } from '../../extensionVariables';
 import { localize } from '../../localize';
 import { openUrl } from '../../utils/openUrl';
 import { getThemedIconPath } from '../../utils/pathUtils';
@@ -48,6 +49,21 @@ export class TrialAppTreeItem extends SiteTreeItemBase implements ISiteTreeItem 
         this._tutorialNode = new GenericTreeItem(this, { label: 'Show tutorial', commandId: 'appService.ShowTutorial', contextValue: 'showTutorial', iconPath: getThemedIconPath('book') });
         this.logFilesNode = new LogFilesTreeItem(this, this.client);
         this.deploymentsNode = new TrialAppDeploymentsTreeItem(this, this.client, {}, {});
+
+        // seconds * ms
+        const interval: number = 60 * 1000;
+        const intervalId: NodeJS.Timeout = setInterval(
+            async () => {
+                if (this.client.isExpired) {
+                    await ext.azureAccountTreeItem.refresh();
+                } else if (ext.azureAccountTreeItem.trialAppNode === this) {
+                    await this.refresh();
+                    return;
+                }
+                clearInterval(intervalId);
+            },
+            interval
+        );
     }
 
     public static async createTrialAppTreeItem(parent: AzureAccountTreeItem, loginSession: string): Promise<TrialAppTreeItem> {
