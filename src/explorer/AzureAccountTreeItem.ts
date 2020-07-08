@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { commands } from 'vscode';
 import { AzExtTreeItem, AzureAccountTreeItemBase, GenericTreeItem, IActionContext, ISubscriptionContext } from 'vscode-azureextensionui';
 import { TrialAppContext } from '../constants';
 import { ext } from '../extensionVariables';
@@ -28,6 +29,7 @@ export class AzureAccountTreeItem extends AzureAccountTreeItemBase {
     public async loadMoreChildrenImpl(clearCache: boolean, context: IActionContext): Promise<AzExtTreeItem[]> {
         const ti: AzExtTreeItem | undefined = this.trialAppNode ?? await this.loadTrialAppNode();
         const children: AzExtTreeItem[] = await super.loadMoreChildrenImpl(clearCache, context);
+        await this.setContext(ti);
 
         if (ti) {
             children.push(ti);
@@ -66,6 +68,17 @@ export class AzureAccountTreeItem extends AzureAccountTreeItemBase {
     public async refreshImpl(): Promise<void> {
         await this.loadTrialAppNode();
         await this.trialAppNode?.refresh();
+    }
+
+    private async setContext(treeItem: AzExtTreeItem | undefined): Promise<void> {
+        if (!treeItem) {
+            await commands.executeCommand('setContext', 'hasTrialApp', false);
+            return;
+        }
+        await commands.executeCommand('setContext', 'trialAppExpired', treeItem instanceof ExpiredTrialAppTreeItem);
+        if (treeItem instanceof TrialAppTreeItem || treeItem instanceof ExpiredTrialAppTreeItem) {
+            await commands.executeCommand('setContext', 'hasTrialApp', true);
+        }
     }
 
     private async loadTrialAppNode(): Promise<AzExtTreeItem | undefined> {

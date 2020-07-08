@@ -88,7 +88,7 @@
             },
             {
                 "command": "appService.CloneTrialApp",
-                "title": "Clone...",
+                "title": "Clone Trial App...",
                 "category": "Azure App Service"
             },
             {
@@ -98,7 +98,7 @@
             },
             {
                 "command": "appService.RemoveTrialApp",
-                "title": "Remove",
+                "title": "Remove Trial App...",
                 "category": "Azure App Service"
             },
             {
@@ -347,8 +347,16 @@
         "menus": {
             "commandPalette": [
                 {
+                    "command": "appService.RemoveTrialApp",
+                    "when": "hasTrialApp"
+                },
+                {
+                    "command": "appService.CloneTrialApp",
+                    "when": "hasTrialApp && !trialAppExpired"
+                },
+                {
                     "command": "appService.TransferToSubscription",
-                    "when": "never"
+                    "when": "hasTrialApp"
                 },
                 {
                     "command": "appService.CreateTrialApp",
@@ -356,14 +364,6 @@
                 },
                 {
                     "command": "appService.ImportTrialApp",
-                    "when": "never"
-                },
-                {
-                    "command": "appService.CloneTrialApp",
-                    "when": "never"
-                },
-                {
-                    "command": "appService.RemoveTrialApp",
                     "when": "never"
                 },
                 {
