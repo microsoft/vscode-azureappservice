@@ -2,7 +2,7 @@
 
 ## 0.18.0 - 2020-07-10
 ### Added
-- Added support for Free App Service Trial Apps! Visit [here](https://code.visualstudio.com/tryappservice/?utm_source=appservice-extension) to Create and Import your own Free NodeJS Trial App.
+- Added support for Free App Service Trial Apps! Visit [here](https://code.visualstudio.com/tryappservice/?utm_source=appservice-extension) to Create and Import your own Free Node.js Trial App.
 
 ### Fixed
 - [Bugs Fixed](https://github.com/microsoft/vscode-azureappservice/issues?q=is%3Aissue+milestone%3A0.18.0+is%3Aclosed)
