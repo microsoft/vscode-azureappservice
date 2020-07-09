@@ -20,6 +20,10 @@ export class AppServiceFileSystem extends AzExtTreeFileSystem<FileTreeItem> {
         return node.label;
     }
 
+    public getResourceName(node: FileTreeItem): string {
+        return node.client.fullName;
+    }
+
     public async statImpl(_context: IActionContext, _node: FileTreeItem): Promise<FileStat> {
         // this is not implemented for Azure App Services
         return { type: FileType.File, ctime: 0, mtime: 0, size: 0 };
@@ -32,17 +36,6 @@ export class AppServiceFileSystem extends AzExtTreeFileSystem<FileTreeItem> {
     }
 
     public async writeFileImpl(_context: IActionContext, node: FileTreeItem, content: Uint8Array, _originalUri: Uri): Promise<void> {
-        const showSavePromptKey: string = 'showSavePrompt';
-        if (getWorkspaceSetting<boolean>(showSavePromptKey)) {
-            const message: string = localize('saveConfirmation', 'Saving "{0}" will update the file "{0}" in "{1}".', node.label, node.client.fullName);
-            const result: MessageItem | undefined = await ext.ui.showWarningMessage(message, DialogResponses.upload, DialogResponses.alwaysUpload, DialogResponses.dontUpload);
-            if (result === DialogResponses.alwaysUpload) {
-                await updateGlobalSetting(showSavePromptKey, false);
-            } else if (result === DialogResponses.dontUpload) {
-                throw new UserCancelledError();
-            }
-        }
-
         let etag: string = nonNullValue(this._etags.get(node.fullId), 'etag');
         try {
             await putFile(node.client, content.toString(), node.path, etag);
@@ -57,5 +50,19 @@ export class AppServiceFileSystem extends AzExtTreeFileSystem<FileTreeItem> {
         etag = (await getFile(node.client, node.path)).etag;
         this._etags.set(node.fullId, etag);
         await node.refresh();
+    }
+
+    public async shouldWriteFileImpl(_context: IActionContext, node: FileTreeItem): Promise<boolean> {
+        const showSavePromptKey: string = 'showSavePrompt';
+        if (getWorkspaceSetting<boolean>(showSavePromptKey)) {
+            const message: string = localize('saveConfirmation', 'Saving "{0}" will update the file "{0}" in "{1}".', node.label, node.client.fullName);
+            const result: MessageItem | undefined = await ext.ui.showWarningMessage(message, DialogResponses.upload, DialogResponses.alwaysUpload, DialogResponses.dontUpload);
+            if (result === DialogResponses.alwaysUpload) {
+                await updateGlobalSetting(showSavePromptKey, false);
+            } else if (result === DialogResponses.dontUpload) {
+                throw new UserCancelledError();
+            }
+        }
+        return true;
     }
 }
