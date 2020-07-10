@@ -63,6 +63,5 @@ export class AppServiceFileSystem extends AzExtTreeFileSystem<FileTreeItem> {
 
     public appendLineToOutput(value: string, options?: { resourceName?: string, date?: Date }): void {
         ext.outputChannel.appendLog(value, options);
-        ext.outputChannel.show(true);
     }
 }
