@@ -45,7 +45,7 @@ export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | 
 
     // because this is workspace dependant, do it before user selects app
     await setPreDeployTaskForDotnet(context);
-    const node: SiteTreeItem | TrialAppTreeItem = await getDeployNode(context, arg1, arg2, [WebAppTreeItem.contextValue, TrialAppTreeItem.contextValue]);
+    const node: SiteTreeItem | TrialAppTreeItem = await getDeployNode(context, ext.tree, arg1, arg2, [WebAppTreeItem.contextValue, TrialAppTreeItem.contextValue]);
 
     if (node instanceof TrialAppTreeItem) {
         await enableScmDoBuildDuringDeploy(context.effectiveDeployFsPath, 'NODE|12-lts');
