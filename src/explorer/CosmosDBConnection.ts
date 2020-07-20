@@ -3,14 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ISiteTreeRoot } from 'vscode-azureappservice';
-import { AzureTreeItem, DialogResponses } from 'vscode-azureextensionui';
+import { IAppSettingsClient } from 'vscode-azureappservice';
+import { AzExtTreeItem, DialogResponses } from 'vscode-azureextensionui';
 import { ext } from '../extensionVariables';
 import { getThemedIconPath, IThemedIconPath } from '../utils/pathUtils';
 import { DatabaseAccountTreeItem, DatabaseTreeItem } from '../vscode-cosmos.api';
 import { CosmosDBTreeItem } from './CosmosDBTreeItem';
 
-export class CosmosDBConnection extends AzureTreeItem<ISiteTreeRoot> {
+export class CosmosDBConnection extends AzExtTreeItem {
     public static contextValue: string = 'cosmosDBConnection';
     public readonly contextValue: string = CosmosDBConnection.contextValue;
     public readonly label: string;
@@ -47,7 +47,8 @@ export class CosmosDBConnection extends AzureTreeItem<ISiteTreeRoot> {
     }
 
     public async deleteTreeItemImpl(): Promise<void> {
-        const appSettings = await this.root.client.listApplicationSettings();
+        const appSettingsClient: IAppSettingsClient = this.parent.parent.client;
+        const appSettings = await appSettingsClient.listApplicationSettings();
         const properties = appSettings.properties;
         if (properties) {
             const warning: string = `Are you sure you want to remove connection "${this.label}"? This will delete the following application settings: ${this.appSettingKeys.map((s) => `"${s}"`).join(', ')}.`;
@@ -55,7 +56,7 @@ export class CosmosDBConnection extends AzureTreeItem<ISiteTreeRoot> {
             this.appSettingKeys.forEach((key) => {
                 delete properties[key];
             });
-            await this.root.client.updateApplicationSettings(appSettings);
+            await appSettingsClient.updateApplicationSettings(appSettings);
             await this.parent.parent.parent.appSettingsNode.refresh();
         }
     }
