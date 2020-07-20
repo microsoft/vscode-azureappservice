@@ -3,14 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IAppSettingsClient, ISiteTreeRoot } from 'vscode-azureappservice';
-import { AzureTreeItem, DialogResponses } from 'vscode-azureextensionui';
+import { IAppSettingsClient } from 'vscode-azureappservice';
+import { AzExtTreeItem, DialogResponses } from 'vscode-azureextensionui';
 import { ext } from '../extensionVariables';
 import { getThemedIconPath, IThemedIconPath } from '../utils/pathUtils';
 import { DatabaseAccountTreeItem, DatabaseTreeItem } from '../vscode-cosmos.api';
 import { CosmosDBTreeItem } from './CosmosDBTreeItem';
 
-export class CosmosDBConnection extends AzureTreeItem<ISiteTreeRoot> {
+export class CosmosDBConnection extends AzExtTreeItem {
     public static contextValue: string = 'cosmosDBConnection';
     public readonly contextValue: string = CosmosDBConnection.contextValue;
     public readonly label: string;
