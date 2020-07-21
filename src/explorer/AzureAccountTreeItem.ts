@@ -28,8 +28,8 @@ export class AzureAccountTreeItem extends AzureAccountTreeItemBase {
 
     public async loadMoreChildrenImpl(clearCache: boolean, context: IActionContext): Promise<AzExtTreeItem[]> {
         const ti: AzExtTreeItem | undefined = this.trialAppNode ?? await this.loadTrialAppNode();
-        const children: AzExtTreeItem[] = await super.loadMoreChildrenImpl(clearCache, context);
         await this.setContext(ti);
+        const children: AzExtTreeItem[] = await super.loadMoreChildrenImpl(clearCache, context);
 
         if (ti) {
             children.push(ti);
