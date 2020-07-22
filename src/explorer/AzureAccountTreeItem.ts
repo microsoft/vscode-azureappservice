@@ -28,8 +28,10 @@ export class AzureAccountTreeItem extends AzureAccountTreeItemBase {
 
     public async loadMoreChildrenImpl(clearCache: boolean, context: IActionContext): Promise<AzExtTreeItem[]> {
         const ti: AzExtTreeItem | undefined = this.trialAppNode ?? await this.loadTrialAppNode();
-        const children: AzExtTreeItem[] = await super.loadMoreChildrenImpl(clearCache, context);
         await this.setContext(ti);
+
+        // Putting this after all other async calls to hopefully fix https://github.com/microsoft/vscode-azureappservice/issues/1600
+        const children: AzExtTreeItem[] = await super.loadMoreChildrenImpl(clearCache, context);
 
         if (ti) {
             children.push(ti);
