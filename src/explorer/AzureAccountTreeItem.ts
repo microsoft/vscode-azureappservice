@@ -30,7 +30,7 @@ export class AzureAccountTreeItem extends AzureAccountTreeItemBase {
         const ti: AzExtTreeItem | undefined = this.trialAppNode ?? await this.loadTrialAppNode();
         await this.setContext(ti);
 
-        // Must be called after all other async calls to prevent getting stuck on the "Loading..." tree item.
+        // Putting this after all other async calls to hopefully fix https://github.com/microsoft/vscode-azureappservice/issues/1600
         const children: AzExtTreeItem[] = await super.loadMoreChildrenImpl(clearCache, context);
 
         if (ti) {
