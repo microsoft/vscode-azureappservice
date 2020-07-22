@@ -11,7 +11,7 @@ This tutorial will show you how to make and deploy changes to your Azure App Ser
 ![Trial app view](./trialAppTutorial/viewTrialAppScreenshot.png)
 
 2. Right-click on the trial app.
-3. Select `Clone Trial App...`.
+3. Select `Clone Trial App...`
 
 ![Right-click Clone](./trialAppTutorial/rightClickCloneScreenshot.png)
 
@@ -24,7 +24,7 @@ This tutorial will show you how to make and deploy changes to your Azure App Ser
 
 ### Step 2: Make some changes to your app
 
-Make some changes to your trial app. Try changing some text in `template.html`.
+Make some changes to your trial app. Try changing some text in `template.html`
 
 For example, change line 26 from: `<h1> Welcome to Azure! </h1>` to this: `<h1> Hello, world! </h1>`
 
@@ -44,7 +44,7 @@ For example, change line 26 from: `<h1> Welcome to Azure! </h1>` to this: `<h1> 
 
 ![Deploy complete notification](./trialAppTutorial/deployCompleteScreenshot.png)
 
-You can also browse your website by right-clicking your trial app and selecting `Browse website`.
+You can also browse your website by right-clicking your trial app and selecting `Browse Website`
 
 ![Right-click browse website](./trialAppTutorial/browseWebsiteRedScreenshot.png)
 
