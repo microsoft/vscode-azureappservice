@@ -1,4 +1,4 @@
-# Welcome to your Trial App Didact Tutorial
+# Welcome to your Trial App
 
 This tutorial will show you how to make and deploy changes to your Azure App Service trial app. Your trial will last 60 minutes. You can find more information about Azure App Service [here](https://docs.microsoft.com/en-us/azure/app-service/).
 
@@ -11,18 +11,20 @@ This tutorial will show you how to make and deploy changes to your Azure App Ser
 ![Trial app view](./trialAppTutorial/viewTrialAppScreenshot.png)
 
 2. Right-click on the trial app.
-3. Select `Clone`.
+3. Select `Clone Trial App...`
 
 ![Right-click Clone](./trialAppTutorial/rightClickCloneScreenshot.png)
 
 4. Select the cloned repository's location.
 5. When the repository has finished cloning a notification like the one below will appear. Open the folder in VS Code or add it to the workspace.
 
+*Note: Selecting the `Open` option will reload VS Code*
+
 ![Clone finished notification](./trialAppTutorial/cloneNotificationScreenshot.png)
 
 ### Step 2: Make some changes to your app
 
-Make some changes to your trial app. Try changing some text in `template.html`.
+Make some changes to your trial app. Try changing some text in `template.html`
 
 For example, change line 26 from: `<h1> Welcome to Azure! </h1>` to this: `<h1> Hello, world! </h1>`
 
@@ -42,7 +44,7 @@ For example, change line 26 from: `<h1> Welcome to Azure! </h1>` to this: `<h1> 
 
 ![Deploy complete notification](./trialAppTutorial/deployCompleteScreenshot.png)
 
-You can also browse your website by right-clicking your trial app and selecting `Browse`.
+You can also browse your website by right-clicking your trial app and selecting `Browse Website`
 
 ![Right-click browse website](./trialAppTutorial/browseWebsiteRedScreenshot.png)
 
