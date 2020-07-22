@@ -29,6 +29,8 @@ export class AzureAccountTreeItem extends AzureAccountTreeItemBase {
     public async loadMoreChildrenImpl(clearCache: boolean, context: IActionContext): Promise<AzExtTreeItem[]> {
         const ti: AzExtTreeItem | undefined = this.trialAppNode ?? await this.loadTrialAppNode();
         await this.setContext(ti);
+
+        // Must be called after all other async calls to prevent getting stuck on the "Loading..." tree item.
         const children: AzExtTreeItem[] = await super.loadMoreChildrenImpl(clearCache, context);
 
         if (ti) {
