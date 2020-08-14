@@ -27,6 +27,11 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     private readonly _keySuffix: string = '_MASTER_KEY';
     private readonly _databaseSuffix: string = '_DATABASE_ID';
 
+    private readonly _hostSuffix: string = '_DBHOST';
+    private readonly _dbNameSuffix: string = '_DBNAME';
+    private readonly _userSuffix: string = '_DBUSER';
+    private readonly _passSuffix: string = '_DBPASS';
+
     private _cosmosDBApi: CosmosDBExtensionApi | undefined;
 
     constructor(parent: ConnectionsTreeItem) {
@@ -39,7 +44,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     }
 
     public get iconPath(): IThemedIconPath {
-        return getThemedIconPath('CosmosDBAccount');
+        return getThemedIconPath('AzureDatabases');
     }
 
     public async refreshImpl(): Promise<void> {
@@ -58,7 +63,8 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         const cosmosDBApi = await this.getCosmosDBApi();
         // tslint:disable-next-line:strict-boolean-expressions
         const appSettings = (await this.parent.client.listApplicationSettings()).properties || {};
-        const connections: IDetectedConnection[] = this.detectMongoConnections(appSettings).concat(this.detectDocDBConnections(appSettings));
+        const connections: IDetectedConnection[] = this.detectMongoConnections(appSettings).concat(this.detectDocDBConnections(appSettings)).concat(this.detectPostgresConnections(appSettings));
+        // tslint:disable-next-line: no-console
         const treeItems = await this.createTreeItemsWithErrorHandling(
             connections,
             'invalidCosmosDBConnection',
@@ -75,9 +81,9 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
             return treeItems;
         } else {
             return [new GenericTreeItem(this, {
-                commandId: 'appService.AddCosmosDBConnection',
-                contextValue: 'AddCosmosDBConnection',
-                label: 'Add Cosmos DB Connection...'
+                commandId: 'appService.AddAzureDatabasesConnection',
+                contextValue: 'AddAzureDatabasesConnection',
+                label: 'Add Azure Databases Connection...'
             })];
         }
     }
@@ -94,9 +100,14 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         // tslint:disable-next-line:strict-boolean-expressions
         appSettingsDict.properties = appSettingsDict.properties || {};
 
-        const newAppSettings: Map<string, string> = databaseToAdd.docDBData ?
-            await this.promptForDocDBAppSettings(appSettingsDict, databaseToAdd) :
-            await this.promptForMongoAppSettings(appSettingsDict, databaseToAdd);
+        let newAppSettings: Map<string, string>;
+        if (databaseToAdd.docDBData) {
+            newAppSettings = await this.promptForDocDBAppSettings(appSettingsDict, databaseToAdd);
+        } else if (databaseToAdd.postgresData) {
+            newAppSettings = await this.promptForPostgresAppSettings(appSettingsDict, databaseToAdd);
+        } else {
+            newAppSettings = await this.promptForMongoAppSettings(appSettingsDict, databaseToAdd);
+        }
 
         for (const [k, v] of newAppSettings) {
             appSettingsDict.properties[k] = v;
@@ -157,10 +168,50 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         return result;
     }
 
+    private detectPostgresConnections(appSettings: { [propertyName: string]: string }): IDetectedConnection[] {
+        const connectionStringPrefix = 'postgres://';
+        const connectionStringPort = '5432';
+
+        const result: IDetectedConnection[] = [];
+        const regexp = new RegExp(`(.+)${this._hostSuffix}`, 'i');
+        for (const key of Object.keys(appSettings)) {
+            const match = key && key.match(regexp);
+            if (match) {
+                const prefix = match[1];
+                const hostKey = prefix + this._hostSuffix;
+                const dbNameKey = prefix + this._dbNameSuffix;
+                const userKey = prefix + this._userSuffix;
+                const passKey = prefix + this._passSuffix;
+                const host: string | undefined = appSettings[hostKey];
+                const dbName: string | undefined = appSettings[dbNameKey];
+                const username: string | undefined = appSettings[userKey];
+                const password: string | undefined = appSettings[passKey];
+
+                if (host && username && password) {
+                    const keys: string[] = [hostKey, userKey, passKey];
+                    let connectionString: string = `${connectionStringPrefix}${username}:${password}@${host}:${connectionStringPort}`;
+                    if (dbNameKey) {
+                        keys.push(dbNameKey);
+                        connectionString += `/${dbName}`;
+                    }
+                    result.push({ keys, connectionString });
+                } else if (host) {
+                    const keys: string[] = [hostKey];
+                    let connectionString: string = `${connectionStringPrefix}${host}:${connectionStringPort}`;
+                    if (dbNameKey) {
+                        keys.push(dbNameKey);
+                        connectionString += `/${dbName}`;
+                    }
+                    result.push({ keys, connectionString });
+                }
+            }
+        }
+        return result;
+    }
+
     private detectDocDBConnections(appSettings: { [propertyName: string]: string }): IDetectedConnection[] {
         const connectionStringEndpointPrefix = 'AccountEndpoint=';
         const connectionStringKeyPrefix = 'AccountKey=';
-
         const result: IDetectedConnection[] = [];
         const regexp = new RegExp(`(.+)${this._endpointSuffix}`, 'i');
         for (const key of Object.keys(appSettings)) {
@@ -211,6 +262,30 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         });
 
         return new Map([[appSettingKey, database.connectionString]]);
+    }
+
+    private async promptForPostgresAppSettings(appSettingsDict: StringDictionary, database: DatabaseTreeItem): Promise<Map<string, string>> {
+        const prompt: string = 'Enter new connection setting prefix';
+        const defaultPrefix: string = 'POSTGRES';
+
+        const appSettingPrefix: string = await ext.ui.showInputBox({
+            prompt,
+            validateInput: (v: string): string | undefined => {
+                if (!v) {
+                    return "Connection setting prefix cannot be empty.";
+                } else {
+                    return validateAppSettingKey(appSettingsDict, this.parent.client, v + this._hostSuffix) || validateAppSettingKey(appSettingsDict, this.parent.client, v + this._dbNameSuffix) || validateAppSettingKey(appSettingsDict, this.parent.client, v + this._userSuffix) || validateAppSettingKey(appSettingsDict, this.parent.client, v + this._passSuffix);
+                }
+            },
+            value: defaultPrefix
+        });
+
+        return new Map([
+            [appSettingPrefix + this._hostSuffix, database.hostName],
+            [appSettingPrefix + this._dbNameSuffix, database.databaseName],
+            [appSettingPrefix + this._userSuffix, nonNullProp(database, 'postgresData').username],
+            [appSettingPrefix + this._passSuffix, nonNullProp(database, 'postgresData').password]
+        ]);
     }
 
     private async promptForDocDBAppSettings(appSettingsDict: StringDictionary, database: DatabaseTreeItem): Promise<Map<string, string>> {
