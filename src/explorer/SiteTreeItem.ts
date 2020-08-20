@@ -7,7 +7,6 @@ import * as WebSiteModels from 'azure-arm-website/lib/models';
 import { AppSettingsTreeItem, AppSettingTreeItem, deleteSite, DeploymentsTreeItem, DeploymentTreeItem, FolderTreeItem, ISiteTreeRoot, LogFilesTreeItem, SiteClient, SiteFilesTreeItem } from 'vscode-azureappservice';
 import { AzExtTreeItem, AzureParentTreeItem, AzureTreeItem, openInPortal } from 'vscode-azureextensionui';
 import { openUrl } from '../utils/openUrl';
-import { ConnectionsTreeItem } from './ConnectionsTreeItem';
 import { CosmosDBConnection } from './CosmosDBConnection';
 import { CosmosDBTreeItem } from './CosmosDBTreeItem';
 import { ISiteTreeItem } from './ISiteTreeItem';
@@ -19,7 +18,7 @@ export abstract class SiteTreeItem extends SiteTreeItemBase implements ISiteTree
     public readonly appSettingsNode: AppSettingsTreeItem;
     public deploymentsNode: DeploymentsTreeItem | undefined;
     public parent: AzureParentTreeItem;
-    private readonly _connectionsNode: ConnectionsTreeItem;
+    private readonly _connectionsNode: CosmosDBTreeItem;
     private readonly _siteFilesNode: SiteFilesTreeItem;
     private readonly _logFilesNode: LogFilesTreeItem;
     private readonly _webJobsNode: WebJobsTreeItem | WebJobsNATreeItem;
@@ -33,7 +32,7 @@ export abstract class SiteTreeItem extends SiteTreeItemBase implements ISiteTree
         this._state = client.initialState;
 
         this.appSettingsNode = new AppSettingsTreeItem(this, client);
-        this._connectionsNode = new ConnectionsTreeItem(this, client);
+        this._connectionsNode = new CosmosDBTreeItem(this, client);
         this._siteFilesNode = new SiteFilesTreeItem(this, client, false);
         this._logFilesNode = new LogFilesTreeItem(this, client);
         // Can't find actual documentation on this, but the portal claims it and this feedback suggests it's not planned https://aka.ms/AA4q5gi
@@ -111,7 +110,6 @@ export abstract class SiteTreeItem extends SiteTreeItemBase implements ISiteTree
                 case AppSettingsTreeItem.contextValue:
                 case AppSettingTreeItem.contextValue:
                     return this.appSettingsNode;
-                case ConnectionsTreeItem.contextValue:
                 case CosmosDBTreeItem.contextValueInstalled:
                 case CosmosDBTreeItem.contextValueNotInstalled:
                 case CosmosDBConnection.contextValue:
