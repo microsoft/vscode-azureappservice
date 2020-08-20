@@ -14,7 +14,7 @@ export async function revealConnectionInAppSettings(context: IActionContext, nod
 
     // Ideally this reveals all appSettingKeys, but for now just reveal the first one
     const firstKey: string = node.appSettingKeys[0];
-    const nodeToReveal = await ext.tree.findTreeItem(`${node.parent.parent.parent.appSettingsNode.fullId}/${firstKey}`, context);
+    const nodeToReveal = await ext.tree.findTreeItem(`${node.parent.parent.appSettingsNode.fullId}/${firstKey}`, context);
     if (!nodeToReveal) {
         throw new Error(`Failed to find app setting with key "${firstKey}".`);
     }

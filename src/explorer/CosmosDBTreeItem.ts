@@ -5,22 +5,23 @@
 
 import { StringDictionary } from 'azure-arm-website/lib/models';
 import * as vscode from 'vscode';
-import { ISiteTreeRoot, validateAppSettingKey } from 'vscode-azureappservice';
+import { IAppSettingsClient, ISiteTreeRoot, validateAppSettingKey } from 'vscode-azureappservice';
 import { AzExtTreeItem, AzureParentTreeItem, GenericTreeItem, ICreateChildImplContext, UserCancelledError } from 'vscode-azureextensionui';
 import { AzureExtensionApiProvider } from 'vscode-azureextensionui/api';
 import { ext } from '../extensionVariables';
 import { nonNullProp } from '../utils/nonNull';
 import { getThemedIconPath, IThemedIconPath } from '../utils/pathUtils';
 import { CosmosDBExtensionApi, DatabaseTreeItem } from '../vscode-cosmos.api';
-import { ConnectionsTreeItem } from './ConnectionsTreeItem';
 import { CosmosDBConnection } from './CosmosDBConnection';
+import { SiteTreeItem } from './SiteTreeItem';
 
 export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     public static contextValueInstalled: string = 'сosmosDBConnections';
     public static contextValueNotInstalled: string = 'сosmosDBNotInstalled';
     public readonly label: string = 'Azure Databases';
     public readonly childTypeLabel: string = 'Connection';
-    public readonly parent: ConnectionsTreeItem;
+    public readonly parent: SiteTreeItem;
+    public readonly client: IAppSettingsClient;
     public cosmosDBExtension: vscode.Extension<AzureExtensionApiProvider | undefined> | undefined;
 
     private readonly _endpointSuffix: string = '_ENDPOINT';
@@ -29,8 +30,9 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
 
     private _cosmosDBApi: CosmosDBExtensionApi | undefined;
 
-    constructor(parent: ConnectionsTreeItem) {
+    constructor(parent: SiteTreeItem, client: IAppSettingsClient) {
         super(parent);
+        this.client = client;
         this.cosmosDBExtension = vscode.extensions.getExtension('ms-azuretools.vscode-cosmosdb');
     }
 
@@ -39,7 +41,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     }
 
     public get iconPath(): IThemedIconPath {
-        return getThemedIconPath('CosmosDBAccount');
+        return getThemedIconPath('AzureDatabases');
     }
 
     public async refreshImpl(): Promise<void> {
@@ -103,7 +105,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         }
 
         await this.parent.client.updateApplicationSettings(appSettingsDict);
-        await this.parent.parent.appSettingsNode.refresh();
+        await this.parent.appSettingsNode.refresh();
 
         const createdDatabase = new CosmosDBConnection(this, databaseToAdd, Array.from(newAppSettings.keys()));
         context.showCreatingTreeItem(createdDatabase.label);
