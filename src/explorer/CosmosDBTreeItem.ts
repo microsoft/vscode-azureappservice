@@ -18,7 +18,7 @@ import { SiteTreeItem } from './SiteTreeItem';
 export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     public static contextValueInstalled: string = 'сosmosDBConnections';
     public static contextValueNotInstalled: string = 'сosmosDBNotInstalled';
-    public readonly label: string = 'Azure Databases';
+    public readonly label: string = 'Databases';
     public readonly childTypeLabel: string = 'Connection';
     public readonly parent: SiteTreeItem;
     public readonly client: IAppSettingsClient;
