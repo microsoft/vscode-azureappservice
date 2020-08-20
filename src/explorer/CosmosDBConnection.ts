@@ -60,7 +60,7 @@ export class CosmosDBConnection extends AzExtTreeItem {
                 delete properties[key];
             });
             await appSettingsClient.updateApplicationSettings(appSettings);
-            await this.parent.parent.parent.appSettingsNode.refresh();
+            await this.parent.parent.appSettingsNode.refresh();
         }
     }
 }
