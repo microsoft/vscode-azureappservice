@@ -139,11 +139,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
 
     private async getCosmosDBApi(): Promise<CosmosDBExtensionApi> {
         if (this._cosmosDBApi) {
-            if ('1.2.0' === this._cosmosDBApi.apiVersion) {
-                return this._cosmosDBApi;
-            } else {
-                throw new Error('You must install the latest "Azure Databases" extension to perform this operation.');
-            }
+            return this._cosmosDBApi;
         } else if (this.cosmosDBExtension) {
             if (!this.cosmosDBExtension.isActive) {
                 await this.cosmosDBExtension.activate();
@@ -196,16 +192,14 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
 
                 if (host) {
                     const keys: string[] = [hostKey];
+                    keys.push(userKey, passKey, portKey, dbNameKey);
                     let connectionString: string = connectionStringPrefix;
                     if (username && password) {
-                        keys.push(userKey, passKey);
                         connectionString += `${username}:${password}@`;
                     }
-                    keys.push(port ? port : portDefault);
                     connectionString += `${host}:${port ? port : portDefault}`;
                     if (dbName) {
-                        keys.push(dbNameKey);
-                        connectionString.concat(`/"${dbName}"`);
+                        connectionString += `/${dbName}`;
                     }
                     result.push({ keys, connectionString });
                 }
