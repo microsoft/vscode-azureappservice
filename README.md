@@ -1,6 +1,10 @@
 # Azure App Service for Visual Studio Code (Preview)
 
+<!-- region exclude-from-marketplace -->
+
 [![Version](https://vsmarketplacebadge.apphb.com/version/ms-azuretools.vscode-azureappservice.svg)](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-azureappservice) [![Installs](https://vsmarketplacebadge.apphb.com/installs-short/ms-azuretools.vscode-azureappservice.svg)](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-azureappservice) [![Build Status](https://dev.azure.com/ms-azuretools/AzCode/_apis/build/status/vscode-azureappservice)](https://dev.azure.com/ms-azuretools/AzCode/_build/latest?definitionId=5)
+
+<!-- endregion exclude-from-marketplace -->
 
 App Service is Azure's fully-managed Platform as a Service (PaaS) that let's you
 deploy and scale web, mobile, and API apps. Use the Azure App Service extension
@@ -67,6 +71,8 @@ Connecting to log stream...
 
 * Local Git deployment may fail with large commits
 
+<!-- region exclude-from-marketplace -->
+
 ## Contributing
 
 There are a couple of ways you can contribute to this repo:
@@ -87,6 +93,8 @@ Before we can accept your pull request you will need to sign a **Contribution Li
 ### Code of Conduct
 
 This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+
+<!-- endregion exclude-from-marketplace -->
 
 ## Telemetry
 
