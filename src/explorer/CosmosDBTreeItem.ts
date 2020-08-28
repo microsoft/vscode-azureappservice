@@ -132,6 +132,16 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
                 await createdDatabase.cosmosExtensionItem.reveal();
             }
         });
+        if (createdDatabase.cosmosExtensionItem.azureData && createdDatabase.cosmosExtensionItem.connectionString.startsWith('postgres://')) {
+            const openInPortal: vscode.MessageItem = { title: 'Open in Portal' };
+            const manageFirewallMessage: string = localize('manageFirewallRulesMsg', `Manage Firewal Rules for the new Database connection "${createdDatabase.label}".`);
+            // Don't wait
+            vscode.window.showInformationMessage(manageFirewallMessage, openInPortal).then(async (result: vscode.MessageItem | undefined) => {
+                if (result === openInPortal) {
+                    await createdDatabase.cosmosExtensionItem.openInPortal('connectionSecurity');
+                }
+            });
+        }
 
         return createdDatabase;
     }
