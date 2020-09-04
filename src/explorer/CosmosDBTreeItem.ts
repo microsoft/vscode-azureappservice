@@ -6,13 +6,14 @@
 import { StringDictionary } from 'azure-arm-website/lib/models';
 import * as vscode from 'vscode';
 import { IAppSettingsClient, ISiteTreeRoot, validateAppSettingKey } from 'vscode-azureappservice';
-import { AzExtTreeItem, AzureParentTreeItem, GenericTreeItem, ICreateChildImplContext, UserCancelledError } from 'vscode-azureextensionui';
+import { AzExtTreeItem, AzureParentTreeItem, GenericTreeItem, ICreateChildImplContext, openInPortal, UserCancelledError } from 'vscode-azureextensionui';
 import { AzureExtensionApiProvider } from 'vscode-azureextensionui/api';
+import { defaultPrefix } from '../constants';
 import { ext } from '../extensionVariables';
 import { localize } from '../localize';
 import { nonNullProp } from '../utils/nonNull';
 import { getThemedIconPath, IThemedIconPath } from '../utils/pathUtils';
-import { CosmosDBExtensionApi, DatabaseTreeItem } from '../vscode-cosmos.api';
+import { AzureDatabasesExtensionApi } from '../vscode-cosmos.api';
 import { CosmosDBConnection } from './CosmosDBConnection';
 import { SiteTreeItem } from './SiteTreeItem';
 
@@ -35,7 +36,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     private readonly _pgPassSuffix: string = '_DBPASS';
     private readonly _pgPortSuffix: string = '_DBPORT';
 
-    private _cosmosDBApi: CosmosDBExtensionApi | undefined;
+    private _cosmosDBApi: AzureDatabasesExtensionApi | undefined;
 
     constructor(parent: SiteTreeItem, client: IAppSettingsClient) {
         super(parent);
@@ -67,14 +68,15 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         const cosmosDBApi = await this.getCosmosDBApi();
         // tslint:disable-next-line:strict-boolean-expressions
         const appSettings = (await this.parent.client.listApplicationSettings()).properties || {};
-        const connections: IDetectedConnection[] = this.detectConnections(appSettings);
+        const connections: IDetectedConnection[] = this.detectMongoConnections(appSettings).concat(this.detectDocDBConnections(appSettings)).concat(this.detectPostgresConnections(appSettings));
 
         const treeItems = await this.createTreeItemsWithErrorHandling(
             connections,
             'invalidCosmosDBConnection',
             async (c: IDetectedConnection) => {
                 const databaseTreeItem = await cosmosDBApi.findTreeItem({
-                    connectionString: c.connectionString
+                    connectionString: c.connectionString,
+                    postgresData: c.postgresData
                 });
                 return databaseTreeItem ? new CosmosDBConnection(this, databaseTreeItem, c.keys) : undefined;
             },
@@ -100,17 +102,35 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         if (!databaseToAdd) {
             throw new UserCancelledError();
         }
+
         const appSettingsDict = await this.parent.client.listApplicationSettings();
         // tslint:disable-next-line:strict-boolean-expressions
         appSettingsDict.properties = appSettingsDict.properties || {};
 
         let newAppSettings: Map<string, string>;
+        const generalErrorMsg = localize('prefixError', 'Connection setting prefix cannot be empty.');
         if (databaseToAdd.docDBData) {
-            newAppSettings = await this.promptForAppSettings(appSettingsDict, databaseToAdd, 'AZURE_COSMOS');
-        } else if (databaseToAdd.connectionString.startsWith('postgres://')) {
-            newAppSettings = await this.promptForAppSettings(appSettingsDict, databaseToAdd, 'POSTGRES');
+            const docdbAppSettings = new Map([
+                [this._endpointSuffix, nonNullProp(databaseToAdd, 'docDBData').documentEndpoint],
+                [this._keySuffix, nonNullProp(databaseToAdd, 'docDBData').masterKey],
+                [this._databaseSuffix, databaseToAdd.databaseName]
+            ]);
+            const docdbSuffixes = [this._endpointSuffix, this._keySuffix, this._databaseSuffix];
+            newAppSettings = await this.promptForAppSettings(appSettingsDict, docdbAppSettings, docdbSuffixes, generalErrorMsg, defaultPrefix.AZURE_COSMOS);
+        } else if (databaseToAdd.postgresData) {
+            const postgresAppSettings: Map<string | undefined, string | undefined> = new Map([
+                [this._pgHostSuffix, databaseToAdd.hostName],
+                [this._pgDbNameSuffix, databaseToAdd.databaseName],
+                [this._pgUserSuffix, databaseToAdd.postgresData?.username],
+                [this._pgPassSuffix, databaseToAdd.postgresData?.password],
+                [this._pgPortSuffix, databaseToAdd.port]
+            ]);
+            const postgresSuffixes = [this._pgHostSuffix, this._pgDbNameSuffix, this._pgUserSuffix, this._pgPassSuffix, this._pgPortSuffix];
+            newAppSettings = await this.promptForAppSettings(appSettingsDict, postgresAppSettings, postgresSuffixes, generalErrorMsg, defaultPrefix.POSTGRES);
         } else {
-            newAppSettings = await this.promptForAppSettings(appSettingsDict, databaseToAdd, 'MONGO_URL');
+            const mongoAppSettings: Map<string | undefined, string | undefined> = new Map([[undefined, databaseToAdd.connectionString]]);
+            const mongoErrorMsg = localize('keyError', 'Connection setting key cannot be empty.');
+            newAppSettings = await this.promptForAppSettings(appSettingsDict, mongoAppSettings, undefined, mongoErrorMsg, defaultPrefix.MONGO_URL);
         }
 
         for (const [k, v] of newAppSettings) {
@@ -125,20 +145,23 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
 
         const ok: vscode.MessageItem = { title: 'OK' };
         const revealDatabase: vscode.MessageItem = { title: 'Reveal Database' };
+        const manageFirewallRules: vscode.MessageItem = { title: localize('manageFirewallRulesMsgItem', 'Manage Firewall Rules') };
         const message: string = `Database "${createdDatabase.label}" connected to web app "${this.parent.client.fullName}". Created the following application settings: "${Array.from(newAppSettings.keys()).join(', ')}".`;
         // Don't wait
-        vscode.window.showInformationMessage(message, ok, revealDatabase).then(async (result: vscode.MessageItem | undefined) => {
-            if (result === revealDatabase) {
-                await createdDatabase.cosmosExtensionItem.reveal();
-            }
-        });
-        if (createdDatabase.cosmosExtensionItem.azureData && createdDatabase.cosmosExtensionItem.connectionString.startsWith('postgres://')) {
-            const openInPortal: vscode.MessageItem = { title: 'Open in Portal' };
-            const manageFirewallMessage: string = localize('manageFirewallRulesMsg', `Manage Firewal Rules for the new Database connection "${createdDatabase.label}".`);
-            // Don't wait
-            vscode.window.showInformationMessage(manageFirewallMessage, openInPortal).then(async (result: vscode.MessageItem | undefined) => {
-                if (result === openInPortal) {
-                    await createdDatabase.cosmosExtensionItem.openInPortal('connectionSecurity');
+        if (createdDatabase.cosmosExtensionItem.azureData && createdDatabase.cosmosExtensionItem.postgresData) {
+            vscode.window.showInformationMessage(message, revealDatabase, manageFirewallRules).then(async (result: vscode.MessageItem | undefined) => {
+                if (result === revealDatabase) {
+                    await createdDatabase.cosmosExtensionItem.reveal();
+                } else if (result === manageFirewallRules) {
+                    const resourceID: string = 'connectionSecurity';
+                    const accountId: string | undefined = createdDatabase.cosmosExtensionItem.azureData?.accountId;
+                    await openInPortal(this.root, `${accountId}` + `/${resourceID}`);
+                }
+            });
+        } else {
+            vscode.window.showInformationMessage(message, ok, revealDatabase).then(async (result: vscode.MessageItem | undefined) => {
+                if (result === revealDatabase) {
+                    await createdDatabase.cosmosExtensionItem.reveal();
                 }
             });
         }
@@ -150,7 +173,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         return false;
     }
 
-    private async getCosmosDBApi(): Promise<CosmosDBExtensionApi> {
+    private async getCosmosDBApi(): Promise<AzureDatabasesExtensionApi> {
         if (this._cosmosDBApi) {
             return this._cosmosDBApi;
         } else if (this.cosmosDBExtension) {
@@ -160,7 +183,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
 
             // The Cosmos DB extension just recently added support for 'AzureExtensionApiProvider' so we should do an additional check just to makes sure it's defined
             if (this.cosmosDBExtension.exports) {
-                this._cosmosDBApi = this.cosmosDBExtension.exports.getApi<CosmosDBExtensionApi>('^1.0.0');
+                this._cosmosDBApi = this.cosmosDBExtension.exports.getApi<AzureDatabasesExtensionApi>('^1.0.0');
                 return this._cosmosDBApi;
             }
         }
@@ -168,151 +191,107 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         throw new Error('You must have the "Azure Databases" extension installed to perform this operation.');
     }
 
-    private detectConnections(appSettings: { [propertyName: string]: string }): IDetectedConnection[] {
-        const resultList: IDetectedConnection[] = [];
-        let result: IDetectedConnection | undefined;
+    private detectMongoConnections(appSettings: { [propertyName: string]: string }): IDetectedConnection[] {
+        const result: IDetectedConnection[] = [];
         for (const key of Object.keys(appSettings)) {
-            result = this.detectMongoConnections(appSettings, key);
-            if (result) {
-                resultList.push(result);
-                continue;
-            }
-            result = this.detectPostgresConnections(appSettings, key);
-            if (result) {
-                resultList.push(result);
-                continue;
-            }
-            result = this.detectDocDBConnections(appSettings, key);
-            if (result) {
-                resultList.push(result);
-                continue;
+            const value = appSettings[key];
+            if (/^mongodb[^:]*:\/\//i.test(value)) {
+                result.push({
+                    keys: [key],
+                    connectionString: appSettings[key]
+                });
             }
         }
-        return resultList;
+        return result;
     }
 
-    private detectMongoConnections(appSettings: { [propertyName: string]: string }, key: string): IDetectedConnection | undefined {
-        const value = appSettings[key];
-        if (/^mongodb[^:]*:\/\//i.test(value)) {
-            return { keys: [key], connectionString: appSettings[key] };
-        }
-        return undefined;
-    }
-
-    private detectPostgresConnections(appSettings: { [propertyName: string]: string }, key: string): IDetectedConnection | undefined {
-        const connectionStringPrefix = 'postgres://';
+    private detectPostgresConnections(appSettings: { [propertyName: string]: string }): IDetectedConnection[] {
         const portDefault = '5432';
-
+        const result: IDetectedConnection[] = [];
         const regexp = new RegExp(`(.+)${this._pgHostSuffix}`, 'i');
 
-        const match = key && key.match(regexp);
-        if (match) {
-            const prefix = match[1];
-            const hostKey = prefix + this._pgHostSuffix;
-            const dbNameKey = prefix + this._pgDbNameSuffix;
-            const userKey = prefix + this._pgUserSuffix;
-            const passKey = prefix + this._pgPassSuffix;
-            const portKey = prefix + this._pgPortSuffix;
+        for (const key of Object.keys(appSettings)) {
+            const match = key && key.match(regexp);
+            if (match) {
+                const prefix = match[1];
+                const hostKey = prefix + this._pgHostSuffix;
+                const dbNameKey = prefix + this._pgDbNameSuffix;
+                const userKey = prefix + this._pgUserSuffix;
+                const passKey = prefix + this._pgPassSuffix;
+                const portKey = prefix + this._pgPortSuffix;
 
-            if (appSettings[hostKey]) {
-                const keys: string[] = [hostKey, portKey];
-                let connectionString: string = connectionStringPrefix;
-                if (appSettings[userKey]) {
-                    if (appSettings[passKey]) {
-                        connectionString += `${encodeURIComponent(appSettings[userKey])}:${encodeURIComponent(appSettings[passKey])}@`;
-                        keys.push(userKey, passKey);
-                    } else {
-                        connectionString += `${encodeURIComponent(appSettings[userKey])}@`;
+                if (appSettings[hostKey]) {
+                    const keys: string[] = [hostKey, portKey];
+                    if (appSettings[userKey]) {
                         keys.push(userKey);
+                        if (appSettings[passKey]) {
+                            keys.push(userKey);
+                        }
                     }
+                    if (appSettings[dbNameKey]) {
+                        keys.push(dbNameKey);
+                    }
+                    result.push({
+                        keys, postgresData:
+                        {
+                            hostName: appSettings[hostKey],
+                            port: appSettings[portKey] ? appSettings[portKey] : portDefault,
+                            username: appSettings[userKey],
+                            password: appSettings[passKey],
+                            databaseName: appSettings[dbNameKey]
+                        }
+                    });
                 }
-                connectionString += `${appSettings[hostKey]}:${appSettings[portKey] ? appSettings[portKey] : portDefault}`;
-                if (appSettings[dbNameKey]) {
-                    connectionString += `/${encodeURIComponent(appSettings[dbNameKey])}`;
-                    keys.push(dbNameKey);
-                }
-                return { keys, connectionString };
             }
         }
-        return undefined;
+        return result;
     }
 
-    private detectDocDBConnections(appSettings: { [propertyName: string]: string }, key: string): IDetectedConnection | undefined {
+    private detectDocDBConnections(appSettings: { [propertyName: string]: string }): IDetectedConnection[] {
         const connectionStringEndpointPrefix = 'AccountEndpoint=';
         const connectionStringKeyPrefix = 'AccountKey=';
+
+        const result: IDetectedConnection[] = [];
         const regexp = new RegExp(`(.+)${this._endpointSuffix}`, 'i');
+        for (const key of Object.keys(appSettings)) {
+            // First, check for connection string split up into multiple app settings (endpoint, key, and optional database id)
+            const match = key && key.match(regexp);
+            if (match) {
+                const prefix = match[1];
+                const endpointKey = prefix + this._endpointSuffix;
+                const keyKey = prefix + this._keySuffix;
+                const documentEndpoint: string | undefined = appSettings[endpointKey];
+                const masterKey: string | undefined = appSettings[keyKey];
 
-        // First, check for connection string split up into multiple app settings (endpoint, key, and optional database id)
-        const match = key && key.match(regexp);
-        if (match) {
-            const prefix = match[1];
-            const endpointKey = prefix + this._endpointSuffix;
-            const keyKey = prefix + this._keySuffix;
+                if (documentEndpoint && masterKey) {
+                    const keys: string[] = [endpointKey, keyKey];
+                    let connectionString = `${connectionStringEndpointPrefix}${documentEndpoint};${connectionStringKeyPrefix}${masterKey};`;
 
-            if (appSettings[endpointKey] && appSettings[keyKey]) {
-                const keys: string[] = [endpointKey, keyKey];
-                let connectionString = `${connectionStringEndpointPrefix}${appSettings[endpointKey]};${connectionStringKeyPrefix}${appSettings[keyKey]};`;
+                    const databaseKey = prefix + this._databaseSuffix;
+                    if (Object.keys(appSettings).find((k) => k === databaseKey)) {
+                        keys.push(databaseKey);
+                        connectionString += `Database=${appSettings[databaseKey]}`;
+                    }
 
-                const databaseKey = prefix + this._databaseSuffix;
-                if (Object.keys(appSettings).find((k) => k === databaseKey)) {
-                    keys.push(databaseKey);
-                    connectionString += `Database=${appSettings[databaseKey]}`;
+                    result.push({ keys, connectionString });
                 }
+            } else {
+                // Second, check for connection string as one app setting
+                const regExp1 = new RegExp(connectionStringEndpointPrefix, 'i');
+                const regExp2 = new RegExp(connectionStringKeyPrefix, 'i');
 
-                return { keys, connectionString };
-            }
-        } else {
-            // Second, check for connection string as one app setting
-            const regExp1 = new RegExp(connectionStringEndpointPrefix, 'i');
-            const regExp2 = new RegExp(connectionStringKeyPrefix, 'i');
-
-            const value: string = appSettings[key];
-            if (regExp1.test(value) && regExp2.test(value)) {
-                return { keys: [key], connectionString: value };
+                const value: string = appSettings[key];
+                if (regExp1.test(value) && regExp2.test(value)) {
+                    result.push({ keys: [key], connectionString: value });
+                }
             }
         }
 
-        return undefined;
+        return result;
     }
 
-    private async promptForAppSettings(appSettingsDict: StringDictionary, database: DatabaseTreeItem, defaultPrefix: string): Promise<Map<string, string>> {
+    private async promptForAppSettings(appSettingsDict: StringDictionary, accountAppSettings: Map<string | undefined, string | undefined>, suffixes: string[] | undefined, errorMsg: string, defaultPrefixString: string): Promise<Map<string, string>> {
         const prompt: string = 'Enter new connection setting key';
-        const postgresSuffixes = [this._pgHostSuffix, this._pgDbNameSuffix, this._pgUserSuffix, this._pgPassSuffix, this._pgPortSuffix];
-        const docdbSuffixes = [this._endpointSuffix, this._keySuffix, this._databaseSuffix];
-        const generalErrorMsg = localize('prefixError', 'Connection setting prefix cannot be empty.');
-        const mongoErrorMsg = localize('keyError', 'Connection setting key cannot be empty.');
-
-        const mongoAppSettings = new Map([[undefined, database.connectionString]]);
-        const postgresAppSettings = new Map([
-            [this._pgHostSuffix, database.hostName],
-            [this._pgDbNameSuffix, database.databaseName],
-            [this._pgUserSuffix, database.postgresData?.username],
-            [this._pgPassSuffix, database.postgresData?.password],
-            [this._pgPortSuffix, database.port]
-        ]);
-        const docdbAppSettings = new Map([
-            [this._endpointSuffix, nonNullProp(database, 'docDBData').documentEndpoint],
-            [this._keySuffix, nonNullProp(database, 'docDBData').masterKey],
-            [this._databaseSuffix, database.databaseName]
-        ]);
-
-        let suffixes: string[] | undefined;
-        let errorMsg: string;
-        let appSettings: Map<String | undefined, String | undefined>;
-        switch (defaultPrefix) {
-            case 'POSTGRES':
-                suffixes = postgresSuffixes;
-                errorMsg = generalErrorMsg;
-                appSettings = postgresAppSettings;
-            case 'AZURE_COSMOS':
-                suffixes = docdbSuffixes;
-                errorMsg = generalErrorMsg;
-                appSettings = docdbAppSettings;
-            default:
-                suffixes = undefined;
-                errorMsg = mongoErrorMsg;
-                appSettings = mongoAppSettings;
-        }
 
         const appSettingsPrefix: string = await ext.ui.showInputBox({
             prompt,
@@ -323,10 +302,10 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
                     return this.validateAppSettingPrefix(v, appSettingsDict, suffixes);
                 }
             },
-            value: defaultPrefix
+            value: defaultPrefixString
         });
 
-        return this.getAppSettings(appSettings, appSettingsPrefix);
+        return this.getAppSettings(accountAppSettings, appSettingsPrefix);
 
     }
 
@@ -352,5 +331,12 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
 
 interface IDetectedConnection {
     keys: string[];
-    connectionString: string;
+    connectionString?: string;
+    postgresData?: {
+        hostName: string;
+        port: string;
+        databaseName: string | undefined;
+        username: string | undefined;
+        password: string | undefined;
+    };
 }

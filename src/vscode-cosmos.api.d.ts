@@ -3,11 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-export interface CosmosDBExtensionApi {
+export interface AzureDatabasesExtensionApi {
     apiVersion: string;
 
     /**
-     * Finds the first matching item in the Cosmos DB tree, or otherwise returns undefined.
+     * Finds the first matching item in the Azure Databases tree, or otherwise returns undefined.
      * NOTE: The item may not actually be loaded/attached in the tree until 'reveal' is called.
      *
      * @param query The query object to use for the find
@@ -15,7 +15,7 @@ export interface CosmosDBExtensionApi {
     findTreeItem(query: TreeItemQuery): Promise<DatabaseAccountTreeItem | DatabaseTreeItem | undefined>;
 
     /**
-     * Prompts the user to pick an item from the Cosmos DB tree
+     * Prompts the user to pick an item from the Azure Databases tree
      *
      * @param options Configures the behavior of the tree item picker
      */
@@ -23,14 +23,14 @@ export interface CosmosDBExtensionApi {
     pickTreeItem(options: PickTreeItemOptions & { resourceType: 'Database' }): Promise<DatabaseTreeItem | undefined>;
 }
 
-export interface CosmosDBTreeItem {
+export interface AzureDatabasesTreeItem {
     /**
-     * Reveals the item in the tree. This may result in loading more Cosmos DB tree items or manually attaching by connection string.
+     * Reveals the item in the tree. This may result in loading more Azure Databases tree items or manually attaching by connection string.
      */
     reveal(): Promise<void>;
 }
 
-export interface DatabaseAccountTreeItem extends CosmosDBTreeItem {
+export interface DatabaseAccountTreeItem extends AzureDatabasesTreeItem {
     hostName: string;
     port: string;
     connectionString: string;
@@ -40,6 +40,7 @@ export interface DatabaseAccountTreeItem extends CosmosDBTreeItem {
      */
     azureData?: {
         accountName: string;
+        accountId: string;
     }
 
     docDBData?: {
@@ -52,32 +53,39 @@ export interface DatabaseAccountTreeItem extends CosmosDBTreeItem {
         password: string;
     }
 
-    openInPortal(resourceID: string): Promise<void>;
 }
 
 export interface DatabaseTreeItem extends DatabaseAccountTreeItem {
     databaseName: string;
 }
 
-export type CosmosDBResourceType = 'DatabaseAccount' | 'Database';
+export type AzureDatabasesResourceType = 'DatabaseAccount' | 'Database';
 
-export type CosmosDBApiType = 'Mongo' | 'SQL' | 'Graph' | 'Table' | 'Postgres';
+export type AzureDatabasesApiType = 'Mongo' | 'SQL' | 'Graph' | 'Table' | 'Postgres';
 
 export interface PickTreeItemOptions {
     /**
      * The resource type of the picked item
      */
-    resourceType: CosmosDBResourceType;
+    resourceType: AzureDatabasesResourceType;
 
     /**
      * An array of the API types that can be picked, or undefined if all API types are allowed
      */
-    apiType?: CosmosDBApiType[];
+    apiType?: AzureDatabasesApiType[];
 }
 
 export interface TreeItemQuery {
     /**
      * An account or database connection string
      */
-    connectionString: string;
+    connectionString?: string;
+
+    postgresData?: {
+        hostName: string;
+        port: string;
+        databaseName: string | undefined;
+        username: string | undefined;
+        password: string | undefined;
+    }
 }

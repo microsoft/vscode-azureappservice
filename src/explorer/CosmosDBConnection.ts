@@ -43,7 +43,7 @@ export class CosmosDBConnection extends AzExtTreeItem {
     }
 
     public get iconPath(): IThemedIconPath {
-        if (this.cosmosExtensionItem.connectionString.startsWith('postgres://')) {
+        if (this.cosmosExtensionItem.postgresData) {
             return getThemedIconPath('Database');
         }
         return getThemedIconPath('DocDatabase');
