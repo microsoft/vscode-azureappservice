@@ -108,7 +108,6 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         appSettingsDict.properties = appSettingsDict.properties || {};
 
         let newAppSettings: Map<string, string>;
-        const generalErrorMsg = localize('prefixError', 'Connection setting prefix cannot be empty.');
         if (databaseToAdd.docDBData) {
             const docdbAppSettings = new Map([
                 [this._endpointSuffix, nonNullProp(databaseToAdd, 'docDBData').documentEndpoint],
@@ -116,7 +115,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
                 [this._databaseSuffix, databaseToAdd.databaseName]
             ]);
             const docdbSuffixes = [this._endpointSuffix, this._keySuffix, this._databaseSuffix];
-            newAppSettings = await this.promptForAppSettings(appSettingsDict, docdbAppSettings, docdbSuffixes, generalErrorMsg, defaultPrefix.AZURE_COSMOS);
+            newAppSettings = await this.promptForAppSettings(appSettingsDict, docdbAppSettings, docdbSuffixes, defaultPrefix.AZURE_COSMOS);
         } else if (databaseToAdd.postgresData) {
             const postgresAppSettings: Map<string | undefined, string | undefined> = new Map([
                 [this._pgHostSuffix, databaseToAdd.hostName],
@@ -126,11 +125,10 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
                 [this._pgPortSuffix, databaseToAdd.port]
             ]);
             const postgresSuffixes = [this._pgHostSuffix, this._pgDbNameSuffix, this._pgUserSuffix, this._pgPassSuffix, this._pgPortSuffix];
-            newAppSettings = await this.promptForAppSettings(appSettingsDict, postgresAppSettings, postgresSuffixes, generalErrorMsg, defaultPrefix.POSTGRES);
+            newAppSettings = await this.promptForAppSettings(appSettingsDict, postgresAppSettings, postgresSuffixes, defaultPrefix.POSTGRES);
         } else {
             const mongoAppSettings: Map<string | undefined, string | undefined> = new Map([[undefined, databaseToAdd.connectionString]]);
-            const mongoErrorMsg = localize('keyError', 'Connection setting key cannot be empty.');
-            newAppSettings = await this.promptForAppSettings(appSettingsDict, mongoAppSettings, undefined, mongoErrorMsg, defaultPrefix.MONGO_URL);
+            newAppSettings = await this.promptForAppSettings(appSettingsDict, mongoAppSettings, undefined, defaultPrefix.MONGO_URL);
         }
 
         for (const [k, v] of newAppSettings) {
@@ -143,29 +141,23 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         const createdDatabase = new CosmosDBConnection(this, databaseToAdd, Array.from(newAppSettings.keys()));
         context.showCreatingTreeItem(createdDatabase.label);
 
-        const ok: vscode.MessageItem = { title: 'OK' };
         const revealDatabase: vscode.MessageItem = { title: 'Reveal Database' };
         const manageFirewallRules: vscode.MessageItem = { title: localize('manageFirewallRulesMsgItem', 'Manage Firewall Rules') };
         const message: string = `Database "${createdDatabase.label}" connected to web app "${this.parent.client.fullName}". Created the following application settings: "${Array.from(newAppSettings.keys()).join(', ')}".`;
         // Don't wait
+        const buttons: vscode.MessageItem[] = [revealDatabase];
         if (createdDatabase.cosmosExtensionItem.azureData && createdDatabase.cosmosExtensionItem.postgresData) {
-            vscode.window.showInformationMessage(message, revealDatabase, manageFirewallRules).then(async (result: vscode.MessageItem | undefined) => {
-                if (result === revealDatabase) {
-                    await createdDatabase.cosmosExtensionItem.reveal();
-                } else if (result === manageFirewallRules) {
-                    const resourceID: string = 'connectionSecurity';
-                    const accountId: string | undefined = createdDatabase.cosmosExtensionItem.azureData?.accountId;
-                    await openInPortal(this.root, `${accountId}` + `/${resourceID}`);
-                }
-            });
-        } else {
-            vscode.window.showInformationMessage(message, ok, revealDatabase).then(async (result: vscode.MessageItem | undefined) => {
-                if (result === revealDatabase) {
-                    await createdDatabase.cosmosExtensionItem.reveal();
-                }
-            });
+            buttons.push(manageFirewallRules);
         }
-
+        vscode.window.showInformationMessage(message, ...buttons).then(async (result: vscode.MessageItem | undefined) => {
+            if (result === revealDatabase) {
+                await createdDatabase.cosmosExtensionItem.reveal();
+            } else if (result === manageFirewallRules) {
+                const resourceID: string = 'connectionSecurity';
+                const accountId: string | undefined = createdDatabase.cosmosExtensionItem.azureData?.accountId;
+                await openInPortal(this.root, `${accountId}` + `/${resourceID}`);
+            }
+        });
         return createdDatabase;
     }
 
@@ -222,14 +214,10 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
 
                 if (appSettings[hostKey]) {
                     const keys: string[] = [hostKey, portKey];
-                    if (appSettings[userKey]) {
-                        keys.push(userKey);
-                        if (appSettings[passKey]) {
-                            keys.push(userKey);
+                    for (const optionalKey of [userKey, passKey, dbNameKey]) {
+                        if (appSettings[optionalKey]) {
+                            keys.push(optionalKey);
                         }
-                    }
-                    if (appSettings[dbNameKey]) {
-                        keys.push(dbNameKey);
                     }
                     result.push({
                         keys, postgresData:
@@ -290,9 +278,9 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         return result;
     }
 
-    private async promptForAppSettings(appSettingsDict: StringDictionary, accountAppSettings: Map<string | undefined, string | undefined>, suffixes: string[] | undefined, errorMsg: string, defaultPrefixString: string): Promise<Map<string, string>> {
-        const prompt: string = 'Enter new connection setting key';
-
+    private async promptForAppSettings(appSettingsDict: StringDictionary, accountAppSettings: Map<string | undefined, string | undefined>, suffixes: string[] | undefined, defaultPrefixString: string): Promise<Map<string, string>> {
+        const prompt: string = suffixes ? localize('enterPrefix', 'Enter new connection setting prefix') : localize('enterKey', 'Enter new connection setting key');
+        const errorMsg: string = suffixes ? localize('prefixError', 'Connection setting prefix cannot be empty.') : localize('keyError', 'Connection setting key cannot be empty.');
         const appSettingsPrefix: string = await ext.ui.showInputBox({
             prompt,
             validateInput: (v: string): string | undefined => {
@@ -309,15 +297,15 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
 
     }
 
-    private async getAppSettings(appSettings: Map<String | undefined, String | undefined>, appSettingsPrefix: string): Promise<Map<string, string>> {
+    private async getAppSettings(appSettings: Map<string | undefined, string | undefined>, appSettingsPrefix: string): Promise<Map<string, string>> {
         const result: Map<string, string> = new Map();
-        appSettings.forEach((value: string | undefined, key: string | undefined) => {
+        for (const [key, value] of appSettings) {
             if (key && value) {
                 result.set(appSettingsPrefix + key, value);
             } else if (value) {
                 result.set(appSettingsPrefix, value);
             }
-        });
+        }
         return result;
     }
 
