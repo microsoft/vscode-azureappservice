@@ -102,18 +102,22 @@ suite('Web App actions', async function (this: Mocha.Suite): Promise<void> {
     });
 
     test(`Add and delete settings for ${WebsiteOS0} Web App`, async () => {
-        const appSettingKey: string = getRandomHexString();
-        const appSettingValue: string = getRandomHexString();
+        let appSettingKey: string;
+        const appSettingList: string[] = [getRandomHexString(10), `f ${getRandomHexString(10)}`, `${getRandomHexString(10)} `, ` ${getRandomHexString(10)}`];
         const createdApp: WebSiteManagementModels.Site = await webSiteClient.webApps.get(resourceName, resourceName);
         assert.ok(createdApp);
-        await testUserInput.runWithInputs([resourceName, appSettingKey, appSettingValue], async () => {
-            await vscode.commands.executeCommand('appService.appSettings.Add');
-        });
-        assert.equal(await getAppSettingValue(resourceName, resourceName, appSettingKey), appSettingValue, `Fail to add setting "${appSettingKey}"`);
-        await testUserInput.runWithInputs([resourceName, `${appSettingKey}=Hidden value. Click to view.`, DialogResponses.deleteResponse.title], async () => {
-            await vscode.commands.executeCommand('appService.appSettings.Delete');
-        });
-        assert.ifError(await getAppSettingValue(resourceName, resourceName, appSettingKey));
+        for (const value of appSettingList) {
+            appSettingKey = getRandomHexString(10);
+            await testUserInput.runWithInputs([resourceName, appSettingKey, value], async () => {
+                await vscode.commands.executeCommand('appService.appSettings.Add');
+            });
+            const appSettingValue: string | undefined = await getAppSettingValue(resourceName, resourceName, appSettingKey);
+            assert.equal(appSettingValue, value, `The added application setting value should be "${value}" rather than "${appSettingValue}" after refreshing.`);
+            await testUserInput.runWithInputs([resourceName, `${appSettingKey}=Hidden value. Click to view.`, DialogResponses.deleteResponse.title], async () => {
+                await vscode.commands.executeCommand('appService.appSettings.Delete');
+            });
+            assert.ifError(await getAppSettingValue(resourceName, resourceName, appSettingKey));
+        }
     });
 
     test(`Delete Web App for ${WebsiteOS0} Web App`, async () => {
