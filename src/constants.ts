@@ -35,7 +35,3 @@ export const envFileName: string = '.env';
 export const detectorTimestampFormat: string = 'YYYY-MM-DDTHH:mm';
 
 export const TrialAppContext: string = 'TrialAppContext';
-
-export const databasesPostgresPrefix = 'postgres://';
-
-export enum defaultPrefix { AZURE_COSMOS = 'AZURE_COSMOS', POSTGRES = 'POSTGRES', MONGO_URL = 'MONGO_URL' }

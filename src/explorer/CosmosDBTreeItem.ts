@@ -8,7 +8,6 @@ import * as vscode from 'vscode';
 import { IAppSettingsClient, ISiteTreeRoot, validateAppSettingKey } from 'vscode-azureappservice';
 import { AzExtTreeItem, AzureParentTreeItem, GenericTreeItem, ICreateChildImplContext, openInPortal, UserCancelledError } from 'vscode-azureextensionui';
 import { AzureExtensionApiProvider } from 'vscode-azureextensionui/api';
-import { defaultPrefix } from '../constants';
 import { ext } from '../extensionVariables';
 import { localize } from '../localize';
 import { nonNullProp } from '../utils/nonNull';
@@ -115,7 +114,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
                 [this._databaseSuffix, databaseToAdd.databaseName]
             ]);
             const docdbSuffixes = [this._endpointSuffix, this._keySuffix, this._databaseSuffix];
-            newAppSettings = await this.promptForAppSettings(appSettingsDict, docdbAppSettings, docdbSuffixes, defaultPrefix.AZURE_COSMOS);
+            newAppSettings = await this.promptForAppSettings(appSettingsDict, docdbAppSettings, docdbSuffixes, 'AZURE_COSMOS');
         } else if (databaseToAdd.postgresData) {
             const postgresAppSettings: Map<string | undefined, string | undefined> = new Map([
                 [this._pgHostSuffix, databaseToAdd.hostName],
@@ -125,10 +124,10 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
                 [this._pgPortSuffix, databaseToAdd.port]
             ]);
             const postgresSuffixes = [this._pgHostSuffix, this._pgDbNameSuffix, this._pgUserSuffix, this._pgPassSuffix, this._pgPortSuffix];
-            newAppSettings = await this.promptForAppSettings(appSettingsDict, postgresAppSettings, postgresSuffixes, defaultPrefix.POSTGRES);
+            newAppSettings = await this.promptForAppSettings(appSettingsDict, postgresAppSettings, postgresSuffixes, 'POSTGRES');
         } else {
             const mongoAppSettings: Map<string | undefined, string | undefined> = new Map([[undefined, databaseToAdd.connectionString]]);
-            newAppSettings = await this.promptForAppSettings(appSettingsDict, mongoAppSettings, undefined, defaultPrefix.MONGO_URL);
+            newAppSettings = await this.promptForAppSettings(appSettingsDict, mongoAppSettings, undefined, 'MONGO_URL');
         }
 
         for (const [k, v] of newAppSettings) {
@@ -153,9 +152,8 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
             if (result === revealDatabase) {
                 await createdDatabase.cosmosExtensionItem.reveal();
             } else if (result === manageFirewallRules) {
-                const resourceID: string = 'connectionSecurity';
                 const accountId: string | undefined = createdDatabase.cosmosExtensionItem.azureData?.accountId;
-                await openInPortal(this.root, `${accountId}` + `/${resourceID}`);
+                await openInPortal(this.root, `${accountId}/connectionSecurity`);
             }
         });
         return createdDatabase;
