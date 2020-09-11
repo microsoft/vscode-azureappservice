@@ -1,5 +1,12 @@
 # Change Log
 
+## 0.19.0 - 2020-09-14
+### Added
+- PostgreSQL support for "Databases"
+
+### Changed
+- Refactored name from "Connections" to "Databases"
+
 ## 0.18.0 - 2020-07-23
 ### Added
 - Free App Service trial apps! Visit [here](https://code.visualstudio.com/tryappservice/?utm_source=appservice-extension) to create and import your own free Node.js trial app.
