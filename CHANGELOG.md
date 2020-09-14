@@ -1,10 +1,11 @@
 # Change Log
 
-## 0.19.0 - 2020-09-14
+## 0.19.0 - 2020-09-15
 ### Added
-- Connection support to PostgreSQL accounts through Azure Databases extension
+- Connections support to PostgreSQL accounts through Azure Databases extension
+
 ### Changed
-- Node name from "Connections" to "Databases"
+- Renamed "Connections" as "Databases"
 
 ## 0.18.0 - 2020-07-23
 ### Added
