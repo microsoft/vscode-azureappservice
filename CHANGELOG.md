@@ -2,10 +2,10 @@
 
 ## 0.19.0 - 2020-09-15
 ### Added
-- Connections support to PostgreSQL accounts through Azure Databases extension
+- Connect a PostgreSQL server to your web app through the [Azure Databases extension](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-cosmosdb)
 
 ### Changed
-- Renamed "Connections" as "Databases"
+- Renamed "Connections" node to "Databases"
 
 ## 0.18.0 - 2020-07-23
 ### Added
