@@ -52,7 +52,7 @@ import { showTutorial } from './trialApp/showTutorial';
 import { transferToSubscription } from './trialApp/transferToSubscription';
 
 export function registerCommands(): void {
-    registerCommand('appService.AddCosmosDBConnection', addCosmosDBConnection);
+    registerCommand('appService.AddAzureDatabasesConnection', addCosmosDBConnection);
     registerCommand('appService.appSettings.Add', addAppSetting);
     registerCommand('appService.appSettings.Delete', deleteAppSetting);
     registerCommand('appService.appSettings.Download', downloadAppSettings);

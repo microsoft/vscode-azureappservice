@@ -2,7 +2,7 @@
     "name": "vscode-azureappservice",
     "displayName": "Azure App Service",
     "description": "An Azure App Service management extension for Visual Studio Code.",
-    "version": "0.18.1-alpha",
+    "version": "0.19.0",
     "publisher": "ms-azuretools",
     "icon": "resources/WebApp.png",
     "aiKey": "AIF-d9b70cd4-b9f9-4d70-929b-a071c400b217",
@@ -66,7 +66,7 @@
         "onCommand:appService.ViewCommitInGitHub",
         "onCommand:appService.DisconnectRepo",
         "onCommand:appService.connectToGitHub",
-        "onCommand:appService.AddCosmosDBConnection",
+        "onCommand:appService.AddAzureDatabasesConnection",
         "onCommand:appService.RemoveCosmosDBConnection",
         "onCommand:appService.RevealConnection",
         "onCommand:appService.RevealConnectionInAppSettings",
@@ -277,7 +277,7 @@
                 "category": "Azure App Service"
             },
             {
-                "command": "appService.AddCosmosDBConnection",
+                "command": "appService.AddAzureDatabasesConnection",
                 "title": "Add Database Connection to Web App...",
                 "category": "Azure App Service"
             },
@@ -638,7 +638,7 @@
                     "group": "1@1"
                 },
                 {
-                    "command": "appService.AddCosmosDBConnection",
+                    "command": "appService.AddAzureDatabasesConnection",
                     "when": "view == azureAppService && viewItem == сosmosDBConnections",
                     "group": "1@1"
                 },
