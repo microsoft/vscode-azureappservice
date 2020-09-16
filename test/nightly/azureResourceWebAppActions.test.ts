@@ -112,7 +112,7 @@ suite('Web App actions', async function (this: Mocha.Suite): Promise<void> {
                 await vscode.commands.executeCommand('appService.appSettings.Add');
             });
             const appSettingValue: string | undefined = await getAppSettingValue(resourceName, resourceName, appSettingKey);
-            assert.equal(appSettingValue, value, `The added application setting value should be "${value}" rather than "${appSettingValue}" after refreshing.`);
+            assert.equal(appSettingValue, value.trim(), `The added application setting value should be "${value}" rather than "${appSettingValue}" after refreshing.`);
             await testUserInput.runWithInputs([resourceName, `${appSettingKey}=Hidden value. Click to view.`, DialogResponses.deleteResponse.title], async () => {
                 await vscode.commands.executeCommand('appService.appSettings.Delete');
             });
