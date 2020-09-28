@@ -3,8 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { WebSiteManagementModels } from 'azure-arm-website';
 import * as vscode from 'vscode';
 import * as appservice from 'vscode-azureappservice';
+import { SiteClient } from 'vscode-azureappservice';
 import { IActionContext } from 'vscode-azureextensionui';
 import { SiteTreeItem } from '../../explorer/SiteTreeItem';
 import { WebAppTreeItem } from '../../explorer/WebAppTreeItem';
@@ -16,8 +18,8 @@ export async function startRemoteDebug(context: IActionContext, node?: SiteTreeI
         node = <SiteTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue, context);
     }
 
-    const siteClient = node.root.client;
-    const siteConfig = await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification, cancellable: true }, async (progress, token) => {
+    const siteClient: SiteClient = node.root.client;
+    const siteConfig: WebSiteManagementModels.SiteConfigResource = await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification, cancellable: true }, async (progress, token) => {
         appservice.reportMessage('Fetching site configuration...', progress, token);
         return await siteClient.getSiteConfig();
     });

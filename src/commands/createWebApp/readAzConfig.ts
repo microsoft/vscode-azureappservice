@@ -18,8 +18,8 @@ export async function readAzConfig(wizardContext: IAppServiceWizardContext & Par
     const workspacePath: string | undefined = workspaceFolder ? workspaceFolder.uri.fsPath : undefined;
 
     try {
-        const azGlobalConfigListing = <IAzConfigItem[] | undefined>JSON.parse(await cpUtils.executeCommand(undefined, undefined, 'az configure --list-defaults --output json'));
-        const azLocalConfigListing = <IAzConfigItem[] | undefined>JSON.parse(await cpUtils.executeCommand(undefined, workspacePath, 'az configure --list-defaults --output json --scope local'));
+        const azGlobalConfigListing: IAzConfigItem[] | undefined = <IAzConfigItem[] | undefined>JSON.parse(await cpUtils.executeCommand(undefined, undefined, 'az configure --list-defaults --output json'));
+        const azLocalConfigListing: IAzConfigItem[] | undefined = <IAzConfigItem[] | undefined>JSON.parse(await cpUtils.executeCommand(undefined, workspacePath, 'az configure --list-defaults --output json --scope local'));
 
         readAzConfigListing(wizardContext, propertiesToRead, azGlobalConfigListing, config);
 

@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { WebSiteManagementModels } from 'azure-arm-website';
 import { IAppSettingsClient } from 'vscode-azureappservice';
 import { AzExtTreeItem, DialogResponses } from 'vscode-azureextensionui';
 import { ext } from '../extensionVariables';
@@ -51,14 +52,13 @@ export class CosmosDBConnection extends AzExtTreeItem {
 
     public async deleteTreeItemImpl(): Promise<void> {
         const appSettingsClient: IAppSettingsClient = this.parent.parent.client;
-        const appSettings = await appSettingsClient.listApplicationSettings();
-        const properties = appSettings.properties;
-        if (properties) {
+        const appSettings: WebSiteManagementModels.StringDictionary = await appSettingsClient.listApplicationSettings();
+        if (appSettings.properties) {
             const warning: string = `Are you sure you want to remove connection "${this.label}"? This will delete the following application settings: ${this.appSettingKeys.map((s) => `"${s}"`).join(', ')}.`;
             await ext.ui.showWarningMessage(warning, { modal: true }, DialogResponses.deleteResponse);
-            this.appSettingKeys.forEach((key) => {
-                delete properties[key];
-            });
+            for (const key of this.appSettingKeys) {
+                delete appSettings.properties[key];
+            }
             await appSettingsClient.updateApplicationSettings(appSettings);
             await this.parent.parent.appSettingsNode.refresh();
         }

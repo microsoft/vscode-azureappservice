@@ -13,6 +13,9 @@ import { ext } from "../extensionVariables";
 import { nonNullValue } from "../utils/nonNull";
 import { getResourcesPath } from "../utils/pathUtils";
 
+// grandfathered in
+// tslint:disable: typedef
+
 export async function generateDeploymentScript(context: IActionContext, node?: WebAppTreeItem): Promise<void> {
     if (!node) {
         node = await ext.tree.showTreeItemPicker<WebAppTreeItem>(WebAppTreeItem.contextValue, context);
