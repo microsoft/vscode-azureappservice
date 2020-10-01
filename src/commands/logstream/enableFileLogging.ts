@@ -27,7 +27,7 @@ export async function enableFileLogging(context: IEnableFileLoggingContext, node
 
     const siteNode: SiteTreeItem | TrialAppTreeItem = node;
 
-    const isEnabled = await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification }, async p => {
+    const isEnabled: boolean = await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification }, async p => {
         p.report({ message: 'Checking container diagnostics settings...' });
         return await siteNode.isHttpLogsEnabled();
     });

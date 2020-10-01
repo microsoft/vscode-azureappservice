@@ -16,7 +16,7 @@ export async function importTrialApp(context: IActionContext, loginSession: stri
     await window.withProgress({ location: ProgressLocation.Notification, cancellable: false }, async p => {
         p.report({ message: localize('importingTrialApp', 'Importing trial app...') });
         ext.azureAccountTreeItem.trialAppNode = await TrialAppTreeItem.createTrialAppTreeItem(ext.azureAccountTreeItem, loginSession);
-        const trialAppNode = ext.azureAccountTreeItem.trialAppNode;
+        const trialAppNode: TrialAppTreeItem = ext.azureAccountTreeItem.trialAppNode;
 
         // When a trial app is expired, sometimes we can get the metadata still, if we can
         // then we know it's expired if the timeLeft is undefined

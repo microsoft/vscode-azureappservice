@@ -8,6 +8,9 @@ import { RemoteDebugLanguage } from 'vscode-azureappservice';
 import { IActionContext } from 'vscode-azureextensionui';
 import { getWorkspaceSetting } from '../../vsCodeConfig/settings';
 
+// grandfathered in
+// tslint:disable: typedef
+
 export function getRemoteDebugLanguage(siteConfig: SiteConfigResource, context: IActionContext): RemoteDebugLanguage {
     // We read siteConfig.linuxFxVersion to find the image version:
     //   If the app is running Windows, it will be empty

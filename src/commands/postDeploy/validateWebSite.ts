@@ -11,6 +11,9 @@ import { SiteTreeItem } from '../../explorer/SiteTreeItem';
 import { delay } from '../../utils/delay';
 import { requestUtils } from '../../utils/requestUtils';
 
+// grandfathered in
+// tslint:disable: typedef
+
 type WebError = {
     response?: {
         statusCode?: number;

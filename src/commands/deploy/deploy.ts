@@ -56,7 +56,7 @@ export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | 
         return;
     }
 
-    const correlationId = getRandomHexString();
+    const correlationId: string = getRandomHexString();
     context.telemetry.properties.correlationId = correlationId;
 
     // if we already got siteConfig, don't waste time getting it again

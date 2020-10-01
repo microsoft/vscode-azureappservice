@@ -14,7 +14,7 @@ export class ImportTrialAppUriHandler implements UriHandler {
     // only activates when the uri has our extension id in it. See docs here: https://code.visualstudio.com/api/references/activation-events#onUri
     public async handleUri(uri: Uri): Promise<void> {
         if (uri.path === '/ImportTrialApp') {
-            const data = querystring.parse(uri.query);
+            const data: querystring.ParsedUrlQuery = querystring.parse(uri.query);
 
             await callWithTelemetryAndErrorHandling<void>('importTrialApp', async (context: IActionContext): Promise<void> => {
                 if (typeof data.loginSession === 'string') {

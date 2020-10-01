@@ -19,7 +19,7 @@ export async function createSlot(context: IActionContext, node?: DeploymentSlots
         node = <DeploymentSlotsTreeItem>await ext.tree.showTreeItemPicker(DeploymentSlotsTreeItem.contextValue, { ...context, noItemFoundErrorMessage });
     }
 
-    const createdSlot = <DeploymentSlotTreeItem>await node.createChild(context);
+    const createdSlot: DeploymentSlotTreeItem = <DeploymentSlotTreeItem>await node.createChild(context);
     showCreatedWebAppMessage(createdSlot);
 
     // set the deploy source as the same as its production slot

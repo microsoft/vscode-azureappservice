@@ -43,6 +43,7 @@
         "typedef": [
             true,
             "call-signature",
+            "variable-declaration",
             "parameter",
             "property-declaration",
             "member-variable-declaration"
