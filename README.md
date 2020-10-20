@@ -6,7 +6,7 @@
 
 <!-- endregion exclude-from-marketplace -->
 
-App Service is Azure's fully-managed Platform as a Service (PaaS) that let's you
+App Service is Azure's fully-managed Platform as a Service (PaaS) that lets you
 deploy and scale web, mobile, and API apps. Use the Azure App Service extension
 for VS Code to quickly create, manage, and deploy your websites.
 
