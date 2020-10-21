@@ -3,12 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { WebSiteManagementClient } from 'azure-arm-website';
-import { Site, WebAppCollection } from 'azure-arm-website/lib/models';
+import { WebSiteManagementClient, WebSiteManagementModels } from '@azure/arm-appservice';
 import { createSlot, ISiteTreeRoot, SiteClient } from 'vscode-azureappservice';
-import { AzureParentTreeItem, AzureTreeItem, createAzureClient, ICreateChildImplContext } from 'vscode-azureextensionui';
+import { AzureParentTreeItem, AzureTreeItem, ICreateChildImplContext } from 'vscode-azureextensionui';
 import { getCreatedWebAppMessage } from '../commands/createWebApp/showCreatedWebAppMessage';
 import { ext } from '../extensionVariables';
+import { createWebSiteClient } from '../utils/azureClients';
 import { getThemedIconPath, IThemedIconPath } from '../utils/pathUtils';
 import { DeploymentSlotTreeItem } from './DeploymentSlotTreeItem';
 import { NotAvailableTreeItem } from './NotAvailableTreeItem';
@@ -30,7 +30,7 @@ export class DeploymentSlotsTreeItem extends AzureParentTreeItem<ISiteTreeRoot> 
     }
 
     public hasMoreChildrenImpl(): boolean {
-        return this._nextLink !== undefined;
+        return !!this._nextLink;
     }
 
     public async loadMoreChildrenImpl(clearCache: boolean): Promise<AzureTreeItem<ISiteTreeRoot>[]> {
@@ -38,19 +38,19 @@ export class DeploymentSlotsTreeItem extends AzureParentTreeItem<ISiteTreeRoot> 
             this._nextLink = undefined;
         }
 
-        const client: WebSiteManagementClient = createAzureClient(this.root, WebSiteManagementClient);
-        const webAppCollection: WebAppCollection = this._nextLink === undefined ?
-            await client.webApps.listSlots(this.root.client.resourceGroup, this.root.client.siteName) :
-            await client.webApps.listSlotsNext(this._nextLink);
+        const client: WebSiteManagementClient = await createWebSiteClient(this.root);
+        const webAppCollection: WebSiteManagementModels.WebAppCollection = this._nextLink ?
+            await client.webApps.listSlotsNext(this._nextLink) :
+            await client.webApps.listSlots(this.root.client.resourceGroup, this.root.client.siteName);
 
         this._nextLink = webAppCollection.nextLink;
 
-        return webAppCollection.map((s: Site) => new DeploymentSlotTreeItem(this, new SiteClient(s, this.root)));
+        return webAppCollection.map(s => new DeploymentSlotTreeItem(this, new SiteClient(s, this.root)));
     }
 
     public async createChildImpl(context: ICreateChildImplContext): Promise<AzureTreeItem<ISiteTreeRoot>> {
         const existingSlots: DeploymentSlotTreeItem[] = <DeploymentSlotTreeItem[]>await this.getCachedChildren(context);
-        const newSite: Site = await createSlot(this.root, existingSlots, context);
+        const newSite: WebSiteManagementModels.Site = await createSlot(this.root, existingSlots, context);
         const siteClient: SiteClient = new SiteClient(newSite, this.root);
         ext.outputChannel.appendLog(getCreatedWebAppMessage(siteClient));
         return new DeploymentSlotTreeItem(this, siteClient);

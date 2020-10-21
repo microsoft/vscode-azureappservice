@@ -6,8 +6,7 @@
 import moment = require("moment");
 import { CancellationTokenSource } from "vscode";
 import { callWithTelemetryAndErrorHandling, IActionContext, openInPortal, UserCancelledError } from "vscode-azureextensionui";
-import { KuduClient } from "vscode-azurekudu";
-import { DeployResult } from "vscode-azurekudu/lib/models";
+import { KuduClient, KuduModels } from "vscode-azurekudu";
 import { detectorTimestampFormat } from '../../constants';
 import { SiteTreeItem } from "../../explorer/SiteTreeItem";
 import { ext } from '../../extensionVariables';
@@ -22,7 +21,7 @@ export async function checkLinuxWebAppDownDetector(correlationId: string, node: 
         context.telemetry.properties.correlationId = correlationId;
 
         const kuduClient: KuduClient = await node.root.client.getKuduClient();
-        const deployment: DeployResult = await kuduClient.deployment.getResult('latest');
+        const deployment: KuduModels.DeployResult = await kuduClient.deployment.getResult('latest');
 
         if (!deployment.endTime) {
             // if there's no deployment detected, nothing can be done

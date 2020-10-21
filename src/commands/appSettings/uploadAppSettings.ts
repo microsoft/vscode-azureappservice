@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { WebSiteManagementModels } from "azure-arm-website";
+import { WebSiteManagementModels } from "@azure/arm-appservice";
 import * as dotenv from 'dotenv';
 import { Uri, window } from "vscode";
 import { AppSettingsTreeItem, confirmOverwriteSettings, IAppSettingsClient } from "vscode-azureappservice";

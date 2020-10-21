@@ -3,7 +3,7 @@
 *  Licensed under the MIT License. See License.txt in the project root for license information.
 *--------------------------------------------------------------------------------------------*/
 
-import { SiteConfigResource, StringDictionary } from "azure-arm-website/lib/models";
+import { WebSiteManagementModels } from "@azure/arm-appservice";
 import * as fse from 'fs-extra';
 import * as path from 'path';
 import { workspace } from "vscode";
@@ -45,7 +45,7 @@ export namespace javaUtils {
         return ['jar', 'war'];
     }
 
-    function isJavaSERequiredPortConfigured(appSettings: StringDictionary | undefined): boolean {
+    function isJavaSERequiredPortConfigured(appSettings: WebSiteManagementModels.StringDictionary | undefined): boolean {
         if (appSettings && appSettings.properties) {
             for (const key of Object.keys(appSettings.properties)) {
                 if (key.toUpperCase() === PORT_KEY) {
@@ -87,8 +87,8 @@ export namespace javaUtils {
         return await fse.pathExists(path.join(fsPath, 'pom.xml')) || await fse.pathExists(path.join(fsPath, 'build.gradle'));
     }
 
-    export async function configureJavaSEAppSettings(node: SiteTreeItem): Promise<StringDictionary | undefined> {
-        const appSettings: StringDictionary = await node.root.client.listApplicationSettings();
+    export async function configureJavaSEAppSettings(node: SiteTreeItem): Promise<WebSiteManagementModels.StringDictionary | undefined> {
+        const appSettings: WebSiteManagementModels.StringDictionary = await node.root.client.listApplicationSettings();
         if (isJavaSERequiredPortConfigured(appSettings)) {
             return undefined;
         }
@@ -110,7 +110,7 @@ export namespace javaUtils {
         return node.root.client.updateApplicationSettings(appSettings);
     }
 
-    export async function getJavaFileExtensions(siteConfig: SiteConfigResource | undefined): Promise<string | string[] | undefined> {
+    export async function getJavaFileExtensions(siteConfig: WebSiteManagementModels.SiteConfigResource | undefined): Promise<string | string[] | undefined> {
         if (siteConfig && isJavaRuntime(siteConfig.linuxFxVersion)) {
             return getArtifactTypeByJavaRuntime(siteConfig.linuxFxVersion);
         } else if (await isJavaProject()) {

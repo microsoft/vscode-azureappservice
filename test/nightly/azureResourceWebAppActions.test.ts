@@ -3,8 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { WebSiteManagementModels } from '@azure/arm-appservice';
 import * as assert from 'assert';
-import { WebSiteManagementModels } from 'azure-arm-website';
 import * as vscode from 'vscode';
 import { WebsiteOS } from 'vscode-azureappservice';
 import { constants, DialogResponses, getRandomHexString } from '../../extension.bundle';

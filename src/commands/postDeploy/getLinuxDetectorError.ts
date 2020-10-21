@@ -3,12 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import moment = require("moment");
-import { IActionContext } from "vscode-azureextensionui";
+import { ServiceClient } from '@azure/ms-rest-js';
+import * as moment from 'moment';
+import { createGenericClient, IActionContext } from "vscode-azureextensionui";
 import { detectorTimestampFormat } from "../../constants";
 import { SiteTreeItem } from "../../explorer/SiteTreeItem";
 import { localize } from "../../localize";
-import { requestUtils } from "../../utils/requestUtils";
 import { findTableByName, getValuesByColumnName } from "./parseDetectorResponse";
 
 export enum ColumnName {
@@ -27,9 +27,9 @@ export enum ColumnName {
 }
 export async function getLinuxDetectorError(context: IActionContext, detectorId: string, node: SiteTreeItem, startTime: string, endTime: string, deployEndTime: string): Promise<string | undefined> {
     const detectorUri: string = `${node.id}/detectors/${detectorId}`;
-    const requestOptions: requestUtils.Request = await requestUtils.getDefaultAzureRequest(detectorUri, node.root);
+    const client: ServiceClient = await createGenericClient(node.root);
 
-    requestOptions.qs = {
+    const queryParameters: { [key: string]: string } = {
         'api-version': "2015-08-01",
         startTime,
         endTime,
@@ -37,8 +37,7 @@ export async function getLinuxDetectorError(context: IActionContext, detectorId:
         logFormat: 'plain'
     };
 
-    const detectorResponse: string = await requestUtils.sendRequest<string>(requestOptions);
-    const responseJson: detectorResponseJSON = <detectorResponseJSON>JSON.parse(detectorResponse);
+    const responseJson: detectorResponseJSON = <detectorResponseJSON>(await client.sendRequest({ method: 'GET', url: detectorUri, queryParameters })).parsedBody;
 
     const insightLogTable: detectorTable | undefined = findTableByName(responseJson.properties.dataset, 'insight/logs');
 

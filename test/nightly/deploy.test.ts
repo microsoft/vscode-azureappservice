@@ -3,11 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { WebSiteManagementModels } from '@azure/arm-appservice';
+import { HttpOperationResponse, ServiceClient } from '@azure/ms-rest-js';
 import * as assert from 'assert';
-import { WebSiteManagementModels } from 'azure-arm-website';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { DialogResponses, ext, getRandomHexString, IActionContext, requestUtils, WebAppTreeItem } from '../../extension.bundle';
+import { createGenericClient } from 'vscode-azureextensionui';
+import { DialogResponses, ext, getRandomHexString, IActionContext, WebAppTreeItem } from '../../extension.bundle';
 import { longRunningTestsEnabled, testUserInput } from '../global.test';
 import { beginDeleteResourceGroup, webSiteClient } from './global.resource.test';
 
@@ -65,17 +67,16 @@ suite('Create Web App and deploy', async function (this: Mocha.Suite): Promise<v
             await vscode.commands.executeCommand('appService.Deploy');
         });
         const hostUrl: string | undefined = (<WebAppTreeItem>await ext.tree.findTreeItem(<string>createdApp.id, context)).root.client.defaultHostUrl;
-        const request: requestUtils.Request = await requestUtils.getDefaultRequest(hostUrl);
-        request.json = true;
-        const response: string = await requestUtils.sendRequest(request);
-        assert.ok(response.includes('Hello World'), 'Expected function response to include "Hello World"');
+        const client: ServiceClient = await createGenericClient();
+        const response: HttpOperationResponse = await client.sendRequest({ method: 'GET', url: hostUrl });
+        assert.ok(response.bodyAsText?.includes('Hello World'), 'Expected response to include "Hello World"');
     }
 });
 
 // The workspace folder that vscode is opened against for tests
 async function getWorkspacePath(testWorkspaceName: string): Promise<string> {
     let workspacePath: string = '';
-    const workspaceFolders: vscode.WorkspaceFolder[] | undefined = vscode.workspace.workspaceFolders;
+    const workspaceFolders: readonly vscode.WorkspaceFolder[] | undefined = vscode.workspace.workspaceFolders;
     if (!workspaceFolders || workspaceFolders.length === 0) {
         throw new Error("No workspace is open");
     } else {

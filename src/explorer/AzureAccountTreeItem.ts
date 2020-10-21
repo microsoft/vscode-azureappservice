@@ -36,7 +36,7 @@ export class AzureAccountTreeItem extends AzureAccountTreeItemBase {
         if (ti) {
             children.push(ti);
         } else {
-            if (!this.isLoggedIn) {
+            if (!await this.getIsLoggedIn()) {
                 children.push(new GenericTreeItem(this, { label: 'Create a Free Trial App...', contextValue: 'createTrialApp', commandId: `${ext.prefix}.CreateTrialApp`, iconPath: getIconPath('WebApp') }));
             }
         }
@@ -59,7 +59,7 @@ export class AzureAccountTreeItem extends AzureAccountTreeItemBase {
         const trialApp: string = localize('trialApp', 'trial app');
 
         if (expectedContextValues.includes(TrialAppTreeItem.contextValue) && this.trialAppNode) {
-            this.childTypeLabel = this.isLoggedIn ? subscriptionOrTrialApp : trialApp;
+            this.childTypeLabel = await this.getIsLoggedIn() ? subscriptionOrTrialApp : trialApp;
         } else {
             this.childTypeLabel = subscription;
         }

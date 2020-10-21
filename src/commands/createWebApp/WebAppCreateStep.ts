@@ -3,12 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { WebSiteManagementClient, WebSiteManagementModels } from 'azure-arm-website';
+import { WebSiteManagementClient, WebSiteManagementModels } from '@azure/arm-appservice';
 import { Progress } from 'vscode';
 import { AppKind, IAppServiceWizardContext, WebsiteOS } from 'vscode-azureappservice';
-import { AzureWizardExecuteStep, createAzureClient } from 'vscode-azureextensionui';
+import { AzureWizardExecuteStep } from 'vscode-azureextensionui';
 import { ext } from '../../extensionVariables';
 import { localize } from '../../localize';
+import { createWebSiteClient } from '../../utils/azureClients';
 import { nonNullProp } from '../../utils/nonNull';
 
 export class WebAppCreateStep extends AzureWizardExecuteStep<IAppServiceWizardContext> {
@@ -33,7 +34,7 @@ export class WebAppCreateStep extends AzureWizardExecuteStep<IAppServiceWizardCo
         }
         newSiteConfig.appSettings = await this.getAppSettings(context);
 
-        const client: WebSiteManagementClient = createAzureClient(context, WebSiteManagementClient);
+        const client: WebSiteManagementClient = await createWebSiteClient(context);
         context.site = await client.webApps.createOrUpdate(rgName, siteName, {
             name: context.newSiteName,
             kind: context.newSiteKind,

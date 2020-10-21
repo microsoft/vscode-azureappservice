@@ -3,13 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ResourceManagementClient } from "azure-arm-resource";
+import { ResourceManagementClient } from "@azure/arm-resources";
 import * as fse from 'fs-extra';
 import * as path from 'path';
 import { ProgressLocation, window, workspace } from "vscode";
-import { createAzureClient, IActionContext } from "vscode-azureextensionui";
+import { IActionContext } from "vscode-azureextensionui";
 import { WebAppTreeItem } from "../explorer/WebAppTreeItem";
 import { ext } from "../extensionVariables";
+import { createResourceClient } from "../utils/azureClients";
 import { nonNullValue } from "../utils/nonNull";
 import { getResourcesPath } from "../utils/pathUtils";
 
@@ -26,7 +27,7 @@ export async function generateDeploymentScript(context: IActionContext, node?: W
 
         node = nonNullValue(node);
 
-        const resourceClient: ResourceManagementClient = createAzureClient(node.root, ResourceManagementClient);
+        const resourceClient: ResourceManagementClient = await createResourceClient(node.root);
         const tasks = Promise.all([
             resourceClient.resourceGroups.get(node.root.client.resourceGroup),
             node.root.client.getAppServicePlan(),

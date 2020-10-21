@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { WebSiteManagementModels } from 'azure-arm-website';
+import { WebSiteManagementModels } from '@azure/arm-appservice';
 import { IAppSettingsClient } from 'vscode-azureappservice';
 import { AzExtTreeItem, DialogResponses } from 'vscode-azureextensionui';
 import { ext } from '../extensionVariables';
