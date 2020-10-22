@@ -8,8 +8,8 @@ import { HttpOperationResponse, ServiceClient } from '@azure/ms-rest-js';
 import * as assert from 'assert';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { createGenericClient } from 'vscode-azureextensionui';
-import { DialogResponses, ext, getRandomHexString, IActionContext, WebAppTreeItem } from '../../extension.bundle';
+import { tryGetWebApp } from 'vscode-azureappservice';
+import { createGenericClient, DialogResponses, ext, getRandomHexString, IActionContext, WebAppTreeItem } from '../../extension.bundle';
 import { longRunningTestsEnabled, testUserInput } from '../global.test';
 import { beginDeleteResourceGroup, webSiteClient } from './global.resource.test';
 
@@ -59,14 +59,14 @@ suite('Create Web App and deploy', async function (this: Mocha.Suite): Promise<v
         await testUserInput.runWithInputs(testInputs, async () => {
             await vscode.commands.executeCommand('appService.CreateWebAppAdvanced');
         });
-        const createdApp: WebSiteManagementModels.Site = await webSiteClient.webApps.get(resourceGroupName, resourceName);
+        const createdApp: WebSiteManagementModels.Site | undefined = await tryGetWebApp(webSiteClient, resourceGroupName, resourceName);
         assert.ok(createdApp);
 
         // Verify that the deployment is successful
         await testUserInput.runWithInputs([workspacePath, resourceName, 'Deploy', DialogResponses.skipForNow.title], async () => {
             await vscode.commands.executeCommand('appService.Deploy');
         });
-        const hostUrl: string | undefined = (<WebAppTreeItem>await ext.tree.findTreeItem(<string>createdApp.id, context)).root.client.defaultHostUrl;
+        const hostUrl: string | undefined = (<WebAppTreeItem>await ext.tree.findTreeItem(<string>createdApp?.id, context)).root.client.defaultHostUrl;
         const client: ServiceClient = await createGenericClient();
         const response: HttpOperationResponse = await client.sendRequest({ method: 'GET', url: hostUrl });
         assert.ok(response.bodyAsText?.includes('Hello World'), 'Expected response to include "Hello World"');

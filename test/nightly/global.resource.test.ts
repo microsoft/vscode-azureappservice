@@ -7,8 +7,7 @@ import { WebSiteManagementClient } from '@azure/arm-appservice';
 import { ResourceManagementClient } from "@azure/arm-resources";
 import * as vscode from 'vscode';
 import { TestAzureAccount } from 'vscode-azureextensiondev';
-import { ISubscriptionContext } from 'vscode-azureextensionui';
-import { AzExtTreeDataProvider, AzureAccountTreeItem, createResourceClient, createWebSiteClient, ext } from '../../extension.bundle';
+import { AzExtTreeDataProvider, AzureAccountTreeItem, createResourceClient, createWebSiteClient, ext, ISubscriptionContext } from '../../extension.bundle';
 import { longRunningTestsEnabled } from '../global.test';
 
 export let testAccount: TestAzureAccount;
