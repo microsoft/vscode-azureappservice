@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as WebSiteModels from 'azure-arm-website/lib/models';
+import { WebSiteManagementModels } from '@azure/arm-appservice';
 import { AppSettingsTreeItem, AppSettingTreeItem, deleteSite, DeploymentsTreeItem, DeploymentTreeItem, FolderTreeItem, ISiteTreeRoot, LogFilesTreeItem, SiteClient, SiteFilesTreeItem } from 'vscode-azureappservice';
 import { AzExtTreeItem, AzureParentTreeItem, AzureTreeItem, openInPortal } from 'vscode-azureextensionui';
 import { openUrl } from '../utils/openUrl';
@@ -88,8 +88,8 @@ export abstract class SiteTreeItem extends SiteTreeItemBase implements ISiteTree
     }
 
     public async loadMoreChildrenImpl(_clearCache: boolean): Promise<AzExtTreeItem[]> {
-        const siteConfig: WebSiteModels.SiteConfig = await this.root.client.getSiteConfig();
-        const sourceControl: WebSiteModels.SiteSourceControl = await this.root.client.getSourceControl();
+        const siteConfig: WebSiteManagementModels.SiteConfig = await this.root.client.getSiteConfig();
+        const sourceControl: WebSiteManagementModels.SiteSourceControl = await this.root.client.getSourceControl();
         this.deploymentsNode = new DeploymentsTreeItem(this, this.root.client, siteConfig, sourceControl);
         return [this.appSettingsNode, this._connectionsNode, this.deploymentsNode, this._siteFilesNode, this._logFilesNode, this._webJobsNode];
     }
@@ -137,12 +137,12 @@ export abstract class SiteTreeItem extends SiteTreeItemBase implements ISiteTree
     }
 
     public async isHttpLogsEnabled(): Promise<boolean> {
-        const logsConfig: WebSiteModels.SiteLogsConfig = await this.root.client.getLogsConfig();
+        const logsConfig: WebSiteManagementModels.SiteLogsConfig = await this.root.client.getLogsConfig();
         return !!(logsConfig.httpLogs && logsConfig.httpLogs.fileSystem && logsConfig.httpLogs.fileSystem.enabled);
     }
 
     public async enableHttpLogs(): Promise<void> {
-        const logsConfig: WebSiteModels.SiteLogsConfig = {
+        const logsConfig: WebSiteManagementModels.SiteLogsConfig = {
             httpLogs: {
                 fileSystem: {
                     enabled: true,

@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as WebSiteModels from 'azure-arm-website/lib/models';
+import { WebSiteManagementModels } from '@azure/arm-appservice';
 import { pathExists } from 'fs-extra';
 import * as path from 'path';
 import * as vscode from 'vscode';
@@ -31,7 +31,7 @@ const postDeployCancelTokens: Map<string, vscode.CancellationTokenSource> = new 
 
 export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | SiteTreeItem | TrialAppTreeItem, arg2?: (vscode.Uri | SiteTreeItem)[], isNewApp: boolean = false): Promise<void> {
     actionContext.telemetry.properties.deployedWithConfigs = 'false';
-    let siteConfig: WebSiteModels.SiteConfigResource | undefined;
+    let siteConfig: WebSiteManagementModels.SiteConfigResource | undefined;
 
     if (arg1 instanceof SiteTreeItem) {
         // we can only get the siteConfig earlier if the entry point was a treeItem
@@ -49,7 +49,7 @@ export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | 
 
     if (node instanceof TrialAppTreeItem) {
         await enableScmDoBuildDuringDeploy(context.effectiveDeployFsPath, 'NODE|12-lts');
-        if (!ext.azureAccountTreeItem.isLoggedIn) {
+        if (!await ext.azureAccountTreeItem.getIsLoggedIn()) {
             await saveDeployDefaults(node.fullId, context.workspaceFolder.uri.fsPath, context.effectiveDeployFsPath);
         }
         await deployTrialApp(context, node);

@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { SiteConfigResource, User } from 'azure-arm-website/lib/models';
+import { WebSiteManagementModels } from '@azure/arm-appservice';
 import * as portfinder from 'portfinder';
 import * as vscode from 'vscode';
 import { reportMessage, setRemoteDebug, SiteClient, TunnelProxy } from 'vscode-azureappservice';
@@ -57,12 +57,12 @@ async function startSshInternal(node: SiteTreeItem): Promise<void> {
         reportMessage('Checking app settings...', progress, token);
 
         const confirmDisableMessage: string = 'Remote debugging must be disabled in order to SSH. This will restart the app.';
-        const siteConfig: SiteConfigResource = await siteClient.getSiteConfig();
+        const siteConfig: WebSiteManagementModels.SiteConfigResource = await siteClient.getSiteConfig();
         // remote debugging has to be disabled in order to tunnel to the 2222 port
         await setRemoteDebug(false, confirmDisableMessage, undefined, siteClient, siteConfig, progress, token);
 
         reportMessage('Initializing SSH...', progress, token);
-        const publishCredential: User = await siteClient.getWebAppPublishCredential();
+        const publishCredential: WebSiteManagementModels.User = await siteClient.getWebAppPublishCredential();
         const localHostPortNumber: number = await portfinder.getPortPromise();
         // should always be an unbound port
         const tunnelProxy: TunnelProxy = new TunnelProxy(localHostPortNumber, siteClient, publishCredential, true);

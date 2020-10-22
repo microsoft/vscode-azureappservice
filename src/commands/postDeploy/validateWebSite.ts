@@ -3,23 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IncomingMessage } from 'http';
-import { isNumber } from 'util';
+import { HttpOperationResponse, RestError, ServiceClient } from '@azure/ms-rest-js';
 import { CancellationTokenSource } from 'vscode';
-import { callWithTelemetryAndErrorHandling, IActionContext, UserCancelledError } from 'vscode-azureextensionui';
+import { callWithTelemetryAndErrorHandling, createGenericClient, IActionContext, UserCancelledError } from 'vscode-azureextensionui';
 import { SiteTreeItem } from '../../explorer/SiteTreeItem';
 import { delay } from '../../utils/delay';
-import { requestUtils } from '../../utils/requestUtils';
 
 // grandfathered in
 // tslint:disable: typedef
-
-type WebError = {
-    response?: {
-        statusCode?: number;
-        statusMessage?: string;
-    }
-};
 
 interface IValidateProperties {
     statusCodes?: string; // [[code,elapsedSeconds], [code,elapsedSeconds]...]
@@ -41,9 +32,11 @@ export async function validateWebSite(deploymentCorrelationId: string, siteTreeI
 
         let pollingIntervalMs = initialPollingIntervalMs;
         const start = Date.now();
-        const uri = siteTreeItem.root.client.defaultHostUrl;
+        const url = siteTreeItem.root.client.defaultHostUrl;
         let currentStatusCode: number | undefined = 0;
         const statusCodes: { code: number | undefined, elapsed: number }[] = [];
+
+        const client: ServiceClient = await createGenericClient();
 
         // tslint:disable-next-line:no-constant-condition
         while (true) {
@@ -54,14 +47,10 @@ export async function validateWebSite(deploymentCorrelationId: string, siteTreeI
             }
 
             try {
-                const request: requestUtils.Request = await requestUtils.getDefaultRequest(uri);
-                request.resolveWithFullResponse = true;
-                const response = await requestUtils.sendRequest<IncomingMessage>(request);
-                currentStatusCode = response.statusCode;
+                const response: HttpOperationResponse = await client.sendRequest({ method: 'GET', url });
+                currentStatusCode = response.status;
             } catch (error) {
-                // tslint:disable-next-line:strict-boolean-expressions
-                const response = (<WebError>error).response || {};
-                currentStatusCode = isNumber(response.statusCode) ? response.statusCode : 0;
+                currentStatusCode = error instanceof RestError ? error.statusCode : 0;
             }
 
             const elapsedSeconds = Math.round((Date.now() - start) / 1000);

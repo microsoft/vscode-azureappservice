@@ -3,13 +3,12 @@
 *  Licensed under the MIT License. See License.txt in the project root for license information.
 *--------------------------------------------------------------------------------------------*/
 
-import { SiteConfigResource, SiteSourceControl, StringDictionary, User } from 'azure-arm-website/lib/models';
-import { BasicAuthenticationCredentials, ServiceClientCredentials } from 'ms-rest';
+import { WebSiteManagementModels } from '@azure/arm-appservice';
+import { BasicAuthenticationCredentials, HttpOperationResponse, ServiceClient, ServiceClientCredentials } from '@azure/ms-rest-js';
 import { ISimplifiedSiteClient } from 'vscode-azureappservice';
 import { ScmType } from 'vscode-azureappservice/out/src/ScmType';
-import { addExtensionUserAgent } from 'vscode-azureextensionui';
-import KuduClient from 'vscode-azurekudu';
-import { requestUtils } from '../../utils/requestUtils';
+import { appendExtensionUserAgent, createGenericClient } from 'vscode-azureextensionui';
+import { KuduClient } from 'vscode-azurekudu';
 import { ITrialAppMetadata } from './ITrialAppMetadata';
 
 export class TrialAppClient implements ISimplifiedSiteClient {
@@ -25,9 +24,9 @@ export class TrialAppClient implements ISimplifiedSiteClient {
     }
 
     public static async createTrialAppClient(loginSession: string): Promise<TrialAppClient> {
-        const metadataRequest: requestUtils.Request = await requestUtils.getDefaultRequest('https://tryappservice.azure.com/api/vscoderesource', undefined, 'GET');
-
-        metadataRequest.headers = {
+        const client: ServiceClient = await createGenericClient();
+        const url: string = 'https://tryappservice.azure.com/api/vscoderesource';
+        const headers: { [key: string]: string } = {
             accept: "*/*",
             "accept-language": "en-US,en;q=0.9",
             "sec-fetch-dest": "empty",
@@ -35,9 +34,8 @@ export class TrialAppClient implements ISimplifiedSiteClient {
             "sec-fetch-site": "same-origin",
             cookie: `loginsession=${loginSession}`
         };
-
-        const result: string = await requestUtils.sendRequest<string>(metadataRequest);
-        const metadata: ITrialAppMetadata = <ITrialAppMetadata>JSON.parse(result);
+        const response: HttpOperationResponse = await client.sendRequest({ method: 'GET', url, headers });
+        const metadata: ITrialAppMetadata = <ITrialAppMetadata>response.parsedBody;
         return new TrialAppClient(metadata);
     }
 
@@ -65,34 +63,35 @@ export class TrialAppClient implements ISimplifiedSiteClient {
         return this.metadata.gitUrl.split('@')[1];
     }
 
-    public async getWebAppPublishCredential(): Promise<User> {
+    public async getWebAppPublishCredential(): Promise<WebSiteManagementModels.User> {
         return { publishingUserName: this.metadata.publishingUserName, publishingPassword: this.metadata.publishingPassword };
     }
 
-    public async getSiteConfig(): Promise<SiteConfigResource> {
+    public async getSiteConfig(): Promise<WebSiteManagementModels.SiteConfigResource> {
         return { scmType: ScmType.LocalGit };
     }
 
-    public async getSourceControl(): Promise<SiteSourceControl> {
+    public async getSourceControl(): Promise<WebSiteManagementModels.SiteSourceControl> {
         // Not relevant for trial apps.
         return {};
     }
 
     public async getKuduClient(): Promise<KuduClient> {
-        const kuduClient: KuduClient = new KuduClient(this._credentials, this.kuduUrl);
-        addExtensionUserAgent(kuduClient);
-        return kuduClient;
+        return new KuduClient(this._credentials, {
+            baseUri: this.kuduUrl,
+            userAgent: appendExtensionUserAgent
+        });
     }
 
-    public async listApplicationSettings(): Promise<StringDictionary> {
+    public async listApplicationSettings(): Promise<WebSiteManagementModels.StringDictionary> {
         const kuduClient: KuduClient = await this.getKuduClient();
-        const settings: StringDictionary = {};
-        settings.properties = <{ [name: string]: string }>await kuduClient.settings.getAll();
+        const settings: WebSiteManagementModels.StringDictionary = {};
+        settings.properties = <{ [name: string]: string }>(await kuduClient.settings.getAll()).body;
         return settings;
     }
 
-    public async updateApplicationSettings(appSettings: StringDictionary): Promise<StringDictionary> {
-        const currentSettings: StringDictionary = await this.listApplicationSettings();
+    public async updateApplicationSettings(appSettings: WebSiteManagementModels.StringDictionary): Promise<WebSiteManagementModels.StringDictionary> {
+        const currentSettings: WebSiteManagementModels.StringDictionary = await this.listApplicationSettings();
 
         /**
          * We cannot use websiteManagementClient for trial apps since we do not have a subscription. And KuduClient.settings.set was not
@@ -108,20 +107,16 @@ export class TrialAppClient implements ISimplifiedSiteClient {
             }
         }));
 
-        const request: requestUtils.Request = await requestUtils.getDefaultRequest(`https://${this.metadata.scmHostName}/api/settings`, this._credentials, 'POST');
-        request.body = JSON.stringify(appSettings.properties);
-        request.headers['Content-Type'] = 'application/json';
-
-        await requestUtils.sendRequest(request);
+        const client: ServiceClient = await createGenericClient(this._credentials);
+        const url: string = `https://${this.metadata.scmHostName}/api/settings`;
+        await client.sendRequest({ method: 'POST', url, body: appSettings.properties, headers: { 'Content-Type': 'application/json' } });
         return appSettings;
     }
 
-    private async deleteApplicationSetting(appSettings: StringDictionary, key: string): Promise<StringDictionary> {
-        const deleteRequest: requestUtils.Request = await requestUtils.getDefaultRequest(`https://${this.metadata.scmHostName}/api/settings/${key}`, this._credentials, 'DELETE');
-        deleteRequest.body = JSON.stringify(appSettings.properties);
-        deleteRequest.headers['Content-Type'] = 'application/json';
-
-        await requestUtils.sendRequest<string>(deleteRequest);
+    private async deleteApplicationSetting(appSettings: WebSiteManagementModels.StringDictionary, key: string): Promise<WebSiteManagementModels.StringDictionary> {
+        const client: ServiceClient = await createGenericClient(this._credentials);
+        const url: string = `https://${this.metadata.scmHostName}/api/settings/${key}`;
+        await client.sendRequest({ method: 'DELETE', url, body: appSettings.properties, headers: { 'Content-Type': 'application/json' } });
         return appSettings;
     }
 }

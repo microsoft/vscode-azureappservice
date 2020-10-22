@@ -3,8 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { WebSiteManagementClient } from 'azure-arm-website';
-import { Site, WebAppCollection } from 'azure-arm-website/lib/models';
+import { WebSiteManagementClient, WebSiteManagementModels } from '@azure/arm-appservice';
 import { AppInsightsCreateStep, AppInsightsListStep, AppKind, AppServicePlanCreateStep, AppServicePlanListStep, IAppServiceWizardContext, setLocationsTask, SiteClient, SiteNameStep, SiteOSStep, SiteRuntimeStep } from 'vscode-azureappservice';
 import { AzExtTreeItem, AzureTreeItem, AzureWizard, AzureWizardExecuteStep, AzureWizardPromptStep, createAzureClient, ICreateChildImplContext, LocationListStep, parseError, ResourceGroupCreateStep, ResourceGroupListStep, SubscriptionTreeItemBase, VerifyProvidersStep } from 'vscode-azureextensionui';
 import { setPostPromptDefaults } from '../commands/createWebApp/setPostPromptDefaults';
@@ -22,7 +21,7 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
     private _nextLink: string | undefined;
 
     public hasMoreChildrenImpl(): boolean {
-        return this._nextLink !== undefined;
+        return !!this._nextLink;
     }
 
     public async loadMoreChildrenImpl(clearCache: boolean): Promise<AzExtTreeItem[]> {
@@ -32,11 +31,11 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
 
         const client: WebSiteManagementClient = createAzureClient(this.root, WebSiteManagementClient);
 
-        let webAppCollection: WebAppCollection;
+        let webAppCollection: WebSiteManagementModels.WebAppCollection;
         try {
-            webAppCollection = this._nextLink === undefined ?
-                await client.webApps.list() :
-                await client.webApps.listNext(this._nextLink);
+            webAppCollection = this._nextLink ?
+                await client.webApps.listNext(this._nextLink) :
+                await client.webApps.list();
         } catch (error) {
             if (parseError(error).errorType.toLowerCase() === 'notfound') {
                 // This error type means the 'Microsoft.Web' provider has not been registered in this subscription
@@ -53,11 +52,11 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
         return await this.createTreeItemsWithErrorHandling(
             webAppCollection,
             'invalidAppService',
-            (s: Site) => {
+            s => {
                 const siteClient: SiteClient = new SiteClient(s, this.root);
                 return siteClient.isFunctionApp ? undefined : new WebAppTreeItem(this, siteClient);
             },
-            (s: Site) => {
+            s => {
                 return s.name;
             }
         );
@@ -95,7 +94,7 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
         executeSteps.push(new WebAppCreateStep());
 
         if (wizardContext.newSiteOS !== undefined) {
-            setLocationsTask(wizardContext);
+            await setLocationsTask(wizardContext);
         }
 
         const title: string = 'Create new web app';

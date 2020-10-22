@@ -3,11 +3,11 @@
  *  Licensed under the MIT License. See LICENSE.md in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ResourceManagementClient } from 'azure-arm-resource';
-import { WebSiteManagementClient } from 'azure-arm-website';
+import { WebSiteManagementClient } from '@azure/arm-appservice';
+import { ResourceManagementClient } from "@azure/arm-resources";
 import * as vscode from 'vscode';
 import { TestAzureAccount } from 'vscode-azureextensiondev';
-import { AzExtTreeDataProvider, AzureAccountTreeItem, createAzureClient, ext } from '../../extension.bundle';
+import { AzExtTreeDataProvider, AzureAccountTreeItem, createResourceClient, createWebSiteClient, ext, ISubscriptionContext } from '../../extension.bundle';
 import { longRunningTestsEnabled } from '../global.test';
 
 export let testAccount: TestAzureAccount;
@@ -21,7 +21,7 @@ suiteSetup(async function (this: Mocha.Context): Promise<void> {
         await testAccount.signIn();
         ext.azureAccountTreeItem = new AzureAccountTreeItem(testAccount);
         ext.tree = new AzExtTreeDataProvider(ext.azureAccountTreeItem, 'appService.loadMore');
-        webSiteClient = createAzureClient(testAccount.getSubscriptionContext(), WebSiteManagementClient);
+        webSiteClient = await createWebSiteClient(<ISubscriptionContext>testAccount.getSubscriptionContext());
     }
 });
 
@@ -36,8 +36,8 @@ suiteTeardown(async function (this: Mocha.Context): Promise<void> {
 });
 
 export async function beginDeleteResourceGroup(resourceGroup: string): Promise<void> {
-    const client: ResourceManagementClient = createAzureClient(testAccount.getSubscriptionContext(), ResourceManagementClient);
-    if (await client.resourceGroups.checkExistence(resourceGroup)) {
+    const client: ResourceManagementClient = await createResourceClient(<ISubscriptionContext>testAccount.getSubscriptionContext());
+    if ((await client.resourceGroups.checkExistence(resourceGroup)).body) {
         console.log(`Started delete of resource group "${resourceGroup}"...`);
         await client.resourceGroups.beginDeleteMethod(resourceGroup);
         console.log(`Successfully started delete of resource group "${resourceGroup}".`);

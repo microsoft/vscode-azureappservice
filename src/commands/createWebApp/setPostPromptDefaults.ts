@@ -3,14 +3,14 @@
 *  Licensed under the MIT License. See License.txt in the project root for license information.
 *--------------------------------------------------------------------------------------------*/
 
-import { Location } from "azure-arm-resource/lib/subscription/models";
-import WebSiteManagementClient from "azure-arm-website";
-import { AppServicePlan } from "azure-arm-website/lib/models";
+import { WebSiteManagementClient, WebSiteManagementModels } from '@azure/arm-appservice';
+import { SubscriptionModels } from '@azure/arm-subscriptions';
 import { MessageItem } from "vscode";
-import { IAppServiceWizardContext, SiteNameStep, WebsiteOS } from "vscode-azureappservice";
-import { createAzureClient, DialogResponses, IActionContext, LocationListStep } from "vscode-azureextensionui";
+import { IAppServiceWizardContext, SiteNameStep, tryGetAppServicePlan, WebsiteOS } from "vscode-azureappservice";
+import { DialogResponses, IActionContext, LocationListStep } from "vscode-azureextensionui";
 import { ext } from "../../extensionVariables";
 import { localize } from "../../localize";
+import { createWebSiteClient } from "../../utils/azureClients";
 import { getResourceGroupFromId } from '../../utils/azureUtils';
 import { nonNullProp } from "../../utils/nonNull";
 import { getWorkspaceSetting, updateGlobalSetting } from "../../vsCodeConfig/settings";
@@ -23,15 +23,16 @@ export async function setPostPromptDefaults(wizardContext: IAppServiceWizardCont
     const config: AzConfig = await readAzConfig(wizardContext, AzConfigProperty.group, AzConfigProperty.location);
 
     // location should always be set when in the basic creation scenario
-    const defaultLocation: Location = nonNullProp(wizardContext, 'location');
+    const defaultLocation: SubscriptionModels.Location = nonNullProp(wizardContext, 'location');
     await LocationListStep.setLocation(wizardContext, config.location || nonNullProp(defaultLocation, 'name'));
-    const location: Location = nonNullProp(wizardContext, 'location');
+    const location: SubscriptionModels.Location = nonNullProp(wizardContext, 'location');
 
     const defaultName: string = `appsvc_${wizardContext.newSiteOS}_${location.name}`;
     const defaultGroupName: string = config.group || defaultName;
     const defaultPlanName: string = defaultName;
 
-    const asp: AppServicePlan | null = await getAppServicePlan(wizardContext, defaultGroupName, defaultPlanName);
+    const client: WebSiteManagementClient = await createWebSiteClient(wizardContext);
+    const asp: WebSiteManagementModels.AppServicePlan | undefined = await tryGetAppServicePlan(client, defaultGroupName, defaultPlanName);
     if (asp && checkPlanForPerformanceDrop(asp)) {
         // Subscriptions can only have 1 free tier Linux plan so show a warning if there are too many apps on the plan
         if (wizardContext.newSiteOS === WebsiteOS.linux) {
@@ -42,9 +43,8 @@ export async function setPostPromptDefaults(wizardContext: IAppServiceWizardCont
             // Subscriptions can have 10 free tier Windows plans so just create a new one with a suffixed name
             // If there are 10 plans, it'll throw an error that directs them to advanced create
 
-            const client: WebSiteManagementClient = createAzureClient(wizardContext, WebSiteManagementClient);
-            const allAppServicePlans: AppServicePlan[] = await client.appServicePlans.list();
-            const defaultPlans: AppServicePlan[] = allAppServicePlans.filter(plan => {
+            const allAppServicePlans: WebSiteManagementModels.AppServicePlan[] = await client.appServicePlans.list();
+            const defaultPlans: WebSiteManagementModels.AppServicePlan[] = allAppServicePlans.filter(plan => {
                 return plan.name && plan.name.includes(defaultPlanName) && getResourceGroupFromId(nonNullProp(plan, 'id')).includes(defaultGroupName);
             });
 
@@ -52,7 +52,7 @@ export async function setPostPromptDefaults(wizardContext: IAppServiceWizardCont
             for (const plan of defaultPlans) {
                 if (plan.name) {
                     const groupName: string = getResourceGroupFromId(nonNullProp(plan, 'id'));
-                    const fullPlanData: AppServicePlan | null = await getAppServicePlan(wizardContext, groupName, plan.name);
+                    const fullPlanData: WebSiteManagementModels.AppServicePlan | undefined = await tryGetAppServicePlan(client, groupName, plan.name);
                     if (fullPlanData && !checkPlanForPerformanceDrop(fullPlanData)) {
                         wizardContext.newResourceGroupName = groupName;
                         wizardContext.newPlanName = plan.name;
@@ -78,12 +78,7 @@ export async function setPostPromptDefaults(wizardContext: IAppServiceWizardCont
     }
 }
 
-export async function getAppServicePlan(wizardContext: IAppServiceWizardContext, rgName: string, newPlanName: string): Promise<AppServicePlan | null> {
-    const client: WebSiteManagementClient = createAzureClient(wizardContext, WebSiteManagementClient);
-    return await client.appServicePlans.get(rgName, newPlanName);
-}
-
-function checkPlanForPerformanceDrop(asp: AppServicePlan): boolean {
+function checkPlanForPerformanceDrop(asp: WebSiteManagementModels.AppServicePlan): boolean {
     // for free and basic plans, there is a perf drop after 3 active apps are running
     if (asp.numberOfSites !== undefined && asp.numberOfSites >= maxNumberOfSites) {
         // tslint:disable-next-line: strict-boolean-expressions
@@ -96,7 +91,7 @@ function checkPlanForPerformanceDrop(asp: AppServicePlan): boolean {
     return false;
 }
 
-async function promptPerformanceWarning(context: IActionContext, asp: AppServicePlan): Promise<void> {
+async function promptPerformanceWarning(context: IActionContext, asp: WebSiteManagementModels.AppServicePlan): Promise<void> {
     context.telemetry.properties.performanceWarning = 'true';
     const showPlanPerformanceWarningSetting: string = 'showPlanPerformanceWarning';
     const showPerfWarning: boolean | undefined = getWorkspaceSetting(showPlanPerformanceWarningSetting);

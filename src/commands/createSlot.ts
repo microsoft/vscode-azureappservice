@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { SiteConfigResource } from "azure-arm-website/lib/models";
+import { WebSiteManagementModels } from "@azure/arm-appservice";
 import { IActionContext } from "vscode-azureextensionui";
 import { ScmType } from "../constants";
 import { DeploymentSlotsTreeItem } from "../explorer/DeploymentSlotsTreeItem";
@@ -23,7 +23,7 @@ export async function createSlot(context: IActionContext, node?: DeploymentSlots
     showCreatedWebAppMessage(createdSlot);
 
     // set the deploy source as the same as its production slot
-    const siteConfig: SiteConfigResource = await node.root.client.getSiteConfig();
+    const siteConfig: WebSiteManagementModels.SiteConfigResource = await node.root.client.getSiteConfig();
     if (siteConfig.scmType !== ScmType.None) {
         switch (siteConfig.scmType) {
             case ScmType.LocalGit:

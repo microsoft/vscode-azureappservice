@@ -12,6 +12,10 @@ export function addTrialAppTelemetry(context: IActionContext, node: ISiteTreeIte
     if (node instanceof TrialAppTreeItem) {
         context.telemetry.properties.trialApp = 'true';
         context.telemetry.properties.trialTimeRemaining = String(node.metadata.timeLeft);
-        context.telemetry.properties.loggedIn = ext.azureAccountTreeItem.isLoggedIn ? 'true' : 'false';
+        // don't wait
+        // tslint:disable-next-line: no-floating-promises
+        ext.azureAccountTreeItem.getIsLoggedIn().then(result => {
+            context.telemetry.properties.loggedIn = String(result);
+        });
     }
 }
