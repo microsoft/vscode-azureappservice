@@ -69,7 +69,7 @@ suite('Create Web App and deploy', async function (this: Mocha.Suite): Promise<v
         const hostUrl: string | undefined = (<WebAppTreeItem>await ext.tree.findTreeItem(<string>createdApp?.id, context)).root.client.defaultHostUrl;
         const client: ServiceClient = await createGenericClient();
         const response: HttpOperationResponse = await client.sendRequest({ method: 'GET', url: hostUrl });
-        assert.ok(response.bodyAsText?.includes('Hello World'), 'Expected response to include "Hello World"');
+        assert.strictEqual(response.bodyAsText, 'Hello World!');
     }
 });
 

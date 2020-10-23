@@ -32,6 +32,7 @@ namespace _3._1
             {
                 endpoints.MapGet("/", async context =>
                 {
+                    context.Response.ContentType = "text/plain";
                     await context.Response.WriteAsync("Hello World!");
                 });
             });
