@@ -6,7 +6,7 @@
 import { WebSiteManagementClient, WebSiteManagementModels } from '@azure/arm-appservice';
 import { SubscriptionModels } from '@azure/arm-subscriptions';
 import { MessageItem } from "vscode";
-import { IAppServiceWizardContext, SiteNameStep, tryGetAppServicePlan, WebsiteOS } from "vscode-azureappservice";
+import { SiteNameStep, tryGetAppServicePlan, WebsiteOS } from "vscode-azureappservice";
 import { DialogResponses, IActionContext, LocationListStep } from "vscode-azureextensionui";
 import { ext } from "../../extensionVariables";
 import { localize } from "../../localize";
@@ -14,11 +14,12 @@ import { createWebSiteClient } from "../../utils/azureClients";
 import { getResourceGroupFromId } from '../../utils/azureUtils';
 import { nonNullProp } from "../../utils/nonNull";
 import { getWorkspaceSetting, updateGlobalSetting } from "../../vsCodeConfig/settings";
+import { IWebAppWizardContext } from './IWebAppWizardContext';
 import { AzConfig, AzConfigProperty, readAzConfig } from "./readAzConfig";
 
 const maxNumberOfSites: number = 3;
 
-export async function setPostPromptDefaults(wizardContext: IAppServiceWizardContext, siteNameStep: SiteNameStep): Promise<void> {
+export async function setPostPromptDefaults(wizardContext: IWebAppWizardContext, siteNameStep: SiteNameStep): Promise<void> {
     // Reading az config should always happen after prompting because it can cause a few seconds delay
     const config: AzConfig = await readAzConfig(wizardContext, AzConfigProperty.group, AzConfigProperty.location);
 

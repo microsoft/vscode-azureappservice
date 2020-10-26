@@ -4,12 +4,14 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { WebSiteManagementClient, WebSiteManagementModels } from '@azure/arm-appservice';
-import { AppInsightsCreateStep, AppInsightsListStep, AppKind, AppServicePlanCreateStep, AppServicePlanListStep, IAppServiceWizardContext, setLocationsTask, SiteClient, SiteNameStep, SiteOSStep, SiteRuntimeStep } from 'vscode-azureappservice';
+import { AppInsightsCreateStep, AppInsightsListStep, AppKind, AppServicePlanCreateStep, AppServicePlanListStep, setLocationsTask, SiteClient, SiteNameStep, SiteOSStep } from 'vscode-azureappservice';
 import { AzExtTreeItem, AzureTreeItem, AzureWizard, AzureWizardExecuteStep, AzureWizardPromptStep, createAzureClient, ICreateChildImplContext, LocationListStep, parseError, ResourceGroupCreateStep, ResourceGroupListStep, SubscriptionTreeItemBase, VerifyProvidersStep } from 'vscode-azureextensionui';
+import { IWebAppWizardContext } from '../commands/createWebApp/IWebAppWizardContext';
 import { setPostPromptDefaults } from '../commands/createWebApp/setPostPromptDefaults';
 import { setPrePromptDefaults } from '../commands/createWebApp/setPrePromptDefaults';
 import { getCreatedWebAppMessage } from '../commands/createWebApp/showCreatedWebAppMessage';
 import { WebAppCreateStep } from '../commands/createWebApp/WebAppCreateStep';
+import { WebAppRuntimeStep } from '../commands/createWebApp/WebAppRuntimeStep';
 import { ext } from '../extensionVariables';
 import { nonNullProp } from '../utils/nonNull';
 import { WebAppTreeItem } from './WebAppTreeItem';
@@ -63,27 +65,27 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
     }
 
     public async createChildImpl(context: ICreateChildImplContext): Promise<AzureTreeItem> {
-        const wizardContext: IAppServiceWizardContext = Object.assign(context, this.root, {
+        const wizardContext: IWebAppWizardContext = Object.assign(context, this.root, {
             newSiteKind: AppKind.app,
             resourceGroupDeferLocationStep: true
         });
 
         await setPrePromptDefaults(wizardContext);
 
-        const promptSteps: AzureWizardPromptStep<IAppServiceWizardContext>[] = [];
-        const executeSteps: AzureWizardExecuteStep<IAppServiceWizardContext>[] = [];
+        const promptSteps: AzureWizardPromptStep<IWebAppWizardContext>[] = [];
+        const executeSteps: AzureWizardExecuteStep<IWebAppWizardContext>[] = [];
         const siteStep: SiteNameStep = new SiteNameStep();
         promptSteps.push(siteStep);
 
         if (context.advancedCreation) {
             promptSteps.push(new ResourceGroupListStep());
             promptSteps.push(new SiteOSStep());
-            promptSteps.push(new SiteRuntimeStep());
+            promptSteps.push(new WebAppRuntimeStep());
             promptSteps.push(new AppServicePlanListStep());
             promptSteps.push(new AppInsightsListStep());
         } else {
             promptSteps.push(new SiteOSStep()); // will be skipped if there is a smart default
-            promptSteps.push(new SiteRuntimeStep());
+            promptSteps.push(new WebAppRuntimeStep());
             executeSteps.push(new ResourceGroupCreateStep());
             executeSteps.push(new AppServicePlanCreateStep());
             executeSteps.push(new AppInsightsCreateStep());
@@ -98,7 +100,7 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
         }
 
         const title: string = 'Create new web app';
-        const wizard: AzureWizard<IAppServiceWizardContext> = new AzureWizard(wizardContext, { promptSteps, executeSteps, title });
+        const wizard: AzureWizard<IWebAppWizardContext> = new AzureWizard(wizardContext, { promptSteps, executeSteps, title });
 
         await wizard.prompt();
 
