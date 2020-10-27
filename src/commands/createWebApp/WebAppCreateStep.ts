@@ -5,17 +5,18 @@
 
 import { WebSiteManagementClient, WebSiteManagementModels } from '@azure/arm-appservice';
 import { Progress } from 'vscode';
-import { AppKind, IAppServiceWizardContext, WebsiteOS } from 'vscode-azureappservice';
+import { AppKind, WebsiteOS } from 'vscode-azureappservice';
 import { AzureWizardExecuteStep } from 'vscode-azureextensionui';
 import { ext } from '../../extensionVariables';
 import { localize } from '../../localize';
 import { createWebSiteClient } from '../../utils/azureClients';
 import { nonNullProp } from '../../utils/nonNull';
+import { IWebAppWizardContext } from './IWebAppWizardContext';
 
-export class WebAppCreateStep extends AzureWizardExecuteStep<IAppServiceWizardContext> {
+export class WebAppCreateStep extends AzureWizardExecuteStep<IWebAppWizardContext> {
     public priority: number = 140;
 
-    public async execute(context: IAppServiceWizardContext, progress: Progress<{ message?: string; increment?: number }>): Promise<void> {
+    public async execute(context: IWebAppWizardContext, progress: Progress<{ message?: string; increment?: number }>): Promise<void> {
         context.telemetry.properties.newSiteOS = context.newSiteOS;
         context.telemetry.properties.newSiteRuntime = context.newSiteRuntime;
         context.telemetry.properties.planSkuTier = context.plan && context.plan.sku && context.plan.sku.tier;
@@ -46,11 +47,11 @@ export class WebAppCreateStep extends AzureWizardExecuteStep<IAppServiceWizardCo
         });
     }
 
-    public shouldExecute(context: IAppServiceWizardContext): boolean {
+    public shouldExecute(context: IWebAppWizardContext): boolean {
         return !context.site;
     }
 
-    private async getAppSettings(context: IAppServiceWizardContext): Promise<WebSiteManagementModels.NameValuePair[]> {
+    private async getAppSettings(context: IWebAppWizardContext): Promise<WebSiteManagementModels.NameValuePair[]> {
         const appSettings: WebSiteManagementModels.NameValuePair[] = [];
         const disabled: string = 'disabled';
 

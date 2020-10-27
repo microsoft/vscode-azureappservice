@@ -20,6 +20,7 @@ import { nonNullValue } from '../../utils/nonNull';
 import { isPathEqual } from '../../utils/pathUtils';
 import { getRandomHexString } from "../../utils/randomUtils";
 import { getWorkspaceSetting } from '../../vsCodeConfig/settings';
+import { LinuxRuntimes } from '../createWebApp/LinuxRuntimes';
 import { runPostDeployTask } from '../postDeploy/runPostDeployTask';
 import { deployTrialApp } from './deployTrialApp';
 import { enableScmDoBuildDuringDeploy, promptScmDoBuildDeploy } from './promptScmDoBuildDeploy';
@@ -72,11 +73,11 @@ export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | 
         //check if node is being zipdeployed and that there is no .deployment file
         if (siteConfig.linuxFxVersion && isZipDeploy && !(await pathExists(path.join(context.effectiveDeployFsPath, constants.deploymentFileName)))) {
             const linuxFxVersion: string = siteConfig.linuxFxVersion.toLowerCase();
-            if (linuxFxVersion.startsWith(appservice.LinuxRuntimes.node)) {
+            if (linuxFxVersion.startsWith(LinuxRuntimes.node)) {
                 // if it is node or python, prompt the user (as we can break them)
-                await promptScmDoBuildDeploy(context, context.effectiveDeployFsPath, appservice.LinuxRuntimes.node);
-            } else if (linuxFxVersion.startsWith(appservice.LinuxRuntimes.python)) {
-                await promptScmDoBuildDeploy(context, context.effectiveDeployFsPath, appservice.LinuxRuntimes.python);
+                await promptScmDoBuildDeploy(context, context.effectiveDeployFsPath, LinuxRuntimes.node);
+            } else if (linuxFxVersion.startsWith(LinuxRuntimes.python)) {
+                await promptScmDoBuildDeploy(context, context.effectiveDeployFsPath, LinuxRuntimes.python);
             }
 
         }

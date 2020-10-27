@@ -6,12 +6,14 @@
 import * as fse from 'fs-extra';
 import * as path from 'path';
 import { WorkspaceFolder } from 'vscode';
-import { IAppServiceWizardContext, IDeployContext, LinuxRuntimes, WebsiteOS } from 'vscode-azureappservice';
+import { IDeployContext, WebsiteOS } from 'vscode-azureappservice';
 import { ICreateChildImplContext, LocationListStep } from 'vscode-azureextensionui';
 import { javaUtils } from '../../utils/javaUtils';
 import { findFilesByFileExtension, getSingleRootWorkspace } from '../../utils/workspace';
+import { IWebAppWizardContext } from './IWebAppWizardContext';
+import { LinuxRuntimes } from './LinuxRuntimes';
 
-export async function setPrePromptDefaults(wizardContext: IAppServiceWizardContext & Partial<IDeployContext> & Partial<ICreateChildImplContext>): Promise<void> {
+export async function setPrePromptDefaults(wizardContext: IWebAppWizardContext & Partial<IDeployContext> & Partial<ICreateChildImplContext>): Promise<void> {
     // if the user entered through "Deploy", we'll have a project to base our recommendations on
     // otherwise, look at their current workspace and only suggest if one workspace is opened
     const workspaceForRecommendation: WorkspaceFolder | undefined = getSingleRootWorkspace(wizardContext);

@@ -6,12 +6,12 @@
 import * as fse from 'fs-extra';
 import * as path from 'path';
 import { MessageItem } from "vscode";
-import { LinuxRuntimes } from 'vscode-azureappservice';
 import { DialogResponses, IActionContext } from "vscode-azureextensionui";
 import * as constants from '../../constants';
 import { ext } from "../../extensionVariables";
 import { venvUtils } from '../../utils/venvUtils';
 import { getWorkspaceSetting, updateWorkspaceSetting } from "../../vsCodeConfig/settings";
+import { LinuxRuntimes } from '../createWebApp/LinuxRuntimes';
 
 export async function promptScmDoBuildDeploy(context: IActionContext, fsPath: string, runtime: string): Promise<void> {
     context.telemetry.properties.enableScmInput = "Canceled";
