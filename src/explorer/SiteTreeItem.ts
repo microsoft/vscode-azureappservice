@@ -18,6 +18,7 @@ export abstract class SiteTreeItem extends SiteTreeItemBase implements ISiteTree
     public readonly appSettingsNode: AppSettingsTreeItem;
     public deploymentsNode: DeploymentsTreeItem | undefined;
     public parent: AzureParentTreeItem;
+    public site: WebSiteManagementModels.Site;
     private readonly _connectionsNode: CosmosDBTreeItem;
     private readonly _siteFilesNode: SiteFilesTreeItem;
     private readonly _logFilesNode: LogFilesTreeItem;
@@ -26,8 +27,9 @@ export abstract class SiteTreeItem extends SiteTreeItemBase implements ISiteTree
     private readonly _root: ISiteTreeRoot;
     private _state?: string;
 
-    constructor(parent: AzureParentTreeItem, client: SiteClient) {
+    constructor(parent: AzureParentTreeItem, client: SiteClient, site: WebSiteManagementModels.Site) {
         super(parent);
+        this.site = site;
         this._root = Object.assign({}, parent.root, { client });
         this._state = client.initialState;
 

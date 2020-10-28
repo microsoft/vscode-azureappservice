@@ -45,7 +45,7 @@ export class DeploymentSlotsTreeItem extends AzureParentTreeItem<ISiteTreeRoot> 
 
         this._nextLink = webAppCollection.nextLink;
 
-        return webAppCollection.map(s => new DeploymentSlotTreeItem(this, new SiteClient(s, this.root)));
+        return webAppCollection.map(s => new DeploymentSlotTreeItem(this, new SiteClient(s, this.root), s));
     }
 
     public async createChildImpl(context: ICreateChildImplContext): Promise<AzureTreeItem<ISiteTreeRoot>> {
@@ -53,7 +53,7 @@ export class DeploymentSlotsTreeItem extends AzureParentTreeItem<ISiteTreeRoot> 
         const newSite: WebSiteManagementModels.Site = await createSlot(this.root, existingSlots, context);
         const siteClient: SiteClient = new SiteClient(newSite, this.root);
         ext.outputChannel.appendLog(getCreatedWebAppMessage(siteClient));
-        return new DeploymentSlotTreeItem(this, siteClient);
+        return new DeploymentSlotTreeItem(this, siteClient, newSite);
     }
 }
 

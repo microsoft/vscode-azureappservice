@@ -70,6 +70,7 @@
         "onCommand:appService.RemoveCosmosDBConnection",
         "onCommand:appService.RevealConnection",
         "onCommand:appService.RevealConnectionInAppSettings",
+        "onCommand:appService.ViewProperties",
         "onFileSystem:azureAppService",
         "onView:azureAppService"
     ],
@@ -324,6 +325,11 @@
                     "light": "resources/light/Visible_Visible_16x.svg",
                     "dark": "resources/dark/Visible_Visible_16x.svg"
                 }
+            },
+            {
+                "command": "appService.ViewProperties",
+                "title": "View Properties",
+                "category": "Azure App Service"
             }
         ],
         "viewsContainers": {
@@ -519,9 +525,14 @@
                     "group": "5_appServiceMiscCommands@1"
                 },
                 {
+                    "command": "appService.ViewProperties",
+                    "when": "view == azureAppService && viewItem =~ /^(appService|deploymentSlot)$/",
+                    "group": "7_commonCommands@1"
+                },
+                {
                     "command": "appService.Refresh",
                     "when": "view == azureAppService && viewItem =~ /^(appService|deploymentSlot|trialApp)$/",
-                    "group": "7_appServiceRefreshCommands@1"
+                    "group": "7_commonCommands@2"
                 },
                 {
                     "command": "appService.StartRemoteDebug",
