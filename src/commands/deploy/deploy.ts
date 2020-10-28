@@ -9,7 +9,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import * as appservice from 'vscode-azureappservice';
 import { getDeployFsPath, getDeployNode, IDeployContext, IDeployPaths, showDeployConfirmation } from 'vscode-azureappservice';
-import { IActionContext } from 'vscode-azureextensionui';
+import { IActionContext, parseError } from 'vscode-azureextensionui';
 import * as constants from '../../constants';
 import { SiteTreeItem } from '../../explorer/SiteTreeItem';
 import { TrialAppTreeItem } from '../../explorer/trialApp/TrialAppTreeItem';
@@ -23,6 +23,7 @@ import { getWorkspaceSetting } from '../../vsCodeConfig/settings';
 import { LinuxRuntimes } from '../createWebApp/LinuxRuntimes';
 import { runPostDeployTask } from '../postDeploy/runPostDeployTask';
 import { deployTrialApp } from './deployTrialApp';
+import { failureMoreInfoSurvey } from './failureMoreInfoSurvey';
 import { enableScmDoBuildDuringDeploy, promptScmDoBuildDeploy } from './promptScmDoBuildDeploy';
 import { promptToSaveDeployDefaults, saveDeployDefaults } from './promptToSaveDeployDefaults';
 import { setPreDeployTaskForDotnet } from './setPreDeployTaskForDotnet';
@@ -107,7 +108,14 @@ export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | 
     }
 
     await node.runWithTemporaryDescription("Deploying...", async () => {
-        await appservice.deploy(nonNullValue(node).root.client, <string>deployPath, context);
+        try {
+            await appservice.deploy(nonNullValue(node).root.client, <string>deployPath, context);
+        } catch (error) {
+            if (failureMoreInfoSurvey(parseError(error), nonNullValue(siteConfig))) {
+                actionContext.errorHandling.suppressDisplay = true;
+            }
+            throw error;
+        }
     });
 
     const tokenSource: vscode.CancellationTokenSource = new vscode.CancellationTokenSource();
