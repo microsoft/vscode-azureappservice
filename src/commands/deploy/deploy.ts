@@ -111,7 +111,8 @@ export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | 
         try {
             await appservice.deploy(nonNullValue(node).root.client, <string>deployPath, context);
         } catch (error) {
-            if (failureMoreInfoSurvey(parseError(error), nonNullValue(siteConfig))) {
+            if (!actionContext.errorHandling.suppressDisplay
+                && failureMoreInfoSurvey(parseError(error), nonNullValue(siteConfig))) {
                 actionContext.errorHandling.suppressDisplay = true;
             }
             throw error;

@@ -5,43 +5,41 @@
 
 import { WebSiteManagementModels } from '@azure/arm-appservice';
 import { env, MessageItem, Uri, window } from 'vscode';
-import * as appservice from 'vscode-azureappservice';
 import { DialogResponses, IParsedError } from 'vscode-azureextensionui';
 import { localize } from "../../localize";
+import { LinuxRuntimes } from "../createWebApp/LinuxRuntimes";
 
 const SURVEY_URL: string = 'https://aka.ms/AppServiceExtDeploymentFeedback';
 
 function shouldPromptForSurvey(error: IParsedError, siteConfig: WebSiteManagementModels.SiteConfigResource): string | null {
-    if (siteConfig.linuxFxVersion && siteConfig.linuxFxVersion.toLowerCase().startsWith(appservice.LinuxRuntimes.python)) {
-        if (error.errorType === 'Error') {
-            const msg: string = error.message.toLowerCase();
-            if (msg.indexOf("the service is unavailable") >= 0) {
-                return "python-serviceunavailable";
-            }
-            if (msg.indexOf("unknown error") >= 0) {
-                return "python-unknown";
-            }
-            if (msg.search(/exceeded the limit.+free tier/) >= 0) {
-                return "python-freetierlimit";
-            }
-            if (msg.indexOf("oryx") >= 0) {
-                return "python-oryx";
-            }
-            if (msg.search(/deployment.+in progress.+try again/) >= 0) {
-                return "python-alreadydeploying";
-            }
-            if (msg.search(/deployment.+not found/) >= 0) {
-                return "python-notfound";
-            }
-            if (msg.indexOf("central directory corrupt") >= 0) {
-                return "python-centraldircorrupt";
-            }
-            if (msg.indexOf("entry not found in cache") >= 0) {
-                return "python-entrynotfoundcache";
-            }
-            if (msg.indexOf("requirements") >= 0) {
-                return "python-requirements";
-            }
+    if (siteConfig.linuxFxVersion?.toLowerCase().startsWith(LinuxRuntimes.python)) {
+        const msg: string = error.message.toLowerCase();
+        if (msg.includes("the service is unavailable")) {
+            return "python-serviceunavailable";
+        }
+        if (msg.includes("unknown error")) {
+            return "python-unknown";
+        }
+        if (/exceeded the limit.+free tier/.test(msg)) {
+            return "python-freetierlimit";
+        }
+        if (msg.includes("oryx")) {
+            return "python-oryx";
+        }
+        if (/deployment.+in progress.+try again/.test(msg)) {
+            return "python-alreadydeploying";
+        }
+        if (/deployment.+not found/.test(msg)) {
+            return "python-notfound";
+        }
+        if (msg.includes("central directory corrupt")) {
+            return "python-centraldircorrupt";
+        }
+        if (msg.includes("entry not found in cache")) {
+            return "python-entrynotfoundcache";
+        }
+        if (msg.includes("requirements")) {
+            return "python-requirements";
         }
         if (error.errorType === '502' || error.errorType === '503') {
             return `python-${error.errorType}`;
