@@ -56,7 +56,7 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
             'invalidAppService',
             s => {
                 const siteClient: SiteClient = new SiteClient(s, this.root);
-                return siteClient.isFunctionApp ? undefined : new WebAppTreeItem(this, siteClient);
+                return siteClient.isFunctionApp ? undefined : new WebAppTreeItem(this, siteClient, s);
             },
             s => {
                 return s.name;
@@ -116,11 +116,12 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
 
         await wizard.execute();
 
+        const site: WebSiteManagementModels.Site = nonNullProp(wizardContext, 'site');
         // site is set as a result of SiteCreateStep.execute()
-        const siteClient: SiteClient = new SiteClient(nonNullProp(wizardContext, 'site'), this.root);
+        const siteClient: SiteClient = new SiteClient(site, this.root);
         ext.outputChannel.appendLog(getCreatedWebAppMessage(siteClient));
 
-        const newSite: WebAppTreeItem = new WebAppTreeItem(this, siteClient);
+        const newSite: WebAppTreeItem = new WebAppTreeItem(this, siteClient, site);
         try {
             // enable HTTP logs by default
             await newSite.enableHttpLogs();

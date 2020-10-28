@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { WebSiteManagementModels } from '@azure/arm-appservice';
 import { SiteClient } from 'vscode-azureappservice';
 import { nonNullProp } from '../utils/nonNull';
 import { getThemedIconPath, IThemedIconPath } from '../utils/pathUtils';
@@ -14,8 +15,8 @@ export class DeploymentSlotTreeItem extends SiteTreeItem {
     public readonly contextValue: string = DeploymentSlotTreeItem.contextValue;
     public readonly parent: DeploymentSlotsTreeItem;
 
-    public constructor(parent: DeploymentSlotsTreeItem, client: SiteClient) {
-        super(parent, client);
+    public constructor(parent: DeploymentSlotsTreeItem, client: SiteClient, site: WebSiteManagementModels.Site) {
+        super(parent, client, site);
     }
 
     public get label(): string {

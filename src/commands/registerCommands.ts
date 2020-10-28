@@ -50,6 +50,7 @@ import { importTrialApp } from './trialApp/importTrialApp';
 import { removeTrialApp } from './trialApp/removeTrialApp';
 import { showTutorial } from './trialApp/showTutorial';
 import { transferToSubscription } from './trialApp/transferToSubscription';
+import { viewProperties } from './viewProperties';
 
 export function registerCommands(): void {
     registerCommand('appService.AddAzureDatabasesConnection', addCosmosDBConnection);
@@ -97,6 +98,7 @@ export function registerCommands(): void {
     registerCommand('appService.toggleAppSettingVisibility', async (_actionContext: IActionContext, node: AppSettingTreeItem) => { await node.toggleValueVisibility(); }, 250);
     registerCommand('appService.TransferToSubscription', transferToSubscription);
     registerCommand('appService.ViewCommitInGitHub', viewCommitInGitHub);
+    registerCommand('appService.ViewProperties', viewProperties);
     registerSiteCommand('appService.Deploy', deploy);
     registerSiteCommand('appService.DeploySlot', deploySlot);
     registerSiteCommand('appService.Redeploy', redeployDeployment);
