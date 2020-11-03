@@ -11,21 +11,55 @@ import * as vscode from 'vscode';
 import { tryGetWebApp } from 'vscode-azureappservice';
 import { createGenericClient, DialogResponses, ext, getRandomHexString, IActionContext, WebAppTreeItem } from '../../extension.bundle';
 import { longRunningTestsEnabled, testUserInput } from '../global.test';
-import { beginDeleteResourceGroup, webSiteClient } from './global.resource.test';
+import { resourceGroupsToDelete, webSiteClient } from './global.resource.test';
 
 interface ITestCase {
-    workspaceFolder: string;
-    runtimes: string[];
+    /**
+     * If undefined, use the version as the folder name
+     */
+    workspaceFolder: string | undefined;
+    runtimePrefix: string;
+    runtimeSuffix?: string;
+    versions: IVersionInfo[];
+}
+
+interface IVersionInfo {
+    version: string;
+    supportedOs: 'Windows' | 'Linux' | 'Both';
 }
 
 suite('Create Web App and deploy', async function (this: Mocha.Suite): Promise<void> {
     this.timeout(12 * 60 * 1000);
-    let resourceGroupName: string = '';
+    const planNames: { [os: string]: string } = {};
     const testCases: ITestCase[] = [
-        { workspaceFolder: 'nodejs-docs-hello-world', runtimes: ['Node 10 LTS', 'Node 12 LTS', 'Node 14 LTS'] },
-        { workspaceFolder: '2.1', runtimes: ['.NET Core 2.1'] },
-        { workspaceFolder: '3.1', runtimes: ['.NET Core 3.1'] },
-        { workspaceFolder: 'python-docs-hello-world', runtimes: ['Python 3.6', 'Python 3.7', 'Python 3.8'] }
+        {
+            runtimePrefix: 'Node',
+            runtimeSuffix: ' LTS',
+            workspaceFolder: 'nodejs-docs-hello-world',
+            versions: [
+                { version: '10', supportedOs: 'Linux' },
+                { version: '12', supportedOs: 'Both' },
+                { version: '14', supportedOs: 'Linux' }
+            ]
+        },
+        {
+            runtimePrefix: '.NET Core',
+            runtimeSuffix: ' (LTS)',
+            workspaceFolder: undefined,
+            versions: [
+                { version: '2.1', supportedOs: 'Both' },
+                { version: '3.1', supportedOs: 'Both' }
+            ]
+        },
+        {
+            runtimePrefix: 'Python',
+            workspaceFolder: 'python-docs-hello-world',
+            versions: [
+                { version: '3.6', supportedOs: 'Both' },
+                { version: '3.7', supportedOs: 'Linux' },
+                { version: '3.8', supportedOs: 'Linux' }
+            ]
+        }
     ];
 
     suiteSetup(async function (this: Mocha.Context): Promise<void> {
@@ -34,28 +68,46 @@ suite('Create Web App and deploy', async function (this: Mocha.Suite): Promise<v
         }
     });
 
-    teardown(async function (this: Mocha.Context): Promise<void> {
-        if (longRunningTestsEnabled) {
-            this.timeout(2 * 60 * 1000);
-            await beginDeleteResourceGroup(resourceGroupName);
-            resourceGroupName = '';
-        }
-    });
-
     for (const testCase of testCases) {
-        for (const runtime of testCase.runtimes) {
-            test(runtime, async () => {
-                const testFolderPath: string = await getWorkspacePath(testCase.workspaceFolder);
-                await testCreateWebAppAndDeploy(['Linux', runtime], testFolderPath);
-            });
+        for (const version of testCase.versions) {
+            // tslint:disable-next-line: strict-boolean-expressions
+            const runtime: string = `${testCase.runtimePrefix} ${version.version}${testCase.runtimeSuffix || ''}`;
+            const promptForOs: boolean = version.supportedOs === 'Both';
+            const oss: string[] = promptForOs ? ['Windows', 'Linux'] : [version.supportedOs];
+            for (const os of oss) {
+                test(`${runtime} - ${os}`, async function (this: Mocha.Context): Promise<void> {
+                    if (testCase.runtimePrefix === 'Python' && os === 'Windows') {
+                        // Python on Windows has been deprecated for a while now, so not worth testing
+                        this.skip();
+                    }
+
+                    const testFolderPath: string = await getWorkspacePath(testCase.workspaceFolder || version.version);
+                    await testCreateWebAppAndDeploy(os, promptForOs, runtime, testFolderPath, version.version);
+                });
+            }
         }
     }
 
-    async function testCreateWebAppAndDeploy(options: string[], workspacePath: string): Promise<void> {
+    async function testCreateWebAppAndDeploy(os: string, promptForOs: boolean, runtime: string, workspacePath: string, expectedVersion: string): Promise<void> {
         const resourceName: string = getRandomHexString();
-        resourceGroupName = getRandomHexString();
+        const resourceGroupName = getRandomHexString();
+        resourceGroupsToDelete.push(resourceGroupName);
+
+        const testInputs: (string | RegExp)[] = [resourceName, '$(plus) Create new resource group', resourceGroupName, runtime];
+        if (promptForOs) {
+            testInputs.push(os);
+        }
+
+        const appInsightsInputs: string[] = ['$(plus) Create new Application Insights resource', getRandomHexString()];
+        if (planNames[os]) {
+            // Re-use the same plan to save time
+            testInputs.push(planNames[os], ...appInsightsInputs);
+        } else {
+            planNames[os] = getRandomHexString();
+            testInputs.push('$(plus) Create new App Service plan', planNames[os], 'P3v2', ...appInsightsInputs, 'West US');
+        }
+
         const context: IActionContext = { telemetry: { properties: {}, measurements: {} }, errorHandling: { issueProperties: {} } };
-        const testInputs: (string | RegExp)[] = [resourceName, '$(plus) Create new resource group', resourceGroupName, ...options, '$(plus) Create new App Service plan', resourceName, 'S1', '$(plus) Create new Application Insights resource', resourceName, 'West US'];
         await testUserInput.runWithInputs(testInputs, async () => {
             await vscode.commands.executeCommand('appService.CreateWebAppAdvanced');
         });
@@ -69,7 +121,7 @@ suite('Create Web App and deploy', async function (this: Mocha.Suite): Promise<v
         const hostUrl: string | undefined = (<WebAppTreeItem>await ext.tree.findTreeItem(<string>createdApp?.id, context)).root.client.defaultHostUrl;
         const client: ServiceClient = await createGenericClient();
         const response: HttpOperationResponse = await client.sendRequest({ method: 'GET', url: hostUrl });
-        assert.strictEqual(response.bodyAsText, 'Hello World!');
+        assert.strictEqual(response.bodyAsText, `Version: ${expectedVersion}`);
     }
 });
 

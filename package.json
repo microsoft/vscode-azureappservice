@@ -850,6 +850,11 @@
                     "type": "boolean",
                     "description": "Ask for confirmation before deploying to Azure App Service (deploying will overwrite any previous deployment and cannot be undone).",
                     "default": true
+                },
+                "appService.showHiddenStacks": {
+                    "type": "boolean",
+                    "description": "Show hidden runtime stacks when creating a web app in Azure. WARNING: These stacks may be in preview or may not be available in all regions.",
+                    "default": false
                 }
             }
         },

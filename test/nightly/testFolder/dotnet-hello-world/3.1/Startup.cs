@@ -33,7 +33,9 @@ namespace _3._1
                 endpoints.MapGet("/", async context =>
                 {
                     context.Response.ContentType = "text/plain";
-                    await context.Response.WriteAsync("Hello World!");
+                    // Doesn't seem to be an easy way to get the version dynamically
+                    // Plus this should fail on any other framework anyways because of the TargetFramework in the csproj
+                    await context.Response.WriteAsync("Version: 3.1");
                 });
             });
         }

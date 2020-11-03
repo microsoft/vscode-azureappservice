@@ -5,20 +5,29 @@
 
 import { WebSiteManagementClient, WebSiteManagementModels } from '@azure/arm-appservice';
 import { Progress } from 'vscode';
-import { AppKind, WebsiteOS } from 'vscode-azureappservice';
+import { WebsiteOS } from 'vscode-azureappservice';
 import { AzureWizardExecuteStep } from 'vscode-azureextensionui';
 import { ext } from '../../extensionVariables';
 import { localize } from '../../localize';
 import { createWebSiteClient } from '../../utils/azureClients';
 import { nonNullProp } from '../../utils/nonNull';
-import { IWebAppWizardContext } from './IWebAppWizardContext';
+import { FullJavaStack, FullWebAppStack, IWebAppWizardContext } from './IWebAppWizardContext';
+import { getJavaLinuxRuntime } from './stacks/getJavaLinuxRuntime';
+import { WindowsJavaContainerSettings } from './stacks/models/WebAppStackModel';
 
 export class WebAppCreateStep extends AzureWizardExecuteStep<IWebAppWizardContext> {
     public priority: number = 140;
 
     public async execute(context: IWebAppWizardContext, progress: Progress<{ message?: string; increment?: number }>): Promise<void> {
         context.telemetry.properties.newSiteOS = context.newSiteOS;
-        context.telemetry.properties.newSiteRuntime = context.newSiteRuntime;
+        context.telemetry.properties.newSiteStack = context.newSiteStack?.stack.value;
+        context.telemetry.properties.newSiteMajorVersion = context.newSiteStack?.majorVersion.value;
+        context.telemetry.properties.newSiteMinorVersion = context.newSiteStack?.minorVersion.value;
+        if (context.newSiteJavaStack) {
+            context.telemetry.properties.newSiteJavaStack = context.newSiteJavaStack.stack.value;
+            context.telemetry.properties.newSiteJavaMajorVersion = context.newSiteJavaStack.majorVersion.value;
+            context.telemetry.properties.newSiteJavaMinorVersion = context.newSiteJavaStack.minorVersion.value;
+        }
         context.telemetry.properties.planSkuTier = context.plan && context.plan.sku && context.plan.sku.tier;
 
         const message: string = localize('creatingNewApp', 'Creating new web app "{0}"...', context.newSiteName);
@@ -29,12 +38,7 @@ export class WebAppCreateStep extends AzureWizardExecuteStep<IWebAppWizardContex
         const rgName: string = nonNullProp(nonNullProp(context, 'resourceGroup'), 'name');
         const locationName: string = nonNullProp(nonNullProp(context, 'location'), 'name');
 
-        const newSiteConfig: WebSiteManagementModels.SiteConfig = {};
-        if (context.newSiteKind === AppKind.app) {
-            newSiteConfig.linuxFxVersion = context.newSiteRuntime;
-        }
-        newSiteConfig.appSettings = await this.getAppSettings(context);
-
+        const newSiteConfig: WebSiteManagementModels.SiteConfig = this.getSiteConfig(context);
         const client: WebSiteManagementClient = await createWebSiteClient(context);
         context.site = await client.webApps.createOrUpdate(rgName, siteName, {
             name: context.newSiteName,
@@ -51,7 +55,51 @@ export class WebAppCreateStep extends AzureWizardExecuteStep<IWebAppWizardContex
         return !context.site;
     }
 
-    private async getAppSettings(context: IWebAppWizardContext): Promise<WebSiteManagementModels.NameValuePair[]> {
+    private getSiteConfig(context: IWebAppWizardContext): WebSiteManagementModels.SiteConfig {
+        const newSiteConfig: WebSiteManagementModels.SiteConfig = {};
+
+        newSiteConfig.appSettings = this.getAppSettings(context);
+
+        const stack: FullWebAppStack = nonNullProp(context, 'newSiteStack');
+        if (context.newSiteOS === WebsiteOS.linux) {
+            newSiteConfig.linuxFxVersion = stack.stack.value === 'java' ?
+                getJavaLinuxRuntime(stack.majorVersion.value, nonNullProp(context, 'newSiteJavaStack').minorVersion) :
+                nonNullProp(stack.minorVersion.stackSettings, 'linuxRuntimeSettings').runtimeVersion;
+        } else {
+            const runtimeVersion: string = nonNullProp(stack.minorVersion.stackSettings, 'windowsRuntimeSettings').runtimeVersion;
+            switch (stack.stack.value) {
+                case 'dotnet':
+                    if (!/core/i.test(stack.minorVersion.displayText)) {
+                        newSiteConfig.netFrameworkVersion = runtimeVersion;
+                    }
+                    break;
+                case 'php':
+                    newSiteConfig.phpVersion = runtimeVersion;
+                    break;
+                case 'node':
+                    newSiteConfig.nodeVersion = runtimeVersion;
+                    newSiteConfig.appSettings.push({
+                        name: 'WEBSITE_NODE_DEFAULT_VERSION',
+                        value: runtimeVersion
+                    });
+                    break;
+                case 'java':
+                    newSiteConfig.javaVersion = runtimeVersion;
+                    const javaStack: FullJavaStack = nonNullProp(context, 'newSiteJavaStack');
+                    const windowsStackSettings: WindowsJavaContainerSettings = nonNullProp(javaStack.minorVersion.stackSettings, 'windowsContainerSettings');
+                    newSiteConfig.javaContainer = windowsStackSettings.javaContainer;
+                    newSiteConfig.javaContainerVersion = windowsStackSettings.javaContainerVersion;
+                    break;
+                case 'python':
+                    newSiteConfig.pythonVersion = runtimeVersion;
+                    break;
+                default:
+            }
+        }
+        return newSiteConfig;
+    }
+
+    private getAppSettings(context: IWebAppWizardContext): WebSiteManagementModels.NameValuePair[] {
         const appSettings: WebSiteManagementModels.NameValuePair[] = [];
         const disabled: string = 'disabled';
 
