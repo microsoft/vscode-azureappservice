@@ -8,25 +8,19 @@ import { createGenericClient, IAzureQuickPickItem } from 'vscode-azureextensionu
 import { localize } from '../../../localize';
 import { getWorkspaceSetting } from '../../../vsCodeConfig/settings';
 import { FullJavaStack, FullWebAppStack, IWebAppWizardContext } from '../IWebAppWizardContext';
-import { getJavaLinuxRuntime } from './getJavaLinuxRuntime';
 import { AppStackMinorVersion } from './models/AppStackModel';
 import { JavaContainers, WebAppRuntimes, WebAppStack, WebAppStackValue } from './models/WebAppStackModel';
 
 export async function getStackPicks(context: IWebAppWizardContext): Promise<IAzureQuickPickItem<FullWebAppStack>[]>;
 export async function getStackPicks(context: IWebAppWizardContext, javaVersion: string): Promise<IAzureQuickPickItem<FullJavaStack>[]>;
 export async function getStackPicks(context: IWebAppWizardContext, javaVersion?: string): Promise<IAzureQuickPickItem<FullWebAppStack | FullJavaStack>[]> {
-    const stacks: WebAppStack[] = await getStacks(context);
+    const stacks: WebAppStack[] = (await getStacks(context)).filter(s => (javaVersion && s.value === 'javacontainers') || (!javaVersion && s.value !== 'javacontainers'));
+
     const picks: IAzureQuickPickItem<FullWebAppStack | FullJavaStack>[] = [];
     for (const stack of stacks) {
         for (const majorVersion of stack.majorVersions) {
-            const minorVersions: (AppStackMinorVersion<WebAppRuntimes & JavaContainers>)[] = majorVersion.minorVersions
-                // Filter out versions that have major, minor, _and_ patch specified (Aka we only want Node.js 14, not Node.js 14.1.1)
-                .filter(mv => !/\..*\./.test(mv.value))
-                // Filter out versions relative to the specified javaVersion
-                .filter(mv => {
-                    return (!javaVersion && (mv.stackSettings.linuxRuntimeSettings || mv.stackSettings.windowsRuntimeSettings)) ||
-                        (javaVersion && (getJavaLinuxRuntime(javaVersion, mv) || mv.stackSettings.windowsContainerSettings));
-                });
+            // Filter out versions that have major, minor, _and_ patch specified (Aka we only want Node.js 14, not Node.js 14.1.1)
+            const minorVersions: (AppStackMinorVersion<WebAppRuntimes & JavaContainers>)[] = majorVersion.minorVersions.filter(mv => !/\..*\./.test(mv.value));
 
             for (const minorVersion of minorVersions) {
                 let description: string | undefined;

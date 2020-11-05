@@ -69,7 +69,7 @@ export class WebAppCreateStep extends AzureWizardExecuteStep<IWebAppWizardContex
             const runtimeVersion: string = nonNullProp(stack.minorVersion.stackSettings, 'windowsRuntimeSettings').runtimeVersion;
             switch (stack.stack.value) {
                 case 'dotnet':
-                    if (!/core/i.test(stack.minorVersion.displayText)) {
+                    if (!/core/i.test(stack.minorVersion.displayText)) { // Filter out .NET _Core_ stacks because this is a .NET _Framework_ property
                         newSiteConfig.netFrameworkVersion = runtimeVersion;
                     }
                     break;
