@@ -44,10 +44,16 @@ suite('Create Web App and deploy', async function (this: Mocha.Suite): Promise<v
 
     for (const testCase of testCases) {
         for (const runtime of testCase.runtimes) {
-            test(runtime, async () => {
+            test(`${runtime}(Linux)`, async () => {
                 const testFolderPath: string = await getWorkspacePath(testCase.workspaceFolder);
                 await testCreateWebAppAndDeploy(['Linux', runtime], testFolderPath);
             });
+            if (runtime === '.NET Core 2.1' || runtime === '.NET Core 3.1') {
+                test(`${runtime}(Windows)`, async () => {
+                    const testFolderPath: string = await getWorkspacePath(testCase.workspaceFolder);
+                    await testCreateWebAppAndDeploy(['Windows'], testFolderPath);
+                });
+            }
         }
     }
 
