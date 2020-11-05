@@ -6,12 +6,11 @@
 import * as fse from 'fs-extra';
 import * as path from 'path';
 import { WorkspaceFolder } from 'vscode';
-import { IDeployContext, WebsiteOS } from 'vscode-azureappservice';
+import { IDeployContext } from 'vscode-azureappservice';
 import { ICreateChildImplContext, LocationListStep } from 'vscode-azureextensionui';
 import { javaUtils } from '../../utils/javaUtils';
 import { findFilesByFileExtension, getSingleRootWorkspace } from '../../utils/workspace';
 import { IWebAppWizardContext } from './IWebAppWizardContext';
-import { LinuxRuntimes } from './LinuxRuntimes';
 
 export async function setPrePromptDefaults(wizardContext: IWebAppWizardContext & Partial<IDeployContext> & Partial<ICreateChildImplContext>): Promise<void> {
     // if the user entered through "Deploy", we'll have a project to base our recommendations on
@@ -22,17 +21,13 @@ export async function setPrePromptDefaults(wizardContext: IWebAppWizardContext &
         const fsPath: string = workspaceForRecommendation.uri.fsPath;
 
         if (await fse.pathExists(path.join(fsPath, 'package.json'))) {
-            wizardContext.recommendedSiteRuntime = [LinuxRuntimes.node];
-
+            wizardContext.recommendedSiteRuntime = ['node'];
         } else if (await fse.pathExists(path.join(fsPath, 'requirements.txt'))) {
-            // requirements.txt are used to pip install so a good way to determine it's a Python app
-            wizardContext.recommendedSiteRuntime = [LinuxRuntimes.python];
-
+            wizardContext.recommendedSiteRuntime = ['python'];
+        } else if ((await findFilesByFileExtension(workspaceForRecommendation.uri.fsPath, 'csproj')).length > 0) {
+            wizardContext.recommendedSiteRuntime = ['dotnet'];
         } else if (await javaUtils.isJavaProject(fsPath)) {
-            wizardContext.recommendedSiteRuntime = [
-                LinuxRuntimes.java,
-                LinuxRuntimes.tomcat
-            ];
+            wizardContext.recommendedSiteRuntime = ['java'];
 
             // considering high resource requirement for Java applications, a higher plan sku is set here
             wizardContext.newPlanSku = { name: 'P1v2', tier: 'PremiumV2', size: 'P1v2', family: 'P', capacity: 1 };
@@ -49,15 +44,6 @@ export async function setPrePromptDefaults(wizardContext: IWebAppWizardContext &
         if (!wizardContext.newPlanSku) {
             // don't overwrite the planSku if it is already set
             wizardContext.newPlanSku = { name: 'F1', tier: 'Free', size: 'F1', family: 'F', capacity: 1 };
-        }
-
-        // if we are recommending a runtime, then it is either Nodejs, Python, or Java which all use Linux
-        if (wizardContext.recommendedSiteRuntime) {
-            wizardContext.newSiteOS = WebsiteOS.linux;
-        } else {
-            if (workspaceForRecommendation && (await findFilesByFileExtension(workspaceForRecommendation.uri.fsPath, 'csproj')).length > 0) {
-                wizardContext.newSiteOS = WebsiteOS.windows;
-            }
         }
     }
 }

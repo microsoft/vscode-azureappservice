@@ -4,14 +4,14 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { WebSiteManagementClient, WebSiteManagementModels } from '@azure/arm-appservice';
-import { AppInsightsCreateStep, AppInsightsListStep, AppKind, AppServicePlanCreateStep, AppServicePlanListStep, setLocationsTask, SiteClient, SiteNameStep, SiteOSStep } from 'vscode-azureappservice';
+import { AppInsightsCreateStep, AppInsightsListStep, AppKind, AppServicePlanCreateStep, AppServicePlanListStep, setLocationsTask, SiteClient, SiteNameStep } from 'vscode-azureappservice';
 import { AzExtTreeItem, AzureTreeItem, AzureWizard, AzureWizardExecuteStep, AzureWizardPromptStep, createAzureClient, ICreateChildImplContext, LocationListStep, parseError, ResourceGroupCreateStep, ResourceGroupListStep, SubscriptionTreeItemBase, VerifyProvidersStep } from 'vscode-azureextensionui';
 import { IWebAppWizardContext } from '../commands/createWebApp/IWebAppWizardContext';
 import { setPostPromptDefaults } from '../commands/createWebApp/setPostPromptDefaults';
 import { setPrePromptDefaults } from '../commands/createWebApp/setPrePromptDefaults';
 import { getCreatedWebAppMessage } from '../commands/createWebApp/showCreatedWebAppMessage';
+import { WebAppStackStep } from '../commands/createWebApp/stacks/WebAppStackStep';
 import { WebAppCreateStep } from '../commands/createWebApp/WebAppCreateStep';
-import { WebAppRuntimeStep } from '../commands/createWebApp/WebAppRuntimeStep';
 import { ext } from '../extensionVariables';
 import { nonNullProp } from '../utils/nonNull';
 import { WebAppTreeItem } from './WebAppTreeItem';
@@ -79,13 +79,11 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
 
         if (context.advancedCreation) {
             promptSteps.push(new ResourceGroupListStep());
-            promptSteps.push(new SiteOSStep());
-            promptSteps.push(new WebAppRuntimeStep());
+            promptSteps.push(new WebAppStackStep());
             promptSteps.push(new AppServicePlanListStep());
             promptSteps.push(new AppInsightsListStep());
         } else {
-            promptSteps.push(new SiteOSStep()); // will be skipped if there is a smart default
-            promptSteps.push(new WebAppRuntimeStep());
+            promptSteps.push(new WebAppStackStep());
             executeSteps.push(new ResourceGroupCreateStep());
             executeSteps.push(new AppServicePlanCreateStep());
             executeSteps.push(new AppInsightsCreateStep());

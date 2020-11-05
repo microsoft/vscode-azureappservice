@@ -136,11 +136,8 @@ suite('Web App actions', async function (this: Mocha.Suite): Promise<void> {
     }
 
     async function getInput(inputOS: WebsiteOS): Promise<(string | RegExp)[]> {
-        const regExpLTS: RegExp = /LTS/g;
-        const webAppOS: string | RegExp = inputOS.charAt(0).toUpperCase() + inputOS.slice(1);
-        if (inputOS.toLowerCase() === WebsiteOS.linux) {
-            return [webAppOS, regExpLTS];
-        }
-        return [webAppOS];
+        const runtime: RegExp = /NET.*LTS/gi;
+        const webAppOS: string = inputOS.charAt(0).toUpperCase() + inputOS.slice(1);
+        return [runtime, webAppOS];
     }
 });
