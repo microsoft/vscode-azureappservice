@@ -1,5 +1,14 @@
 # Change Log
 
+## 0.20.0 - 2020-11-10
+### Added
+- Create and deploy a .NET 5 web app
+- View properties on a web app
+- Improved extension activation time (by switching to the [azure-sdk-for-js](https://github.com/Azure/azure-sdk-for-js))
+
+### Fixed
+- [Bugs Fixed](https://github.com/microsoft/vscode-azureappservice/issues?q=is%3Aissue+milestone%3A0.20.0+is%3Aclosed)
+
 ## 0.19.0 - 2020-09-15
 ### Added
 - Connect a PostgreSQL server to your web app through the [Azure Databases extension](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-cosmosdb)
