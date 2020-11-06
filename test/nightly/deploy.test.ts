@@ -19,36 +19,35 @@ interface ITestCase {
      */
     workspaceFolder: string | undefined;
     runtimePrefix: string;
-    runtimeSuffix?: string;
     versions: IVersionInfo[];
 }
 
 interface IVersionInfo {
     version: string;
     supportedOs: 'Windows' | 'Linux' | 'Both';
+    displayText?: string;
 }
 
 suite('Create Web App and deploy', async function (this: Mocha.Suite): Promise<void> {
-    this.timeout(12 * 60 * 1000);
+    this.timeout(6 * 60 * 1000);
     const planNames: { [os: string]: string } = {};
     const testCases: ITestCase[] = [
         {
             runtimePrefix: 'Node',
-            runtimeSuffix: ' LTS',
             workspaceFolder: 'nodejs-docs-hello-world',
             versions: [
-                { version: '10', supportedOs: 'Linux' },
-                { version: '12', supportedOs: 'Both' },
-                { version: '14', supportedOs: 'Linux' }
+                { version: '10', supportedOs: 'Linux', displayText: '10 LTS' },
+                { version: '12', supportedOs: 'Both', displayText: '12 LTS' },
+                { version: '14', supportedOs: 'Linux', displayText: '14 LTS' }
             ]
         },
         {
-            runtimePrefix: '.NET Core',
-            runtimeSuffix: ' (LTS)',
+            runtimePrefix: '.NET',
             workspaceFolder: undefined,
             versions: [
-                { version: '2.1', supportedOs: 'Both' },
-                { version: '3.1', supportedOs: 'Both' }
+                { version: '2.1', supportedOs: 'Both', displayText: 'Core 2.1 (LTS)' },
+                { version: '3.1', supportedOs: 'Both', displayText: 'Core 3.1 (LTS)' },
+                { version: '5.0', supportedOs: 'Both', displayText: '5' }
             ]
         },
         {
@@ -71,7 +70,7 @@ suite('Create Web App and deploy', async function (this: Mocha.Suite): Promise<v
     for (const testCase of testCases) {
         for (const version of testCase.versions) {
             // tslint:disable-next-line: strict-boolean-expressions
-            const runtime: string = `${testCase.runtimePrefix} ${version.version}${testCase.runtimeSuffix || ''}`;
+            const runtime: string = `${testCase.runtimePrefix} ${version.displayText || version.version}`;
             const promptForOs: boolean = version.supportedOs === 'Both';
             const oss: string[] = promptForOs ? ['Windows', 'Linux'] : [version.supportedOs];
             for (const os of oss) {
