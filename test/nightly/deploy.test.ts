@@ -9,7 +9,7 @@ import * as assert from 'assert';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { tryGetWebApp } from 'vscode-azureappservice';
-import { createGenericClient, DialogResponses, ext, getRandomHexString, IActionContext, WebAppTreeItem } from '../../extension.bundle';
+import { createGenericClient, ext, getRandomHexString, IActionContext, WebAppTreeItem } from '../../extension.bundle';
 import { longRunningTestsEnabled, testUserInput } from '../global.test';
 import { resourceGroupsToDelete, webSiteClient } from './global.resource.test';
 
@@ -114,7 +114,7 @@ suite('Create Web App and deploy', async function (this: Mocha.Suite): Promise<v
         assert.ok(createdApp);
 
         // Verify that the deployment is successful
-        await testUserInput.runWithInputs([workspacePath, resourceName, 'Deploy', DialogResponses.skipForNow.title], async () => {
+        await testUserInput.runWithInputs([workspacePath, resourceName, 'Deploy'], async () => {
             await vscode.commands.executeCommand('appService.Deploy');
         });
         const hostUrl: string | undefined = (<WebAppTreeItem>await ext.tree.findTreeItem(<string>createdApp?.id, context)).root.client.defaultHostUrl;

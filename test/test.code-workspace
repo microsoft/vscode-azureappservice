@@ -17,6 +17,6 @@
         }
     ],
     "settings": {
-        "appService.showHiddenStacks": true
+        "appService.defaultWebAppToDeploy": "None"
     }
 }
