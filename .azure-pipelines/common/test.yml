@@ -7,6 +7,25 @@ steps:
   displayName: 'Start X Virtual Frame Buffer'
   condition: eq(variables['Agent.OS'], 'Linux')
 
+# needed for .NET nightly tests
+- task: UseDotNet@2
+  displayName: 'Use .NET Core sdk 2.1.x'
+  inputs:
+    version: 2.1.x
+  condition: eq(variables['ENABLE_LONG_RUNNING_TESTS'], 'true')
+
+- task: UseDotNet@2
+  displayName: 'Use .NET Core sdk 3.1.x'
+  inputs:
+    version: 3.1.x
+  condition: eq(variables['ENABLE_LONG_RUNNING_TESTS'], 'true')
+
+- task: UseDotNet@2
+  displayName: 'Use .NET Core sdk 5.0.x'
+  inputs:
+    version: 5.0.x
+  condition: eq(variables['ENABLE_LONG_RUNNING_TESTS'], 'true')
+
 - task: Npm@1
   displayName: 'Test'
   inputs:
