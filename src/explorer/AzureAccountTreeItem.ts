@@ -67,9 +67,9 @@ export class AzureAccountTreeItem extends AzureAccountTreeItemBase {
         return super.pickTreeItemImpl(expectedContextValues);
     }
 
-    public async refreshImpl(): Promise<void> {
+    public async refreshImpl(context: IActionContext): Promise<void> {
         await this.loadTrialAppNode();
-        await this.trialAppNode?.refresh();
+        await this.trialAppNode?.refresh(context);
     }
 
     private async setContext(treeItem: AzExtTreeItem | undefined): Promise<void> {

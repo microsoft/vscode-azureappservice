@@ -24,9 +24,9 @@ export async function editScmType(context: IActionContext, node?: SiteTreeItem |
     }
 
     if (node.deploymentsNode === undefined) {
-        await node.refresh();
+        await node.refresh(context);
     }
 
     await appservice.editScmType(context, node.root.client, node.root, newScmType, showToast);
-    await node.deploymentsNode?.refresh();
+    await node.deploymentsNode?.refresh(context);
 }

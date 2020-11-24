@@ -4,10 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as assert from 'assert';
-import { IActionContext } from 'vscode-azureextensionui';
 import { ColumnName, detectorTable, findTableByName, getValuesByColumnName, validateTimestamp } from "../extension.bundle";
-
-const context: IActionContext = { telemetry: { properties: {}, measurements: {} }, errorHandling: { issueProperties: {} } };
+import { createTestContext, ITestContext } from './global.test';
 
 suite('Detector Dataset Parser', () => {
     test('Find table by table name', async () => {
@@ -17,11 +15,12 @@ suite('Detector Dataset Parser', () => {
 
     test('Get values by column name', async () => {
         const insightTable: any = detectorResponse.properties.dataset[1].table;
-        const rawApplicationLog: string = getValuesByColumnName(context, insightTable, ColumnName.value);
+        const rawApplicationLog: string = getValuesByColumnName(createTestContext(), insightTable, ColumnName.value);
         assert.equal(rawApplicationLog, detectorResponse.properties.dataset[1].table.rows[0][3]);
     });
 
     test('Verify validateTimestamp', async () => {
+        const context: ITestContext = createTestContext();
         const expectedTimestamp: string = "2020-04-21T18:24:28";
         // an hour earlier (stale)
         const staleTimestamp: string = "2020-04-21T17:24:28";
@@ -40,7 +39,7 @@ suite('Detector Dataset Parser', () => {
     test('Get error messages', async () => {
         const expectedErrorMessage: string = "Cannot find module 'yenv'";
         const appInsightTable: any = JSON.parse(detectorResponse.properties.dataset[1].table.rows[0][3])[0].table;
-        const insightError: string = getValuesByColumnName(context, appInsightTable, ColumnName.dataValue);
+        const insightError: string = getValuesByColumnName(createTestContext(), appInsightTable, ColumnName.dataValue);
         assert.equal(insightError, expectedErrorMessage);
     });
 });

@@ -5,8 +5,7 @@
 
 import { WebSiteManagementModels } from '@azure/arm-appservice';
 import { IAppSettingsClient } from 'vscode-azureappservice';
-import { AzExtTreeItem, DialogResponses } from 'vscode-azureextensionui';
-import { ext } from '../extensionVariables';
+import { AzExtTreeItem, DialogResponses, IActionContext } from 'vscode-azureextensionui';
 import { getThemedIconPath, IThemedIconPath } from '../utils/pathUtils';
 import { DatabaseAccountTreeItem, DatabaseTreeItem } from '../vscode-cosmos.api';
 import { CosmosDBTreeItem } from './CosmosDBTreeItem';
@@ -50,17 +49,17 @@ export class CosmosDBConnection extends AzExtTreeItem {
         return getThemedIconPath('DocDatabase');
     }
 
-    public async deleteTreeItemImpl(): Promise<void> {
+    public async deleteTreeItemImpl(context: IActionContext): Promise<void> {
         const appSettingsClient: IAppSettingsClient = this.parent.parent.client;
         const appSettings: WebSiteManagementModels.StringDictionary = await appSettingsClient.listApplicationSettings();
         if (appSettings.properties) {
             const warning: string = `Are you sure you want to remove connection "${this.label}"? This will delete the following application settings: ${this.appSettingKeys.map((s) => `"${s}"`).join(', ')}.`;
-            await ext.ui.showWarningMessage(warning, { modal: true }, DialogResponses.deleteResponse);
+            await context.ui.showWarningMessage(warning, { modal: true }, DialogResponses.deleteResponse);
             for (const key of this.appSettingKeys) {
                 delete appSettings.properties[key];
             }
             await appSettingsClient.updateApplicationSettings(appSettings);
-            await this.parent.parent.appSettingsNode.refresh();
+            await this.parent.parent.appSettingsNode.refresh(context);
         }
     }
 }

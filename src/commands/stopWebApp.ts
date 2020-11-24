@@ -18,7 +18,7 @@ export async function stopWebApp(context: IActionContext, node?: SiteTreeItem): 
     const client: SiteClient = node.root.client;
     const stoppingApp: string = `Stopping "${client.fullName}"...`;
     const stoppedApp: string = `"${client.fullName}" has been stopped. App Service plan charges still apply.`;
-    await node.runWithTemporaryDescription("Stopping...", async () => {
+    await node.runWithTemporaryDescription(context, "Stopping...", async () => {
         ext.outputChannel.appendLog(stoppingApp);
         await client.stop();
         ext.outputChannel.appendLog(stoppedApp);

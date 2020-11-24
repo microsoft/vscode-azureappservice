@@ -6,11 +6,21 @@
 import { IHookCallbackContext } from 'mocha';
 import * as vscode from 'vscode';
 import { TestOutputChannel, TestUserInput } from 'vscode-azureextensiondev';
+import { IActionContext } from 'vscode-azureextensionui';
 import { ext } from '../extension.bundle';
 
 // tslint:disable-next-line:strict-boolean-expressions export-name
 export let longRunningTestsEnabled: boolean = !/^(false|0)?$/i.test(process.env.ENABLE_LONG_RUNNING_TESTS || '');
 
+export type ITestContext = IActionContext & { ui: TestUserInput };
+
+export function createTestContext(): ITestContext {
+    return { telemetry: { properties: {}, measurements: {} }, errorHandling: { issueProperties: {} }, ui: new TestUserInput(vscode) };
+}
+
+/**
+ * Extension-wide TestUserInput that can't be used in parallel, unlike `createTestContext().ui`
+ */
 export let testUserInput: TestUserInput = new TestUserInput(vscode);
 
 // Runs before all tests

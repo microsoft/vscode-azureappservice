@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { AppSettingsTreeItem, DeploymentsTreeItem, LogFilesTreeItem, SiteFilesTreeItem } from 'vscode-azureappservice';
-import { AzExtTreeItem, GenericTreeItem, IActionContext } from 'vscode-azureextensionui';
+import { AzExtTreeItem, callWithTelemetryAndErrorHandling, GenericTreeItem, IActionContext } from 'vscode-azureextensionui';
 import { ext } from '../../extensionVariables';
 import { localize } from '../../localize';
 import { openUrl } from '../../utils/openUrl';
@@ -54,13 +54,18 @@ export class TrialAppTreeItem extends SiteTreeItemBase implements ISiteTreeItem 
         const interval: number = 60 * 1000;
         const intervalId: NodeJS.Timeout = setInterval(
             async () => {
-                if (this.client.isExpired) {
-                    await ext.azureAccountTreeItem.refresh();
-                } else if (ext.azureAccountTreeItem.trialAppNode === this) {
-                    await this.refresh();
-                    return;
-                }
-                clearInterval(intervalId);
+                await callWithTelemetryAndErrorHandling('TrialAppTreeItem.autoRefresh', async (context: IActionContext) => {
+                    context.errorHandling.suppressDisplay = true;
+                    context.telemetry.suppressIfSuccessful = true;
+
+                    if (this.client.isExpired) {
+                        await ext.azureAccountTreeItem.refresh(context);
+                    } else if (ext.azureAccountTreeItem.trialAppNode === this) {
+                        await this.refresh(context);
+                        return;
+                    }
+                    clearInterval(intervalId);
+                });
             },
             interval
         );

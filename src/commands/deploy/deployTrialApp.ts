@@ -17,7 +17,7 @@ export async function deployTrialApp(context: IDeployContext, node: TrialAppTree
     addTrialAppTelemetry(context, node);
     context.telemetry.properties.isTemplateProject = commit ? 'true' : 'false';
 
-    await node.runWithTemporaryDescription("Deploying...", async () => {
+    await node.runWithTemporaryDescription(context, "Deploying...", async () => {
         const title: string = localize('deploying', 'Deploying to "{0}"... Check [output window](command:{1}) for status.', node.client.fullName, `${ext.prefix}.showOutputChannel`);
         return await window.withProgress({ location: ProgressLocation.Notification, title }, async () => {
             await localGitDeploy(node.client, { fsPath: context.workspaceFolder.uri.fsPath, branch: 'RELEASE', commit: commit }, context);

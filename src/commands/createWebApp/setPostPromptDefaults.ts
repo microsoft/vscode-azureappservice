@@ -8,7 +8,6 @@ import { SubscriptionModels } from '@azure/arm-subscriptions';
 import { MessageItem } from "vscode";
 import { SiteNameStep, tryGetAppServicePlan, WebsiteOS } from "vscode-azureappservice";
 import { DialogResponses, IActionContext, LocationListStep } from "vscode-azureextensionui";
-import { ext } from "../../extensionVariables";
 import { localize } from "../../localize";
 import { createWebSiteClient } from "../../utils/azureClients";
 import { getResourceGroupFromId } from '../../utils/azureUtils';
@@ -104,7 +103,7 @@ async function promptPerformanceWarning(context: IActionContext, asp: WebSiteMan
         const numberOfSites: number = nonNullProp(asp, 'numberOfSites');
         const createAnyway: MessageItem = { title: 'Create anyway' };
         const message: string = localize('tooManyPlansWarning', 'The selected plan currently has {0} apps. Deploying more than {1} apps may degrade the performance on the apps in the plan.  Use "Create Web App... (Advanced)" to change the default resource names.', numberOfSites, maxNumberOfSites);
-        const input: MessageItem = await ext.ui.showWarningMessage(message, { modal: true }, createAnyway, DialogResponses.dontWarnAgain);
+        const input: MessageItem = await context.ui.showWarningMessage(message, { modal: true }, createAnyway, DialogResponses.dontWarnAgain);
 
         if (input === DialogResponses.dontWarnAgain) {
             context.telemetry.properties.turnOffPerfWarning = 'true';

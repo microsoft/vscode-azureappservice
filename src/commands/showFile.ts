@@ -8,10 +8,10 @@ import { IActionContext } from "vscode-azureextensionui";
 import { ext } from "../extensionVariables";
 import { localize } from "../localize";
 
-export async function showFile(_context: IActionContext, node: FileTreeItem): Promise<void> {
+export async function showFile(context: IActionContext, node: FileTreeItem): Promise<void> {
     ext.fileSystem.appendLineToOutput(localize('opening', 'Opening "{0}"...', node.label), { resourceName: node.client.fullName });
     if (node.isReadOnly) {
-        await node.openReadOnly();
+        await node.openReadOnly(context);
     } else {
         await ext.fileSystem.showTextDocument(node);
     }

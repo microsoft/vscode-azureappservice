@@ -28,7 +28,7 @@ export async function uploadAppSettings(context: IActionContext, target?: Uri | 
         node = <AppSettingsTreeItem>await ext.tree.showTreeItemPicker(AppSettingsTreeItem.contextValue, context);
     }
     const client: IAppSettingsClient = node.client;
-    await node.runWithTemporaryDescription(`Uploading settings to "${client.fullName}"...`, async () => {
+    await node.runWithTemporaryDescription(context, `Uploading settings to "${client.fullName}"...`, async () => {
         const localEnvVariables: dotenv.DotenvParseOutput = await getLocalEnvironmentVariables(envPath);
         if (Object.keys(localEnvVariables).length > 0) {
             const remoteSettings: WebSiteManagementModels.StringDictionary = await client.listApplicationSettings();

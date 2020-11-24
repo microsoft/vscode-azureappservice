@@ -8,7 +8,6 @@ import { MessageItem } from "vscode";
 import { DialogResponses, IActionContext } from "vscode-azureextensionui";
 import * as constants from '../../constants';
 import { SiteTreeItem } from '../../explorer/SiteTreeItem';
-import { ext } from "../../extensionVariables";
 import { getWorkspaceSetting, updateWorkspaceSetting } from "../../vsCodeConfig/settings";
 
 export async function promptToSaveDeployDefaults(context: IActionContext, node: SiteTreeItem, workspacePath: string, deployPath: string): Promise<void> {
@@ -17,7 +16,7 @@ export async function promptToSaveDeployDefaults(context: IActionContext, node: 
     if (!defaultWebAppToDeploySetting) {
         const saveDeploymentConfig: string = `Always deploy the workspace "${path.basename(workspacePath)}" to "${node.root.client.fullName}"?`;
         const dontShowAgain: MessageItem = { title: "Don't show again" };
-        const result: MessageItem = await ext.ui.showWarningMessage(saveDeploymentConfig, DialogResponses.yes, dontShowAgain, DialogResponses.skipForNow);
+        const result: MessageItem = await context.ui.showWarningMessage(saveDeploymentConfig, DialogResponses.yes, dontShowAgain, DialogResponses.skipForNow);
         if (result === DialogResponses.yes) {
             await saveDeployDefaults(node.fullId, workspacePath, deployPath);
             context.telemetry.properties.promptToSaveDeployConfigs = 'Yes';

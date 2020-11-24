@@ -18,7 +18,7 @@ export async function startWebApp(context: IActionContext, node?: SiteTreeItem):
     const startingApp: string = `Starting "${client.fullName}"...`;
     const startedApp: string = `"${client.fullName}" has been started.`;
 
-    await node.runWithTemporaryDescription("Starting...", async () => {
+    await node.runWithTemporaryDescription(context, "Starting...", async () => {
         ext.outputChannel.appendLog(startingApp);
         await client.start();
         ext.outputChannel.appendLog(startedApp);

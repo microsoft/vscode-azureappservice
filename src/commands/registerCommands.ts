@@ -78,7 +78,7 @@ export function registerCommands(): void {
     registerCommand('appService.LoadMore', async (actionContext: IActionContext, node: AzureTreeItem) => await ext.tree.loadMore(node, actionContext));
     registerCommand('appService.openFile', showFile, 500);
     registerCommand('appService.OpenInPortal', openInPortal);
-    registerCommand('appService.Refresh', async (_actionContext: IActionContext, node?: AzureTreeItem) => await ext.tree.refresh(node));
+    registerCommand('appService.Refresh', async (actionContext: IActionContext, node?: AzureTreeItem) => await ext.tree.refresh(actionContext, node));
     registerCommand('appService.RemoveCosmosDBConnection', removeCosmosDBConnection);
     registerCommand('appService.RemoveTrialApp', removeTrialApp);
     registerCommand('appService.Restart', restartWebApp);
@@ -95,7 +95,7 @@ export function registerCommands(): void {
     registerCommand('appService.Stop', stopWebApp);
     registerCommand('appService.StopLogStream', stopStreamingLogs);
     registerCommand('appService.SwapSlots', swapSlots);
-    registerCommand('appService.toggleAppSettingVisibility', async (_actionContext: IActionContext, node: AppSettingTreeItem) => { await node.toggleValueVisibility(); }, 250);
+    registerCommand('appService.toggleAppSettingVisibility', async (actionContext: IActionContext, node: AppSettingTreeItem) => { await node.toggleValueVisibility(actionContext); }, 250);
     registerCommand('appService.TransferToSubscription', transferToSubscription);
     registerCommand('appService.ViewCommitInGitHub', viewCommitInGitHub);
     registerCommand('appService.ViewProperties', viewProperties);
