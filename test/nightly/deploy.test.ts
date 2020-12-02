@@ -118,7 +118,7 @@ suite('Create Web App and deploy', async function (this: Mocha.Suite): Promise<v
             testInputs.push(os);
         }
 
-        testInputs.push('$(plus) Create new App Service plan', getRandomHexString(), 'P3v2', '$(plus) Create new Application Insights resource', getRandomHexString(), 'West US');
+        testInputs.push('$(plus) Create new App Service plan', getRandomHexString(), 'S1', '$(plus) Create new Application Insights resource', getRandomHexString(), 'West US');
 
         const createContext: ITestContext = createTestContext();
         await createContext.ui.runWithInputs(testInputs, async () => {
