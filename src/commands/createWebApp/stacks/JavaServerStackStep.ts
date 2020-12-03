@@ -5,7 +5,6 @@
 
 import { setLocationsTask, SiteOSStep, WebsiteOS } from 'vscode-azureappservice';
 import { AzureWizardPromptStep, IWizardOptions } from 'vscode-azureextensionui';
-import { ext } from '../../../extensionVariables';
 import { localize } from '../../../localize';
 import { nonNullProp } from '../../../utils/nonNull';
 import { IWebAppWizardContext } from '../IWebAppWizardContext';
@@ -15,7 +14,7 @@ export class JavaServerStackStep extends AzureWizardPromptStep<IWebAppWizardCont
     public async prompt(context: IWebAppWizardContext): Promise<void> {
         const placeHolder: string = localize('selectJavaServerStack', 'Select a Java web server stack.');
         const javaVersion: string = nonNullProp(context, 'newSiteStack').majorVersion.value;
-        context.newSiteJavaStack = (await ext.ui.showQuickPick(getStackPicks(context, javaVersion), { placeHolder })).data;
+        context.newSiteJavaStack = (await context.ui.showQuickPick(getStackPicks(context, javaVersion), { placeHolder })).data;
 
         if (!context.newSiteJavaStack.minorVersion.stackSettings.linuxContainerSettings) {
             context.newSiteOS = WebsiteOS.windows;

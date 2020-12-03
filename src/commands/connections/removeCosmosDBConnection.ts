@@ -13,5 +13,5 @@ export async function removeCosmosDBConnection(context: IActionContext, node?: C
     }
 
     await node.deleteTreeItem(context);
-    await ext.tree.refresh(node.parent);
+    await ext.tree.refresh(context, node.parent);
 }

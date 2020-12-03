@@ -16,7 +16,7 @@ export async function showTutorial(context: IActionContext): Promise<void> {
     if (trialAppNode) {
         const extensionId: string = 'redhat.vscode-didact';
         if (!extensions.getExtension(extensionId)) {
-            await ext.ui.showWarningMessage(localize('didactInstall', 'You must have the "Didact" extension installed to perform this operation.'), { title: 'Install' });
+            await context.ui.showWarningMessage(localize('didactInstall', 'You must have the "Didact" extension installed to perform this operation.'), { title: 'Install' });
             if (await installExtension(extensionId)) {
                 context.telemetry.properties.installedDidact = 'true';
             } else {

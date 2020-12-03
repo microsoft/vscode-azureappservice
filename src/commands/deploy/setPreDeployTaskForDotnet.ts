@@ -8,7 +8,6 @@ import * as path from 'path';
 import { MessageItem, TaskDefinition } from 'vscode';
 import { IDeployContext } from 'vscode-azureappservice';
 import * as constants from '../../constants';
-import { ext } from '../../extensionVariables';
 import { isPathEqual } from '../../utils/pathUtils';
 import { getWorkspaceSetting, updateWorkspaceSetting } from '../../vsCodeConfig/settings';
 import * as tasks from '../../vsCodeConfig/tasks';
@@ -52,7 +51,7 @@ export async function setPreDeployTaskForDotnet(context: IDeployContext): Promis
 
         const notConfiguredForDeploy: string = `Required configuration to deploy is missing from "${context.workspaceFolder.name}".`;
         const addConfigButton: MessageItem = { title: "Add Config" };
-        await ext.ui.showWarningMessage(notConfiguredForDeploy, { modal: true }, addConfigButton);
+        await context.ui.showWarningMessage(notConfiguredForDeploy, { modal: true }, addConfigButton);
 
         // resolves to "."if it is not a subfolder
         const subfolder: string = path.dirname(path.relative(workspaceFspath, csprojFile));

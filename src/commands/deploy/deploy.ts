@@ -107,7 +107,7 @@ export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | 
         ext.outputChannel.appendLog(noSubpathWarning);
     }
 
-    await node.runWithTemporaryDescription("Deploying...", async () => {
+    await node.runWithTemporaryDescription(context, "Deploying...", async () => {
         try {
             await appservice.deploy(nonNullValue(node).root.client, <string>deployPath, context);
         } catch (error) {

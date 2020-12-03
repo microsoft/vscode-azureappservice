@@ -8,7 +8,6 @@ import * as path from 'path';
 import { MessageItem } from "vscode";
 import { DialogResponses, IActionContext } from "vscode-azureextensionui";
 import * as constants from '../../constants';
-import { ext } from "../../extensionVariables";
 import { venvUtils } from '../../utils/venvUtils';
 import { getWorkspaceSetting, updateWorkspaceSetting } from "../../vsCodeConfig/settings";
 import { LinuxRuntimes } from '../createWebApp/LinuxRuntimes';
@@ -19,7 +18,7 @@ export async function promptScmDoBuildDeploy(context: IActionContext, fsPath: st
     const learnMoreLink: string = 'https://aka.ms/Kwwkbd';
 
     const buildDuringDeploy: string = `Would you like to update your workspace configuration to run build commands on the target server? This should improve deployment performance.`;
-    const input: MessageItem | undefined = await ext.ui.showWarningMessage(buildDuringDeploy, { modal: true, learnMoreLink }, DialogResponses.yes, DialogResponses.no);
+    const input: MessageItem | undefined = await context.ui.showWarningMessage(buildDuringDeploy, { modal: true, learnMoreLink }, DialogResponses.yes, DialogResponses.no);
 
     if (input === DialogResponses.yes) {
         await enableScmDoBuildDuringDeploy(fsPath, runtime);

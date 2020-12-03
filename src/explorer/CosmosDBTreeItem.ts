@@ -138,7 +138,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         }
 
         await this.parent.client.updateApplicationSettings(appSettingsDict);
-        await this.parent.appSettingsNode.refresh();
+        await this.parent.appSettingsNode.refresh(context);
 
         const createdDatabase = new CosmosDBConnection(this, databaseToAdd, Array.from(newAppSettings.keys()));
         context.showCreatingTreeItem(createdDatabase.label);

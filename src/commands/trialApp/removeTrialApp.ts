@@ -24,12 +24,12 @@ export async function removeTrialApp(context: IActionContext, node?: TrialAppTre
 
     const message: string = localize('removeTrialApp', 'Are you sure you want to remove trial app "{0}"?', trialAppContext.name);
     const remove: MessageItem = { title: 'Remove' };
-    await ext.ui.showWarningMessage(message, { modal: true }, remove);
+    await context.ui.showWarningMessage(message, { modal: true }, remove);
 
     if (node) {
         addTrialAppTelemetry(context, node);
     }
     ext.context.globalState.update(TrialAppContext, undefined);
     delete ext.azureAccountTreeItem.trialAppNode;
-    await ext.tree.refresh();
+    await ext.tree.refresh(context);
 }

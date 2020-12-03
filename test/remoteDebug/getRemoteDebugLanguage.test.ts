@@ -5,25 +5,13 @@
 
 import * as assert from 'assert';
 import { RemoteDebugLanguage } from 'vscode-azureappservice';
-import { IActionContext } from 'vscode-azureextensionui';
 import { getRemoteDebugLanguage } from '../../extension.bundle';
+import { createTestContext } from '../global.test';
 import { runWithExtensionSetting } from '../runWithSetting';
 
 suite('getRemoteDebugLanguage', () => {
-    function getEmptycontext(): IActionContext {
-        return {
-            telemetry: {
-                properties: {},
-                measurements: {}
-            },
-            errorHandling: {
-                issueProperties: {}
-            }
-        };
-    }
-
     test('Throws error for bad versions', async () => {
-        const context = getEmptycontext();
+        const context = createTestContext();
 
         // empty version
         assert.throws(() => { getRemoteDebugLanguage({}, context); }, Error);
@@ -46,7 +34,7 @@ suite('getRemoteDebugLanguage', () => {
     });
 
     test('Returns language for good versions', async () => {
-        const context = getEmptycontext();
+        const context = createTestContext();
 
         // >= 8.11 is valid
         assert.equal(getRemoteDebugLanguage({ linuxFxVersion: 'node|8.11' }, context), RemoteDebugLanguage.Node);
@@ -59,7 +47,7 @@ suite('getRemoteDebugLanguage', () => {
     });
 
     test('Respects the python remote debugging experimental flag', async () => {
-        const context = getEmptycontext();
+        const context = createTestContext();
 
         await runWithExtensionSetting('enablePythonRemoteDebugging', undefined, async () => {
             assert.throws(() => { getRemoteDebugLanguage({ linuxFxVersion: 'python|2.7' }, context); }, Error);
@@ -73,7 +61,7 @@ suite('getRemoteDebugLanguage', () => {
     });
 
     test('Reports telemetry correctly', async () => {
-        const context = getEmptycontext();
+        const context = createTestContext();
 
         getRemoteDebugLanguage({ linuxFxVersion: 'NODE|8.11' }, context);
         assert.equal(context.telemetry.properties.linuxFxVersion, 'node|8.11');

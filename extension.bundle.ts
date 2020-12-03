@@ -15,6 +15,8 @@
 // The tests should import '../extension.bundle'. At design-time they live in tests/ and so will pick up this file (extension.bundle.ts).
 // At runtime the tests live in dist/tests and will therefore pick up the main webpack bundle at dist/extension.bundle.js.
 export * from 'vscode-azureextensionui';
+export * from './src/commands/createWebApp/createWebApp';
+export * from './src/commands/deploy/deploy';
 export { ColumnName, detectorResponseJSON, detectorTable, getLinuxDetectorError, validateTimestamp } from "./src/commands/postDeploy/getLinuxDetectorError";
 export { findTableByName, getValuesByColumnName } from "./src/commands/postDeploy/parseDetectorResponse";
 export { getRemoteDebugLanguage } from './src/commands/remoteDebug/getRemoteDebugLanguage';
@@ -26,7 +28,7 @@ export { WebAppTreeItem } from './src/explorer/WebAppTreeItem';
 export { activateInternal, deactivateInternal } from './src/extension';
 export { ext } from './src/extensionVariables';
 export * from './src/utils/azureClients';
-export { nonNullValue } from './src/utils/nonNull';
+export * from './src/utils/nonNull';
 export { getRandomHexString } from './src/utils/randomUtils';
 export { getGlobalSetting, updateGlobalSetting } from './src/vsCodeConfig/settings';
 

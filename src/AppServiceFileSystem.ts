@@ -31,11 +31,11 @@ export class AppServiceFileSystem extends AzExtTreeFileSystem<FileTreeItem> {
         return Buffer.from(result.data);
     }
 
-    public async writeFileImpl(_context: IActionContext, node: FileTreeItem, content: Uint8Array, _originalUri: Uri): Promise<void> {
+    public async writeFileImpl(context: IActionContext, node: FileTreeItem, content: Uint8Array, _originalUri: Uri): Promise<void> {
         const showSavePromptKey: string = 'showSavePrompt';
         if (getWorkspaceSetting<boolean>(showSavePromptKey)) {
             const message: string = localize('saveConfirmation', 'Saving "{0}" will update the file "{0}" in "{1}".', node.label, node.client.fullName);
-            const result: MessageItem | undefined = await ext.ui.showWarningMessage(message, DialogResponses.upload, DialogResponses.alwaysUpload, DialogResponses.dontUpload);
+            const result: MessageItem | undefined = await context.ui.showWarningMessage(message, DialogResponses.upload, DialogResponses.alwaysUpload, DialogResponses.dontUpload);
             if (result === DialogResponses.alwaysUpload) {
                 await updateGlobalSetting(showSavePromptKey, false);
             } else if (result === DialogResponses.dontUpload) {
@@ -58,7 +58,7 @@ export class AppServiceFileSystem extends AzExtTreeFileSystem<FileTreeItem> {
 
         etag = (await getFile(node.client, node.path)).etag;
         this._etags.set(node.fullId, etag);
-        await node.refresh();
+        await node.refresh(context);
     }
 
     public appendLineToOutput(value: string, options?: { resourceName?: string, date?: Date }): void {

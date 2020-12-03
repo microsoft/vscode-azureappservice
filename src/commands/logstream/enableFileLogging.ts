@@ -33,7 +33,7 @@ export async function enableFileLogging(context: IEnableFileLoggingContext, node
     });
 
     if (!isEnabled && siteNode instanceof SiteTreeItem) {
-        await ext.ui.showWarningMessage(`Do you want to enable file logging for ${siteNode.root.client.fullName}? The web app will be restarted.`, { modal: true }, DialogResponses.yes);
+        await context.ui.showWarningMessage(`Do you want to enable file logging for ${siteNode.root.client.fullName}? The web app will be restarted.`, { modal: true }, DialogResponses.yes);
         const enablingLogging: string = `Enabling Logging for "${siteNode.root.client.fullName}"...`;
         const enabledLogging: string = `Enabled Logging for "${siteNode.root.client.fullName}".`;
         await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification, title: enablingLogging }, async (): Promise<void> => {

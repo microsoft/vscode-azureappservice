@@ -9,8 +9,8 @@ import * as assert from 'assert';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { tryGetWebApp } from 'vscode-azureappservice';
-import { createGenericClient, ext, getRandomHexString, IActionContext, WebAppTreeItem } from '../../extension.bundle';
-import { longRunningTestsEnabled, testUserInput } from '../global.test';
+import { createGenericClient, createWebAppAdvanced, deploy, ext, getRandomHexString, nonNullProp, WebAppTreeItem } from '../../extension.bundle';
+import { createTestContext, ITestContext, longRunningTestsEnabled } from '../global.test';
 import { resourceGroupsToDelete, webSiteClient } from './global.resource.test';
 
 interface ITestCase {
@@ -30,9 +30,17 @@ interface IVersionInfo {
     buildMachineOsToSkip?: NodeJS.Platform;
 }
 
+/**
+ * NOTE: We have to setup the test before suiteSetup, but we can't start the test until suiteSetup. That's why we have separate callback/task properties
+ */
+interface IParallelTest {
+    title: string;
+    task?: Promise<void>;
+    callback(): Promise<void>;
+}
+
 suite('Create Web App and deploy', async function (this: Mocha.Suite): Promise<void> {
     this.timeout(6 * 60 * 1000);
-    const planNames: { [os: string]: string } = {};
     const testCases: ITestCase[] = [
         {
             runtimePrefix: 'Node',
@@ -63,12 +71,7 @@ suite('Create Web App and deploy', async function (this: Mocha.Suite): Promise<v
         }
     ];
 
-    suiteSetup(async function (this: Mocha.Context): Promise<void> {
-        if (!longRunningTestsEnabled) {
-            this.skip();
-        }
-    });
-
+    const parallelTests: IParallelTest[] = [];
     for (const testCase of testCases) {
         for (const version of testCase.versions) {
             // tslint:disable-next-line: strict-boolean-expressions
@@ -76,16 +79,33 @@ suite('Create Web App and deploy', async function (this: Mocha.Suite): Promise<v
             const promptForOs: boolean = version.supportedAppOs === 'Both';
             const oss: string[] = promptForOs ? ['Windows', 'Linux'] : [version.supportedAppOs];
             for (const os of oss) {
-                test(`${runtime} - ${os}`, async function (this: Mocha.Context): Promise<void> {
-                    if (version.appOsToSkip === os || version.buildMachineOsToSkip === process.platform) {
-                        this.skip();
-                    }
-
-                    const testFolderPath: string = await getWorkspacePath(testCase.workspaceFolder || version.version);
-                    await testCreateWebAppAndDeploy(os, promptForOs, runtime, testFolderPath, version.version);
-                });
+                if (version.appOsToSkip !== os && version.buildMachineOsToSkip !== process.platform) {
+                    parallelTests.push({
+                        title: `${runtime} - ${os}`,
+                        callback: async () => {
+                            const testFolderPath: string = await getWorkspacePath(testCase.workspaceFolder || version.version);
+                            await testCreateWebAppAndDeploy(os, promptForOs, runtime, testFolderPath, version.version);
+                        }
+                    });
+                }
             }
         }
+    }
+
+    suiteSetup(async function (this: Mocha.Context): Promise<void> {
+        if (!longRunningTestsEnabled) {
+            this.skip();
+        }
+
+        for (const t of parallelTests) {
+            t.task = t.callback();
+        }
+    });
+
+    for (const t of parallelTests) {
+        test(t.title, async () => {
+            await nonNullProp(t, 'task');
+        });
     }
 
     async function testCreateWebAppAndDeploy(os: string, promptForOs: boolean, runtime: string, workspacePath: string, expectedVersion: string): Promise<void> {
@@ -98,27 +118,23 @@ suite('Create Web App and deploy', async function (this: Mocha.Suite): Promise<v
             testInputs.push(os);
         }
 
-        const appInsightsInputs: string[] = ['$(plus) Create new Application Insights resource', getRandomHexString()];
-        if (planNames[os]) {
-            // Re-use the same plan to save time
-            testInputs.push(planNames[os], ...appInsightsInputs);
-        } else {
-            planNames[os] = getRandomHexString();
-            testInputs.push('$(plus) Create new App Service plan', planNames[os], 'P3v2', ...appInsightsInputs, 'West US');
-        }
+        testInputs.push('$(plus) Create new App Service plan', getRandomHexString(), 'S1', '$(plus) Create new Application Insights resource', getRandomHexString(), 'West US');
 
-        const context: IActionContext = { telemetry: { properties: {}, measurements: {} }, errorHandling: { issueProperties: {} } };
-        await testUserInput.runWithInputs(testInputs, async () => {
-            await vscode.commands.executeCommand('appService.CreateWebAppAdvanced');
+        const createContext: ITestContext = createTestContext();
+        await createContext.ui.runWithInputs(testInputs, async () => {
+            await createWebAppAdvanced(createContext);
         });
         const createdApp: WebSiteManagementModels.Site | undefined = await tryGetWebApp(webSiteClient, resourceGroupName, resourceName);
         assert.ok(createdApp);
 
+        const deployContext: ITestContext = createTestContext();
         // Verify that the deployment is successful
-        await testUserInput.runWithInputs([workspacePath, resourceName, 'Deploy'], async () => {
-            await vscode.commands.executeCommand('appService.Deploy');
+        await deployContext.ui.runWithInputs([workspacePath, resourceName, 'Deploy'], async () => {
+            await deploy(deployContext);
         });
-        const hostUrl: string | undefined = (<WebAppTreeItem>await ext.tree.findTreeItem(<string>createdApp?.id, context)).root.client.defaultHostUrl;
+
+        const findContext: ITestContext = createTestContext();
+        const hostUrl: string | undefined = (<WebAppTreeItem>await ext.tree.findTreeItem(<string>createdApp?.id, findContext)).root.client.defaultHostUrl;
         const client: ServiceClient = await createGenericClient();
         const response: HttpOperationResponse = await client.sendRequest({ method: 'GET', url: hostUrl });
         assert.strictEqual(response.bodyAsText, `Version: ${expectedVersion}`);

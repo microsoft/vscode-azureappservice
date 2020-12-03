@@ -11,7 +11,7 @@ export async function installCosmosDBExtension(context: IActionContext, treeItem
     const extensionId: string = 'ms-azuretools.vscode-cosmosdb';
     if (await installExtension(extensionId)) {
         if (treeItem.parent) {
-            await treeItem.parent.refresh();
+            await treeItem.parent.refresh(context);
             if ((<CosmosDBTreeItem>treeItem.parent).cosmosDBExtension) {
                 context.telemetry.properties.installedCosmos = 'true';
             }

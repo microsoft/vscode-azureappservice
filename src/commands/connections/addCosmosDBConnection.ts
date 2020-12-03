@@ -20,5 +20,5 @@ export async function addCosmosDBConnection(context: IActionContext, node?: Azur
         cosmosDBTreeItem = nonNullProp(node, 'parent');
     }
     await cosmosDBTreeItem.createChild(context);
-    await ext.tree.refresh(cosmosDBTreeItem);
+    await ext.tree.refresh(context, cosmosDBTreeItem);
 }
