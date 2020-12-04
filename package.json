@@ -68,6 +68,7 @@
         "onCommand:appService.connectToGitHub",
         "onCommand:appService.AddAzureDatabasesConnection",
         "onCommand:appService.RemoveCosmosDBConnection",
+        "onCommand:appService.ReportIssue",
         "onCommand:appService.RevealConnection",
         "onCommand:appService.RevealConnectionInAppSettings",
         "onCommand:appService.ViewProperties",
@@ -329,6 +330,11 @@
             {
                 "command": "appService.ViewProperties",
                 "title": "View Properties",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.ReportIssue",
+                "title": "%appService.ReportIssue%",
                 "category": "Azure App Service"
             }
         ],
