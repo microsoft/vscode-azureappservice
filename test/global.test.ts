@@ -15,7 +15,7 @@ export let longRunningTestsEnabled: boolean = !/^(false|0)?$/i.test(process.env.
 export type ITestContext = IActionContext & { ui: TestUserInput };
 
 export function createTestContext(): ITestContext {
-    return { telemetry: { properties: {}, measurements: {} }, errorHandling: { issueProperties: {} }, ui: new TestUserInput(vscode) };
+    return { telemetry: { properties: {}, measurements: {} }, errorHandling: { issueProperties: {} }, valuesToMask: [], ui: new TestUserInput(vscode) };
 }
 
 /**
