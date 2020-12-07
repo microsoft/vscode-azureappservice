@@ -1,3 +1,4 @@
 {
-    "appService.postDeployTask": "The name of the task to run after zip deployments."
+    "appService.postDeployTask": "The name of the task to run after zip deployments.",
+    "appService.ReportIssue": "Report Issue..."
 }
