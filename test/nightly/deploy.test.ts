@@ -48,7 +48,7 @@ suite('Create Web App and deploy', async function (this: Mocha.Suite): Promise<v
             versions: [
                 { version: '10', supportedAppOs: 'Linux', displayText: '10 LTS' },
                 { version: '12', supportedAppOs: 'Both', displayText: '12 LTS' },
-                { version: '14', supportedAppOs: 'Linux', displayText: '14 LTS' }
+                { version: '14', supportedAppOs: 'Both', displayText: '14 LTS' }
             ]
         },
         {
