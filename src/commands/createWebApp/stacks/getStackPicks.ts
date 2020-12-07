@@ -59,7 +59,6 @@ async function getStacks(context: IWebAppWizardContext & { _stacks?: WebAppStack
             }
         });
         context._stacks = <WebAppStack[]>result.parsedBody;
-        setNet5ToEarlyAccess(context._stacks);
     }
 
     return sortStacks(context, context._stacks);
@@ -73,18 +72,4 @@ function sortStacks(context: IWebAppWizardContext, stacks: WebAppStack[]): WebAp
         return index === -1 ? recommendedRuntimes.length : index;
     }
     return stacks.sort((s1, s2) => getPriority(s1) - getPriority(s2));
-}
-
-/**
- * Temporary workaround because v2020-10-01 of the stacks api doesn't properly list .NET 5 as early access
- */
-function setNet5ToEarlyAccess(stacks: WebAppStack[]): void {
-    const net5StackSettings: WebAppRuntimes | undefined = stacks.find(s => s.value === 'dotnet')?.majorVersions.find(mv => mv.value === '5')?.minorVersions.find(mv => mv.value === '5')?.stackSettings;
-    if (net5StackSettings) {
-        for (const settings of [net5StackSettings.linuxRuntimeSettings, net5StackSettings.windowsRuntimeSettings]) {
-            if (settings && settings.isEarlyAccess === undefined) {
-                settings.isEarlyAccess = true;
-            }
-        }
-    }
 }
