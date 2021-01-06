@@ -52,7 +52,7 @@ Once the deployment completes, click **Browse Website** in the prompt to view yo
 ## Stream Your Application Logs
 
 1. In the Azure App Service explorer, expand the app then expand **Logs**
-2. Click on **Connect to Log Steam...**
+2. Click on **Connect to Log Stream...**
 
 ![Connect to logstream](resources/connect-logstream.png)
 
