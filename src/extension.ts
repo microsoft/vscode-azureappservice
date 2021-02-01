@@ -11,7 +11,6 @@ import { AzExtTreeDataProvider, AzureUserInput, callWithTelemetryAndErrorHandlin
 import { AzureExtensionApi, AzureExtensionApiProvider } from 'vscode-azureextensionui/api';
 import { AppServiceFileSystem } from './AppServiceFileSystem';
 import { revealTreeItem } from './commands/api/revealTreeItem';
-import { ImportTrialAppUriHandler } from './commands/ImportTrialAppUriHandler';
 import { registerCommands } from './commands/registerCommands';
 import { AzureAccountTreeItem } from './explorer/AzureAccountTreeItem';
 import { ext } from './extensionVariables';
@@ -50,8 +49,6 @@ export async function activateInternal(
 
         ext.fileSystem = new AppServiceFileSystem(ext.tree);
         context.subscriptions.push(vscode.workspace.registerFileSystemProvider(AppServiceFileSystem.scheme, ext.fileSystem));
-
-        vscode.window.registerUriHandler(new ImportTrialAppUriHandler());
 
         registerCommands();
 

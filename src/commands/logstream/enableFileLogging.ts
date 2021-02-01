@@ -7,7 +7,6 @@ import * as vscode from 'vscode';
 import { LogFilesTreeItem } from 'vscode-azureappservice';
 import { DialogResponses, IActionContext } from 'vscode-azureextensionui';
 import { SiteTreeItem } from "../../explorer/SiteTreeItem";
-import { TrialAppTreeItem } from '../../explorer/trialApp/TrialAppTreeItem';
 import { WebAppTreeItem } from '../../explorer/WebAppTreeItem';
 import { ext } from '../../extensionVariables';
 
@@ -15,7 +14,7 @@ export interface IEnableFileLoggingContext extends IActionContext {
     suppressAlreadyEnabledMessage?: boolean;
 }
 
-export async function enableFileLogging(context: IEnableFileLoggingContext, node?: SiteTreeItem | LogFilesTreeItem | TrialAppTreeItem): Promise<void> {
+export async function enableFileLogging(context: IEnableFileLoggingContext, node?: SiteTreeItem | LogFilesTreeItem): Promise<void> {
     if (!node) {
         node = await ext.tree.showTreeItemPicker<SiteTreeItem>(WebAppTreeItem.contextValue, context);
     }
@@ -25,7 +24,7 @@ export async function enableFileLogging(context: IEnableFileLoggingContext, node
         node = <SiteTreeItem>node.parent;
     }
 
-    const siteNode: SiteTreeItem | TrialAppTreeItem = node;
+    const siteNode: SiteTreeItem = node;
 
     const isEnabled: boolean = await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification }, async p => {
         p.report({ message: 'Checking container diagnostics settings...' });
@@ -45,7 +44,7 @@ export async function enableFileLogging(context: IEnableFileLoggingContext, node
             ext.outputChannel.appendLog(enabledLogging);
         });
     } else if (!context.suppressAlreadyEnabledMessage) {
-        const fullName: string = (siteNode instanceof TrialAppTreeItem) ? siteNode.client.fullName : siteNode.root.client.fullName;
+        const fullName: string = siteNode.root.client.fullName;
         vscode.window.showInformationMessage(`File logging has already been enabled for ${fullName}.`);
     }
 }

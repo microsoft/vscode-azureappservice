@@ -29,10 +29,6 @@
     ],
     "preview": true,
     "activationEvents": [
-        "onUri",
-        "onCommand:appService.CreateTrialApp",
-        "onCommand:appService.ImportTrialApp",
-        "onCommand:appService.RemoveTrialApp",
         "onCommand:appService.CreateWebApp",
         "onCommand:appService.CreateWebAppAdvanced",
         "onCommand:appService.Refresh",
@@ -78,31 +74,6 @@
     "main": "./main.js",
     "contributes": {
         "commands": [
-            {
-                "command": "appService.TransferToSubscription",
-                "title": "Transfer to Subscription...",
-                "category": "Azure App Service"
-            },
-            {
-                "command": "appService.CreateTrialApp",
-                "title": "Create Trial App",
-                "category": "Azure App Service"
-            },
-            {
-                "command": "appService.CloneTrialApp",
-                "title": "Clone Trial App...",
-                "category": "Azure App Service"
-            },
-            {
-                "command": "appService.ImportTrialApp",
-                "title": "Import Trial App",
-                "category": "Azure App Service"
-            },
-            {
-                "command": "appService.RemoveTrialApp",
-                "title": "Remove Trial App...",
-                "category": "Azure App Service"
-            },
             {
                 "command": "appService.selectSubscriptions",
                 "title": "Select Subscriptions...",
@@ -359,26 +330,6 @@
         "menus": {
             "commandPalette": [
                 {
-                    "command": "appService.RemoveTrialApp",
-                    "when": "hasTrialApp"
-                },
-                {
-                    "command": "appService.CloneTrialApp",
-                    "when": "hasTrialApp && !trialAppExpired"
-                },
-                {
-                    "command": "appService.TransferToSubscription",
-                    "when": "hasTrialApp"
-                },
-                {
-                    "command": "appService.CreateTrialApp",
-                    "when": "never"
-                },
-                {
-                    "command": "appService.ImportTrialApp",
-                    "when": "never"
-                },
-                {
                     "command": "appService.selectSubscriptions",
                     "when": "never"
                 },
@@ -451,28 +402,13 @@
                     "group": "2_subscriptionGeneralCommands@1"
                 },
                 {
-                    "command": "appService.TransferToSubscription",
-                    "when": "view == azureAppService && viewItem =~ /^trialApp(|Expired)$/",
-                    "group": "3_appServiceDeployCommands@1"
-                },
-                {
-                    "command": "appService.CloneTrialApp",
-                    "when": "view == azureAppService && viewItem == trialApp",
-                    "group": "1_trialAppCommands@1"
-                },
-                {
-                    "command": "appService.RemoveTrialApp",
-                    "when": "view == azureAppService && viewItem =~ /^trialApp(|Invalid|Expired)$/",
-                    "group": "1_trialAppCommands@1"
-                },
-                {
                     "command": "appService.OpenInPortal",
                     "when": "view == azureAppService && viewItem =~ /^(appService|deploymentSlot)$/",
                     "group": "1_appServiceGeneralCommands@1"
                 },
                 {
                     "command": "appService.Browse",
-                    "when": "view == azureAppService && viewItem =~ /^(appService|deploymentSlot|trialApp)$/",
+                    "when": "view == azureAppService && viewItem =~ /^(appService|deploymentSlot)$/",
                     "group": "1_appServiceGeneralCommands@2"
                 },
                 {
@@ -502,7 +438,7 @@
                 },
                 {
                     "command": "appService.Deploy",
-                    "when": "view == azureAppService && viewItem =~ /^(appService|trialApp)$/",
+                    "when": "view == azureAppService && viewItem == appService",
                     "group": "3_appServiceDeployCommands@1"
                 },
                 {
@@ -517,12 +453,12 @@
                 },
                 {
                     "command": "appService.startStreamingLogs",
-                    "when": "view == azureAppService && viewItem =~ /^(appService|deploymentSlot|trialApp)$/",
+                    "when": "view == azureAppService && viewItem =~ /^(appService|deploymentSlot)$/",
                     "group": "4_appServiceDiagnosticsCommands@1"
                 },
                 {
                     "command": "appService.StopLogStream",
-                    "when": "view == azureAppService && viewItem =~ /^(appService|deploymentSlot|trialApp)$/",
+                    "when": "view == azureAppService && viewItem =~ /^(appService|deploymentSlot)$/",
                     "group": "4_appServiceDiagnosticsCommands@2"
                 },
                 {
@@ -537,7 +473,7 @@
                 },
                 {
                     "command": "appService.Refresh",
-                    "when": "view == azureAppService && viewItem =~ /^(appService|deploymentSlot|trialApp)$/",
+                    "when": "view == azureAppService && viewItem =~ /^(appService|deploymentSlot)$/",
                     "group": "7_commonCommands@2"
                 },
                 {
@@ -597,7 +533,7 @@
                 },
                 {
                     "command": "appService.appSettings.Add",
-                    "when": "view == azureAppService && viewItem =~ /^applicationSettings(|TrialApp)$/",
+                    "when": "view == azureAppService && viewItem == applicationSettings",
                     "group": "1_appSettingsEdit@1"
                 },
                 {
@@ -607,17 +543,17 @@
                 },
                 {
                     "command": "appService.Refresh",
-                    "when": "view == azureAppService && viewItem =~ /^applicationSettings(|TrialApp)$/",
+                    "when": "view == azureAppService && viewItem == applicationSettings",
                     "group": "2_appSettingsGeneral@1"
                 },
                 {
                     "command": "appService.appSettings.Download",
-                    "when": "view == azureAppService && viewItem =~ /^applicationSettings(|TrialApp)$/",
+                    "when": "view == azureAppService && viewItem == applicationSettings",
                     "group": "1_appSettingEnv@1"
                 },
                 {
                     "command": "appService.appSettings.Upload",
-                    "when": "view == azureAppService && viewItem =~ /^applicationSettings(|TrialApp)$/",
+                    "when": "view == azureAppService && viewItem == applicationSettings",
                     "group": "1_appSettingEnv@2"
                 },
                 {

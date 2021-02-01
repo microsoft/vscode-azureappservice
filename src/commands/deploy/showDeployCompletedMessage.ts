@@ -7,12 +7,11 @@ import { MessageItem, window } from "vscode";
 import { callWithTelemetryAndErrorHandling, IActionContext } from "vscode-azureextensionui";
 import { AppServiceDialogResponses } from "../../constants";
 import { SiteTreeItem } from "../../explorer/SiteTreeItem";
-import { TrialAppTreeItem } from '../../explorer/trialApp/TrialAppTreeItem';
 import { ext } from "../../extensionVariables";
 import { localize } from "../../localize";
 import { startStreamingLogs } from '../logstream/startStreamingLogs';
 
-export function showDeployCompletedMessage(node: SiteTreeItem | TrialAppTreeItem): void {
+export function showDeployCompletedMessage(node: SiteTreeItem): void {
     const message: string = localize('deployCompleted', 'Deployment to "{0}" completed.', node.client.fullName);
     ext.outputChannel.appendLog(message);
     const browseWebsiteBtn: MessageItem = { title: localize('browseWebsite', 'Browse Website') };
