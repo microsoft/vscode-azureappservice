@@ -44,7 +44,6 @@ export async function enableFileLogging(context: IEnableFileLoggingContext, node
             ext.outputChannel.appendLog(enabledLogging);
         });
     } else if (!context.suppressAlreadyEnabledMessage) {
-        const fullName: string = siteNode.root.client.fullName;
-        vscode.window.showInformationMessage(`File logging has already been enabled for ${fullName}.`);
+        vscode.window.showInformationMessage(`File logging has already been enabled for ${siteNode.root.client.fullName}.`);
     }
 }
