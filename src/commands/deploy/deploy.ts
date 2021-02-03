@@ -12,7 +12,6 @@ import { getDeployFsPath, getDeployNode, IDeployContext, IDeployPaths, showDeplo
 import { IActionContext, parseError } from 'vscode-azureextensionui';
 import * as constants from '../../constants';
 import { SiteTreeItem } from '../../explorer/SiteTreeItem';
-import { TrialAppTreeItem } from '../../explorer/trialApp/TrialAppTreeItem';
 import { WebAppTreeItem } from '../../explorer/WebAppTreeItem';
 import { ext } from '../../extensionVariables';
 import { javaUtils } from '../../utils/javaUtils';
@@ -22,16 +21,15 @@ import { getRandomHexString } from "../../utils/randomUtils";
 import { getWorkspaceSetting } from '../../vsCodeConfig/settings';
 import { LinuxRuntimes } from '../createWebApp/LinuxRuntimes';
 import { runPostDeployTask } from '../postDeploy/runPostDeployTask';
-import { deployTrialApp } from './deployTrialApp';
 import { failureMoreInfoSurvey } from './failureMoreInfoSurvey';
-import { enableScmDoBuildDuringDeploy, promptScmDoBuildDeploy } from './promptScmDoBuildDeploy';
-import { promptToSaveDeployDefaults, saveDeployDefaults } from './promptToSaveDeployDefaults';
+import { promptScmDoBuildDeploy } from './promptScmDoBuildDeploy';
+import { promptToSaveDeployDefaults } from './promptToSaveDeployDefaults';
 import { setPreDeployTaskForDotnet } from './setPreDeployTaskForDotnet';
 import { showDeployCompletedMessage } from './showDeployCompletedMessage';
 
 const postDeployCancelTokens: Map<string, vscode.CancellationTokenSource> = new Map();
 
-export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | SiteTreeItem | TrialAppTreeItem, arg2?: (vscode.Uri | SiteTreeItem)[], isNewApp: boolean = false): Promise<void> {
+export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | SiteTreeItem, arg2?: (vscode.Uri | SiteTreeItem)[], isNewApp: boolean = false): Promise<void> {
     actionContext.telemetry.properties.deployedWithConfigs = 'false';
     let siteConfig: WebSiteManagementModels.SiteConfigResource | undefined;
 
@@ -47,16 +45,7 @@ export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | 
 
     // because this is workspace dependant, do it before user selects app
     await setPreDeployTaskForDotnet(context);
-    const node: SiteTreeItem | TrialAppTreeItem = await getDeployNode(context, ext.tree, arg1, arg2, [WebAppTreeItem.contextValue, TrialAppTreeItem.contextValue]);
-
-    if (node instanceof TrialAppTreeItem) {
-        await enableScmDoBuildDuringDeploy(context.effectiveDeployFsPath, 'NODE|12-lts');
-        if (!await ext.azureAccountTreeItem.getIsLoggedIn()) {
-            await saveDeployDefaults(node.fullId, context.workspaceFolder.uri.fsPath, context.effectiveDeployFsPath);
-        }
-        await deployTrialApp(context, node);
-        return;
-    }
+    const node: SiteTreeItem = await getDeployNode(context, ext.tree, arg1, arg2, [WebAppTreeItem.contextValue]);
 
     const correlationId: string = getRandomHexString();
     context.telemetry.properties.correlationId = correlationId;
