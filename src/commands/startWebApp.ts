@@ -8,6 +8,7 @@ import { IActionContext } from "vscode-azureextensionui";
 import { SiteTreeItem } from "../explorer/SiteTreeItem";
 import { WebAppTreeItem } from "../explorer/WebAppTreeItem";
 import { ext } from "../extensionVariables";
+import { localize } from "../localize";
 
 export async function startWebApp(context: IActionContext, node?: SiteTreeItem): Promise<void> {
     if (!node) {
@@ -15,10 +16,10 @@ export async function startWebApp(context: IActionContext, node?: SiteTreeItem):
     }
 
     const client: SiteClient = node.root.client;
-    const startingApp: string = `Starting "${client.fullName}"...`;
-    const startedApp: string = `"${client.fullName}" has been started.`;
+    const startingApp: string = localize('startingApp', 'Starting "{0}"...', client.fullName);
+    const startedApp: string = localize('startedApp', '"{0}" has been started.', client.fullName);
 
-    await node.runWithTemporaryDescription(context, "Starting...", async () => {
+    await node.runWithTemporaryDescription(context, localize('starting', "Starting..."), async () => {
         ext.outputChannel.appendLog(startingApp);
         await client.start();
         ext.outputChannel.appendLog(startedApp);

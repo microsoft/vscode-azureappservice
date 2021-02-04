@@ -8,6 +8,7 @@ import * as vscode from 'vscode';
 import { IDeployContext } from 'vscode-azureappservice';
 import { IAzureQuickPickItem } from 'vscode-azureextensionui';
 import { ext } from '../extensionVariables';
+import { localize } from '../localize';
 
 export async function selectWorkspaceFile(placeHolder: string, getSubPath?: (f: vscode.WorkspaceFolder) => string | undefined): Promise<string> {
     let defaultUri: vscode.Uri | undefined;
@@ -26,7 +27,7 @@ export async function selectWorkspaceFile(placeHolder: string, getSubPath?: (f: 
             canSelectFolders: false,
             canSelectMany: false,
             defaultUri: defaultUri,
-            openLabel: 'Select'
+            openLabel: localize('select', 'Select')
         },
         getSubPath);
 }
@@ -47,7 +48,7 @@ async function selectWorkspaceItem(placeHolder: string, options: vscode.OpenDial
                 return { label: path.basename(fsPath), description: fsPath, data: fsPath };
             });
 
-        quickPicks.push({ label: '$(file-directory) Browse...', description: '', data: undefined });
+        quickPicks.push({ label: `$(file-directory) ${localize('browse', 'Browse...')}`, description: '', data: undefined });
         folder = await ext.ui.showQuickPick(quickPicks, { placeHolder });
     }
 

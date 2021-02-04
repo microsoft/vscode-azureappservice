@@ -14,6 +14,7 @@ import * as constants from '../../constants';
 import { SiteTreeItem } from '../../explorer/SiteTreeItem';
 import { WebAppTreeItem } from '../../explorer/WebAppTreeItem';
 import { ext } from '../../extensionVariables';
+import { localize } from '../../localize';
 import { javaUtils } from '../../utils/javaUtils';
 import { nonNullValue } from '../../utils/nonNull';
 import { isPathEqual } from '../../utils/pathUtils';
@@ -92,11 +93,11 @@ export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | 
     const deployPath: string = isZipDeploy ? context.effectiveDeployFsPath : context.originalDeployFsPath;
 
     if (!isZipDeploy && isPathEqual(context.effectiveDeployFsPath, context.originalDeployFsPath)) {
-        const noSubpathWarning: string = `WARNING: Ignoring deploySubPath "${getWorkspaceSetting(constants.configurationSettings.deploySubpath)}" for non-zip deploy.`;
+        const noSubpathWarning: string = localize('ignoreSuppath', 'WARNING: Ignoring deploySubPath "{0}" for non-zip deploy.', getWorkspaceSetting(constants.configurationSettings.deploySubpath));
         ext.outputChannel.appendLog(noSubpathWarning);
     }
 
-    await node.runWithTemporaryDescription(context, "Deploying...", async () => {
+    await node.runWithTemporaryDescription(context, localize('deploying', "Deploying..."), async () => {
         try {
             await appservice.deploy(nonNullValue(node).root.client, <string>deployPath, context);
         } catch (error) {

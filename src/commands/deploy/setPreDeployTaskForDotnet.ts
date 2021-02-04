@@ -8,6 +8,7 @@ import * as path from 'path';
 import { MessageItem, TaskDefinition } from 'vscode';
 import { IDeployContext } from 'vscode-azureappservice';
 import * as constants from '../../constants';
+import { localize } from '../../localize';
 import { isPathEqual } from '../../utils/pathUtils';
 import { getWorkspaceSetting, updateWorkspaceSetting } from '../../vsCodeConfig/settings';
 import * as tasks from '../../vsCodeConfig/tasks';
@@ -49,8 +50,8 @@ export async function setPreDeployTaskForDotnet(context: IDeployContext): Promis
             return;
         }
 
-        const notConfiguredForDeploy: string = `Required configuration to deploy is missing from "${context.workspaceFolder.name}".`;
-        const addConfigButton: MessageItem = { title: "Add Config" };
+        const notConfiguredForDeploy: string = localize('requiredConfig', 'Required configuration to deploy is missing from "{0}".', context.workspaceFolder.name);
+        const addConfigButton: MessageItem = { title: localize('addConfig', "Add Config") };
         await context.ui.showWarningMessage(notConfiguredForDeploy, { modal: true }, addConfigButton);
 
         // resolves to "."if it is not a subfolder

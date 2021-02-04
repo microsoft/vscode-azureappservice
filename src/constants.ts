@@ -4,6 +4,7 @@
 *--------------------------------------------------------------------------------------------*/
 
 import { MessageItem } from 'vscode';
+import { localize } from './localize';
 
 export const deploymentFileName: string = '.deployment';
 export const deploymentFile: string = `[config]
@@ -26,8 +27,8 @@ export enum ScmType {
 }
 
 export namespace AppServiceDialogResponses {
-    export const deploy: MessageItem = { title: 'Deploy' };
-    export const viewOutput: MessageItem = { title: 'View Output' };
+    export const deploy: MessageItem = { title: localize('deploy', 'Deploy') };
+    export const viewOutput: MessageItem = { title: localize('viewOutput', 'View Output') };
 }
 
 export const envFileName: string = '.env';

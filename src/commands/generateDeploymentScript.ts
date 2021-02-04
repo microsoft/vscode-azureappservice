@@ -10,6 +10,7 @@ import { ProgressLocation, window, workspace } from "vscode";
 import { IActionContext } from "vscode-azureextensionui";
 import { WebAppTreeItem } from "../explorer/WebAppTreeItem";
 import { ext } from "../extensionVariables";
+import { localize } from "../localize";
 import { createResourceClient } from "../utils/azureClients";
 import { nonNullValue } from "../utils/nonNull";
 import { getResourcesPath } from "../utils/pathUtils";
@@ -23,7 +24,7 @@ export async function generateDeploymentScript(context: IActionContext, node?: W
     }
 
     await window.withProgress({ location: ProgressLocation.Window }, async p => {
-        p.report({ message: 'Generating script...' });
+        p.report({ message: localize('generatingScript', 'Generating script...') });
 
         node = nonNullValue(node);
 

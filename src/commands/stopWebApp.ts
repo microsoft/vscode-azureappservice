@@ -9,6 +9,7 @@ import { IActionContext } from "vscode-azureextensionui";
 import { SiteTreeItem } from "../explorer/SiteTreeItem";
 import { WebAppTreeItem } from "../explorer/WebAppTreeItem";
 import { ext } from "../extensionVariables";
+import { localize } from "../localize";
 
 export async function stopWebApp(context: IActionContext, node?: SiteTreeItem): Promise<void> {
     if (!node) {
@@ -16,9 +17,9 @@ export async function stopWebApp(context: IActionContext, node?: SiteTreeItem): 
     }
 
     const client: SiteClient = node.root.client;
-    const stoppingApp: string = `Stopping "${client.fullName}"...`;
-    const stoppedApp: string = `"${client.fullName}" has been stopped. App Service plan charges still apply.`;
-    await node.runWithTemporaryDescription(context, "Stopping...", async () => {
+    const stoppingApp: string = localize('stoppingApp', 'Stopping "{0}"...', client.fullName);
+    const stoppedApp: string = localize('stoppedApp', '"{0}" has been stopped. App Service plan charges still apply.', client.fullName);
+    await node.runWithTemporaryDescription(context, localize('stopping', "Stopping..."), async () => {
         ext.outputChannel.appendLog(stoppingApp);
         await client.stop();
         ext.outputChannel.appendLog(stoppedApp);

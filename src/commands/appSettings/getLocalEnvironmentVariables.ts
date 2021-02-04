@@ -7,6 +7,7 @@ import * as fse from 'fs-extra';
 import { MessageItem } from 'vscode';
 import { parseError } from 'vscode-azureextensionui';
 import { ext } from "../../extensionVariables";
+import { localize } from '../../localize';
 
 export async function getLocalEnvironmentVariables(localSettingsPath: string, allowOverwrite: boolean = false): Promise<dotenv.DotenvParseOutput> {
     if (await fse.pathExists(localSettingsPath)) {
@@ -15,8 +16,8 @@ export async function getLocalEnvironmentVariables(localSettingsPath: string, al
             return dotenv.parse(data);
         } catch (error) {
             if (allowOverwrite) {
-                const message: string = `Failed to parse local environment: ${parseError(error).message}. Overwrite?`;
-                const overwriteButton: MessageItem = { title: 'Overwrite' };
+                const message: string = localize('parseFailed', 'Failed to parse local environment: {0}. Overwrite?', parseError(error).message);
+                const overwriteButton: MessageItem = { title: localize('overwrite', 'Overwrite') };
                 // Overwrite is the only button and cancel automatically throws, so no need to check result
                 await ext.ui.showWarningMessage(message, { modal: true }, overwriteButton);
             } else {
