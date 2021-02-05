@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { isNullOrUndefined } from 'util';
-import { localize } from '../localize';
 
 /**
  * Retrieves a property by name from an object and checks that it's not null and not undefined.  It is strongly typed
@@ -22,7 +21,7 @@ export function nonNullValue<T>(value: T | undefined, propertyNameOrMessage?: st
     if (isNullOrUndefined(value)) {
         throw new Error(
             // tslint:disable-next-line:prefer-template
-            localize('notNullUndefined', 'Internal error: Expected value to be neither null nor undefined')
+            'Internal error: Expected value to be neither null nor undefined'
             + (propertyNameOrMessage ? `: ${propertyNameOrMessage}` : ''));
     }
 
@@ -36,7 +35,7 @@ export function nonNullOrEmptyValue(value: string | undefined, propertyNameOrMes
     if (!value) {
         throw new Error(
             // tslint:disable-next-line:prefer-template
-            localize('notNullUndefinedEmpty', 'Internal error: Expected value to be neither null, undefined, nor empty')
+            'Internal error: Expected value to be neither null, undefined, nor empty'
             + (propertyNameOrMessage ? `: ${propertyNameOrMessage}` : ''));
     }
 

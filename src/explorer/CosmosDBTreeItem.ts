@@ -145,13 +145,15 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
 
         const revealDatabase: vscode.MessageItem = { title: localize('reveal', 'Reveal Database') };
         const manageFirewallRules: vscode.MessageItem = { title: localize('manageFirewallRulesMsgItem', 'Manage Firewall Rules') };
-        const message: string = localize('connectedDatabase', 'Database "{0}" connected to web app "{1}". Created the following application settings:', createdDatabase.label, this.parent.client.fullName);
+        const message: string = localize(
+            'connectedDatabase', 'Database "{0}" connected to web app "{1}". Created the following application settings: {2}',
+            createdDatabase.label, this.parent.client.fullName, Array.from(newAppSettings.keys()).join(', '));
         // Don't wait
         const buttons: vscode.MessageItem[] = [revealDatabase];
         if (createdDatabase.cosmosExtensionItem.azureData && createdDatabase.cosmosExtensionItem.postgresData) {
             buttons.push(manageFirewallRules);
         }
-        vscode.window.showInformationMessage(`${message} ${Array.from(newAppSettings.keys()).join(', ')}`, ...buttons).then(async (result: vscode.MessageItem | undefined) => {
+        vscode.window.showInformationMessage(message, ...buttons).then(async (result: vscode.MessageItem | undefined) => {
             if (result === revealDatabase) {
                 await createdDatabase.cosmosExtensionItem.reveal();
             } else if (result === manageFirewallRules) {

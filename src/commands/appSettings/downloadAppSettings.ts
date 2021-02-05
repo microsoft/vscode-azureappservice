@@ -29,7 +29,7 @@ export async function downloadAppSettings(context: IActionContext, node?: AppSet
     const envVarUri: vscode.Uri = vscode.Uri.file(envVarPath);
 
     await node.runWithTemporaryDescription(context, localize('downloading', 'Downloading...'), async () => {
-        ext.outputChannel.appendLog(localize('downloading', 'Downloading settings from "{0}"...', client.fullName));
+        ext.outputChannel.appendLog(localize('downloadingSettings', 'Downloading settings from "{0}"...', client.fullName));
         const localEnvVariables: DotenvParseOutput = await getLocalEnvironmentVariables(envVarPath, true /* allowOverwrite */);
         const remoteEnvVariables: WebSiteManagementModels.StringDictionary = await client.listApplicationSettings();
         if (remoteEnvVariables.properties) {
@@ -40,7 +40,7 @@ export async function downloadAppSettings(context: IActionContext, node?: AppSet
         await fse.writeFile(envVarPath, convertAppSettingsToEnvVariables(localEnvVariables, client.fullName));
     });
 
-    window.showInformationMessage(localize('downloaded', 'Downloaded settings from "{0}".  View settings file?', client.fullName), localize('view', 'View file')).then(async (input) => {
+    window.showInformationMessage(localize('Settings', 'Downloaded settings from "{0}".  View settings file?', client.fullName), localize('view', 'View file')).then(async (input) => {
         if (!input) {
             throw new UserCancelledError();
         }
