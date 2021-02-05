@@ -6,6 +6,7 @@
 import { AzExtTreeItem, IActionContext } from 'vscode-azureextensionui';
 import { CosmosDBConnection } from '../../explorer/CosmosDBConnection';
 import { ext } from "../../extensionVariables";
+import { localize } from '../../localize';
 
 export async function revealConnectionInAppSettings(context: IActionContext, node?: CosmosDBConnection): Promise<void> {
     if (!node) {
@@ -16,7 +17,7 @@ export async function revealConnectionInAppSettings(context: IActionContext, nod
     const firstKey: string = node.appSettingKeys[0];
     const nodeToReveal: AzExtTreeItem | undefined = await ext.tree.findTreeItem(`${node.parent.parent.appSettingsNode.fullId}/${firstKey}`, context);
     if (!nodeToReveal) {
-        throw new Error(`Failed to find app setting with key "${firstKey}".`);
+        throw new Error(localize('revealFailed', 'Failed to find app setting with key "{0}".', firstKey));
     }
     await ext.treeView.reveal(nodeToReveal);
 }

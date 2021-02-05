@@ -6,6 +6,7 @@
 import { WebSiteManagementModels } from '@azure/arm-appservice';
 import { RemoteDebugLanguage } from 'vscode-azureappservice';
 import { IActionContext } from 'vscode-azureextensionui';
+import { localize } from '../../localize';
 import { getWorkspaceSetting } from '../../vsCodeConfig/settings';
 
 // grandfathered in
@@ -35,7 +36,7 @@ export function getRemoteDebugLanguage(siteConfig: WebSiteManagementModels.SiteC
             if (splitVersion.length > 1 && isNodeVersionSupported(splitVersion[1])) {
                 return RemoteDebugLanguage.Node;
             } else {
-                throw new Error('Azure Remote Debugging is currently only supported for Node.js version >= 8.11 on Linux.');
+                throw new Error(localize('nodeV811Only', 'Azure Remote Debugging is currently only supported for Node.js version >= 8.11 on Linux.'));
             }
         }
 
@@ -45,9 +46,9 @@ export function getRemoteDebugLanguage(siteConfig: WebSiteManagementModels.SiteC
     }
 
     if (enablePythonRemoteDebugging) {
-        throw new Error('Azure Remote Debugging is currently only supported for Node.js and Python apps on Linux.');
+        throw new Error(localize('nodePythonOnly', 'Azure Remote Debugging is currently only supported for Node.js and Python apps on Linux.'));
     } else {
-        throw new Error('Azure Remote Debugging is currently only supported for Node.js apps on Linux.');
+        throw new Error(localize('nodeOnly', 'Azure Remote Debugging is currently only supported for Node.js apps on Linux.'));
     }
 }
 

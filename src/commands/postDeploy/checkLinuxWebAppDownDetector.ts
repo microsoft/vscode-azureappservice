@@ -10,6 +10,7 @@ import { KuduClient, KuduModels } from "vscode-azurekudu";
 import { detectorTimestampFormat } from '../../constants';
 import { SiteTreeItem } from "../../explorer/SiteTreeItem";
 import { ext } from '../../extensionVariables';
+import { localize } from "../../localize";
 import { delay } from "../../utils/delay";
 import { getLinuxDetectorError } from "./getLinuxDetectorError";
 
@@ -66,7 +67,7 @@ export async function checkLinuxWebAppDownDetector(correlationId: string, node: 
         ext.outputChannel.appendLog(detectorErrorMessage);
 
         // tslint:disable-next-line: no-floating-promises
-        context.ui.showWarningMessage(detectorErrorMessage, { title: 'View details' }).then(async () => {
+        context.ui.showWarningMessage(detectorErrorMessage, { title: localize('viewDetails', 'View details') }).then(async () => {
             await callWithTelemetryAndErrorHandling('viewedDetectorDetails', async (context2: IActionContext) => {
                 context2.telemetry.properties.viewed = 'true';
                 await openInPortal(node.root, `${node.root.client.id}/troubleshoot`, { queryPrefix: `websitesextension_ext=asd.featurePath%3Ddetectors%2F${linuxLogViewer}` });

@@ -64,12 +64,12 @@ export async function setPostPromptDefaults(wizardContext: IWebAppWizardContext,
             // otherwise create a new rg and asp
             wizardContext.newResourceGroupName = wizardContext.newResourceGroupName || await siteNameStep.getRelatedName(wizardContext, defaultGroupName);
             if (!wizardContext.newResourceGroupName) {
-                throw new Error('Failed to generate unique name for resources. Use advanced creation to manually enter resource names.');
+                throw new Error(localize('noUniqueNameRg', 'Failed to generate unique name for resources. Use advanced creation to manually enter resource names.'));
             }
 
             wizardContext.newPlanName = await siteNameStep.getRelatedName(wizardContext, defaultPlanName);
             if (!wizardContext.newPlanName) {
-                throw new Error('Failed to generate unique name for app service plan. Use advanced creation to manually enter plan names.');
+                throw new Error(localize('noUniqnueNameAsp', 'Failed to generate unique name for app service plan. Use advanced creation to manually enter plan names.'));
             }
         }
     } else {
@@ -101,7 +101,7 @@ async function promptPerformanceWarning(context: IActionContext, asp: WebSiteMan
         context.telemetry.properties.cancelStep = 'showPerfWarning';
 
         const numberOfSites: number = nonNullProp(asp, 'numberOfSites');
-        const createAnyway: MessageItem = { title: 'Create anyway' };
+        const createAnyway: MessageItem = { title: localize('createAnyway,', 'Create anyway') };
         const message: string = localize('tooManyPlansWarning', 'The selected plan currently has {0} apps. Deploying more than {1} apps may degrade the performance on the apps in the plan.  Use "Create Web App... (Advanced)" to change the default resource names.', numberOfSites, maxNumberOfSites);
         const input: MessageItem = await context.ui.showWarningMessage(message, { modal: true }, createAnyway, DialogResponses.dontWarnAgain);
 

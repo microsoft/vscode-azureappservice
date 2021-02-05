@@ -11,6 +11,7 @@ import { IActionContext } from 'vscode-azureextensionui';
 import { SiteTreeItem } from '../explorer/SiteTreeItem';
 import { WebAppTreeItem } from '../explorer/WebAppTreeItem';
 import { ext } from '../extensionVariables';
+import { localize } from '../localize';
 import { delay } from '../utils/delay';
 
 export type sshTerminal = {
@@ -30,7 +31,7 @@ export async function startSsh(context: IActionContext, node?: SiteTreeItem): Pr
     const currentSshTerminal: sshTerminal | undefined = sshSessionsMap.get(node.root.client.fullName);
     if (currentSshTerminal) {
         if (currentSshTerminal.starting) {
-            throw new Error(`Azure SSH is currently starting or already started for "${node.root.client.fullName}".`);
+            throw new Error(localize('sshStartedError', 'Azure SSH is currently starting or already started for "{0}".', node.root.client.fullName));
         } else if (currentSshTerminal.tunnel && currentSshTerminal.localPort !== undefined) {
             await connectToTunnelProxy(node, currentSshTerminal.tunnel, currentSshTerminal.localPort);
             return;
@@ -49,19 +50,19 @@ export async function startSsh(context: IActionContext, node?: SiteTreeItem): Pr
 async function startSshInternal(node: SiteTreeItem): Promise<void> {
     const siteClient: SiteClient = node.root.client;
     if (!siteClient.isLinux) {
-        throw new Error('Azure SSH is only supported for Linux web apps.');
+        throw new Error(localize('sshLinuxError', 'Azure SSH is only supported for Linux web apps.'));
     }
 
     await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification, cancellable: true }, async (progress, token): Promise<void> => {
 
-        reportMessage('Checking app settings...', progress, token);
+        reportMessage(localize('checking', 'Checking app settings...'), progress, token);
 
-        const confirmDisableMessage: string = 'Remote debugging must be disabled in order to SSH. This will restart the app.';
+        const confirmDisableMessage: string = localize('confirmDisable', 'Remote debugging must be disabled in order to SSH. This will restart the app.');
         const siteConfig: WebSiteManagementModels.SiteConfigResource = await siteClient.getSiteConfig();
         // remote debugging has to be disabled in order to tunnel to the 2222 port
         await setRemoteDebug(false, confirmDisableMessage, undefined, siteClient, siteConfig, progress, token);
 
-        reportMessage('Initializing SSH...', progress, token);
+        reportMessage(localize('initSsh', 'Initializing SSH...'), progress, token);
         const publishCredential: WebSiteManagementModels.User = await siteClient.getWebAppPublishCredential();
         const localHostPortNumber: number = await portfinder.getPortPromise();
         // should always be an unbound port
@@ -69,7 +70,7 @@ async function startSshInternal(node: SiteTreeItem): Promise<void> {
 
         await tunnelProxy.startProxy(token);
 
-        reportMessage('Connecting to SSH...', progress, token);
+        reportMessage(localize('connectingSsh', 'Connecting to SSH...'), progress, token);
         await connectToTunnelProxy(node, tunnelProxy, localHostPortNumber);
     });
 }
@@ -105,7 +106,7 @@ async function connectToTunnelProxy(node: SiteTreeItem, tunnelProxy: TunnelProxy
             }
 
             sshSessionsMap.delete(node.root.client.fullName);
-            ext.outputChannel.appendLog(`Azure SSH for "${node.root.client.fullName}" has disconnected.`);
+            ext.outputChannel.appendLog(localize('sshDisconnected', 'Azure SSH for "{0}" has disconnected.', node.root.client.fullName));
 
             // clean this up after we've disposed the terminal and reset the map
             onCloseEvent.dispose();

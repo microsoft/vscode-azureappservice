@@ -11,6 +11,7 @@ import { IActionContext } from 'vscode-azureextensionui';
 import { SiteTreeItem } from '../../explorer/SiteTreeItem';
 import { WebAppTreeItem } from '../../explorer/WebAppTreeItem';
 import { ext } from '../../extensionVariables';
+import { localize } from '../../localize';
 import { getRemoteDebugLanguage } from './getRemoteDebugLanguage';
 
 export async function startRemoteDebug(context: IActionContext, node?: SiteTreeItem): Promise<void> {
@@ -20,7 +21,7 @@ export async function startRemoteDebug(context: IActionContext, node?: SiteTreeI
 
     const siteClient: SiteClient = node.root.client;
     const siteConfig: WebSiteManagementModels.SiteConfigResource = await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification, cancellable: true }, async (progress, token) => {
-        appservice.reportMessage('Fetching site configuration...', progress, token);
+        appservice.reportMessage(localize('fetchingConfig', 'Fetching site configuration...'), progress, token);
         return await siteClient.getSiteConfig();
     });
 

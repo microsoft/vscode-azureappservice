@@ -51,7 +51,7 @@ export class AppServiceFileSystem extends AzExtTreeFileSystem<FileTreeItem> {
         } catch (error) {
             const parsedError: IParsedError = parseError(error);
             if (parsedError.errorType === '412' && /etag/i.test(parsedError.message)) {
-                throw new Error(`ETag does not represent the latest state of the file "${node.label}". Download the file from Azure to get the latest version.`);
+                throw new Error(localize('etagError', 'ETag does not represent the latest state of the file "{0}". Download the file from Azure to get the latest version.', node.label));
             }
             throw error;
         }
