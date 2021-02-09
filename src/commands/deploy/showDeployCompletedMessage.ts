@@ -18,7 +18,7 @@ export function showDeployCompletedMessage(node: SiteTreeItem): void {
     const streamLogs: MessageItem = { title: localize('streamLogs', 'Stream Logs') };
 
     // don't wait
-    window.showInformationMessage(message, browseWebsiteBtn, streamLogs, AppServiceDialogResponses.viewOutput).then(async (result: MessageItem | undefined) => {
+    void window.showInformationMessage(message, browseWebsiteBtn, streamLogs, AppServiceDialogResponses.viewOutput).then(async (result: MessageItem | undefined) => {
         await callWithTelemetryAndErrorHandling('postDeploy', async (context: IActionContext) => {
             context.telemetry.properties.dialogResult = result?.title;
             if (result === AppServiceDialogResponses.viewOutput) {

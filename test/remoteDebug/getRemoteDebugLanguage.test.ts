@@ -10,7 +10,7 @@ import { createTestContext } from '../global.test';
 import { runWithExtensionSetting } from '../runWithSetting';
 
 suite('getRemoteDebugLanguage', () => {
-    test('Throws error for bad versions', async () => {
+    test('Throws error for bad versions', () => {
         const context = createTestContext();
 
         // empty version
@@ -33,38 +33,40 @@ suite('getRemoteDebugLanguage', () => {
         assert.throws(() => { getRemoteDebugLanguage({ linuxFxVersion: 'node|6-lts' }, context); }, Error);
     });
 
-    test('Returns language for good versions', async () => {
+    test('Returns language for good versions', () => {
         const context = createTestContext();
 
         // >= 8.11 is valid
-        assert.equal(getRemoteDebugLanguage({ linuxFxVersion: 'node|8.11' }, context), RemoteDebugLanguage.Node);
-        assert.equal(getRemoteDebugLanguage({ linuxFxVersion: 'NODE|8.12' }, context), RemoteDebugLanguage.Node);
-        assert.equal(getRemoteDebugLanguage({ linuxFxVersion: 'node|9.0' }, context), RemoteDebugLanguage.Node);
-        assert.equal(getRemoteDebugLanguage({ linuxFxVersion: 'NODE|10.11' }, context), RemoteDebugLanguage.Node);
-        assert.equal(getRemoteDebugLanguage({ linuxFxVersion: 'NODE|lts' }, context), RemoteDebugLanguage.Node);
-        assert.equal(getRemoteDebugLanguage({ linuxFxVersion: 'node|8-lts' }, context), RemoteDebugLanguage.Node);
-        assert.equal(getRemoteDebugLanguage({ linuxFxVersion: 'node|12-lts' }, context), RemoteDebugLanguage.Node);
+        assert.strictEqual(getRemoteDebugLanguage({ linuxFxVersion: 'node|8.11' }, context), RemoteDebugLanguage.Node);
+        assert.strictEqual(getRemoteDebugLanguage({ linuxFxVersion: 'NODE|8.12' }, context), RemoteDebugLanguage.Node);
+        assert.strictEqual(getRemoteDebugLanguage({ linuxFxVersion: 'node|9.0' }, context), RemoteDebugLanguage.Node);
+        assert.strictEqual(getRemoteDebugLanguage({ linuxFxVersion: 'NODE|10.11' }, context), RemoteDebugLanguage.Node);
+        assert.strictEqual(getRemoteDebugLanguage({ linuxFxVersion: 'NODE|lts' }, context), RemoteDebugLanguage.Node);
+        assert.strictEqual(getRemoteDebugLanguage({ linuxFxVersion: 'node|8-lts' }, context), RemoteDebugLanguage.Node);
+        assert.strictEqual(getRemoteDebugLanguage({ linuxFxVersion: 'node|12-lts' }, context), RemoteDebugLanguage.Node);
     });
 
     test('Respects the python remote debugging experimental flag', async () => {
         const context = createTestContext();
 
+        // eslint-disable-next-line @typescript-eslint/require-await
         await runWithExtensionSetting('enablePythonRemoteDebugging', undefined, async () => {
             assert.throws(() => { getRemoteDebugLanguage({ linuxFxVersion: 'python|2.7' }, context); }, Error);
             assert.throws(() => { getRemoteDebugLanguage({ linuxFxVersion: 'PYTHON|3.7' }, context); }, Error);
         });
 
+        // eslint-disable-next-line @typescript-eslint/require-await
         await runWithExtensionSetting('enablePythonRemoteDebugging', 'true', async () => {
-            assert.equal(getRemoteDebugLanguage({ linuxFxVersion: 'python|2.7' }, context), RemoteDebugLanguage.Python);
-            assert.equal(getRemoteDebugLanguage({ linuxFxVersion: 'PYTHON|3.7' }, context), RemoteDebugLanguage.Python);
+            assert.strictEqual(getRemoteDebugLanguage({ linuxFxVersion: 'python|2.7' }, context), RemoteDebugLanguage.Python);
+            assert.strictEqual(getRemoteDebugLanguage({ linuxFxVersion: 'PYTHON|3.7' }, context), RemoteDebugLanguage.Python);
         });
     });
 
-    test('Reports telemetry correctly', async () => {
+    test('Reports telemetry correctly', () => {
         const context = createTestContext();
 
         getRemoteDebugLanguage({ linuxFxVersion: 'NODE|8.11' }, context);
-        assert.equal(context.telemetry.properties.linuxFxVersion, 'node|8.11');
+        assert.strictEqual(context.telemetry.properties.linuxFxVersion, 'node|8.11');
 
         // Docker image information should be removed from telemetry
         try {
@@ -72,6 +74,6 @@ suite('getRemoteDebugLanguage', () => {
         } catch (e) {
             // ignore error
         }
-        assert.equal(context.telemetry.properties.linuxFxVersion, 'docker');
+        assert.strictEqual(context.telemetry.properties.linuxFxVersion, 'docker');
     });
 });

@@ -9,9 +9,6 @@ import { callWithTelemetryAndErrorHandling, createGenericClient, IActionContext,
 import { SiteTreeItem } from '../../explorer/SiteTreeItem';
 import { delay } from '../../utils/delay';
 
-// grandfathered in
-// tslint:disable: typedef
-
 interface IValidateProperties {
     statusCodes?: string; // [[code,elapsedSeconds], [code,elapsedSeconds]...]
     canceled?: 'true' | 'false';
@@ -38,7 +35,7 @@ export async function validateWebSite(deploymentCorrelationId: string, siteTreeI
 
         const client: ServiceClient = await createGenericClient();
 
-        // tslint:disable-next-line:no-constant-condition
+        // eslint-disable-next-line no-constant-condition
         while (true) {
             if (tokenSource.token.isCancellationRequested) {
                 // the user cancelled the check by deploying again

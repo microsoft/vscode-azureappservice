@@ -21,7 +21,7 @@ export type sshTerminal = {
     localPort: number | undefined
 };
 
-export const sshSessionsMap: Map<string, sshTerminal> = new Map();
+export const sshSessionsMap: Map<string, sshTerminal> = new Map<string, sshTerminal>();
 
 export async function startSsh(context: IActionContext, node?: SiteTreeItem): Promise<void> {
     if (!node) {
@@ -83,7 +83,6 @@ async function connectToTunnelProxy(node: SiteTreeItem, tunnelProxy: TunnelProxy
     const sshCommand: string = `ssh -c aes256-cbc -o StrictHostKeyChecking=no -o "UserKnownHostsFile /dev/null" -o "LogLevel ERROR" root@127.0.0.1 -p ${port}`;
 
     // if this terminal already exists, just reuse it otherwise create a new terminal.
-    // tslint:disable-next-line:strict-boolean-expressions
     const terminal: vscode.Terminal = vscode.window.terminals.find((activeTerminal: vscode.Terminal) => { return activeTerminal.name === sshTerminalName; }) || vscode.window.createTerminal(sshTerminalName);
 
     terminal.sendText(sshCommand, true);
@@ -98,7 +97,7 @@ async function connectToTunnelProxy(node: SiteTreeItem, tunnelProxy: TunnelProxy
 
     sshSessionsMap.set(node.root.client.fullName, { starting: false, terminal: terminal, tunnel: tunnelProxy, localPort: port });
 
-    const onCloseEvent: vscode.Disposable = vscode.window.onDidCloseTerminal(async (e: vscode.Terminal) => {
+    const onCloseEvent: vscode.Disposable = vscode.window.onDidCloseTerminal((e: vscode.Terminal) => {
         if (e.processId === terminal.processId) {
             // clean up if the SSH task ends
             if (tunnelProxy !== undefined) {

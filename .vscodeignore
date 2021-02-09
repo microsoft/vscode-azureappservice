@@ -18,6 +18,5 @@ test-results.xml
 test/**
 testOutput/**
 tsconfig.json
-tslint.json
 typings/**
 webpack.config*

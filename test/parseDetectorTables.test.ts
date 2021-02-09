@@ -8,18 +8,21 @@ import { ColumnName, detectorTable, findTableByName, getValuesByColumnName, vali
 import { createTestContext, ITestContext } from './global.test';
 
 suite('Detector Dataset Parser', () => {
-    test('Find table by table name', async () => {
+    /* eslint-disable @typescript-eslint/no-unsafe-member-access */
+    test('Find table by table name', () => {
         const table: detectorTable | undefined = findTableByName(detectorResponse.properties.dataset, 'insight/logs');
-        assert.equal(table, detectorResponse.properties.dataset[1].table);
+        assert.strictEqual(table, detectorResponse.properties.dataset[1].table);
     });
 
-    test('Get values by column name', async () => {
+    test('Get values by column name', () => {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
         const insightTable: any = detectorResponse.properties.dataset[1].table;
         const rawApplicationLog: string = getValuesByColumnName(createTestContext(), insightTable, ColumnName.value);
-        assert.equal(rawApplicationLog, detectorResponse.properties.dataset[1].table.rows[0][3]);
+        assert.strictEqual(rawApplicationLog, detectorResponse.properties.dataset[1].table.rows[0][3]);
     });
+    /* eslint-enable @typescript-eslint/no-unsafe-member-access */
 
-    test('Verify validateTimestamp', async () => {
+    test('Verify validateTimestamp', () => {
         const context: ITestContext = createTestContext();
         const expectedTimestamp: string = "2020-04-21T18:24:28";
         // an hour earlier (stale)
@@ -28,22 +31,25 @@ suite('Detector Dataset Parser', () => {
         const futureTimestamp: string = "2020-04-21T19:24:28";
 
         const bracketsAndSpace: RegExp = /\[.*?\]\s/;
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
         const appInsightTable: any = JSON.parse(detectorResponse.properties.dataset[1].table.rows[0][3])[0].table;
         const detectorTimestamp: string = getValuesByColumnName(context, appInsightTable, ColumnName.dataName).replace(bracketsAndSpace, '');
 
-        assert.equal(validateTimestamp(context, detectorTimestamp, expectedTimestamp), true);
-        assert.equal(validateTimestamp(context, detectorTimestamp, staleTimestamp), true);
-        assert.equal(validateTimestamp(context, detectorTimestamp, futureTimestamp), false);
+        assert.strictEqual(validateTimestamp(context, detectorTimestamp, expectedTimestamp), true);
+        assert.strictEqual(validateTimestamp(context, detectorTimestamp, staleTimestamp), true);
+        assert.strictEqual(validateTimestamp(context, detectorTimestamp, futureTimestamp), false);
     });
 
-    test('Get error messages', async () => {
+    test('Get error messages', () => {
         const expectedErrorMessage: string = "Cannot find module 'yenv'";
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
         const appInsightTable: any = JSON.parse(detectorResponse.properties.dataset[1].table.rows[0][3])[0].table;
         const insightError: string = getValuesByColumnName(createTestContext(), appInsightTable, ColumnName.dataValue);
-        assert.equal(insightError, expectedErrorMessage);
+        assert.strictEqual(insightError, expectedErrorMessage);
     });
 });
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const detectorResponse: any = {
     id: "/subscriptions/9b5c7ccb-9857-4307-843b-8875e83f65e9/resourceGroups/appsvc_linux_centralus/providers/Microsoft.Web/sites/naturins-node-awesome/detectors/LinuxLogViewer",
     name: "LinuxLogViewer",

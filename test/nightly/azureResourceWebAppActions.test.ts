@@ -11,13 +11,13 @@ import { constants, DialogResponses, getRandomHexString } from '../../extension.
 import { longRunningTestsEnabled, testUserInput } from '../global.test';
 import { resourceGroupsToDelete, webSiteClient } from './global.resource.test';
 
-suite('Web App actions', async function (this: Mocha.Suite): Promise<void> {
+suite('Web App actions', function (this: Mocha.Suite): void {
     this.timeout(6 * 60 * 1000);
     let resourceName: string;
     const WebsiteOS0: WebsiteOS = (new Date().getDate()) % 2 === 0 ? WebsiteOS.linux : WebsiteOS.windows;
     const WebsiteOS1: WebsiteOS = WebsiteOS0 === WebsiteOS.windows ? WebsiteOS.linux : WebsiteOS.windows;
 
-    suiteSetup(async function (this: Mocha.Context): Promise<void> {
+    suiteSetup(function (this: Mocha.Context): void {
         if (!longRunningTestsEnabled) {
             this.skip();
         }
@@ -25,7 +25,7 @@ suite('Web App actions', async function (this: Mocha.Suite): Promise<void> {
     });
 
     test(`Create New ${WebsiteOS0} Web App (Advanced)`, async () => {
-        const testInputs: (string | RegExp)[] = [resourceName, '$(plus) Create new resource group', resourceName, ...await getInput(WebsiteOS0), '$(plus) Create new App Service plan', resourceName, 'B1', '$(plus) Create new Application Insights resource', resourceName, 'West US'];
+        const testInputs: (string | RegExp)[] = [resourceName, '$(plus) Create new resource group', resourceName, ...getInput(WebsiteOS0), '$(plus) Create new App Service plan', resourceName, 'B1', '$(plus) Create new Application Insights resource', resourceName, 'West US'];
         resourceGroupsToDelete.push(resourceName);
         await testUserInput.runWithInputs(testInputs, async () => {
             await vscode.commands.executeCommand('appService.CreateWebAppAdvanced');
@@ -40,7 +40,7 @@ suite('Web App actions', async function (this: Mocha.Suite): Promise<void> {
         const appServicePlanName: string = getRandomHexString();
         const applicationInsightsName: string = getRandomHexString();
         resourceGroupsToDelete.push(resourceGroupName);
-        const testInputs: (string | RegExp)[] = [webAppName, '$(plus) Create new resource group', resourceGroupName, ...await getInput(WebsiteOS1), '$(plus) Create new App Service plan', appServicePlanName, 'S1', '$(plus) Create new Application Insights resource', applicationInsightsName, 'East US'];
+        const testInputs: (string | RegExp)[] = [webAppName, '$(plus) Create new resource group', resourceGroupName, ...getInput(WebsiteOS1), '$(plus) Create new App Service plan', appServicePlanName, 'S1', '$(plus) Create new Application Insights resource', applicationInsightsName, 'East US'];
         await testUserInput.runWithInputs(testInputs, async () => {
             await vscode.commands.executeCommand('appService.CreateWebAppAdvanced');
         });
@@ -51,54 +51,54 @@ suite('Web App actions', async function (this: Mocha.Suite): Promise<void> {
     test(`Stop ${WebsiteOS0} Web App`, async () => {
         let createdApp: WebSiteManagementModels.Site | undefined;
         createdApp = await tryGetWebApp(webSiteClient, resourceName, resourceName);
-        assert.equal(createdApp?.state, 'Running', `Web App state should be 'Running' rather than ${createdApp?.state} before stop.`);
+        assert.strictEqual(createdApp?.state, 'Running', `Web App state should be 'Running' rather than ${createdApp?.state} before stop.`);
         await testUserInput.runWithInputs([resourceName], async () => {
             await vscode.commands.executeCommand('appService.Stop');
         });
         createdApp = await tryGetWebApp(webSiteClient, resourceName, resourceName);
-        assert.equal(createdApp?.state, 'Stopped', `Web App state should be 'Stopped' rather than ${createdApp?.state}.`);
+        assert.strictEqual(createdApp?.state, 'Stopped', `Web App state should be 'Stopped' rather than ${createdApp?.state}.`);
     });
 
     test(`Start ${WebsiteOS0} Web App`, async () => {
         let createdApp: WebSiteManagementModels.Site | undefined;
         createdApp = await tryGetWebApp(webSiteClient, resourceName, resourceName);
-        assert.equal(createdApp?.state, 'Stopped', `Web App state should be 'Stopped' rather than ${createdApp?.state} before start.`);
+        assert.strictEqual(createdApp?.state, 'Stopped', `Web App state should be 'Stopped' rather than ${createdApp?.state} before start.`);
         await testUserInput.runWithInputs([resourceName], async () => {
             await vscode.commands.executeCommand('appService.Start');
         });
         createdApp = await tryGetWebApp(webSiteClient, resourceName, resourceName);
-        assert.equal(createdApp?.state, 'Running', `Web App state should be 'Running' rather than ${createdApp?.state}.`);
+        assert.strictEqual(createdApp?.state, 'Running', `Web App state should be 'Running' rather than ${createdApp?.state}.`);
     });
 
     test(`Restart ${WebsiteOS0} Web App`, async () => {
         let createdApp: WebSiteManagementModels.Site | undefined;
         createdApp = await tryGetWebApp(webSiteClient, resourceName, resourceName);
-        assert.equal(createdApp?.state, 'Running', `Web App state should be 'Running' rather than ${createdApp?.state} before restart.`);
+        assert.strictEqual(createdApp?.state, 'Running', `Web App state should be 'Running' rather than ${createdApp?.state} before restart.`);
         await testUserInput.runWithInputs([resourceName], async () => {
             await vscode.commands.executeCommand('appService.Restart');
         });
         createdApp = await tryGetWebApp(webSiteClient, resourceName, resourceName);
-        assert.equal(createdApp?.state, 'Running', `Web App state should be 'Running' rather than ${createdApp?.state}.`);
+        assert.strictEqual(createdApp?.state, 'Running', `Web App state should be 'Running' rather than ${createdApp?.state}.`);
     });
 
     test(`Configure Deployment Source to LocalGit for ${WebsiteOS0} Web App`, async () => {
         let createdApp: WebSiteManagementModels.SiteConfigResource = await webSiteClient.webApps.getConfiguration(resourceName, resourceName);
-        assert.notEqual(createdApp?.scmType, constants.ScmType.LocalGit, `Web App scmType's property value shouldn't be ${createdApp?.scmType} before "Configure Deployment Source to LocalGit".`);
+        assert.notStrictEqual(createdApp?.scmType, constants.ScmType.LocalGit, `Web App scmType's property value shouldn't be ${createdApp?.scmType} before "Configure Deployment Source to LocalGit".`);
         await testUserInput.runWithInputs([resourceName, constants.ScmType.LocalGit], async () => {
             await vscode.commands.executeCommand('appService.ConfigureDeploymentSource');
         });
         createdApp = await webSiteClient.webApps.getConfiguration(resourceName, resourceName);
-        assert.equal(createdApp?.scmType, constants.ScmType.LocalGit, `Web App scmType's property value should be ${constants.ScmType.LocalGit} rather than ${createdApp?.scmType}.`);
+        assert.strictEqual(createdApp?.scmType, constants.ScmType.LocalGit, `Web App scmType's property value should be ${constants.ScmType.LocalGit} rather than ${createdApp?.scmType}.`);
     });
 
     test(`Configure Deployment Source to None for ${WebsiteOS0} Web App`, async () => {
         let createdApp: WebSiteManagementModels.SiteConfigResource = await webSiteClient.webApps.getConfiguration(resourceName, resourceName);
-        assert.notEqual(createdApp?.scmType, constants.ScmType.None, `Web App scmType's property value shouldn't be ${createdApp?.scmType} before "Configure Deployment Source to None".`);
+        assert.notStrictEqual(createdApp?.scmType, constants.ScmType.None, `Web App scmType's property value shouldn't be ${createdApp?.scmType} before "Configure Deployment Source to None".`);
         await testUserInput.runWithInputs([resourceName, constants.ScmType.None], async () => {
             await vscode.commands.executeCommand('appService.ConfigureDeploymentSource');
         });
         createdApp = await webSiteClient.webApps.getConfiguration(resourceName, resourceName);
-        assert.equal(createdApp?.scmType, constants.ScmType.None, `Web App scmType's property value should be ${constants.ScmType.None} rather than ${createdApp?.scmType}.`);
+        assert.strictEqual(createdApp?.scmType, constants.ScmType.None, `Web App scmType's property value should be ${constants.ScmType.None} rather than ${createdApp?.scmType}.`);
     });
 
     test(`Add and delete settings for ${WebsiteOS0} Web App`, async () => {
@@ -109,7 +109,7 @@ suite('Web App actions', async function (this: Mocha.Suite): Promise<void> {
         await testUserInput.runWithInputs([resourceName, appSettingKey, appSettingValue], async () => {
             await vscode.commands.executeCommand('appService.appSettings.Add');
         });
-        assert.equal(await getAppSettingValue(resourceName, resourceName, appSettingKey), appSettingValue, `Fail to add setting "${appSettingKey}"`);
+        assert.strictEqual(await getAppSettingValue(resourceName, resourceName, appSettingKey), appSettingValue, `Fail to add setting "${appSettingKey}"`);
         await testUserInput.runWithInputs([resourceName, `${appSettingKey}=Hidden value. Click to view.`, DialogResponses.deleteResponse.title], async () => {
             await vscode.commands.executeCommand('appService.appSettings.Delete');
         });
@@ -135,7 +135,7 @@ suite('Web App actions', async function (this: Mocha.Suite): Promise<void> {
         return value;
     }
 
-    async function getInput(inputOS: WebsiteOS): Promise<(string | RegExp)[]> {
+    function getInput(inputOS: WebsiteOS): (string | RegExp)[] {
         const runtime: RegExp = /NET.*LTS/gi;
         const webAppOS: string = inputOS.charAt(0).toUpperCase() + inputOS.slice(1);
         return [runtime, webAppOS];

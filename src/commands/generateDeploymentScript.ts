@@ -15,9 +15,6 @@ import { createResourceClient } from "../utils/azureClients";
 import { nonNullValue } from "../utils/nonNull";
 import { getResourcesPath } from "../utils/pathUtils";
 
-// grandfathered in
-// tslint:disable: typedef
-
 export async function generateDeploymentScript(context: IActionContext, node?: WebAppTreeItem): Promise<void> {
     if (!node) {
         node = await ext.tree.showTreeItemPicker<WebAppTreeItem>(WebAppTreeItem.contextValue, context);
@@ -74,14 +71,14 @@ export async function generateDeploymentScript(context: IActionContext, node?: W
             script = scriptTemplate.replace('%RUNTIME%', siteConfig.linuxFxVersion);
         }
 
-        // tslint:disable:no-non-null-assertion
+        /* eslint-disable @typescript-eslint/no-non-null-assertion */
         script = script.replace('%SUBSCRIPTION_NAME%', node.root.subscriptionDisplayName)
             .replace('%RG_NAME%', rg.name!)
             .replace('%LOCATION%', rg.location)
             .replace('%PLAN_NAME%', plan!.name!)
             .replace('%PLAN_SKU%', plan!.sku!.name!)
             .replace('%SITE_NAME%', node.root.client.siteName);
-        // tslint:enable:no-non-null-assertion
+        /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
         const doc = await workspace.openTextDocument({ language: 'shellscript', content: script });
         await window.showTextDocument(doc);

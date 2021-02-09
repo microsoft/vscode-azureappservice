@@ -41,10 +41,10 @@ export async function enableFileLogging(context: IEnableFileLoggingContext, node
             await siteNode.enableHttpLogs();
 
             await vscode.commands.executeCommand('appService.Restart', siteNode);
-            vscode.window.showInformationMessage(enabledLogging);
+            void vscode.window.showInformationMessage(enabledLogging);
             ext.outputChannel.appendLog(enabledLogging);
         });
     } else if (!context.suppressAlreadyEnabledMessage) {
-        vscode.window.showInformationMessage(localize('loggingEnabled', 'File logging has already been enabled for "{0}".', siteNode.root.client.fullName));
+        void vscode.window.showInformationMessage(localize('loggingEnabled', 'File logging has already been enabled for "{0}".', siteNode.root.client.fullName));
     }
 }

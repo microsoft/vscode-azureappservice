@@ -34,7 +34,6 @@ export async function promptToSaveDeployDefaults(context: IActionContext, node: 
 
 export async function saveDeployDefaults(nodeFullId: string, workspacePath: string, deployPath: string): Promise<void> {
     await updateWorkspaceSetting(constants.configurationSettings.defaultWebAppToDeploy, nodeFullId, deployPath);
-    // tslint:disable-next-line: strict-boolean-expressions
     const subPath: string = path.relative(workspacePath, deployPath) || '.';
     await updateWorkspaceSetting(constants.configurationSettings.deploySubpath, subPath, deployPath);
 }

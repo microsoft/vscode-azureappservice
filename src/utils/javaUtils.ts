@@ -94,7 +94,6 @@ export namespace javaUtils {
             return undefined;
         }
 
-        // tslint:disable-next-line:strict-boolean-expressions
         appSettings.properties = appSettings.properties || {};
         const port: string = await ext.ui.showInputBox({
             value: DEFAULT_PORT,

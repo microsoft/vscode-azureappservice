@@ -32,6 +32,5 @@ export function getValuesByColumnName(context: IActionContext, table: detectorTa
     context.telemetry.properties.numberOfValues = values.length.toString();
 
     // the last one should be the most recent
-    // tslint:disable-next-line: strict-boolean-expressions
     return values.pop() || '';
 }
