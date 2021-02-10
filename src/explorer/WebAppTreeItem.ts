@@ -15,7 +15,7 @@ import { SiteTreeItem } from './SiteTreeItem';
 export class WebAppTreeItem extends SiteTreeItem {
     public static contextValue: string = ext.prefix;
     public readonly contextValue: string = WebAppTreeItem.contextValue;
-    public deploymentSlotsNode: DeploymentSlotsTreeItem | DeploymentSlotsNATreeItem;
+    public deploymentSlotsNode: DeploymentSlotsTreeItem | DeploymentSlotsNATreeItem | undefined;
 
     public get client(): SiteClient {
         return this.root.client;
