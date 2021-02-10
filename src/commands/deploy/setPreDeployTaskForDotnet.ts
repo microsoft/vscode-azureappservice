@@ -73,7 +73,7 @@ export async function setPreDeployTaskForDotnet(context: IDeployContext): Promis
 
         if (publishTask) {
             // if the "publish" task exists and it doesn't dependOn a task, have it depend on clean
-            // tslint:disable-next-line: strict-boolean-expressions
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
             publishTask.dependsOn = publishTask.dependsOn || cleanId;
 
         }
@@ -86,10 +86,10 @@ export async function setPreDeployTaskForDotnet(context: IDeployContext): Promis
 
         const currentVersion: string | undefined = tasks.getTasksVersion(context.workspaceFolder);
         if (!currentVersion) {
-            tasks.updateTasksVersion(context.workspaceFolder, tasks.tasksVersion);
+            await tasks.updateTasksVersion(context.workspaceFolder, tasks.tasksVersion);
         }
 
-        tasks.updateTasks(context.workspaceFolder, existingTasks.concat(newTasks));
+        await tasks.updateTasks(context.workspaceFolder, existingTasks.concat(newTasks));
     }
 }
 
@@ -131,7 +131,6 @@ async function tryGetTargetFramework(projFilePath: string): Promise<string | und
 
 function generateDotnetTasks(subfolder: string): TaskDefinition[] {
     // always use posix for debug config because it's committed to source control and works on all OS's
-    // tslint:disable-next-line: no-unsafe-any no-invalid-template-strings
     const cwd: string = path.posix.join('${workspaceFolder}', subfolder);
 
     const cleanTask: TaskDefinition = {

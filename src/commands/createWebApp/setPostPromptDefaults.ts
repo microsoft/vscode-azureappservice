@@ -81,7 +81,6 @@ export async function setPostPromptDefaults(wizardContext: IWebAppWizardContext,
 function checkPlanForPerformanceDrop(asp: WebSiteManagementModels.AppServicePlan): boolean {
     // for free and basic plans, there is a perf drop after 3 active apps are running
     if (asp.numberOfSites !== undefined && asp.numberOfSites >= maxNumberOfSites) {
-        // tslint:disable-next-line: strict-boolean-expressions
         const tier: string | undefined = asp.sku && asp.sku.tier;
         if (tier && /^(basic|free)$/i.test(tier)) {
             return true;

@@ -106,7 +106,7 @@ export abstract class SiteTreeItem extends SiteTreeItemBase implements ISiteTree
         }
     }
 
-    public async pickTreeItemImpl(expectedContextValues: (string | RegExp)[]): Promise<AzExtTreeItem | undefined> {
+    public pickTreeItemImpl(expectedContextValues: (string | RegExp)[]): AzExtTreeItem | undefined {
         for (const expectedContextValue of expectedContextValues) {
             switch (expectedContextValue) {
                 case AppSettingsTreeItem.contextValue:

@@ -7,7 +7,6 @@ import { AppInsightsSettings, AppStack, CommonSettings, GitHubActionSettings } f
 
 // Types copied from here:
 // https://github.com/Azure/azure-functions-ux/blob/3322f0b5151bbfcf7a08f281efe678ebac643dc0/server/src/stacks/2020-10-01/models/WebAppStackModel.ts
-// tslint:disable: interface-name
 
 export type WebAppStack = AppStack<WebAppRuntimes & JavaContainers, WebAppStackValue>;
 export type WebAppStackValue = 'dotnet' | 'java' | 'javacontainers' | 'node' | 'php' | 'python' | 'ruby';

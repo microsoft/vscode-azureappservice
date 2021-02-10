@@ -52,7 +52,7 @@ function shouldPromptForSurvey(error: IParsedError, siteConfig: WebSiteManagemen
 async function showSurveyPopup(message: string, uri: Uri): Promise<void> {
     const button: MessageItem | undefined = await window.showErrorMessage(message, DialogResponses.reportAnIssue);
     if (button === DialogResponses.reportAnIssue) {
-        env.openExternal(uri);
+        void env.openExternal(uri);
     }
 }
 
@@ -67,8 +67,7 @@ export function failureMoreInfoSurvey(error: IParsedError, siteConfig: WebSiteMa
     }
 
     // don't wait
-    // tslint:disable-next-line: no-floating-promises
-    showSurveyPopup(
+    void showSurveyPopup(
         localize(
             'failureSurveyQuestion',
             "The deployment failed with error: {0}. Please take a few minutes to help us improve the deployment experience",

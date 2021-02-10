@@ -16,7 +16,7 @@ export function showCreatedWebAppMessage(node: SiteTreeItem): void {
     const message: string = getCreatedWebAppMessage(node.root.client);
 
     // don't wait
-    window.showInformationMessage(message, AppServiceDialogResponses.deploy, AppServiceDialogResponses.viewOutput).then(async (result: MessageItem | undefined) => {
+    void window.showInformationMessage(message, AppServiceDialogResponses.deploy, AppServiceDialogResponses.viewOutput).then(async (result: MessageItem | undefined) => {
         await callWithTelemetryAndErrorHandling('postCreateWebApp', async (context: IActionContext) => {
             context.telemetry.properties.dialogResult = result?.title;
             if (result === AppServiceDialogResponses.viewOutput) {

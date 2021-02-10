@@ -52,6 +52,7 @@ export class WebJobsNATreeItem extends NotAvailableTreeItem {
         return false;
     }
 
+    // eslint-disable-next-line @typescript-eslint/require-await
     public async loadMoreChildrenImpl(_clearCache: boolean): Promise<AzExtTreeItem[]> {
         return [new GenericTreeItem(this, { label: localize('webJobNA', 'WebJobs are not available for Linux Apps.'), contextValue: 'webJobNA' })];
     }

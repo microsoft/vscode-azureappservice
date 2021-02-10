@@ -16,9 +16,6 @@ import { AzureDatabasesExtensionApi } from '../vscode-cosmos.api';
 import { CosmosDBConnection } from './CosmosDBConnection';
 import { SiteTreeItem } from './SiteTreeItem';
 
-// grandfathered in
-// tslint:disable: typedef
-
 export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     public static contextValueInstalled: string = 'сosmosDBConnections';
     public static contextValueNotInstalled: string = 'сosmosDBNotInstalled';
@@ -54,6 +51,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         return getThemedIconPath('AzureDatabases');
     }
 
+    // eslint-disable-next-line @typescript-eslint/require-await
     public async refreshImpl(): Promise<void> {
         this.cosmosDBExtension = vscode.extensions.getExtension('ms-azuretools.vscode-cosmosdb');
     }
@@ -68,7 +66,6 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         }
 
         const cosmosDBApi = await this.getCosmosDBApi();
-        // tslint:disable-next-line:strict-boolean-expressions
         const appSettings = (await this.parent.client.listApplicationSettings()).properties || {};
         const connections: IDetectedConnection[] = this.detectMongoConnections(appSettings).concat(this.detectDocDBConnections(appSettings)).concat(this.detectPostgresConnections(appSettings));
 
@@ -106,7 +103,6 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         }
 
         const appSettingsDict = await this.parent.client.listApplicationSettings();
-        // tslint:disable-next-line:strict-boolean-expressions
         appSettingsDict.properties = appSettingsDict.properties || {};
 
         let newAppSettings: Map<string, string>;
@@ -153,7 +149,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         if (createdDatabase.cosmosExtensionItem.azureData && createdDatabase.cosmosExtensionItem.postgresData) {
             buttons.push(manageFirewallRules);
         }
-        vscode.window.showInformationMessage(message, ...buttons).then(async (result: vscode.MessageItem | undefined) => {
+        void vscode.window.showInformationMessage(message, ...buttons).then(async (result: vscode.MessageItem | undefined) => {
             if (result === revealDatabase) {
                 await createdDatabase.cosmosExtensionItem.reveal();
             } else if (result === manageFirewallRules) {
@@ -300,8 +296,8 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
 
     }
 
-    private async getAppSettings(appSettings: Map<string | undefined, string | undefined>, appSettingsPrefix: string): Promise<Map<string, string>> {
-        const result: Map<string, string> = new Map();
+    private getAppSettings(appSettings: Map<string | undefined, string | undefined>, appSettingsPrefix: string): Map<string, string> {
+        const result: Map<string, string> = new Map<string, string>();
         for (const [key, value] of appSettings) {
             if (key && value) {
                 result.set(appSettingsPrefix + key, value);

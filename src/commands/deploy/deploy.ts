@@ -28,7 +28,7 @@ import { promptToSaveDeployDefaults } from './promptToSaveDeployDefaults';
 import { setPreDeployTaskForDotnet } from './setPreDeployTaskForDotnet';
 import { showDeployCompletedMessage } from './showDeployCompletedMessage';
 
-const postDeployCancelTokens: Map<string, vscode.CancellationTokenSource> = new Map();
+const postDeployCancelTokens: Map<string, vscode.CancellationTokenSource> = new Map<string, vscode.CancellationTokenSource>();
 
 export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | SiteTreeItem, arg2?: (vscode.Uri | SiteTreeItem)[], isNewApp: boolean = false): Promise<void> {
     actionContext.telemetry.properties.deployedWithConfigs = 'false';
@@ -78,8 +78,7 @@ export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | 
         await showDeployConfirmation(context, node.client, 'appService.Deploy');
     }
 
-    // tslint:disable-next-line:no-floating-promises
-    promptToSaveDeployDefaults(context, node, context.workspaceFolder.uri.fsPath, context.effectiveDeployFsPath);
+    void promptToSaveDeployDefaults(context, node, context.workspaceFolder.uri.fsPath, context.effectiveDeployFsPath);
     await appservice.runPreDeployTask(context, context.originalDeployFsPath, siteConfig.scmType);
 
     // cancellation moved to after prompts while gathering telemetry
@@ -114,7 +113,5 @@ export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | 
 
     showDeployCompletedMessage(node);
 
-    // don't wait
-    // tslint:disable-next-line: no-floating-promises
     runPostDeployTask(node, correlationId, tokenSource);
 }

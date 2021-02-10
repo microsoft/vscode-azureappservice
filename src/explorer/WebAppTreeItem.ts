@@ -40,7 +40,7 @@ export class WebAppTreeItem extends SiteTreeItem {
         return (await super.loadMoreChildrenImpl(clearCache)).concat(this.deploymentSlotsNode);
     }
 
-    public async pickTreeItemImpl(expectedContextValues: (string | RegExp)[]): Promise<AzExtTreeItem | undefined> {
+    public pickTreeItemImpl(expectedContextValues: (string | RegExp)[]): AzExtTreeItem | undefined {
         for (const expectedContextValue of expectedContextValues) {
             switch (expectedContextValue) {
                 case DeploymentSlotsTreeItem.contextValue:

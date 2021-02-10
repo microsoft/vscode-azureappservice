@@ -44,6 +44,5 @@ export async function uploadAppSettings(context: IActionContext, target?: Uri | 
         }
     });
 
-    // tslint:disable-next-line: no-floating-promises
-    window.showInformationMessage(localize('uploaded', 'Uploaded settings to "{0}".', client.fullName));
+    void window.showInformationMessage(localize('uploaded', 'Uploaded settings to "{0}".', client.fullName));
 }

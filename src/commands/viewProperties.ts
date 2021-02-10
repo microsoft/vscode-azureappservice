@@ -16,7 +16,7 @@ export async function viewProperties(context: IActionContext, node?: SiteTreeIte
 
     await node.runWithTemporaryDescription(context, localize('retrievingProps', 'Retrieving properties...'), async () => {
         // `siteConfig` already exists on `node.site`, but has very limited properties for some reason. We want to get the full site config
-        // tslint:disable-next-line: no-non-null-assertion
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
         node!.site.siteConfig = await node!.root.client.getSiteConfig();
     });
 
