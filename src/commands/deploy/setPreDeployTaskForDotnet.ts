@@ -86,10 +86,10 @@ export async function setPreDeployTaskForDotnet(context: IDeployContext): Promis
 
         const currentVersion: string | undefined = tasks.getTasksVersion(context.workspaceFolder);
         if (!currentVersion) {
-            tasks.updateTasksVersion(context.workspaceFolder, tasks.tasksVersion);
+            await tasks.updateTasksVersion(context.workspaceFolder, tasks.tasksVersion);
         }
 
-        tasks.updateTasks(context.workspaceFolder, existingTasks.concat(newTasks));
+        await tasks.updateTasks(context.workspaceFolder, existingTasks.concat(newTasks));
     }
 }
 

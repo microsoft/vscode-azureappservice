@@ -49,13 +49,11 @@ suite('getRemoteDebugLanguage', () => {
     test('Respects the python remote debugging experimental flag', async () => {
         const context = createTestContext();
 
-        // eslint-disable-next-line @typescript-eslint/require-await
         await runWithExtensionSetting('enablePythonRemoteDebugging', undefined, async () => {
             assert.throws(() => { getRemoteDebugLanguage({ linuxFxVersion: 'python|2.7' }, context); }, Error);
             assert.throws(() => { getRemoteDebugLanguage({ linuxFxVersion: 'PYTHON|3.7' }, context); }, Error);
         });
 
-        // eslint-disable-next-line @typescript-eslint/require-await
         await runWithExtensionSetting('enablePythonRemoteDebugging', 'true', async () => {
             assert.strictEqual(getRemoteDebugLanguage({ linuxFxVersion: 'python|2.7' }, context), RemoteDebugLanguage.Python);
             assert.strictEqual(getRemoteDebugLanguage({ linuxFxVersion: 'PYTHON|3.7' }, context), RemoteDebugLanguage.Python);

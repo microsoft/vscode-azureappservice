@@ -40,7 +40,7 @@ export async function downloadAppSettings(context: IActionContext, node?: AppSet
         await fse.writeFile(envVarPath, convertAppSettingsToEnvVariables(localEnvVariables, client.fullName));
     });
 
-    await window.showInformationMessage(localize('Settings', 'Downloaded settings from "{0}".  View settings file?', client.fullName), localize('view', 'View file')).then(async (input) => {
+    void window.showInformationMessage(localize('Settings', 'Downloaded settings from "{0}".  View settings file?', client.fullName), localize('view', 'View file')).then(async (input) => {
         if (!input) {
             throw new UserCancelledError();
         }
