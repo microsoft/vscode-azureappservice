@@ -6,6 +6,7 @@
 import { ISiteTreeRoot } from 'vscode-azureappservice';
 import { AzExtTreeItem, AzureParentTreeItem, GenericTreeItem } from 'vscode-azureextensionui';
 import { localize } from '../localize';
+import { nonNullProp } from '../utils/nonNull';
 import { getThemedIconPath, IThemedIconPath } from '../utils/pathUtils';
 import { NotAvailableTreeItem } from './NotAvailableTreeItem';
 
@@ -29,8 +30,8 @@ export class WebJobsTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     }
 
     public async loadMoreChildrenImpl(_clearCache: boolean): Promise<AzExtTreeItem[]> {
-        return (await this.root.client.listWebJobs()).map((job: webJob) => {
-            return new GenericTreeItem(this, { id: job.name, label: job.name, contextValue: 'webJob' });
+        return (await this.root.client.listWebJobs()).map(job => {
+            return new GenericTreeItem(this, { id: job.name, label: nonNullProp(job, 'name'), contextValue: 'webJob' });
         });
     }
 }
@@ -57,5 +58,3 @@ export class WebJobsNATreeItem extends NotAvailableTreeItem {
         return [new GenericTreeItem(this, { label: localize('webJobNA', 'WebJobs are not available for Linux Apps.'), contextValue: 'webJobNA' })];
     }
 }
-
-type webJob = { name: string, Message: string };

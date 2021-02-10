@@ -15,7 +15,7 @@ export class CosmosDBConnection extends AzExtTreeItem {
     public static contextValue: string = 'cosmosDBConnection';
     public readonly contextValue: string = CosmosDBConnection.contextValue;
     public readonly label: string;
-    public readonly parent: CosmosDBTreeItem;
+    public readonly parent!: CosmosDBTreeItem;
 
     constructor(parent: CosmosDBTreeItem, readonly cosmosExtensionItem: DatabaseAccountTreeItem | DatabaseTreeItem, readonly appSettingKeys: string[]) {
         super(parent);

@@ -21,7 +21,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     public static contextValueNotInstalled: string = 'сosmosDBNotInstalled';
     public readonly label: string = 'Databases';
     public readonly childTypeLabel: string = 'Connection';
-    public readonly parent: SiteTreeItem;
+    public readonly parent!: SiteTreeItem;
     public readonly client: IAppSettingsClient;
     public cosmosDBExtension: vscode.Extension<AzureExtensionApiProvider | undefined> | undefined;
 

@@ -13,7 +13,7 @@ import { SiteTreeItem } from './SiteTreeItem';
 export class DeploymentSlotTreeItem extends SiteTreeItem {
     public static contextValue: string = 'deploymentSlot';
     public readonly contextValue: string = DeploymentSlotTreeItem.contextValue;
-    public readonly parent: DeploymentSlotsTreeItem;
+    public readonly parent!: DeploymentSlotsTreeItem;
 
     public constructor(parent: DeploymentSlotsTreeItem, client: SiteClient, site: WebSiteManagementModels.Site) {
         super(parent, client, site);
