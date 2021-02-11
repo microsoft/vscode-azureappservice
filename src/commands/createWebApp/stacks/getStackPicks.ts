@@ -65,7 +65,6 @@ async function getStacks(context: IWebAppWizardContext & { _stacks?: WebAppStack
 }
 
 function sortStacks(context: IWebAppWizardContext, stacks: WebAppStack[]): WebAppStack[] {
-    // tslint:disable-next-line: strict-boolean-expressions
     const recommendedRuntimes: WebAppStackValue[] = context.recommendedSiteRuntime || [];
     function getPriority(stack: WebAppStack): number {
         const index: number = recommendedRuntimes.findIndex(s => s === stack.value);

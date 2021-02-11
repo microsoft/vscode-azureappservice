@@ -17,7 +17,7 @@ import { WebJobsNATreeItem, WebJobsTreeItem } from './WebJobsTreeItem';
 export abstract class SiteTreeItem extends SiteTreeItemBase implements ISiteTreeItem {
     public readonly appSettingsNode: AppSettingsTreeItem;
     public deploymentsNode: DeploymentsTreeItem | undefined;
-    public parent: AzureParentTreeItem;
+    public parent!: AzureParentTreeItem;
     public site: WebSiteManagementModels.Site;
     private readonly _connectionsNode: CosmosDBTreeItem;
     private readonly _siteFilesNode: SiteFilesTreeItem;
@@ -106,7 +106,7 @@ export abstract class SiteTreeItem extends SiteTreeItemBase implements ISiteTree
         }
     }
 
-    public async pickTreeItemImpl(expectedContextValues: (string | RegExp)[]): Promise<AzExtTreeItem | undefined> {
+    public pickTreeItemImpl(expectedContextValues: (string | RegExp)[]): AzExtTreeItem | undefined {
         for (const expectedContextValue of expectedContextValues) {
             switch (expectedContextValue) {
                 case AppSettingsTreeItem.contextValue:

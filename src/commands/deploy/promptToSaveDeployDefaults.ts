@@ -8,14 +8,15 @@ import { MessageItem } from "vscode";
 import { DialogResponses, IActionContext } from "vscode-azureextensionui";
 import * as constants from '../../constants';
 import { SiteTreeItem } from '../../explorer/SiteTreeItem';
+import { localize } from '../../localize';
 import { getWorkspaceSetting, updateWorkspaceSetting } from "../../vsCodeConfig/settings";
 
 export async function promptToSaveDeployDefaults(context: IActionContext, node: SiteTreeItem, workspacePath: string, deployPath: string): Promise<void> {
     const defaultWebAppToDeploySetting: string | undefined = getWorkspaceSetting(constants.configurationSettings.defaultWebAppToDeploy, workspacePath);
     // only prompt if setting is unset
     if (!defaultWebAppToDeploySetting) {
-        const saveDeploymentConfig: string = `Always deploy the workspace "${path.basename(workspacePath)}" to "${node.root.client.fullName}"?`;
-        const dontShowAgain: MessageItem = { title: "Don't show again" };
+        const saveDeploymentConfig: string = localize('showDeploymentConfig', 'Always deploy the workspace "{0}" to "{1}"?', path.basename(workspacePath), node.root.client.fullName);
+        const dontShowAgain: MessageItem = { title: localize('dontShow', "Don't show again") };
         const result: MessageItem = await context.ui.showWarningMessage(saveDeploymentConfig, DialogResponses.yes, dontShowAgain, DialogResponses.skipForNow);
         if (result === DialogResponses.yes) {
             await saveDeployDefaults(node.fullId, workspacePath, deployPath);
@@ -33,7 +34,6 @@ export async function promptToSaveDeployDefaults(context: IActionContext, node: 
 
 export async function saveDeployDefaults(nodeFullId: string, workspacePath: string, deployPath: string): Promise<void> {
     await updateWorkspaceSetting(constants.configurationSettings.defaultWebAppToDeploy, nodeFullId, deployPath);
-    // tslint:disable-next-line: strict-boolean-expressions
     const subPath: string = path.relative(workspacePath, deployPath) || '.';
     await updateWorkspaceSetting(constants.configurationSettings.deploySubpath, subPath, deployPath);
 }

@@ -10,6 +10,7 @@ import { workspace } from "vscode";
 import { UserCancelledError } from 'vscode-azureextensionui';
 import { SiteTreeItem } from "../explorer/SiteTreeItem";
 import { ext } from '../extensionVariables';
+import { localize } from "../localize";
 
 export namespace javaUtils {
     const DEFAULT_PORT: string = '8080';
@@ -37,7 +38,7 @@ export namespace javaUtils {
         } else if (isJavaWebContainerRuntime(runtime)) {
             return 'war';
         } else {
-            throw new Error(`Invalid java runtime: ${runtime}`);
+            throw new Error(localize('invalidJava', 'Invalid java runtime: {0}', runtime));
         }
     }
 
@@ -93,14 +94,13 @@ export namespace javaUtils {
             return undefined;
         }
 
-        // tslint:disable-next-line:strict-boolean-expressions
         appSettings.properties = appSettings.properties || {};
         const port: string = await ext.ui.showInputBox({
             value: DEFAULT_PORT,
-            prompt: 'Configure the PORT (Application Settings) which your Java SE Web App exposes',
+            prompt: localize('configurePort', 'Configure the PORT (Application Settings) which your Java SE Web App exposes'),
             placeHolder: 'PORT',
             validateInput: (input: string): string | undefined => {
-                return /^[0-9]+$/.test(input) ? undefined : 'please specify a valid port number';
+                return /^[0-9]+$/.test(input) ? undefined : localize('validPort', 'please specify a valid port number');
             }
         });
         if (!port) {

@@ -20,6 +20,7 @@ export class AppServiceFileSystem extends AzExtTreeFileSystem<FileTreeItem> {
         return node.label;
     }
 
+    // eslint-disable-next-line @typescript-eslint/require-await
     public async statImpl(_context: IActionContext, _node: FileTreeItem): Promise<FileStat> {
         // this is not implemented for Azure App Services
         return { type: FileType.File, ctime: 0, mtime: 0, size: 0 };
@@ -51,7 +52,7 @@ export class AppServiceFileSystem extends AzExtTreeFileSystem<FileTreeItem> {
         } catch (error) {
             const parsedError: IParsedError = parseError(error);
             if (parsedError.errorType === '412' && /etag/i.test(parsedError.message)) {
-                throw new Error(`ETag does not represent the latest state of the file "${node.label}". Download the file from Azure to get the latest version.`);
+                throw new Error(localize('etagError', 'ETag does not represent the latest state of the file "{0}". Download the file from Azure to get the latest version.', node.label));
             }
             throw error;
         }

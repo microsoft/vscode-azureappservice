@@ -16,15 +16,12 @@ import { AzureDatabasesExtensionApi } from '../vscode-cosmos.api';
 import { CosmosDBConnection } from './CosmosDBConnection';
 import { SiteTreeItem } from './SiteTreeItem';
 
-// grandfathered in
-// tslint:disable: typedef
-
 export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     public static contextValueInstalled: string = 'сosmosDBConnections';
     public static contextValueNotInstalled: string = 'сosmosDBNotInstalled';
     public readonly label: string = 'Databases';
     public readonly childTypeLabel: string = 'Connection';
-    public readonly parent: SiteTreeItem;
+    public readonly parent!: SiteTreeItem;
     public readonly client: IAppSettingsClient;
     public cosmosDBExtension: vscode.Extension<AzureExtensionApiProvider | undefined> | undefined;
 
@@ -54,6 +51,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         return getThemedIconPath('AzureDatabases');
     }
 
+    // eslint-disable-next-line @typescript-eslint/require-await
     public async refreshImpl(): Promise<void> {
         this.cosmosDBExtension = vscode.extensions.getExtension('ms-azuretools.vscode-cosmosdb');
     }
@@ -63,12 +61,11 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
             return [new GenericTreeItem(this, {
                 commandId: 'appService.InstallCosmosDBExtension',
                 contextValue: 'InstallCosmosDBExtension',
-                label: 'Install Azure Databases Extension...'
+                label: localize('installDb', 'Install Azure Databases Extension...')
             })];
         }
 
         const cosmosDBApi = await this.getCosmosDBApi();
-        // tslint:disable-next-line:strict-boolean-expressions
         const appSettings = (await this.parent.client.listApplicationSettings()).properties || {};
         const connections: IDetectedConnection[] = this.detectMongoConnections(appSettings).concat(this.detectDocDBConnections(appSettings)).concat(this.detectPostgresConnections(appSettings));
 
@@ -91,7 +88,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
             return [new GenericTreeItem(this, {
                 commandId: 'appService.AddAzureDatabasesConnection',
                 contextValue: 'AddAzureDatabasesConnection',
-                label: 'Add Azure Databases Connection...'
+                label: localize('addDbConnection', 'Add Azure Databases Connection...')
             })];
         }
     }
@@ -106,7 +103,6 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         }
 
         const appSettingsDict = await this.parent.client.listApplicationSettings();
-        // tslint:disable-next-line:strict-boolean-expressions
         appSettingsDict.properties = appSettingsDict.properties || {};
 
         let newAppSettings: Map<string, string>;
@@ -143,15 +139,17 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         const createdDatabase = new CosmosDBConnection(this, databaseToAdd, Array.from(newAppSettings.keys()));
         context.showCreatingTreeItem(createdDatabase.label);
 
-        const revealDatabase: vscode.MessageItem = { title: 'Reveal Database' };
+        const revealDatabase: vscode.MessageItem = { title: localize('reveal', 'Reveal Database') };
         const manageFirewallRules: vscode.MessageItem = { title: localize('manageFirewallRulesMsgItem', 'Manage Firewall Rules') };
-        const message: string = `Database "${createdDatabase.label}" connected to web app "${this.parent.client.fullName}". Created the following application settings: "${Array.from(newAppSettings.keys()).join(', ')}".`;
+        const message: string = localize(
+            'connectedDatabase', 'Database "{0}" connected to web app "{1}". Created the following application settings: {2}',
+            createdDatabase.label, this.parent.client.fullName, Array.from(newAppSettings.keys()).join(', '));
         // Don't wait
         const buttons: vscode.MessageItem[] = [revealDatabase];
         if (createdDatabase.cosmosExtensionItem.azureData && createdDatabase.cosmosExtensionItem.postgresData) {
             buttons.push(manageFirewallRules);
         }
-        vscode.window.showInformationMessage(message, ...buttons).then(async (result: vscode.MessageItem | undefined) => {
+        void vscode.window.showInformationMessage(message, ...buttons).then(async (result: vscode.MessageItem | undefined) => {
             if (result === revealDatabase) {
                 await createdDatabase.cosmosExtensionItem.reveal();
             } else if (result === manageFirewallRules) {
@@ -181,7 +179,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
             }
         }
 
-        throw new Error('You must have the "Azure Databases" extension installed to perform this operation.');
+        throw new Error(localize('azureDbError', 'You must have the "Azure Databases" extension installed to perform this operation.'));
     }
 
     private detectMongoConnections(appSettings: { [propertyName: string]: string }): IDetectedConnection[] {
@@ -298,8 +296,8 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
 
     }
 
-    private async getAppSettings(appSettings: Map<string | undefined, string | undefined>, appSettingsPrefix: string): Promise<Map<string, string>> {
-        const result: Map<string, string> = new Map();
+    private getAppSettings(appSettings: Map<string | undefined, string | undefined>, appSettingsPrefix: string): Map<string, string> {
+        const result: Map<string, string> = new Map<string, string>();
         for (const [key, value] of appSettings) {
             if (key && value) {
                 result.set(appSettingsPrefix + key, value);

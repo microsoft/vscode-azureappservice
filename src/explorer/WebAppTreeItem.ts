@@ -15,7 +15,7 @@ import { SiteTreeItem } from './SiteTreeItem';
 export class WebAppTreeItem extends SiteTreeItem {
     public static contextValue: string = ext.prefix;
     public readonly contextValue: string = WebAppTreeItem.contextValue;
-    public deploymentSlotsNode: DeploymentSlotsTreeItem | DeploymentSlotsNATreeItem;
+    public deploymentSlotsNode: DeploymentSlotsTreeItem | DeploymentSlotsNATreeItem | undefined;
 
     public get client(): SiteClient {
         return this.root.client;
@@ -40,7 +40,7 @@ export class WebAppTreeItem extends SiteTreeItem {
         return (await super.loadMoreChildrenImpl(clearCache)).concat(this.deploymentSlotsNode);
     }
 
-    public async pickTreeItemImpl(expectedContextValues: (string | RegExp)[]): Promise<AzExtTreeItem | undefined> {
+    public pickTreeItemImpl(expectedContextValues: (string | RegExp)[]): AzExtTreeItem | undefined {
         for (const expectedContextValue of expectedContextValues) {
             switch (expectedContextValue) {
                 case DeploymentSlotsTreeItem.contextValue:

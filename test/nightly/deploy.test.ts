@@ -39,7 +39,7 @@ interface IParallelTest {
     callback(): Promise<void>;
 }
 
-suite('Create Web App and deploy', async function (this: Mocha.Suite): Promise<void> {
+suite('Create Web App and deploy', function (this: Mocha.Suite): void {
     this.timeout(6 * 60 * 1000);
     const testCases: ITestCase[] = [
         {
@@ -74,7 +74,6 @@ suite('Create Web App and deploy', async function (this: Mocha.Suite): Promise<v
     const parallelTests: IParallelTest[] = [];
     for (const testCase of testCases) {
         for (const version of testCase.versions) {
-            // tslint:disable-next-line: strict-boolean-expressions
             const runtime: string = `${testCase.runtimePrefix} ${version.displayText || version.version}`;
             const promptForOs: boolean = version.supportedAppOs === 'Both';
             const oss: string[] = promptForOs ? ['Windows', 'Linux'] : [version.supportedAppOs];
@@ -83,7 +82,7 @@ suite('Create Web App and deploy', async function (this: Mocha.Suite): Promise<v
                     parallelTests.push({
                         title: `${runtime} - ${os}`,
                         callback: async () => {
-                            const testFolderPath: string = await getWorkspacePath(testCase.workspaceFolder || version.version);
+                            const testFolderPath: string = getWorkspacePath(testCase.workspaceFolder || version.version);
                             await testCreateWebAppAndDeploy(os, promptForOs, runtime, testFolderPath, version.version);
                         }
                     });
@@ -92,7 +91,7 @@ suite('Create Web App and deploy', async function (this: Mocha.Suite): Promise<v
         }
     }
 
-    suiteSetup(async function (this: Mocha.Context): Promise<void> {
+    suiteSetup(function (this: Mocha.Context): void {
         if (!longRunningTestsEnabled) {
             this.skip();
         }
@@ -142,7 +141,7 @@ suite('Create Web App and deploy', async function (this: Mocha.Suite): Promise<v
 });
 
 // The workspace folder that vscode is opened against for tests
-async function getWorkspacePath(testWorkspaceName: string): Promise<string> {
+function getWorkspacePath(testWorkspaceName: string): string {
     let workspacePath: string = '';
     const workspaceFolders: readonly vscode.WorkspaceFolder[] | undefined = vscode.workspace.workspaceFolders;
     if (!workspaceFolders || workspaceFolders.length === 0) {
@@ -153,7 +152,7 @@ async function getWorkspacePath(testWorkspaceName: string): Promise<string> {
                 workspacePath = obj.uri.fsPath;
             }
         }
-        assert.equal(path.basename(workspacePath), testWorkspaceName, "Opened against an unexpected workspace.");
+        assert.strictEqual(path.basename(workspacePath), testWorkspaceName, "Opened against an unexpected workspace.");
         return workspacePath;
     }
 }

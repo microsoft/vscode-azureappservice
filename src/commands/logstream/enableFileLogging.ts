@@ -9,6 +9,7 @@ import { DialogResponses, IActionContext } from 'vscode-azureextensionui';
 import { SiteTreeItem } from "../../explorer/SiteTreeItem";
 import { WebAppTreeItem } from '../../explorer/WebAppTreeItem';
 import { ext } from '../../extensionVariables';
+import { localize } from '../../localize';
 
 export interface IEnableFileLoggingContext extends IActionContext {
     suppressAlreadyEnabledMessage?: boolean;
@@ -27,23 +28,23 @@ export async function enableFileLogging(context: IEnableFileLoggingContext, node
     const siteNode: SiteTreeItem = node;
 
     const isEnabled: boolean = await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification }, async p => {
-        p.report({ message: 'Checking container diagnostics settings...' });
+        p.report({ message: localize('checkingDiag', 'Checking container diagnostics settings...') });
         return await siteNode.isHttpLogsEnabled();
     });
 
     if (!isEnabled && siteNode instanceof SiteTreeItem) {
-        await context.ui.showWarningMessage(`Do you want to enable file logging for ${siteNode.root.client.fullName}? The web app will be restarted.`, { modal: true }, DialogResponses.yes);
-        const enablingLogging: string = `Enabling Logging for "${siteNode.root.client.fullName}"...`;
-        const enabledLogging: string = `Enabled Logging for "${siteNode.root.client.fullName}".`;
+        await context.ui.showWarningMessage(localize('enableLogging', 'Do you want to enable file logging for "{0}"? The web app will be restarted.', siteNode.root.client.fullName), { modal: true }, DialogResponses.yes);
+        const enablingLogging: string = localize('enablingLogging', 'Enabling Logging for "{0}"...', siteNode.root.client.fullName);
+        const enabledLogging: string = localize('enabledLogging', 'Enabled Logging for "{0}".', siteNode.root.client.fullName);
         await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification, title: enablingLogging }, async (): Promise<void> => {
             ext.outputChannel.appendLog(enablingLogging);
             await siteNode.enableHttpLogs();
 
             await vscode.commands.executeCommand('appService.Restart', siteNode);
-            vscode.window.showInformationMessage(enabledLogging);
+            void vscode.window.showInformationMessage(enabledLogging);
             ext.outputChannel.appendLog(enabledLogging);
         });
     } else if (!context.suppressAlreadyEnabledMessage) {
-        vscode.window.showInformationMessage(`File logging has already been enabled for ${siteNode.root.client.fullName}.`);
+        void vscode.window.showInformationMessage(localize('loggingEnabled', 'File logging has already been enabled for "{0}".', siteNode.root.client.fullName));
     }
 }

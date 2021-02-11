@@ -8,15 +8,17 @@ import { createSlot, ISiteTreeRoot, SiteClient } from 'vscode-azureappservice';
 import { AzureParentTreeItem, AzureTreeItem, ICreateChildImplContext } from 'vscode-azureextensionui';
 import { getCreatedWebAppMessage } from '../commands/createWebApp/showCreatedWebAppMessage';
 import { ext } from '../extensionVariables';
+import { localize } from '../localize';
 import { createWebSiteClient } from '../utils/azureClients';
 import { getThemedIconPath, IThemedIconPath } from '../utils/pathUtils';
 import { DeploymentSlotTreeItem } from './DeploymentSlotTreeItem';
 import { NotAvailableTreeItem } from './NotAvailableTreeItem';
 
+const label: string = localize('deploymentSlots', 'Deployment Slots');
 export class DeploymentSlotsTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     public static contextValue: string = 'deploymentSlots';
     public readonly contextValue: string = DeploymentSlotsTreeItem.contextValue;
-    public readonly label: string = 'Deployment Slots';
+    public readonly label: string = label;
     public readonly childTypeLabel: string = 'Deployment Slot';
 
     private _nextLink: string | undefined;
@@ -59,7 +61,7 @@ export class DeploymentSlotsTreeItem extends AzureParentTreeItem<ISiteTreeRoot> 
 
 export class ScaleUpTreeItem extends AzureTreeItem<ISiteTreeRoot> {
     public static contextValue: string = "ScaleUp";
-    public readonly label: string = "Scale up to a production plan to enable slots...";
+    public readonly label: string = localize('scaleUp', "Scale up to a production plan to enable slots...");
     public readonly contextValue: string = ScaleUpTreeItem.contextValue;
     public readonly commandId: string = 'appService.ScaleUp';
 
@@ -76,13 +78,13 @@ export class DeploymentSlotsNATreeItem extends NotAvailableTreeItem {
     public readonly label: string;
     public readonly contextValue: string = DeploymentSlotsNATreeItem.contextValue;
     public readonly id: string = DeploymentSlotsNATreeItem.contextValue;
-    public readonly childTypeLabel: string = 'scale up to enable slots';
+    public readonly childTypeLabel: string = localize('scaleUpToEnable', 'scale up to enable slots');
 
     public readonly scaleUpId: string;
 
     public constructor(parent: AzureParentTreeItem, planId: string) {
         super(parent);
-        this.label = 'Deployment Slots';
+        this.label = label;
         this.scaleUpId = `${planId}/pricingTier`;
     }
 
@@ -94,6 +96,7 @@ export class DeploymentSlotsNATreeItem extends NotAvailableTreeItem {
         return false;
     }
 
+    // eslint-disable-next-line @typescript-eslint/require-await
     public async loadMoreChildrenImpl(_clearCache: boolean): Promise<AzureTreeItem<ISiteTreeRoot>[]> {
         return [new ScaleUpTreeItem(this, this.scaleUpId)];
     }

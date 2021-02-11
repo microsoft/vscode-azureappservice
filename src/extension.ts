@@ -3,8 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-'use strict';
-
 import * as vscode from 'vscode';
 import { registerAppServiceExtensionVariables } from 'vscode-azureappservice';
 import { AzExtTreeDataProvider, AzureUserInput, callWithTelemetryAndErrorHandling, createApiProvider, createAzExtOutputChannel, IActionContext, IAzureUserInput, registerErrorHandler, registerReportIssueCommand, registerUIExtensionVariables } from 'vscode-azureextensionui';
@@ -15,8 +13,6 @@ import { registerCommands } from './commands/registerCommands';
 import { AzureAccountTreeItem } from './explorer/AzureAccountTreeItem';
 import { ext } from './extensionVariables';
 
-// tslint:disable-next-line:export-name
-// tslint:disable-next-line:max-func-body-length
 export async function activateInternal(
     context: vscode.ExtensionContext,
     perfStats: {
@@ -36,7 +32,7 @@ export async function activateInternal(
     registerUIExtensionVariables(ext);
     registerAppServiceExtensionVariables(ext);
 
-    await callWithTelemetryAndErrorHandling('appService.activate', async (activateContext: IActionContext) => {
+    await callWithTelemetryAndErrorHandling('appService.activate', (activateContext: IActionContext) => {
         activateContext.telemetry.properties.isActivationEvent = 'true';
         activateContext.telemetry.measurements.mainFileLoad = (perfStats.loadEndTime - perfStats.loadStartTime) / 1000;
 
@@ -63,6 +59,6 @@ export async function activateInternal(
     }]);
 }
 
-// tslint:disable-next-line:no-empty
+// eslint-disable-next-line @typescript-eslint/no-empty-function
 export function deactivateInternal(): void {
 }

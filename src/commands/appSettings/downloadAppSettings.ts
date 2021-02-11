@@ -13,6 +13,7 @@ import { AppSettingsTreeItem, confirmOverwriteSettings, IAppSettingsClient } fro
 import { IActionContext, UserCancelledError } from "vscode-azureextensionui";
 import { envFileName } from "../../constants";
 import { ext } from "../../extensionVariables";
+import { localize } from "../../localize";
 import * as workspaceUtil from '../../utils/workspace';
 import { getLocalEnvironmentVariables } from './getLocalEnvironmentVariables';
 
@@ -23,12 +24,12 @@ export async function downloadAppSettings(context: IActionContext, node?: AppSet
 
     const client: IAppSettingsClient = node.client;
 
-    const message: string = 'Select the destination file for your downloaded settings.';
+    const message: string = localize('selectDest', 'Select the destination file for your downloaded settings.');
     const envVarPath: string = await workspaceUtil.selectWorkspaceFile(message, () => envFileName);
     const envVarUri: vscode.Uri = vscode.Uri.file(envVarPath);
 
-    await node.runWithTemporaryDescription(context, 'Downloading...', async () => {
-        ext.outputChannel.appendLog(`Downloading settings from "${client.fullName}"...`);
+    await node.runWithTemporaryDescription(context, localize('downloading', 'Downloading...'), async () => {
+        ext.outputChannel.appendLog(localize('downloadingSettings', 'Downloading settings from "{0}"...', client.fullName));
         const localEnvVariables: DotenvParseOutput = await getLocalEnvironmentVariables(envVarPath, true /* allowOverwrite */);
         const remoteEnvVariables: WebSiteManagementModels.StringDictionary = await client.listApplicationSettings();
         if (remoteEnvVariables.properties) {
@@ -39,7 +40,7 @@ export async function downloadAppSettings(context: IActionContext, node?: AppSet
         await fse.writeFile(envVarPath, convertAppSettingsToEnvVariables(localEnvVariables, client.fullName));
     });
 
-    window.showInformationMessage(`Downloaded settings from "${client.fullName}".  View settings file?`, 'View file').then(async (input) => {
+    void window.showInformationMessage(localize('Settings', 'Downloaded settings from "{0}".  View settings file?', client.fullName), localize('view', 'View file')).then(async (input) => {
         if (!input) {
             throw new UserCancelledError();
         }
@@ -49,7 +50,7 @@ export async function downloadAppSettings(context: IActionContext, node?: AppSet
 }
 
 export function convertAppSettingsToEnvVariables(appSettings: { [propertyName: string]: string }, appName: string): string {
-    let envData: string = `# Downloaded Application Settings from "${appName}"${os.EOL}`;
+    let envData: string = localize('envComment', '# Downloaded Application Settings from "{0}"{1}', appName, os.EOL);
     for (const property of Object.keys(appSettings)) {
         envData += `${property}="${appSettings[property]}"`;
         envData += os.EOL;

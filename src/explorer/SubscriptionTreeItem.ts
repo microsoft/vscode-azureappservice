@@ -13,11 +13,12 @@ import { getCreatedWebAppMessage } from '../commands/createWebApp/showCreatedWeb
 import { WebAppStackStep } from '../commands/createWebApp/stacks/WebAppStackStep';
 import { WebAppCreateStep } from '../commands/createWebApp/WebAppCreateStep';
 import { ext } from '../extensionVariables';
+import { localize } from '../localize';
 import { nonNullProp } from '../utils/nonNull';
 import { WebAppTreeItem } from './WebAppTreeItem';
 
 export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
-    public readonly childTypeLabel: string = 'Web App';
+    public readonly childTypeLabel: string = localize('webApp', 'Web App');
     public supportsAdvancedCreation: boolean = true;
 
     private _nextLink: string | undefined;
@@ -97,7 +98,7 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
             await setLocationsTask(wizardContext);
         }
 
-        const title: string = 'Create new web app';
+        const title: string = localize('createApp', 'Create new web app');
         const wizard: AzureWizard<IWebAppWizardContext> = new AzureWizard(wizardContext, { promptSteps, executeSteps, title });
 
         await wizard.prompt();
@@ -108,7 +109,7 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
             await setPostPromptDefaults(wizardContext, siteStep);
             wizardContext.newAppInsightsName = await wizardContext.relatedNameTask;
             if (!wizardContext.newAppInsightsName) {
-                throw new Error('Failed to generate unique name for resources. Use advanced creation to manually enter resource names.');
+                throw new Error(localize('uniqueNameError', 'Failed to generate unique name for resources. Use advanced creation to manually enter resource names.'));
             }
         }
 

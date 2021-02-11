@@ -14,6 +14,7 @@ import * as constants from '../../constants';
 import { SiteTreeItem } from '../../explorer/SiteTreeItem';
 import { WebAppTreeItem } from '../../explorer/WebAppTreeItem';
 import { ext } from '../../extensionVariables';
+import { localize } from '../../localize';
 import { javaUtils } from '../../utils/javaUtils';
 import { nonNullValue } from '../../utils/nonNull';
 import { isPathEqual } from '../../utils/pathUtils';
@@ -27,7 +28,7 @@ import { promptToSaveDeployDefaults } from './promptToSaveDeployDefaults';
 import { setPreDeployTaskForDotnet } from './setPreDeployTaskForDotnet';
 import { showDeployCompletedMessage } from './showDeployCompletedMessage';
 
-const postDeployCancelTokens: Map<string, vscode.CancellationTokenSource> = new Map();
+const postDeployCancelTokens: Map<string, vscode.CancellationTokenSource> = new Map<string, vscode.CancellationTokenSource>();
 
 export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | SiteTreeItem, arg2?: (vscode.Uri | SiteTreeItem)[], isNewApp: boolean = false): Promise<void> {
     actionContext.telemetry.properties.deployedWithConfigs = 'false';
@@ -77,8 +78,7 @@ export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | 
         await showDeployConfirmation(context, node.client, 'appService.Deploy');
     }
 
-    // tslint:disable-next-line:no-floating-promises
-    promptToSaveDeployDefaults(context, node, context.workspaceFolder.uri.fsPath, context.effectiveDeployFsPath);
+    void promptToSaveDeployDefaults(context, node, context.workspaceFolder.uri.fsPath, context.effectiveDeployFsPath);
     await appservice.runPreDeployTask(context, context.originalDeployFsPath, siteConfig.scmType);
 
     // cancellation moved to after prompts while gathering telemetry
@@ -92,11 +92,11 @@ export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | 
     const deployPath: string = isZipDeploy ? context.effectiveDeployFsPath : context.originalDeployFsPath;
 
     if (!isZipDeploy && isPathEqual(context.effectiveDeployFsPath, context.originalDeployFsPath)) {
-        const noSubpathWarning: string = `WARNING: Ignoring deploySubPath "${getWorkspaceSetting(constants.configurationSettings.deploySubpath)}" for non-zip deploy.`;
+        const noSubpathWarning: string = localize('ignoreSuppath', 'WARNING: Ignoring deploySubPath "{0}" for non-zip deploy.', getWorkspaceSetting(constants.configurationSettings.deploySubpath));
         ext.outputChannel.appendLog(noSubpathWarning);
     }
 
-    await node.runWithTemporaryDescription(context, "Deploying...", async () => {
+    await node.runWithTemporaryDescription(context, localize('deploying', "Deploying..."), async () => {
         try {
             await appservice.deploy(nonNullValue(node).root.client, <string>deployPath, context);
         } catch (error) {
@@ -113,7 +113,5 @@ export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | 
 
     showDeployCompletedMessage(node);
 
-    // don't wait
-    // tslint:disable-next-line: no-floating-promises
     runPostDeployTask(node, correlationId, tokenSource);
 }

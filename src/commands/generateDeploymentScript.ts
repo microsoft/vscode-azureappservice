@@ -10,12 +10,10 @@ import { ProgressLocation, window, workspace } from "vscode";
 import { IActionContext } from "vscode-azureextensionui";
 import { WebAppTreeItem } from "../explorer/WebAppTreeItem";
 import { ext } from "../extensionVariables";
+import { localize } from "../localize";
 import { createResourceClient } from "../utils/azureClients";
 import { nonNullValue } from "../utils/nonNull";
 import { getResourcesPath } from "../utils/pathUtils";
-
-// grandfathered in
-// tslint:disable: typedef
 
 export async function generateDeploymentScript(context: IActionContext, node?: WebAppTreeItem): Promise<void> {
     if (!node) {
@@ -23,7 +21,7 @@ export async function generateDeploymentScript(context: IActionContext, node?: W
     }
 
     await window.withProgress({ location: ProgressLocation.Window }, async p => {
-        p.report({ message: 'Generating script...' });
+        p.report({ message: localize('generatingScript', 'Generating script...') });
 
         node = nonNullValue(node);
 
@@ -73,14 +71,14 @@ export async function generateDeploymentScript(context: IActionContext, node?: W
             script = scriptTemplate.replace('%RUNTIME%', siteConfig.linuxFxVersion);
         }
 
-        // tslint:disable:no-non-null-assertion
+        /* eslint-disable @typescript-eslint/no-non-null-assertion */
         script = script.replace('%SUBSCRIPTION_NAME%', node.root.subscriptionDisplayName)
             .replace('%RG_NAME%', rg.name!)
             .replace('%LOCATION%', rg.location)
             .replace('%PLAN_NAME%', plan!.name!)
             .replace('%PLAN_SKU%', plan!.sku!.name!)
             .replace('%SITE_NAME%', node.root.client.siteName);
-        // tslint:enable:no-non-null-assertion
+        /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
         const doc = await workspace.openTextDocument({ language: 'shellscript', content: script });
         await window.showTextDocument(doc);

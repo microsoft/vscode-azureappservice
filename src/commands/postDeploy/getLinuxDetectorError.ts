@@ -38,6 +38,9 @@ export async function getLinuxDetectorError(context: IActionContext, detectorId:
     };
 
     const responseJson: detectorResponseJSON = <detectorResponseJSON>(await client.sendRequest({ method: 'GET', url: detectorUri, queryParameters })).parsedBody;
+    if (!responseJson.properties) {
+        return undefined;
+    }
 
     const insightLogTable: detectorTable | undefined = findTableByName(responseJson.properties.dataset, 'insight/logs');
 
@@ -102,7 +105,7 @@ export function validateTimestamp(context: IActionContext, detectorTime: string,
 }
 
 export type detectorResponseJSON = {
-    properties: {
+    properties?: {
         dataset: detectorDataset[]
     }
 };

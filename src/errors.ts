@@ -6,7 +6,6 @@
 import { IActionContext } from 'vscode-azureextensionui';
 import { localize } from './localize';
 
-// tslint:disable: export-name
 export class OperationNotSupportedError extends Error {
     constructor(context: IActionContext) {
         context.errorHandling.suppressReportIssue = true;

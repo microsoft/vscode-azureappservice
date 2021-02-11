@@ -1,5 +1,7 @@
 # These files are excluded during vsce package
 .azure-pipelines/**
+.eslintignore
+.eslintrc.js
 .github/**
 .gitignore
 .vscode-test/**
@@ -18,6 +20,5 @@ test-results.xml
 test/**
 testOutput/**
 tsconfig.json
-tslint.json
 typings/**
 webpack.config*

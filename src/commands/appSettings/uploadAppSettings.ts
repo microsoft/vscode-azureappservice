@@ -10,6 +10,7 @@ import { AppSettingsTreeItem, confirmOverwriteSettings, IAppSettingsClient } fro
 import { IActionContext } from "vscode-azureextensionui";
 import { envFileName } from "../../constants";
 import { ext } from "../../extensionVariables";
+import { localize } from "../../localize";
 import * as workspaceUtil from '../../utils/workspace';
 import { getLocalEnvironmentVariables } from "./getLocalEnvironmentVariables";
 
@@ -20,7 +21,7 @@ export async function uploadAppSettings(context: IActionContext, target?: Uri | 
         envPath = target.fsPath;
     } else {
         node = target;
-        const message: string = 'Select the local .env file to upload.';
+        const message: string = localize('selectEnv', 'Select the local .env file to upload.');
         envPath = await workspaceUtil.selectWorkspaceFile(message, () => envFileName);
     }
 
@@ -28,7 +29,7 @@ export async function uploadAppSettings(context: IActionContext, target?: Uri | 
         node = <AppSettingsTreeItem>await ext.tree.showTreeItemPicker(AppSettingsTreeItem.contextValue, context);
     }
     const client: IAppSettingsClient = node.client;
-    await node.runWithTemporaryDescription(context, `Uploading settings to "${client.fullName}"...`, async () => {
+    await node.runWithTemporaryDescription(context, localize('uploading', 'Uploading settings to "{0}"...', client.fullName), async () => {
         const localEnvVariables: dotenv.DotenvParseOutput = await getLocalEnvironmentVariables(envPath);
         if (Object.keys(localEnvVariables).length > 0) {
             const remoteSettings: WebSiteManagementModels.StringDictionary = await client.listApplicationSettings();
@@ -39,10 +40,9 @@ export async function uploadAppSettings(context: IActionContext, target?: Uri | 
             await confirmOverwriteSettings(localEnvVariables, remoteSettings.properties, client.fullName);
             await client.updateApplicationSettings(remoteSettings);
         } else {
-            throw new Error(`No enviroment variables found in "${envFileName}".`);
+            throw new Error(localize('noEnvFound', 'No environment variables found in "{0}".', envFileName));
         }
     });
 
-    // tslint:disable-next-line: no-floating-promises
-    window.showInformationMessage(`Uploaded settings to "${client.fullName}".`);
+    void window.showInformationMessage(localize('uploaded', 'Uploaded settings to "{0}".', client.fullName));
 }
