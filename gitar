@@ -1,0 +1,522 @@
+[33mcommit 2d28d10f4c41af8675e4c0bd5fc39ae27d5e2a06[m[33m ([m[1;36mHEAD -> [m[1;32mmain[m[33m)[m
+Merge: dd524ad 6ea8ae8
+Author: nturinski <naturins@microsoft.com>
+Date:   Thu Feb 11 13:18:02 2021 -0800
+
+    Merge branch 'main' of https://github.com/Microsoft/vscode-azureappservice into main
+
+[33mcommit dd524ad7ea1f476d071548305e1c36a3f0ff7a4f[m
+Author: nturinski <naturins@microsoft.com>
+Date:   Thu Feb 11 13:17:58 2021 -0800
+
+    Localize the package.json
+
+[33mcommit 6ea8ae8f9eef5c03dbe33f7f06b917cc32996fa3[m[33m ([m[1;31morigin/main[m[33m)[m
+Author: Eric Jizba <erijiz@microsoft.com>
+Date:   Thu Feb 11 13:04:17 2021 -0800
+
+    Fix detector null ref error (#1961)
+
+[33mcommit 87bcb89ed36c1ff93df0e331b2671528b8d479f5[m
+Author: Eric Jizba <erijiz@microsoft.com>
+Date:   Wed Feb 10 12:23:21 2021 -0800
+
+    Turn on all strict rules and defer to eslint for linter rules (#1958)
+
+[33mcommit d1a1d5f4658cad6ebf9e7539a0158178abd6f0b7[m
+Author: Will Lorey <wilorey@microsoft.com>
+Date:   Tue Feb 9 20:02:43 2021 -0600
+
+    Switch to ESLint (#1955)
+
+[33mcommit e90ced34a16cdea3c3177e360b9d843893528623[m
+Author: Eric Jizba <erijiz@microsoft.com>
+Date:   Tue Feb 9 13:57:38 2021 -0800
+
+    Switch to new bots 🤖 (#1954)
+
+[33mcommit 9a5f2bb33e210df879891855fbf4c5e73c381d9a[m
+Author: Eric Jizba <erijiz@microsoft.com>
+Date:   Mon Feb 8 16:52:38 2021 -0800
+
+    Bump shared packages, including fix for ECONNRESET (#1952)
+
+[33mcommit b97456cc27e390b8dfacd76a6893800c95f33163[m
+Author: Nathan <naturins@microsoft.com>
+Date:   Fri Feb 5 14:02:27 2021 -0800
+
+    Make all strings localizable (#1950)
+    
+    * Make all strings localizable
+    
+    * PR feedback
+
+[33mcommit e0a3f9be1e06d4a01f215b1cbf42eab10009027a[m
+Author: Eric Jizba <erijiz@microsoft.com>
+Date:   Tue Feb 2 16:08:14 2021 -0800
+
+    Remove trial app functionality (#1947)
+
+[33mcommit d291d4d72effe8a76eb7e32fa71ebaef73b6c1d6[m
+Author: Eric Jizba <erijiz@microsoft.com>
+Date:   Fri Jan 22 12:20:12 2021 -0800
+
+    npm audit fix (#1935)
+
+[33mcommit 5785d0fbce8a440ed63b033423d0603aa1450120[m
+Author: Jamison Valentine <jamisont.valentine@gmail.com>
+Date:   Wed Jan 6 15:16:46 2021 -0500
+
+    Update README.md (#1921)
+    
+    fix grammar
+
+[33mcommit bae4fa7f40cb8ac9466c0d239082f8e0d117ba95[m
+Author: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+Date:   Thu Dec 10 16:51:12 2020 -0800
+
+    Bump ini from 1.3.5 to 1.3.7 (#1891)
+    
+    Bumps [ini](https://github.com/isaacs/ini) from 1.3.5 to 1.3.7.
+    - [Release notes](https://github.com/isaacs/ini/releases)
+    - [Commits](https://github.com/isaacs/ini/compare/v1.3.5...v1.3.7)
+    
+    Signed-off-by: dependabot[bot] <support@github.com>
+    
+    Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
+[33mcommit 57ba1a52dc44a351ace10a079ad548770ea66b03[m
+Author: Eric Jizba <erijiz@microsoft.com>
+Date:   Mon Dec 7 11:49:25 2020 -0800
+
+    Fix node 14 test (#1887)
+
+[33mcommit 463999cd4c02a43c036746283a974ff28cd05e2d[m
+Author: Eric Jizba <erijiz@microsoft.com>
+Date:   Mon Dec 7 11:49:15 2020 -0800
+
+    Remove early access workaround (#1886)
+    
+    Because it's no longer needed
+
+[33mcommit 6078666cbced199ea63a5911196034b5e85ac14d[m
+Author: Eric Jizba <erijiz@microsoft.com>
+Date:   Mon Dec 7 11:49:01 2020 -0800
+
+    Leverage "Report Issue" command (#1881)
+    
+    And suppress "Report an Issue" button
+
+[33mcommit 7c249bbce29d5e1f2bfd7a9186baad1e7b39f3f8[m
+Author: Eric Jizba <erijiz@microsoft.com>
+Date:   Fri Dec 4 14:46:45 2020 -0800
+
+    👊📦 (#1882)
+    
+    and "npm audit fix"
+
+[33mcommit 5eacc46309d513b05c5bf3b1569ade1ddc58c36e[m
+Author: Eric Jizba <erijiz@microsoft.com>
+Date:   Thu Dec 3 14:57:02 2020 -0800
+
+    Run "Create and Deploy" tests in parallel (#1866)
+
+[33mcommit 2b34d8a4e0cab16ef6dc72722fccd0275a992196[m
+Author: Eric Jizba <erijiz@microsoft.com>
+Date:   Thu Nov 19 13:45:55 2020 -0800
+
+    Add .NET 5 nightly test (#1843)
+
+[33mcommit 2e2bc2b12d317728a12dbb1a1931ade5e14b00a0[m
+Author: Eric Jizba <erijiz@microsoft.com>
+Date:   Tue Nov 10 14:12:11 2020 -0800
+
+    ɑ (#1849)
+
+[33mcommit 6248b5e6341d9c3e068141681634d3843012521b[m
+Author: Eric Jizba <erijiz@microsoft.com>
+Date:   Mon Nov 9 17:23:45 2020 -0800
+
+    Add 'Early Access' label to .NET 5 (#1847)
+
+[33mcommit d60897c9de02223de19e9e5454bc70160029c35f[m
+Author: Eric Jizba <erijiz@microsoft.com>
+Date:   Mon Nov 9 10:32:01 2020 -0800
+
+    Prep for release (#1842)
+
+[33mcommit 8dba0b2a51c3d29264f874e2b8a0fc5729794676[m
+Author: Eric Jizba <erijiz@microsoft.com>
+Date:   Thu Nov 5 14:03:35 2020 -0800
+
+    Use new api to display runtime stacks (#1835)
+
+[33mcommit f21fce186d1edfd5fc16c9f9e8fb2373da7b82b4[m
+Author: Eric Jizba <erijiz@microsoft.com>
+Date:   Wed Oct 28 16:46:47 2020 -0700
+
+    Add "View Properties" for web apps (#1829)
+
+[33mcommit 91a5e4cea58b9598dbe6234ddf2c6d4333cce600[m
+Author: Steve Dower <steve.dower@microsoft.com>
+Date:   Wed Oct 28 23:46:24 2020 +0000
+
+    Add survey prompt on certain python deployment failures (#1783)
+
+[33mcommit a3f7a55c264852f6092baf8ba9b35ff392ebe8b3[m
+Author: Eric Jizba <erijiz@microsoft.com>
+Date:   Tue Oct 27 15:37:18 2020 -0700
+
+    Fix error when uploading to remote file (#1827)
+
+[33mcommit e2397c0b809117de1ec10b62669d3dbe647523b1[m
+Author: Eric Jizba <erijiz@microsoft.com>
+Date:   Mon Oct 26 17:32:26 2020 -0700
+
+    Copy SiteRuntimeStep over from appservice package (#1824)
+
+[33mcommit cda24ada6cce1ea7775ba93f38e019b6658c4bf3[m
+Author: Eric Jizba <erijiz@microsoft.com>
+Date:   Mon Oct 26 13:06:36 2020 -0700
+
+    Fix nightly deploy tests (#1820)
+
+[33mcommit 6304427f7fbe3adc8c6791195e86ffbbc725aa4d[m
+Author: Eric Jizba <erijiz@microsoft.com>
+Date:   Fri Oct 23 12:25:42 2020 -0700
+
+    Use main branch when packaging vsix (#1819)
+
+[33mcommit b5a0bdfd6fc4d0bef8dcb6c8167318355f7f88a7[m
+Author: Eric Jizba <erijiz@microsoft.com>
+Date:   Thu Oct 22 15:40:30 2020 -0700
+
+    Update to new azure-sdk-for-js (#1816)
+
+[33mcommit f6e78c815675a5025eac42c66158baed0f5cc180[m
+Author: AzureMentor <30055505+AzureMentor@users.noreply.github.com>
+Date:   Tue Oct 20 16:39:26 2020 -0400
+
+    Fixed grammar (#1813)
+    
+    Minor grammar correction.
+
+[33mcommit 3b4d08fc4327411b72c79fcaa63b150ee8b9055e[m
+Author: Eric Jizba <erijiz@microsoft.com>
+Date:   Thu Oct 1 10:15:31 2020 -0700
+
+    Turn on lint rule for variable-declaration (#1788)
+
+[33mcommit c2268eaa8a478c84aea6b1e3de4cf1edc3c15832[m
+Author: Nathan <naturins@microsoft.com>
+Date:   Thu Sep 17 15:01:02 2020 -0700
+
+    Convert master to main in repos we contribute to (#1775)
+
+[33mcommit b4cec5cc748e23833e191645ea295e3cc0d7f28a[m[33m ([m[1;31morigin/master[m[33m, [m[1;31morigin/HEAD[m[33m)[m
+Author: Neelima Potharaj <nepothar@microsoft.com>
+Date:   Tue Sep 15 16:42:53 2020 -0700
+
+    Release Candidate 0.19.0 (#1770)
+
+[33mcommit d9583850960aa9f5e6dd5c716e130e9dd7b6871e[m
+Author: Neelima Potharaj <nepothar@microsoft.com>
+Date:   Tue Sep 8 18:40:33 2020 -0700
+
+    Updates to connections - Postgres support to Azure Databases connections (#1734)
+
+[33mcommit 043f9dc2706587654da8f18ad4fb6a006b440cb7[m
+Author: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+Date:   Wed Sep 2 10:25:11 2020 -0700
+
+    Bump bl from 4.0.2 to 4.0.3 (#1751)
+    
+    Bumps [bl](https://github.com/rvagg/bl) from 4.0.2 to 4.0.3.
+    - [Release notes](https://github.com/rvagg/bl/releases)
+    - [Commits](https://github.com/rvagg/bl/compare/v4.0.2...v4.0.3)
+    
+    Signed-off-by: dependabot[bot] <support@github.com>
+    
+    Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
+[33mcommit 8980313fda186bb71e2abee1fba061cac0ce4976[m
+Author: Eric Jizba <erijiz@microsoft.com>
+Date:   Wed Aug 26 13:47:14 2020 -0700
+
+    Exclude dev sections from marketplace page (#1743)
+    
+    Same as https://github.com/microsoft/vscode-azurefunctions/pull/2339
+
+[33mcommit 9a3b30d27ac877859bf186e42e2e4962150437cf[m
+Author: Eric Jizba <erijiz@microsoft.com>
+Date:   Wed Aug 26 13:39:35 2020 -0700
+
+    Add cred scan to nightly build (#1744)
+
+[33mcommit 68f16a9011e164e6a4cb282d171763a5c6ef2c60[m
+Author: Eric Jizba <erijiz@microsoft.com>
+Date:   Wed Aug 26 13:39:22 2020 -0700
+
+    Change linux key binding for azure view (#1745)
+    
+    Same as https://github.com/microsoft/vscode-cosmosdb/pull/1489
+
+[33mcommit e6f7b3fc2bf0af15a5f3926d179852ac18e062d9[m
+Author: Neelima Potharaj <nepothar@microsoft.com>
+Date:   Thu Aug 20 15:56:16 2020 -0700
+
+    Remove Connections node and move up Azure Databases node (#1737)
+
+[33mcommit 2407ccfe850add09d90aea139cb7607bbfa47a59[m
+Author: Nathan <naturins@microsoft.com>
+Date:   Mon Aug 10 16:15:51 2020 -0700
+
+    Bump alpha (#1724)
+
+[33mcommit f7536307b963f033feee7eb2d9e3e5ffa13cdf55[m
+Author: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+Date:   Thu Jul 30 10:25:56 2020 -0700
+
+    Bump elliptic from 6.5.2 to 6.5.3 (#1713)
+    
+    Bumps [elliptic](https://github.com/indutny/elliptic) from 6.5.2 to 6.5.3.
+    - [Release notes](https://github.com/indutny/elliptic/releases)
+    - [Commits](https://github.com/indutny/elliptic/compare/v6.5.2...v6.5.3)
+    
+    Signed-off-by: dependabot[bot] <support@github.com>
+    
+    Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
+[33mcommit 46fde731d6539da7faba90626cacbd0d5adfd8de[m
+Author: Alex Weininger <alex.weininger@live.com>
+Date:   Wed Jul 22 16:15:52 2020 -0700
+
+    Prep for 0.18.0 (#1638)
+    
+    * Update changelog
+    
+    * Bump version for release
+    
+    * Formatting
+    
+    * Change tryappservice url
+    
+    * Don't bump version yet
+    
+    * Update NOTICE.html
+    
+    * Update changelog
+    
+    * Bump version to 0.18.0
+    
+    * Update changelog
+    
+    * Update NOTICE.html
+
+[33mcommit a5675069010f5cfe9d179844ba3bcddef8610473[m
+Author: Alex Weininger <alex.weininger@live.com>
+Date:   Wed Jul 22 14:03:45 2020 -0700
+
+    Reorder loadMoreChildrenImpl calls (#1702)
+    
+    * Reorder loadMoreChildrenImpl calls
+
+[33mcommit e83d700b50a3eea08a8baf92c435e93921315551[m
+Author: Alex Weininger <alex.weininger@live.com>
+Date:   Tue Jul 21 19:38:55 2020 -0700
+
+    Tutorial tweaks (#1701)
+    
+    * Tutorial tweaks
+
+[33mcommit 7e76dd90217fa5df61ea3c88e48de9f9cdff37f2[m
+Author: Alex Weininger <alex.weininger@live.com>
+Date:   Mon Jul 20 12:10:34 2020 -0700
+
+    Fix removing cosmos connection (#1698)
+    
+    * Fix removing cosmos connection
+    
+    * Make CosmosDBConnection extend AzExtTreeItem
+
+[33mcommit 67bb5add3f5e6b4d846f5ff6200c3a4be5a2ba8e[m
+Author: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+Date:   Thu Jul 16 10:56:00 2020 -0700
+
+    Bump lodash from 4.17.15 to 4.17.19 (#1696)
+    
+    Bumps [lodash](https://github.com/lodash/lodash) from 4.17.15 to 4.17.19.
+    - [Release notes](https://github.com/lodash/lodash/releases)
+    - [Commits](https://github.com/lodash/lodash/compare/4.17.15...4.17.19)
+    
+    Signed-off-by: dependabot[bot] <support@github.com>
+    
+    Co-authored-by: dependabot[bot] <49699333+dependabot[bot]@users.noreply.github.com>
+
+[33mcommit c5c2fe1e2867c4cd62c6f642b5519996db462ba6[m
+Author: Eric Jizba <erijiz@microsoft.com>
+Date:   Wed Jul 15 11:04:32 2020 -0700
+
+    👊 app service 📦 (#1695)
+
+[33mcommit c49bb75b037f6b13c9c671819bc043abe85793ff[m
+Author: Eric Jizba <erijiz@microsoft.com>
+Date:   Mon Jul 13 17:07:08 2020 -0700
+
+    Add PoliCheck to build definition (#1692)
+    
+    Same as https://github.com/microsoft/vscode-azurefunctions/pull/2240
+
+[33mcommit fa69a0dec83d12f9eb84f94875606ee36dd66f7d[m
+Author: Alex Weininger <alex.weininger@live.com>
+Date:   Fri Jul 10 10:58:30 2020 -0700
+
+    Output logs when opening and uploading files (#1689)
+    
+    * Output logs when opening and uploading files
+    
+    * Don't show output channel
+
+[33mcommit 1a1ea8d60009d2a8f750346ce41731c8180e2c41[m
+Author: Alex Weininger <alex.weininger@live.com>
+Date:   Tue Jul 7 18:06:28 2020 -0700
+
+    Add trial app commands to command palette (#1679)
+    
+    * Add trial app commands to command palette
+    
+    * Fix remove command
+    
+    * All setContext logic inside one function
+    
+    * Title case commands
+
+[33mcommit e2237f5ec6733a5f38575bbc93997c85144c4968[m
+Author: Alex Weininger <alex.weininger@live.com>
+Date:   Tue Jul 7 16:35:33 2020 -0700
+
+    Notification to explain installing Didact on showTutorial (#1677)
+    
+    * Nofication to explain installing Didact
+    
+    * Update installExtension
+
+[33mcommit 6f0cd2a698311c80fff650c2f8be2de0b37dad62[m
+Author: Alex Weininger <alex.weininger@live.com>
+Date:   Tue Jul 7 15:58:38 2020 -0700
+
+    Make pictures in tutorial larger (#1673)
+    
+    * Make pictures in tutorial larger
+    * Redo screenshots, remove extra deploy step
+    * Remove extra images
+
+[33mcommit 2057e3b941f1ccdb47333da9eb93108099c18e19[m
+Author: Alex Weininger <alex.weininger@live.com>
+Date:   Tue Jul 7 14:10:45 2020 -0700
+
+    Auto refresh trial app (#1674)
+
+[33mcommit 1e2ab3dc3e3c8beb4a42bd8e5232ce394d42066a[m
+Author: Alex Weininger <alex.weininger@live.com>
+Date:   Tue Jul 7 11:57:05 2020 -0700
+
+    Replace Cosmos DB with Azure Databases (#1678)
+    
+    * Replace Cosmos DB with Azure Databases
+    
+    * Replace instances in package.json
+    
+    * Replace in error message
+
+[33mcommit 19bbd94da04504b12ded98a142a0013d2bac6e1f[m
+Author: Alex Weininger <alex.weininger@live.com>
+Date:   Mon Jul 6 17:29:29 2020 -0700
+
+    Remove connections node from trial app (#1676)
+
+[33mcommit 68d42a60cc3a2a23f9da020cae23ce2aaa4fb7dd[m
+Author: Alex Weininger <alex.weininger@live.com>
+Date:   Mon Jul 6 15:46:28 2020 -0700
+
+    Suppress report issue on operation not supported (#1671)
+    
+    * Suppress report issue on operation not supported
+    * Add context to constructor
+
+[33mcommit 371d20c241db220c6d9541cd39a82e52ba246240[m
+Author: Alex Weininger <alex.weininger@live.com>
+Date:   Mon Jul 6 11:57:15 2020 -0700
+
+    Fix duplicate element id for WebJobsNA items (#1654)
+
+[33mcommit 5694b870027aacd3b746f2bdf5e34bb2a714c4c2[m
+Author: Alex Weininger <alex.weininger@live.com>
+Date:   Thu Jul 2 17:41:44 2020 -0700
+
+    Sort commands in registerCommands 🗃 (#1653)
+
+[33mcommit bc93b9670da35e68c5744eed9091075950db23ad[m
+Author: Alex Weininger <alex.weininger@live.com>
+Date:   Thu Jul 2 17:21:25 2020 -0700
+
+    Add telemetry properties to trial app commands (#1652)
+    
+    * Add telemetry property to trial app commands
+    * Create addTrialAppTelemetry function
+
+[33mcommit 8cfe31759eba8f1a61b17abb3dfb4f8175167462[m
+Author: Alex Weininger <alex.weininger@live.com>
+Date:   Thu Jul 2 16:16:32 2020 -0700
+
+    Make casing consistent in tutorial (#1651)
+    
+    * Make casing consistent
+
+[33mcommit db7baa66132b10449b459c22be0fa561b64e6147[m
+Author: Eric Jizba <erijiz@microsoft.com>
+Date:   Thu Jul 2 12:51:05 2020 -0700
+
+    Use `getDeployNode` and `showDeployConfirmation` from shared package (#1650)
+
+[33mcommit bc887e4ade9ba672d6a06cf06fafdcfcec8fe020[m
+Author: Alex Weininger <alex.weininger@live.com>
+Date:   Thu Jul 2 10:35:47 2020 -0700
+
+    Add modal on removing trial app (#1649)
+    
+    * Add modal on removing trial app
+
+[33mcommit 6098bb5fe815f85a2cd368fc5144978ad66125c0[m
+Author: Alex Weininger <alex.weininger@live.com>
+Date:   Wed Jul 1 18:28:23 2020 -0700
+
+    Better handle expired Trial apps (#1648)
+    
+    * Better handle expired Trial apps
+
+[33mcommit 66dbacfb19f0dfdf58ff02d9370e7a4035e5f503[m
+Author: Alex Weininger <alex.weininger@live.com>
+Date:   Wed Jul 1 12:42:31 2020 -0700
+
+    Fix throwing OperationNotSupported errors (#1647)
+    
+    * Fix OperationNotSupported errors
+
+[33mcommit ebff36479cdd6ac3f5277f92db0f583c4d3cb3ed[m
+Author: v-wuzhai <46013274+v-wuzhai@users.noreply.github.com>
+Date:   Tue Jun 30 23:25:51 2020 -0700
+
+    Add a test case for deploying .net core 3.1 project to linux web app (#1633)
+    
+    Co-authored-by: Jason Zhai <AzureTest@vwuzhai002.redmond.corp.microsoft.com>
+
+[33mcommit 78a40bfdf2417418906f7a3e342f7409b9efdbfc[m
+Author: Alex Weininger <alex.weininger@live.com>
+Date:   Tue Jun 30 17:32:28 2020 -0700
+
+    Remove delay (#1639)
+    
+    * Remove delay
+    
+    * Update appservice version
