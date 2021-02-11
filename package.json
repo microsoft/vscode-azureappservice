@@ -1,7 +1,7 @@
 {
     "name": "vscode-azureappservice",
     "displayName": "Azure App Service",
-    "description": "An Azure App Service management extension for Visual Studio Code.",
+    "description": "%appService.description",
     "version": "0.20.1-alpha",
     "publisher": "ms-azuretools",
     "icon": "resources/WebApp.png",
@@ -76,7 +76,7 @@
         "commands": [
             {
                 "command": "appService.selectSubscriptions",
-                "title": "Select Subscriptions...",
+                "title": "%appService.selectSubscriptions%",
                 "icon": {
                     "light": "resources/light/filter.svg",
                     "dark": "resources/dark/filter.svg"
@@ -84,7 +84,7 @@
             },
             {
                 "command": "appService.CreateWebApp",
-                "title": "Create New Web App...",
+                "title": "%appService.CreateWebApp%",
                 "category": "Azure App Service",
                 "icon": {
                     "light": "resources/light/createAppSvc.svg",
@@ -93,12 +93,12 @@
             },
             {
                 "command": "appService.CreateWebAppAdvanced",
-                "title": "Create New Web App... (Advanced)",
+                "title": "%appService.CreateWebAppAdvanced%",
                 "category": "Azure App Service"
             },
             {
                 "command": "appService.Deploy",
-                "title": "Deploy to Web App...",
+                "title": "%appService.Deploy%",
                 "category": "Azure App Service",
                 "icon": {
                     "light": "resources/light/Deploy.svg",
@@ -107,7 +107,7 @@
             },
             {
                 "command": "appService.Refresh",
-                "title": "Refresh",
+                "title": "%appService.Refresh%",
                 "category": "Azure App Service",
                 "icon": {
                     "light": "resources/light/refresh.svg",
@@ -116,182 +116,182 @@
             },
             {
                 "command": "appService.LoadMore",
-                "title": "Load More",
+                "title": "%appService.LoadMore%",
                 "category": "Azure App Service"
             },
             {
                 "command": "appService.OpenInPortal",
-                "title": "Open in Portal",
+                "title": "%appService.OpenInPortal%",
                 "category": "Azure App Service"
             },
             {
                 "command": "appService.Browse",
-                "title": "Browse Website",
+                "title": "%appService.Browse%",
                 "category": "Azure App Service"
             },
             {
                 "command": "appService.Start",
-                "title": "Start",
+                "title": "%appService.Start%",
                 "category": "Azure App Service"
             },
             {
                 "command": "appService.Stop",
-                "title": "Stop",
+                "title": "%appService.Stop%",
                 "category": "Azure App Service"
             },
             {
                 "command": "appService.Restart",
-                "title": "Restart",
+                "title": "%appService.Restart%",
                 "category": "Azure App Service"
             },
             {
                 "command": "appService.Delete",
-                "title": "Delete...",
+                "title": "%appService.Delete%",
                 "category": "Azure App Service"
             },
             {
                 "command": "appService.DeploymentScript",
-                "title": "Generate Azure CLI Script",
+                "title": "%appService.DeploymentScript%",
                 "category": "Azure App Service"
             },
             {
                 "command": "appService.ConfigureDeploymentSource",
-                "title": "Configure Deployment Source...",
+                "title": "%appService.ConfigureDeploymentSource%",
                 "category": "Azure App Service"
             },
             {
                 "command": "appService.SwapSlots",
-                "title": "Swap Deployment Slot...",
+                "title": "%appService.SwapSlots%",
                 "category": "Azure App Service"
             },
             {
                 "command": "appService.appSettings.Add",
-                "title": "Add New Setting...",
+                "title": "%appService.appSettings.Add%",
                 "category": "Azure App Service"
             },
             {
                 "command": "appService.appSettings.Edit",
-                "title": "Edit...",
+                "title": "%appService.appSettings.Edit%",
                 "category": "Azure App Service"
             },
             {
                 "command": "appService.appSettings.Rename",
-                "title": "Rename...",
+                "title": "%appService.appSettings.Rename%",
                 "category": "Azure App Service"
             },
             {
                 "command": "appService.appSettings.Delete",
-                "title": "Delete...",
+                "title": "%appService.appSettings.Delete%",
                 "category": "Azure App Service"
             },
             {
                 "command": "appService.appSettings.Download",
-                "title": "Download Remote Settings...",
+                "title": "%appService.appSettings.Download%",
                 "category": "Azure App Service"
             },
             {
                 "command": "appService.appSettings.Upload",
-                "title": "Upload Local Settings...",
+                "title": "%appService.appSettings.Upload%",
                 "category": "Azure App Service"
             },
             {
                 "command": "appService.appSettings.ToggleSlotSetting",
-                "title": "Toggle as Slot Setting",
+                "title": "%appService.appSettings.ToggleSlotSetting%",
                 "category": "Azure App Service"
             },
             {
                 "command": "appService.startStreamingLogs",
-                "title": "Start Streaming Logs",
+                "title": "%appService.startStreamingLogs%",
                 "category": "Azure App Service"
             },
             {
                 "command": "appService.StopLogStream",
-                "title": "Stop Streaming Logs",
+                "title": "%appService.StopLogStream%",
                 "category": "Azure App Service"
             },
             {
                 "command": "appService.CreateSlot",
-                "title": "Create New Deployment Slot...",
+                "title": "%appService.CreateSlot%",
                 "category": "Azure App Service"
             },
             {
                 "command": "appService.DeploySlot",
-                "title": "Deploy to Slot...",
+                "title": "%appService.DeploySlot%",
                 "category": "Azure App Service"
             },
             {
                 "command": "appService.StartRemoteDebug",
-                "title": "Start Remote Debugging",
+                "title": "%appService.StartRemoteDebug%",
                 "category": "Azure App Service"
             },
             {
                 "command": "appService.StartSsh",
-                "title": "SSH into Web App",
+                "title": "%appService.StartSsh%",
                 "category": "Azure App Service"
             },
             {
                 "command": "appService.ScaleUp",
-                "title": "Scale up App Service Plan...",
+                "title": "%appService.ScaleUp%",
                 "category": "Azure App Service"
             },
             {
                 "command": "appService.EnableFileLogging",
-                "title": "Enable File Logging",
+                "title": "%appService.EnableFileLogging%",
                 "category": "Azure App Service"
             },
             {
                 "command": "appService.InstallCosmosDBExtension",
-                "title": "Install Azure Databases Extension",
+                "title": "%appService.InstallCosmosDBExtension%",
                 "category": "Azure App Service"
             },
             {
                 "command": "appService.RevealConnection",
-                "title": "Reveal in Azure Databases Extension",
+                "title": "%appService.RevealConnection%",
                 "category": "Azure App Service"
             },
             {
                 "command": "appService.AddAzureDatabasesConnection",
-                "title": "Add Database Connection to Web App...",
+                "title": "%appService.AddAzureDatabasesConnection%",
                 "category": "Azure App Service"
             },
             {
                 "command": "appService.RemoveCosmosDBConnection",
-                "title": "Remove Connection...",
+                "title": "%appService.RemoveCosmosDBConnection%",
                 "category": "Azure App Service"
             },
             {
                 "command": "appService.Redeploy",
-                "title": "Redeploy",
+                "title": "%appService.Redeploy%",
                 "category": "Azure App Service"
             },
             {
                 "command": "appService.viewDeploymentLogs",
-                "title": "View Deployment Logs",
+                "title": "%appService.viewDeploymentLogs%",
                 "category": "Azure App Service"
             },
             {
                 "command": "appService.ViewCommitInGitHub",
-                "title": "View Commit in GitHub",
+                "title": "%appService.ViewCommitInGitHub%",
                 "category": "Azure App Service"
             },
             {
                 "command": "appService.connectToGitHub",
-                "title": "Connect to GitHub Repository...",
+                "title": "%appService.connectToGitHub%",
                 "category": "Azure App Service"
             },
             {
                 "command": "appService.DisconnectRepo",
-                "title": "Disconnect from Repo...",
+                "title": "%appService.DisconnectRepo%",
                 "category": "Azure App Service"
             },
             {
                 "command": "appService.RevealConnectionInAppSettings",
-                "title": "Reveal in Application Settings",
+                "title": "%appService.RevealConnectionInAppSettings%",
                 "category": "Azure App Service"
             },
             {
                 "command": "appService.toggleAppSettingVisibility",
-                "title": "Toggle App Value Visibility",
+                "title": "%appService.toggleAppSettingVisibility%",
                 "category": "Azure App Service",
                 "icon": {
                     "light": "resources/light/Visible_Visible_16x.svg",
@@ -300,7 +300,7 @@
             },
             {
                 "command": "appService.ViewProperties",
-                "title": "View Properties",
+                "title": "%appService.ViewProperties%",
                 "category": "Azure App Service"
             },
             {
@@ -688,13 +688,13 @@
                 "appService.showExplorer": {
                     "type": "boolean",
                     "default": true,
-                    "description": "Show or hide the App Service Explorer"
+                    "description": "%appService.showExplorer%"
                 },
                 "appService.zipGlobPattern": {
                     "scope": "resource",
                     "type": "string",
                     "default": "**/*",
-                    "description": "Defines which files in the workspace to deploy. This applies to Zip deploy only, has no effect on other deployment methods."
+                    "description": "%appService.zipGlobPattern%"
                 },
                 "appService.zipIgnorePattern": {
                     "scope": "resource",
@@ -703,50 +703,50 @@
                         "array"
                     ],
                     "default": [],
-                    "description": "Defines which files in the workspace to ignore for Zip deploy. This applies to Zip deploy only, has no effect on other deployment methods."
+                    "description": "%appService.zipIgnorePattern%"
                 },
                 "appService.showSavePrompt": {
                     "type": "boolean",
                     "default": true,
-                    "description": "Show warning dialog on remote file uploading."
+                    "description": "%appService.showSavePrompt%"
                 },
                 "appService.showBuildDuringDeployPrompt": {
                     "scope": "resource",
                     "type": "boolean",
                     "default": true,
-                    "description": "Show prompt to improve performance of Zip Deploy by excluding build artifacts from the zip file and running a build during deployment."
+                    "description": "%appService.showBuildDuringDeployPrompt%"
                 },
                 "appService.deploySubpath": {
                     "scope": "resource",
                     "type": "string",
-                    "description": "The default subpath of a workspace folder to use when deploying."
+                    "description": "%appService.deploySubpath%"
                 },
                 "appService.defaultWebAppToDeploy": {
                     "scope": "resource",
                     "type": "string",
-                    "description": "The default web app to use when deploying represented by its full Azure id.  Every subsequent deployment of this workspace will deploy to this web app or slot. Can be disabled by setting to \"None\""
+                    "description": "%appService.defaultWebAppToDeploy%"
                 },
                 "appService.connections": {
                     "type": "array",
-                    "description": "Array of web apps with its connections",
+                    "description": "%appService.connections%",
                     "required": [
                         "webAppId"
                     ],
                     "items": {
                         "type": "object",
-                        "description": "Connections of specific web app.",
+                        "description": "%appService.connections.connection%",
                         "additionalProperties": false,
                         "properties": {
                             "webAppId": {
                                 "type": "string",
-                                "description": "Web app id."
+                                "description": "%appService.connections.appId%"
                             },
                             "cosmosDB": {
                                 "type": "array",
-                                "description": "Array of Cosmos DB database ids.",
+                                "description": "%appService.connections.dbArray%",
                                 "items": {
                                     "type": "string",
-                                    "description": "Connection id"
+                                    "description": "%appService.connections.connId%"
                                 }
                             }
                         }
@@ -755,13 +755,13 @@
                 "appService.showPreDeployWarning": {
                     "scope": "resource",
                     "type": "boolean",
-                    "description": "Shows warning that project is not configured for VS Code deployments",
+                    "description": "%appService.showPreDeployWarning%",
                     "default": true
                 },
                 "appService.preDeployTask": {
                     "scope": "resource",
                     "type": "string",
-                    "description": "The name of the task to run before deploying."
+                    "description": "%appService.preDeployTask%"
                 },
                 "appService.postDeployTask": {
                     "scope": "resource",
@@ -771,31 +771,31 @@
                 "appService.showPlanPerformanceWarning": {
                     "type": "boolean",
                     "default": true,
-                    "description": "Shows a warning that performance may drop when creating an app in an App Service Plan that has more than 3 web apps associated to it"
+                    "description": "%appService.showPlanPerformanceWarning%"
                 },
                 "appService.showDeploySubpathWarning": {
                     "type": "boolean",
-                    "description": "Show a warning when the \"deploySubpath\" setting does not match the selected folder for deploying.",
+                    "description": "%appService.showDeploySubpathWarning%",
                     "default": true
                 },
                 "appService.enableOutputTimestamps": {
                     "type": "boolean",
-                    "description": "Prepends each line displayed in the Azure App Service output channel with a timestamp",
+                    "description": "%appService.enableOutputTimestamps%",
                     "default": true
                 },
                 "appService.enablePythonRemoteDebugging": {
                     "type": "boolean",
-                    "description": "Enable remote debugging for Python web apps (experimental)",
+                    "description": "%appService.enablePythonRemoteDebugging%",
                     "default": false
                 },
                 "appService.showDeployConfirmation": {
                     "type": "boolean",
-                    "description": "Ask for confirmation before deploying to Azure App Service (deploying will overwrite any previous deployment and cannot be undone).",
+                    "description": "%appService.showDeployConfirmation%",
                     "default": true
                 },
                 "appService.showHiddenStacks": {
                     "type": "boolean",
-                    "description": "Show hidden runtime stacks when creating a web app in Azure. WARNING: These stacks may be in preview or may not be available in all regions.",
+                    "description": "%appService.showHiddenStacks%",
                     "default": false
                 }
             }
