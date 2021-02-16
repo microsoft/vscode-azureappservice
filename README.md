@@ -24,7 +24,7 @@ for VS Code to quickly create, manage, and deploy your websites.
 4. Sign in to your Azure Account by clicking Sign in to Azure…
     >  If you don't already have an Azure Account, click "Create a Free Azure Account"
 
-## Deploy your first Node.js app to Azure
+## Deploy your first app to Azure
 
 Once you are signed in to your Azure account and you have your app open in Visual
 Studio Code, click the deploy button in the Azure App Service explorer - it's
@@ -36,10 +36,10 @@ the blue up arrow - to deploy your app.
 
 1. Choose **Create New App**
 2. Type a globally unique name for your Web App and press Enter. Valid characters for an app name are 'a-z', '0-9', and '-'
-3. Choose your **Node.js version**, LTS is recommended
+3. Choose your **Runtime stack**
 4. Select your current workspace if you have your app open already or browse to the directory containing your application code
 
-Click **Yes** when prompted to update your configuration to run `npm install` on the target server.
+Click **Yes** if prompted to update your configuration to run `npm install` on the target server.
 
 ![Update build notification](resources/update-build-notification.png)
 
