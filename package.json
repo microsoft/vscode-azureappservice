@@ -799,12 +799,7 @@
                     "default": false
                 }
             }
-        },
-        "breakpoints": [
-            {
-                "language": "javascript"
-            }
-        ]
+        }
     },
     "scripts": {
         "vscode:prepublish": "npm run webpack-prod",
