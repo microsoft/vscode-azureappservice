@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { ExtensionContext, TreeView } from "vscode";
-import { AzExtTreeDataProvider, AzExtTreeItem, IAzExtOutputChannel, IAzureUserInput } from "vscode-azureextensionui";
+import { AzExtTreeDataProvider, AzExtTreeItem, IAzExtOutputChannel, IAzureUserInput, IExperimentationServiceAdapter } from "vscode-azureextensionui";
 import { AppServiceFileSystem } from "./AppServiceFileSystem";
 import { AzureAccountTreeItem } from "./explorer/AzureAccountTreeItem";
 
@@ -22,4 +22,5 @@ export namespace ext {
     export let tree: AzExtTreeDataProvider;
     export let treeView: TreeView<AzExtTreeItem>;
     export let azureAccountTreeItem: AzureAccountTreeItem;
+    export let experimentationService: IExperimentationServiceAdapter;
 }

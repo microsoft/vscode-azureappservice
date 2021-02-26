@@ -5,7 +5,7 @@
 
 import * as vscode from 'vscode';
 import { registerAppServiceExtensionVariables } from 'vscode-azureappservice';
-import { AzExtTreeDataProvider, AzureUserInput, callWithTelemetryAndErrorHandling, createApiProvider, createAzExtOutputChannel, IActionContext, IAzureUserInput, registerErrorHandler, registerReportIssueCommand, registerUIExtensionVariables } from 'vscode-azureextensionui';
+import { AzExtTreeDataProvider, AzureUserInput, callWithTelemetryAndErrorHandling, createApiProvider, createAzExtOutputChannel, createExperimentationService, IActionContext, IAzureUserInput, registerErrorHandler, registerReportIssueCommand, registerUIExtensionVariables } from 'vscode-azureextensionui';
 import { AzureExtensionApi, AzureExtensionApiProvider } from 'vscode-azureextensionui/api';
 import { AppServiceFileSystem } from './AppServiceFileSystem';
 import { revealTreeItem } from './commands/api/revealTreeItem';
@@ -32,7 +32,7 @@ export async function activateInternal(
     registerUIExtensionVariables(ext);
     registerAppServiceExtensionVariables(ext);
 
-    await callWithTelemetryAndErrorHandling('appService.activate', (activateContext: IActionContext) => {
+    await callWithTelemetryAndErrorHandling('appService.activate', async (activateContext: IActionContext) => {
         activateContext.telemetry.properties.isActivationEvent = 'true';
         activateContext.telemetry.measurements.mainFileLoad = (perfStats.loadEndTime - perfStats.loadStartTime) / 1000;
 
@@ -51,6 +51,8 @@ export async function activateInternal(
         // Suppress "Report an Issue" button for all errors in favor of the command
         registerErrorHandler(c => c.errorHandling.suppressReportIssue = true);
         registerReportIssueCommand('appService.ReportIssue');
+
+        ext.experimentationService = await createExperimentationService(context);
     });
 
     return createApiProvider([<AzureExtensionApi>{
