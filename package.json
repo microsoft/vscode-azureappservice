@@ -831,7 +831,7 @@
         "fs-extra": "^8.0.0",
         "moment": "^2.24.0",
         "portfinder": "^1.0.25",
-        "vscode-azureappservice": "^0.73.0",
+        "vscode-azureappservice": "^0.73.1",
         "vscode-azureextensionui": "^0.39.4",
         "vscode-azurekudu": "^0.2.0",
         "vscode-nls": "^4.1.1",
