@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { WebSiteManagementClient, WebSiteManagementModels } from '@azure/arm-appservice';
-import { AppInsightsCreateStep, AppInsightsListStep, AppKind, AppServicePlanCreateStep, AppServicePlanListStep, setLocationsTask, SiteClient, SiteNameStep } from 'vscode-azureappservice';
+import { AppInsightsCreateStep, AppInsightsListStep, AppKind, AppServicePlanCreateStep, AppServicePlanListStep, AppServicePlanSkuStep, setLocationsTask, SiteClient, SiteNameStep } from 'vscode-azureappservice';
 import { AzExtTreeItem, AzureTreeItem, AzureWizard, AzureWizardExecuteStep, AzureWizardPromptStep, createAzureClient, ICreateChildImplContext, LocationListStep, parseError, ResourceGroupCreateStep, ResourceGroupListStep, SubscriptionTreeItemBase, VerifyProvidersStep } from 'vscode-azureextensionui';
 import { IWebAppWizardContext } from '../commands/createWebApp/IWebAppWizardContext';
 import { setPostPromptDefaults } from '../commands/createWebApp/setPostPromptDefaults';
@@ -85,6 +85,7 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
             promptSteps.push(new AppInsightsListStep());
         } else {
             promptSteps.push(new WebAppStackStep());
+            promptSteps.push(new AppServicePlanSkuStep());
             executeSteps.push(new ResourceGroupCreateStep());
             executeSteps.push(new AppServicePlanCreateStep());
             executeSteps.push(new AppInsightsCreateStep());

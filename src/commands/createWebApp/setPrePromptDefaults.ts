@@ -29,8 +29,6 @@ export async function setPrePromptDefaults(wizardContext: IWebAppWizardContext &
         } else if (await javaUtils.isJavaProject(fsPath)) {
             wizardContext.recommendedSiteRuntime = ['java'];
 
-            // considering high resource requirement for Java applications, a higher plan sku is set here
-            wizardContext.newPlanSku = { name: 'P1v2', tier: 'PremiumV2', size: 'P1v2', family: 'P', capacity: 1 };
             // to avoid 'Requested features are not supported in region' error
             await LocationListStep.setLocation(wizardContext, 'weseteurope');
         }
@@ -39,11 +37,6 @@ export async function setPrePromptDefaults(wizardContext: IWebAppWizardContext &
     if (!wizardContext.advancedCreation) {
         if (!wizardContext.location) {
             await LocationListStep.setLocation(wizardContext, 'centralus');
-        }
-
-        if (!wizardContext.newPlanSku) {
-            // don't overwrite the planSku if it is already set
-            wizardContext.newPlanSku = { name: 'F1', tier: 'Free', size: 'F1', family: 'F', capacity: 1 };
         }
     }
 }
