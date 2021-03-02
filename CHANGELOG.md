@@ -1,11 +1,18 @@
 # Change Log
 
-## Unreleased
+## 0.21.0 - 2021-03-03
 ### Added
 - Now depends on the "Azure Resources" extension, which provides a "Resource Groups" and "Help and Feedback" view
+- "Create Web App" will show a simplified prompt for pricing tier
 
 ### Changed
 - "Report an Issue" button was removed from errors. Use the "Help and Feedback" view or command palette instead
+
+### Removed
+- Trial apps are no longer supported
+
+### [Fixed](https://github.com/microsoft/vscode-azureappservice/issues?q=is%3Aissue+milestone%3A0.21.0+is%3Aclosed)
+- Mitigated "ECONNRESET" errors by retrying the request
 
 ## 0.20.0 - 2020-11-10
 ### Added
