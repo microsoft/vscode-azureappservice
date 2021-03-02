@@ -17,6 +17,7 @@ import { IWebAppWizardContext } from './IWebAppWizardContext';
 import { AzConfig, AzConfigProperty, readAzConfig } from "./readAzConfig";
 
 const maxNumberOfSites: number = 3;
+const freeTier = 'free';
 
 export async function setPostPromptDefaults(wizardContext: IWebAppWizardContext, siteNameStep: SiteNameStep): Promise<void> {
     // Reading az config should always happen after prompting because it can cause a few seconds delay
@@ -27,21 +28,27 @@ export async function setPostPromptDefaults(wizardContext: IWebAppWizardContext,
     await LocationListStep.setLocation(wizardContext, config.location || nonNullProp(defaultLocation, 'name'));
     const location: SubscriptionModels.Location = nonNullProp(wizardContext, 'location');
 
-    const defaultName: string = `appsvc_${wizardContext.newSiteOS}_${location.name}`;
+    let defaultName: string = `appsvc_${wizardContext.newSiteOS}_${location.name}`;
+    const newSkuTier = nonNullProp(nonNullProp(wizardContext, 'newPlanSku'), 'tier').toLowerCase();
+    if (newSkuTier !== freeTier) {
+        // Use "premium" instead of "premium v2"
+        const simpleTierName = newSkuTier.split(/v[0-9]/)[0].trim();
+        defaultName += `_${simpleTierName}`;
+    }
     const defaultGroupName: string = config.group || defaultName;
     const defaultPlanName: string = defaultName;
 
     const client: WebSiteManagementClient = await createWebSiteClient(wizardContext);
     const asp: WebSiteManagementModels.AppServicePlan | undefined = await tryGetAppServicePlan(client, defaultGroupName, defaultPlanName);
-    if (asp && checkPlanForPerformanceDrop(asp)) {
+    const hasPerfDrop = checkPlanForPerformanceDrop(asp);
+    if (asp && (hasPerfDrop || !matchesTier(asp, newSkuTier))) {
         // Subscriptions can only have 1 free tier Linux plan so show a warning if there are too many apps on the plan
-        if (wizardContext.newSiteOS === WebsiteOS.linux) {
+        if (wizardContext.newSiteOS === WebsiteOS.linux && newSkuTier === freeTier && hasPerfDrop) {
             await promptPerformanceWarning(wizardContext, asp);
             wizardContext.newResourceGroupName = defaultGroupName;
             wizardContext.newPlanName = defaultPlanName;
         } else {
-            // Subscriptions can have 10 free tier Windows plans so just create a new one with a suffixed name
-            // If there are 10 plans, it'll throw an error that directs them to advanced create
+            // Check if there are plans prefixed with default name that match the tier and don't have a performance drop. If so, use that plan. Otherwise, create a new rg and asp using `getRelatedName`
 
             const allAppServicePlans: WebSiteManagementModels.AppServicePlan[] = await client.appServicePlans.list();
             const defaultPlans: WebSiteManagementModels.AppServicePlan[] = allAppServicePlans.filter(plan => {
@@ -53,7 +60,7 @@ export async function setPostPromptDefaults(wizardContext: IWebAppWizardContext,
                 if (plan.name) {
                     const groupName: string = getResourceGroupFromId(nonNullProp(plan, 'id'));
                     const fullPlanData: WebSiteManagementModels.AppServicePlan | undefined = await tryGetAppServicePlan(client, groupName, plan.name);
-                    if (fullPlanData && !checkPlanForPerformanceDrop(fullPlanData)) {
+                    if (fullPlanData && matchesTier(fullPlanData, newSkuTier) && !checkPlanForPerformanceDrop(fullPlanData)) {
                         wizardContext.newResourceGroupName = groupName;
                         wizardContext.newPlanName = plan.name;
                         break;
@@ -61,7 +68,6 @@ export async function setPostPromptDefaults(wizardContext: IWebAppWizardContext,
                 }
             }
 
-            // otherwise create a new rg and asp
             wizardContext.newResourceGroupName = wizardContext.newResourceGroupName || await siteNameStep.getRelatedName(wizardContext, defaultGroupName);
             if (!wizardContext.newResourceGroupName) {
                 throw new Error(localize('noUniqueNameRg', 'Failed to generate unique name for resources. Use advanced creation to manually enter resource names.'));
@@ -78,9 +84,17 @@ export async function setPostPromptDefaults(wizardContext: IWebAppWizardContext,
     }
 }
 
-function checkPlanForPerformanceDrop(asp: WebSiteManagementModels.AppServicePlan): boolean {
+function matchesTier(asp: WebSiteManagementModels.AppServicePlan | undefined, tier: string): boolean {
+    return normalizeTier(asp?.sku?.tier) === normalizeTier(tier);
+}
+
+function normalizeTier(tier: string | undefined): string | undefined {
+    return tier?.toLowerCase().replace(/\s/g, '');
+}
+
+function checkPlanForPerformanceDrop(asp: WebSiteManagementModels.AppServicePlan | undefined): boolean {
     // for free and basic plans, there is a perf drop after 3 active apps are running
-    if (asp.numberOfSites !== undefined && asp.numberOfSites >= maxNumberOfSites) {
+    if (asp && asp.numberOfSites !== undefined && asp.numberOfSites >= maxNumberOfSites) {
         const tier: string | undefined = asp.sku && asp.sku.tier;
         if (tier && /^(basic|free)$/i.test(tier)) {
             return true;
