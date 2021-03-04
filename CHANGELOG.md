@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.21.1 - 2021-03-04
+### Fixed
+- Marketplace description
+
 ## 0.21.0 - 2021-03-03
 ### Added
 - Now depends on the "Azure Resources" extension, which provides a "Resource Groups" and "Help and Feedback" view
