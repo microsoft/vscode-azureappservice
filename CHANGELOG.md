@@ -2,7 +2,7 @@
 
 ## 0.21.2 - 2021-03-09
 ### [Fixed](https://github.com/microsoft/vscode-azureappservice/issues/1571)
-- Deployments on WSL and Codespaces should no longer hang and fail by changing archiver
+- Changed archiver to fix hanging deployment failures on WSL and Codespaces
 
 ## 0.21.1 - 2021-03-04
 ### Fixed
