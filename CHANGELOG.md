@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.21.2 - 2021-03-09
+### [Fixed](https://github.com/microsoft/vscode-azureappservice/issues/1571)
+- Changed archiver to fix hanging deployment failures on WSL and Codespaces
+
 ## 0.21.1 - 2021-03-04
 ### Fixed
 - Marketplace description
