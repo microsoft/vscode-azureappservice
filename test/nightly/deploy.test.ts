@@ -11,6 +11,7 @@ import * as vscode from 'vscode';
 import { tryGetWebApp } from 'vscode-azureappservice';
 import { createGenericClient, createWebAppAdvanced, deploy, ext, getRandomHexString, nonNullProp, WebAppTreeItem } from '../../extension.bundle';
 import { createTestContext, ITestContext, longRunningTestsEnabled } from '../global.test';
+import { getLocation, getPricingTier } from './getRotatingValue';
 import { resourceGroupsToDelete, webSiteClient } from './global.resource.test';
 
 interface ITestCase {
@@ -41,12 +42,6 @@ interface IParallelTest {
 
 suite('Create Web App and deploy', function (this: Mocha.Suite): void {
     this.timeout(6 * 60 * 1000);
-    let pricingTierCount: number = -1;
-    let locationCount: number = -1;
-    const pricingTierItem: string[] = ['P1v2', 'P2v2', 'P3v2', 'B1', 'B2', 'B3', 'S1', 'S2', 'S3'];
-    const locationItem: string[] = ['Australia East', 'Australia Southeast', 'Brazil South', 'Canada Central', 'Central US', 'East Asia', 'East US', 'East US 2', 'France Central', 'Japan East', 'Japan West', 'Korea Central', 'Korea South', 'North Europe', 'South Central US', 'Southeast Asia', 'UK South', 'West Europe', 'West US', 'West US 2'];
-    new Date().getDate() % 2 === 0 ? locationItem : locationItem.reverse();
-
     const testCases: ITestCase[] = [
         {
             runtimePrefix: 'Node',
@@ -85,13 +80,11 @@ suite('Create Web App and deploy', function (this: Mocha.Suite): void {
             const oss: string[] = promptForOs ? ['Windows', 'Linux'] : [version.supportedAppOs];
             for (const os of oss) {
                 if (version.appOsToSkip !== os && version.buildMachineOsToSkip !== process.platform) {
-                    const pricingTier: string = getPricingTier(pricingTierItem);
-                    const location: string = getLocation(locationItem);
                     parallelTests.push({
-                        title: `${runtime}(pricingTier: ${pricingTier}, location: ${location}) - ${os}`,
+                        title: `${runtime} - ${os}`,
                         callback: async () => {
                             const testFolderPath: string = getWorkspacePath(testCase.workspaceFolder || version.version);
-                            await testCreateWebAppAndDeploy(os, promptForOs, runtime, pricingTier, location, testFolderPath, version.version);
+                            await testCreateWebAppAndDeploy(os, promptForOs, runtime, testFolderPath, version.version);
                         }
                     });
                 }
@@ -115,7 +108,7 @@ suite('Create Web App and deploy', function (this: Mocha.Suite): void {
         });
     }
 
-    async function testCreateWebAppAndDeploy(os: string, promptForOs: boolean, runtime: string, pricingTier: string, location: string, workspacePath: string, expectedVersion: string): Promise<void> {
+    async function testCreateWebAppAndDeploy(os: string, promptForOs: boolean, runtime: string, workspacePath: string, expectedVersion: string): Promise<void> {
         const resourceName: string = getRandomHexString();
         const resourceGroupName = getRandomHexString();
         resourceGroupsToDelete.push(resourceGroupName);
@@ -125,8 +118,7 @@ suite('Create Web App and deploy', function (this: Mocha.Suite): void {
             testInputs.push(os);
         }
 
-
-        testInputs.push('$(plus) Create new App Service plan', getRandomHexString(), pricingTier, '$(plus) Create new Application Insights resource', getRandomHexString(), location);
+        testInputs.push('$(plus) Create new App Service plan', getRandomHexString(), getPricingTier(), '$(plus) Create new Application Insights resource', getRandomHexString(), getLocation());
 
         const createContext: ITestContext = createTestContext();
         await createContext.ui.runWithInputs(testInputs, async () => {
@@ -146,16 +138,6 @@ suite('Create Web App and deploy', function (this: Mocha.Suite): void {
         const client: ServiceClient = await createGenericClient();
         const response: HttpOperationResponse = await client.sendRequest({ method: 'GET', url: hostUrl });
         assert.strictEqual(response.bodyAsText, `Version: ${expectedVersion}`);
-    }
-
-    function getPricingTier(pricingTierItem: string[]): string {
-        pricingTierCount += 1;
-        return pricingTierItem[pricingTierCount % pricingTierItem.length];
-    }
-
-    function getLocation(locationItem: string[]): string {
-        locationCount += 1;
-        return locationItem[locationCount % locationItem.length];
     }
 });
 
