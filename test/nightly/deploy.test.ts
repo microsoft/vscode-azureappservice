@@ -11,7 +11,7 @@ import * as vscode from 'vscode';
 import { tryGetWebApp } from 'vscode-azureappservice';
 import { createGenericClient, createWebAppAdvanced, deploy, ext, getRandomHexString, nonNullProp, WebAppTreeItem } from '../../extension.bundle';
 import { createTestContext, ITestContext, longRunningTestsEnabled } from '../global.test';
-import { getLocation, getPricingTier } from './getRotatingValue';
+import { getRotatingLocation, getRotatingPricingTier } from './getRotatingValue';
 import { resourceGroupsToDelete, webSiteClient } from './global.resource.test';
 
 interface ITestCase {
@@ -118,7 +118,7 @@ suite('Create Web App and deploy', function (this: Mocha.Suite): void {
             testInputs.push(os);
         }
 
-        testInputs.push('$(plus) Create new App Service plan', getRandomHexString(), getPricingTier(), '$(plus) Create new Application Insights resource', getRandomHexString(), getLocation());
+        testInputs.push('$(plus) Create new App Service plan', getRandomHexString(), getRotatingPricingTier(), '$(plus) Create new Application Insights resource', getRandomHexString(), getRotatingLocation());
 
         const createContext: ITestContext = createTestContext();
         await createContext.ui.runWithInputs(testInputs, async () => {
