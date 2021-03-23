@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 let locationCount: number = getStartingIndex();
-const locations: string[] = ['Australia East', 'Australia Southeast', 'Brazil South', 'Canada Central', 'Central US', 'East Asia', 'East US', 'East US 2', 'France Central', 'Japan East', 'Japan West', 'Korea Central', 'Korea South', 'North Europe', 'South Central US', 'Southeast Asia', 'UK South', 'West Europe', 'West US', 'West US 2'];
+const locations: string[] = ['Australia East', 'East Asia', 'East US', 'North Europe', 'South Central US', 'Southeast Asia', 'UK South', 'West Europe'];
 export function getRotatingLocation(): string {
     locationCount += 1;
     return locations[locationCount % locations.length];
@@ -24,8 +24,8 @@ function getStartingIndex(): number {
     if (process.platform === 'darwin') {
         return 0;
     } else if (process.platform === 'win32') {
-        return 5;
+        return 1;
     } else {
-        return 10;
+        return 2;
     }
 }
