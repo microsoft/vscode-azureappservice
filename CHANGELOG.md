@@ -1,5 +1,9 @@
 # Change Log
 
+## Unreleased
+### Changed
+- Minimum version of VS Code is now 1.53.0
+
 ## 0.21.2 - 2021-03-09
 ### [Fixed](https://github.com/microsoft/vscode-azureappservice/issues/1571)
 - Changed archiver to fix hanging deployment failures on WSL and Codespaces
