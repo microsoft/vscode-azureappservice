@@ -14,10 +14,12 @@ import { localize } from "../../localize";
 import * as workspaceUtil from '../../utils/workspace';
 import { getLocalEnvironmentVariables } from "./getLocalEnvironmentVariables";
 
-export async function uploadAppSettings(context: IActionContext, target?: Uri | AppSettingsTreeItem | undefined): Promise<void> {
+export async function uploadAppSettings(context: IActionContext, target?: Uri | AppSettingsTreeItem | undefined, filePath?: string): Promise<void> {
     let node: AppSettingsTreeItem | undefined;
     let envPath: string;
-    if (target instanceof Uri) {
+    if (filePath) {
+        envPath = filePath;
+    } else if (target instanceof Uri) {
         envPath = target.fsPath;
     } else {
         node = target;
