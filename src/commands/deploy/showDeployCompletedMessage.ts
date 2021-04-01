@@ -27,10 +27,9 @@ export async function showDeployCompletedMessage(node: SiteTreeItem): Promise<vo
             envPath = filesByFileExt[0].fsPath;
         }
         // don't wait
-        window.showInformationMessage(message, browseWebsiteBtn, streamLogs, uploadSettingsBtn).then(async (result: MessageItem | undefined) => {
+        await window.showInformationMessage(message, browseWebsiteBtn, streamLogs, uploadSettingsBtn).then(async (result: MessageItem | undefined) => {
             await callWithTelemetryAndErrorHandling('postDeploy', async (context: IActionContext) => {
                 context.telemetry.properties.dialogResult = result?.title;
-                console.log(context.telemetry);
                 if (result === AppServiceDialogResponses.viewOutput) {
                     ext.outputChannel.show();
                 } else if (result === browseWebsiteBtn) {
@@ -38,13 +37,13 @@ export async function showDeployCompletedMessage(node: SiteTreeItem): Promise<vo
                 } else if (result === streamLogs) {
                     await startStreamingLogs(context, node);
                 } else if (result === uploadSettingsBtn) {
-                    uploadAppSettings(context, undefined, envPath);
+                    await uploadAppSettings(context, undefined, envPath);
                 }
             });
         });
     } else {
         // don't wait
-        window.showInformationMessage(message, browseWebsiteBtn, streamLogs).then(async (result: MessageItem | undefined) => {
+        await window.showInformationMessage(message, browseWebsiteBtn, streamLogs).then(async (result: MessageItem | undefined) => {
             await callWithTelemetryAndErrorHandling('postDeploy', async (context: IActionContext) => {
                 context.telemetry.properties.dialogResult = result?.title;
                 if (result === AppServiceDialogResponses.viewOutput) {
