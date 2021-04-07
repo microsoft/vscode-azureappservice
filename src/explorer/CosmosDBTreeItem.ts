@@ -6,12 +6,12 @@
 import { WebSiteManagementModels } from '@azure/arm-appservice';
 import * as vscode from 'vscode';
 import { IAppSettingsClient, ISiteTreeRoot, validateAppSettingKey } from 'vscode-azureappservice';
-import { AzExtTreeItem, AzureParentTreeItem, GenericTreeItem, ICreateChildImplContext, openInPortal, UserCancelledError } from 'vscode-azureextensionui';
+import { AzExtTreeItem, AzureParentTreeItem, GenericTreeItem, ICreateChildImplContext, openInPortal, TreeItemIconPath, UserCancelledError } from 'vscode-azureextensionui';
 import { AzureExtensionApiProvider } from 'vscode-azureextensionui/api';
 import { ext } from '../extensionVariables';
 import { localize } from '../localize';
 import { nonNullProp } from '../utils/nonNull';
-import { getThemedIconPath, IThemedIconPath } from '../utils/pathUtils';
+import { getThemedIconPath } from '../utils/pathUtils';
 import { AzureDatabasesExtensionApi } from '../vscode-cosmos.api';
 import { CosmosDBConnection } from './CosmosDBConnection';
 import { SiteTreeItem } from './SiteTreeItem';
@@ -47,7 +47,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         return this.cosmosDBExtension ? CosmosDBTreeItem.contextValueInstalled : CosmosDBTreeItem.contextValueNotInstalled;
     }
 
-    public get iconPath(): IThemedIconPath {
+    public get iconPath(): TreeItemIconPath {
         return getThemedIconPath('AzureDatabases');
     }
 

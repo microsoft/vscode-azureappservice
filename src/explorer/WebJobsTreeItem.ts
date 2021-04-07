@@ -4,10 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { ISiteTreeRoot } from 'vscode-azureappservice';
-import { AzExtTreeItem, AzureParentTreeItem, GenericTreeItem } from 'vscode-azureextensionui';
+import { AzExtTreeItem, AzureParentTreeItem, GenericTreeItem, TreeItemIconPath } from 'vscode-azureextensionui';
 import { localize } from '../localize';
 import { nonNullProp } from '../utils/nonNull';
-import { getThemedIconPath, IThemedIconPath } from '../utils/pathUtils';
+import { getThemedIconPath } from '../utils/pathUtils';
 import { NotAvailableTreeItem } from './NotAvailableTreeItem';
 
 const label: string = localize('webJobs', 'WebJobs');
@@ -21,7 +21,7 @@ export class WebJobsTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         return 'webJobs';
     }
 
-    public get iconPath(): IThemedIconPath {
+    public get iconPath(): TreeItemIconPath {
         return getThemedIconPath('WebJobs_color');
     }
 
@@ -45,7 +45,7 @@ export class WebJobsNATreeItem extends NotAvailableTreeItem {
         super(parent);
     }
 
-    public get iconPath(): IThemedIconPath {
+    public get iconPath(): TreeItemIconPath {
         return getThemedIconPath('WebJobs_grayscale');
     }
 
