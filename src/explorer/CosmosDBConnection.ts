@@ -4,10 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { WebSiteManagementModels } from '@azure/arm-appservice';
+import { ThemeIcon } from 'vscode';
 import { IAppSettingsClient } from 'vscode-azureappservice';
-import { AzExtTreeItem, DialogResponses, IActionContext } from 'vscode-azureextensionui';
+import { AzExtTreeItem, DialogResponses, IActionContext, TreeItemIconPath } from 'vscode-azureextensionui';
 import { localize } from '../localize';
-import { getThemedIconPath, IThemedIconPath } from '../utils/pathUtils';
 import { DatabaseAccountTreeItem, DatabaseTreeItem } from '../vscode-cosmos.api';
 import { CosmosDBTreeItem } from './CosmosDBTreeItem';
 
@@ -43,11 +43,8 @@ export class CosmosDBConnection extends AzExtTreeItem {
         return label;
     }
 
-    public get iconPath(): IThemedIconPath {
-        if (this.cosmosExtensionItem.postgresData) {
-            return getThemedIconPath('Database');
-        }
-        return getThemedIconPath('DocDatabase');
+    public get iconPath(): TreeItemIconPath {
+        return new ThemeIcon('database');
     }
 
     public async deleteTreeItemImpl(context: IActionContext): Promise<void> {

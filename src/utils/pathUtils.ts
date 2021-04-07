@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as path from 'path';
+import { TreeItemIconPath } from 'vscode-azureextensionui';
 import { ext } from '../extensionVariables';
 
 export function isSubpath(expectedParent: string, expectedChild: string): boolean {
@@ -16,16 +17,11 @@ export function isPathEqual(fsPath1: string, fsPath2: string): boolean {
     return relativePath === '';
 }
 
-export interface IThemedIconPath {
-    light: string;
-    dark: string;
-}
-
 export function getIconPath(iconName: string): string {
     return path.join(getResourcesPath(), `${iconName}.svg`);
 }
 
-export function getThemedIconPath(iconName: string): IThemedIconPath {
+export function getThemedIconPath(iconName: string): TreeItemIconPath {
     return {
         light: path.join(getResourcesPath(), 'light', `${iconName}.svg`),
         dark: path.join(getResourcesPath(), 'dark', `${iconName}.svg`)
