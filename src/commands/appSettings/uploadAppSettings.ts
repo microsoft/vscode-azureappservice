@@ -14,11 +14,11 @@ import { localize } from "../../localize";
 import * as workspaceUtil from '../../utils/workspace';
 import { getLocalEnvironmentVariables } from "./getLocalEnvironmentVariables";
 
-export async function uploadAppSettings(context: IActionContext, target?: Uri | AppSettingsTreeItem | undefined, filePath?: string): Promise<void> {
+export async function uploadAppSettings(context: IActionContext, target?: Uri | AppSettingsTreeItem | string | undefined): Promise<void> {
     let node: AppSettingsTreeItem | undefined;
     let envPath: string;
-    if (filePath) {
-        envPath = filePath;
+    if (typeof target === "string") {
+        envPath = target;
     } else if (target instanceof Uri) {
         envPath = target.fsPath;
     } else {
