@@ -5,8 +5,9 @@
 
 import { WebSiteManagementModels } from '@azure/arm-appservice';
 import { SiteClient } from 'vscode-azureappservice';
+import { TreeItemIconPath } from 'vscode-azureextensionui';
 import { nonNullProp } from '../utils/nonNull';
-import { getThemedIconPath, IThemedIconPath } from '../utils/pathUtils';
+import { getThemedIconPath } from '../utils/pathUtils';
 import { DeploymentSlotsTreeItem } from './DeploymentSlotsTreeItem';
 import { SiteTreeItem } from './SiteTreeItem';
 
@@ -23,7 +24,7 @@ export class DeploymentSlotTreeItem extends SiteTreeItem {
         return nonNullProp(this.root.client, 'slotName');
     }
 
-    public get iconPath(): IThemedIconPath {
+    public get iconPath(): TreeItemIconPath {
         return getThemedIconPath('DeploymentSlot_color');
     }
 }

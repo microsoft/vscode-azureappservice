@@ -5,12 +5,12 @@
 
 import { WebSiteManagementClient, WebSiteManagementModels } from '@azure/arm-appservice';
 import { createSlot, ISiteTreeRoot, SiteClient } from 'vscode-azureappservice';
-import { AzureParentTreeItem, AzureTreeItem, ICreateChildImplContext } from 'vscode-azureextensionui';
+import { AzureParentTreeItem, AzureTreeItem, ICreateChildImplContext, TreeItemIconPath } from 'vscode-azureextensionui';
 import { getCreatedWebAppMessage } from '../commands/createWebApp/showCreatedWebAppMessage';
 import { ext } from '../extensionVariables';
 import { localize } from '../localize';
 import { createWebSiteClient } from '../utils/azureClients';
-import { getThemedIconPath, IThemedIconPath } from '../utils/pathUtils';
+import { getThemedIconPath } from '../utils/pathUtils';
 import { DeploymentSlotTreeItem } from './DeploymentSlotTreeItem';
 import { NotAvailableTreeItem } from './NotAvailableTreeItem';
 
@@ -23,7 +23,7 @@ export class DeploymentSlotsTreeItem extends AzureParentTreeItem<ISiteTreeRoot> 
 
     private _nextLink: string | undefined;
 
-    public get iconPath(): IThemedIconPath {
+    public get iconPath(): TreeItemIconPath {
         return getThemedIconPath('DeploymentSlots_color');
     }
 
@@ -88,7 +88,7 @@ export class DeploymentSlotsNATreeItem extends NotAvailableTreeItem {
         this.scaleUpId = `${planId}/pricingTier`;
     }
 
-    public get iconPath(): IThemedIconPath {
+    public get iconPath(): TreeItemIconPath {
         return getThemedIconPath('DeploymentSlots_grayscale');
     }
 

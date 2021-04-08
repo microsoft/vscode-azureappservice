@@ -3,6 +3,7 @@
 ## Unreleased
 ### Changed
 - Minimum version of VS Code is now 1.53.0
+- Icons updated to match VS Code's theme. Install new product icon themes [here](https://marketplace.visualstudio.com/search?term=tag%3Aproduct-icon-theme&target=VSCode)
 
 ## 0.21.2 - 2021-03-09
 ### [Fixed](https://github.com/microsoft/vscode-azureappservice/issues/1571)
