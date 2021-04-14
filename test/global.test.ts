@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See LICENSE.md in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IHookCallbackContext } from 'mocha';
 import * as vscode from 'vscode';
 import { TestOutputChannel, TestUserInput } from 'vscode-azureextensiondev';
 import { IActionContext } from 'vscode-azureextensionui';
@@ -23,7 +22,7 @@ export function createTestContext(): ITestContext {
 export const testUserInput: TestUserInput = new TestUserInput(vscode);
 
 // Runs before all tests
-suiteSetup(async function (this: IHookCallbackContext): Promise<void> {
+suiteSetup(async function (this: Mocha.Context): Promise<void> {
     this.timeout(120 * 1000);
     await vscode.commands.executeCommand('appService.Refresh'); // activate the extension before tests begin
     ext.outputChannel = new TestOutputChannel();
