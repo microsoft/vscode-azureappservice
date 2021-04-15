@@ -16,6 +16,7 @@ export async function createWebApp(context: IActionContext & Partial<ICreateChil
         node = <AzureParentTreeItem>await ext.tree.showTreeItemPicker(SubscriptionTreeItem.contextValue, context);
     }
     let newSite: WebAppTreeItem;
+    const authErrorRegexp = new RegExp(`The client '.+' with object id '.+' does not have authorization to perform action 'Microsoft\.Web\/serverfarms\/read' over scope '.+' or the scope is invalid\. If access was recently granted, please refresh your credentials\.`);
     try {
         newSite = <WebAppTreeItem>await node.createChild(context);
         if (!suppressCreatedWebAppMessage) {
@@ -23,7 +24,7 @@ export async function createWebApp(context: IActionContext & Partial<ICreateChil
         }
         return newSite;
     } catch (error) {
-        if (!parseError(error).message.includes('does not have authorization to perform action')) {
+        if (!parseError(error).message.match(authErrorRegexp)) {
             throw error;
         } else {
             const message = localize('notAuthorizedToCreateRGs', 'You subscription is not authorized to create resource groups. Please create using Advanced Create to select existing resource groups.')
