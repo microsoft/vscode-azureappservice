@@ -788,7 +788,7 @@
         "@types/dotenv": "^6.1.1",
         "@types/fs-extra": "^8.0.0",
         "@types/gulp": "^4.0.6",
-        "@types/mocha": "^7.0.2",
+        "@types/mocha": "^8.2.2",
         "@types/node": "^12.0.0",
         "@types/vscode": "1.53.0",
         "@typescript-eslint/eslint-plugin": "^4.14.2",
@@ -797,9 +797,9 @@
         "eslint-plugin-import": "^2.22.1",
         "glob": "^7.1.6",
         "gulp": "^4.0.2",
-        "mocha": "^7.1.1",
-        "mocha-junit-reporter": "^1.23.3",
-        "mocha-multi-reporters": "^1.1.7",
+        "mocha": "^8.3.2",
+        "mocha-junit-reporter": "^2.0.0",
+        "mocha-multi-reporters": "^1.5.1",
         "ts-node": "^7.0.1",
         "typescript": "^3.8.3",
         "vsce": "^1.87.0",
@@ -820,8 +820,7 @@
         "vscode-azureappservice": "^0.76.1",
         "vscode-azureextensionui": "^0.41.3",
         "vscode-azurekudu": "^0.2.0",
-        "vscode-nls": "^4.1.1",
-        "vscode-tas-client": "^0.1.17"
+        "vscode-nls": "^4.1.1"
     },
     "extensionDependencies": [
         "ms-vscode.azure-account",
