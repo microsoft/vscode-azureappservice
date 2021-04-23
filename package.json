@@ -510,12 +510,12 @@
                 {
                     "command": "appService.appSettings.Add",
                     "when": "view == azureAppService && viewItem == applicationSettings",
-                    "group": "1_appSettingsEdit@1"
+                    "group": "1_appSettingEnv@1"
                 },
                 {
                     "command": "appService.OpenInPortal",
                     "when": "view == azureAppService && viewItem == applicationSettings",
-                    "group": "1_appSettingsEdit@2"
+                    "group": "1_appSettingsEdit@1"
                 },
                 {
                     "command": "appService.Refresh",
@@ -525,12 +525,12 @@
                 {
                     "command": "appService.appSettings.Download",
                     "when": "view == azureAppService && viewItem == applicationSettings",
-                    "group": "1_appSettingEnv@1"
+                    "group": "1_appSettingEnv@2"
                 },
                 {
                     "command": "appService.appSettings.Upload",
                     "when": "view == azureAppService && viewItem == applicationSettings",
-                    "group": "1_appSettingEnv@2"
+                    "group": "1_appSettingEnv@3"
                 },
                 {
                     "command": "appService.appSettings.Edit",
