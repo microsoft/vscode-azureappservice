@@ -96,6 +96,14 @@ export class WebAppCreateStep extends AzureWizardExecuteStep<IWebAppWizardContex
                 default:
             }
         }
+        newSiteConfig.httpLoggingEnabled = true;
+        newSiteConfig.virtualApplications?.push({
+            virtualPath: '/',
+            physicalPath: 'site\\wwwroot',
+            preloadEnabled: true
+        })
+        newSiteConfig.logsDirectorySizeLimit = 100;
+        newSiteConfig.alwaysOn = true;
         return newSiteConfig;
     }
 

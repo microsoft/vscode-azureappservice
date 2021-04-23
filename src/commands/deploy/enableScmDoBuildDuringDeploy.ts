@@ -5,30 +5,10 @@
 
 import * as fse from 'fs-extra';
 import * as path from 'path';
-import { MessageItem } from "vscode";
-import { DialogResponses, IActionContext } from "vscode-azureextensionui";
 import * as constants from '../../constants';
-import { localize } from '../../localize';
 import { venvUtils } from '../../utils/venvUtils';
 import { getWorkspaceSetting, updateWorkspaceSetting } from "../../vsCodeConfig/settings";
 import { LinuxRuntimes } from '../createWebApp/LinuxRuntimes';
-
-export async function promptScmDoBuildDeploy(context: IActionContext, fsPath: string, runtime: string): Promise<void> {
-    context.telemetry.properties.enableScmInput = "Canceled";
-
-    const learnMoreLink: string = 'https://aka.ms/Kwwkbd';
-
-    const buildDuringDeploy: string = localize('buildDuringDeploy', 'Would you like to update your workspace configuration to run build commands on the target server? This should improve deployment performance.');
-    const input: MessageItem | undefined = await context.ui.showWarningMessage(buildDuringDeploy, { modal: true, learnMoreLink }, DialogResponses.yes, DialogResponses.no);
-
-    if (input === DialogResponses.yes) {
-        await enableScmDoBuildDuringDeploy(fsPath, runtime);
-        context.telemetry.properties.enableScmInput = "Yes";
-    } else {
-        await updateWorkspaceSetting(constants.configurationSettings.showBuildDuringDeployPrompt, false, fsPath);
-        context.telemetry.properties.enableScmInput = "No";
-    }
-}
 
 export async function enableScmDoBuildDuringDeploy(fsPath: string, runtime: string): Promise<void> {
     const zipIgnoreFolders: string[] = await getIgnoredFoldersForDeployment(fsPath, runtime);
