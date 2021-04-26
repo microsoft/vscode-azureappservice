@@ -13,7 +13,7 @@ import { uploadAppSettings } from "../appSettings/uploadAppSettings";
 import { startStreamingLogs } from '../logstream/startStreamingLogs';
 
 export function showDeployCompletedMessage(node: SiteTreeItem): void {
-    const message: string = localize('deployCompleted', 'Deployment to "{0}" completed.', node.client.fullName);
+    const message: string = localize('deployCompleted', 'Deployment to "{0}" completed. ([View Output](command:{1}))', node.client.fullName, ext.prefix + '.showOutputChannel');
     ext.outputChannel.appendLog(message);
     const browseWebsiteBtn: MessageItem = { title: localize('browseWebsite', 'Browse Website') };
     const streamLogs: MessageItem = { title: localize('streamLogs', 'Stream Logs') };
