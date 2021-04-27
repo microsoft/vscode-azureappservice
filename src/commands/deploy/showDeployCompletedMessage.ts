@@ -13,14 +13,13 @@ import { uploadAppSettings } from "../appSettings/uploadAppSettings";
 import { startStreamingLogs } from '../logstream/startStreamingLogs';
 
 export function showDeployCompletedMessage(node: SiteTreeItem): void {
-    const message: string = localize('deployCompleted', 'Deployment to "{0}" completed. ([View Output](command:{1}))', node.client.fullName, ext.prefix + '.showOutputChannel');
+    const message: string = localize('deployCompleted', 'Deployment to "{0}" completed.', node.client.fullName);
     ext.outputChannel.appendLog(message);
     const browseWebsiteBtn: MessageItem = { title: localize('browseWebsite', 'Browse Website') };
     const streamLogs: MessageItem = { title: localize('streamLogs', 'Stream Logs') };
     const uploadSettingsBtn: MessageItem = { title: localize('uploadMessage', 'Upload Local Settings') };
     const buttons: MessageItem[] = [browseWebsiteBtn, streamLogs, uploadSettingsBtn];
 
-    let envPath: string;
 
     // don't wait
     void window.showInformationMessage(message, ...buttons).then(async (result: MessageItem | undefined) => {
@@ -33,7 +32,7 @@ export function showDeployCompletedMessage(node: SiteTreeItem): void {
             } else if (result === streamLogs) {
                 await startStreamingLogs(context, node);
             } else if (result === uploadSettingsBtn) {
-                await uploadAppSettings(context, envPath);
+                await uploadAppSettings(context);
             }
         });
     });
