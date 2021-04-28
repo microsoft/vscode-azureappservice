@@ -390,42 +390,42 @@
                 {
                     "command": "appService.Start",
                     "when": "view == azureAppService && viewItem =~ /^(appService|deploymentSlot)$/",
-                    "group": "2_appServiceControlCommands@1"
+                    "group": "3_appServiceControlCommands@1"
                 },
                 {
                     "command": "appService.Stop",
                     "when": "view == azureAppService && viewItem =~ /^(appService|deploymentSlot)$/",
-                    "group": "2_appServiceControlCommands@2"
+                    "group": "3_appServiceControlCommands@2"
                 },
                 {
                     "command": "appService.Restart",
                     "when": "view == azureAppService && viewItem =~ /^(appService|deploymentSlot)$/",
-                    "group": "2_appServiceControlCommands@3"
+                    "group": "3_appServiceControlCommands@3"
                 },
                 {
                     "command": "appService.SwapSlots",
                     "when": "view == azureAppService && viewItem == deploymentSlot",
-                    "group": "2_appServiceControlCommands@4"
+                    "group": "3_appServiceControlCommands@4"
                 },
                 {
                     "command": "appService.Delete",
                     "when": "view == azureAppService && viewItem =~ /^(appService|deploymentSlot)$/",
-                    "group": "2_appServiceControlCommands@5"
+                    "group": "3_appServiceControlCommands@5"
                 },
                 {
                     "command": "appService.Deploy",
                     "when": "view == azureAppService && viewItem == appService",
-                    "group": "3_appServiceDeployCommands@1"
+                    "group": "2_appServiceDeployCommands@1"
                 },
                 {
                     "command": "appService.DeploySlot",
                     "when": "view == azureAppService && viewItem == deploymentSlot",
-                    "group": "3_appServiceDeployCommands@1"
+                    "group": "2_appServiceDeployCommands@1"
                 },
                 {
                     "command": "appService.ConfigureDeploymentSource",
                     "when": "view == azureAppService && viewItem =~ /^(appService|deploymentSlot)$/",
-                    "group": "3_appServiceDeployCommands@2"
+                    "group": "2_appServiceDeployCommands@2"
                 },
                 {
                     "command": "appService.startStreamingLogs",
