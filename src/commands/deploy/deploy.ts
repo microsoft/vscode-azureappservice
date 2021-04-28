@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { WebSiteManagementModels } from '@azure/arm-appservice';
+import * as fse from 'fs-extra';
 import { pathExists } from 'fs-extra';
 import * as path from 'path';
 import * as vscode from 'vscode';
@@ -22,8 +23,8 @@ import { getRandomHexString } from "../../utils/randomUtils";
 import { getWorkspaceSetting } from '../../vsCodeConfig/settings';
 import { LinuxRuntimes } from '../createWebApp/LinuxRuntimes';
 import { runPostDeployTask } from '../postDeploy/runPostDeployTask';
-import { enableScmDoBuildDuringDeploy } from './enableScmDoBuildDuringDeploy';
 import { failureMoreInfoSurvey } from './failureMoreInfoSurvey';
+import { promptScmDoBuildDeploy } from './promptScmDoBuildDeploy';
 import { promptToSaveDeployDefaults } from './promptToSaveDeployDefaults';
 import { setPreDeployTaskForDotnet } from './setPreDeployTaskForDotnet';
 import { showDeployCompletedMessage } from './showDeployCompletedMessage';
@@ -66,11 +67,12 @@ export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | 
             const linuxFxVersion: string = siteConfig.linuxFxVersion.toLowerCase();
             if (linuxFxVersion.startsWith(LinuxRuntimes.node)) {
                 // if it is node or python, prompt the user (as we can break them)
-                await enableScmDoBuildDuringDeploy(context.effectiveDeployFsPath, LinuxRuntimes.node);
+                await promptScmDoBuildDeploy(context, context.effectiveDeployFsPath, LinuxRuntimes.node);
             } else if (linuxFxVersion.startsWith(LinuxRuntimes.python)) {
-                await enableScmDoBuildDuringDeploy(context.effectiveDeployFsPath, LinuxRuntimes.python);
+                await promptScmDoBuildDeploy(context, context.effectiveDeployFsPath, LinuxRuntimes.python);
             }
-
+        } else {
+            await fse.writeFile(path.join(context.effectiveDeployFsPath, constants.deploymentFileName), constants.deploymentFile);
         }
     }
 
