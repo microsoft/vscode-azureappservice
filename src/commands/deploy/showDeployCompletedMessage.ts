@@ -17,7 +17,7 @@ export function showDeployCompletedMessage(node: SiteTreeItem): void {
     ext.outputChannel.appendLog(message);
     const browseWebsiteBtn: MessageItem = { title: localize('browseWebsite', 'Browse Website') };
     const streamLogs: MessageItem = { title: localize('streamLogs', 'Stream Logs') };
-    const uploadSettingsBtn: MessageItem = { title: localize('uploadMessage', 'Upload Local Settings') };
+    const uploadSettingsBtn: MessageItem = { title: localize('uploadMessage', 'Upload Settings') };
     const buttons: MessageItem[] = [browseWebsiteBtn, streamLogs, uploadSettingsBtn];
 
 
