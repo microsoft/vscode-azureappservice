@@ -103,7 +103,6 @@ export class WebAppCreateStep extends AzureWizardExecuteStep<IWebAppWizardContex
         })
         // required property for setting "preloadEnabled" in VirtualApplications "true"
         // "alwaysOn" cannot be true for "Free" tier
-        console.log(context?.plan?.sku?.tier);
         if (context?.plan?.sku?.tier !== 'Free') {
             newSiteConfig.alwaysOn = true;
         }
@@ -114,7 +113,6 @@ export class WebAppCreateStep extends AzureWizardExecuteStep<IWebAppWizardContex
         const appSettings: WebSiteManagementModels.NameValuePair[] = [];
         const disabled: string = 'disabled';
         const trueString: string = 'true';
-
         appSettings.push({
             name: 'SCM_DO_BUILD_DURING_DEPLOYMENT',
             value: trueString

@@ -28,7 +28,6 @@ export async function promptScmDoBuildDeploy(context: IActionContext, fsPath: st
         await updateWorkspaceSetting(constants.configurationSettings.showBuildDuringDeployPrompt, false, fsPath);
         context.telemetry.properties.enableScmInput = "No";
     }
-    await fse.writeFile(path.join(fsPath, constants.deploymentFileName), constants.deploymentFile);
 }
 
 export async function enableScmDoBuildDuringDeploy(fsPath: string, runtime: string): Promise<void> {
@@ -47,6 +46,7 @@ export async function enableScmDoBuildDuringDeploy(fsPath: string, runtime: stri
         }
     }
     await updateWorkspaceSetting(constants.configurationSettings.zipIgnorePattern, newSettings, fsPath);
+    await fse.writeFile(path.join(fsPath, constants.deploymentFileName), constants.deploymentFile);
 }
 
 async function getIgnoredFoldersForDeployment(fsPath: string, runtime: string): Promise<string[]> {
