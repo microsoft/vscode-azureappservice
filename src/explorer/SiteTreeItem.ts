@@ -140,7 +140,7 @@ export abstract class SiteTreeItem extends SiteTreeItemBase implements ISiteTree
 
     public async isLogsEnabled(): Promise<boolean> {
         const logsConfig: WebSiteManagementModels.SiteLogsConfig = await this.root.client.getLogsConfig();
-        return !!(logsConfig.httpLogs?.fileSystem?.enabled && logsConfig.applicationLogs?.fileSystem?.level === 'Verbose');
+        return !!(logsConfig.httpLogs?.fileSystem?.enabled && logsConfig.applicationLogs?.fileSystem?.level !== 'Off');
     }
 
     public async enableLogs(): Promise<void> {

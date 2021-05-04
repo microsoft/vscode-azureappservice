@@ -71,7 +71,6 @@ export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | 
             } else if (linuxFxVersion.startsWith(LinuxRuntimes.python)) {
                 await promptScmDoBuildDeploy(context, context.effectiveDeployFsPath, LinuxRuntimes.python);
             }
-        } else {
             await fse.writeFile(path.join(context.effectiveDeployFsPath, constants.deploymentFileName), constants.deploymentFile);
         }
     }
