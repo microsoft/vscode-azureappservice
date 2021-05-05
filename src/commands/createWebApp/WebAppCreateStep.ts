@@ -7,10 +7,12 @@ import { WebSiteManagementClient, WebSiteManagementModels } from '@azure/arm-app
 import { Progress } from 'vscode';
 import { WebsiteOS } from 'vscode-azureappservice';
 import { AzureWizardExecuteStep } from 'vscode-azureextensionui';
+import * as constants from '../../constants';
 import { ext } from '../../extensionVariables';
 import { localize } from '../../localize';
 import { createWebSiteClient } from '../../utils/azureClients';
 import { nonNullProp } from '../../utils/nonNull';
+import { updateWorkspaceSetting } from '../../vsCodeConfig/settings';
 import { FullJavaStack, FullWebAppStack, IWebAppWizardContext } from './IWebAppWizardContext';
 import { getJavaLinuxRuntime } from './stacks/getJavaLinuxRuntime';
 import { WindowsJavaContainerSettings } from './stacks/models/WebAppStackModel';
@@ -49,6 +51,8 @@ export class WebAppCreateStep extends AzureWizardExecuteStep<IWebAppWizardContex
             siteConfig: newSiteConfig,
             reserved: context.newSiteOS === WebsiteOS.linux  // The secret property - must be set to true to make it a Linux plan. Confirmed by the team who owns this API.
         });
+        // Sets "showBuildDuringDeployPrompt" to false --> SCM_DO_BUILD_DURING_DEPLOYMENT(set to true) is added as a appSetting by default for new web apps
+        await updateWorkspaceSetting(constants.configurationSettings.showBuildDuringDeployPrompt, false, undefined);
     }
 
     public shouldExecute(context: IWebAppWizardContext): boolean {
@@ -102,7 +106,12 @@ export class WebAppCreateStep extends AzureWizardExecuteStep<IWebAppWizardContex
     private getAppSettings(context: IWebAppWizardContext): WebSiteManagementModels.NameValuePair[] {
         const appSettings: WebSiteManagementModels.NameValuePair[] = [];
         const disabled: string = 'disabled';
+        const trueString: string = 'true';
 
+        appSettings.push({
+            name: 'SCM_DO_BUILD_DURING_DEPLOYMENT',
+            value: trueString
+        });
         if (context.appInsightsComponent) {
             appSettings.push({
                 name: 'APPINSIGHTS_INSTRUMENTATIONKEY',
@@ -147,7 +156,7 @@ export class WebAppCreateStep extends AzureWizardExecuteStep<IWebAppWizardContex
             } else {
                 appSettings.push({
                     name: 'APPLICATIONINSIGHTSAGENT_EXTENSION_ENABLED',
-                    value: 'true'
+                    value: trueString
                 });
             }
         }

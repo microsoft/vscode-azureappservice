@@ -17,8 +17,8 @@ export async function updateGlobalSetting<T = string>(section: string, value: T,
 /**
  * Uses ext.prefix 'appService' unless otherwise specified
  */
-export async function updateWorkspaceSetting<T = string>(section: string, value: T, fsPath: string, prefix: string = ext.prefix): Promise<void> {
-    const projectConfiguration: WorkspaceConfiguration = workspace.getConfiguration(prefix, Uri.file(fsPath));
+export async function updateWorkspaceSetting<T = string>(section: string, value: T, fsPath: string | undefined, prefix: string = ext.prefix): Promise<void> {
+    const projectConfiguration: WorkspaceConfiguration = fsPath ? workspace.getConfiguration(prefix, Uri.file(fsPath)) : workspace.getConfiguration(prefix);
     await projectConfiguration.update(section, value);
 }
 
