@@ -33,6 +33,7 @@ export async function getStackPicks(context: IWebAppWizardContext, javaVersion?:
                 picks.push({
                     label: minorVersion.displayText,
                     description,
+                    group: stack.displayText,
                     data: { stack, majorVersion, minorVersion }
                 });
             }

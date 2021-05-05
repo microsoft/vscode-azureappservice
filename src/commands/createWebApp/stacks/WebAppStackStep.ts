@@ -13,7 +13,7 @@ import { JavaServerStackStep } from './JavaServerStackStep';
 export class WebAppStackStep extends AzureWizardPromptStep<IWebAppWizardContext> {
     public async prompt(context: IWebAppWizardContext): Promise<void> {
         const placeHolder: string = localize('selectRuntimeStack', 'Select a runtime stack.');
-        context.newSiteStack = (await context.ui.showQuickPick(getStackPicks(context), { placeHolder })).data;
+        context.newSiteStack = (await context.ui.showQuickPick(getStackPicks(context), { placeHolder, enableGrouping: true })).data;
 
         if (!context.newSiteStack.minorVersion.stackSettings.linuxRuntimeSettings) {
             context.newSiteOS = WebsiteOS.windows;

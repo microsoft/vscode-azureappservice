@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { WebSiteManagementClient, WebSiteManagementModels } from '@azure/arm-appservice';
-import { AppInsightsCreateStep, AppInsightsListStep, AppKind, AppServicePlanCreateStep, AppServicePlanListStep, AppServicePlanSkuStep, setLocationsTask, SiteClient, SiteNameStep } from 'vscode-azureappservice';
+import { AppInsightsCreateStep, AppInsightsListStep, AppKind, AppServicePlanCreateStep, AppServicePlanListStep, AppServicePlanSkuStep, CustomLocationListStep, setLocationsTask, SiteClient, SiteNameStep } from 'vscode-azureappservice';
 import { AzExtTreeItem, AzureTreeItem, AzureWizard, AzureWizardExecuteStep, AzureWizardPromptStep, createAzureClient, ICreateChildImplContext, LocationListStep, parseError, ResourceGroupCreateStep, ResourceGroupListStep, SubscriptionTreeItemBase, VerifyProvidersStep } from 'vscode-azureextensionui';
 import { IWebAppWizardContext } from '../commands/createWebApp/IWebAppWizardContext';
 import { setPostPromptDefaults } from '../commands/createWebApp/setPostPromptDefaults';
@@ -81,16 +81,17 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
         if (context.advancedCreation) {
             promptSteps.push(new ResourceGroupListStep());
             promptSteps.push(new WebAppStackStep());
+            CustomLocationListStep.addStep(wizardContext, promptSteps);
             promptSteps.push(new AppServicePlanListStep());
             promptSteps.push(new AppInsightsListStep());
         } else {
             promptSteps.push(new WebAppStackStep());
             promptSteps.push(new AppServicePlanSkuStep());
+            LocationListStep.addStep(wizardContext, promptSteps);
             executeSteps.push(new ResourceGroupCreateStep());
             executeSteps.push(new AppServicePlanCreateStep());
             executeSteps.push(new AppInsightsCreateStep());
         }
-        LocationListStep.addStep(wizardContext, promptSteps);
 
         executeSteps.push(new VerifyProvidersStep(['Microsoft.Web', 'Microsoft.Insights']));
         executeSteps.push(new WebAppCreateStep());
