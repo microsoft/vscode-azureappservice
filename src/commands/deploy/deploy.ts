@@ -4,7 +4,6 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { WebSiteManagementModels } from '@azure/arm-appservice';
-import * as fse from 'fs-extra';
 import { pathExists } from 'fs-extra';
 import * as path from 'path';
 import * as vscode from 'vscode';
@@ -71,7 +70,7 @@ export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | 
             } else if (linuxFxVersion.startsWith(LinuxRuntimes.python)) {
                 await promptScmDoBuildDeploy(context, context.effectiveDeployFsPath, LinuxRuntimes.python);
             }
-            await fse.writeFile(path.join(context.effectiveDeployFsPath, constants.deploymentFileName), constants.deploymentFile);
+
         }
     }
 
