@@ -38,8 +38,8 @@ export async function setPostPromptDefaults(wizardContext: IWebAppWizardContext,
     const defaultGroupName: string = config.group || defaultName;
     const defaultPlanName: string = defaultName;
 
-    const client: WebSiteManagementClient = await createWebSiteClient(wizardContext);
     try {
+        const client: WebSiteManagementClient = await createWebSiteClient(wizardContext);
         const asp: WebSiteManagementModels.AppServicePlan | undefined = await tryGetAppServicePlan(client, defaultGroupName, defaultPlanName);
         const hasPerfDrop = checkPlanForPerformanceDrop(asp);
         if (asp && (hasPerfDrop || !matchesTier(asp, newSkuTier))) {
@@ -83,30 +83,15 @@ export async function setPostPromptDefaults(wizardContext: IWebAppWizardContext,
             wizardContext.newResourceGroupName = defaultGroupName;
             wizardContext.newPlanName = defaultPlanName;
         }
-    } catch (e) {
-        if (parseError(e).errorType === 'AuthorizationFailed') {
+    } catch (error) {
+        if (parseError(error).errorType === 'AuthorizationFailed') {
+            // setting these values to some arbitrary values as ResourceGroupCreateStep & AppServicePlanCreateStep expects these to be not null
             wizardContext.newResourceGroupName = defaultGroupName;
             wizardContext.newPlanName = defaultPlanName;
-            setPlanSkuFamilyFilter(wizardContext);
         } else {
-            throw e;
-        }
-    }
-}
+            throw error;
 
-export function setPlanSkuFamilyFilter(wizardContext: IWebAppWizardContext): void {
-    switch (nonNullProp(nonNullProp(wizardContext, 'newPlanSku'), 'family')) {
-        case 'F':
-            wizardContext.planSkuFamilyFilter = /^F$/i;
-            break;
-        case 'B':
-            wizardContext.planSkuFamilyFilter = /^B$/i;
-            break;
-        case 'PV2':
-            wizardContext.planSkuFamilyFilter = /^PV2$/i;
-            break;
-        default:
-            break;
+        }
     }
 }
 
