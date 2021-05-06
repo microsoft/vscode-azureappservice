@@ -87,9 +87,26 @@ export async function setPostPromptDefaults(wizardContext: IWebAppWizardContext,
         if (parseError(e).errorType === 'AuthorizationFailed') {
             wizardContext.newResourceGroupName = defaultGroupName;
             wizardContext.newPlanName = defaultPlanName;
+            setPlanSkuFamilyFilter(wizardContext);
         } else {
             throw e;
         }
+    }
+}
+
+function setPlanSkuFamilyFilter(wizardContext: IWebAppWizardContext): void {
+    switch (nonNullProp(nonNullProp(wizardContext, 'newPlanSku'), 'family')) {
+        case 'F':
+            wizardContext.planSkuFamilyFilter = /^F$/i;
+            break;
+        case 'B':
+            wizardContext.planSkuFamilyFilter = /^B$/i;
+            break;
+        case 'PV2':
+            wizardContext.planSkuFamilyFilter = /^PV2$/i;
+            break;
+        default:
+            break;
     }
 }
 
