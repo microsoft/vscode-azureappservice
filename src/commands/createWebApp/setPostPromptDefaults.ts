@@ -94,7 +94,7 @@ export async function setPostPromptDefaults(wizardContext: IWebAppWizardContext,
     }
 }
 
-function setPlanSkuFamilyFilter(wizardContext: IWebAppWizardContext): void {
+export function setPlanSkuFamilyFilter(wizardContext: IWebAppWizardContext): void {
     switch (nonNullProp(nonNullProp(wizardContext, 'newPlanSku'), 'family')) {
         case 'F':
             wizardContext.planSkuFamilyFilter = /^F$/i;

@@ -7,7 +7,7 @@ import { WebSiteManagementClient, WebSiteManagementModels } from '@azure/arm-app
 import { AppInsightsCreateStep, AppInsightsListStep, AppKind, AppServicePlanCreateStep, AppServicePlanListStep, AppServicePlanSkuStep, setLocationsTask, SiteClient, SiteNameStep } from 'vscode-azureappservice';
 import { AzExtTreeItem, AzureTreeItem, AzureWizard, AzureWizardExecuteStep, AzureWizardPromptStep, createAzureClient, ICreateChildImplContext, LocationListStep, parseError, ResourceGroupCreateStep, ResourceGroupListStep, SubscriptionTreeItemBase, VerifyProvidersStep } from 'vscode-azureextensionui';
 import { IWebAppWizardContext } from '../commands/createWebApp/IWebAppWizardContext';
-import { setPostPromptDefaults } from '../commands/createWebApp/setPostPromptDefaults';
+import { setPlanSkuFamilyFilter, setPostPromptDefaults } from '../commands/createWebApp/setPostPromptDefaults';
 import { setPrePromptDefaults } from '../commands/createWebApp/setPrePromptDefaults';
 import { getCreatedWebAppMessage } from '../commands/createWebApp/showCreatedWebAppMessage';
 import { WebAppStackStep } from '../commands/createWebApp/stacks/WebAppStackStep';
@@ -108,6 +108,7 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
 
         if (!context.advancedCreation) {
             await setPostPromptDefaults(wizardContext, siteStep);
+            setPlanSkuFamilyFilter(wizardContext);
             wizardContext.newAppInsightsName = await wizardContext.relatedNameTask;
             if (!wizardContext.newAppInsightsName) {
                 throw new Error(localize('uniqueNameError', 'Failed to generate unique name for resources. Use advanced creation to manually enter resource names.'));
