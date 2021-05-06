@@ -9,6 +9,7 @@ import { AppServiceDialogResponses } from "../../constants";
 import { SiteTreeItem } from "../../explorer/SiteTreeItem";
 import { ext } from "../../extensionVariables";
 import { localize } from "../../localize";
+import { uploadAppSettings } from "../appSettings/uploadAppSettings";
 import { startStreamingLogs } from '../logstream/startStreamingLogs';
 
 export function showDeployCompletedMessage(node: SiteTreeItem): void {
@@ -16,9 +17,12 @@ export function showDeployCompletedMessage(node: SiteTreeItem): void {
     ext.outputChannel.appendLog(message);
     const browseWebsiteBtn: MessageItem = { title: localize('browseWebsite', 'Browse Website') };
     const streamLogs: MessageItem = { title: localize('streamLogs', 'Stream Logs') };
+    const uploadSettingsBtn: MessageItem = { title: localize('uploadMessage', 'Upload Settings') };
+    const buttons: MessageItem[] = [browseWebsiteBtn, streamLogs, uploadSettingsBtn];
+
 
     // don't wait
-    void window.showInformationMessage(message, browseWebsiteBtn, streamLogs, AppServiceDialogResponses.viewOutput).then(async (result: MessageItem | undefined) => {
+    void window.showInformationMessage(message, ...buttons).then(async (result: MessageItem | undefined) => {
         await callWithTelemetryAndErrorHandling('postDeploy', async (context: IActionContext) => {
             context.telemetry.properties.dialogResult = result?.title;
             if (result === AppServiceDialogResponses.viewOutput) {
@@ -27,6 +31,8 @@ export function showDeployCompletedMessage(node: SiteTreeItem): void {
                 await node.browse();
             } else if (result === streamLogs) {
                 await startStreamingLogs(context, node);
+            } else if (result === uploadSettingsBtn) {
+                await uploadAppSettings(context);
             }
         });
     });

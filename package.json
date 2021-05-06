@@ -388,44 +388,44 @@
                     "group": "1_appServiceGeneralCommands@2"
                 },
                 {
-                    "command": "appService.Start",
-                    "when": "view == azureAppService && viewItem =~ /^(appService|deploymentSlot)$/",
-                    "group": "2_appServiceControlCommands@1"
-                },
-                {
-                    "command": "appService.Stop",
-                    "when": "view == azureAppService && viewItem =~ /^(appService|deploymentSlot)$/",
-                    "group": "2_appServiceControlCommands@2"
-                },
-                {
-                    "command": "appService.Restart",
-                    "when": "view == azureAppService && viewItem =~ /^(appService|deploymentSlot)$/",
-                    "group": "2_appServiceControlCommands@3"
-                },
-                {
-                    "command": "appService.SwapSlots",
-                    "when": "view == azureAppService && viewItem == deploymentSlot",
-                    "group": "2_appServiceControlCommands@4"
-                },
-                {
-                    "command": "appService.Delete",
-                    "when": "view == azureAppService && viewItem =~ /^(appService|deploymentSlot)$/",
-                    "group": "2_appServiceControlCommands@5"
-                },
-                {
                     "command": "appService.Deploy",
                     "when": "view == azureAppService && viewItem == appService",
-                    "group": "3_appServiceDeployCommands@1"
+                    "group": "2_appServiceDeployCommands@1"
                 },
                 {
                     "command": "appService.DeploySlot",
                     "when": "view == azureAppService && viewItem == deploymentSlot",
-                    "group": "3_appServiceDeployCommands@1"
+                    "group": "2_appServiceDeployCommands@1"
                 },
                 {
                     "command": "appService.ConfigureDeploymentSource",
                     "when": "view == azureAppService && viewItem =~ /^(appService|deploymentSlot)$/",
-                    "group": "3_appServiceDeployCommands@2"
+                    "group": "2_appServiceDeployCommands@2"
+                },
+                {
+                    "command": "appService.Start",
+                    "when": "view == azureAppService && viewItem =~ /^(appService|deploymentSlot)$/",
+                    "group": "3_appServiceControlCommands@1"
+                },
+                {
+                    "command": "appService.Stop",
+                    "when": "view == azureAppService && viewItem =~ /^(appService|deploymentSlot)$/",
+                    "group": "3_appServiceControlCommands@2"
+                },
+                {
+                    "command": "appService.Restart",
+                    "when": "view == azureAppService && viewItem =~ /^(appService|deploymentSlot)$/",
+                    "group": "3_appServiceControlCommands@3"
+                },
+                {
+                    "command": "appService.SwapSlots",
+                    "when": "view == azureAppService && viewItem == deploymentSlot",
+                    "group": "3_appServiceControlCommands@4"
+                },
+                {
+                    "command": "appService.Delete",
+                    "when": "view == azureAppService && viewItem =~ /^(appService|deploymentSlot)$/",
+                    "group": "3_appServiceControlCommands@5"
                 },
                 {
                     "command": "appService.startStreamingLogs",
@@ -510,12 +510,7 @@
                 {
                     "command": "appService.appSettings.Add",
                     "when": "view == azureAppService && viewItem == applicationSettings",
-                    "group": "1_appSettingsEdit@1"
-                },
-                {
-                    "command": "appService.OpenInPortal",
-                    "when": "view == azureAppService && viewItem == applicationSettings",
-                    "group": "1_appSettingsEdit@2"
+                    "group": "1_appSettingEnv@1"
                 },
                 {
                     "command": "appService.Refresh",
@@ -525,12 +520,12 @@
                 {
                     "command": "appService.appSettings.Download",
                     "when": "view == azureAppService && viewItem == applicationSettings",
-                    "group": "1_appSettingEnv@1"
+                    "group": "1_appSettingEnv@2"
                 },
                 {
                     "command": "appService.appSettings.Upload",
                     "when": "view == azureAppService && viewItem == applicationSettings",
-                    "group": "1_appSettingEnv@2"
+                    "group": "1_appSettingEnv@3"
                 },
                 {
                     "command": "appService.appSettings.Edit",
@@ -817,7 +812,7 @@
         "moment": "^2.24.0",
         "open": "^8.0.4",
         "portfinder": "^1.0.25",
-        "vscode-azureappservice": "^0.76.1",
+        "vscode-azureappservice": "^0.77.0",
         "vscode-azureextensionui": "^0.41.3",
         "vscode-azurekudu": "^0.2.0",
         "vscode-nls": "^4.1.1"
