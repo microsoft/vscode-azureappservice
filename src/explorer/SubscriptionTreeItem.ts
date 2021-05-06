@@ -108,6 +108,19 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
 
         if (!context.advancedCreation) {
             await setPostPromptDefaults(wizardContext, siteStep);
+            switch (wizardContext.newPlanSku?.family) {
+                case 'F':
+                    wizardContext.planSkuFamilyFilter = /^F$/i;
+                    break;
+                case 'B':
+                    wizardContext.planSkuFamilyFilter = /^B$/i;
+                    break;
+                case 'PV2':
+                    wizardContext.planSkuFamilyFilter = /^PV2$/i;
+                    break;
+                default:
+                    break;
+            }
             wizardContext.newAppInsightsName = await wizardContext.relatedNameTask;
             if (!wizardContext.newAppInsightsName) {
                 throw new Error(localize('uniqueNameError', 'Failed to generate unique name for resources. Use advanced creation to manually enter resource names.'));
