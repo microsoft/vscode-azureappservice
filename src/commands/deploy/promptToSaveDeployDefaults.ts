@@ -15,7 +15,7 @@ export async function promptToSaveDeployDefaults(context: IActionContext, node: 
     const defaultWebAppToDeploySetting: string | undefined = getWorkspaceSetting(constants.configurationSettings.defaultWebAppToDeploy, workspacePath);
     // only prompt if setting is unset
     if (!defaultWebAppToDeploySetting) {
-        const saveDeploymentConfig: string = localize('showDeploymentConfig', 'Always deploy the workspace "{0}" to "{1}"?', path.relative(workspacePath, deployPath) || path.basename(workspacePath), node.root.client.fullName);
+        const saveDeploymentConfig: string = localize('showDeploymentConfig', 'Always deploy the workspace "{0}" to "{1}"?', path.relative(workspacePath, deployPath) ? deployPath : path.basename(workspacePath), node.root.client.fullName);
         const dontShowAgain: MessageItem = { title: localize('dontShow', "Don't show again") };
         const result: MessageItem = await context.ui.showWarningMessage(saveDeploymentConfig, DialogResponses.yes, dontShowAgain, DialogResponses.skipForNow);
         if (result === DialogResponses.yes) {
