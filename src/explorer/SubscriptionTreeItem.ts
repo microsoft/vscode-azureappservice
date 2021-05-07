@@ -12,6 +12,7 @@ import { setPrePromptDefaults } from '../commands/createWebApp/setPrePromptDefau
 import { getCreatedWebAppMessage } from '../commands/createWebApp/showCreatedWebAppMessage';
 import { WebAppStackStep } from '../commands/createWebApp/stacks/WebAppStackStep';
 import { WebAppCreateStep } from '../commands/createWebApp/WebAppCreateStep';
+import { webProvider } from '../constants';
 import { ext } from '../extensionVariables';
 import { localize } from '../localize';
 import { nonNullProp } from '../utils/nonNull';
@@ -93,7 +94,7 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
             executeSteps.push(new AppInsightsCreateStep());
         }
 
-        executeSteps.push(new VerifyProvidersStep(['Microsoft.Web', 'Microsoft.Insights']));
+        executeSteps.push(new VerifyProvidersStep([webProvider, 'Microsoft.Insights']));
         executeSteps.push(new WebAppCreateStep());
 
         if (wizardContext.newSiteOS !== undefined) {

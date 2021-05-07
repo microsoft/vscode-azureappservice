@@ -6,7 +6,8 @@
 import { WebSiteManagementClient, WebSiteManagementModels } from '@azure/arm-appservice';
 import { Progress } from 'vscode';
 import { WebsiteOS } from 'vscode-azureappservice';
-import { AzureWizardExecuteStep } from 'vscode-azureextensionui';
+import { AzureWizardExecuteStep, LocationListStep } from 'vscode-azureextensionui';
+import { webProvider } from '../../constants';
 import { ext } from '../../extensionVariables';
 import { localize } from '../../localize';
 import { createWebSiteClient } from '../../utils/azureClients';
@@ -36,7 +37,8 @@ export class WebAppCreateStep extends AzureWizardExecuteStep<IWebAppWizardContex
 
         const siteName: string = nonNullProp(context, 'newSiteName');
         const rgName: string = nonNullProp(nonNullProp(context, 'resourceGroup'), 'name');
-        const locationName: string = nonNullProp(nonNullProp(context, 'location'), 'name');
+        const location = await LocationListStep.getLocation(context, webProvider);
+        const locationName: string = nonNullProp(location, 'name');
 
         const newSiteConfig: WebSiteManagementModels.SiteConfig = this.getSiteConfig(context);
         const client: WebSiteManagementClient = await createWebSiteClient(context);
