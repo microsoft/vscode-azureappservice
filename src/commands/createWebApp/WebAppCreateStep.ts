@@ -42,7 +42,7 @@ export class WebAppCreateStep extends AzureWizardExecuteStep<IWebAppWizardContex
         const client: WebSiteManagementClient = await createWebSiteClient(context);
         context.site = await client.webApps.createOrUpdate(rgName, siteName, {
             name: context.newSiteName,
-            kind: context.newSiteKind,
+            kind: context.customLocation ? 'linux,kubernetes' : context.newSiteKind,
             location: locationName,
             serverFarmId: context.plan && context.plan.id,
             clientAffinityEnabled: true,
