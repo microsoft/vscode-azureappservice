@@ -38,7 +38,7 @@ export async function enableFileLogging(context: IEnableFileLoggingContext, node
         const enabledLogging: string = localize('enabledLogging', 'Enabled Logging for "{0}".', siteNode.root.client.fullName);
         await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification, title: enablingLogging }, async (): Promise<void> => {
             ext.outputChannel.appendLog(enablingLogging);
-            await siteNode.enableHttpLogs();
+            await siteNode.enableLogs(false);
 
             await vscode.commands.executeCommand('appService.Restart', siteNode);
             void vscode.window.showInformationMessage(enabledLogging);

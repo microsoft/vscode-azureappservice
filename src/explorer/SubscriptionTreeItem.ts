@@ -123,12 +123,8 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
 
         const newSite: WebAppTreeItem = new WebAppTreeItem(this, siteClient, site);
         try {
-            // enable HTTP logs by default
-            await newSite.enableHttpLogs();
-            if (wizardContext.newSiteOS === WebsiteOS.windows) {
-                //enable Application logs by defaul (only for windows)
-                await newSite.enableApplicationLogs();
-            }
+            //enable Application logs by default (only for windows)
+            await newSite.enableLogs(wizardContext.newSiteOS === WebsiteOS.windows);
         } catch (error) {
             // optional part of creating web app, so not worth blocking on error
             context.telemetry.properties.fileLoggingError = parseError(error).message;

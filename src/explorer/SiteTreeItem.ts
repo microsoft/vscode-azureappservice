@@ -143,28 +143,22 @@ export abstract class SiteTreeItem extends SiteTreeItemBase implements ISiteTree
         return !!(logsConfig.httpLogs && logsConfig.httpLogs.fileSystem && logsConfig.httpLogs.fileSystem.enabled);
     }
 
-    public async enableHttpLogs(): Promise<void> {
-        const logsConfig: WebSiteManagementModels.SiteLogsConfig = {
-            httpLogs: {
-                fileSystem: {
-                    enabled: true,
-                    retentionInDays: 7,
-                    retentionInMb: 100
-                }
-            }
-        };
-
-        await this.root.client.updateLogsConfig(logsConfig);
-    }
-    public async enableApplicationLogs(): Promise<void> {
-        const logsConfig: WebSiteManagementModels.SiteLogsConfig = {
-            applicationLogs: {
+    public async enableLogs(enableAppLogs: boolean): Promise<void> {
+        const logsConfig: WebSiteManagementModels.SiteLogsConfig = {};
+        if (enableAppLogs) {
+            logsConfig.applicationLogs = {
                 fileSystem: {
                     level: 'Verbose'
                 }
+            };
+        }
+        logsConfig.httpLogs = {
+            fileSystem: {
+                enabled: true,
+                retentionInDays: 7,
+                retentionInMb: 100
             }
         };
-
         await this.root.client.updateLogsConfig(logsConfig);
     }
 }
