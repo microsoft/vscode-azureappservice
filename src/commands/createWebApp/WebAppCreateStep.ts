@@ -12,7 +12,6 @@ import { ext } from '../../extensionVariables';
 import { localize } from '../../localize';
 import { createWebSiteClient } from '../../utils/azureClients';
 import { nonNullProp } from '../../utils/nonNull';
-import { updateWorkspaceSetting } from '../../vsCodeConfig/settings';
 import { FullJavaStack, FullWebAppStack, IWebAppWizardContext } from './IWebAppWizardContext';
 import { getJavaLinuxRuntime } from './stacks/getJavaLinuxRuntime';
 import { WindowsJavaContainerSettings } from './stacks/models/WebAppStackModel';
@@ -52,8 +51,6 @@ export class WebAppCreateStep extends AzureWizardExecuteStep<IWebAppWizardContex
             siteConfig: newSiteConfig,
             reserved: context.newSiteOS === WebsiteOS.linux  // The secret property - must be set to true to make it a Linux plan. Confirmed by the team who owns this API.
         });
-        // Sets "showBuildDuringDeployPrompt" to false --> SCM_DO_BUILD_DURING_DEPLOYMENT(set to true) is added as a appSetting by default for new web apps
-        await updateWorkspaceSetting(constants.configurationSettings.showBuildDuringDeployPrompt, false, undefined);
     }
 
     public shouldExecute(context: IWebAppWizardContext): boolean {
