@@ -35,7 +35,7 @@ export async function setPrePromptDefaults(wizardContext: IWebAppWizardContext &
     }
 
     if (!wizardContext.advancedCreation) {
-        if (!wizardContext.location) {
+        if (!LocationListStep.hasLocation(wizardContext)) {
             await LocationListStep.setLocation(wizardContext, 'centralus');
         }
     }

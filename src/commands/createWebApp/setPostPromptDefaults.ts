@@ -4,10 +4,9 @@
 *--------------------------------------------------------------------------------------------*/
 
 import { WebSiteManagementClient, WebSiteManagementModels } from '@azure/arm-appservice';
-import { SubscriptionModels } from '@azure/arm-subscriptions';
 import { MessageItem } from "vscode";
 import { SiteNameStep, tryGetAppServicePlan, WebsiteOS } from "vscode-azureappservice";
-import { DialogResponses, IActionContext, LocationListStep } from "vscode-azureextensionui";
+import { AzExtLocation, DialogResponses, IActionContext, LocationListStep } from "vscode-azureextensionui";
 import { localize } from "../../localize";
 import { createWebSiteClient } from "../../utils/azureClients";
 import { getResourceGroupFromId } from '../../utils/azureUtils';
@@ -23,10 +22,10 @@ export async function setPostPromptDefaults(wizardContext: IWebAppWizardContext,
     // Reading az config should always happen after prompting because it can cause a few seconds delay
     const config: AzConfig = await readAzConfig(wizardContext, AzConfigProperty.group, AzConfigProperty.location);
 
-    // location should always be set when in the basic creation scenario
-    const defaultLocation: SubscriptionModels.Location = nonNullProp(wizardContext, 'location');
-    await LocationListStep.setLocation(wizardContext, config.location || nonNullProp(defaultLocation, 'name'));
-    const location: SubscriptionModels.Location = nonNullProp(wizardContext, 'location');
+    if (config.location) {
+        await LocationListStep.setLocation(wizardContext, config.location);
+    }
+    const location: AzExtLocation = await LocationListStep.getLocation(wizardContext);
 
     let defaultName: string = `appsvc_${wizardContext.newSiteOS}_${location.name}`;
     const newSkuTier = nonNullProp(nonNullProp(wizardContext, 'newPlanSku'), 'tier').toLowerCase();
