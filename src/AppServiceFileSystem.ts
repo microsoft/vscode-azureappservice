@@ -26,8 +26,8 @@ export class AppServiceFileSystem extends AzExtTreeFileSystem<FileTreeItem> {
         return { type: FileType.File, ctime: 0, mtime: 0, size: 0 };
     }
 
-    public async readFileImpl(_context: IActionContext, node: FileTreeItem): Promise<Uint8Array> {
-        const result: ISiteFile = await getFile(node.client, node.path);
+    public async readFileImpl(context: IActionContext, node: FileTreeItem): Promise<Uint8Array> {
+        const result: ISiteFile = await getFile(context, node.client, node.path);
         this._etags.set(node.fullId, result.etag);
         return Buffer.from(result.data);
     }
@@ -47,7 +47,7 @@ export class AppServiceFileSystem extends AzExtTreeFileSystem<FileTreeItem> {
         let etag: string = nonNullValue(this._etags.get(node.fullId), 'etag');
         try {
             this.appendLineToOutput(localize('updating', 'Updating "{0}" ...', node.label), { resourceName: node.client.fullName });
-            await putFile(node.client, content, node.path, etag);
+            await putFile(context, node.client, content, node.path, etag);
             this.appendLineToOutput(localize('done', 'Updated "{0}".', node.label), { resourceName: node.client.fullName });
         } catch (error) {
             const parsedError: IParsedError = parseError(error);
@@ -57,7 +57,7 @@ export class AppServiceFileSystem extends AzExtTreeFileSystem<FileTreeItem> {
             throw error;
         }
 
-        etag = (await getFile(node.client, node.path)).etag;
+        etag = (await getFile(context, node.client, node.path)).etag;
         this._etags.set(node.fullId, etag);
         await node.refresh(context);
     }
