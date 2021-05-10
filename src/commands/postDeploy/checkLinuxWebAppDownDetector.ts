@@ -22,7 +22,7 @@ export async function checkLinuxWebAppDownDetector(correlationId: string, node: 
         context.errorHandling.suppressDisplay = true;
         context.telemetry.properties.correlationId = correlationId;
 
-        const kuduClient: KuduClient = await createKuduClient(node.root.client);
+        const kuduClient: KuduClient = await createKuduClient(context, node.root.client);
         const deployment: KuduModels.DeployResult = await kuduClient.deployment.getResult('latest');
 
         if (!deployment.endTime) {
