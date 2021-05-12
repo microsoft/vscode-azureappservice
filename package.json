@@ -812,7 +812,7 @@
         "moment": "^2.24.0",
         "open": "^8.0.4",
         "portfinder": "^1.0.25",
-        "vscode-azureappservice": "^0.80.1",
+        "vscode-azureappservice": "^0.80.2",
         "vscode-azureextensionui": "^0.43.3",
         "vscode-azurekudu": "^0.2.0",
         "vscode-nls": "^4.1.1"
