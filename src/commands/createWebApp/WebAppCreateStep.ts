@@ -3,9 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { WebSiteManagementClient, WebSiteManagementModels } from '@azure/arm-appservice';
+import { WebSiteManagementClient, WebSiteManagementMappers, WebSiteManagementModels } from '@azure/arm-appservice';
 import { Progress } from 'vscode';
-import { WebsiteOS } from 'vscode-azureappservice';
+import { CustomLocation, WebsiteOS } from 'vscode-azureappservice';
 import { AzureWizardExecuteStep, LocationListStep } from 'vscode-azureextensionui';
 import { webProvider } from '../../constants';
 import { ext } from '../../extensionVariables';
@@ -37,24 +37,75 @@ export class WebAppCreateStep extends AzureWizardExecuteStep<IWebAppWizardContex
 
         const siteName: string = nonNullProp(context, 'newSiteName');
         const rgName: string = nonNullProp(nonNullProp(context, 'resourceGroup'), 'name');
-        const location = await LocationListStep.getLocation(context, webProvider);
-        const locationName: string = nonNullProp(location, 'name');
 
-        const newSiteConfig: WebSiteManagementModels.SiteConfig = this.getSiteConfig(context);
         const client: WebSiteManagementClient = await createWebSiteClient(context);
-        context.site = await client.webApps.createOrUpdate(rgName, siteName, {
-            name: context.newSiteName,
-            kind: context.customLocation ? 'linux,kubernetes' : context.newSiteKind,
-            location: locationName,
-            serverFarmId: context.plan && context.plan.id,
-            clientAffinityEnabled: true,
-            siteConfig: newSiteConfig,
-            reserved: context.newSiteOS === WebsiteOS.linux  // The secret property - must be set to true to make it a Linux plan. Confirmed by the team who owns this API.
-        });
+        context.site = await client.webApps.createOrUpdate(rgName, siteName, await this.getNewSite(context));
     }
 
     public shouldExecute(context: IWebAppWizardContext): boolean {
         return !context.site;
+    }
+
+    private async getNewSite(context: IWebAppWizardContext): Promise<WebSiteManagementModels.Site> {
+        const location = await LocationListStep.getLocation(context, webProvider);
+        const newSiteConfig: WebSiteManagementModels.SiteConfig = this.getSiteConfig(context);
+
+        const site: WebSiteManagementModels.Site = {
+            name: context.newSiteName,
+            kind: this.getKind(context),
+            location: nonNullProp(location, 'name'),
+            serverFarmId: context.plan && context.plan.id,
+            clientAffinityEnabled: true,
+            siteConfig: newSiteConfig,
+            reserved: context.newSiteOS === WebsiteOS.linux  // The secret property - must be set to true to make it a Linux plan. Confirmed by the team who owns this API.
+        };
+
+        if (context.customLocation) {
+            this.addCustomLocationProperties(site, context.customLocation);
+        }
+
+        return site;
+    }
+
+    private getKind(context: IWebAppWizardContext): string {
+        let kind: string = context.newSiteKind;
+        if (context.newSiteOS === 'linux') {
+            kind += ',linux';
+        }
+        if (context.customLocation) {
+            kind += ',kubernetes';
+        }
+        return kind;
+    }
+
+    /**
+     * Has a few temporary workarounds so that the sdk allows some newer properties on the plan
+     */
+    private addCustomLocationProperties(site: WebSiteManagementModels.Site, customLocation: CustomLocation): void {
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        WebSiteManagementMappers.Site.type.modelProperties!.extendedLocation = {
+            serializedName: 'extendedLocation',
+            type: {
+                name: "Composite",
+                modelProperties: {
+                    name: {
+                        serializedName: "name",
+                        type: {
+                            name: "String"
+                        }
+                    },
+                    type: {
+                        serializedName: "type",
+                        type: {
+                            name: "String"
+                        }
+                    }
+                }
+            }
+        };
+
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
+        (<any>site).extendedLocation = { name: customLocation.id, type: 'customLocation' };
     }
 
     private getSiteConfig(context: IWebAppWizardContext): WebSiteManagementModels.SiteConfig {
