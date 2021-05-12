@@ -8,7 +8,7 @@ import { pathExists } from 'fs-extra';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as appservice from 'vscode-azureappservice';
-import { getDeployFsPath, getDeployNode, IAppSettingsClient, IDeployContext, IDeployPaths, showDeployConfirmation } from 'vscode-azureappservice';
+import { getDeployFsPath, getDeployNode, IDeployContext, IDeployPaths, showDeployConfirmation } from 'vscode-azureappservice';
 import { IActionContext, parseError } from 'vscode-azureextensionui';
 import * as constants from '../../constants';
 import { SiteTreeItem } from '../../explorer/SiteTreeItem';
@@ -59,13 +59,12 @@ export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | 
     }
 
     const isZipDeploy: boolean = siteConfig.scmType !== constants.ScmType.LocalGit && siteConfig !== constants.ScmType.GitHub;
-    const appSettingsClient: IAppSettingsClient = node.client;
-    const remoteSettings: WebSiteManagementModels.StringDictionary = await appSettingsClient.listApplicationSettings();
-    const isBuildDuringDeploymentAppSetting: boolean = !!remoteSettings.properties && 'SCM_DO_BUILD_DURING_DEPLOYMENT' in remoteSettings.properties;
     // only check enableScmDoBuildDuringDeploy if currentWorkspace matches the workspace being deployed as a user can "Browse" to a different project
-    if (!isBuildDuringDeploymentAppSetting && getWorkspaceSetting<boolean>(constants.configurationSettings.showBuildDuringDeployPrompt, context.effectiveDeployFsPath)) {
+    if (getWorkspaceSetting<boolean>(constants.configurationSettings.showBuildDuringDeployPrompt, context.effectiveDeployFsPath)) {
+        const remoteSettings: WebSiteManagementModels.StringDictionary = await node.client.listApplicationSettings();
+        const hasSCMDoBuildSetting: boolean = !!remoteSettings.properties && 'SCM_DO_BUILD_DURING_DEPLOYMENT' in remoteSettings.properties;
         //check if node is being zipdeployed and that there is no .deployment file
-        if (siteConfig.linuxFxVersion && isZipDeploy && !(await pathExists(path.join(context.effectiveDeployFsPath, constants.deploymentFileName)))) {
+        if (!hasSCMDoBuildSetting && siteConfig.linuxFxVersion && isZipDeploy && !(await pathExists(path.join(context.effectiveDeployFsPath, constants.deploymentFileName)))) {
             const linuxFxVersion: string = siteConfig.linuxFxVersion.toLowerCase();
             if (linuxFxVersion.startsWith(LinuxRuntimes.node)) {
                 // if it is node or python, prompt the user (as we can break them)
@@ -73,7 +72,6 @@ export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | 
             } else if (linuxFxVersion.startsWith(LinuxRuntimes.python)) {
                 await promptScmDoBuildDeploy(context, context.effectiveDeployFsPath, LinuxRuntimes.python);
             }
-
         }
     }
 

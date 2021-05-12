@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { WebSiteManagementClient, WebSiteManagementModels } from '@azure/arm-appservice';
-import { AppInsightsCreateStep, AppInsightsListStep, AppKind, AppServicePlanCreateStep, AppServicePlanListStep, AppServicePlanSkuStep, CustomLocationListStep, setLocationsTask, SiteClient, SiteNameStep, WebsiteOS } from 'vscode-azureappservice';
+import { AppInsightsCreateStep, AppInsightsListStep, AppKind, AppServicePlanCreateStep, AppServicePlanListStep, AppServicePlanSkuStep, CustomLocationListStep, setLocationsTask, SiteClient, SiteNameStep } from 'vscode-azureappservice';
 import { AzExtTreeItem, AzureTreeItem, AzureWizard, AzureWizardExecuteStep, AzureWizardPromptStep, createAzureClient, ICreateChildImplContext, LocationListStep, parseError, ResourceGroupCreateStep, ResourceGroupListStep, SubscriptionTreeItemBase, VerifyProvidersStep } from 'vscode-azureextensionui';
 import { IWebAppWizardContext } from '../commands/createWebApp/IWebAppWizardContext';
 import { setPostPromptDefaults } from '../commands/createWebApp/setPostPromptDefaults';
@@ -125,8 +125,8 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
 
         const newSite: WebAppTreeItem = new WebAppTreeItem(this, siteClient, site);
         try {
-            //enable Application logs by default (only for windows)
-            await newSite.enableLogs(wizardContext.newSiteOS === WebsiteOS.windows);
+            //enable HTTP & Application logs (only for windows) by default
+            await newSite.enableLogs();
         } catch (error) {
             // optional part of creating web app, so not worth blocking on error
             context.telemetry.properties.fileLoggingError = parseError(error).message;

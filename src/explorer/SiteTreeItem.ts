@@ -143,9 +143,9 @@ export abstract class SiteTreeItem extends SiteTreeItemBase implements ISiteTree
         return !!(logsConfig.httpLogs && logsConfig.httpLogs.fileSystem && logsConfig.httpLogs.fileSystem.enabled);
     }
 
-    public async enableLogs(enableAppLogs: boolean): Promise<void> {
+    public async enableLogs(): Promise<void> {
         const logsConfig: WebSiteManagementModels.SiteLogsConfig = {};
-        if (enableAppLogs) {
+        if (!this.root.client.isLinux) {
             logsConfig.applicationLogs = {
                 fileSystem: {
                     level: 'Verbose'
