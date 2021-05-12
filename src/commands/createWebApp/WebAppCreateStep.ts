@@ -7,7 +7,7 @@ import { WebSiteManagementClient, WebSiteManagementMappers, WebSiteManagementMod
 import { Progress } from 'vscode';
 import { CustomLocation, WebsiteOS } from 'vscode-azureappservice';
 import { AzureWizardExecuteStep, LocationListStep } from 'vscode-azureextensionui';
-import { webProvider } from '../../constants';
+import * as constants from '../../constants';
 import { ext } from '../../extensionVariables';
 import { localize } from '../../localize';
 import { createWebSiteClient } from '../../utils/azureClients';
@@ -47,7 +47,7 @@ export class WebAppCreateStep extends AzureWizardExecuteStep<IWebAppWizardContex
     }
 
     private async getNewSite(context: IWebAppWizardContext): Promise<WebSiteManagementModels.Site> {
-        const location = await LocationListStep.getLocation(context, webProvider);
+        const location = await LocationListStep.getLocation(context, constants.webProvider);
         const newSiteConfig: WebSiteManagementModels.SiteConfig = this.getSiteConfig(context);
 
         const site: WebSiteManagementModels.Site = {
@@ -155,7 +155,12 @@ export class WebAppCreateStep extends AzureWizardExecuteStep<IWebAppWizardContex
     private getAppSettings(context: IWebAppWizardContext): WebSiteManagementModels.NameValuePair[] {
         const appSettings: WebSiteManagementModels.NameValuePair[] = [];
         const disabled: string = 'disabled';
+        const trueString: string = 'true';
 
+        appSettings.push({
+            name: 'SCM_DO_BUILD_DURING_DEPLOYMENT',
+            value: trueString
+        });
         if (context.appInsightsComponent) {
             appSettings.push({
                 name: 'APPINSIGHTS_INSTRUMENTATIONKEY',
@@ -200,7 +205,7 @@ export class WebAppCreateStep extends AzureWizardExecuteStep<IWebAppWizardContex
             } else {
                 appSettings.push({
                     name: 'APPLICATIONINSIGHTSAGENT_EXTENSION_ENABLED',
-                    value: 'true'
+                    value: trueString
                 });
             }
         }
