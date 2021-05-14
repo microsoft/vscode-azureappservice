@@ -84,7 +84,7 @@ export async function setPostPromptDefaults(wizardContext: IWebAppWizardContext,
         }
     } catch (error) {
         if (parseError(error).errorType === 'AuthorizationFailed') {
-            // setting these values to some arbitrary values as ResourceGroupCreateStep & AppServicePlanCreateStep expects these to be not null
+            // User has restricted permissions for something. We'll use the default values for now and let the  `ResourceGroupCreateStep` & `AppServicePlanCreateStep` handle the 'AuthorizationFailed' error down the line
             wizardContext.newResourceGroupName = defaultGroupName;
             wizardContext.newPlanName = defaultPlanName;
         } else {
