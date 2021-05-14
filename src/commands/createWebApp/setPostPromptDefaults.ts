@@ -6,7 +6,7 @@
 import { WebSiteManagementClient, WebSiteManagementModels } from '@azure/arm-appservice';
 import { MessageItem } from "vscode";
 import { SiteNameStep, tryGetAppServicePlan, WebsiteOS } from "vscode-azureappservice";
-import { AzExtLocation, DialogResponses, IActionContext, LocationListStep } from "vscode-azureextensionui";
+import { AzExtLocation, DialogResponses, IActionContext, LocationListStep, parseError } from "vscode-azureextensionui";
 import { localize } from "../../localize";
 import { createWebSiteClient } from "../../utils/azureClients";
 import { getResourceGroupFromId } from '../../utils/azureUtils';
@@ -37,49 +37,60 @@ export async function setPostPromptDefaults(wizardContext: IWebAppWizardContext,
     const defaultGroupName: string = config.group || defaultName;
     const defaultPlanName: string = defaultName;
 
-    const client: WebSiteManagementClient = await createWebSiteClient(wizardContext);
-    const asp: WebSiteManagementModels.AppServicePlan | undefined = await tryGetAppServicePlan(client, defaultGroupName, defaultPlanName);
-    const hasPerfDrop = checkPlanForPerformanceDrop(asp);
-    if (asp && (hasPerfDrop || !matchesTier(asp, newSkuTier))) {
-        // Subscriptions can only have 1 free tier Linux plan so show a warning if there are too many apps on the plan
-        if (wizardContext.newSiteOS === WebsiteOS.linux && newSkuTier === freeTier && hasPerfDrop) {
-            await promptPerformanceWarning(wizardContext, asp);
+    try {
+        const client: WebSiteManagementClient = await createWebSiteClient(wizardContext);
+        const asp: WebSiteManagementModels.AppServicePlan | undefined = await tryGetAppServicePlan(client, defaultGroupName, defaultPlanName);
+        const hasPerfDrop = checkPlanForPerformanceDrop(asp);
+        if (asp && (hasPerfDrop || !matchesTier(asp, newSkuTier))) {
+            // Subscriptions can only have 1 free tier Linux plan so show a warning if there are too many apps on the plan
+            if (wizardContext.newSiteOS === WebsiteOS.linux && newSkuTier === freeTier && hasPerfDrop) {
+                await promptPerformanceWarning(wizardContext, asp);
+                wizardContext.newResourceGroupName = defaultGroupName;
+                wizardContext.newPlanName = defaultPlanName;
+            } else {
+                // Check if there are plans prefixed with default name that match the tier and don't have a performance drop. If so, use that plan. Otherwise, create a new rg and asp using `getRelatedName`
+
+                const allAppServicePlans: WebSiteManagementModels.AppServicePlan[] = await client.appServicePlans.list();
+                const defaultPlans: WebSiteManagementModels.AppServicePlan[] = allAppServicePlans.filter(plan => {
+                    return plan.name && plan.name.includes(defaultPlanName) && getResourceGroupFromId(nonNullProp(plan, 'id')).includes(defaultGroupName);
+                });
+
+                // when using appServicePlans.list, the numOfSites are all set to 0 so individually get each plan and look for one with less than 3 sites
+                for (const plan of defaultPlans) {
+                    if (plan.name) {
+                        const groupName: string = getResourceGroupFromId(nonNullProp(plan, 'id'));
+                        const fullPlanData: WebSiteManagementModels.AppServicePlan | undefined = await tryGetAppServicePlan(client, groupName, plan.name);
+                        if (fullPlanData && matchesTier(fullPlanData, newSkuTier) && !checkPlanForPerformanceDrop(fullPlanData)) {
+                            wizardContext.newResourceGroupName = groupName;
+                            wizardContext.newPlanName = plan.name;
+                            break;
+                        }
+                    }
+                }
+
+                wizardContext.newResourceGroupName = wizardContext.newResourceGroupName || await siteNameStep.getRelatedName(wizardContext, defaultGroupName);
+                if (!wizardContext.newResourceGroupName) {
+                    throw new Error(localize('noUniqueNameRg', 'Failed to generate unique name for resources. Use advanced creation to manually enter resource names.'));
+                }
+
+                wizardContext.newPlanName = await siteNameStep.getRelatedName(wizardContext, defaultPlanName);
+                if (!wizardContext.newPlanName) {
+                    throw new Error(localize('noUniqnueNameAsp', 'Failed to generate unique name for app service plan. Use advanced creation to manually enter plan names.'));
+                }
+            }
+        } else {
+            wizardContext.newResourceGroupName = defaultGroupName;
+            wizardContext.newPlanName = defaultPlanName;
+        }
+    } catch (error) {
+        if (parseError(error).errorType === 'AuthorizationFailed') {
+            // User has restricted permissions for something. We'll use the default values for now and let the  `ResourceGroupCreateStep` & `AppServicePlanCreateStep` handle the 'AuthorizationFailed' error down the line
             wizardContext.newResourceGroupName = defaultGroupName;
             wizardContext.newPlanName = defaultPlanName;
         } else {
-            // Check if there are plans prefixed with default name that match the tier and don't have a performance drop. If so, use that plan. Otherwise, create a new rg and asp using `getRelatedName`
+            throw error;
 
-            const allAppServicePlans: WebSiteManagementModels.AppServicePlan[] = await client.appServicePlans.list();
-            const defaultPlans: WebSiteManagementModels.AppServicePlan[] = allAppServicePlans.filter(plan => {
-                return plan.name && plan.name.includes(defaultPlanName) && getResourceGroupFromId(nonNullProp(plan, 'id')).includes(defaultGroupName);
-            });
-
-            // when using appServicePlans.list, the numOfSites are all set to 0 so individually get each plan and look for one with less than 3 sites
-            for (const plan of defaultPlans) {
-                if (plan.name) {
-                    const groupName: string = getResourceGroupFromId(nonNullProp(plan, 'id'));
-                    const fullPlanData: WebSiteManagementModels.AppServicePlan | undefined = await tryGetAppServicePlan(client, groupName, plan.name);
-                    if (fullPlanData && matchesTier(fullPlanData, newSkuTier) && !checkPlanForPerformanceDrop(fullPlanData)) {
-                        wizardContext.newResourceGroupName = groupName;
-                        wizardContext.newPlanName = plan.name;
-                        break;
-                    }
-                }
-            }
-
-            wizardContext.newResourceGroupName = wizardContext.newResourceGroupName || await siteNameStep.getRelatedName(wizardContext, defaultGroupName);
-            if (!wizardContext.newResourceGroupName) {
-                throw new Error(localize('noUniqueNameRg', 'Failed to generate unique name for resources. Use advanced creation to manually enter resource names.'));
-            }
-
-            wizardContext.newPlanName = await siteNameStep.getRelatedName(wizardContext, defaultPlanName);
-            if (!wizardContext.newPlanName) {
-                throw new Error(localize('noUniqnueNameAsp', 'Failed to generate unique name for app service plan. Use advanced creation to manually enter plan names.'));
-            }
         }
-    } else {
-        wizardContext.newResourceGroupName = defaultGroupName;
-        wizardContext.newPlanName = defaultPlanName;
     }
 }
 
