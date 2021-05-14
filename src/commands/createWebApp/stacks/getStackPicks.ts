@@ -24,10 +24,26 @@ export async function getStackPicks(context: IWebAppWizardContext, javaVersion?:
 
             for (const minorVersion of minorVersions) {
                 let description: string | undefined;
-                if (isFlagSet(minorVersion.stackSettings, 'isPreview')) {
-                    description = localize('preview', '(Preview)');
-                } else if (isFlagSet(minorVersion.stackSettings, 'isEarlyAccess')) {
-                    description = localize('earlyAccess', '(Early Access)');
+                const previewOs = getFlagOs(minorVersion.stackSettings, 'isPreview');
+                switch (previewOs) {
+                    case 'All':
+                        description = localize('preview', '(Preview)');
+                        break;
+                    case 'Linux':
+                    case 'Windows':
+                        description = localize('previewOnOS', '(Preview on {0})', previewOs);
+                        break;
+                }
+
+                const earlyAccessOS = getFlagOs(minorVersion.stackSettings, 'isEarlyAccess');
+                switch (earlyAccessOS) {
+                    case 'All':
+                        description = localize('earlyAccess', '(Early Access)');
+                        break;
+                    case 'Linux':
+                    case 'Windows':
+                        description = localize('earlyAccessOnOS', '(Early Access on {0})', earlyAccessOS);
+                        break;
                 }
 
                 picks.push({
@@ -43,23 +59,34 @@ export async function getStackPicks(context: IWebAppWizardContext, javaVersion?:
     return picks;
 }
 
-function isFlagSet(ss: WebAppRuntimes & JavaContainers, key: 'isPreview' | 'isEarlyAccess'): boolean {
-    return !![ss.linuxContainerSettings, ss.windowsContainerSettings, ss.linuxRuntimeSettings, ss.windowsRuntimeSettings].find(s => s && s[key]);
+type FlagOS = 'All' | 'Linux' | 'Windows' | 'None';
+function getFlagOs(ss: WebAppRuntimes & JavaContainers, key: 'isPreview' | 'isEarlyAccess'): FlagOS {
+    if ([ss.linuxContainerSettings, ss.windowsContainerSettings, ss.linuxRuntimeSettings, ss.windowsRuntimeSettings].every(s => !s || s[key])) {
+        // NOTE: 'All' means all OS's _that are defined_ have the flag set. This may only be one OS if that's all that is defined/supported by this stack
+        return 'All';
+    } else if (ss.linuxRuntimeSettings?.[key] || ss.linuxContainerSettings?.[key]) {
+        return 'Linux';
+    } else if (ss.windowsRuntimeSettings?.[key] || ss.windowsContainerSettings?.[key]) {
+        return 'Windows';
+    } else {
+        return 'None';
+    }
 }
 
+type StacksArmResponse = { value: { properties: WebAppStack }[] };
 async function getStacks(context: IWebAppWizardContext & { _stacks?: WebAppStack[]; }): Promise<WebAppStack[]> {
     if (!context._stacks) {
-        const client: ServiceClient = await createGenericClient();
+        const client: ServiceClient = await createGenericClient(context);
         const result: HttpOperationResponse = await client.sendRequest({
             method: 'GET',
-            url: 'https://aka.ms/AAa5gfo',
+            pathTemplate: '/providers/Microsoft.Web/webappstacks',
             queryParameters: {
                 'api-version': '2020-10-01',
                 removeHiddenStacks: String(!getWorkspaceSetting<boolean>('showHiddenStacks')),
                 removeDeprecatedStacks: 'true'
             }
         });
-        context._stacks = <WebAppStack[]>result.parsedBody;
+        context._stacks = (<StacksArmResponse>result.parsedBody).value.map(d => d.properties);
     }
 
     return sortStacks(context, context._stacks);
