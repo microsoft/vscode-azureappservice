@@ -14,7 +14,7 @@ import { createWebSiteClient } from '../../utils/azureClients';
 import { nonNullProp } from '../../utils/nonNull';
 import { FullJavaStack, FullWebAppStack, IWebAppWizardContext } from './IWebAppWizardContext';
 import { getJavaLinuxRuntime } from './stacks/getJavaLinuxRuntime';
-import { WindowsJavaContainerSettings } from './stacks/models/WebAppStackModel';
+import { WebAppStackValue, WindowsJavaContainerSettings } from './stacks/models/WebAppStackModel';
 
 export class WebAppCreateStep extends AzureWizardExecuteStep<IWebAppWizardContext> {
     public priority: number = 140;
@@ -157,10 +157,13 @@ export class WebAppCreateStep extends AzureWizardExecuteStep<IWebAppWizardContex
         const disabled: string = 'disabled';
         const trueString: string = 'true';
 
-        appSettings.push({
-            name: 'SCM_DO_BUILD_DURING_DEPLOYMENT',
-            value: trueString
-        });
+        const runtime: WebAppStackValue = nonNullProp(context, 'newSiteStack').stack.value;
+        if (context.newSiteOS === WebsiteOS.linux && runtime === 'node' || runtime === 'python') {
+            appSettings.push({
+                name: 'SCM_DO_BUILD_DURING_DEPLOYMENT',
+                value: trueString
+            });
+        }
         if (context.appInsightsComponent) {
             appSettings.push({
                 name: 'APPINSIGHTS_INSTRUMENTATIONKEY',
