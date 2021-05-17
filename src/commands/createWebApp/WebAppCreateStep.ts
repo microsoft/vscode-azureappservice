@@ -158,7 +158,7 @@ export class WebAppCreateStep extends AzureWizardExecuteStep<IWebAppWizardContex
         const trueString: string = 'true';
 
         const runtime: WebAppStackValue = nonNullProp(context, 'newSiteStack').stack.value;
-        if (context.newSiteOS === WebsiteOS.linux && runtime === 'node' || runtime === 'python') {
+        if (context.newSiteOS === WebsiteOS.linux && (runtime === 'node' || runtime === 'python')) {
             appSettings.push({
                 name: 'SCM_DO_BUILD_DURING_DEPLOYMENT',
                 value: trueString
