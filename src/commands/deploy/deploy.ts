@@ -22,6 +22,7 @@ import { getRandomHexString } from "../../utils/randomUtils";
 import { getWorkspaceSetting } from '../../vsCodeConfig/settings';
 import { LinuxRuntimes } from '../createWebApp/LinuxRuntimes';
 import { runPostDeployTask } from '../postDeploy/runPostDeployTask';
+import { setPreDeployTaskForMavenModule } from "./setPreDeployTaskForMavenModule";
 import { failureMoreInfoSurvey } from './failureMoreInfoSurvey';
 import { promptScmDoBuildDeploy } from './promptScmDoBuildDeploy';
 import { promptToSaveDeployDefaults } from './promptToSaveDeployDefaults';
@@ -42,10 +43,18 @@ export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | 
     const fileExtensions: string | string[] | undefined = await javaUtils.getJavaFileExtensions(siteConfig);
 
     const deployPaths: IDeployPaths = await getDeployFsPath(actionContext, arg1, fileExtensions);
-    const context: IDeployContext = Object.assign(actionContext, deployPaths, { defaultAppSetting: constants.configurationSettings.defaultWebAppToDeploy, isNewApp });
+    const context: IDeployContext = Object.assign(actionContext, deployPaths, {
+        defaultAppSetting: constants.configurationSettings.defaultWebAppToDeploy,
+        isNewApp
+    });
 
     // because this is workspace dependant, do it before user selects app
     await setPreDeployTaskForDotnet(context);
+    const isMavenModule = javaUtils.isMavenModule(context.originalDeployFsPath);
+    if (isMavenModule) {
+        await setPreDeployTaskForMavenModule(context);
+    }
+
     const node: SiteTreeItem = await getDeployNode(context, ext.tree, arg1, arg2, [WebAppTreeItem.contextValue]);
 
     const correlationId: string = getRandomHexString();
@@ -90,7 +99,7 @@ export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | 
     }
 
     // only respect the deploySubpath settings for zipdeploys
-    const deployPath: string = isZipDeploy ? context.effectiveDeployFsPath : context.originalDeployFsPath;
+    const deployPath: string = isZipDeploy || isMavenModule ? context.effectiveDeployFsPath : context.originalDeployFsPath;
 
     if (!isZipDeploy && isPathEqual(context.effectiveDeployFsPath, context.originalDeployFsPath)) {
         const noSubpathWarning: string = localize('ignoreSuppath', 'WARNING: Ignoring deploySubPath "{0}" for non-zip deploy.', getWorkspaceSetting(constants.configurationSettings.deploySubpath));

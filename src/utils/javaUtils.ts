@@ -8,6 +8,7 @@ import * as fse from 'fs-extra';
 import * as path from 'path';
 import { workspace } from "vscode";
 import { UserCancelledError } from 'vscode-azureextensionui';
+import * as constants from "../constants";
 import { SiteTreeItem } from "../explorer/SiteTreeItem";
 import { ext } from '../extensionVariables';
 import { localize } from "../localize";
@@ -86,6 +87,26 @@ export namespace javaUtils {
 
     async function isJavaFolder(fsPath: string): Promise<boolean> {
         return await fse.pathExists(path.join(fsPath, 'pom.xml')) || await fse.pathExists(path.join(fsPath, 'build.gradle'));
+    }
+
+    export function isMavenModule(fsPath: string): boolean {
+        return fse.existsSync(fsPath) &&
+            fse.lstatSync(fsPath).isDirectory() &&
+            fse.existsSync(path.join(fsPath, 'pom.xml'));
+    }
+
+    export async function getLocalMavenWrapper(modulePath: string): Promise<string | undefined> {
+        const mvnw: string = constants.isWindows ? "mvnw.cmd" : "mvnw";
+        // walk up parent folders
+        let current: string = modulePath;
+        while (path.basename(current)) {
+            const potentialMvnwPath: string = path.join(current, mvnw);
+            if (await fse.pathExists(potentialMvnwPath)) {
+                return potentialMvnwPath;
+            }
+            current = path.dirname(current);
+        }
+        return undefined;
     }
 
     export async function configureJavaSEAppSettings(node: SiteTreeItem): Promise<WebSiteManagementModels.StringDictionary | undefined> {
