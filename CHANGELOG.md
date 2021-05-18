@@ -4,7 +4,7 @@
 ### Changed
 - Minimum version of VS Code is now 1.53.0
 - Icons updated to match VS Code's theme. Install new product icon themes [here](https://marketplace.visualstudio.com/search?term=tag%3Aproduct-icon-theme&target=VSCode)
-- "SCM_DO_BUILD_DURING_DEPLOYMENT=true" is now added as an AppSetting to newly created web apps(only Linux - node or python apps), enables build during deploy by default
+- Newly created Node.js and Python web apps targeting Linux will have `SCM_DO_BUILD_DURING_DEPLOYMENT` set to `true`, automatically building your app in Azure during deploy
 
 ## 0.21.2 - 2021-03-09
 ### [Fixed](https://github.com/microsoft/vscode-azureappservice/issues/1571)
