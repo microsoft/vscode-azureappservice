@@ -12,6 +12,16 @@ import * as constants from "../constants";
 import { SiteTreeItem } from "../explorer/SiteTreeItem";
 import { ext } from '../extensionVariables';
 import { localize } from "../localize";
+import * as parser from 'fast-xml-parser';
+
+interface MavenArtifact {
+    name: string;
+    description?: string;
+    file: string;
+    ext: string;
+    module: string
+    pom: any,
+}
 
 export namespace javaUtils {
     const DEFAULT_PORT: string = '8080';
@@ -93,6 +103,45 @@ export namespace javaUtils {
         return fse.existsSync(fsPath) &&
             fse.lstatSync(fsPath).isDirectory() &&
             fse.existsSync(path.join(fsPath, 'pom.xml'));
+    }
+
+    export function getMavenArtifactsInWorkspace(fileExtensions: string | string[] | undefined): MavenArtifact[] {
+        fileExtensions = typeof fileExtensions === 'string' ? [fileExtensions] : fileExtensions || [];
+        return (workspace.workspaceFolders ?? []).map(f => f.uri.fsPath)
+            .flatMap(f => findPomFiles(f))
+            .map(p => getMavenArtifact(p))
+            .filter(a => fileExtensions?.includes(a.ext));
+    }
+
+    export function getMavenArtifact(pomFile: string): MavenArtifact {
+        const pom = parser.parse(fse.readFileSync(pomFile, 'utf8'));
+        const module = path.dirname(pomFile);
+        const pj = pom.project;
+        const fileName = `${pj.artifactId}-${pj.version || pj.parent?.version}.${pj.packaging || 'jar'}`;
+        return {
+            name: `Maven: ${pj.groupId || pj.parent.groupId}:${pj.artifactId}:${pj.version || pj.parent.version}:${pj.packaging || 'jar'}`,
+            module,
+            file: path.join(module, 'target', fileName),
+            ext: pj.packaging || 'jar',
+            pom
+        }
+    }
+
+    function findPomFiles(root: string): string[] {
+        if (!fse.existsSync(root) || !fse.lstatSync(root).isDirectory()) {
+            return [];
+        }
+        const pomFiles: string[] = [];
+        const dirs: string[] = [root];
+        while (dirs.length > 0) {
+            const d: string = dirs.shift()!;
+            dirs.push(...(fse.readdirSync(d).map(f => path.join(d, f)).filter(f => fse.statSync(f).isDirectory())));
+            const pomFile = path.join(d, 'pom.xml');
+            if (fse.existsSync(pomFile)) {
+                pomFiles.push(pomFile);
+            }
+        }
+        return pomFiles;
     }
 
     export async function getLocalMavenWrapper(modulePath: string): Promise<string | undefined> {
