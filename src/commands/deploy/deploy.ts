@@ -23,10 +23,10 @@ import { getWorkspaceSetting } from '../../vsCodeConfig/settings';
 import { LinuxRuntimes } from '../createWebApp/LinuxRuntimes';
 import { runPostDeployTask } from '../postDeploy/runPostDeployTask';
 import { failureMoreInfoSurvey } from './failureMoreInfoSurvey';
-import { setPreDeployTaskForMavenModule } from "./setPreDeployTaskForMavenModule";
 import { promptScmDoBuildDeploy } from './promptScmDoBuildDeploy';
 import { promptToSaveDeployDefaults } from './promptToSaveDeployDefaults';
 import { setPreDeployTaskForDotnet } from './setPreDeployTaskForDotnet';
+import { setPreDeployTaskForMavenModule } from "./setPreDeployTaskForMavenModule";
 import { showDeployCompletedMessage } from './showDeployCompletedMessage';
 
 const postDeployCancelTokens: Map<string, vscode.CancellationTokenSource> = new Map<string, vscode.CancellationTokenSource>();
@@ -52,10 +52,7 @@ export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | 
 
     // because this is workspace dependant, do it before user selects app
     await setPreDeployTaskForDotnet(context);
-    const isMavenModule = javaUtils.isMavenModule(context.originalDeployFsPath);
-    if (isMavenModule) {
-        await setPreDeployTaskForMavenModule(context);
-    }
+    const mavenArtifactFile = javaUtils.isMavenModule(context.effectiveDeployFsPath) && await setPreDeployTaskForMavenModule(context);
 
     const node: SiteTreeItem = await getDeployNode(context, ext.tree, arg1, arg2, [WebAppTreeItem.contextValue]);
 
@@ -101,7 +98,7 @@ export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | 
     }
 
     // only respect the deploySubpath settings for zipdeploys
-    const deployPath: string = isZipDeploy || isMavenModule ? context.effectiveDeployFsPath : context.originalDeployFsPath;
+    const deployPath: string = mavenArtifactFile || (isZipDeploy ? context.effectiveDeployFsPath : context.originalDeployFsPath);
 
     if (!isZipDeploy && isPathEqual(context.effectiveDeployFsPath, context.originalDeployFsPath)) {
         const noSubpathWarning: string = localize('ignoreSuppath', 'WARNING: Ignoring deploySubPath "{0}" for non-zip deploy.', getWorkspaceSetting(constants.configurationSettings.deploySubpath));

@@ -4,35 +4,31 @@
 *--------------------------------------------------------------------------------------------*/
 
 import * as path from 'path';
-import { TaskDefinition } from 'vscode';
-import { IDeployContext } from 'vscode-azureappservice';
+import {TaskDefinition} from 'vscode';
+import {IDeployContext} from 'vscode-azureappservice';
 import * as constants from '../../constants';
-import { javaUtils } from "../../utils/javaUtils";
-import { getWorkspaceSetting, updateWorkspaceSetting } from '../../vsCodeConfig/settings';
+import {javaUtils} from "../../utils/javaUtils";
+import {getWorkspaceSetting, updateWorkspaceSetting} from '../../vsCodeConfig/settings';
 import * as tasks from '../../vsCodeConfig/tasks';
 
-export async function setPreDeployTaskForMavenModule(context: IDeployContext): Promise<void> {
+export async function setPreDeployTaskForMavenModule(context: IDeployContext): Promise<string | null> {
     const preDeployTaskKey: string = 'preDeployTask';
-    const showPreDeployWarningKey: string = 'showPreDeployWarning';
     const workspaceFspath: string = context.workspaceFolder.uri.fsPath;
 
-    if (!javaUtils.isMavenModule(context.originalDeployFsPath)) {
-        return;
-    }
-    // don't overwrite preDeploy or deploySubpath if it exists and respect configurePreDeployTasks setting
-    if (!getWorkspaceSetting<boolean>(showPreDeployWarningKey, workspaceFspath)
-        || getWorkspaceSetting<string>(preDeployTaskKey, workspaceFspath)
-        || getWorkspaceSetting<string>(constants.configurationSettings.deploySubpath, workspaceFspath)) {
-        return;
+    if (!javaUtils.isMavenModule(context.effectiveDeployFsPath)) {
+        return null;
     }
 
-    const modulePath = context.originalDeployFsPath;
+    const artifact = javaUtils.getMavenArtifact(path.posix.join(context.effectiveDeployFsPath, 'pom.xml'));
+    if (getWorkspaceSetting<string>(preDeployTaskKey, workspaceFspath)) {
+        return artifact.file;
+    }
 
     const existingTasks: tasks.ITask[] = tasks.getTasks(context.workspaceFolder);
     let packageTask: tasks.ITask | undefined = existingTasks.find(t1 => t1.label === constants.mavenPackageTaskName);
     // if the "package" task exists and it doesn't dependOn a task, have it depend on clean
     if (!packageTask) {
-        packageTask = await generateMavenPackageTask(modulePath);
+        packageTask = await generateMavenPackageTask(context.effectiveDeployFsPath);
         await tasks.updateTasks(context.workspaceFolder, existingTasks.concat([packageTask]));
     }
 
@@ -42,6 +38,7 @@ export async function setPreDeployTaskForMavenModule(context: IDeployContext): P
     }
 
     await updateWorkspaceSetting(preDeployTaskKey, packageTask.label, workspaceFspath);
+    return artifact.file;
 }
 
 async function generateMavenPackageTask(modulePath: string): Promise<TaskDefinition> {
