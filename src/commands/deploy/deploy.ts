@@ -22,8 +22,8 @@ import { getRandomHexString } from "../../utils/randomUtils";
 import { getWorkspaceSetting } from '../../vsCodeConfig/settings';
 import { LinuxRuntimes } from '../createWebApp/LinuxRuntimes';
 import { runPostDeployTask } from '../postDeploy/runPostDeployTask';
-import { setPreDeployTaskForMavenModule } from "./setPreDeployTaskForMavenModule";
 import { failureMoreInfoSurvey } from './failureMoreInfoSurvey';
+import { setPreDeployTaskForMavenModule } from "./setPreDeployTaskForMavenModule";
 import { promptScmDoBuildDeploy } from './promptScmDoBuildDeploy';
 import { promptToSaveDeployDefaults } from './promptToSaveDeployDefaults';
 import { setPreDeployTaskForDotnet } from './setPreDeployTaskForDotnet';
@@ -41,8 +41,10 @@ export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | 
     }
 
     const fileExtensions: string | string[] | undefined = await javaUtils.getJavaFileExtensions(siteConfig);
-
-    const deployPaths: IDeployPaths = await getDeployFsPath(actionContext, arg1, fileExtensions);
+    const recommendations = javaUtils.getMavenArtifactsInWorkspace(fileExtensions).map(a => {
+        return { label: a.name, description: a.description, data: a.module };
+    });
+    const deployPaths: IDeployPaths = await getDeployFsPath(actionContext, arg1, fileExtensions, recommendations);
     const context: IDeployContext = Object.assign(actionContext, deployPaths, {
         defaultAppSetting: constants.configurationSettings.defaultWebAppToDeploy,
         isNewApp
