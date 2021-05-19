@@ -4,6 +4,7 @@
 *--------------------------------------------------------------------------------------------*/
 
 import { WebSiteManagementModels } from "@azure/arm-appservice";
+import * as parser from 'fast-xml-parser';
 import * as fse from 'fs-extra';
 import * as path from 'path';
 import { workspace } from "vscode";
@@ -12,11 +13,11 @@ import * as constants from "../constants";
 import { SiteTreeItem } from "../explorer/SiteTreeItem";
 import { ext } from '../extensionVariables';
 import { localize } from "../localize";
-import * as parser from 'fast-xml-parser';
 
 interface MavenArtifact {
     name: string;
     description?: string;
+    workspace?: string;
     file: string;
     ext: string;
     module: string
@@ -108,18 +109,20 @@ export namespace javaUtils {
     export function getMavenArtifactsInWorkspace(fileExtensions: string | string[] | undefined): MavenArtifact[] {
         fileExtensions = typeof fileExtensions === 'string' ? [fileExtensions] : fileExtensions || [];
         return (workspace.workspaceFolders ?? []).map(f => f.uri.fsPath)
-            .flatMap(f => findPomFiles(f))
-            .map(p => getMavenArtifact(p))
+            .flatMap(f => findPomFiles(f).map(p => getMavenArtifact(p, f)))
             .filter(a => fileExtensions?.includes(a.ext));
     }
 
-    export function getMavenArtifact(pomFile: string): MavenArtifact {
+    export function getMavenArtifact(pomFile: string, ws?: string): MavenArtifact {
         const pom = parser.parse(fse.readFileSync(pomFile, 'utf8'));
         const module = path.dirname(pomFile);
+        const moduleRelativePath = path.relative(ws || workspace.workspaceFolders?.[0].uri.fsPath || module, module);
         const pj = pom.project;
         const fileName = `${pj.artifactId}-${pj.version || pj.parent?.version}.${pj.packaging || 'jar'}`;
         return {
             name: `Maven: ${pj.groupId || pj.parent.groupId}:${pj.artifactId}:${pj.version || pj.parent.version}:${pj.packaging || 'jar'}`,
+            description: path.join(moduleRelativePath, 'target', fileName),
+            workspace: ws,
             module,
             file: path.join(module, 'target', fileName),
             ext: pj.packaging || 'jar',
