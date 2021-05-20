@@ -114,7 +114,7 @@ export namespace javaUtils {
         const pj = pom.project;
         const fileName = `${pj.artifactId}-${pj.version || pj.parent?.version}.${pj.packaging || 'jar'}`;
         return {
-            name: `Maven: ${pj.groupId || pj.parent.groupId}:${pj.artifactId}:${pj.version || pj.parent.version}:${pj.packaging || 'jar'}`,
+            name: `Maven: ${pj.groupId || pj.parent.groupId}:${pj.artifactId}:${pj.version || pj.parent.version}`,
             description: path.join(moduleRelativePath, 'target', fileName),
             workspace: ws,
             module,
