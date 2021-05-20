@@ -32,7 +32,7 @@ export function showDeployCompletedMessage(node: SiteTreeItem): void {
             } else if (result === streamLogs) {
                 await startStreamingLogs(context, node);
             } else if (result === uploadSettingsBtn) {
-                await uploadAppSettings(context);
+                await uploadAppSettings(context, node.appSettingsNode);
             }
         });
     });
