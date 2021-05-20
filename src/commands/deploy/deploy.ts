@@ -41,10 +41,10 @@ export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | 
     }
 
     const fileExtensions: string | string[] | undefined = await javaUtils.getJavaFileExtensions(siteConfig);
-    const recommendations = javaUtils.getMavenArtifactsInWorkspace(fileExtensions).map(a => {
+    const suggestions = javaUtils.getMavenArtifactsInWorkspace(fileExtensions).map(a => {
         return { label: a.name, description: a.description, data: a.module };
     });
-    const deployPaths: IDeployPaths = await getDeployFsPath(actionContext, arg1, fileExtensions, recommendations);
+    const deployPaths: IDeployPaths = await getDeployFsPath(actionContext, arg1, fileExtensions, suggestions);
     const context: IDeployContext = Object.assign(actionContext, deployPaths, {
         defaultAppSetting: constants.configurationSettings.defaultWebAppToDeploy,
         isNewApp
