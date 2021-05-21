@@ -4,24 +4,32 @@
 *--------------------------------------------------------------------------------------------*/
 
 import * as path from 'path';
-import {TaskDefinition} from 'vscode';
-import {IDeployContext} from 'vscode-azureappservice';
+import { TaskDefinition } from 'vscode';
+import { IDeployContext } from 'vscode-azureappservice';
 import * as constants from '../../constants';
-import {javaUtils} from "../../utils/javaUtils";
-import {getWorkspaceSetting, updateWorkspaceSetting} from '../../vsCodeConfig/settings';
+import { javaUtils } from "../../utils/javaUtils";
+import { getWorkspaceSetting, updateWorkspaceSetting } from '../../vsCodeConfig/settings';
 import * as tasks from '../../vsCodeConfig/tasks';
+
 
 export async function setPreDeployTaskForMavenModule(context: IDeployContext): Promise<string | null> {
     const preDeployTaskKey: string = 'preDeployTask';
     const workspaceFspath: string = context.workspaceFolder.uri.fsPath;
 
+    const preDeployTask = getWorkspaceSetting<string>(preDeployTaskKey, workspaceFspath);
     if (!javaUtils.isMavenModule(context.effectiveDeployFsPath)) {
+        if (preDeployTask == constants.mavenPackageTaskName) {
+            await updateWorkspaceSetting(preDeployTaskKey, undefined, workspaceFspath);
+        }
         return null;
     }
 
     const artifact = javaUtils.getMavenArtifact(path.posix.join(context.effectiveDeployFsPath, 'pom.xml'));
-    if (getWorkspaceSetting<string>(preDeployTaskKey, workspaceFspath)) {
-        return artifact.file;
+    if (preDeployTask) {
+        if (preDeployTask == constants.mavenPackageTaskName) {
+            return artifact.file;
+        }
+        return null;
     }
 
     const existingTasks: tasks.ITask[] = tasks.getTasks(context.workspaceFolder);
@@ -37,7 +45,7 @@ export async function setPreDeployTaskForMavenModule(context: IDeployContext): P
         await tasks.updateTasksVersion(context.workspaceFolder, tasks.tasksVersion);
     }
 
-    await updateWorkspaceSetting(preDeployTaskKey, packageTask.label, workspaceFspath);
+    await updateWorkspaceSetting(preDeployTaskKey, constants.mavenPackageTaskName, workspaceFspath);
     return artifact.file;
 }
 
