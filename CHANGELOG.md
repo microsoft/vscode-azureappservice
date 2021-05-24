@@ -2,7 +2,7 @@
 
 ## 0.22.0 - 2021-05-25
 ### Added
-- Support Azure App Service on Kubernetes via Azure Arc (Preview)
+- Support Azure App Service on Kubernetes with Azure Arc (Preview)
 - Improve experience when user only has partial permissions for resources on Azure
 
 ### Changed
