@@ -6,6 +6,7 @@
 import { WebSiteManagementModels } from '@azure/arm-appservice';
 import { AppSettingsTreeItem, AppSettingTreeItem, deleteSite, DeploymentsTreeItem, DeploymentTreeItem, FolderTreeItem, ISiteTreeRoot, LogFilesTreeItem, SiteClient, SiteFilesTreeItem } from 'vscode-azureappservice';
 import { AzExtTreeItem, AzureParentTreeItem, AzureTreeItem, openInPortal } from 'vscode-azureextensionui';
+import { nonNullValue } from '../utils/nonNull';
 import { openUrl } from '../utils/openUrl';
 import { CosmosDBConnection } from './CosmosDBConnection';
 import { CosmosDBTreeItem } from './CosmosDBTreeItem';
@@ -25,13 +26,11 @@ export abstract class SiteTreeItem extends SiteTreeItemBase implements ISiteTree
     private readonly _webJobsNode: WebJobsTreeItem | WebJobsNATreeItem;
 
     private readonly _root: ISiteTreeRoot;
-    private _state?: string;
 
     constructor(parent: AzureParentTreeItem, client: SiteClient, site: WebSiteManagementModels.Site) {
         super(parent);
         this.site = site;
         this._root = Object.assign({}, parent.root, { client });
-        this._state = client.initialState;
 
         this.appSettingsNode = new AppSettingsTreeItem(this, client);
         this._connectionsNode = new CosmosDBTreeItem(this, client);
@@ -66,7 +65,7 @@ export abstract class SiteTreeItem extends SiteTreeItemBase implements ISiteTree
     }
 
     public get description(): string | undefined {
-        return this._state && this._state.toLowerCase() !== 'running' ? this._state : undefined;
+        return this._state?.toLowerCase() !== 'running' ? this._state : undefined;
     }
 
     public get logStreamLabel(): string {
@@ -74,11 +73,7 @@ export abstract class SiteTreeItem extends SiteTreeItemBase implements ISiteTree
     }
 
     public async refreshImpl(): Promise<void> {
-        try {
-            this._state = await this.root.client.getState();
-        } catch {
-            this._state = 'Unknown';
-        }
+        this.site = nonNullValue(await this.root.client.getSite(), 'site');
     }
 
     public hasMoreChildrenImpl(): boolean {
@@ -87,6 +82,10 @@ export abstract class SiteTreeItem extends SiteTreeItemBase implements ISiteTree
 
     public get id(): string {
         return this.root.client.id;
+    }
+
+    private get _state(): string | undefined {
+        return this.site.state;
     }
 
     public async loadMoreChildrenImpl(_clearCache: boolean): Promise<AzExtTreeItem[]> {
