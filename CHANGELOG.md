@@ -1,10 +1,17 @@
 # Change Log
 
-## Unreleased
+## 0.22.0 - 2021-05-25
+### Added
+- Support Azure App Service on Kubernetes with Azure Arc (Preview)
+- Improve experience when user only has partial permissions for resources on Azure
+
 ### Changed
 - Minimum version of VS Code is now 1.53.0
 - Icons updated to match VS Code's theme. Install new product icon themes [here](https://marketplace.visualstudio.com/search?term=tag%3Aproduct-icon-theme&target=VSCode)
 - Newly created Node.js and Python web apps targeting Linux will have `SCM_DO_BUILD_DURING_DEPLOYMENT` set to `true`, automatically building your app in Azure during deploy
+
+### Fixed
+- [Bugs Fixed](https://github.com/microsoft/vscode-azureappservice/issues?q=is%3Aissue+milestone%3A0.22.0+is%3Aclosed)
 
 ## 0.21.2 - 2021-03-09
 ### [Fixed](https://github.com/microsoft/vscode-azureappservice/issues/1571)
