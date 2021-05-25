@@ -40,8 +40,8 @@ export namespace javaUtils {
         return (!!runtime?.javaContainer && (JAVA_SE_REGEX.test(runtime.javaContainer)) || (!!runtime?.linuxFxVersion && JAVA_SE_REGEX.test(runtime.linuxFxVersion)));
     }
 
-    export function isJavaRuntime(runtime: SiteConfigResource | undefined): boolean {
-        return isJavaWebContainerRuntime(runtime) || isJavaSERuntime(runtime);
+    export function isJavaRuntime(siteConfig: SiteConfigResource | undefined): boolean {
+        return isJavaWebContainerRuntime(siteConfig) || isJavaSERuntime(siteConfig);
     }
 
     function isJavaArtifact(artifactPath: string): boolean {
@@ -102,9 +102,12 @@ export namespace javaUtils {
 
     export function getMavenArtifactsInWorkspace(fileExtensions: string | string[] | undefined): MavenArtifact[] {
         fileExtensions = typeof fileExtensions === 'string' ? [fileExtensions] : fileExtensions || [];
-        return (workspace.workspaceFolders ?? []).map(f => f.uri.fsPath)
-            .flatMap(f => findPomFiles(f).map(p => getMavenArtifact(p, f)))
-            .filter(a => fileExtensions?.includes(a.ext));
+        const artifacts: MavenArtifact[] = [];
+        (workspace.workspaceFolders ?? []).map(f => f.uri.fsPath).forEach(f => {
+            const wfArtifacts = findPomFiles(f).map(p => getMavenArtifact(p, f)).filter(a => fileExtensions?.includes(a.ext));
+            artifacts.push(...wfArtifacts);
+        });
+        return artifacts;
     }
 
     export function getMavenArtifact(pomFile: string, ws?: string): MavenArtifact {
