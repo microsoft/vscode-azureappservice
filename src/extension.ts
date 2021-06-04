@@ -10,8 +10,8 @@ import { AzureExtensionApi, AzureExtensionApiProvider } from 'vscode-azureextens
 import { AppServiceFileSystem } from './AppServiceFileSystem';
 import { revealTreeItem } from './commands/api/revealTreeItem';
 import { registerCommands } from './commands/registerCommands';
-import { AzureAccountTreeItem } from './explorer/AzureAccountTreeItem';
 import { ext } from './extensionVariables';
+import { AzureAccountTreeItem } from './tree/AzureAccountTreeItem';
 
 export async function activateInternal(
     context: vscode.ExtensionContext,

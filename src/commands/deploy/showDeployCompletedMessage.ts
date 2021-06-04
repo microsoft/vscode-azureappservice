@@ -6,9 +6,9 @@
 import { MessageItem, window } from "vscode";
 import { callWithTelemetryAndErrorHandling, IActionContext } from "vscode-azureextensionui";
 import { AppServiceDialogResponses } from "../../constants";
-import { SiteTreeItem } from "../../explorer/SiteTreeItem";
 import { ext } from "../../extensionVariables";
 import { localize } from "../../localize";
+import { SiteTreeItem } from "../../tree/SiteTreeItem";
 import { uploadAppSettings } from "../appSettings/uploadAppSettings";
 import { startStreamingLogs } from '../logstream/startStreamingLogs';
 

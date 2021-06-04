@@ -4,8 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { AzExtParentTreeItem, AzureTreeItem, IActionContext } from 'vscode-azureextensionui';
-import { CosmosDBTreeItem } from '../../explorer/CosmosDBTreeItem';
 import { ext } from "../../extensionVariables";
+import { CosmosDBTreeItem } from '../../tree/CosmosDBTreeItem';
 import { nonNullProp } from '../../utils/nonNull';
 
 export async function addCosmosDBConnection(context: IActionContext, node?: AzureTreeItem): Promise<void> {

@@ -4,7 +4,7 @@
 *--------------------------------------------------------------------------------------------*/
 
 import { CancellationTokenSource } from "vscode";
-import { SiteTreeItem } from "../../explorer/SiteTreeItem";
+import { SiteTreeItem } from "../../tree/SiteTreeItem";
 import { checkLinuxWebAppDownDetector } from "./checkLinuxWebAppDownDetector";
 import { validateWebSite } from "./validateWebSite";
 

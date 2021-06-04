@@ -7,8 +7,8 @@ import * as path from 'path';
 import { MessageItem } from "vscode";
 import { DialogResponses, IActionContext } from "vscode-azureextensionui";
 import * as constants from '../../constants';
-import { SiteTreeItem } from '../../explorer/SiteTreeItem';
 import { localize } from '../../localize';
+import { SiteTreeItem } from '../../tree/SiteTreeItem';
 import { getWorkspaceSetting, updateWorkspaceSetting } from "../../vsCodeConfig/settings";
 
 export async function promptToSaveDeployDefaults(context: IActionContext, node: SiteTreeItem, workspacePath: string, deployPath: string): Promise<void> {

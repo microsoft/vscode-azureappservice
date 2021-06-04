@@ -5,8 +5,8 @@
 
 import * as appservice from 'vscode-azureappservice';
 import { IActionContext } from 'vscode-azureextensionui';
-import { DeploymentSlotTreeItem } from '../explorer/DeploymentSlotTreeItem';
 import { ext } from '../extensionVariables';
+import { DeploymentSlotTreeItem } from '../tree/DeploymentSlotTreeItem';
 
 export async function swapSlots(context: IActionContext, sourceSlotNode: DeploymentSlotTreeItem | undefined): Promise<void> {
     if (!sourceSlotNode) {

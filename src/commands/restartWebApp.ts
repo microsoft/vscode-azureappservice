@@ -5,9 +5,9 @@
 
 import { commands } from "vscode";
 import { IActionContext } from "vscode-azureextensionui";
-import { SiteTreeItem } from "../explorer/SiteTreeItem";
-import { WebAppTreeItem } from "../explorer/WebAppTreeItem";
 import { ext } from "../extensionVariables";
+import { SiteTreeItem } from "../tree/SiteTreeItem";
+import { WebAppTreeItem } from "../tree/WebAppTreeItem";
 
 export async function restartWebApp(context: IActionContext, node?: SiteTreeItem): Promise<void> {
     if (!node) {

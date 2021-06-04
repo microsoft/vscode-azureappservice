@@ -6,8 +6,8 @@
 import { commands } from 'vscode';
 import { AppSettingTreeItem, registerSiteCommand } from 'vscode-azureappservice';
 import { AzureTreeItem, IActionContext, openInPortal as uiOpenInPortal, registerCommand } from 'vscode-azureextensionui';
-import { DeploymentSlotsNATreeItem, ScaleUpTreeItem } from '../explorer/DeploymentSlotsTreeItem';
 import { ext } from '../extensionVariables';
+import { DeploymentSlotsNATreeItem, ScaleUpTreeItem } from '../tree/DeploymentSlotsTreeItem';
 import { addAppSetting } from './appSettings/addAppSetting';
 import { deleteAppSetting } from './appSettings/deleteAppSettings';
 import { downloadAppSettings } from './appSettings/downloadAppSettings';

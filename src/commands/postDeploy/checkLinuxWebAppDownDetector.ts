@@ -9,9 +9,9 @@ import { createKuduClient } from "vscode-azureappservice";
 import { callWithTelemetryAndErrorHandling, IActionContext, openInPortal, UserCancelledError } from "vscode-azureextensionui";
 import { KuduClient, KuduModels } from "vscode-azurekudu";
 import { detectorTimestampFormat } from '../../constants';
-import { SiteTreeItem } from "../../explorer/SiteTreeItem";
 import { ext } from '../../extensionVariables';
 import { localize } from "../../localize";
+import { SiteTreeItem } from "../../tree/SiteTreeItem";
 import { delay } from "../../utils/delay";
 import { getLinuxDetectorError } from "./getLinuxDetectorError";
 

@@ -6,8 +6,8 @@
 import { DeploymentsTreeItem, disconnectRepo as disconnectRepository } from "vscode-azureappservice";
 import { IActionContext } from "vscode-azureextensionui";
 import { OperationNotSupportedError } from '../../errors';
-import { SiteTreeItem } from '../../explorer/SiteTreeItem';
 import { ext } from "../../extensionVariables";
+import { SiteTreeItem } from '../../tree/SiteTreeItem';
 
 export async function disconnectRepo(context: IActionContext, node?: DeploymentsTreeItem): Promise<void> {
     if (!node) {

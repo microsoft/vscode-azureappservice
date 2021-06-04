@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { AzureTreeItem, IActionContext } from 'vscode-azureextensionui';
-import { CosmosDBTreeItem } from '../explorer/CosmosDBTreeItem';
+import { CosmosDBTreeItem } from '../tree/CosmosDBTreeItem';
 import { installExtension } from '../utils/installExtension';
 
 export async function installCosmosDBExtension(context: IActionContext, treeItem: AzureTreeItem): Promise<void> {

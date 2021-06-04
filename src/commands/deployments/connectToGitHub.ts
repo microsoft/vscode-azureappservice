@@ -6,8 +6,8 @@
 import { DeploymentsTreeItem } from "vscode-azureappservice";
 import { GenericTreeItem, IActionContext } from "vscode-azureextensionui";
 import { ScmType } from "../../constants";
-import { WebAppTreeItem } from "../../explorer/WebAppTreeItem";
 import { ext } from "../../extensionVariables";
+import { WebAppTreeItem } from "../../tree/WebAppTreeItem";
 import { editScmType } from './editScmType';
 
 export async function connectToGitHub(context: IActionContext, target?: GenericTreeItem): Promise<void> {

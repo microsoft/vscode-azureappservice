@@ -4,9 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { AzExtTreeItem, IActionContext } from 'vscode-azureextensionui';
-import { CosmosDBConnection } from '../../explorer/CosmosDBConnection';
 import { ext } from "../../extensionVariables";
 import { localize } from '../../localize';
+import { CosmosDBConnection } from '../../tree/CosmosDBConnection';
 
 export async function revealConnectionInAppSettings(context: IActionContext, node?: CosmosDBConnection): Promise<void> {
     if (!node) {
