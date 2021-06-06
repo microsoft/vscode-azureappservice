@@ -57,16 +57,16 @@ export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | 
 
     if (siteConfig && javaUtils.isJavaRuntime(siteConfig)) {
         fileExtensions = fileExtensions || await javaUtils.getJavaFileExtensions(siteConfig);
-        const isMavenModule = javaUtils.isMavenModule(context.effectiveDeployFsPath);
+        const module = await javaUtils.getMavenModule(context.effectiveDeployFsPath);
         // get packaging type as artifact file extension for maven module.
-        const ext = isMavenModule ? await javaUtils.getMavenArtifactExtension(context.effectiveDeployFsPath) : context.effectiveDeployFsPath.split('.').pop() ?? '';
+        const ext = module?.packaging ?? context.effectiveDeployFsPath.split('.').pop() ?? '';
         if (!fileExtensions?.includes(ext)) {
             // show error and break if deploying a raw folder/or non-matching artifact to java runtime instance.
             const errorArtifactsNotMatchingJava: string = localize('warningArtifactsNotMatchingJava', 'Only "{0}" file/maven module can be deployed to "{1}"', fileExtensions + '', siteConfig.name);
             vscode.window.showErrorMessage(errorArtifactsNotMatchingJava);
             return;
         }
-        isMavenModule && await setPreDeployTaskForMavenModule(context);
+        module && await setPreDeployTaskForMavenModule(context, module.artifactId);
         await javaUtils.configureJavaSEAppSettings(node);
     }
 

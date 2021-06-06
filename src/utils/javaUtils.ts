@@ -118,10 +118,16 @@ export namespace javaUtils {
         return;
     }
 
-    export async function getMavenArtifactExtension(module: string): Promise<string> {
+    export async function getMavenModule(module: string): Promise<{ artifactId: string, packaging: string } | undefined> {
+        if (!isMavenModule(module)) {
+            return undefined;
+        }
         const pomFile = path.join(module, 'pom.xml');
         const pom = parser.parse(fse.readFileSync(pomFile, 'utf8'));
-        return pom.project.packaging || 'jar';
+        return {
+            artifactId: pom.project.artifactId,
+            packaging: pom.project.packaging || 'jar'
+        };
     }
 
     export function isMavenModule(fsPath: string): boolean {

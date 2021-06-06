@@ -11,11 +11,10 @@ import { javaUtils } from "../../utils/javaUtils";
 import { getWorkspaceSetting, updateWorkspaceSetting } from '../../vsCodeConfig/settings';
 import * as tasks from '../../vsCodeConfig/tasks';
 
-const mavenPackageTaskName: string = 'package';
-
-export async function setPreDeployTaskForMavenModule(context: IDeployContext): Promise<void> {
+export async function setPreDeployTaskForMavenModule(context: IDeployContext, artifactId: string): Promise<void> {
     const preDeployTaskKey: string = 'preDeployTask';
     const workspaceFspath: string = context.workspaceFolder.uri.fsPath;
+    const mavenPackageTaskName: string = `package:${artifactId}`;
 
     const preDeployTask = getWorkspaceSetting<string>(preDeployTaskKey, workspaceFspath);
     if (!javaUtils.isMavenModule(context.effectiveDeployFsPath)) {
@@ -31,7 +30,7 @@ export async function setPreDeployTaskForMavenModule(context: IDeployContext): P
     let packageTask: tasks.ITask | undefined = existingTasks.find(t1 => t1.label === mavenPackageTaskName);
     // if the "package" task exists and it doesn't dependOn a task, have it depend on clean
     if (!packageTask) {
-        packageTask = await generateMavenPackageTask(context.effectiveDeployFsPath);
+        packageTask = await generateMavenPackageTask(context.effectiveDeployFsPath, mavenPackageTaskName);
         await tasks.updateTasks(context.workspaceFolder, existingTasks.concat([packageTask]));
     }
 
@@ -43,7 +42,7 @@ export async function setPreDeployTaskForMavenModule(context: IDeployContext): P
     await updateWorkspaceSetting(preDeployTaskKey, mavenPackageTaskName, workspaceFspath);
 }
 
-async function generateMavenPackageTask(modulePath: string): Promise<TaskDefinition> {
+async function generateMavenPackageTask(modulePath: string, taskName: string): Promise<TaskDefinition> {
     const mvnWrapperName = constants.isWindows ? "./mvnw.cmd" : "./mvnw";
     const mvnWrapper = await javaUtils.getLocalMavenWrapper(modulePath);
     const cmd = mvnWrapper ? mvnWrapperName : 'mvn';
@@ -52,7 +51,7 @@ async function generateMavenPackageTask(modulePath: string): Promise<TaskDefinit
     const pomPath: string = path.posix.join(relativeModulePath, 'pom.xml');
 
     return {
-        label: mavenPackageTaskName,
+        label: taskName,
         command: cmd,
         type: "shell",
         group: "build",
