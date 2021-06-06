@@ -57,13 +57,13 @@ export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | 
 
     if (siteConfig && javaUtils.isJavaRuntime(siteConfig)) {
         fileExtensions = fileExtensions || await javaUtils.getJavaFileExtensions(siteConfig);
-        const module = await javaUtils.getMavenModule(context.effectiveDeployFsPath);
+        const module = javaUtils.getMavenModule(context.effectiveDeployFsPath);
         // get packaging type as artifact file extension for maven module.
         const ext = module?.packaging ?? context.effectiveDeployFsPath.split('.').pop() ?? '';
         if (!fileExtensions?.includes(ext)) {
             // show error and break if deploying a raw folder/or non-matching artifact to java runtime instance.
-            const errorArtifactsNotMatchingJava: string = localize('warningArtifactsNotMatchingJava', 'Only "{0}" file/maven module can be deployed to "{1}"', fileExtensions + '', siteConfig.name);
-            vscode.window.showErrorMessage(errorArtifactsNotMatchingJava);
+            const errorArtifactsNotMatchingJava: string = localize('warningArtifactsNotMatchingJava', 'Only "{0}" file/maven module can be deployed to "{1}"', `${fileExtensions}`, siteConfig.name);
+            void vscode.window.showErrorMessage(errorArtifactsNotMatchingJava);
             return;
         }
         module && await setPreDeployTaskForMavenModule(context, module.artifactId);
@@ -108,8 +108,8 @@ export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | 
         deployPath = executableArtifacts?.[0] ?? '';
         if (!deployPath) {
             // show error and break if can not find executable jar/war artifacts in module.
-            const errorArtifactsNotFoundJava: string = localize('warningArtifactsNotFoundJava', 'No {0} artifacts found under "{1}"', fileExtensions + '', context.effectiveDeployFsPath);
-            vscode.window.showErrorMessage(errorArtifactsNotFoundJava);
+            const errorArtifactsNotFoundJava: string = localize('warningArtifactsNotFoundJava', 'No {0} artifacts found under "{1}"', `${fileExtensions}`, context.effectiveDeployFsPath);
+            void vscode.window.showErrorMessage(errorArtifactsNotFoundJava);
             return;
         }
     }

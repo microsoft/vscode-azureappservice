@@ -118,16 +118,17 @@ export namespace javaUtils {
         return;
     }
 
-    export async function getMavenModule(module: string): Promise<{ artifactId: string, packaging: string } | undefined> {
+    export function getMavenModule(module: string): { artifactId: string, packaging: string } | undefined {
         if (!isMavenModule(module)) {
             return undefined;
         }
-        const pomFile = path.join(module, 'pom.xml');
-        const pom = parser.parse(fse.readFileSync(pomFile, 'utf8'));
+        const pomFile: string = path.join(module, 'pom.xml');
+        const pomContent = fse.readFileSync(pomFile, 'utf8');
+        const pom = parser.parse(pomContent) as { project: { artifactId: string, packaging: string } };
         return {
             artifactId: pom.project.artifactId,
             packaging: pom.project.packaging || 'jar'
-        };
+        } as { artifactId: string, packaging: string };
     }
 
     export function isMavenModule(fsPath: string): boolean {
