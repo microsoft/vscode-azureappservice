@@ -22,7 +22,6 @@ export async function setPreDeployTaskForMavenModule(context: IDeployContext, mo
 
     const existingTasks: tasks.ITask[] = tasks.getTasks(context.workspaceFolder);
     let packageTask: tasks.ITask | undefined = existingTasks.find(t1 => t1.label === mavenPackageTaskName);
-    // if the "package" task exists and it doesn't dependOn a task, have it depend on clean
     if (!packageTask) {
         packageTask = await generateMavenPackageTask(path.dirname(module.pom), mavenPackageTaskName);
         await tasks.updateTasks(context.workspaceFolder, existingTasks.concat([packageTask]));
