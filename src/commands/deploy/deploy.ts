@@ -62,7 +62,7 @@ export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | 
         // get packaging type as artifact file extension for maven module.
         const ext = module?.packaging ?? context.effectiveDeployFsPath.split('.').pop() ?? '';
         if (!fileExtensions?.includes(ext)) { // show error and break if deploying a raw folder/or non-matching artifact to java runtime instance.
-            void vscode.window.showErrorMessage(localize('warningArtifactsNotMatchingJava', 'Only "{0}" file/maven module can be deployed to "{1}"', `${fileExtensions}`, siteConfig.name));
+            void vscode.window.showErrorMessage(localize('errorArtifactsNotMatchingJava', 'Only "{0}" file/maven module can be deployed to "{1}"', `${fileExtensions}`, siteConfig.name));
             return;
         }
         module && await setPreDeployTaskForMavenModule(context, module);
@@ -107,7 +107,7 @@ export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | 
         const executableArtifacts = await javaUtils.getExecutableArtifactsByExtensions(path.join(moduleFolder, 'target'), fileExtensions);
         deployPath = executableArtifacts?.[0] ?? '';
         if (!deployPath) { // show error and break if can not find executable jar/war artifacts in module.
-            void vscode.window.showErrorMessage(localize('warningArtifactsNotFoundJava', 'No {0} artifacts found in maven module "{1}"', `${fileExtensions}`, moduleFolder));
+            void vscode.window.showErrorMessage(localize('errorArtifactsNotFoundJava', 'No {0} artifacts found in maven module "{1}"', `${fileExtensions}`, moduleFolder));
             return;
         }
     }
