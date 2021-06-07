@@ -118,23 +118,32 @@ export namespace javaUtils {
         return;
     }
 
-    export function getMavenModule(module: string): { artifactId: string, packaging: string } | undefined {
-        if (!isMavenModule(module)) {
+    function getMavenModuleFromPom(pomFile: string): { pom: string, artifactId: string, packaging: string } | undefined {
+        const pomContent = fse.readFileSync(pomFile, 'utf8');
+        try {
+            const pom = parser.parse(pomContent) as { project: { artifactId: string; packaging: string; }; };
+            if (pom.project && pom.project.artifactId) {
+                return {
+                    pom: pomFile,
+                    artifactId: pom.project.artifactId,
+                    packaging: pom.project.packaging || 'jar'
+                } as { pom: string; artifactId: string; packaging: string; };
+            }
+        } catch (e) {
             return undefined;
         }
-        const pomFile: string = path.join(module, 'pom.xml');
-        const pomContent = fse.readFileSync(pomFile, 'utf8');
-        const pom = parser.parse(pomContent) as { project: { artifactId: string, packaging: string } };
-        return {
-            artifactId: pom.project.artifactId,
-            packaging: pom.project.packaging || 'jar'
-        } as { artifactId: string, packaging: string };
+        return undefined;
     }
 
-    export function isMavenModule(fsPath: string): boolean {
-        return fse.existsSync(fsPath) &&
-            fse.lstatSync(fsPath).isDirectory() &&
-            fse.existsSync(path.join(fsPath, 'pom.xml'));
+    export function getMavenModule(module: string): { pom: string, artifactId: string, packaging: string } | undefined {
+        if (fse.existsSync(module)) {
+            if (fse.lstatSync(module).isDirectory() && fse.existsSync(path.join(module, 'pom.xml'))) {
+                return getMavenModuleFromPom(path.join(module, 'pom.xml'));
+            } else if (fse.lstatSync(module).isFile() && path.extname(module) === '.xml') {
+                return getMavenModuleFromPom(module);
+            }
+        }
+        return undefined;
     }
 
     export async function getLocalMavenWrapper(modulePath: string): Promise<string | undefined> {
