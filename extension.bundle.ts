@@ -21,12 +21,12 @@ export { ColumnName, detectorResponseJSON, detectorTable, getLinuxDetectorError,
 export { findTableByName, getValuesByColumnName } from "./src/commands/postDeploy/parseDetectorResponse";
 export { getRemoteDebugLanguage } from './src/commands/remoteDebug/getRemoteDebugLanguage';
 export * as constants from './src/constants';
-export { AzureAccountTreeItem } from './src/explorer/AzureAccountTreeItem';
-export { SubscriptionTreeItem } from './src/explorer/SubscriptionTreeItem';
-export { WebAppTreeItem } from './src/explorer/WebAppTreeItem';
 // Export activate/deactivate for main.js
 export { activateInternal, deactivateInternal } from './src/extension';
 export { ext } from './src/extensionVariables';
+export { AzureAccountTreeItem } from './src/tree/AzureAccountTreeItem';
+export { SubscriptionTreeItem } from './src/tree/SubscriptionTreeItem';
+export { WebAppTreeItem } from './src/tree/WebAppTreeItem';
 export * from './src/utils/azureClients';
 export * from './src/utils/nonNull';
 export { getRandomHexString } from './src/utils/randomUtils';

@@ -7,9 +7,9 @@ import { MessageItem, window } from "vscode";
 import { SiteClient } from "vscode-azureappservice";
 import { callWithTelemetryAndErrorHandling, IActionContext } from "vscode-azureextensionui";
 import { AppServiceDialogResponses } from "../../constants";
-import { SiteTreeItem } from "../../explorer/SiteTreeItem";
 import { ext } from "../../extensionVariables";
 import { localize } from "../../localize";
+import { SiteTreeItem } from "../../tree/SiteTreeItem";
 import { deploy } from '../deploy/deploy';
 
 export function showCreatedWebAppMessage(node: SiteTreeItem): void {

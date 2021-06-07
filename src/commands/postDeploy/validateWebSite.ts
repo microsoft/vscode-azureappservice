@@ -6,7 +6,7 @@
 import { HttpOperationResponse, RestError, ServiceClient } from '@azure/ms-rest-js';
 import { CancellationTokenSource } from 'vscode';
 import { callWithTelemetryAndErrorHandling, createGenericClient, IActionContext, UserCancelledError } from 'vscode-azureextensionui';
-import { SiteTreeItem } from '../../explorer/SiteTreeItem';
+import { SiteTreeItem } from '../../tree/SiteTreeItem';
 import { delay } from '../../utils/delay';
 
 interface IValidateProperties {

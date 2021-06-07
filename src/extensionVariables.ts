@@ -6,7 +6,7 @@
 import { ExtensionContext, TreeView } from "vscode";
 import { AzExtTreeDataProvider, AzExtTreeItem, IAzExtOutputChannel, IAzureUserInput, IExperimentationServiceAdapter } from "vscode-azureextensionui";
 import { AppServiceFileSystem } from "./AppServiceFileSystem";
-import { AzureAccountTreeItem } from "./explorer/AzureAccountTreeItem";
+import { AzureAccountTreeItem } from "./tree/AzureAccountTreeItem";
 
 /**
  * Namespace for common variables used throughout the extension. They must be initialized in the activate() method of extension.ts

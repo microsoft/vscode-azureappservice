@@ -7,9 +7,9 @@ import * as appservice from "vscode-azureappservice";
 import { DeploymentsTreeItem } from "vscode-azureappservice";
 import { IActionContext } from "vscode-azureextensionui";
 import { ScmType } from "../../constants";
-import { SiteTreeItem } from "../../explorer/SiteTreeItem";
-import { WebAppTreeItem } from "../../explorer/WebAppTreeItem";
 import { ext } from "../../extensionVariables";
+import { SiteTreeItem } from "../../tree/SiteTreeItem";
+import { WebAppTreeItem } from "../../tree/WebAppTreeItem";
 
 export async function editScmType(context: IActionContext, node?: SiteTreeItem | DeploymentsTreeItem, newScmType?: ScmType, showToast?: boolean): Promise<void> {
     if (!node) {

@@ -8,10 +8,10 @@ import * as vscode from 'vscode';
 import * as appservice from 'vscode-azureappservice';
 import { SiteClient } from 'vscode-azureappservice';
 import { IActionContext } from 'vscode-azureextensionui';
-import { SiteTreeItem } from '../../explorer/SiteTreeItem';
-import { WebAppTreeItem } from '../../explorer/WebAppTreeItem';
 import { ext } from '../../extensionVariables';
 import { localize } from '../../localize';
+import { SiteTreeItem } from '../../tree/SiteTreeItem';
+import { WebAppTreeItem } from '../../tree/WebAppTreeItem';
 import { getRemoteDebugLanguage } from './getRemoteDebugLanguage';
 
 export async function startRemoteDebug(context: IActionContext, node?: SiteTreeItem): Promise<void> {

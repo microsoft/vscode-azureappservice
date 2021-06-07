@@ -5,9 +5,9 @@
 
 import * as appservice from 'vscode-azureappservice';
 import { IActionContext } from 'vscode-azureextensionui';
-import { SiteTreeItem } from '../../explorer/SiteTreeItem';
-import { WebAppTreeItem } from '../../explorer/WebAppTreeItem';
 import { ext } from '../../extensionVariables';
+import { SiteTreeItem } from '../../tree/SiteTreeItem';
+import { WebAppTreeItem } from '../../tree/WebAppTreeItem';
 import { enableFileLogging } from './enableFileLogging';
 
 export async function startStreamingLogs(context: IActionContext, node?: SiteTreeItem): Promise<void> {

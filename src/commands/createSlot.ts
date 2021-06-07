@@ -6,10 +6,10 @@
 import { WebSiteManagementModels } from "@azure/arm-appservice";
 import { IActionContext } from "vscode-azureextensionui";
 import { ScmType } from "../constants";
-import { DeploymentSlotsTreeItem } from "../explorer/DeploymentSlotsTreeItem";
-import { DeploymentSlotTreeItem } from "../explorer/DeploymentSlotTreeItem";
 import { ext } from "../extensionVariables";
 import { localize } from "../localize";
+import { DeploymentSlotsTreeItem } from "../tree/DeploymentSlotsTreeItem";
+import { DeploymentSlotTreeItem } from "../tree/DeploymentSlotTreeItem";
 import { showCreatedWebAppMessage } from "./createWebApp/showCreatedWebAppMessage";
 import { editScmType } from "./deployments/editScmType";
 

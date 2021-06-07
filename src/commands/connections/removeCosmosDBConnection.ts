@@ -4,8 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { IActionContext } from 'vscode-azureextensionui';
-import { CosmosDBConnection } from '../../explorer/CosmosDBConnection';
 import { ext } from "../../extensionVariables";
+import { CosmosDBConnection } from '../../tree/CosmosDBConnection';
 
 export async function removeCosmosDBConnection(context: IActionContext, node?: CosmosDBConnection): Promise<void> {
     if (!node) {

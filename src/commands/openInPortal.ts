@@ -5,9 +5,9 @@
 
 import { DeploymentsTreeItem } from "vscode-azureappservice";
 import { AzExtTreeItem, IActionContext, openInPortal as uiOpenInPortal } from "vscode-azureextensionui";
-import { DeploymentSlotsTreeItem } from "../explorer/DeploymentSlotsTreeItem";
-import { WebAppTreeItem } from "../explorer/WebAppTreeItem";
 import { ext } from "../extensionVariables";
+import { DeploymentSlotsTreeItem } from "../tree/DeploymentSlotsTreeItem";
+import { WebAppTreeItem } from "../tree/WebAppTreeItem";
 import { nonNullProp } from "../utils/nonNull";
 
 export async function openInPortal(context: IActionContext, node?: AzExtTreeItem): Promise<void> {

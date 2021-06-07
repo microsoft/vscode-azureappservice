@@ -8,9 +8,9 @@ import * as fse from 'fs-extra';
 import * as path from 'path';
 import { workspace } from "vscode";
 import { UserCancelledError } from 'vscode-azureextensionui';
-import { SiteTreeItem } from "../explorer/SiteTreeItem";
 import { ext } from '../extensionVariables';
 import { localize } from "../localize";
+import { SiteTreeItem } from "../tree/SiteTreeItem";
 
 export namespace javaUtils {
     const DEFAULT_PORT: string = '8080';

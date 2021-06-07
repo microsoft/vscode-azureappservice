@@ -4,9 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { IActionContext, openInPortal } from 'vscode-azureextensionui';
-import { ScaleUpTreeItem } from '../../explorer/DeploymentSlotsTreeItem';
-import { DeploymentSlotTreeItem } from '../../explorer/DeploymentSlotTreeItem';
 import { ext } from '../../extensionVariables';
+import { ScaleUpTreeItem } from '../../tree/DeploymentSlotsTreeItem';
+import { DeploymentSlotTreeItem } from '../../tree/DeploymentSlotTreeItem';
 import { deploy } from './deploy';
 
 export async function deploySlot(context: IActionContext, node?: DeploymentSlotTreeItem | ScaleUpTreeItem): Promise<void> {

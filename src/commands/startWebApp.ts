@@ -5,10 +5,10 @@
 
 import { SiteClient } from "vscode-azureappservice";
 import { IActionContext } from "vscode-azureextensionui";
-import { SiteTreeItem } from "../explorer/SiteTreeItem";
-import { WebAppTreeItem } from "../explorer/WebAppTreeItem";
 import { ext } from "../extensionVariables";
 import { localize } from "../localize";
+import { SiteTreeItem } from "../tree/SiteTreeItem";
+import { WebAppTreeItem } from "../tree/WebAppTreeItem";
 
 export async function startWebApp(context: IActionContext, node?: SiteTreeItem): Promise<void> {
     if (!node) {

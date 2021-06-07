@@ -4,9 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { IActionContext } from 'vscode-azureextensionui';
-import { ISiteTreeItem } from '../explorer/ISiteTreeItem';
-import { WebAppTreeItem } from '../explorer/WebAppTreeItem';
 import { ext } from '../extensionVariables';
+import { ISiteTreeItem } from '../tree/ISiteTreeItem';
+import { WebAppTreeItem } from '../tree/WebAppTreeItem';
 
 export async function browseWebsite(context: IActionContext, node?: ISiteTreeItem): Promise<void> {
     if (!node) {
