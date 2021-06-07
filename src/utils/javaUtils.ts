@@ -146,13 +146,6 @@ export namespace javaUtils {
         return undefined;
     }
 
-    export function isMavenModule(fsPath: string): boolean {
-        return fse.existsSync(fsPath) && (
-            (fse.lstatSync(fsPath).isDirectory() && fse.existsSync(path.join(fsPath, 'pom.xml'))) ||
-            (fse.lstatSync(fsPath).isFile() && path.extname(fsPath) === '.xml' && !!getMavenModuleFromPom(fsPath))
-        );
-    }
-
     export async function getLocalMavenWrapper(modulePath: string): Promise<string | undefined> {
         const mvnw: string = constants.isWindows ? "mvnw.cmd" : "mvnw";
         // walk up parent folders
