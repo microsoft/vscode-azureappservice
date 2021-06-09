@@ -47,7 +47,6 @@ suite('Create Web App and deploy', function (this: Mocha.Suite): void {
             runtimePrefix: 'Node',
             workspaceFolder: 'nodejs-docs-hello-world',
             versions: [
-                { version: '10', supportedAppOs: 'Linux', displayText: '10 LTS' },
                 { version: '12', supportedAppOs: 'Both', displayText: '12 LTS' },
                 { version: '14', supportedAppOs: 'Both', displayText: '14 LTS' }
             ]
