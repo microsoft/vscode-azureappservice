@@ -25,7 +25,7 @@ import { runPostDeployTask } from '../postDeploy/runPostDeployTask';
 import { failureMoreInfoSurvey } from './failureMoreInfoSurvey';
 import { promptScmDoBuildDeploy } from './promptScmDoBuildDeploy';
 import { promptToSaveDeployDefaults } from './promptToSaveDeployDefaults';
-import { setPreDeployTaskForDotnet } from './setPreDeployTaskForDotnet';
+import { setPreDeployConfig } from './setPreDeployConfig';
 import { showDeployCompletedMessage } from './showDeployCompletedMessage';
 
 const postDeployCancelTokens: Map<string, vscode.CancellationTokenSource> = new Map<string, vscode.CancellationTokenSource>();
@@ -45,7 +45,7 @@ export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | 
     const context: IDeployContext = Object.assign(actionContext, deployPaths, { defaultAppSetting: constants.configurationSettings.defaultWebAppToDeploy, isNewApp });
 
     // because this is workspace dependant, do it before user selects app
-    await setPreDeployTaskForDotnet(context);
+    await setPreDeployConfig(context);
     const node: SiteTreeItem = await getDeployNode(context, ext.tree, arg1, arg2, [WebAppTreeItem.contextValue]);
 
     const correlationId: string = getRandomHexString();

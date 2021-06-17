@@ -17,7 +17,8 @@ export enum configurationSettings {
     showBuildDuringDeployPrompt = 'showBuildDuringDeployPrompt',
     deploySubpath = 'deploySubpath',
     defaultWebAppToDeploy = 'defaultWebAppToDeploy',
-    connections = 'connections'
+    connections = 'connections',
+    preDeployTask = 'preDeployTask'
 }
 
 export enum ScmType {
