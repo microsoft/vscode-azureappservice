@@ -56,7 +56,7 @@ export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | 
     siteConfig = siteConfig ? siteConfig : await node.root.client.getSiteConfig();
 
     let javaMavenModule = undefined;
-    if (siteConfig && javaUtils.isJavaRuntime(siteConfig)) {
+    if (javaUtils.isJavaRuntime(siteConfig)) {
         fileExtensions = fileExtensions || await javaUtils.getJavaFileExtensions(siteConfig);
         javaMavenModule = javaUtils.getMavenModule(context.effectiveDeployFsPath);
         // get packaging type as artifact file extension for maven module.
