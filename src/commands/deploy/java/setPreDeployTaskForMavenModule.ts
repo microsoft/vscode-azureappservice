@@ -3,15 +3,15 @@
 *  Licensed under the MIT License. See License.txt in the project root for license information.
 *--------------------------------------------------------------------------------------------*/
 
+import * as fse from 'fs-extra';
 import * as path from 'path';
 import { TaskDefinition } from 'vscode';
 import { IDeployContext } from 'vscode-azureappservice';
 import * as constants from '../../../constants';
-import { javaUtils } from "../../../utils/javaUtils";
 import { getWorkspaceSetting, updateWorkspaceSetting } from '../../../vsCodeConfig/settings';
 import * as tasks from '../../../vsCodeConfig/tasks';
 
-export async function setPreDeployTaskForMavenModule(context: IDeployContext, module: { pom: string, artifactId: string, packaging: string }): Promise<void> {
+export async function setPreDeployTaskForMavenModule(context: IDeployContext, module: { pom: string, artifactId: string }): Promise<void> {
     const preDeployTaskKey: string = 'preDeployTask';
     const workspaceFspath: string = context.workspaceFolder.uri.fsPath;
     const mavenPackageTaskName: string = `package:${module.artifactId}`;
@@ -37,7 +37,7 @@ export async function setPreDeployTaskForMavenModule(context: IDeployContext, mo
 
 async function generateMavenPackageTask(moduleFolder: string, taskName: string): Promise<TaskDefinition> {
     const mvnWrapperName = constants.isWindows ? "./mvnw.cmd" : "./mvnw";
-    const mvnWrapper = await javaUtils.getLocalMavenWrapper(moduleFolder);
+    const mvnWrapper = await getLocalMavenWrapper(moduleFolder);
     const cmd = mvnWrapper ? mvnWrapperName : 'mvn';
     const cwd = mvnWrapper ? path.dirname(mvnWrapper) : moduleFolder;
     const relativeModulePath: string = path.dirname(path.relative(cwd, moduleFolder));
@@ -60,4 +60,18 @@ async function generateMavenPackageTask(moduleFolder: string, taskName: string):
         },
         problemMatcher: "$msCompile",
     };
+}
+
+async function getLocalMavenWrapper(modulePath: string): Promise<string | undefined> {
+    const mvnw: string = constants.isWindows ? "mvnw.cmd" : "mvnw";
+    // walk up parent folders
+    let current: string = modulePath;
+    while (path.basename(current)) {
+        const potentialMvnwPath: string = path.join(current, mvnw);
+        if (await fse.pathExists(potentialMvnwPath)) {
+            return potentialMvnwPath;
+        }
+        current = path.dirname(current);
+    }
+    return undefined;
 }

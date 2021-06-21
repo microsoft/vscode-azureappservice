@@ -5,14 +5,10 @@
 
 import { WebSiteManagementModels } from "@azure/arm-appservice";
 import { SiteConfigResource } from "@azure/arm-appservice/esm/models";
-import * as parser from 'fast-xml-parser';
 import * as fse from 'fs-extra';
-import * as JSZip from "jszip";
 import * as path from 'path';
-import * as vscode from 'vscode';
 import { workspace } from "vscode";
 import { UserCancelledError } from 'vscode-azureextensionui';
-import * as constants from "../constants";
 import { ext } from '../extensionVariables';
 import { localize } from "../localize";
 import { SiteTreeItem } from "../tree/SiteTreeItem";
@@ -117,65 +113,4 @@ export namespace javaUtils {
         }
         return;
     }
-
-    function getMavenModuleFromPom(pomFile: string): { pom: string, artifactId: string, packaging: string } | undefined {
-        const pomContent = fse.readFileSync(pomFile, 'utf8');
-        try {
-            const pom = parser.parse(pomContent) as { project: { artifactId: string; packaging: string; }; };
-            if (pom.project && pom.project.artifactId) {
-                return {
-                    pom: pomFile,
-                    artifactId: pom.project.artifactId,
-                    packaging: pom.project.packaging || 'jar'
-                } as { pom: string; artifactId: string; packaging: string; };
-            }
-        } catch (e) {
-            return undefined;
-        }
-        return undefined;
-    }
-
-    export function getMavenModule(module: string): { pom: string, artifactId: string, packaging: string } | undefined {
-        if (fse.existsSync(module)) {
-            if (fse.lstatSync(module).isDirectory() && fse.existsSync(path.join(module, 'pom.xml'))) {
-                return getMavenModuleFromPom(path.join(module, 'pom.xml'));
-            } else if (fse.lstatSync(module).isFile() && path.extname(module) === '.xml') {
-                return getMavenModuleFromPom(module);
-            }
-        }
-        return undefined;
-    }
-
-    export async function getLocalMavenWrapper(modulePath: string): Promise<string | undefined> {
-        const mvnw: string = constants.isWindows ? "mvnw.cmd" : "mvnw";
-        // walk up parent folders
-        let current: string = modulePath;
-        while (path.basename(current)) {
-            const potentialMvnwPath: string = path.join(current, mvnw);
-            if (await fse.pathExists(potentialMvnwPath)) {
-                return potentialMvnwPath;
-            }
-            current = path.dirname(current);
-        }
-        return undefined;
-    }
-
-    async function isExecutableJarFile(fsPath: string): Promise<boolean> {
-        const fileContent: Buffer = await fse.readFile(fsPath);
-        const zip: JSZip = await JSZip.loadAsync(fileContent);
-        const manifest: string | undefined = await zip.file("META-INF/MANIFEST.MF")?.async("text");
-        return !!(manifest && manifest.toLocaleLowerCase().includes("main-class"));
-    }
-
-    export async function getExecutableArtifactsByExtensions(targetFolder: string, fileExtensions: string[] | undefined): Promise<string[] | undefined> {
-        if (!fileExtensions || !targetFolder || !fse.pathExistsSync(targetFolder)) {
-            return undefined;
-        }
-        return (await Promise.all(fileExtensions.map(async ext => {
-            const relativeDirectory: vscode.RelativePattern | string = new vscode.RelativePattern(targetFolder, `**/*.${ext}`);
-            const uris = await vscode.workspace.findFiles(relativeDirectory);
-            return uris.map(u => u.fsPath).filter(async u => ext.toLowerCase() !== 'jar' || await isExecutableJarFile(u));
-        }))).reduce((acc, val) => acc.concat(val), []);
-    }
-
 }
