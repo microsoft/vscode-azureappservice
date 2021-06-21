@@ -6,10 +6,10 @@
 import * as path from 'path';
 import { TaskDefinition } from 'vscode';
 import { IDeployContext } from 'vscode-azureappservice';
-import * as constants from '../../constants';
-import { javaUtils } from "../../utils/javaUtils";
-import { getWorkspaceSetting, updateWorkspaceSetting } from '../../vsCodeConfig/settings';
-import * as tasks from '../../vsCodeConfig/tasks';
+import * as constants from '../../../constants';
+import { javaUtils } from "../../../utils/javaUtils";
+import { getWorkspaceSetting, updateWorkspaceSetting } from '../../../vsCodeConfig/settings';
+import * as tasks from '../../../vsCodeConfig/tasks';
 
 export async function setPreDeployTaskForMavenModule(context: IDeployContext, module: { pom: string, artifactId: string, packaging: string }): Promise<void> {
     const preDeployTaskKey: string = 'preDeployTask';

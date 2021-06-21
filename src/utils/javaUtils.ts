@@ -160,7 +160,7 @@ export namespace javaUtils {
         return undefined;
     }
 
-    export async function isExecutableJarFile(fsPath: string): Promise<boolean> {
+    async function isExecutableJarFile(fsPath: string): Promise<boolean> {
         const fileContent: Buffer = await fse.readFile(fsPath);
         const zip: JSZip = await JSZip.loadAsync(fileContent);
         const manifest: string | undefined = await zip.file("META-INF/MANIFEST.MF")?.async("text");

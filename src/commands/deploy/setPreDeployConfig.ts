@@ -7,10 +7,12 @@ import * as fse from 'fs-extra';
 import * as path from 'path';
 import { IDeployContext } from 'vscode-azureappservice';
 import * as constants from '../../constants';
+import { javaUtils } from '../../utils/javaUtils';
 import { isPathEqual } from '../../utils/pathUtils';
 import { getWorkspaceSetting } from '../../vsCodeConfig/settings';
 import { setPreDeployConfigForDotnet } from './dotnet/setPreDeployConfigForDotnet';
 import { tryGetCsprojFile } from './dotnet/tryGetCsprojFile';
+import { setPreDeployTaskForMavenModule } from './java/setPreDeployTaskForMavenModule';
 
 export async function setPreDeployConfig(context: IDeployContext): Promise<void> {
     const showPreDeployWarningSetting: string = 'showPreDeployWarning';
@@ -20,6 +22,12 @@ export async function setPreDeployConfig(context: IDeployContext): Promise<void>
     if (!getWorkspaceSetting<boolean>(showPreDeployWarningSetting, workspaceFspath)
         || getWorkspaceSetting<string>(constants.configurationSettings.preDeployTask, workspaceFspath)
         || getWorkspaceSetting<string>(constants.configurationSettings.deploySubpath, workspaceFspath)) {
+        return;
+    }
+
+    const javaMavenModule = javaUtils.getMavenModule(context.effectiveDeployFsPath);
+    if (javaMavenModule) {
+        await setPreDeployTaskForMavenModule(context, javaMavenModule);
         return;
     }
 
