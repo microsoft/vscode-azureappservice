@@ -17,9 +17,10 @@ import { getLinuxDetectorError } from "./getLinuxDetectorError";
 
 const linuxLogViewer: string = 'LinuxLogViewer';
 
-export async function checkLinuxWebAppDownDetector(correlationId: string, node: SiteTreeItem, tokenSource: CancellationTokenSource): Promise<void> {
+export async function checkLinuxWebAppDownDetector(originalContext: IActionContext, correlationId: string, node: SiteTreeItem, tokenSource: CancellationTokenSource): Promise<void> {
     return await callWithTelemetryAndErrorHandling('linuxWebAppDownDetector', async (context: IActionContext): Promise<void> => {
         context.errorHandling.suppressDisplay = true;
+        context.valuesToMask.push(...originalContext.valuesToMask);
         context.telemetry.properties.correlationId = correlationId;
 
         const kuduClient: KuduClient = await createKuduClient(context, node.root.client);
@@ -69,6 +70,7 @@ export async function checkLinuxWebAppDownDetector(correlationId: string, node: 
 
         void context.ui.showWarningMessage(detectorErrorMessage, { title: localize('viewDetails', 'View details') }).then(async () => {
             await callWithTelemetryAndErrorHandling('viewedDetectorDetails', async (context2: IActionContext) => {
+                context2.valuesToMask.push(...originalContext.valuesToMask);
                 context2.telemetry.properties.viewed = 'true';
                 await openInPortal(node.root, `${node.root.client.id}/troubleshoot`, { queryPrefix: `websitesextension_ext=asd.featurePath%3Ddetectors%2F${linuxLogViewer}` });
             });

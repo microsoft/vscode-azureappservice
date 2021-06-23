@@ -12,13 +12,15 @@ import { localize } from "../../localize";
 import { SiteTreeItem } from "../../tree/SiteTreeItem";
 import { deploy } from '../deploy/deploy';
 
-export function showCreatedWebAppMessage(node: SiteTreeItem): void {
+export function showCreatedWebAppMessage(originalContext: IActionContext, node: SiteTreeItem): void {
     const message: string = getCreatedWebAppMessage(node.root.client);
 
     // don't wait
     void window.showInformationMessage(message, AppServiceDialogResponses.deploy, AppServiceDialogResponses.viewOutput).then(async (result: MessageItem | undefined) => {
         await callWithTelemetryAndErrorHandling('postCreateWebApp', async (context: IActionContext) => {
+            context.valuesToMask.push(...originalContext.valuesToMask);
             context.telemetry.properties.dialogResult = result?.title;
+
             if (result === AppServiceDialogResponses.viewOutput) {
                 ext.outputChannel.show();
             } else if (result === AppServiceDialogResponses.deploy) {

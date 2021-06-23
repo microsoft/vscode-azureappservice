@@ -20,7 +20,7 @@ export async function createSlot(context: IActionContext, node?: DeploymentSlots
     }
 
     const createdSlot: DeploymentSlotTreeItem = <DeploymentSlotTreeItem>await node.createChild(context);
-    showCreatedWebAppMessage(createdSlot);
+    showCreatedWebAppMessage(context, createdSlot);
 
     // set the deploy source as the same as its production slot
     const siteConfig: WebSiteManagementModels.SiteConfigResource = await node.root.client.getSiteConfig();

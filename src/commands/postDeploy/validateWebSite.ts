@@ -19,10 +19,11 @@ const initialPollingIntervalMs = 5000;
 const pollingIncrementMs = 0; // Increase in interval each time
 const maximumValidationMs = 60 * 1000;
 
-export async function validateWebSite(deploymentCorrelationId: string, siteTreeItem: SiteTreeItem, tokenSource: CancellationTokenSource): Promise<number | void> {
+export async function validateWebSite(originalContext: IActionContext, deploymentCorrelationId: string, siteTreeItem: SiteTreeItem, tokenSource: CancellationTokenSource): Promise<number | void> {
     return callWithTelemetryAndErrorHandling('appService.validateWebSite', async (context: IActionContext) => {
         context.errorHandling.rethrow = false;
         context.errorHandling.suppressDisplay = true;
+        context.valuesToMask.push(...originalContext.valuesToMask);
 
         const properties = <IValidateProperties>context.telemetry.properties;
         properties.correlationId = deploymentCorrelationId;
