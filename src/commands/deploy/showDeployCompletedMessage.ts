@@ -12,7 +12,7 @@ import { SiteTreeItem } from "../../tree/SiteTreeItem";
 import { uploadAppSettings } from "../appSettings/uploadAppSettings";
 import { startStreamingLogs } from '../logstream/startStreamingLogs';
 
-export function showDeployCompletedMessage(node: SiteTreeItem): void {
+export function showDeployCompletedMessage(originalContext: IActionContext, node: SiteTreeItem): void {
     const message: string = localize('deployCompleted', 'Deployment to "{0}" completed.', node.client.fullName);
     ext.outputChannel.appendLog(message);
     const browseWebsiteBtn: MessageItem = { title: localize('browseWebsite', 'Browse Website') };
@@ -24,7 +24,9 @@ export function showDeployCompletedMessage(node: SiteTreeItem): void {
     // don't wait
     void window.showInformationMessage(message, ...buttons).then(async (result: MessageItem | undefined) => {
         await callWithTelemetryAndErrorHandling('postDeploy', async (context: IActionContext) => {
+            context.valuesToMask.push(...originalContext.valuesToMask);
             context.telemetry.properties.dialogResult = result?.title;
+
             if (result === AppServiceDialogResponses.viewOutput) {
                 ext.outputChannel.show();
             } else if (result === browseWebsiteBtn) {

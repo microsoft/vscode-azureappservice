@@ -20,6 +20,7 @@ export class DeploymentSlotsTreeItem extends AzureParentTreeItem<ISiteTreeRoot> 
     public readonly contextValue: string = DeploymentSlotsTreeItem.contextValue;
     public readonly label: string = label;
     public readonly childTypeLabel: string = 'Deployment Slot';
+    public suppressMaskLabel = true;
 
     private _nextLink: string | undefined;
 
@@ -79,6 +80,7 @@ export class DeploymentSlotsNATreeItem extends NotAvailableTreeItem {
     public readonly contextValue: string = DeploymentSlotsNATreeItem.contextValue;
     public readonly id: string = DeploymentSlotsNATreeItem.contextValue;
     public readonly childTypeLabel: string = localize('scaleUpToEnable', 'scale up to enable slots');
+    public suppressMaskLabel = true;
 
     public readonly scaleUpId: string;
 

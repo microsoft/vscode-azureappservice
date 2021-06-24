@@ -24,6 +24,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     public readonly parent!: SiteTreeItem;
     public readonly client: IAppSettingsClient;
     public cosmosDBExtension: vscode.Extension<AzureExtensionApiProvider | undefined> | undefined;
+    public suppressMaskLabel = true;
 
     private readonly _endpointSuffix: string = '_ENDPOINT';
     private readonly _keySuffix: string = '_MASTER_KEY';

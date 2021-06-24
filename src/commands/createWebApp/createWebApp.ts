@@ -16,7 +16,7 @@ export async function createWebApp(context: IActionContext & Partial<ICreateChil
 
     const newSite: WebAppTreeItem = <WebAppTreeItem>await node.createChild(context);
     if (!suppressCreatedWebAppMessage) {
-        showCreatedWebAppMessage(newSite);
+        showCreatedWebAppMessage(context, newSite);
     }
     return newSite;
 }

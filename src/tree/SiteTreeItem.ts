@@ -38,6 +38,17 @@ export abstract class SiteTreeItem extends SiteTreeItemBase implements ISiteTree
         this._logFilesNode = new LogFilesTreeItem(this, client);
         // Can't find actual documentation on this, but the portal claims it and this feedback suggests it's not planned https://aka.ms/AA4q5gi
         this._webJobsNode = this.root.client.isLinux ? new WebJobsNATreeItem(this) : new WebJobsTreeItem(this);
+
+        const valuesToMask = [
+            client.siteName, client.slotName, client.defaultHostName, client.resourceGroup,
+            client.planName, client.planResourceGroup, client.kuduHostName, client.gitUrl,
+            site.repositorySiteName, ...(site.hostNames || []), ...(site.enabledHostNames || [])
+        ];
+        for (const v of valuesToMask) {
+            if (v) {
+                this.valuesToMask.push(v);
+            }
+        }
     }
 
     public get client(): SiteClient {

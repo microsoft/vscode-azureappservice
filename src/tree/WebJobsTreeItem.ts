@@ -16,6 +16,7 @@ export class WebJobsTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     public readonly label: string = label;
     public readonly contextValue: string = WebJobsTreeItem.contextValue;
     public readonly childTypeLabel: string = localize('webJob', 'Web Job');
+    public suppressMaskLabel = true;
 
     public get id(): string {
         return 'webJobs';
@@ -40,6 +41,7 @@ export class WebJobsNATreeItem extends NotAvailableTreeItem {
     public static contextValue: string = "webJobsNA";
     public readonly label: string = label;
     public readonly contextValue: string = WebJobsNATreeItem.contextValue;
+    public suppressMaskLabel = true;
 
     public constructor(parent: AzureParentTreeItem) {
         super(parent);

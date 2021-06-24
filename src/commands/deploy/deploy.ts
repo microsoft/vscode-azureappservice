@@ -112,7 +112,7 @@ export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | 
     const tokenSource: vscode.CancellationTokenSource = new vscode.CancellationTokenSource();
     postDeployCancelTokens.set(node.id, tokenSource);
 
-    showDeployCompletedMessage(node);
+    showDeployCompletedMessage(context, node);
 
-    runPostDeployTask(node, correlationId, tokenSource);
+    runPostDeployTask(context, node, correlationId, tokenSource);
 }
