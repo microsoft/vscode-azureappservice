@@ -7,7 +7,7 @@ import * as fse from 'fs-extra';
 import * as JSZip from "jszip";
 import * as vscode from 'vscode';
 
-export async function tryGetDeployableArtifacts(targetFolder: string, fileExtensions?: string[]): Promise<string[] | undefined> {
+export async function tryGetDeployableArtifacts(targetFolder: string, fileExtensions: string[] = ['jar', 'war']): Promise<string[] | undefined> {
     if (!fileExtensions || !targetFolder || !fse.pathExistsSync(targetFolder)) {
         return undefined;
     }

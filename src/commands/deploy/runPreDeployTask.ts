@@ -28,10 +28,10 @@ export async function runPreDeployTask(context: appservice.IDeployContext, siteC
         const moduleFolder = isPomFile ? path.dirname(effectivePath) : effectivePath;
 
         // search for executable jar/war files under `${moduleFolder}/target`
-        const executableArtifacts = await tryGetDeployableArtifacts(path.join(moduleFolder, 'target'), fileExtensions);
+        const executableArtifacts = await tryGetDeployableArtifacts(path.join(moduleFolder, 'target'));
         context.effectiveDeployFsPath = executableArtifacts?.[0] ?? '';
         // show warning if can not find executable jar/war artifacts in module.
-        const message = localize('errorArtifactsNotFoundJava', 'No {0} artifacts found in maven module "{1}"', `${fileExtensions}`, moduleFolder);
-        !context.effectiveDeployFsPath && void vscode.window.showWarningMessage(message);
+        const message = localize('errorArtifactsNotFoundJava', 'Only "{0}" files can be deployed to "{1}", but there are no {0} artifacts found in maven module "{2}"', `${fileExtensions}`, siteConfig.name, moduleFolder);
+        (!context.effectiveDeployFsPath || !fileExtensions?.includes(path.extname(context.effectiveDeployFsPath).substr(1))) && void vscode.window.showWarningMessage(message);
     }
 }
