@@ -55,7 +55,7 @@ export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | 
     siteConfig = siteConfig ? siteConfig : await node.root.client.getSiteConfig();
 
     if (javaUtils.isJavaRuntime(siteConfig.linuxFxVersion)) {
-        await javaUtils.configureJavaSEAppSettings(node);
+        await javaUtils.configureJavaSEAppSettings(context, node);
     }
 
     const isZipDeploy: boolean = siteConfig.scmType !== constants.ScmType.LocalGit && siteConfig !== constants.ScmType.GitHub;

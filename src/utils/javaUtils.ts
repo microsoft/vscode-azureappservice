@@ -7,8 +7,7 @@ import { WebSiteManagementModels } from "@azure/arm-appservice";
 import * as fse from 'fs-extra';
 import * as path from 'path';
 import { workspace } from "vscode";
-import { UserCancelledError } from 'vscode-azureextensionui';
-import { ext } from '../extensionVariables';
+import { IActionContext, UserCancelledError } from 'vscode-azureextensionui';
 import { localize } from "../localize";
 import { SiteTreeItem } from "../tree/SiteTreeItem";
 
@@ -88,14 +87,14 @@ export namespace javaUtils {
         return await fse.pathExists(path.join(fsPath, 'pom.xml')) || await fse.pathExists(path.join(fsPath, 'build.gradle'));
     }
 
-    export async function configureJavaSEAppSettings(node: SiteTreeItem): Promise<WebSiteManagementModels.StringDictionary | undefined> {
+    export async function configureJavaSEAppSettings(context: IActionContext, node: SiteTreeItem): Promise<WebSiteManagementModels.StringDictionary | undefined> {
         const appSettings: WebSiteManagementModels.StringDictionary = await node.root.client.listApplicationSettings();
         if (isJavaSERequiredPortConfigured(appSettings)) {
             return undefined;
         }
 
         appSettings.properties = appSettings.properties || {};
-        const port: string = await ext.ui.showInputBox({
+        const port: string = await context.ui.showInputBox({
             value: DEFAULT_PORT,
             prompt: localize('configurePort', 'Configure the PORT (Application Settings) which your Java SE Web App exposes'),
             placeHolder: 'PORT',

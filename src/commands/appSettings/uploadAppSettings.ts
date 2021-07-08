@@ -24,7 +24,7 @@ export async function uploadAppSettings(context: IActionContext, target?: Uri | 
     } else {
         node = target;
         const message: string = localize('selectEnv', 'Select the local .env file to upload.');
-        envPath = await workspaceUtil.selectWorkspaceFile(message, () => envFileName);
+        envPath = await workspaceUtil.selectWorkspaceFile(context, message, () => envFileName);
     }
 
     if (!node) {
@@ -32,14 +32,14 @@ export async function uploadAppSettings(context: IActionContext, target?: Uri | 
     }
     const client: IAppSettingsClient = node.client;
     await node.runWithTemporaryDescription(context, localize('uploading', 'Uploading settings to "{0}"...', client.fullName), async () => {
-        const localEnvVariables: dotenv.DotenvParseOutput = await getLocalEnvironmentVariables(envPath);
+        const localEnvVariables: dotenv.DotenvParseOutput = await getLocalEnvironmentVariables(context, envPath);
         if (Object.keys(localEnvVariables).length > 0) {
             const remoteSettings: WebSiteManagementModels.StringDictionary = await client.listApplicationSettings();
             if (!remoteSettings.properties) {
                 remoteSettings.properties = {};
             }
 
-            await confirmOverwriteSettings(localEnvVariables, remoteSettings.properties, client.fullName);
+            await confirmOverwriteSettings(context, localEnvVariables, remoteSettings.properties, client.fullName);
             await client.updateApplicationSettings(remoteSettings);
         } else {
             throw new Error(localize('noEnvFound', 'No environment variables found in "{0}".', envFileName));

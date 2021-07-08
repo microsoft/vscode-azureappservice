@@ -40,14 +40,14 @@ export async function startSsh(context: IActionContext, node?: SiteTreeItem): Pr
 
     try {
         sshSessionsMap.set(node.root.client.fullName, { starting: true, terminal: undefined, tunnel: undefined, localPort: undefined });
-        await startSshInternal(node);
+        await startSshInternal(context, node);
     } catch (error) {
         sshSessionsMap.delete(node.root.client.fullName);
         throw error;
     }
 }
 
-async function startSshInternal(node: SiteTreeItem): Promise<void> {
+async function startSshInternal(context: IActionContext, node: SiteTreeItem): Promise<void> {
     const siteClient: SiteClient = node.root.client;
     if (!siteClient.isLinux) {
         throw new Error(localize('sshLinuxError', 'Azure SSH is only supported for Linux web apps.'));
@@ -60,7 +60,7 @@ async function startSshInternal(node: SiteTreeItem): Promise<void> {
         const confirmDisableMessage: string = localize('confirmDisable', 'Remote debugging must be disabled in order to SSH. This will restart the app.');
         const siteConfig: WebSiteManagementModels.SiteConfigResource = await siteClient.getSiteConfig();
         // remote debugging has to be disabled in order to tunnel to the 2222 port
-        await setRemoteDebug(false, confirmDisableMessage, undefined, siteClient, siteConfig, progress, token);
+        await setRemoteDebug(context, false, confirmDisableMessage, undefined, siteClient, siteConfig, progress, token);
 
         reportMessage(localize('initSsh', 'Initializing SSH...'), progress, token);
         const publishCredential: WebSiteManagementModels.User = await siteClient.getWebAppPublishCredential();

@@ -5,7 +5,7 @@
 
 import * as vscode from 'vscode';
 import { registerAppServiceExtensionVariables } from 'vscode-azureappservice';
-import { AzExtTreeDataProvider, AzureUserInput, callWithTelemetryAndErrorHandling, createApiProvider, createAzExtOutputChannel, createExperimentationService, IActionContext, IAzureUserInput, registerErrorHandler, registerReportIssueCommand, registerUIExtensionVariables } from 'vscode-azureextensionui';
+import { AzExtTreeDataProvider, callWithTelemetryAndErrorHandling, createApiProvider, createAzExtOutputChannel, createExperimentationService, IActionContext, registerErrorHandler, registerReportIssueCommand, registerUIExtensionVariables } from 'vscode-azureextensionui';
 import { AzureExtensionApi, AzureExtensionApiProvider } from 'vscode-azureextensionui/api';
 import { AppServiceFileSystem } from './AppServiceFileSystem';
 import { revealTreeItem } from './commands/api/revealTreeItem';
@@ -22,9 +22,6 @@ export async function activateInternal(
 ): Promise<AzureExtensionApiProvider> {
     ext.context = context;
     ext.ignoreBundle = ignoreBundle;
-
-    const ui: IAzureUserInput = new AzureUserInput(context.globalState);
-    ext.ui = ui;
 
     ext.outputChannel = createAzExtOutputChannel("Azure App Service", ext.prefix);
     context.subscriptions.push(ext.outputChannel);

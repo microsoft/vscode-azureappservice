@@ -5,7 +5,7 @@
 
 import { WebSiteManagementModels } from '@azure/arm-appservice';
 import { AppSettingsTreeItem, AppSettingTreeItem, deleteSite, DeploymentsTreeItem, DeploymentTreeItem, FolderTreeItem, ISiteTreeRoot, LogFilesTreeItem, SiteClient, SiteFilesTreeItem } from 'vscode-azureappservice';
-import { AzExtTreeItem, AzureParentTreeItem, AzureTreeItem, openInPortal } from 'vscode-azureextensionui';
+import { AzExtTreeItem, AzureParentTreeItem, AzureTreeItem, IActionContext, openInPortal } from 'vscode-azureextensionui';
 import { nonNullValue } from '../utils/nonNull';
 import { openUrl } from '../utils/openUrl';
 import { CosmosDBConnection } from './CosmosDBConnection';
@@ -144,8 +144,8 @@ export abstract class SiteTreeItem extends SiteTreeItemBase implements ISiteTree
         return undefined;
     }
 
-    public async deleteTreeItemImpl(): Promise<void> {
-        await deleteSite(this.root.client);
+    public async deleteTreeItemImpl(context: IActionContext): Promise<void> {
+        await deleteSite(context, this.root.client);
     }
 
     public async isHttpLogsEnabled(): Promise<boolean> {

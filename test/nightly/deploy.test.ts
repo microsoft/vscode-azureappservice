@@ -9,8 +9,9 @@ import * as assert from 'assert';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { tryGetWebApp } from 'vscode-azureappservice';
+import { createTestActionContext, runWithTestActionContext } from 'vscode-azureextensiondev';
 import { createGenericClient, createWebAppAdvanced, deploy, ext, getRandomHexString, nonNullProp, WebAppTreeItem } from '../../extension.bundle';
-import { createTestContext, ITestContext, longRunningTestsEnabled } from '../global.test';
+import { longRunningTestsEnabled } from '../global.test';
 import { getRotatingLocation, getRotatingPricingTier } from './getRotatingValue';
 import { resourceGroupsToDelete, webSiteClient } from './global.resource.test';
 
@@ -119,21 +120,21 @@ suite('Create Web App and deploy', function (this: Mocha.Suite): void {
 
         testInputs.push(getRotatingLocation(), '$(plus) Create new App Service plan', getRandomHexString(), getRotatingPricingTier(), '$(plus) Create new Application Insights resource', getRandomHexString());
 
-        const createContext: ITestContext = createTestContext();
-        await createContext.ui.runWithInputs(testInputs, async () => {
-            await createWebAppAdvanced(createContext);
+        await runWithTestActionContext('CreateWebAppAdvanced', async context => {
+            await context.ui.runWithInputs(testInputs, async () => {
+                await createWebAppAdvanced(context);
+            });
         });
         const createdApp: WebSiteManagementModels.Site | undefined = await tryGetWebApp(webSiteClient, resourceGroupName, resourceName);
         assert.ok(createdApp);
 
-        const deployContext: ITestContext = createTestContext();
-        // Verify that the deployment is successful
-        await deployContext.ui.runWithInputs([workspacePath, resourceName, 'Deploy'], async () => {
-            await deploy(deployContext);
+        await runWithTestActionContext('Deploy', async context => {
+            await context.ui.runWithInputs([workspacePath, resourceName, 'Deploy'], async () => {
+                await deploy(context);
+            });
         });
 
-        const findContext: ITestContext = createTestContext();
-        const hostUrl: string | undefined = (<WebAppTreeItem>await ext.tree.findTreeItem(<string>createdApp?.id, findContext)).root.client.defaultHostUrl;
+        const hostUrl: string | undefined = (<WebAppTreeItem>await ext.tree.findTreeItem(<string>createdApp?.id, await createTestActionContext())).root.client.defaultHostUrl;
         const client: ServiceClient = await createGenericClient();
         const response: HttpOperationResponse = await client.sendRequest({ method: 'GET', url: hostUrl });
         assert.strictEqual(response.bodyAsText, `Version: ${expectedVersion}`);

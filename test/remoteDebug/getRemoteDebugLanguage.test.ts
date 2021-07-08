@@ -5,13 +5,13 @@
 
 import * as assert from 'assert';
 import { RemoteDebugLanguage } from 'vscode-azureappservice';
+import { createTestActionContext } from 'vscode-azureextensiondev';
 import { getRemoteDebugLanguage } from '../../extension.bundle';
-import { createTestContext } from '../global.test';
 import { runWithExtensionSetting } from '../runWithSetting';
 
 suite('getRemoteDebugLanguage', () => {
-    test('Throws error for bad versions', () => {
-        const context = createTestContext();
+    test('Throws error for bad versions', async () => {
+        const context = await createTestActionContext();
 
         // empty version
         assert.throws(() => { getRemoteDebugLanguage({}, context); }, Error);
@@ -33,8 +33,8 @@ suite('getRemoteDebugLanguage', () => {
         assert.throws(() => { getRemoteDebugLanguage({ linuxFxVersion: 'node|6-lts' }, context); }, Error);
     });
 
-    test('Returns language for good versions', () => {
-        const context = createTestContext();
+    test('Returns language for good versions', async () => {
+        const context = await createTestActionContext();
 
         // >= 8.11 is valid
         assert.strictEqual(getRemoteDebugLanguage({ linuxFxVersion: 'node|8.11' }, context), RemoteDebugLanguage.Node);
@@ -47,7 +47,7 @@ suite('getRemoteDebugLanguage', () => {
     });
 
     test('Respects the python remote debugging experimental flag', async () => {
-        const context = createTestContext();
+        const context = await createTestActionContext();
 
         await runWithExtensionSetting('enablePythonRemoteDebugging', undefined, async () => {
             assert.throws(() => { getRemoteDebugLanguage({ linuxFxVersion: 'python|2.7' }, context); }, Error);
@@ -60,8 +60,8 @@ suite('getRemoteDebugLanguage', () => {
         });
     });
 
-    test('Reports telemetry correctly', () => {
-        const context = createTestContext();
+    test('Reports telemetry correctly', async () => {
+        const context = await createTestActionContext();
 
         getRemoteDebugLanguage({ linuxFxVersion: 'NODE|8.11' }, context);
         assert.strictEqual(context.telemetry.properties.linuxFxVersion, 'node|8.11');

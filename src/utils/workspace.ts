@@ -6,11 +6,10 @@
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { IDeployContext } from 'vscode-azureappservice';
-import { IAzureQuickPickItem } from 'vscode-azureextensionui';
-import { ext } from '../extensionVariables';
+import { IActionContext, IAzureQuickPickItem } from 'vscode-azureextensionui';
 import { localize } from '../localize';
 
-export async function selectWorkspaceFile(placeHolder: string, getSubPath?: (f: vscode.WorkspaceFolder) => string | undefined): Promise<string> {
+export async function selectWorkspaceFile(context: IActionContext, placeHolder: string, getSubPath?: (f: vscode.WorkspaceFolder) => string | undefined): Promise<string> {
     let defaultUri: vscode.Uri | undefined;
     if (vscode.workspace.workspaceFolders && vscode.workspace.workspaceFolders.length > 0 && getSubPath) {
         const firstFolder: vscode.WorkspaceFolder = vscode.workspace.workspaceFolders[0];
@@ -21,6 +20,7 @@ export async function selectWorkspaceFile(placeHolder: string, getSubPath?: (f: 
     }
 
     return await selectWorkspaceItem(
+        context,
         placeHolder,
         {
             canSelectFiles: true,
@@ -32,7 +32,7 @@ export async function selectWorkspaceFile(placeHolder: string, getSubPath?: (f: 
         getSubPath);
 }
 
-async function selectWorkspaceItem(placeHolder: string, options: vscode.OpenDialogOptions, getSubPath?: (f: vscode.WorkspaceFolder) => string | undefined, fileExtension?: string): Promise<string> {
+async function selectWorkspaceItem(context: IActionContext, placeHolder: string, options: vscode.OpenDialogOptions, getSubPath?: (f: vscode.WorkspaceFolder) => string | undefined, fileExtension?: string): Promise<string> {
     let folder: IAzureQuickPickItem<string | undefined> | undefined;
     let quickPicks: IAzureQuickPickItem<string | undefined>[] = [];
     if (vscode.workspace.workspaceFolders) {
@@ -49,10 +49,10 @@ async function selectWorkspaceItem(placeHolder: string, options: vscode.OpenDial
             });
 
         quickPicks.push({ label: `$(file-directory) ${localize('browse', 'Browse...')}`, description: '', data: undefined });
-        folder = await ext.ui.showQuickPick(quickPicks, { placeHolder });
+        folder = await context.ui.showQuickPick(quickPicks, { placeHolder });
     }
 
-    return folder && folder.data ? folder.data : (await ext.ui.showOpenDialog(options))[0].fsPath;
+    return folder && folder.data ? folder.data : (await context.ui.showOpenDialog(options))[0].fsPath;
 }
 
 export async function findFilesByFileExtension(fsPath: string | undefined, fileExtension: string): Promise<vscode.Uri[]> {
