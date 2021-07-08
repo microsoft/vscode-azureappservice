@@ -6,9 +6,8 @@
 import { WebSiteManagementModels } from '@azure/arm-appservice';
 import * as vscode from 'vscode';
 import { IAppSettingsClient, ISiteTreeRoot, validateAppSettingKey } from 'vscode-azureappservice';
-import { AzExtTreeItem, AzureParentTreeItem, GenericTreeItem, ICreateChildImplContext, openInPortal, TreeItemIconPath, UserCancelledError } from 'vscode-azureextensionui';
+import { AzExtTreeItem, AzureParentTreeItem, GenericTreeItem, IActionContext, ICreateChildImplContext, openInPortal, TreeItemIconPath, UserCancelledError } from 'vscode-azureextensionui';
 import { AzureExtensionApiProvider } from 'vscode-azureextensionui/api';
-import { ext } from '../extensionVariables';
 import { localize } from '../localize';
 import { nonNullProp } from '../utils/nonNull';
 import { getThemedIconPath } from '../utils/pathUtils';
@@ -114,7 +113,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
                 [this._databaseSuffix, databaseToAdd.databaseName]
             ]);
             const docdbSuffixes = [this._endpointSuffix, this._keySuffix, this._databaseSuffix];
-            newAppSettings = await this.promptForAppSettings(appSettingsDict, docdbAppSettings, docdbSuffixes, 'AZURE_COSMOS');
+            newAppSettings = await this.promptForAppSettings(context, appSettingsDict, docdbAppSettings, docdbSuffixes, 'AZURE_COSMOS');
         } else if (databaseToAdd.postgresData) {
             const postgresAppSettings: Map<string | undefined, string | undefined> = new Map([
                 [this._pgHostSuffix, databaseToAdd.hostName],
@@ -124,10 +123,10 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
                 [this._pgPortSuffix, databaseToAdd.port]
             ]);
             const postgresSuffixes = [this._pgHostSuffix, this._pgDbNameSuffix, this._pgUserSuffix, this._pgPassSuffix, this._pgPortSuffix];
-            newAppSettings = await this.promptForAppSettings(appSettingsDict, postgresAppSettings, postgresSuffixes, 'POSTGRES');
+            newAppSettings = await this.promptForAppSettings(context, appSettingsDict, postgresAppSettings, postgresSuffixes, 'POSTGRES');
         } else {
             const mongoAppSettings: Map<string | undefined, string | undefined> = new Map([[undefined, databaseToAdd.connectionString]]);
-            newAppSettings = await this.promptForAppSettings(appSettingsDict, mongoAppSettings, undefined, 'MONGO_URL');
+            newAppSettings = await this.promptForAppSettings(context, appSettingsDict, mongoAppSettings, undefined, 'MONGO_URL');
         }
 
         for (const [k, v] of newAppSettings) {
@@ -278,10 +277,10 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         return result;
     }
 
-    private async promptForAppSettings(appSettingsDict: WebSiteManagementModels.StringDictionary, accountAppSettings: Map<string | undefined, string | undefined>, suffixes: string[] | undefined, defaultPrefixString: string): Promise<Map<string, string>> {
+    private async promptForAppSettings(context: IActionContext, appSettingsDict: WebSiteManagementModels.StringDictionary, accountAppSettings: Map<string | undefined, string | undefined>, suffixes: string[] | undefined, defaultPrefixString: string): Promise<Map<string, string>> {
         const prompt: string = suffixes ? localize('enterPrefix', 'Enter new connection setting prefix') : localize('enterKey', 'Enter new connection setting key');
         const errorMsg: string = suffixes ? localize('prefixError', 'Connection setting prefix cannot be empty.') : localize('keyError', 'Connection setting key cannot be empty.');
-        const appSettingsPrefix: string = await ext.ui.showInputBox({
+        const appSettingsPrefix: string = await context.ui.showInputBox({
             prompt,
             validateInput: (v: string): string | undefined => {
                 if (!v) {

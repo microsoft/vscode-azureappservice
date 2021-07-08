@@ -27,5 +27,5 @@ export async function startRemoteDebug(context: IActionContext, node?: SiteTreeI
 
     const language: appservice.RemoteDebugLanguage = getRemoteDebugLanguage(siteConfig, context);
 
-    await appservice.startRemoteDebug(siteClient, siteConfig, language);
+    await appservice.startRemoteDebug(context, siteClient, siteConfig, language);
 }

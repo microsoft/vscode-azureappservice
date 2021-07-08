@@ -25,15 +25,15 @@ export async function downloadAppSettings(context: IActionContext, node?: AppSet
     const client: IAppSettingsClient = node.client;
 
     const message: string = localize('selectDest', 'Select the destination file for your downloaded settings.');
-    const envVarPath: string = await workspaceUtil.selectWorkspaceFile(message, () => envFileName);
+    const envVarPath: string = await workspaceUtil.selectWorkspaceFile(context, message, () => envFileName);
     const envVarUri: vscode.Uri = vscode.Uri.file(envVarPath);
 
     await node.runWithTemporaryDescription(context, localize('downloading', 'Downloading...'), async () => {
         ext.outputChannel.appendLog(localize('downloadingSettings', 'Downloading settings from "{0}"...', client.fullName));
-        const localEnvVariables: DotenvParseOutput = await getLocalEnvironmentVariables(envVarPath, true /* allowOverwrite */);
+        const localEnvVariables: DotenvParseOutput = await getLocalEnvironmentVariables(context, envVarPath, true /* allowOverwrite */);
         const remoteEnvVariables: WebSiteManagementModels.StringDictionary = await client.listApplicationSettings();
         if (remoteEnvVariables.properties) {
-            await confirmOverwriteSettings(remoteEnvVariables.properties, localEnvVariables, envFileName);
+            await confirmOverwriteSettings(context, remoteEnvVariables.properties, localEnvVariables, envFileName);
         }
 
         await fse.ensureFile(envVarPath);

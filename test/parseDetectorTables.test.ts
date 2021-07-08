@@ -4,8 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as assert from 'assert';
+import { createTestActionContext } from 'vscode-azureextensiondev';
 import { ColumnName, detectorTable, findTableByName, getValuesByColumnName, validateTimestamp } from "../extension.bundle";
-import { createTestContext, ITestContext } from './global.test';
 
 suite('Detector Dataset Parser', () => {
     test('Find table by table name', () => {
@@ -13,14 +13,14 @@ suite('Detector Dataset Parser', () => {
         assert.strictEqual(table, detectorResponse.properties.dataset[1].table);
     });
 
-    test('Get values by column name', () => {
+    test('Get values by column name', async () => {
         const insightTable: any = detectorResponse.properties.dataset[1].table;
-        const rawApplicationLog: string = getValuesByColumnName(createTestContext(), insightTable, ColumnName.value);
+        const rawApplicationLog: string = getValuesByColumnName(await createTestActionContext(), insightTable, ColumnName.value);
         assert.strictEqual(rawApplicationLog, detectorResponse.properties.dataset[1].table.rows[0][3]);
     });
 
-    test('Verify validateTimestamp', () => {
-        const context: ITestContext = createTestContext();
+    test('Verify validateTimestamp', async () => {
+        const context = await createTestActionContext();
         const expectedTimestamp: string = "2020-04-21T18:24:28";
         // an hour earlier (stale)
         const staleTimestamp: string = "2020-04-21T17:24:28";
@@ -36,10 +36,10 @@ suite('Detector Dataset Parser', () => {
         assert.strictEqual(validateTimestamp(context, detectorTimestamp, futureTimestamp), false);
     });
 
-    test('Get error messages', () => {
+    test('Get error messages', async () => {
         const expectedErrorMessage: string = "Cannot find module 'yenv'";
         const appInsightTable: any = JSON.parse(detectorResponse.properties.dataset[1].table.rows[0][3])[0].table;
-        const insightError: string = getValuesByColumnName(createTestContext(), appInsightTable, ColumnName.dataValue);
+        const insightError: string = getValuesByColumnName(await createTestActionContext(), appInsightTable, ColumnName.dataValue);
         assert.strictEqual(insightError, expectedErrorMessage);
     });
 });
