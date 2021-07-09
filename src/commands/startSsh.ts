@@ -82,6 +82,13 @@ async function connectToTunnelProxy(node: SiteTreeItem, tunnelProxy: TunnelProxy
     // -o "LogLevel ERROR" doesn't display Warning: Permanently added 'hostname,ip' (RSA) to the list of known hosts.
     const sshCommand: string = `ssh -c aes256-cbc -o StrictHostKeyChecking=no -o "UserKnownHostsFile /dev/null" -o "LogLevel ERROR" root@127.0.0.1 -p ${port}`;
 
+    const execution = new vscode.ShellExecution("echo \"Hello World\"");
+    const problemMatchers = ["$myProblemMatcher"];
+    const type = "exampleProvider";
+    const task: vscode.Task = new vscode.Task({ type: type }, vscode.TaskScope.Workspace,
+        "Build", "myExtension", execution, problemMatchers);
+    await vscode.tasks.executeTask(task);
+
     // if this terminal already exists, just reuse it otherwise create a new terminal.
     const terminal: vscode.Terminal = vscode.window.terminals.find((activeTerminal: vscode.Terminal) => { return activeTerminal.name === sshTerminalName; }) || vscode.window.createTerminal(sshTerminalName);
 
