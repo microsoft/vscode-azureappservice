@@ -12,7 +12,6 @@ import { ext } from '../extensionVariables';
 import { localize } from '../localize';
 import { SiteTreeItem } from '../tree/SiteTreeItem';
 import { WebAppTreeItem } from '../tree/WebAppTreeItem';
-import { delay } from '../utils/delay';
 import { CommandLineBuilder } from './commandLineBuilder';
 import { ExtPseudoterminal } from './ExtPseudoTerminal';
 
@@ -92,7 +91,7 @@ async function connectToTunnelProxy(node: SiteTreeItem, tunnelProxy: TunnelProxy
         .withArg('root@127.0.0.1')
         .withNamedArg('-p', port.toString());
 
-    const shellTask: vscode.Task = new vscode.Task({ type: 'sshShell' }, vscode.TaskScope.Workspace, 'sshToWeb', 'ssh', new vscode.ShellExecution(command.build()));
+    // const shellTask: vscode.Task = new vscode.Task({ type: 'sshShell' }, vscode.TaskScope.Workspace, 'sshToWeb', 'ssh', new vscode.ShellExecution(command.build()));
 
     // eslint-disable-next-line @typescript-eslint/require-await
     const task: vscode.Task = new vscode.Task({ type: 'sshToWeb' }, vscode.TaskScope.Workspace, 'sshToWeb', 'ssh', new vscode.CustomExecution(async function (_resolvedDefinitions: vscode.TaskDefinition): Promise<vscode.Pseudoterminal> {
@@ -100,43 +99,35 @@ async function connectToTunnelProxy(node: SiteTreeItem, tunnelProxy: TunnelProxy
     }));
 
     await vscode.tasks.executeTask(task);
-    await vscode.tasks.executeTask(shellTask);
-
-    // SAMPLE TASK
-    // const execution = new vscode.ShellExecution("echo \"Hello World\"");
-    // const problemMatchers = ["$myProblemMatcher"];
-    // const type = "exampleProvider";
-    // const task: vscode.Task = new vscode.Task({ type: type }, vscode.TaskScope.Workspace,
-    //     "Build", "myExtension", execution, problemMatchers);
-    // await vscode.tasks.executeTask(task);
+    // await vscode.tasks.executeTask(shellTask);
 
     // if this terminal already exists, just reuse it otherwise create a new terminal.
-    const terminal: vscode.Terminal = vscode.window.terminals.find((activeTerminal: vscode.Terminal) => { return activeTerminal.name === sshTerminalName; }) || vscode.window.createTerminal(sshTerminalName);
+    // const terminal: vscode.Terminal = vscode.window.terminals.find((activeTerminal: vscode.Terminal) => { return activeTerminal.name === sshTerminalName; }) || vscode.window.createTerminal(sshTerminalName);
 
-    terminal.sendText(sshCommand, true);
-    // because the container needs time to respond, there needs to be a delay between connecting and entering password
-    // this is a workaround and is being tracked: https://github.com/Microsoft/vscode-azureappservice/issues/932
-    await delay(3000);
+    // terminal.sendText(sshCommand, true);
+    // // because the container needs time to respond, there needs to be a delay between connecting and entering password
+    // // this is a workaround and is being tracked: https://github.com/Microsoft/vscode-azureappservice/issues/932
+    // await delay(3000);
 
-    // The default password for logging into the container (after you have SSHed in) is Docker!
-    terminal.sendText('Docker!', true);
-    terminal.show();
-    ext.context.subscriptions.push(terminal);
+    // // The default password for logging into the container (after you have SSHed in) is Docker!
+    // terminal.sendText('Docker!', true);
+    // terminal.show();
+    // ext.context.subscriptions.push(terminal);
 
-    sshSessionsMap.set(node.root.client.fullName, { starting: false, terminal: terminal, tunnel: tunnelProxy, localPort: port });
+    // sshSessionsMap.set(node.root.client.fullName, { starting: false, terminal: terminal, tunnel: tunnelProxy, localPort: port });
 
-    const onCloseEvent: vscode.Disposable = vscode.window.onDidCloseTerminal((e: vscode.Terminal) => {
-        if (e.processId === terminal.processId) {
-            // clean up if the SSH task ends
-            if (tunnelProxy !== undefined) {
-                tunnelProxy.dispose();
-            }
+    // const onCloseEvent: vscode.Disposable = vscode.window.onDidCloseTerminal((e: vscode.Terminal) => {
+    //     if (e.processId === terminal.processId) {
+    //         // clean up if the SSH task ends
+    //         if (tunnelProxy !== undefined) {
+    //             tunnelProxy.dispose();
+    //         }
 
-            sshSessionsMap.delete(node.root.client.fullName);
-            ext.outputChannel.appendLog(localize('sshDisconnected', 'Azure SSH for "{0}" has disconnected.', node.root.client.fullName));
+    //         sshSessionsMap.delete(node.root.client.fullName);
+    //         ext.outputChannel.appendLog(localize('sshDisconnected', 'Azure SSH for "{0}" has disconnected.', node.root.client.fullName));
 
-            // clean this up after we've disposed the terminal and reset the map
-            onCloseEvent.dispose();
-        }
-    });
+    //         // clean this up after we've disposed the terminal and reset the map
+    //         onCloseEvent.dispose();
+    //     }
+    // });
 }
