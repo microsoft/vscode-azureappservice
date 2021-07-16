@@ -64,13 +64,12 @@ export class ScaleUpTreeItem extends AzureTreeItem<ISiteTreeRoot> {
     public static contextValue: string = "ScaleUp";
     public readonly label: string = localize('scaleUp', "Scale up to a production plan to enable slots...");
     public readonly contextValue: string = ScaleUpTreeItem.contextValue;
-    public readonly commandId: string = 'appService.ScaleUp';
-
     public readonly scaleUpId: string;
 
     public constructor(parent: AzureParentTreeItem, scaleUpId: string) {
         super(parent);
         this.scaleUpId = scaleUpId;
+        this.commandId = 'appService.ScaleUp';
     }
 }
 
@@ -78,7 +77,6 @@ export class DeploymentSlotsNATreeItem extends NotAvailableTreeItem {
     public static contextValue: string = "deploymentNASlots";
     public readonly label: string;
     public readonly contextValue: string = DeploymentSlotsNATreeItem.contextValue;
-    public readonly id: string = DeploymentSlotsNATreeItem.contextValue;
     public readonly childTypeLabel: string = localize('scaleUpToEnable', 'scale up to enable slots');
     public suppressMaskLabel = true;
 
@@ -87,6 +85,7 @@ export class DeploymentSlotsNATreeItem extends NotAvailableTreeItem {
     public constructor(parent: AzureParentTreeItem, planId: string) {
         super(parent);
         this.label = label;
+        this.id = DeploymentSlotsNATreeItem.contextValue;
         this.scaleUpId = `${planId}/pricingTier`;
     }
 
