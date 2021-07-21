@@ -54,7 +54,7 @@ export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | 
     // if we already got siteConfig, don't waste time getting it again
     siteConfig = siteConfig ? siteConfig : await node.root.client.getSiteConfig();
 
-    if (javaUtils.isJavaRuntime(siteConfig.linuxFxVersion)) {
+    if (javaUtils.isJavaRuntime(siteConfig)) {
         await javaUtils.configureJavaSEAppSettings(context, node);
     }
 

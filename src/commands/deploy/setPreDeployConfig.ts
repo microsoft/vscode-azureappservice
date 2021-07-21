@@ -11,6 +11,8 @@ import { isPathEqual } from '../../utils/pathUtils';
 import { getWorkspaceSetting } from '../../vsCodeConfig/settings';
 import { setPreDeployConfigForDotnet } from './dotnet/setPreDeployConfigForDotnet';
 import { tryGetCsprojFile } from './dotnet/tryGetCsprojFile';
+import { setPreDeployTaskForMavenModule } from './java/setPreDeployTaskForMavenModule';
+import { tryGetMavenModule } from './java/tryGetMavenModule';
 
 export async function setPreDeployConfig(context: IDeployContext): Promise<void> {
     const showPreDeployWarningSetting: string = 'showPreDeployWarning';
@@ -36,5 +38,10 @@ export async function setPreDeployConfig(context: IDeployContext): Promise<void>
     const csprojFile: string | undefined = await tryGetCsprojFile(context, workspaceFspath);
     if (csprojFile) {
         await setPreDeployConfigForDotnet(context, csprojFile);
+    }
+
+    const mavenModule = await tryGetMavenModule(context, workspaceFspath);
+    if (mavenModule) {
+        await setPreDeployTaskForMavenModule(context, mavenModule);
     }
 }
