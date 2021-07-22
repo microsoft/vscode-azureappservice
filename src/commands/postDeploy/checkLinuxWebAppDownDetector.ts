@@ -23,7 +23,7 @@ export async function checkLinuxWebAppDownDetector(originalContext: IActionConte
         context.valuesToMask.push(...originalContext.valuesToMask);
         context.telemetry.properties.correlationId = correlationId;
 
-        const kuduClient: KuduClient = await createKuduClient(context, node.root.client);
+        const kuduClient: KuduClient = await createKuduClient(context, node.site);
         const deployment: KuduModels.DeployResult = await kuduClient.deployment.getResult('latest');
 
         if (!deployment.endTime) {
@@ -71,7 +71,7 @@ export async function checkLinuxWebAppDownDetector(originalContext: IActionConte
             await callWithTelemetryAndErrorHandling('viewedDetectorDetails', async (context2: IActionContext) => {
                 context2.valuesToMask.push(...originalContext.valuesToMask);
                 context2.telemetry.properties.viewed = 'true';
-                await openInPortal(node.root, `${node.root.client.id}/troubleshoot`, { queryPrefix: `websitesextension_ext=asd.featurePath%3Ddetectors%2F${linuxLogViewer}` });
+                await openInPortal(node, `${node.site.id}/troubleshoot`, { queryPrefix: `websitesextension_ext=asd.featurePath%3Ddetectors%2F${linuxLogViewer}` });
             });
         });
     });

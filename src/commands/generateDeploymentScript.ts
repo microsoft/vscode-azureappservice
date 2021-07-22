@@ -25,12 +25,13 @@ export async function generateDeploymentScript(context: IActionContext, node?: W
 
         node = nonNullValue(node);
 
-        const resourceClient: ResourceManagementClient = await createResourceClient(node.root);
+        const resourceClient: ResourceManagementClient = await createResourceClient([context, node]);
+        const client = await node.site.createClient(context);
         const tasks = Promise.all([
-            resourceClient.resourceGroups.get(node.root.client.resourceGroup),
-            node.root.client.getAppServicePlan(),
-            node.root.client.getSiteConfig(),
-            node.root.client.listApplicationSettings()
+            resourceClient.resourceGroups.get(node.site.resourceGroup),
+            client.getAppServicePlan(),
+            client.getSiteConfig(),
+            client.listApplicationSettings()
         ]);
 
         const taskResults = await tasks;
@@ -72,12 +73,12 @@ export async function generateDeploymentScript(context: IActionContext, node?: W
         }
 
         /* eslint-disable @typescript-eslint/no-non-null-assertion */
-        script = script.replace('%SUBSCRIPTION_NAME%', node.root.subscriptionDisplayName)
+        script = script.replace('%SUBSCRIPTION_NAME%', node.subscription.subscriptionDisplayName)
             .replace('%RG_NAME%', rg.name!)
             .replace('%LOCATION%', rg.location)
             .replace('%PLAN_NAME%', plan!.name!)
             .replace('%PLAN_SKU%', plan!.sku!.name!)
-            .replace('%SITE_NAME%', node.root.client.siteName);
+            .replace('%SITE_NAME%', node.site.siteName);
         /* eslint-enable @typescript-eslint/no-non-null-assertion */
 
         const doc = await workspace.openTextDocument({ language: 'shellscript', content: script });

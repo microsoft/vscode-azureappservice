@@ -5,7 +5,7 @@
 
 import { commands } from 'vscode';
 import { AppSettingTreeItem, registerSiteCommand } from 'vscode-azureappservice';
-import { AzureTreeItem, IActionContext, openInPortal as uiOpenInPortal, registerCommand } from 'vscode-azureextensionui';
+import { AzExtTreeItem, IActionContext, openInPortal as uiOpenInPortal, registerCommand } from 'vscode-azureextensionui';
 import { ext } from '../extensionVariables';
 import { DeploymentSlotsNATreeItem, ScaleUpTreeItem } from '../tree/DeploymentSlotsTreeItem';
 import { addAppSetting } from './appSettings/addAppSetting';
@@ -66,15 +66,15 @@ export function registerCommands(): void {
     registerCommand('appService.DisconnectRepo', disconnectRepo);
     registerCommand('appService.EnableFileLogging', enableFileLogging);
     registerCommand('appService.InstallCosmosDBExtension', installCosmosDBExtension);
-    registerCommand('appService.LoadMore', async (actionContext: IActionContext, node: AzureTreeItem) => await ext.tree.loadMore(node, actionContext));
+    registerCommand('appService.LoadMore', async (actionContext: IActionContext, node: AzExtTreeItem) => await ext.tree.loadMore(node, actionContext));
     registerCommand('appService.openFile', showFile, 500);
     registerCommand('appService.OpenInPortal', openInPortal);
-    registerCommand('appService.Refresh', async (actionContext: IActionContext, node?: AzureTreeItem) => await ext.tree.refresh(actionContext, node));
+    registerCommand('appService.Refresh', async (actionContext: IActionContext, node?: AzExtTreeItem) => await ext.tree.refresh(actionContext, node));
     registerCommand('appService.RemoveCosmosDBConnection', removeCosmosDBConnection);
     registerCommand('appService.Restart', restartWebApp);
     registerCommand('appService.RevealConnection', revealConnection);
     registerCommand('appService.RevealConnectionInAppSettings', revealConnectionInAppSettings);
-    registerCommand('appService.ScaleUp', async (_context: IActionContext, node: DeploymentSlotsNATreeItem | ScaleUpTreeItem) => await uiOpenInPortal(node.root, node.scaleUpId));
+    registerCommand('appService.ScaleUp', async (_context: IActionContext, node: DeploymentSlotsNATreeItem | ScaleUpTreeItem) => await uiOpenInPortal(node, node.scaleUpId));
     registerCommand('appService.selectSubscriptions', () => commands.executeCommand("azure-account.selectSubscriptions"));
     registerCommand('appService.showOutputChannel', () => { ext.outputChannel.show(); });
     registerCommand('appService.Start', startWebApp);

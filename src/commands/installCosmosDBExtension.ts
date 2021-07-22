@@ -3,11 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { AzureTreeItem, IActionContext } from 'vscode-azureextensionui';
+import { AzExtTreeItem, IActionContext } from 'vscode-azureextensionui';
 import { CosmosDBTreeItem } from '../tree/CosmosDBTreeItem';
 import { installExtension } from '../utils/installExtension';
 
-export async function installCosmosDBExtension(context: IActionContext, treeItem: AzureTreeItem): Promise<void> {
+export async function installCosmosDBExtension(context: IActionContext, treeItem: AzExtTreeItem): Promise<void> {
     const extensionId: string = 'ms-azuretools.vscode-cosmosdb';
     if (await installExtension(extensionId)) {
         if (treeItem.parent) {

@@ -27,7 +27,7 @@ export enum ColumnName {
 }
 export async function getLinuxDetectorError(context: IActionContext, detectorId: string, node: SiteTreeItem, startTime: string, endTime: string, deployEndTime: string): Promise<string | undefined> {
     const detectorUri: string = `${node.id}/detectors/${detectorId}`;
-    const client: ServiceClient = await createGenericClient(node.root);
+    const client: ServiceClient = await createGenericClient(context, node.subscription);
 
     const queryParameters: { [key: string]: string } = {
         'api-version': "2015-08-01",
@@ -83,7 +83,7 @@ export async function getLinuxDetectorError(context: IActionContext, detectorId:
     if (getValuesByColumnName(context, insightTable, ColumnName.status) === 'Critical') {
         const insightError: string = getValuesByColumnName(context, insightTable, ColumnName.dataValue);
         context.telemetry.properties.errorMessages = JSON.stringify(insightError);
-        return localize('criticalError', '"{0}" reported a critical error: {1}', node.root.client.siteName, insightError);
+        return localize('criticalError', '"{0}" reported a critical error: {1}', node.site.siteName, insightError);
     }
 
     return undefined;

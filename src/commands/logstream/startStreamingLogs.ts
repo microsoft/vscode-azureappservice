@@ -19,5 +19,5 @@ export async function startStreamingLogs(context: IActionContext, node?: SiteTre
         await enableFileLogging({ ...context, suppressAlreadyEnabledMessage: true }, node);
     };
 
-    await appservice.startStreamingLogs(context, node.client, verifyLoggingEnabled, node.logStreamLabel);
+    await appservice.startStreamingLogs(context, node.site, verifyLoggingEnabled, node.logStreamLabel);
 }

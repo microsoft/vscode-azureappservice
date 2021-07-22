@@ -3,11 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ISiteTreeRoot } from "vscode-azureappservice";
-import { AzureParentTreeItem } from "vscode-azureextensionui";
+import { AzExtParentTreeItem } from "vscode-azureextensionui";
 
-export abstract class NotAvailableTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
-    public constructor(parent: AzureParentTreeItem) {
+export abstract class NotAvailableTreeItem extends AzExtParentTreeItem {
+    public constructor(parent: AzExtParentTreeItem) {
         super(parent);
     }
 }

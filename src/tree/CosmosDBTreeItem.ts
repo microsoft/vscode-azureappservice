@@ -5,8 +5,8 @@
 
 import { WebSiteManagementModels } from '@azure/arm-appservice';
 import * as vscode from 'vscode';
-import { IAppSettingsClient, ISiteTreeRoot, validateAppSettingKey } from 'vscode-azureappservice';
-import { AzExtTreeItem, AzureParentTreeItem, GenericTreeItem, IActionContext, ICreateChildImplContext, openInPortal, TreeItemIconPath, UserCancelledError } from 'vscode-azureextensionui';
+import { IAppSettingsClient, ParsedSite, validateAppSettingKey } from 'vscode-azureappservice';
+import { AzExtParentTreeItem, AzExtTreeItem, GenericTreeItem, IActionContext, ICreateChildImplContext, openInPortal, TreeItemIconPath, UserCancelledError } from 'vscode-azureextensionui';
 import { AzureExtensionApiProvider } from 'vscode-azureextensionui/api';
 import { localize } from '../localize';
 import { nonNullProp } from '../utils/nonNull';
@@ -15,13 +15,13 @@ import { AzureDatabasesExtensionApi } from '../vscode-cosmos.api';
 import { CosmosDBConnection } from './CosmosDBConnection';
 import { SiteTreeItem } from './SiteTreeItem';
 
-export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
+export class CosmosDBTreeItem extends AzExtParentTreeItem {
     public static contextValueInstalled: string = 'сosmosDBConnections';
     public static contextValueNotInstalled: string = 'сosmosDBNotInstalled';
     public readonly label: string = 'Databases';
     public readonly childTypeLabel: string = 'Connection';
     public readonly parent!: SiteTreeItem;
-    public readonly client: IAppSettingsClient;
+    public readonly site: ParsedSite;
     public cosmosDBExtension: vscode.Extension<AzureExtensionApiProvider | undefined> | undefined;
     public suppressMaskLabel = true;
 
@@ -37,9 +37,9 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
 
     private _cosmosDBApi: AzureDatabasesExtensionApi | undefined;
 
-    constructor(parent: SiteTreeItem, client: IAppSettingsClient) {
+    constructor(parent: SiteTreeItem, site: ParsedSite) {
         super(parent);
-        this.client = client;
+        this.site = site;
         this.cosmosDBExtension = vscode.extensions.getExtension('ms-azuretools.vscode-cosmosdb');
     }
 
@@ -56,7 +56,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         this.cosmosDBExtension = vscode.extensions.getExtension('ms-azuretools.vscode-cosmosdb');
     }
 
-    public async loadMoreChildrenImpl(_clearCache: boolean): Promise<AzExtTreeItem[]> {
+    public async loadMoreChildrenImpl(_clearCache: boolean, context: IActionContext): Promise<AzExtTreeItem[]> {
         if (!this.cosmosDBExtension) {
             return [new GenericTreeItem(this, {
                 commandId: 'appService.InstallCosmosDBExtension',
@@ -66,7 +66,8 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         }
 
         const cosmosDBApi = await this.getCosmosDBApi();
-        const appSettings = (await this.parent.client.listApplicationSettings()).properties || {};
+        const client = await this.parent.site.createClient(context);
+        const appSettings = (await client.listApplicationSettings()).properties || {};
         const connections: IDetectedConnection[] = this.detectMongoConnections(appSettings).concat(this.detectDocDBConnections(appSettings)).concat(this.detectPostgresConnections(appSettings));
 
         const treeItems = await this.createTreeItemsWithErrorHandling(
@@ -102,7 +103,8 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
             throw new UserCancelledError('cosmosDBpickTreeItem');
         }
 
-        const appSettingsDict = await this.parent.client.listApplicationSettings();
+        const client = await this.parent.site.createClient(context);
+        const appSettingsDict = await client.listApplicationSettings();
         appSettingsDict.properties = appSettingsDict.properties || {};
 
         let newAppSettings: Map<string, string>;
@@ -133,7 +135,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
             appSettingsDict.properties[k] = v;
         }
 
-        await this.parent.client.updateApplicationSettings(appSettingsDict);
+        await client.updateApplicationSettings(appSettingsDict);
         await this.parent.appSettingsNode.refresh(context);
 
         const createdDatabase = new CosmosDBConnection(this, databaseToAdd, Array.from(newAppSettings.keys()));
@@ -143,7 +145,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         const manageFirewallRules: vscode.MessageItem = { title: localize('manageFirewallRulesMsgItem', 'Manage Firewall Rules') };
         const message: string = localize(
             'connectedDatabase', 'Database "{0}" connected to web app "{1}". Created the following application settings: {2}',
-            createdDatabase.label, this.parent.client.fullName, Array.from(newAppSettings.keys()).join(', '));
+            createdDatabase.label, this.parent.site.fullName, Array.from(newAppSettings.keys()).join(', '));
         // Don't wait
         const buttons: vscode.MessageItem[] = [revealDatabase];
         if (createdDatabase.cosmosExtensionItem.azureData && createdDatabase.cosmosExtensionItem.postgresData) {
@@ -154,7 +156,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
                 await createdDatabase.cosmosExtensionItem.reveal();
             } else if (result === manageFirewallRules) {
                 const accountId: string | undefined = createdDatabase.cosmosExtensionItem.azureData?.accountId;
-                await openInPortal(this.root, `${accountId}/connectionSecurity`);
+                await openInPortal(this, `${accountId}/connectionSecurity`);
             }
         });
         return createdDatabase;
@@ -280,6 +282,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
     private async promptForAppSettings(context: IActionContext, appSettingsDict: WebSiteManagementModels.StringDictionary, accountAppSettings: Map<string | undefined, string | undefined>, suffixes: string[] | undefined, defaultPrefixString: string): Promise<Map<string, string>> {
         const prompt: string = suffixes ? localize('enterPrefix', 'Enter new connection setting prefix') : localize('enterKey', 'Enter new connection setting key');
         const errorMsg: string = suffixes ? localize('prefixError', 'Connection setting prefix cannot be empty.') : localize('keyError', 'Connection setting key cannot be empty.');
+        const client = await this.parent.site.createClient(context);
         const appSettingsPrefix: string = await context.ui.showInputBox({
             prompt,
             stepName: 'connectionSettingPrefix',
@@ -287,7 +290,7 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
                 if (!v) {
                     return errorMsg;
                 } else {
-                    return this.validateAppSettingPrefix(v, appSettingsDict, suffixes);
+                    return this.validateAppSettingPrefix(client, v, appSettingsDict, suffixes);
                 }
             },
             value: defaultPrefixString
@@ -309,11 +312,11 @@ export class CosmosDBTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         return result;
     }
 
-    private validateAppSettingPrefix(prefix: string, appSettingsDict: WebSiteManagementModels.StringDictionary, suffixes: string[] | undefined): string | undefined {
+    private validateAppSettingPrefix(client: IAppSettingsClient, prefix: string, appSettingsDict: WebSiteManagementModels.StringDictionary, suffixes: string[] | undefined): string | undefined {
         if (suffixes) {
-            return suffixes.reduce<string | undefined>((result, suffix) => result || validateAppSettingKey(appSettingsDict, this.parent.client, prefix + suffix), undefined);
+            return suffixes.reduce<string | undefined>((result, suffix) => result || validateAppSettingKey(appSettingsDict, client, prefix + suffix), undefined);
         }
-        return validateAppSettingKey(appSettingsDict, this.parent.client, prefix);
+        return validateAppSettingKey(appSettingsDict, client, prefix);
     }
 }
 

@@ -88,7 +88,8 @@ export namespace javaUtils {
     }
 
     export async function configureJavaSEAppSettings(context: IActionContext, node: SiteTreeItem): Promise<WebSiteManagementModels.StringDictionary | undefined> {
-        const appSettings: WebSiteManagementModels.StringDictionary = await node.root.client.listApplicationSettings();
+        const client = await node.site.createClient(context);
+        const appSettings: WebSiteManagementModels.StringDictionary = await client.listApplicationSettings();
         if (isJavaSERequiredPortConfigured(appSettings)) {
             return undefined;
         }
@@ -106,7 +107,7 @@ export namespace javaUtils {
             throw new UserCancelledError('javaPort');
         }
         appSettings.properties[PORT_KEY] = port;
-        return node.root.client.updateApplicationSettings(appSettings);
+        return client.updateApplicationSettings(appSettings);
     }
 
     export async function getJavaFileExtensions(siteConfig: WebSiteManagementModels.SiteConfigResource | undefined): Promise<string | string[] | undefined> {

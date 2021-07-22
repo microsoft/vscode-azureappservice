@@ -30,11 +30,11 @@ export async function validateWebSite(originalContext: IActionContext, deploymen
 
         let pollingIntervalMs = initialPollingIntervalMs;
         const start = Date.now();
-        const url = siteTreeItem.root.client.defaultHostUrl;
+        const url = siteTreeItem.site.defaultHostUrl;
         let currentStatusCode: number | undefined = 0;
         const statusCodes: { code: number | undefined, elapsed: number }[] = [];
 
-        const client: ServiceClient = await createGenericClient();
+        const client: ServiceClient = await createGenericClient(context, undefined);
 
         // eslint-disable-next-line no-constant-condition
         while (true) {

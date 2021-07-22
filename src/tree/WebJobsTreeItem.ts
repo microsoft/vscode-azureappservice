@@ -3,20 +3,25 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ISiteTreeRoot } from 'vscode-azureappservice';
-import { AzExtTreeItem, AzureParentTreeItem, GenericTreeItem, TreeItemIconPath } from 'vscode-azureextensionui';
+import { AzExtParentTreeItem, AzExtTreeItem, GenericTreeItem, IActionContext, TreeItemIconPath } from 'vscode-azureextensionui';
 import { localize } from '../localize';
 import { nonNullProp } from '../utils/nonNull';
 import { getThemedIconPath } from '../utils/pathUtils';
 import { NotAvailableTreeItem } from './NotAvailableTreeItem';
+import { SiteTreeItem } from './SiteTreeItem';
 
 const label: string = localize('webJobs', 'WebJobs');
-export class WebJobsTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
+export class WebJobsTreeItem extends AzExtParentTreeItem {
     public static contextValue: string = 'webJobs';
     public readonly label: string = label;
     public readonly contextValue: string = WebJobsTreeItem.contextValue;
     public readonly childTypeLabel: string = localize('webJob', 'Web Job');
     public suppressMaskLabel = true;
+    public parent!: SiteTreeItem;
+
+    constructor(parent: SiteTreeItem) {
+        super(parent);
+    }
 
     public get id(): string {
         return 'webJobs';
@@ -30,8 +35,9 @@ export class WebJobsTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
         return false;
     }
 
-    public async loadMoreChildrenImpl(_clearCache: boolean): Promise<AzExtTreeItem[]> {
-        return (await this.root.client.listWebJobs()).map(job => {
+    public async loadMoreChildrenImpl(_clearCache: boolean, context: IActionContext): Promise<AzExtTreeItem[]> {
+        const client = await this.parent.site.createClient(context);
+        return (await client.listWebJobs()).map(job => {
             return new GenericTreeItem(this, { id: job.name, label: nonNullProp(job, 'name'), contextValue: 'webJob' });
         });
     }
@@ -43,7 +49,7 @@ export class WebJobsNATreeItem extends NotAvailableTreeItem {
     public readonly contextValue: string = WebJobsNATreeItem.contextValue;
     public suppressMaskLabel = true;
 
-    public constructor(parent: AzureParentTreeItem) {
+    public constructor(parent: AzExtParentTreeItem) {
         super(parent);
     }
 

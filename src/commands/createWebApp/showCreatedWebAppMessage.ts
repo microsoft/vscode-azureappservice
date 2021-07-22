@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { MessageItem, window } from "vscode";
-import { SiteClient } from "vscode-azureappservice";
+import { ParsedSite } from "vscode-azureappservice";
 import { callWithTelemetryAndErrorHandling, IActionContext } from "vscode-azureextensionui";
 import { AppServiceDialogResponses } from "../../constants";
 import { ext } from "../../extensionVariables";
@@ -13,7 +13,7 @@ import { SiteTreeItem } from "../../tree/SiteTreeItem";
 import { deploy } from '../deploy/deploy';
 
 export function showCreatedWebAppMessage(originalContext: IActionContext, node: SiteTreeItem): void {
-    const message: string = getCreatedWebAppMessage(node.root.client);
+    const message: string = getCreatedWebAppMessage(node.site);
 
     // don't wait
     void window.showInformationMessage(message, AppServiceDialogResponses.deploy, AppServiceDialogResponses.viewOutput).then(async (result: MessageItem | undefined) => {
@@ -30,8 +30,8 @@ export function showCreatedWebAppMessage(originalContext: IActionContext, node: 
     });
 }
 
-export function getCreatedWebAppMessage(client: SiteClient): string {
-    return client.isSlot ?
-        localize('createdSlot', 'Created new slot "{0}": {1}', client.slotName, client.defaultHostUrl) :
-        localize('createdWebApp', 'Created new web app "{0}": {1}', client.fullName, client.defaultHostUrl);
+export function getCreatedWebAppMessage(site: ParsedSite): string {
+    return site.isSlot ?
+        localize('createdSlot', 'Created new slot "{0}": {1}', site.slotName, site.defaultHostUrl) :
+        localize('createdWebApp', 'Created new web app "{0}": {1}', site.fullName, site.defaultHostUrl);
 }

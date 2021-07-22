@@ -9,7 +9,7 @@ import { ext } from "../extensionVariables";
 import { localize } from "../localize";
 
 export async function showFile(context: IActionContext, node: FileTreeItem): Promise<void> {
-    ext.fileSystem.appendLineToOutput(localize('opening', 'Opening "{0}"...', node.label), { resourceName: node.client.fullName });
+    ext.fileSystem.appendLineToOutput(localize('opening', 'Opening "{0}"...', node.label), { resourceName: node.site.fullName });
     if (node.isReadOnly) {
         await node.openReadOnly(context);
     } else {

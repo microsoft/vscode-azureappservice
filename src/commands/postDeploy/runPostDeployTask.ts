@@ -15,7 +15,7 @@ export function runPostDeployTask(context: IActionContext, node: SiteTreeItem, c
     void validateWebSite(context, correlationId, node, tokenSource);
 
     // this currently only works for Linux apps
-    if (node.root.client.isLinux) {
+    if (node.site.isLinux) {
         void checkLinuxWebAppDownDetector(context, correlationId, node, tokenSource);
     }
 }

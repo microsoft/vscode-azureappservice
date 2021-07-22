@@ -4,8 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { WebSiteManagementClient, WebSiteManagementModels } from '@azure/arm-appservice';
-import { AppInsightsCreateStep, AppInsightsListStep, AppKind, AppServicePlanCreateStep, AppServicePlanListStep, AppServicePlanSkuStep, CustomLocationListStep, setLocationsTask, SiteClient, SiteNameStep } from 'vscode-azureappservice';
-import { AzExtTreeItem, AzureTreeItem, AzureWizard, AzureWizardExecuteStep, AzureWizardPromptStep, createAzureClient, ICreateChildImplContext, LocationListStep, parseError, ResourceGroupCreateStep, ResourceGroupListStep, SubscriptionTreeItemBase, VerifyProvidersStep } from 'vscode-azureextensionui';
+import { AppInsightsCreateStep, AppInsightsListStep, AppKind, AppServicePlanCreateStep, AppServicePlanListStep, AppServicePlanSkuStep, CustomLocationListStep, ParsedSite, setLocationsTask, SiteNameStep } from 'vscode-azureappservice';
+import { AzExtTreeItem, AzureWizard, AzureWizardExecuteStep, AzureWizardPromptStep, createAzureClient, IActionContext, ICreateChildImplContext, LocationListStep, parseError, ResourceGroupCreateStep, ResourceGroupListStep, SubscriptionTreeItemBase, VerifyProvidersStep } from 'vscode-azureextensionui';
 import { IWebAppWizardContext } from '../commands/createWebApp/IWebAppWizardContext';
 import { setPostPromptDefaults } from '../commands/createWebApp/setPostPromptDefaults';
 import { setPrePromptDefaults } from '../commands/createWebApp/setPrePromptDefaults';
@@ -28,12 +28,12 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
         return !!this._nextLink;
     }
 
-    public async loadMoreChildrenImpl(clearCache: boolean): Promise<AzExtTreeItem[]> {
+    public async loadMoreChildrenImpl(clearCache: boolean, context: IActionContext): Promise<AzExtTreeItem[]> {
         if (clearCache) {
             this._nextLink = undefined;
         }
 
-        const client: WebSiteManagementClient = createAzureClient(this.root, WebSiteManagementClient);
+        const client: WebSiteManagementClient = createAzureClient([context, this], WebSiteManagementClient);
 
         let webAppCollection: WebSiteManagementModels.WebAppCollection;
         try {
@@ -57,8 +57,8 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
             webAppCollection,
             'invalidAppService',
             s => {
-                const siteClient: SiteClient = new SiteClient(s, this.root);
-                return siteClient.isFunctionApp ? undefined : new WebAppTreeItem(this, siteClient, s);
+                const site = new ParsedSite(s, this.subscription);
+                return site.isFunctionApp ? undefined : new WebAppTreeItem(this, site);
             },
             s => {
                 return s.name;
@@ -66,8 +66,8 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
         );
     }
 
-    public async createChildImpl(context: ICreateChildImplContext): Promise<AzureTreeItem> {
-        const wizardContext: IWebAppWizardContext = Object.assign(context, this.root, {
+    public async createChildImpl(context: ICreateChildImplContext): Promise<AzExtTreeItem> {
+        const wizardContext: IWebAppWizardContext = Object.assign(context, this.subscription, {
             newSiteKind: AppKind.app,
             resourceGroupDeferLocationStep: true
         });
@@ -118,19 +118,19 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
 
         await wizard.execute();
 
-        const site: WebSiteManagementModels.Site = nonNullProp(wizardContext, 'site');
+        const rawSite: WebSiteManagementModels.Site = nonNullProp(wizardContext, 'site');
         // site is set as a result of SiteCreateStep.execute()
-        const siteClient: SiteClient = new SiteClient(site, this.root);
-        ext.outputChannel.appendLog(getCreatedWebAppMessage(siteClient));
+        const site = new ParsedSite(rawSite, wizardContext);
+        ext.outputChannel.appendLog(getCreatedWebAppMessage(site));
 
-        const newSite: WebAppTreeItem = new WebAppTreeItem(this, siteClient, site);
+        const newNode: WebAppTreeItem = new WebAppTreeItem(this, site);
         try {
             //enable HTTP & Application logs (only for windows) by default
-            await newSite.enableLogs();
+            await newNode.enableLogs(context);
         } catch (error) {
             // optional part of creating web app, so not worth blocking on error
             context.telemetry.properties.fileLoggingError = parseError(error).message;
         }
-        return newSite;
+        return newNode;
     }
 }
