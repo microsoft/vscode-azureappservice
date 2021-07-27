@@ -28,9 +28,9 @@ export async function tryGetMavenModule(context: IDeployContext, projectPath: st
 }
 
 async function getMavenModuleFromPom(pomFile: string): Promise<MavenModule | undefined> {
-    const pomContent = await fse.readFile(pomFile, 'utf8');
+    const pomContent: Buffer = await fse.readFile(pomFile);
     try {
-        const pom = parser.parse(pomContent) as MavenPom;
+        const pom = parser.parse(pomContent.toString()) as MavenPom;
         const pj = pom.project;
         if (pj && pj.artifactId) {
             const version = pj.version || pj.parent?.version;
