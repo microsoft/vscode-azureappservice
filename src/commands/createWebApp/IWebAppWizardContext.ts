@@ -23,6 +23,8 @@ export type FullJavaStack = {
 export interface IWebAppWizardContext extends IAppServiceWizardContext, ICreateChildImplContext {
     newSiteRuntime?: string;
 
+    usingBackupStacks?: boolean;
+
     /**
      * The runtimes to put to the top of the QuickPick list to recommend to the user.
      * In the array, Higher ranking means higher priority, thus will have higher position in the QuickPick list.

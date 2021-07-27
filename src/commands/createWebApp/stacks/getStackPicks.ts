@@ -57,6 +57,20 @@ export async function getStackPicks(context: IWebAppWizardContext, javaVersion?:
         }
     }
 
+    if (context.usingBackupStacks) {
+        // We want the warning to show up first, so suppress persistence
+        for (const pick of picks) {
+            pick.suppressPersistence = true;
+        }
+
+        picks.unshift({
+            label: localize('backupStacksWarning', '$(warning) Failed to retrieve latest stacks. This list may be out of date.'),
+            onPicked: () => { /* do nothing */ },
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
+            data: <any>undefined
+        })
+    }
+
     return picks;
 }
 
@@ -90,11 +104,13 @@ async function getStacks(context: IWebAppWizardContext & { _stacks?: WebAppStack
                 }
             });
             stacksArmResponse = <StacksArmResponse>result.parsedBody;
+            context.usingBackupStacks = false;
         } catch (error) {
             // Some environments (like Azure Germany/Mooncake) don't support the stacks ARM API yet
             // And since the stacks don't change _that_ often, we'll just use a backup hard-coded value
             stacksArmResponse = <StacksArmResponse>JSON.parse(backupStacks);
             context.telemetry.properties.getStacksError = parseError(error).message;
+            context.usingBackupStacks = true;
         }
 
         context._stacks = stacksArmResponse.value.map(d => d.properties);

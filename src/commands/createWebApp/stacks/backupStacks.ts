@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-// Last updated on 2021-05-24
+// Last updated on 2021-07-27
 export const backupStacks: string = `{
     "value": [
         {
@@ -15,6 +15,44 @@ export const backupStacks: string = `{
                 "value": "dotnet",
                 "preferredOs": "windows",
                 "majorVersions": [
+                    {
+                        "displayText": ".NET 6",
+                        "value": "dotnet6",
+                        "minorVersions": [
+                            {
+                                "displayText": ".NET 6",
+                                "value": "6",
+                                "stackSettings": {
+                                    "windowsRuntimeSettings": {
+                                        "runtimeVersion": "v6.0",
+                                        "remoteDebuggingSupported": false,
+                                        "appInsightsSettings": {
+                                            "isSupported": false
+                                        },
+                                        "gitHubActionSettings": {
+                                            "isSupported": true,
+                                            "supportedVersion": "6.0.x",
+                                            "notSupportedInCreates": true
+                                        },
+                                        "isEarlyAccess": true
+                                    },
+                                    "linuxRuntimeSettings": {
+                                        "runtimeVersion": "DOTNETCORE|6.0",
+                                        "remoteDebuggingSupported": false,
+                                        "appInsightsSettings": {
+                                            "isSupported": true
+                                        },
+                                        "gitHubActionSettings": {
+                                            "isSupported": true,
+                                            "supportedVersion": "6.0.x",
+                                            "notSupportedInCreates": true
+                                        },
+                                        "isEarlyAccess": true
+                                    }
+                                }
+                            }
+                        ]
+                    },
                     {
                         "displayText": ".NET 5",
                         "value": "dotnet5",
@@ -247,125 +285,6 @@ export const backupStacks: string = `{
                                 }
                             }
                         ]
-                    },
-                    {
-                        "displayText": "Node 10",
-                        "value": "10",
-                        "minorVersions": [
-                            {
-                                "displayText": "Node 10 LTS",
-                                "value": "10-LTS",
-                                "stackSettings": {
-                                    "linuxRuntimeSettings": {
-                                        "runtimeVersion": "NODE|10-lts",
-                                        "remoteDebuggingSupported": false,
-                                        "appInsightsSettings": {
-                                            "isSupported": true
-                                        },
-                                        "gitHubActionSettings": {
-                                            "isSupported": true,
-                                            "supportedVersion": "10.x"
-                                        },
-                                        "endOfLifeDate": "Sat May 01 2021 00:00:00 GMT+0000 (Greenwich Mean Time)"
-                                    }
-                                }
-                            },
-                            {
-                                "displayText": "Node 10.14",
-                                "value": "10.14",
-                                "stackSettings": {
-                                    "linuxRuntimeSettings": {
-                                        "runtimeVersion": "NODE|10.14",
-                                        "remoteDebuggingSupported": false,
-                                        "appInsightsSettings": {
-                                            "isSupported": true
-                                        },
-                                        "gitHubActionSettings": {
-                                            "isSupported": true,
-                                            "supportedVersion": "10.x"
-                                        },
-                                        "endOfLifeDate": "Sat May 01 2021 00:00:00 GMT+0000 (Greenwich Mean Time)"
-                                    },
-                                    "windowsRuntimeSettings": {
-                                        "runtimeVersion": "10.14.1",
-                                        "remoteDebuggingSupported": false,
-                                        "appInsightsSettings": {
-                                            "isSupported": true
-                                        },
-                                        "gitHubActionSettings": {
-                                            "isSupported": true,
-                                            "supportedVersion": "10.x"
-                                        },
-                                        "endOfLifeDate": "Sat May 01 2021 00:00:00 GMT+0000 (Greenwich Mean Time)"
-                                    }
-                                }
-                            },
-                            {
-                                "displayText": "Node 10.10",
-                                "value": "10.10",
-                                "stackSettings": {
-                                    "windowsRuntimeSettings": {
-                                        "runtimeVersion": "10.0.0",
-                                        "remoteDebuggingSupported": false,
-                                        "appInsightsSettings": {
-                                            "isSupported": true
-                                        },
-                                        "gitHubActionSettings": {
-                                            "isSupported": true,
-                                            "supportedVersion": "10.x"
-                                        },
-                                        "endOfLifeDate": "Sat May 01 2021 00:00:00 GMT+0000 (Greenwich Mean Time)"
-                                    }
-                                }
-                            },
-                            {
-                                "displayText": "Node 10.6",
-                                "value": "10.6",
-                                "stackSettings": {
-                                    "linuxRuntimeSettings": {
-                                        "runtimeVersion": "NODE|10.6",
-                                        "remoteDebuggingSupported": false,
-                                        "appInsightsSettings": {
-                                            "isSupported": true
-                                        },
-                                        "gitHubActionSettings": {
-                                            "isSupported": true,
-                                            "supportedVersion": "10.x"
-                                        },
-                                        "endOfLifeDate": "Sat May 01 2021 00:00:00 GMT+0000 (Greenwich Mean Time)"
-                                    },
-                                    "windowsRuntimeSettings": {
-                                        "runtimeVersion": "10.6.0",
-                                        "remoteDebuggingSupported": false,
-                                        "appInsightsSettings": {
-                                            "isSupported": true
-                                        },
-                                        "gitHubActionSettings": {
-                                            "isSupported": true
-                                        },
-                                        "endOfLifeDate": "Sat May 01 2021 00:00:00 GMT+0000 (Greenwich Mean Time)"
-                                    }
-                                }
-                            },
-                            {
-                                "displayText": "Node 10.1",
-                                "value": "10.1",
-                                "stackSettings": {
-                                    "linuxRuntimeSettings": {
-                                        "runtimeVersion": "NODE|10.1",
-                                        "remoteDebuggingSupported": false,
-                                        "appInsightsSettings": {
-                                            "isSupported": true
-                                        },
-                                        "gitHubActionSettings": {
-                                            "isSupported": true,
-                                            "supportedVersion": "10.x"
-                                        },
-                                        "endOfLifeDate": "Sat May 01 2021 00:00:00 GMT+0000 (Greenwich Mean Time)"
-                                    }
-                                }
-                            }
-                        ]
                     }
                 ]
             }
@@ -383,6 +302,25 @@ export const backupStacks: string = `{
                         "displayText": "Python 3",
                         "value": "3",
                         "minorVersions": [
+                            {
+                                "displayText": "Python 3.9",
+                                "value": "3.9",
+                                "stackSettings": {
+                                    "linuxRuntimeSettings": {
+                                        "runtimeVersion": "PYTHON|3.9",
+                                        "remoteDebuggingSupported": false,
+                                        "appInsightsSettings": {
+                                            "isSupported": false
+                                        },
+                                        "gitHubActionSettings": {
+                                            "isSupported": true,
+                                            "supportedVersion": "3.9"
+                                        },
+                                        "isHidden": false,
+                                        "isEarlyAccess": true
+                                    }
+                                }
+                            },
                             {
                                 "displayText": "Python 3.8",
                                 "value": "3.8",
@@ -474,7 +412,9 @@ export const backupStacks: string = `{
                                             "isSupported": false
                                         },
                                         "gitHubActionSettings": {
-                                            "isSupported": false
+                                            "isSupported": true,
+                                            "supportedVersion": "7.4",
+                                            "notSupportedInCreates": true
                                         },
                                         "endOfLifeDate": "Wed Dec 28 2022 00:00:00 GMT+0000 (Greenwich Mean Time)"
                                     },
@@ -485,7 +425,9 @@ export const backupStacks: string = `{
                                             "isSupported": false
                                         },
                                         "gitHubActionSettings": {
-                                            "isSupported": false
+                                            "isSupported": true,
+                                            "supportedVersion": "7.4",
+                                            "notSupportedInCreates": true
                                         },
                                         "endOfLifeDate": "Wed Dec 28 2022 00:00:00 GMT+0000 (Greenwich Mean Time)"
                                     }
@@ -502,7 +444,9 @@ export const backupStacks: string = `{
                                             "isSupported": false
                                         },
                                         "gitHubActionSettings": {
-                                            "isSupported": false
+                                            "isSupported": true,
+                                            "supportedVersion": "7.3",
+                                            "notSupportedInCreates": true
                                         },
                                         "endOfLifeDate": "Thu Jan 06 2022 00:00:00 GMT+0000 (Greenwich Mean Time)"
                                     },
@@ -513,7 +457,9 @@ export const backupStacks: string = `{
                                             "isSupported": false
                                         },
                                         "gitHubActionSettings": {
-                                            "isSupported": false
+                                            "isSupported": true,
+                                            "supportedVersion": "7.3",
+                                            "notSupportedInCreates": true
                                         },
                                         "endOfLifeDate": "Thu Jan 06 2022 00:00:00 GMT+0000 (Greenwich Mean Time)"
                                     }
@@ -549,7 +495,8 @@ export const backupStacks: string = `{
                                         },
                                         "gitHubActionSettings": {
                                             "isSupported": false
-                                        }
+                                        },
+                                        "endOfLifeDate": "Sun May 01 2022 00:00:00 GMT+0000 (Greenwich Mean Time)"
                                     }
                                 }
                             },
@@ -565,39 +512,8 @@ export const backupStacks: string = `{
                                         },
                                         "gitHubActionSettings": {
                                             "isSupported": false
-                                        }
-                                    }
-                                }
-                            },
-                            {
-                                "displayText": "Ruby 2.5",
-                                "value": "2.5",
-                                "stackSettings": {
-                                    "linuxRuntimeSettings": {
-                                        "runtimeVersion": "RUBY|2.5",
-                                        "remoteDebuggingSupported": false,
-                                        "appInsightsSettings": {
-                                            "isSupported": false
                                         },
-                                        "gitHubActionSettings": {
-                                            "isSupported": false
-                                        }
-                                    }
-                                }
-                            },
-                            {
-                                "displayText": "Ruby 2.5.5",
-                                "value": "2.5.5",
-                                "stackSettings": {
-                                    "linuxRuntimeSettings": {
-                                        "runtimeVersion": "RUBY|2.5.5",
-                                        "remoteDebuggingSupported": false,
-                                        "appInsightsSettings": {
-                                            "isSupported": false
-                                        },
-                                        "gitHubActionSettings": {
-                                            "isSupported": false
-                                        }
+                                        "endOfLifeDate": "Sun May 01 2022 00:00:00 GMT+0000 (Greenwich Mean Time)"
                                     }
                                 }
                             }
@@ -659,6 +575,19 @@ export const backupStacks: string = `{
                                 "stackSettings": {
                                     "linuxRuntimeSettings": {
                                         "runtimeVersion": "",
+                                        "remoteDebuggingSupported": false,
+                                        "appInsightsSettings": {
+                                            "isSupported": true,
+                                            "isDefaultOff": true
+                                        },
+                                        "gitHubActionSettings": {
+                                            "isSupported": true,
+                                            "supportedVersion": "11"
+                                        },
+                                        "endOfLifeDate": "Thu Oct 01 2026 00:00:00 GMT+0000 (Greenwich Mean Time)"
+                                    },
+                                    "windowsRuntimeSettings": {
+                                        "runtimeVersion": "11.0.9",
                                         "remoteDebuggingSupported": false,
                                         "appInsightsSettings": {
                                             "isSupported": true,
@@ -852,6 +781,25 @@ export const backupStacks: string = `{
                                     "windowsRuntimeSettings": {
                                         "runtimeVersion": "1.8",
                                         "isAutoUpdate": true,
+                                        "remoteDebuggingSupported": false,
+                                        "appInsightsSettings": {
+                                            "isSupported": true,
+                                            "isDefaultOff": true
+                                        },
+                                        "gitHubActionSettings": {
+                                            "isSupported": true,
+                                            "supportedVersion": "8"
+                                        },
+                                        "endOfLifeDate": "Tue Apr 01 2025 00:00:00 GMT+0000 (Greenwich Mean Time)"
+                                    }
+                                }
+                            },
+                            {
+                                "displayText": "Java 1.8.0_282",
+                                "value": "8.0.282",
+                                "stackSettings": {
+                                    "windowsRuntimeSettings": {
+                                        "runtimeVersion": "1.8.0_282",
                                         "remoteDebuggingSupported": false,
                                         "appInsightsSettings": {
                                             "isSupported": true,
@@ -1083,11 +1031,30 @@ export const backupStacks: string = `{
                                 }
                             },
                             {
+                                "displayText": "Java 1.7.0_292",
+                                "value": "7.0.292",
+                                "stackSettings": {
+                                    "windowsRuntimeSettings": {
+                                        "runtimeVersion": "1.7.0_292",
+                                        "isDeprecated": false,
+                                        "remoteDebuggingSupported": false,
+                                        "appInsightsSettings": {
+                                            "isSupported": true,
+                                            "isDefaultOff": true
+                                        },
+                                        "gitHubActionSettings": {
+                                            "isSupported": false
+                                        },
+                                        "endOfLifeDate": "Tue Aug 01 2023 00:00:00 GMT+0000 (Greenwich Mean Time)"
+                                    }
+                                }
+                            },
+                            {
                                 "displayText": "Java 1.7.0_272",
                                 "value": "7.0.272",
                                 "stackSettings": {
                                     "windowsRuntimeSettings": {
-                                        "runtimeVersion": "1.7.0_272_ZULU",
+                                        "runtimeVersion": "1.7.0_272",
                                         "isDeprecated": false,
                                         "remoteDebuggingSupported": false,
                                         "appInsightsSettings": {
@@ -1106,7 +1073,7 @@ export const backupStacks: string = `{
                                 "value": "7.0.262",
                                 "stackSettings": {
                                     "windowsRuntimeSettings": {
-                                        "runtimeVersion": "1.7.0_262_ZULU",
+                                        "runtimeVersion": "1.7.0_262",
                                         "isDeprecated": false,
                                         "remoteDebuggingSupported": false,
                                         "appInsightsSettings": {
@@ -1229,8 +1196,7 @@ export const backupStacks: string = `{
                                     "linuxContainerSettings": {
                                         "java8Runtime": "JBOSSEAP|7-java8",
                                         "java11Runtime": "JBOSSEAP|7-java11",
-                                        "isAutoUpdate": true,
-                                        "isPreview": true
+                                        "isAutoUpdate": true
                                     }
                                 }
                             },
@@ -1240,8 +1206,7 @@ export const backupStacks: string = `{
                                 "stackSettings": {
                                     "linuxContainerSettings": {
                                         "java8Runtime": "JBOSSEAP|7.3-java8",
-                                        "java11Runtime": "JBOSSEAP|7.3-java11",
-                                        "isPreview": true
+                                        "java11Runtime": "JBOSSEAP|7.3-java11"
                                     }
                                 }
                             }
