@@ -3,7 +3,6 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { SiteClient } from "vscode-azureappservice";
 import { IActionContext } from "vscode-azureextensionui";
 import { ext } from "../extensionVariables";
 import { localize } from "../localize";
@@ -15,10 +14,10 @@ export async function startWebApp(context: IActionContext, node?: SiteTreeItem):
         node = await ext.tree.showTreeItemPicker<WebAppTreeItem>(WebAppTreeItem.contextValue, context);
     }
 
-    const client: SiteClient = node.root.client;
-    const startingApp: string = localize('startingApp', 'Starting "{0}"...', client.fullName);
-    const startedApp: string = localize('startedApp', '"{0}" has been started.', client.fullName);
+    const startingApp: string = localize('startingApp', 'Starting "{0}"...', node.site.fullName);
+    const startedApp: string = localize('startedApp', '"{0}" has been started.', node.site.fullName);
 
+    const client = await node.site.createClient(context);
     await node.runWithTemporaryDescription(context, localize('starting', "Starting..."), async () => {
         ext.outputChannel.appendLog(startingApp);
         await client.start();

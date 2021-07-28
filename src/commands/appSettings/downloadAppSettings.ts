@@ -22,7 +22,7 @@ export async function downloadAppSettings(context: IActionContext, node?: AppSet
         node = <AppSettingsTreeItem>await ext.tree.showTreeItemPicker(AppSettingsTreeItem.contextValue, context);
     }
 
-    const client: IAppSettingsClient = node.client;
+    const client: IAppSettingsClient = await node.clientProvider.createClient(context);
 
     const message: string = localize('selectDest', 'Select the destination file for your downloaded settings.');
     const envVarPath: string = await workspaceUtil.selectWorkspaceFile(context, message, () => envFileName);

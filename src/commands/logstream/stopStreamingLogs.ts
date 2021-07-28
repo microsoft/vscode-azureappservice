@@ -14,5 +14,5 @@ export async function stopStreamingLogs(context: IActionContext, node?: SiteTree
         node = await ext.tree.showTreeItemPicker<WebAppTreeItem>(WebAppTreeItem.contextValue, { ...context, suppressCreatePick: true });
     }
 
-    await appservice.stopStreamingLogs(node.client);
+    await appservice.stopStreamingLogs(node.site);
 }

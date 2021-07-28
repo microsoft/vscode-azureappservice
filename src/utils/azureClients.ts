@@ -5,15 +5,14 @@
 
 import { WebSiteManagementClient } from '@azure/arm-appservice';
 import { ResourceManagementClient } from '@azure/arm-resources';
-import { createAzureClient, ISubscriptionContext } from 'vscode-azureextensionui';
+import { AzExtClientContext, createAzureClient } from 'vscode-azureextensionui';
 
 // Lazy-load @azure packages to improve startup performance.
 // NOTE: The client is the only import that matters, the rest of the types disappear when compiled to JavaScript
 
-export async function createWebSiteClient<T extends ISubscriptionContext>(context: T): Promise<WebSiteManagementClient> {
-    return createAzureClient(context, (await import('@azure/arm-appservice')).WebSiteManagementClient);
+export async function createWebSiteClient(clientContext: AzExtClientContext): Promise<WebSiteManagementClient> {
+    return createAzureClient(clientContext, (await import('@azure/arm-appservice')).WebSiteManagementClient);
 }
-
-export async function createResourceClient<T extends ISubscriptionContext>(context: T): Promise<ResourceManagementClient> {
-    return createAzureClient(context, (await import('@azure/arm-resources')).ResourceManagementClient);
+export async function createResourceClient(clientContext: AzExtClientContext): Promise<ResourceManagementClient> {
+    return createAzureClient(clientContext, (await import('@azure/arm-resources')).ResourceManagementClient);
 }

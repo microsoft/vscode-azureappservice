@@ -4,8 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { WebSiteManagementClient, WebSiteManagementModels } from '@azure/arm-appservice';
-import { createSlot, ISiteTreeRoot, SiteClient } from 'vscode-azureappservice';
-import { AzureParentTreeItem, AzureTreeItem, ICreateChildImplContext, TreeItemIconPath } from 'vscode-azureextensionui';
+import { createSlot, ParsedSite } from 'vscode-azureappservice';
+import { AzExtParentTreeItem, AzExtTreeItem, IActionContext, ICreateChildImplContext, TreeItemIconPath } from 'vscode-azureextensionui';
 import { getCreatedWebAppMessage } from '../commands/createWebApp/showCreatedWebAppMessage';
 import { ext } from '../extensionVariables';
 import { localize } from '../localize';
@@ -13,60 +13,66 @@ import { createWebSiteClient } from '../utils/azureClients';
 import { getThemedIconPath } from '../utils/pathUtils';
 import { DeploymentSlotTreeItem } from './DeploymentSlotTreeItem';
 import { NotAvailableTreeItem } from './NotAvailableTreeItem';
+import { SiteTreeItem } from './SiteTreeItem';
 
 const label: string = localize('deploymentSlots', 'Deployment Slots');
-export class DeploymentSlotsTreeItem extends AzureParentTreeItem<ISiteTreeRoot> {
+export class DeploymentSlotsTreeItem extends AzExtParentTreeItem {
     public static contextValue: string = 'deploymentSlots';
     public readonly contextValue: string = DeploymentSlotsTreeItem.contextValue;
     public readonly label: string = label;
     public readonly childTypeLabel: string = 'Deployment Slot';
     public suppressMaskLabel = true;
+    public parent!: SiteTreeItem;
 
     private _nextLink: string | undefined;
+
+    constructor(parent: SiteTreeItem) {
+        super(parent);
+    }
 
     public get iconPath(): TreeItemIconPath {
         return getThemedIconPath('DeploymentSlots_color');
     }
 
     public get id(): string {
-        return `${this.root.client.id}/slots`;
+        return `${this.parent.site.id}/slots`;
     }
 
     public hasMoreChildrenImpl(): boolean {
         return !!this._nextLink;
     }
 
-    public async loadMoreChildrenImpl(clearCache: boolean): Promise<AzureTreeItem<ISiteTreeRoot>[]> {
+    public async loadMoreChildrenImpl(clearCache: boolean, context: IActionContext): Promise<AzExtTreeItem[]> {
         if (clearCache) {
             this._nextLink = undefined;
         }
 
-        const client: WebSiteManagementClient = await createWebSiteClient(this.root);
+        const client: WebSiteManagementClient = await createWebSiteClient([context, this]);
         const webAppCollection: WebSiteManagementModels.WebAppCollection = this._nextLink ?
             await client.webApps.listSlotsNext(this._nextLink) :
-            await client.webApps.listSlots(this.root.client.resourceGroup, this.root.client.siteName);
+            await client.webApps.listSlots(this.parent.site.resourceGroup, this.parent.site.siteName);
 
         this._nextLink = webAppCollection.nextLink;
 
-        return webAppCollection.map(s => new DeploymentSlotTreeItem(this, new SiteClient(s, this.root), s));
+        return webAppCollection.map(s => new DeploymentSlotTreeItem(this, new ParsedSite(s, this.subscription)));
     }
 
-    public async createChildImpl(context: ICreateChildImplContext): Promise<AzureTreeItem<ISiteTreeRoot>> {
-        const existingSlots: DeploymentSlotTreeItem[] = <DeploymentSlotTreeItem[]>await this.getCachedChildren(context);
-        const newSite: WebSiteManagementModels.Site = await createSlot(this.root, existingSlots, context);
-        const siteClient: SiteClient = new SiteClient(newSite, this.root);
-        ext.outputChannel.appendLog(getCreatedWebAppMessage(siteClient));
-        return new DeploymentSlotTreeItem(this, siteClient, newSite);
+    public async createChildImpl(context: ICreateChildImplContext): Promise<AzExtTreeItem> {
+        const existingSlots = (<DeploymentSlotTreeItem[]>await this.getCachedChildren(context)).map(ti => ti.site);
+        const rawSite: WebSiteManagementModels.Site = await createSlot(this.parent.site, existingSlots, context);
+        const site = new ParsedSite(rawSite, this.subscription);
+        ext.outputChannel.appendLog(getCreatedWebAppMessage(site));
+        return new DeploymentSlotTreeItem(this, site);
     }
 }
 
-export class ScaleUpTreeItem extends AzureTreeItem<ISiteTreeRoot> {
+export class ScaleUpTreeItem extends AzExtTreeItem {
     public static contextValue: string = "ScaleUp";
     public readonly label: string = localize('scaleUp', "Scale up to a production plan to enable slots...");
     public readonly contextValue: string = ScaleUpTreeItem.contextValue;
     public readonly scaleUpId: string;
 
-    public constructor(parent: AzureParentTreeItem, scaleUpId: string) {
+    public constructor(parent: AzExtParentTreeItem, scaleUpId: string) {
         super(parent);
         this.scaleUpId = scaleUpId;
         this.commandId = 'appService.ScaleUp';
@@ -82,7 +88,7 @@ export class DeploymentSlotsNATreeItem extends NotAvailableTreeItem {
 
     public readonly scaleUpId: string;
 
-    public constructor(parent: AzureParentTreeItem, planId: string) {
+    public constructor(parent: AzExtParentTreeItem, planId: string) {
         super(parent);
         this.label = label;
         this.id = DeploymentSlotsNATreeItem.contextValue;
@@ -98,7 +104,7 @@ export class DeploymentSlotsNATreeItem extends NotAvailableTreeItem {
     }
 
     // eslint-disable-next-line @typescript-eslint/require-await
-    public async loadMoreChildrenImpl(_clearCache: boolean): Promise<AzureTreeItem<ISiteTreeRoot>[]> {
+    public async loadMoreChildrenImpl(_clearCache: boolean): Promise<AzExtTreeItem[]> {
         return [new ScaleUpTreeItem(this, this.scaleUpId)];
     }
 }

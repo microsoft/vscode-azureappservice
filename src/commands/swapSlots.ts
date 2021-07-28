@@ -14,5 +14,5 @@ export async function swapSlots(context: IActionContext, sourceSlotNode: Deploym
     }
 
     const existingSlots: DeploymentSlotTreeItem[] = <DeploymentSlotTreeItem[]>await sourceSlotNode.parent.getCachedChildren(context);
-    await appservice.swapSlot(context, sourceSlotNode, existingSlots);
+    await appservice.swapSlot(context, sourceSlotNode.site, existingSlots.map(s => s.site));
 }

@@ -4,8 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { WebSiteManagementModels } from '@azure/arm-appservice';
-import { SiteClient } from 'vscode-azureappservice';
-import { AzExtTreeItem } from 'vscode-azureextensionui';
+import { AzExtTreeItem, IActionContext } from 'vscode-azureextensionui';
 import { ext } from '../extensionVariables';
 import { nonNullProp, nonNullValue } from '../utils/nonNull';
 import { DeploymentSlotsNATreeItem, DeploymentSlotsTreeItem } from './DeploymentSlotsTreeItem';
@@ -17,19 +16,16 @@ export class WebAppTreeItem extends SiteTreeItem {
     public readonly contextValue: string = WebAppTreeItem.contextValue;
     public deploymentSlotsNode: DeploymentSlotsTreeItem | DeploymentSlotsNATreeItem | undefined;
 
-    public get client(): SiteClient {
-        return this.root.client;
-    }
-
     public get label(): string {
-        return this.root.client.siteName;
+        return this.site.siteName;
     }
 
-    public async loadMoreChildrenImpl(clearCache: boolean): Promise<AzExtTreeItem[]> {
+    public async loadMoreChildrenImpl(clearCache: boolean, context: IActionContext): Promise<AzExtTreeItem[]> {
         let tier: string | undefined;
         let asp: WebSiteManagementModels.AppServicePlan | undefined;
         try {
-            asp = await this.root.client.getAppServicePlan();
+            const client = await this.site.createClient(context);
+            asp = await client.getAppServicePlan();
             tier = asp && asp.sku && asp.sku.tier;
         } catch (err) {
             // ignore this error, we don't want to block users for deployment slots
@@ -37,7 +33,7 @@ export class WebAppTreeItem extends SiteTreeItem {
         }
 
         this.deploymentSlotsNode = tier && /^(basic|free|shared)$/i.test(tier) ? new DeploymentSlotsNATreeItem(this, nonNullProp(nonNullValue(asp), 'id')) : new DeploymentSlotsTreeItem(this);
-        return (await super.loadMoreChildrenImpl(clearCache)).concat(this.deploymentSlotsNode);
+        return (await super.loadMoreChildrenImpl(clearCache, context)).concat(this.deploymentSlotsNode);
     }
 
     public pickTreeItemImpl(expectedContextValues: (string | RegExp)[]): AzExtTreeItem | undefined {

@@ -29,22 +29,22 @@ export async function enableFileLogging(context: IEnableFileLoggingContext, node
 
     const isEnabled: boolean = await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification }, async p => {
         p.report({ message: localize('checkingDiag', 'Checking container diagnostics settings...') });
-        return await siteNode.isHttpLogsEnabled();
+        return await siteNode.isHttpLogsEnabled(context);
     });
 
     if (!isEnabled && siteNode instanceof SiteTreeItem) {
-        await context.ui.showWarningMessage(localize('enableLogging', 'Do you want to enable file logging for "{0}"? The web app will be restarted.', siteNode.root.client.fullName), { modal: true, stepName: 'enableFileLogging' }, DialogResponses.yes);
-        const enablingLogging: string = localize('enablingLogging', 'Enabling Logging for "{0}"...', siteNode.root.client.fullName);
-        const enabledLogging: string = localize('enabledLogging', 'Enabled Logging for "{0}".', siteNode.root.client.fullName);
+        await context.ui.showWarningMessage(localize('enableLogging', 'Do you want to enable file logging for "{0}"? The web app will be restarted.', siteNode.site.fullName), { modal: true, stepName: 'enableFileLogging' }, DialogResponses.yes);
+        const enablingLogging: string = localize('enablingLogging', 'Enabling Logging for "{0}"...', siteNode.site.fullName);
+        const enabledLogging: string = localize('enabledLogging', 'Enabled Logging for "{0}".', siteNode.site.fullName);
         await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification, title: enablingLogging }, async (): Promise<void> => {
             ext.outputChannel.appendLog(enablingLogging);
-            await siteNode.enableLogs();
+            await siteNode.enableLogs(context);
 
             await vscode.commands.executeCommand('appService.Restart', siteNode);
             void vscode.window.showInformationMessage(enabledLogging);
             ext.outputChannel.appendLog(enabledLogging);
         });
     } else if (!context.suppressAlreadyEnabledMessage) {
-        void vscode.window.showInformationMessage(localize('loggingEnabled', 'File logging has already been enabled for "{0}".', siteNode.root.client.fullName));
+        void vscode.window.showInformationMessage(localize('loggingEnabled', 'File logging has already been enabled for "{0}".', siteNode.site.fullName));
     }
 }

@@ -27,7 +27,7 @@ export class AppServiceFileSystem extends AzExtTreeFileSystem<FileTreeItem> {
     }
 
     public async readFileImpl(context: IActionContext, node: FileTreeItem): Promise<Uint8Array> {
-        const result: ISiteFile = await getFile(context, node.client, node.path);
+        const result: ISiteFile = await getFile(context, node.site, node.path);
         this._etags.set(node.fullId, result.etag);
         return Buffer.from(result.data);
     }
@@ -35,7 +35,7 @@ export class AppServiceFileSystem extends AzExtTreeFileSystem<FileTreeItem> {
     public async writeFileImpl(context: IActionContext, node: FileTreeItem, content: Uint8Array, _originalUri: Uri): Promise<void> {
         const showSavePromptKey: string = 'showSavePrompt';
         if (getWorkspaceSetting<boolean>(showSavePromptKey)) {
-            const message: string = localize('saveConfirmation', 'Saving "{0}" will update the file "{0}" in "{1}".', node.label, node.client.fullName);
+            const message: string = localize('saveConfirmation', 'Saving "{0}" will update the file "{0}" in "{1}".', node.label, node.site.fullName);
             const result: MessageItem | undefined = await context.ui.showWarningMessage(message, DialogResponses.upload, DialogResponses.alwaysUpload, DialogResponses.dontUpload);
             if (result === DialogResponses.alwaysUpload) {
                 await updateGlobalSetting(showSavePromptKey, false);
@@ -46,9 +46,9 @@ export class AppServiceFileSystem extends AzExtTreeFileSystem<FileTreeItem> {
 
         let etag: string = nonNullValue(this._etags.get(node.fullId), 'etag');
         try {
-            this.appendLineToOutput(localize('updating', 'Updating "{0}" ...', node.label), { resourceName: node.client.fullName });
-            await putFile(context, node.client, content, node.path, etag);
-            this.appendLineToOutput(localize('done', 'Updated "{0}".', node.label), { resourceName: node.client.fullName });
+            this.appendLineToOutput(localize('updating', 'Updating "{0}" ...', node.label), { resourceName: node.site.fullName });
+            await putFile(context, node.site, content, node.path, etag);
+            this.appendLineToOutput(localize('done', 'Updated "{0}".', node.label), { resourceName: node.site.fullName });
         } catch (error) {
             const parsedError: IParsedError = parseError(error);
             if (parsedError.errorType === '412' && /etag/i.test(parsedError.message)) {
@@ -57,7 +57,7 @@ export class AppServiceFileSystem extends AzExtTreeFileSystem<FileTreeItem> {
             throw error;
         }
 
-        etag = (await getFile(context, node.client, node.path)).etag;
+        etag = (await getFile(context, node.site, node.path)).etag;
         this._etags.set(node.fullId, etag);
         await node.refresh(context);
     }

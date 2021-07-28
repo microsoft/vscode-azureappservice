@@ -15,7 +15,7 @@ export async function deploySlot(context: IActionContext, node?: DeploymentSlotT
     }
 
     if (node instanceof ScaleUpTreeItem) {
-        await openInPortal(node.root, node.scaleUpId);
+        await openInPortal(node, node.scaleUpId);
     } else {
         await deploy(context, node);
     }

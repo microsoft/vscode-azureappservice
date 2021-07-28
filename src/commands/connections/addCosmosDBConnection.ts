@@ -3,12 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { AzExtParentTreeItem, AzureTreeItem, IActionContext } from 'vscode-azureextensionui';
+import { AzExtParentTreeItem, AzExtTreeItem, IActionContext } from 'vscode-azureextensionui';
 import { ext } from "../../extensionVariables";
 import { CosmosDBTreeItem } from '../../tree/CosmosDBTreeItem';
 import { nonNullProp } from '../../utils/nonNull';
 
-export async function addCosmosDBConnection(context: IActionContext, node?: AzureTreeItem): Promise<void> {
+export async function addCosmosDBConnection(context: IActionContext, node?: AzExtTreeItem): Promise<void> {
     if (!node) {
         node = <CosmosDBTreeItem>await ext.tree.showTreeItemPicker([CosmosDBTreeItem.contextValueNotInstalled, CosmosDBTreeItem.contextValueInstalled], context);
     }

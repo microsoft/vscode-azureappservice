@@ -14,11 +14,12 @@ export async function viewProperties(context: IActionContext, node?: SiteTreeIte
         node = await ext.tree.showTreeItemPicker<WebAppTreeItem>(WebAppTreeItem.contextValue, context);
     }
 
+    const client = await node.site.createClient(context);
     await node.runWithTemporaryDescription(context, localize('retrievingProps', 'Retrieving properties...'), async () => {
         // `siteConfig` already exists on `node.site`, but has very limited properties for some reason. We want to get the full site config
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        node!.site.siteConfig = await node!.root.client.getSiteConfig();
+        node!.site.rawSite.siteConfig = await client.getSiteConfig();
     });
 
-    await openReadOnlyJson(node, node.site);
+    await openReadOnlyJson(node, node.site.rawSite);
 }

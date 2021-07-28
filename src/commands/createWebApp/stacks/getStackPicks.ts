@@ -79,7 +79,7 @@ async function getStacks(context: IWebAppWizardContext & { _stacks?: WebAppStack
     if (!context._stacks) {
         let stacksArmResponse: StacksArmResponse;
         try {
-            const client: ServiceClient = await createGenericClient(context);
+            const client: ServiceClient = await createGenericClient(context, context);
             const result: HttpOperationResponse = await client.sendRequest({
                 method: 'GET',
                 pathTemplate: '/providers/Microsoft.Web/webappstacks',

@@ -48,7 +48,7 @@ export class CosmosDBConnection extends AzExtTreeItem {
     }
 
     public async deleteTreeItemImpl(context: IActionContext): Promise<void> {
-        const appSettingsClient: IAppSettingsClient = this.parent.parent.client;
+        const appSettingsClient: IAppSettingsClient = await this.parent.site.createClient(context);
         const appSettings: WebSiteManagementModels.StringDictionary = await appSettingsClient.listApplicationSettings();
         if (appSettings.properties) {
             const warning: string = localize(

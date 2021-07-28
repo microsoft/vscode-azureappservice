@@ -134,8 +134,8 @@ suite('Create Web App and deploy', function (this: Mocha.Suite): void {
             });
         });
 
-        const hostUrl: string | undefined = (<WebAppTreeItem>await ext.tree.findTreeItem(<string>createdApp?.id, await createTestActionContext())).root.client.defaultHostUrl;
-        const client: ServiceClient = await createGenericClient();
+        const hostUrl: string | undefined = (<WebAppTreeItem>await ext.tree.findTreeItem(<string>createdApp?.id, await createTestActionContext())).site.defaultHostUrl;
+        const client: ServiceClient = await createGenericClient(await createTestActionContext(), undefined);
         const response: HttpOperationResponse = await client.sendRequest({ method: 'GET', url: hostUrl });
         assert.strictEqual(response.bodyAsText, `Version: ${expectedVersion}`);
     }

@@ -8,7 +8,7 @@ import { pathExists } from 'fs-extra';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as appservice from 'vscode-azureappservice';
-import { getDeployFsPath, getDeployNode, IDeployContext, IDeployPaths, showDeployConfirmation } from 'vscode-azureappservice';
+import { getDeployFsPath, getDeployNode, IDeployContext, IDeployPaths, showDeployConfirmation, SiteClient } from 'vscode-azureappservice';
 import { IActionContext, parseError } from 'vscode-azureextensionui';
 import * as constants from '../../constants';
 import { ext } from '../../extensionVariables';
@@ -33,10 +33,11 @@ const postDeployCancelTokens: Map<string, vscode.CancellationTokenSource> = new 
 export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | SiteTreeItem, arg2?: (vscode.Uri | SiteTreeItem)[], isNewApp: boolean = false): Promise<void> {
     actionContext.telemetry.properties.deployedWithConfigs = 'false';
     let siteConfig: WebSiteManagementModels.SiteConfigResource | undefined;
-
+    let client: SiteClient;
     if (arg1 instanceof SiteTreeItem) {
+        client = await arg1.site.createClient(actionContext);
         // we can only get the siteConfig earlier if the entry point was a treeItem
-        siteConfig = await arg1.root.client.getSiteConfig();
+        siteConfig = await client.getSiteConfig();
     }
 
     const fileExtensions: string | string[] | undefined = await javaUtils.getJavaFileExtensions(siteConfig);
@@ -47,12 +48,13 @@ export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | 
     // because this is workspace dependant, do it before user selects app
     await setPreDeployConfig(context);
     const node: SiteTreeItem = await getDeployNode(context, ext.tree, arg1, arg2, [WebAppTreeItem.contextValue]);
+    client = await node.site.createClient(actionContext);
 
     const correlationId: string = getRandomHexString();
     context.telemetry.properties.correlationId = correlationId;
 
     // if we already got siteConfig, don't waste time getting it again
-    siteConfig = siteConfig ? siteConfig : await node.root.client.getSiteConfig();
+    siteConfig = siteConfig ? siteConfig : await client.getSiteConfig();
 
     if (javaUtils.isJavaRuntime(siteConfig)) {
         await javaUtils.configureJavaSEAppSettings(context, node);
@@ -61,7 +63,7 @@ export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | 
     const isZipDeploy: boolean = siteConfig.scmType !== constants.ScmType.LocalGit && siteConfig !== constants.ScmType.GitHub;
     // only check enableScmDoBuildDuringDeploy if currentWorkspace matches the workspace being deployed as a user can "Browse" to a different project
     if (getWorkspaceSetting<boolean>(constants.configurationSettings.showBuildDuringDeployPrompt, context.effectiveDeployFsPath)) {
-        const remoteSettings: WebSiteManagementModels.StringDictionary = await node.client.listApplicationSettings();
+        const remoteSettings: WebSiteManagementModels.StringDictionary = await client.listApplicationSettings();
         const hasSCMDoBuildSetting: boolean = !!remoteSettings.properties && 'SCM_DO_BUILD_DURING_DEPLOYMENT' in remoteSettings.properties;
         //check if node is being zipdeployed and that there is no .deployment file
         if (!hasSCMDoBuildSetting && siteConfig.linuxFxVersion && isZipDeploy && !(await pathExists(path.join(context.effectiveDeployFsPath, constants.deploymentFileName)))) {
@@ -76,7 +78,7 @@ export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | 
     }
 
     if (getWorkspaceSetting<boolean>('showDeployConfirmation', context.workspaceFolder.uri.fsPath) && !context.isNewApp && isZipDeploy) {
-        await showDeployConfirmation(context, node.client, 'appService.Deploy');
+        await showDeployConfirmation(context, node.site, 'appService.Deploy');
     }
 
     void promptToSaveDeployDefaults(context, node, context.workspaceFolder.uri.fsPath, context.effectiveDeployFsPath);
@@ -99,7 +101,7 @@ export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | 
 
     await node.runWithTemporaryDescription(context, localize('deploying', "Deploying..."), async () => {
         try {
-            await appservice.deploy(nonNullValue(node).root.client, <string>deployPath, context);
+            await appservice.deploy(nonNullValue(node).site, <string>deployPath, context);
         } catch (error) {
             if (!actionContext.errorHandling.suppressDisplay
                 && failureMoreInfoSurvey(parseError(error), nonNullValue(siteConfig))) {
