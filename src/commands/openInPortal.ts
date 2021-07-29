@@ -18,7 +18,7 @@ export async function openInPortal(context: IActionContext, node?: AzExtTreeItem
     switch (node.contextValue) {
         // the deep link for slots does not follow the conventional pattern of including its parent in the path name so this is how we extract the slot's id
         case DeploymentSlotsTreeItem.contextValue:
-            await uiOpenInPortal(node, `${nonNullProp(node, 'parent').fullId}/deploymentSlots`);
+            await uiOpenInPortal(node, `${nonNullProp(node, 'parent').fullId}/deploymentSlotsV2`);
             return;
         // the deep link for "Deployments" do not follow the conventional pattern of including its parent in the path name so we need to pass the "Deployment Center" url directly
         case DeploymentsTreeItem.contextValueConnected:
