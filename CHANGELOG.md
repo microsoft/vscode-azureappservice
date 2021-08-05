@@ -1,5 +1,12 @@
 # Change Log
 
+## 0.23.0 - 2021-08-06
+### Added
+- Smart defaults for deploying Java projects (adds settings and tasks for one-click deployment)
+
+### Fixed
+- [Bugs Fixed](https://github.com/microsoft/vscode-azureappservice/issues?q=is%3Aissue+milestone%3A0.23.0+is%3Aclosed)
+
 ## 0.22.0 - 2021-05-25
 ### Added
 - Support Azure App Service on Kubernetes with Azure Arc (Preview)
