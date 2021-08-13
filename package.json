@@ -7,7 +7,7 @@
     "icon": "resources/WebApp.png",
     "aiKey": "AIF-d9b70cd4-b9f9-4d70-929b-a071c400b217",
     "engines": {
-        "vscode": "^1.53.0"
+        "vscode": "^1.57.0"
     },
     "repository": {
         "type": "git",
@@ -784,8 +784,8 @@
         "@types/fs-extra": "^8.0.0",
         "@types/gulp": "^4.0.6",
         "@types/mocha": "^8.2.2",
-        "@types/node": "^12.0.0",
-        "@types/vscode": "1.53.0",
+        "@types/node": "^14.0.0",
+        "@types/vscode": "1.57.0",
         "@typescript-eslint/eslint-plugin": "^4.28.3",
         "@typescript-eslint/parser": "^4.28.3",
         "eslint": "^7.19.0",
@@ -798,7 +798,7 @@
         "ts-node": "^7.0.1",
         "typescript": "^4.3.5",
         "vsce": "^1.87.0",
-        "vscode-azureextensiondev": "^0.9.6",
+        "vscode-azureextensiondev": "^0.10.0",
         "vscode-test": "^1.5.2",
         "webpack": "^5.28.0",
         "webpack-cli": "^4.6.0"
@@ -813,8 +813,8 @@
         "moment": "^2.24.0",
         "open": "^8.0.4",
         "portfinder": "^1.0.25",
-        "vscode-azureappservice": "^0.85.2",
-        "vscode-azureextensionui": "^0.47.2",
+        "vscode-azureappservice": "^0.86.0",
+        "vscode-azureextensionui": "^0.48.0",
         "vscode-azurekudu": "^0.2.0",
         "vscode-nls": "^4.1.1"
     },
