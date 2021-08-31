@@ -58,7 +58,8 @@ suite('Create Web App and deploy', function (this: Mocha.Suite): void {
             versions: [
                 { version: '2.1', supportedAppOs: 'Both', displayText: 'Core 2.1 (LTS)' },
                 { version: '3.1', supportedAppOs: 'Both', displayText: 'Core 3.1 (LTS)' },
-                { version: '5.0', supportedAppOs: 'Both', displayText: '5', buildMachineOsToSkip: 'darwin' } // Not sure why this fails on mac build machines - worth investigating in the future
+                { version: '5.0', supportedAppOs: 'Both', displayText: '5', buildMachineOsToSkip: 'darwin' }, // Not sure why this fails on mac build machines - worth investigating in the future
+                { version: '6.0', supportedAppOs: 'Both', displayText: '6' }
             ]
         },
         {
