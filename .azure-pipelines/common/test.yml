@@ -27,9 +27,9 @@ steps:
   condition: eq(variables['ENABLE_LONG_RUNNING_TESTS'], 'true')
 
 - task: UseDotNet@2
-  displayName: 'Use .NET Core sdk 6.0.100-preview.7'
+  displayName: 'Use .NET Core sdk 6.0.100-preview.7.21379.14'
   inputs:
-    version: 6.0.100-preview.7
+    version: 6.0.100-preview.7.21379.14
   condition: eq(variables['ENABLE_LONG_RUNNING_TESTS'], 'true')
 
 - task: Npm@1
