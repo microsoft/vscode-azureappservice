@@ -26,6 +26,7 @@ export function showDeployCompletedMessage(originalContext: IActionContext, node
         await callWithTelemetryAndErrorHandling('postDeploy', async (context: IActionContext) => {
             context.valuesToMask.push(...originalContext.valuesToMask);
             context.telemetry.properties.dialogResult = result?.title;
+            context.telemetry.eventVersion = 2;
 
             if (result === AppServiceDialogResponses.viewOutput) {
                 ext.outputChannel.show();
