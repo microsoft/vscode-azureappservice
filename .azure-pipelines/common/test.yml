@@ -9,12 +9,6 @@ steps:
 
 # needed for .NET nightly tests
 - task: UseDotNet@2
-  displayName: 'Use .NET Core sdk 2.1.x'
-  inputs:
-    version: 2.1.x
-  condition: eq(variables['ENABLE_LONG_RUNNING_TESTS'], 'true')
-
-- task: UseDotNet@2
   displayName: 'Use .NET Core sdk 3.1.x'
   inputs:
     version: 3.1.x
@@ -27,9 +21,10 @@ steps:
   condition: eq(variables['ENABLE_LONG_RUNNING_TESTS'], 'true')
 
 - task: UseDotNet@2
-  displayName: 'Use .NET Core sdk 6.0.100-preview.7.21379.14'
+  displayName: '6.0.x'
   inputs:
-    version: 6.0.100-preview.7.21379.14
+    version: 6.0.x
+    includePreviewVersions: true
   condition: eq(variables['ENABLE_LONG_RUNNING_TESTS'], 'true')
 
 - task: Npm@1
