@@ -6,13 +6,14 @@
 import { WebSiteManagementModels } from '@azure/arm-appservice';
 import * as portfinder from 'portfinder';
 import * as vscode from 'vscode';
+import { TerminalDataWriteEvent } from 'vscode';
 import { reportMessage, setRemoteDebug, TunnelProxy } from 'vscode-azureappservice';
 import { IActionContext } from 'vscode-azureextensionui';
+import { sshURL } from '../constants';
 import { ext } from '../extensionVariables';
 import { localize } from '../localize';
 import { SiteTreeItem } from '../tree/SiteTreeItem';
 import { WebAppTreeItem } from '../tree/WebAppTreeItem';
-import { delay } from '../utils/delay';
 
 export type sshTerminal = {
     starting: boolean,
@@ -33,7 +34,7 @@ export async function startSsh(context: IActionContext, node?: SiteTreeItem): Pr
         if (currentSshTerminal.starting) {
             throw new Error(localize('sshStartedError', 'Azure SSH is currently starting or already started for "{0}".', node.site.fullName));
         } else if (currentSshTerminal.tunnel && currentSshTerminal.localPort !== undefined) {
-            await connectToTunnelProxy(node, currentSshTerminal.tunnel, currentSshTerminal.localPort);
+            connectToTunnelProxy(node, currentSshTerminal.tunnel, currentSshTerminal.localPort);
             return;
         }
     }
@@ -71,27 +72,30 @@ async function startSshInternal(context: IActionContext, node: SiteTreeItem): Pr
         await tunnelProxy.startProxy(context, token);
 
         reportMessage(localize('connectingSsh', 'Connecting to SSH...'), progress, token);
-        await connectToTunnelProxy(node, tunnelProxy, localHostPortNumber);
+        connectToTunnelProxy(node, tunnelProxy, localHostPortNumber);
     });
 }
 
-async function connectToTunnelProxy(node: SiteTreeItem, tunnelProxy: TunnelProxy, port: number): Promise<void> {
+function connectToTunnelProxy(node: SiteTreeItem, tunnelProxy: TunnelProxy, port: number): void {
     const sshTerminalName: string = `${node.site.fullName} - SSH`;
     // -o StrictHostKeyChecking=no doesn't prompt for adding to hosts
     // -o "UserKnownHostsFile /dev/null" doesn't add host to known_user file
     // -o "LogLevel ERROR" doesn't display Warning: Permanently added 'hostname,ip' (RSA) to the list of known hosts.
-    const sshCommand: string = `ssh -c aes256-cbc -o StrictHostKeyChecking=no -o "UserKnownHostsFile /dev/null" -o "LogLevel ERROR" root@127.0.0.1 -p ${port}`;
+    const sshCommand: string = `ssh -c aes256-cbc -o StrictHostKeyChecking=no -o "UserKnownHostsFile /dev/null" -o "LogLevel ERROR" ${sshURL} -p ${port}`;
 
     // if this terminal already exists, just reuse it otherwise create a new terminal.
     const terminal: vscode.Terminal = vscode.window.terminals.find((activeTerminal: vscode.Terminal) => { return activeTerminal.name === sshTerminalName; }) || vscode.window.createTerminal(sshTerminalName);
-
     terminal.sendText(sshCommand, true);
-    // because the container needs time to respond, there needs to be a delay between connecting and entering password
-    // this is a workaround and is being tracked: https://github.com/Microsoft/vscode-azureappservice/issues/932
-    await delay(3000);
 
     // The default password for logging into the container (after you have SSHed in) is Docker!
-    terminal.sendText('Docker!', true);
+    vscode.window.onDidWriteTerminalData((event: TerminalDataWriteEvent) => {
+        if (event.terminal === terminal) {
+            if (event.data.includes(`${sshURL}\'s password:`)) {
+                terminal.sendText('Docker!', true);
+            }
+        }
+    })
+
     terminal.show();
     ext.context.subscriptions.push(terminal);
 

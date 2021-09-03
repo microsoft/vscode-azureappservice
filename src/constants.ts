@@ -37,3 +37,5 @@ export const envFileName: string = '.env';
 export const detectorTimestampFormat: string = 'YYYY-MM-DDTHH:mm';
 
 export const webProvider: string = 'Microsoft.Web';
+
+export const sshURL: string = 'root@127.0.0.1';
