@@ -15,6 +15,7 @@ import * as workspaceUtil from '../../utils/workspace';
 import { getLocalEnvironmentVariables } from "./getLocalEnvironmentVariables";
 
 export async function uploadAppSettings(context: IActionContext, target?: Uri | AppSettingsTreeItem | string | undefined): Promise<void> {
+    context.telemetry.eventVersion = 2;
     let node: AppSettingsTreeItem | undefined;
     let envPath: string;
     if (typeof target === "string") {

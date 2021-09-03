@@ -1,5 +1,10 @@
 # Change Log
 
+## Unreleased
+
+### Changed
+- Minimum version of VS Code is now 1.57.0
+
 ## 0.23.0 - 2021-08-06
 ### Added
 - Smart defaults for deploying Java projects (adds settings and tasks for one-click deployment)
