@@ -9,7 +9,6 @@ import * as vscode from 'vscode';
 import { TerminalDataWriteEvent } from 'vscode';
 import { reportMessage, setRemoteDebug, TunnelProxy } from 'vscode-azureappservice';
 import { IActionContext } from 'vscode-azureextensionui';
-import { sshURL } from '../constants';
 import { ext } from '../extensionVariables';
 import { localize } from '../localize';
 import { SiteTreeItem } from '../tree/SiteTreeItem';
@@ -23,6 +22,8 @@ export type sshTerminal = {
 };
 
 export const sshSessionsMap: Map<string, sshTerminal> = new Map<string, sshTerminal>();
+
+export const sshURL = 'root@127.0.0.1';
 
 export async function startSsh(context: IActionContext, node?: SiteTreeItem): Promise<void> {
     if (!node) {
@@ -88,13 +89,13 @@ function connectToTunnelProxy(node: SiteTreeItem, tunnelProxy: TunnelProxy, port
     terminal.sendText(sshCommand, true);
 
     // The default password for logging into the container (after you have SSHed in) is Docker!
-    vscode.window.onDidWriteTerminalData((event: TerminalDataWriteEvent) => {
+    const verifyPassPrompt = vscode.window.onDidWriteTerminalData((event: TerminalDataWriteEvent) => {
         if (event.terminal === terminal) {
             if (event.data.includes(`${sshURL}\'s password:`)) {
                 terminal.sendText('Docker!', true);
             }
         }
-    })
+    });
 
     terminal.show();
     ext.context.subscriptions.push(terminal);
@@ -104,6 +105,8 @@ function connectToTunnelProxy(node: SiteTreeItem, tunnelProxy: TunnelProxy, port
     const onCloseEvent: vscode.Disposable = vscode.window.onDidCloseTerminal((e: vscode.Terminal) => {
         if (e.processId === terminal.processId) {
             // clean up if the SSH task ends
+            verifyPassPrompt.dispose();
+
             if (tunnelProxy !== undefined) {
                 tunnelProxy.dispose();
             }
