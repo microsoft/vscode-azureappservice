@@ -25,6 +25,12 @@ export const sshSessionsMap: Map<string, sshTerminal> = new Map<string, sshTermi
 
 export const sshURL = 'root@127.0.0.1';
 
+/**
+ * Usage is dependent on vscode.prososed.d.ts ("onDidWriteTerminalData")
+ * @param context
+ * @param node
+ * @returns
+ */
 export async function startSsh(context: IActionContext, node?: SiteTreeItem): Promise<void> {
     if (!node) {
         node = <SiteTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue, context);
@@ -89,6 +95,7 @@ function connectToTunnelProxy(node: SiteTreeItem, tunnelProxy: TunnelProxy, port
     terminal.sendText(sshCommand, true);
 
     // The default password for logging into the container (after you have SSHed in) is Docker!
+    // onDidWriteTerminalData is part of the vscode.proposed.d.ts
     const verifyPassPrompt = vscode.window.onDidWriteTerminalData((event: TerminalDataWriteEvent) => {
         if (event.terminal === terminal) {
             if (event.data.includes(`${sshURL}\'s password:`)) {
