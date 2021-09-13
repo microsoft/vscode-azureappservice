@@ -37,6 +37,9 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
 
         let webAppCollection: WebSiteManagementModels.WebAppCollection;
         try {
+            if (this._nextLink) {
+                console.log(`NEXT LINK 1: ${this._nextLink}`);
+            }
             webAppCollection = this._nextLink ?
                 await client.webApps.listNext(this._nextLink) :
                 await client.webApps.list();
@@ -52,6 +55,9 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
         }
 
         this._nextLink = webAppCollection.nextLink;
+        if (this._nextLink) {
+            console.log(`NEXT LINK 2: ${this._nextLink}`);
+        }
 
         return await this.createTreeItemsWithErrorHandling(
             webAppCollection,
