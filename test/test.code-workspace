@@ -1,13 +1,13 @@
 {
     "folders": [
         {
-            "path": "./nightly/testFolder/dotnet-hello-world/2.1"
-        },
-        {
             "path": "./nightly/testFolder/dotnet-hello-world/3.1"
         },
         {
             "path": "./nightly/testFolder/dotnet-hello-world/5.0"
+        },
+        {
+            "path": "./nightly/testFolder/dotnet-hello-world/6.0"
         },
         {
             "path": "./nightly/testFolder/nodejs-docs-hello-world"
