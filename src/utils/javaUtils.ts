@@ -4,6 +4,7 @@
 *--------------------------------------------------------------------------------------------*/
 
 import { WebSiteManagementModels } from "@azure/arm-appservice";
+// eslint-disable-next-line import/no-internal-modules
 import { SiteConfigResource } from "@azure/arm-appservice/esm/models";
 import * as fse from 'fs-extra';
 import * as path from 'path';
