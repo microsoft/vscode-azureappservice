@@ -67,7 +67,8 @@ suite('Create Web App and deploy', function (this: Mocha.Suite): void {
             versions: [
                 { version: '3.6', supportedAppOs: 'Both', appOsToSkip: 'Windows' }, // Python on Windows has been deprecated for a while now, so not worth testing
                 { version: '3.7', supportedAppOs: 'Linux' },
-                { version: '3.8', supportedAppOs: 'Linux' }
+                { version: '3.8', supportedAppOs: 'Linux' },
+                { version: '3.9', supportedAppOs: 'Linux' }
             ]
         }
     ];
