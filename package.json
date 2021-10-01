@@ -29,45 +29,45 @@
     ],
     "preview": true,
     "activationEvents": [
+        "onCommand:appService.AddAzureDatabasesConnection",
+        "onCommand:appService.Browse",
+        "onCommand:appService.ConfigureDeploymentSource",
+        "onCommand:appService.CreateSlot",
         "onCommand:appService.CreateWebApp",
         "onCommand:appService.CreateWebAppAdvanced",
-        "onCommand:appService.Refresh",
-        "onCommand:appService.LoadMore",
-        "onCommand:appService.OpenInPortal",
-        "onCommand:appService.Browse",
-        "onCommand:appService.Start",
-        "onCommand:appService.Stop",
-        "onCommand:appService.Restart",
         "onCommand:appService.Delete",
         "onCommand:appService.Deploy",
-        "onCommand:appService.ConfigureDeploymentSource",
-        "onCommand:appService.DeploymentScript",
-        "onCommand:appService.SwapSlots",
-        "onCommand:appService.appSettings.Add",
-        "onCommand:appService.appSettings.Edit",
-        "onCommand:appService.appSettings.Rename",
-        "onCommand:appService.appSettings.Delete",
-        "onCommand:appService.appSettings.Download",
-        "onCommand:appService.appSettings.Upload",
-        "onCommand:appService.appSettings.ToggleSlotSetting",
-        "onCommand:appService.startStreamingLogs",
-        "onCommand:appService.StopLogStream",
-        "onCommand:appService.StartRemoteDebug",
-        "onCommand:appService.StartSsh",
-        "onCommand:appService.CreateSlot",
         "onCommand:appService.DeploySlot",
-        "onCommand:appService.EnableFileLogging",
-        "onCommand:appService.viewDeploymentLogs",
-        "onCommand:appService.Redeploy",
-        "onCommand:appService.ViewCommitInGitHub",
+        "onCommand:appService.DeploymentScript",
         "onCommand:appService.DisconnectRepo",
-        "onCommand:appService.connectToGitHub",
-        "onCommand:appService.AddAzureDatabasesConnection",
+        "onCommand:appService.EnableFileLogging",
+        "onCommand:appService.LoadMore",
+        "onCommand:appService.OpenInPortal",
+        "onCommand:appService.Redeploy",
+        "onCommand:appService.Refresh",
         "onCommand:appService.RemoveCosmosDBConnection",
         "onCommand:appService.ReportIssue",
+        "onCommand:appService.Restart",
         "onCommand:appService.RevealConnection",
         "onCommand:appService.RevealConnectionInAppSettings",
+        "onCommand:appService.Start",
+        "onCommand:appService.StartRemoteDebug",
+        "onCommand:appService.StartSsh",
+        "onCommand:appService.Stop",
+        "onCommand:appService.StopLogStream",
+        "onCommand:appService.SwapSlots",
+        "onCommand:appService.ViewCommitInGitHub",
         "onCommand:appService.ViewProperties",
+        "onCommand:appService.appSettings.Add",
+        "onCommand:appService.appSettings.Delete",
+        "onCommand:appService.appSettings.Download",
+        "onCommand:appService.appSettings.Edit",
+        "onCommand:appService.appSettings.Rename",
+        "onCommand:appService.appSettings.ToggleSlotSetting",
+        "onCommand:appService.appSettings.Upload",
+        "onCommand:appService.connectToGitHub",
+        "onCommand:appService.startStreamingLogs",
+        "onCommand:appService.viewDeploymentLogs",
         "onFileSystem:azureAppService",
         "onView:azureAppService"
     ],
@@ -75,96 +75,13 @@
     "contributes": {
         "commands": [
             {
-                "command": "appService.selectSubscriptions",
-                "title": "%appService.selectSubscriptions%",
-                "icon": "$(filter)"
-            },
-            {
-                "command": "appService.CreateWebApp",
-                "title": "%appService.CreateWebApp%",
-                "category": "Azure App Service",
-                "icon": "$(add)"
-            },
-            {
-                "command": "appService.CreateWebAppAdvanced",
-                "title": "%appService.CreateWebAppAdvanced%",
-                "category": "Azure App Service"
-            },
-            {
-                "command": "appService.Deploy",
-                "title": "%appService.Deploy%",
-                "category": "Azure App Service",
-                "icon": "$(cloud-upload)"
-            },
-            {
-                "command": "appService.Refresh",
-                "title": "%appService.Refresh%",
-                "category": "Azure App Service",
-                "icon": "$(refresh)"
-            },
-            {
-                "command": "appService.LoadMore",
-                "title": "%appService.LoadMore%",
-                "category": "Azure App Service"
-            },
-            {
-                "command": "appService.OpenInPortal",
-                "title": "%appService.OpenInPortal%",
-                "category": "Azure App Service"
-            },
-            {
-                "command": "appService.Browse",
-                "title": "%appService.Browse%",
-                "category": "Azure App Service"
-            },
-            {
-                "command": "appService.Start",
-                "title": "%appService.Start%",
-                "category": "Azure App Service"
-            },
-            {
-                "command": "appService.Stop",
-                "title": "%appService.Stop%",
-                "category": "Azure App Service"
-            },
-            {
-                "command": "appService.Restart",
-                "title": "%appService.Restart%",
-                "category": "Azure App Service"
-            },
-            {
-                "command": "appService.Delete",
-                "title": "%appService.Delete%",
-                "category": "Azure App Service"
-            },
-            {
-                "command": "appService.DeploymentScript",
-                "title": "%appService.DeploymentScript%",
-                "category": "Azure App Service"
-            },
-            {
-                "command": "appService.ConfigureDeploymentSource",
-                "title": "%appService.ConfigureDeploymentSource%",
-                "category": "Azure App Service"
-            },
-            {
-                "command": "appService.SwapSlots",
-                "title": "%appService.SwapSlots%",
+                "command": "appService.AddAzureDatabasesConnection",
+                "title": "%appService.AddAzureDatabasesConnection%",
                 "category": "Azure App Service"
             },
             {
                 "command": "appService.appSettings.Add",
                 "title": "%appService.appSettings.Add%",
-                "category": "Azure App Service"
-            },
-            {
-                "command": "appService.appSettings.Edit",
-                "title": "%appService.appSettings.Edit%",
-                "category": "Azure App Service"
-            },
-            {
-                "command": "appService.appSettings.Rename",
-                "title": "%appService.appSettings.Rename%",
                 "category": "Azure App Service"
             },
             {
@@ -178,8 +95,13 @@
                 "category": "Azure App Service"
             },
             {
-                "command": "appService.appSettings.Upload",
-                "title": "%appService.appSettings.Upload%",
+                "command": "appService.appSettings.Edit",
+                "title": "%appService.appSettings.Edit%",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.appSettings.Rename",
+                "title": "%appService.appSettings.Rename%",
                 "category": "Azure App Service"
             },
             {
@@ -188,13 +110,23 @@
                 "category": "Azure App Service"
             },
             {
-                "command": "appService.startStreamingLogs",
-                "title": "%appService.startStreamingLogs%",
+                "command": "appService.appSettings.Upload",
+                "title": "%appService.appSettings.Upload%",
                 "category": "Azure App Service"
             },
             {
-                "command": "appService.StopLogStream",
-                "title": "%appService.StopLogStream%",
+                "command": "appService.Browse",
+                "title": "%appService.Browse%",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.ConfigureDeploymentSource",
+                "title": "%appService.ConfigureDeploymentSource%",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.connectToGitHub",
+                "title": "%appService.connectToGitHub%",
                 "category": "Azure App Service"
             },
             {
@@ -203,23 +135,40 @@
                 "category": "Azure App Service"
             },
             {
+                "command": "appService.CreateWebApp",
+                "title": "%appService.CreateWebApp%",
+                "category": "Azure App Service",
+                "icon": "$(add)"
+            },
+            {
+                "command": "appService.CreateWebAppAdvanced",
+                "title": "%appService.CreateWebAppAdvanced%",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.Delete",
+                "title": "%appService.Delete%",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.Deploy",
+                "title": "%appService.Deploy%",
+                "category": "Azure App Service",
+                "icon": "$(cloud-upload)"
+            },
+            {
+                "command": "appService.DeploymentScript",
+                "title": "%appService.DeploymentScript%",
+                "category": "Azure App Service"
+            },
+            {
                 "command": "appService.DeploySlot",
                 "title": "%appService.DeploySlot%",
                 "category": "Azure App Service"
             },
             {
-                "command": "appService.StartRemoteDebug",
-                "title": "%appService.StartRemoteDebug%",
-                "category": "Azure App Service"
-            },
-            {
-                "command": "appService.StartSsh",
-                "title": "%appService.StartSsh%",
-                "category": "Azure App Service"
-            },
-            {
-                "command": "appService.ScaleUp",
-                "title": "%appService.ScaleUp%",
+                "command": "appService.DisconnectRepo",
+                "title": "%appService.DisconnectRepo%",
                 "category": "Azure App Service"
             },
             {
@@ -233,18 +182,13 @@
                 "category": "Azure App Service"
             },
             {
-                "command": "appService.RevealConnection",
-                "title": "%appService.RevealConnection%",
+                "command": "appService.LoadMore",
+                "title": "%appService.LoadMore%",
                 "category": "Azure App Service"
             },
             {
-                "command": "appService.AddAzureDatabasesConnection",
-                "title": "%appService.AddAzureDatabasesConnection%",
-                "category": "Azure App Service"
-            },
-            {
-                "command": "appService.RemoveCosmosDBConnection",
-                "title": "%appService.RemoveCosmosDBConnection%",
+                "command": "appService.OpenInPortal",
+                "title": "%appService.OpenInPortal%",
                 "category": "Azure App Service"
             },
             {
@@ -253,28 +197,79 @@
                 "category": "Azure App Service"
             },
             {
-                "command": "appService.viewDeploymentLogs",
-                "title": "%appService.viewDeploymentLogs%",
+                "command": "appService.Refresh",
+                "title": "%appService.Refresh%",
+                "category": "Azure App Service",
+                "icon": "$(refresh)"
+            },
+            {
+                "command": "appService.RemoveCosmosDBConnection",
+                "title": "%appService.RemoveCosmosDBConnection%",
                 "category": "Azure App Service"
             },
             {
-                "command": "appService.ViewCommitInGitHub",
-                "title": "%appService.ViewCommitInGitHub%",
+                "command": "appService.ReportIssue",
+                "title": "%appService.ReportIssue%",
                 "category": "Azure App Service"
             },
             {
-                "command": "appService.connectToGitHub",
-                "title": "%appService.connectToGitHub%",
+                "command": "appService.Restart",
+                "title": "%appService.Restart%",
                 "category": "Azure App Service"
             },
             {
-                "command": "appService.DisconnectRepo",
-                "title": "%appService.DisconnectRepo%",
+                "command": "appService.RevealConnection",
+                "title": "%appService.RevealConnection%",
                 "category": "Azure App Service"
             },
             {
                 "command": "appService.RevealConnectionInAppSettings",
                 "title": "%appService.RevealConnectionInAppSettings%",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.ScaleUp",
+                "title": "%appService.ScaleUp%",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.selectSubscriptions",
+                "title": "%appService.selectSubscriptions%",
+                "icon": "$(filter)"
+            },
+            {
+                "command": "appService.Start",
+                "title": "%appService.Start%",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.StartRemoteDebug",
+                "title": "%appService.StartRemoteDebug%",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.StartSsh",
+                "title": "%appService.StartSsh%",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.startStreamingLogs",
+                "title": "%appService.startStreamingLogs%",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.Stop",
+                "title": "%appService.Stop%",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.StopLogStream",
+                "title": "%appService.StopLogStream%",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.SwapSlots",
+                "title": "%appService.SwapSlots%",
                 "category": "Azure App Service"
             },
             {
@@ -284,13 +279,18 @@
                 "icon": "$(eye)"
             },
             {
-                "command": "appService.ViewProperties",
-                "title": "%appService.ViewProperties%",
+                "command": "appService.ViewCommitInGitHub",
+                "title": "%appService.ViewCommitInGitHub%",
                 "category": "Azure App Service"
             },
             {
-                "command": "appService.ReportIssue",
-                "title": "%appService.ReportIssue%",
+                "command": "appService.viewDeploymentLogs",
+                "title": "%appService.viewDeploymentLogs%",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.ViewProperties",
+                "title": "%appService.ViewProperties%",
                 "category": "Azure App Service"
             }
         ],
@@ -306,19 +306,7 @@
         "menus": {
             "commandPalette": [
                 {
-                    "command": "appService.selectSubscriptions",
-                    "when": "never"
-                },
-                {
-                    "command": "appService.Refresh",
-                    "when": "never"
-                },
-                {
-                    "command": "appService.LoadMore",
-                    "when": "never"
-                },
-                {
-                    "command": "appService.ScaleUp",
+                    "command": "appService.appSettings.Delete",
                     "when": "never"
                 },
                 {
@@ -326,7 +314,19 @@
                     "when": "never"
                 },
                 {
-                    "command": "appService.appSettings.Delete",
+                    "command": "appService.LoadMore",
+                    "when": "never"
+                },
+                {
+                    "command": "appService.Refresh",
+                    "when": "never"
+                },
+                {
+                    "command": "appService.ScaleUp",
+                    "when": "never"
+                },
+                {
+                    "command": "appService.selectSubscriptions",
                     "when": "never"
                 },
                 {
@@ -629,6 +629,11 @@
             ],
             "explorer/context": [
                 {
+                    "command": "appService.appSettings.Upload",
+                    "when": "resourceFilename == .env",
+                    "group": "zzz_azuretools_appsettings@1"
+                },
+                {
                     "command": "appService.Deploy",
                     "when": "explorerResourceIsFolder == true",
                     "group": "zzz_azuretools_deploy@1"
@@ -637,11 +642,6 @@
                     "command": "appService.Deploy",
                     "when": "explorerResourceIsFolder == false && resourceExtname =~ /.[j|w]ar$/",
                     "group": "zzz_azuretools_deploy@1"
-                },
-                {
-                    "command": "appService.appSettings.Upload",
-                    "when": "resourceFilename == .env",
-                    "group": "zzz_azuretools_appsettings@1"
                 }
             ]
         },
