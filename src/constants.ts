@@ -30,6 +30,7 @@ export enum ScmType {
 export namespace AppServiceDialogResponses {
     export const deploy: MessageItem = { title: localize('deploy', 'Deploy') };
     export const viewOutput: MessageItem = { title: localize('viewOutput', 'View Output') };
+    export const connectDatabase: MessageItem = { title: localize('connectDatabase', 'Connect Database') }
 }
 
 export const envFileName: string = '.env';

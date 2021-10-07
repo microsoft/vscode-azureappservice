@@ -6,6 +6,7 @@
 import { AzExtParentTreeItem, AzExtTreeItem, IActionContext } from 'vscode-azureextensionui';
 import { ext } from "../../extensionVariables";
 import { CosmosDBTreeItem } from '../../tree/CosmosDBTreeItem';
+import { SiteTreeItem } from '../../tree/SiteTreeItem';
 import { nonNullProp } from '../../utils/nonNull';
 
 export async function addCosmosDBConnection(context: IActionContext, node?: AzExtTreeItem): Promise<void> {
@@ -16,9 +17,12 @@ export async function addCosmosDBConnection(context: IActionContext, node?: AzEx
     let cosmosDBTreeItem: AzExtParentTreeItem;
     if (node instanceof CosmosDBTreeItem) {
         cosmosDBTreeItem = node;
+    } else if (node instanceof SiteTreeItem) {
+        cosmosDBTreeItem = node.connectionsNode;
     } else {
         cosmosDBTreeItem = nonNullProp(node, 'parent');
     }
+
     await cosmosDBTreeItem.createChild(context);
     await ext.tree.refresh(context, cosmosDBTreeItem);
 }

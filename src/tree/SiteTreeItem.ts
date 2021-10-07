@@ -20,7 +20,7 @@ export abstract class SiteTreeItem extends SiteTreeItemBase implements ISiteTree
     public deploymentsNode: DeploymentsTreeItem | undefined;
     public parent!: AzExtParentTreeItem;
     public site: ParsedSite;
-    private readonly _connectionsNode: CosmosDBTreeItem;
+    public connectionsNode: CosmosDBTreeItem;
     private readonly _siteFilesNode: SiteFilesTreeItem;
     private readonly _logFilesNode: LogFilesTreeItem;
     private readonly _webJobsNode: WebJobsTreeItem | WebJobsNATreeItem;
@@ -30,7 +30,7 @@ export abstract class SiteTreeItem extends SiteTreeItemBase implements ISiteTree
         this.site = site;
 
         this.appSettingsNode = new AppSettingsTreeItem(this, this.site);
-        this._connectionsNode = new CosmosDBTreeItem(this, this.site);
+        this.connectionsNode = new CosmosDBTreeItem(this, this.site);
         this._siteFilesNode = new SiteFilesTreeItem(this, this.site, false);
         this._logFilesNode = new LogFilesTreeItem(this, this.site);
         // Can't find actual documentation on this, but the portal claims it and this feedback suggests it's not planned https://aka.ms/AA4q5gi
@@ -90,7 +90,7 @@ export abstract class SiteTreeItem extends SiteTreeItemBase implements ISiteTree
         const siteConfig: WebSiteManagementModels.SiteConfig = await client.getSiteConfig();
         const sourceControl: WebSiteManagementModels.SiteSourceControl = await client.getSourceControl();
         this.deploymentsNode = new DeploymentsTreeItem(this, this.site, siteConfig, sourceControl);
-        return [this.appSettingsNode, this._connectionsNode, this.deploymentsNode, this._siteFilesNode, this._logFilesNode, this._webJobsNode];
+        return [this.appSettingsNode, this.connectionsNode, this.deploymentsNode, this._siteFilesNode, this._logFilesNode, this._webJobsNode];
     }
 
     public compareChildrenImpl(ti1: AzExtTreeItem, ti2: AzExtTreeItem): number {
@@ -112,7 +112,7 @@ export abstract class SiteTreeItem extends SiteTreeItemBase implements ISiteTree
                 case CosmosDBTreeItem.contextValueInstalled:
                 case CosmosDBTreeItem.contextValueNotInstalled:
                 case CosmosDBConnection.contextValue:
-                    return this._connectionsNode;
+                    return this.connectionsNode;
                 case DeploymentsTreeItem.contextValueConnected:
                 case DeploymentsTreeItem.contextValueUnconnected:
                 case DeploymentTreeItem.contextValue:

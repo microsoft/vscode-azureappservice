@@ -10,13 +10,14 @@ import { AppServiceDialogResponses } from "../../constants";
 import { ext } from "../../extensionVariables";
 import { localize } from "../../localize";
 import { SiteTreeItem } from "../../tree/SiteTreeItem";
+import { addCosmosDBConnection } from "../connections/addCosmosDBConnection";
 import { deploy } from '../deploy/deploy';
 
 export function showCreatedWebAppMessage(originalContext: IActionContext, node: SiteTreeItem): void {
     const message: string = getCreatedWebAppMessage(node.site);
 
     // don't wait
-    void window.showInformationMessage(message, AppServiceDialogResponses.deploy, AppServiceDialogResponses.viewOutput).then(async (result: MessageItem | undefined) => {
+    void window.showInformationMessage(message, AppServiceDialogResponses.deploy, AppServiceDialogResponses.viewOutput, AppServiceDialogResponses.connectDatabase).then(async (result: MessageItem | undefined) => {
         await callWithTelemetryAndErrorHandling('postCreateWebApp', async (context: IActionContext) => {
             context.valuesToMask.push(...originalContext.valuesToMask);
             context.telemetry.properties.dialogResult = result?.title;
@@ -25,6 +26,8 @@ export function showCreatedWebAppMessage(originalContext: IActionContext, node: 
                 ext.outputChannel.show();
             } else if (result === AppServiceDialogResponses.deploy) {
                 await deploy(context, node, [], true);
+            } else if (result === AppServiceDialogResponses.connectDatabase) {
+                await addCosmosDBConnection(context, node);
             }
         });
     });
