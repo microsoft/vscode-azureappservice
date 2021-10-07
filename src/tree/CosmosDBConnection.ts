@@ -6,9 +6,9 @@
 import { WebSiteManagementModels } from '@azure/arm-appservice';
 import { ThemeIcon } from 'vscode';
 import { IAppSettingsClient } from 'vscode-azureappservice';
+import { DBTreeItem } from 'vscode-azuredatabases';
 import { AzExtTreeItem, DialogResponses, IActionContext, TreeItemIconPath } from 'vscode-azureextensionui';
 import { localize } from '../localize';
-import { DatabaseAccountTreeItem, DatabaseTreeItem } from '../vscode-cosmos.api';
 import { CosmosDBTreeItem } from './CosmosDBTreeItem';
 
 export class CosmosDBConnection extends AzExtTreeItem {
@@ -17,7 +17,7 @@ export class CosmosDBConnection extends AzExtTreeItem {
     public readonly label: string;
     public readonly parent!: CosmosDBTreeItem;
 
-    constructor(parent: CosmosDBTreeItem, readonly cosmosExtensionItem: DatabaseAccountTreeItem | DatabaseTreeItem, readonly appSettingKeys: string[]) {
+    constructor(parent: CosmosDBTreeItem, readonly cosmosExtensionItem: DBTreeItem, readonly appSettingKeys: string[]) {
         super(parent);
         this.label = CosmosDBConnection.makeLabel(cosmosExtensionItem);
     }
@@ -27,7 +27,7 @@ export class CosmosDBConnection extends AzExtTreeItem {
         return this.appSettingKeys[0];
     }
 
-    public static makeLabel(cosmosExtensionItem: DatabaseAccountTreeItem | DatabaseTreeItem): string {
+    public static makeLabel(cosmosExtensionItem: DBTreeItem): string {
         let label: string;
         if (cosmosExtensionItem.azureData) {
             label = cosmosExtensionItem.azureData.accountName;
@@ -35,7 +35,7 @@ export class CosmosDBConnection extends AzExtTreeItem {
             label = `${cosmosExtensionItem.hostName}:${cosmosExtensionItem.port}`;
         }
 
-        const dbName: string | undefined = (<DatabaseTreeItem>cosmosExtensionItem).databaseName;
+        const dbName: string | undefined = cosmosExtensionItem.databaseName;
         if (dbName) {
             label += `/${dbName}`;
         }

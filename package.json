@@ -816,6 +816,7 @@
         "open": "^8.0.4",
         "portfinder": "^1.0.25",
         "vscode-azureappservice": "^0.86.2",
+        "vscode-azuredatabases": "file:../vscode-azuretools/databases",
         "vscode-azureextensionui": "^0.48.5",
         "vscode-azurekudu": "^0.2.0",
         "vscode-nls": "^4.1.1"

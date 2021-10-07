@@ -6,8 +6,10 @@
 import { WebSiteManagementModels } from '@azure/arm-appservice';
 import * as vscode from 'vscode';
 import { IAppSettingsClient, ParsedSite, validateAppSettingKey } from 'vscode-azureappservice';
-import { AzExtParentTreeItem, AzExtTreeItem, GenericTreeItem, IActionContext, ICreateChildImplContext, openInPortal, TreeItemIconPath, UserCancelledError } from 'vscode-azureextensionui';
+import { ConnectDatabaseAccountPromptStep, ConnectDatabasePromptStep, DatabaseConnectionCreateStep, DBTreeItem, IConnectDBWizardContext } from 'vscode-azuredatabases';
+import { AzExtParentTreeItem, AzExtTreeItem, AzureWizard, AzureWizardPromptStep, GenericTreeItem, IActionContext, ICreateChildImplContext, LocationListStep, openInPortal, TreeItemIconPath, UserCancelledError } from 'vscode-azureextensionui';
 import { AzureExtensionApiProvider } from 'vscode-azureextensionui/api';
+import { revealConnection } from '../commands/connections/revealConnection';
 import { localize } from '../localize';
 import { nonNullProp } from '../utils/nonNull';
 import { getThemedIconPath } from '../utils/pathUtils';
@@ -69,7 +71,6 @@ export class CosmosDBTreeItem extends AzExtParentTreeItem {
         const client = await this.parent.site.createClient(context);
         const appSettings = (await client.listApplicationSettings()).properties || {};
         const connections: IDetectedConnection[] = this.detectMongoConnections(appSettings).concat(this.detectDocDBConnections(appSettings)).concat(this.detectPostgresConnections(appSettings));
-
         const treeItems = await this.createTreeItemsWithErrorHandling(
             connections,
             'invalidCosmosDBConnection',
@@ -78,7 +79,8 @@ export class CosmosDBTreeItem extends AzExtParentTreeItem {
                     connectionString: c.connectionString,
                     postgresData: c.postgresData
                 });
-                return databaseTreeItem ? new CosmosDBConnection(this, databaseTreeItem, c.keys) : undefined;
+                const database: DBTreeItem = { azureData: databaseTreeItem?.azureData, postgresData: databaseTreeItem?.postgresData, connectionString: databaseTreeItem?.connectionString, port: databaseTreeItem?.port, hostName: databaseTreeItem?.hostName, docDBData: databaseTreeItem?.docDBData };
+                return databaseTreeItem ? new CosmosDBConnection(this, database, c.keys) : undefined;
             },
             (c: IDetectedConnection) => c.keys[0] // just use first key for label if connection is invalid
         );
@@ -95,10 +97,26 @@ export class CosmosDBTreeItem extends AzExtParentTreeItem {
     }
 
     public async createChildImpl(context: ICreateChildImplContext): Promise<AzExtTreeItem> {
-        const cosmosDBApi = await this.getCosmosDBApi();
-        const databaseToAdd = await cosmosDBApi.pickTreeItem({
-            resourceType: 'Database'
+
+        const wizardContext: IConnectDBWizardContext = Object.assign(context, this.subscription);
+
+        const promptSteps: AzureWizardPromptStep<IConnectDBWizardContext>[] = [
+            new ConnectDatabaseAccountPromptStep(false),
+            new ConnectDatabasePromptStep(false)
+        ];
+
+        wizardContext.newResourceGroupName = this.site.resourceGroup;
+        await LocationListStep.setLocation(wizardContext, this.site.location);
+        const wizard = new AzureWizard(wizardContext, {
+            promptSteps,
+            executeSteps: [new DatabaseConnectionCreateStep()],
+            title: localize('createDBConnection', 'Create new Azure Databases Connection')
         });
+
+        await wizard.prompt();
+        await wizard.execute();
+
+        const databaseToAdd = wizardContext.databaseConnectionTreeItem;
         if (!databaseToAdd) {
             throw new UserCancelledError('cosmosDBpickTreeItem');
         }
@@ -153,7 +171,8 @@ export class CosmosDBTreeItem extends AzExtParentTreeItem {
         }
         void vscode.window.showInformationMessage(message, ...buttons).then(async (result: vscode.MessageItem | undefined) => {
             if (result === revealDatabase) {
-                await createdDatabase.cosmosExtensionItem.reveal();
+                // Don't wait
+                await revealConnection(context, createdDatabase);
             } else if (result === manageFirewallRules) {
                 const accountId: string | undefined = createdDatabase.cosmosExtensionItem.azureData?.accountId;
                 await openInPortal(this, `${accountId}/connectionSecurity`);
