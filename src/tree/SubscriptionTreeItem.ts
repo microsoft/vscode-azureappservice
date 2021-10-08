@@ -5,7 +5,9 @@
 
 import { WebSiteManagementClient, WebSiteManagementModels } from '@azure/arm-appservice';
 import { AppInsightsCreateStep, AppInsightsListStep, AppKind, AppServicePlanCreateStep, AppServicePlanListStep, AppServicePlanSkuStep, CustomLocationListStep, ParsedSite, setLocationsTask, SiteNameStep } from 'vscode-azureappservice';
+import { ConnectDatabaseAccountPromptStep, ConnectDatabasePromptStep, DatabaseConnectionCreateStep } from 'vscode-azuredatabases';
 import { AzExtTreeItem, AzureWizard, AzureWizardExecuteStep, AzureWizardPromptStep, createAzureClient, IActionContext, ICreateChildImplContext, LocationListStep, parseError, ResourceGroupCreateStep, ResourceGroupListStep, SubscriptionTreeItemBase, VerifyProvidersStep } from 'vscode-azureextensionui';
+import { addCosmosDBConnection } from '../commands/connections/addCosmosDBConnection';
 import { IWebAppWizardContext } from '../commands/createWebApp/IWebAppWizardContext';
 import { setPostPromptDefaults } from '../commands/createWebApp/setPostPromptDefaults';
 import { setPrePromptDefaults } from '../commands/createWebApp/setPrePromptDefaults';
@@ -93,9 +95,11 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
             executeSteps.push(new AppServicePlanCreateStep());
             executeSteps.push(new AppInsightsCreateStep());
         }
-
+        promptSteps.push(new ConnectDatabaseAccountPromptStep(false, false));
+        promptSteps.push(new ConnectDatabasePromptStep(false));
         executeSteps.push(new VerifyProvidersStep([webProvider, 'Microsoft.Insights']));
         executeSteps.push(new WebAppCreateStep());
+        executeSteps.push(new DatabaseConnectionCreateStep());
 
         if (wizardContext.newSiteOS !== undefined) {
             await setLocationsTask(wizardContext);
@@ -124,6 +128,10 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
         ext.outputChannel.appendLog(getCreatedWebAppMessage(site));
 
         const newNode: WebAppTreeItem = new WebAppTreeItem(this, site);
+        if (wizardContext.databaseConnectionTreeItem) {
+            await addCosmosDBConnection(context, newNode.connectionsNode, wizardContext.databaseConnectionTreeItem);
+        }
+
         try {
             //enable HTTP & Application logs (only for windows) by default
             await newNode.enableLogs(context);

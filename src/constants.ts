@@ -38,3 +38,12 @@ export const detectorTimestampFormat: string = 'YYYY-MM-DDTHH:mm';
 
 export const webProvider: string = 'Microsoft.Web';
 
+export const endpointSuffix: string = '_ENDPOINT';
+export const keySuffix: string = '_MASTER_KEY';
+export const databaseSuffix: string = '_DATABASE_ID';
+export const pgHostSuffix: string = '_DBHOST';
+export const pgDbNameSuffix: string = '_DBNAME';
+export const pgUserSuffix: string = '_DBUSER';
+export const pgPassSuffix: string = '_DBPASS';
+export const pgPortSuffix: string = '_DBPORT';
+

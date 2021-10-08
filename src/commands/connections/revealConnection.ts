@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
+import { DBTreeItem } from 'vscode-azuredatabases';
 import { IActionContext } from 'vscode-azureextensionui';
 import { AzureExtensionApiProvider } from 'vscode-azureextensionui/api';
 import { ext } from "../../extensionVariables";
@@ -13,15 +14,20 @@ import { nonNullProp } from '../../utils/nonNull';
 import { AzureDatabasesExtensionApi } from '../../vscode-cosmos.api';
 
 
-export async function revealConnection(context: IActionContext, node?: CosmosDBConnection): Promise<void> {
-    if (!node) {
-        node = await ext.tree.showTreeItemPicker<CosmosDBConnection>(CosmosDBConnection.contextValue, { ...context, suppressCreatePick: true });
-    }
+export async function revealConnection(context: IActionContext, node?: CosmosDBConnection, database?: DBTreeItem): Promise<void> {
     const cosmosDBApi = await getCosmosDBApi();
-    const azureData = nonNullProp(node.cosmosExtensionItem, 'azureData');
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-    cosmosDBApi?.revealTreeItem(azureData.accountId);
-
+    if (database) {
+        const azureData = nonNullProp(database, 'azureData');
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+        cosmosDBApi?.revealTreeItem(nonNullProp(azureData, 'accountId'));
+    } else {
+        if (!node) {
+            node = await ext.tree.showTreeItemPicker<CosmosDBConnection>(CosmosDBConnection.contextValue, { ...context, suppressCreatePick: true });
+        }
+        const azureData = nonNullProp(node.cosmosExtensionItem, 'azureData');
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+        cosmosDBApi?.revealTreeItem(nonNullProp(azureData, 'accountId'));
+    }
 }
 export async function getCosmosDBApi(): Promise<AzureDatabasesExtensionApi | undefined> {
 
