@@ -6,7 +6,7 @@
 import { WebSiteManagementModels } from '@azure/arm-appservice';
 import * as vscode from 'vscode';
 import { IAppSettingsClient, ParsedSite, validateAppSettingKey } from 'vscode-azureappservice';
-import { ConnectDatabaseAccountPromptStep, ConnectDatabasePromptStep, DatabaseConnectionCreateStep, DBTreeItem, IConnectDBWizardContext } from 'vscode-azuredatabases';
+import { ConnectDatabaseAccountPromptStep, ConnectDatabasePromptStep, DatabaseApiStep, DatabaseConnectionCreateStep, DBTreeItem, IConnectDBWizardContext } from 'vscode-azuredatabases';
 import { AzExtParentTreeItem, AzExtTreeItem, AzureWizard, AzureWizardPromptStep, GenericTreeItem, IActionContext, ICreateChildImplContext, LocationListStep, openInPortal, TreeItemIconPath, UserCancelledError } from 'vscode-azureextensionui';
 import { AzureExtensionApiProvider } from 'vscode-azureextensionui/api';
 import { revealConnection } from '../commands/connections/revealConnection';
@@ -101,7 +101,8 @@ export class CosmosDBTreeItem extends AzExtParentTreeItem {
         const wizardContext: IConnectDBWizardContext = Object.assign(context, this.subscription);
 
         const promptSteps: AzureWizardPromptStep<IConnectDBWizardContext>[] = [
-            new ConnectDatabaseAccountPromptStep(false),
+            new DatabaseApiStep(),
+            new ConnectDatabaseAccountPromptStep(false, true),
             new ConnectDatabasePromptStep(false)
         ];
 
