@@ -7,6 +7,7 @@ import { ExtensionContext, TreeView } from "vscode";
 import { AzExtTreeDataProvider, AzExtTreeItem, IAzExtOutputChannel, IExperimentationServiceAdapter } from "vscode-azureextensionui";
 import { AppServiceFileSystem } from "./AppServiceFileSystem";
 import { AzureAccountTreeItem } from "./tree/AzureAccountTreeItem";
+import { KeyTar } from "./utils/keytar";
 
 /**
  * Namespace for common variables used throughout the extension. They must be initialized in the activate() method of extension.ts
@@ -22,4 +23,5 @@ export namespace ext {
     export let treeView: TreeView<AzExtTreeItem>;
     export let azureAccountTreeItem: AzureAccountTreeItem;
     export let experimentationService: IExperimentationServiceAdapter;
+    export let keytar: KeyTar | undefined;
 }

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 /*---------------------------------------------------------------------------------------------
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
@@ -6,7 +7,7 @@
 import { WebSiteManagementModels } from '@azure/arm-appservice';
 import * as vscode from 'vscode';
 import { IAppSettingsClient, ParsedSite, validateAppSettingKey } from 'vscode-azureappservice';
-import { ConnectDatabaseAccountPromptStep, ConnectDatabasePromptStep, DatabaseApiStep, DatabaseConnectionCreateStep, DBTreeItem, IConnectDBWizardContext } from 'vscode-azuredatabases';
+import { ConnectDatabaseAccountPromptStep, ConnectDatabasePromptStep, DatabaseApiStep, DatabaseConnectionCreateStep, DBTreeItem, enterPostgresCredentials, IConnectDBWizardContext } from 'vscode-azuredatabases';
 import { AzExtParentTreeItem, AzExtTreeItem, AzureWizard, AzureWizardPromptStep, GenericTreeItem, IActionContext, ICreateChildImplContext, LocationListStep, openInPortal, TreeItemIconPath, UserCancelledError } from 'vscode-azureextensionui';
 import { AzureExtensionApiProvider } from 'vscode-azureextensionui/api';
 import { revealConnection } from '../commands/connections/revealConnection';
@@ -122,6 +123,29 @@ export class CosmosDBTreeItem extends AzExtParentTreeItem {
             throw new UserCancelledError('cosmosDBpickTreeItem');
         }
 
+        if (databaseToAdd.postgresData) {
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+            const creds: string[] | undefined = await enterPostgresCredentials(wizardContext, databaseToAdd);
+            if (!creds) {
+                const lookupUsername: vscode.MessageItem = { title: localize('lookupUsername', 'Lookup Username') };
+                const resetPassword: vscode.MessageItem = { title: localize('resetPassword', 'Reset Password') };
+                const message: string = localize('enterCredentialsFailed', 'Failed to enter credentials for server "{0}"', databaseToAdd.hostName);
+                // Don't wait
+                const buttons: vscode.MessageItem[] = [lookupUsername, resetPassword];
+                void vscode.window.showInformationMessage(message, ...buttons).then(async (result: vscode.MessageItem | undefined) => {
+                    const accountId: string | undefined = databaseToAdd.azureData?.accountId;
+                    if (result === lookupUsername) {
+                        await openInPortal(this, `${accountId}/overview`)
+                    } else if (result === manageFirewallRules) {
+                        await openInPortal(this, `${accountId}/overview`);
+                    }
+                });
+            } else {
+                const postgresData = databaseToAdd.postgresData;
+                databaseToAdd.postgresData = { username: creds[0], password: creds[1], serverType: postgresData.serverType }
+            }
+        }
+
         const client = await this.parent.site.createClient(context);
         const appSettingsDict = await client.listApplicationSettings();
         appSettingsDict.properties = appSettingsDict.properties || {};
@@ -169,6 +193,7 @@ export class CosmosDBTreeItem extends AzExtParentTreeItem {
         const buttons: vscode.MessageItem[] = [revealDatabase];
         if (createdDatabase.cosmosExtensionItem.azureData && createdDatabase.cosmosExtensionItem.postgresData) {
             buttons.push(manageFirewallRules);
+
         }
         void vscode.window.showInformationMessage(message, ...buttons).then(async (result: vscode.MessageItem | undefined) => {
             if (result === revealDatabase) {
