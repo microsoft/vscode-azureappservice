@@ -8,7 +8,7 @@ import { WebSiteManagementModels } from '@azure/arm-appservice';
 import * as vscode from 'vscode';
 import { IAppSettingsClient, ParsedSite, validateAppSettingKey } from 'vscode-azureappservice';
 import { ConnectDatabaseAccountPromptStep, ConnectDatabasePromptStep, DatabaseApiStep, DatabaseConnectionCreateStep, DBTreeItem, enterPostgresCredentials, IConnectDBWizardContext } from 'vscode-azuredatabases';
-import { AzExtParentTreeItem, AzExtTreeItem, AzureWizard, AzureWizardPromptStep, GenericTreeItem, IActionContext, ICreateChildImplContext, LocationListStep, openInPortal, TreeItemIconPath, UserCancelledError } from 'vscode-azureextensionui';
+import { AzExtParentTreeItem, AzExtTreeItem, AzureWizard, AzureWizardPromptStep, GenericTreeItem, IActionContext, ICreateChildImplContext, LocationListStep, openInPortal, parseError, TreeItemIconPath, UserCancelledError } from 'vscode-azureextensionui';
 import { AzureExtensionApiProvider } from 'vscode-azureextensionui/api';
 import { revealConnection } from '../commands/connections/revealConnection';
 import { localize } from '../localize';
@@ -127,10 +127,30 @@ export class CosmosDBTreeItem extends AzExtParentTreeItem {
         const appSettingsDict = await client.listApplicationSettings();
 
         appSettingsDict.properties = appSettingsDict.properties || {};
-        let newAppSettings: Map<string, string>;
+        let newAppSettings: Map<string, string> = new Map();
 
         if (databaseToAdd.postgresData) {
-            const creds: string[] | undefined = await enterPostgresCredentials(wizardContext, databaseToAdd);
+            let creds: string[] | undefined;
+            try {
+                creds = await enterPostgresCredentials(wizardContext, databaseToAdd);
+            } catch (e) {
+                if (parseError(e).errorType === 'UserCancelledError') {
+                    const lookupUsername: vscode.MessageItem = { title: localize('lookupUsername', 'Lookup Username') };
+                    const resetPassword: vscode.MessageItem = { title: localize('resetPassword', 'Reset Password') };
+                    const message: string = localize('enterCredentialsFailed', 'Failed to enter credentials for server "{0}". Cannot create this Database Connection without credentials. Please try again.', databaseToAdd.hostName);
+                    // Don't wait
+                    const buttons: vscode.MessageItem[] = [lookupUsername, resetPassword];
+                    void vscode.window.showInformationMessage(message, ...buttons).then(async (result: vscode.MessageItem | undefined) => {
+                        const accountId: string | undefined = databaseToAdd.azureData?.accountId;
+                        if (result === lookupUsername) {
+                            await openInPortal(this, `${accountId}/overview`)
+                        } else if (result === manageFirewallRules) {
+                            await openInPortal(this, `${accountId}/overview`);
+                        }
+                    });
+                    throw new UserCancelledError('dbConnectionCredentials');
+                }
+            }
             if (creds) {
                 const postgresData = databaseToAdd.postgresData;
                 databaseToAdd.postgresData = { username: creds[0], password: creds[1], serverType: postgresData.serverType };
@@ -143,22 +163,8 @@ export class CosmosDBTreeItem extends AzExtParentTreeItem {
                 ]);
                 const postgresSuffixes = [this._pgHostSuffix, this._pgDbNameSuffix, this._pgUserSuffix, this._pgPassSuffix, this._pgPortSuffix];
                 newAppSettings = await this.promptForAppSettings(context, appSettingsDict, postgresAppSettings, postgresSuffixes, 'POSTGRES');
-            } else {
-                const lookupUsername: vscode.MessageItem = { title: localize('lookupUsername', 'Lookup Username') };
-                const resetPassword: vscode.MessageItem = { title: localize('resetPassword', 'Reset Password') };
-                const message: string = localize('enterCredentialsFailed', 'Failed to enter credentials for server "{0}". Cannot create this Database Connection without credentials. Please try again.', databaseToAdd.hostName);
-                // Don't wait
-                const buttons: vscode.MessageItem[] = [lookupUsername, resetPassword];
-                void vscode.window.showInformationMessage(message, ...buttons).then(async (result: vscode.MessageItem | undefined) => {
-                    const accountId: string | undefined = databaseToAdd.azureData?.accountId;
-                    if (result === lookupUsername) {
-                        await openInPortal(this, `${accountId}/overview`)
-                    } else if (result === manageFirewallRules) {
-                        await openInPortal(this, `${accountId}/overview`);
-                    }
-                });
-                throw new UserCancelledError('dbConnectionCredentials');
             }
+
         } else if (databaseToAdd.docDBData) {
             const docdbAppSettings = new Map([
                 [this._endpointSuffix, nonNullProp(databaseToAdd, 'docDBData').documentEndpoint],
