@@ -9,9 +9,9 @@ import { IAppSettingsClient, ParsedSite, validateAppSettingKey } from 'vscode-az
 import { ConnectDatabaseAccountPromptStep, ConnectDatabasePromptStep, DatabaseApiStep, DatabaseConnectionCreateStep, DBTreeItem, IConnectDBWizardContext } from 'vscode-azuredatabases';
 import { AzExtParentTreeItem, AzExtTreeItem, AzureWizard, AzureWizardPromptStep, GenericTreeItem, IActionContext, ICreateChildImplContext, LocationListStep, openInPortal, TreeItemIconPath, UserCancelledError } from 'vscode-azureextensionui';
 import { AzureExtensionApiProvider } from 'vscode-azureextensionui/api';
-import { revealConnection } from '../commands/connections/revealConnection';
+import { getCosmosDBApi, revealConnection } from '../commands/connections/revealConnection';
 import { localize } from '../localize';
-import { nonNullProp } from '../utils/nonNull';
+import { nonNullProp, nonNullValue } from '../utils/nonNull';
 import { getThemedIconPath } from '../utils/pathUtils';
 import { AzureDatabasesExtensionApi } from '../vscode-cosmos.api';
 import { CosmosDBConnection } from './CosmosDBConnection';
@@ -67,7 +67,7 @@ export class CosmosDBTreeItem extends AzExtParentTreeItem {
             })];
         }
 
-        const cosmosDBApi = await this.getCosmosDBApi();
+        const cosmosDBApi = nonNullValue(await getCosmosDBApi());
         const client = await this.parent.site.createClient(context);
         const appSettings = (await client.listApplicationSettings()).properties || {};
         const connections: IDetectedConnection[] = this.detectMongoConnections(appSettings).concat(this.detectDocDBConnections(appSettings)).concat(this.detectPostgresConnections(appSettings));
@@ -79,7 +79,14 @@ export class CosmosDBTreeItem extends AzExtParentTreeItem {
                     connectionString: c.connectionString,
                     postgresData: c.postgresData
                 });
-                const database: DBTreeItem = { azureData: databaseTreeItem?.azureData, postgresData: databaseTreeItem?.postgresData, connectionString: databaseTreeItem?.connectionString, port: databaseTreeItem?.port, hostName: databaseTreeItem?.hostName, docDBData: databaseTreeItem?.docDBData };
+                const database: DBTreeItem = {
+                    azureData: databaseTreeItem?.azureData,
+                    postgresData: databaseTreeItem?.postgresData,
+                    connectionString: databaseTreeItem?.connectionString,
+                    port: databaseTreeItem?.port,
+                    hostName: databaseTreeItem?.hostName,
+                    docDBData: databaseTreeItem?.docDBData
+                };
                 return databaseTreeItem ? new CosmosDBConnection(this, database, c.keys) : undefined;
             },
             (c: IDetectedConnection) => c.keys[0] // just use first key for label if connection is invalid
@@ -172,7 +179,6 @@ export class CosmosDBTreeItem extends AzExtParentTreeItem {
         }
         void vscode.window.showInformationMessage(message, ...buttons).then(async (result: vscode.MessageItem | undefined) => {
             if (result === revealDatabase) {
-                // Don't wait
                 await revealConnection(context, createdDatabase);
             } else if (result === manageFirewallRules) {
                 const accountId: string | undefined = createdDatabase.cosmosExtensionItem.azureData?.accountId;
@@ -184,24 +190,6 @@ export class CosmosDBTreeItem extends AzExtParentTreeItem {
 
     public hasMoreChildrenImpl(): boolean {
         return false;
-    }
-
-    private async getCosmosDBApi(): Promise<AzureDatabasesExtensionApi> {
-        if (this._cosmosDBApi) {
-            return this._cosmosDBApi;
-        } else if (this.cosmosDBExtension) {
-            if (!this.cosmosDBExtension.isActive) {
-                await this.cosmosDBExtension.activate();
-            }
-
-            // The Cosmos DB extension just recently added support for 'AzureExtensionApiProvider' so we should do an additional check just to makes sure it's defined
-            if (this.cosmosDBExtension.exports) {
-                this._cosmosDBApi = this.cosmosDBExtension.exports.getApi<AzureDatabasesExtensionApi>('^1.0.0');
-                return this._cosmosDBApi;
-            }
-        }
-
-        throw new Error(localize('azureDbError', 'You must have the "Azure Databases" extension installed to perform this operation.'));
     }
 
     private detectMongoConnections(appSettings: { [propertyName: string]: string }): IDetectedConnection[] {
