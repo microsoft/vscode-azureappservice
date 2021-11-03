@@ -54,6 +54,7 @@ export async function setDatabasesAppSettings(context: IActionContext, databaseT
         const docdbSuffixes = [endpointSuffix, keySuffix, databaseSuffix];
         newAppSettings = await promptForAppSettings(context, appSettingsDict, docdbAppSettings, docdbSuffixes, 'AZURE_COSMOS', node);
     } else if (databaseToAdd.postgresData) {
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         const postgresAppSettings: Map<string | undefined, string | undefined> = new Map([
             [pgHostSuffix, databaseToAdd.hostName],
             [pgDbNameSuffix, databaseToAdd.databaseName],
