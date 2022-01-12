@@ -49,7 +49,8 @@ suite('Create Web App and deploy', function (this: Mocha.Suite): void {
             workspaceFolder: 'nodejs-docs-hello-world',
             versions: [
                 { version: '12', supportedAppOs: 'Both', displayText: '12 LTS' },
-                { version: '14', supportedAppOs: 'Both', displayText: '14 LTS' }
+                { version: '14', supportedAppOs: 'Both', displayText: '14 LTS' },
+                { version: '16', supportedAppOs: 'Linux', displayText: '16 LTS' }
             ]
         },
         {
@@ -65,7 +66,6 @@ suite('Create Web App and deploy', function (this: Mocha.Suite): void {
             runtimePrefix: 'Python',
             workspaceFolder: 'python-docs-hello-world',
             versions: [
-                { version: '3.6', supportedAppOs: 'Both', appOsToSkip: 'Windows' }, // Python on Windows has been deprecated for a while now, so not worth testing
                 { version: '3.7', supportedAppOs: 'Linux' },
                 { version: '3.8', supportedAppOs: 'Linux' },
                 { version: '3.9', supportedAppOs: 'Linux' }
