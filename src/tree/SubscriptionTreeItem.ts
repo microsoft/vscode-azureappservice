@@ -38,6 +38,7 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
 
         let webAppCollection: Site[];
         try {
+            // Load more currently broken https://github.com/Azure/azure-sdk-for-js/issues/20380
             webAppCollection = await uiUtils.listAllIterator(client.webApps.list());
         } catch (error) {
             if (parseError(error).errorType.toLowerCase() === 'notfound') {

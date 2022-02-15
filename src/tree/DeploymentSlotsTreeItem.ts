@@ -49,6 +49,7 @@ export class DeploymentSlotsTreeItem extends AzExtParentTreeItem {
         }
 
         const client: WebSiteManagementClient = await createWebSiteClient([context, this]);
+        // Load more currently broken https://github.com/Azure/azure-sdk-for-js/issues/20380
         const webAppCollection: Site[] = await uiUtils.listAllIterator(client.webApps.listSlots(this.parent.site.resourceGroup, this.parent.site.siteName));
 
         return webAppCollection.map(s => new DeploymentSlotTreeItem(this, new ParsedSite(s, this.subscription)));
