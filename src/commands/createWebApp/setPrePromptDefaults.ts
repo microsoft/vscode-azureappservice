@@ -3,11 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { IDeployContext } from '@microsoft/vscode-azext-azureappservice';
+import { LocationListStep } from '@microsoft/vscode-azext-azureutils';
+import { ICreateChildImplContext } from '@microsoft/vscode-azext-utils';
 import * as fse from 'fs-extra';
 import * as path from 'path';
 import { WorkspaceFolder } from 'vscode';
-import { IDeployContext } from 'vscode-azureappservice';
-import { ICreateChildImplContext, LocationListStep } from 'vscode-azureextensionui';
 import { javaUtils } from '../../utils/javaUtils';
 import { findFilesByFileExtension, getSingleRootWorkspace } from '../../utils/workspace';
 import { IWebAppWizardContext } from './IWebAppWizardContext';

@@ -3,10 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { WebSiteManagementClient, WebSiteManagementMappers, WebSiteManagementModels } from '@azure/arm-appservice';
+import { NameValuePair, Site, SiteConfig, WebSiteManagementClient } from '@azure/arm-appservice';
+import { CustomLocation, WebsiteOS } from '@microsoft/vscode-azext-azureappservice';
+import { LocationListStep } from '@microsoft/vscode-azext-azureutils';
+import { AzureWizardExecuteStep } from '@microsoft/vscode-azext-utils';
 import { Progress } from 'vscode';
-import { CustomLocation, WebsiteOS } from 'vscode-azureappservice';
-import { AzureWizardExecuteStep, LocationListStep } from 'vscode-azureextensionui';
 import * as constants from '../../constants';
 import { ext } from '../../extensionVariables';
 import { localize } from '../../localize';
@@ -39,18 +40,18 @@ export class WebAppCreateStep extends AzureWizardExecuteStep<IWebAppWizardContex
         const rgName: string = nonNullProp(nonNullProp(context, 'resourceGroup'), 'name');
 
         const client: WebSiteManagementClient = await createWebSiteClient(context);
-        context.site = await client.webApps.createOrUpdate(rgName, siteName, await this.getNewSite(context));
+        context.site = await client.webApps.beginCreateOrUpdateAndWait(rgName, siteName, await this.getNewSite(context));
     }
 
     public shouldExecute(context: IWebAppWizardContext): boolean {
         return !context.site;
     }
 
-    private async getNewSite(context: IWebAppWizardContext): Promise<WebSiteManagementModels.Site> {
+    private async getNewSite(context: IWebAppWizardContext): Promise<Site> {
         const location = await LocationListStep.getLocation(context, constants.webProvider);
-        const newSiteConfig: WebSiteManagementModels.SiteConfig = this.getSiteConfig(context);
+        const newSiteConfig: SiteConfig = this.getSiteConfig(context);
 
-        const site: WebSiteManagementModels.Site = {
+        const site: Site = {
             name: context.newSiteName,
             kind: this.getKind(context),
             location: nonNullProp(location, 'name'),
@@ -78,38 +79,12 @@ export class WebAppCreateStep extends AzureWizardExecuteStep<IWebAppWizardContex
         return kind;
     }
 
-    /**
-     * Has a few temporary workarounds so that the sdk allows some newer properties on the plan
-     */
-    private addCustomLocationProperties(site: WebSiteManagementModels.Site, customLocation: CustomLocation): void {
-        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-        WebSiteManagementMappers.Site.type.modelProperties!.extendedLocation = {
-            serializedName: 'extendedLocation',
-            type: {
-                name: "Composite",
-                modelProperties: {
-                    name: {
-                        serializedName: "name",
-                        type: {
-                            name: "String"
-                        }
-                    },
-                    type: {
-                        serializedName: "type",
-                        type: {
-                            name: "String"
-                        }
-                    }
-                }
-            }
-        };
-
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-explicit-any
-        (<any>site).extendedLocation = { name: customLocation.id, type: 'customLocation' };
+    private addCustomLocationProperties(site: Site, customLocation: CustomLocation): void {
+        site.extendedLocation = { name: customLocation.id, type: 'customLocation' };
     }
 
-    private getSiteConfig(context: IWebAppWizardContext): WebSiteManagementModels.SiteConfig {
-        const newSiteConfig: WebSiteManagementModels.SiteConfig = {};
+    private getSiteConfig(context: IWebAppWizardContext): SiteConfig {
+        const newSiteConfig: SiteConfig = {};
 
         newSiteConfig.appSettings = this.getAppSettings(context);
 
@@ -152,8 +127,8 @@ export class WebAppCreateStep extends AzureWizardExecuteStep<IWebAppWizardContex
         return newSiteConfig;
     }
 
-    private getAppSettings(context: IWebAppWizardContext): WebSiteManagementModels.NameValuePair[] {
-        const appSettings: WebSiteManagementModels.NameValuePair[] = [];
+    private getAppSettings(context: IWebAppWizardContext): NameValuePair[] {
+        const appSettings: NameValuePair[] = [];
         const disabled: string = 'disabled';
         const trueString: string = 'true';
 

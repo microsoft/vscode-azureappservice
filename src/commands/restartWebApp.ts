@@ -3,8 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { IActionContext } from "@microsoft/vscode-azext-utils";
 import { commands } from "vscode";
-import { IActionContext } from "vscode-azureextensionui";
 import { ext } from "../extensionVariables";
 import { SiteTreeItem } from "../tree/SiteTreeItem";
 import { WebAppTreeItem } from "../tree/WebAppTreeItem";

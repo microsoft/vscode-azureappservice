@@ -3,9 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as appservice from "vscode-azureappservice";
-import { DeploymentsTreeItem } from "vscode-azureappservice";
-import { IActionContext } from "vscode-azureextensionui";
+import * as appservice from "@microsoft/vscode-azext-azureappservice";
+import { DeploymentsTreeItem } from "@microsoft/vscode-azext-azureappservice";
+import { IActionContext } from "@microsoft/vscode-azext-utils";
 import { ScmType } from "../../constants";
 import { ext } from "../../extensionVariables";
 import { SiteTreeItem } from "../../tree/SiteTreeItem";

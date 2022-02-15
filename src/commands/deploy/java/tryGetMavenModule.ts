@@ -6,7 +6,7 @@
 import * as parser from 'fast-xml-parser';
 import * as fse from 'fs-extra';
 import * as path from 'path';
-import { IDeployContext } from 'vscode-azureappservice';
+import { IDeployContext } from '@microsoft/vscode-azext-azureappservice';
 
 type MavenModule = { path: string, artifactId: string, artifactFinalName: string };
 type MavenPom = {

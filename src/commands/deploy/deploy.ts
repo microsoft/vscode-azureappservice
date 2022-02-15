@@ -3,13 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { WebSiteManagementModels } from '@azure/arm-appservice';
+import { SiteConfigResource, StringDictionary } from '@azure/arm-appservice';
+import * as appservice from '@microsoft/vscode-azext-azureappservice';
+import { getDeployFsPath, getDeployNode, IDeployContext, IDeployPaths, showDeployConfirmation, SiteClient } from '@microsoft/vscode-azext-azureappservice';
+import { IActionContext, parseError } from '@microsoft/vscode-azext-utils';
 import { pathExists } from 'fs-extra';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import * as appservice from 'vscode-azureappservice';
-import { getDeployFsPath, getDeployNode, IDeployContext, IDeployPaths, showDeployConfirmation, SiteClient } from 'vscode-azureappservice';
-import { IActionContext, parseError } from 'vscode-azureextensionui';
 import * as constants from '../../constants';
 import { ext } from '../../extensionVariables';
 import { localize } from '../../localize';
@@ -32,7 +32,7 @@ const postDeployCancelTokens: Map<string, vscode.CancellationTokenSource> = new 
 
 export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | SiteTreeItem, arg2?: (vscode.Uri | SiteTreeItem)[], isNewApp: boolean = false): Promise<void> {
     actionContext.telemetry.properties.deployedWithConfigs = 'false';
-    let siteConfig: WebSiteManagementModels.SiteConfigResource | undefined;
+    let siteConfig: SiteConfigResource | undefined;
     let client: SiteClient;
     if (arg1 instanceof SiteTreeItem) {
         client = await arg1.site.createClient(actionContext);
@@ -63,7 +63,7 @@ export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | 
     const isZipDeploy: boolean = siteConfig.scmType !== constants.ScmType.LocalGit && siteConfig !== constants.ScmType.GitHub;
     // only check enableScmDoBuildDuringDeploy if currentWorkspace matches the workspace being deployed as a user can "Browse" to a different project
     if (getWorkspaceSetting<boolean>(constants.configurationSettings.showBuildDuringDeployPrompt, context.effectiveDeployFsPath)) {
-        const remoteSettings: WebSiteManagementModels.StringDictionary = await client.listApplicationSettings();
+        const remoteSettings: StringDictionary = await client.listApplicationSettings();
         const hasSCMDoBuildSetting: boolean = !!remoteSettings.properties && 'SCM_DO_BUILD_DURING_DEPLOYMENT' in remoteSettings.properties;
         //check if node is being zipdeployed and that there is no .deployment file
         if (!hasSCMDoBuildSetting && siteConfig.linuxFxVersion && isZipDeploy && !(await pathExists(path.join(context.effectiveDeployFsPath, constants.deploymentFileName)))) {

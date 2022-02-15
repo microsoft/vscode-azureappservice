@@ -3,8 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { WebSiteManagementModels } from '@azure/arm-appservice';
-import { AzExtTreeItem, IActionContext } from 'vscode-azureextensionui';
+import { AppServicePlan } from '@azure/arm-appservice';
+import { AzExtTreeItem, IActionContext } from '@microsoft/vscode-azext-utils';
 import { ext } from '../extensionVariables';
 import { nonNullProp, nonNullValue } from '../utils/nonNull';
 import { DeploymentSlotsNATreeItem, DeploymentSlotsTreeItem } from './DeploymentSlotsTreeItem';
@@ -22,7 +22,7 @@ export class WebAppTreeItem extends SiteTreeItem {
 
     public async loadMoreChildrenImpl(clearCache: boolean, context: IActionContext): Promise<AzExtTreeItem[]> {
         let tier: string | undefined;
-        let asp: WebSiteManagementModels.AppServicePlan | undefined;
+        let asp: AppServicePlan | undefined;
         try {
             const client = await this.site.createClient(context);
             asp = await client.getAppServicePlan();

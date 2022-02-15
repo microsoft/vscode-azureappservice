@@ -5,7 +5,7 @@
 
 import * as path from 'path';
 import { MessageItem, TaskDefinition } from 'vscode';
-import { IDeployContext } from 'vscode-azureappservice';
+import { IDeployContext } from '@microsoft/vscode-azext-azureappservice';
 import * as constants from '../../../constants';
 import { localize } from "../../../localize";
 import { updateWorkspaceSetting } from '../../../vsCodeConfig/settings';

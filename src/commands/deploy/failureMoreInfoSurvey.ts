@@ -3,15 +3,15 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { WebSiteManagementModels } from '@azure/arm-appservice';
+import { SiteConfigResource } from '@azure/arm-appservice';
+import { DialogResponses, IParsedError } from '@microsoft/vscode-azext-utils';
 import { env, MessageItem, Uri, window } from 'vscode';
-import { DialogResponses, IParsedError } from 'vscode-azureextensionui';
 import { localize } from "../../localize";
 import { LinuxRuntimes } from "../createWebApp/LinuxRuntimes";
 
 const SURVEY_URL: string = 'https://aka.ms/AppServiceExtDeploymentFeedback';
 
-function shouldPromptForSurvey(error: IParsedError, siteConfig: WebSiteManagementModels.SiteConfigResource): string | null {
+function shouldPromptForSurvey(error: IParsedError, siteConfig: SiteConfigResource): string | null {
     if (siteConfig.linuxFxVersion?.toLowerCase().startsWith(LinuxRuntimes.python)) {
         const msg: string = error.message.toLowerCase();
         if (msg.includes("the service is unavailable")) {
@@ -56,7 +56,7 @@ async function showSurveyPopup(message: string, uri: Uri): Promise<void> {
     }
 }
 
-export function failureMoreInfoSurvey(error: IParsedError, siteConfig: WebSiteManagementModels.SiteConfigResource): boolean {
+export function failureMoreInfoSurvey(error: IParsedError, siteConfig: SiteConfigResource): boolean {
     if (env.language !== 'en' && !env.language.startsWith('en-')) {
         return false;
     }

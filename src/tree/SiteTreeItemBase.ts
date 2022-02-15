@@ -3,7 +3,7 @@
 *  Licensed under the MIT License. See License.txt in the project root for license information.
 *--------------------------------------------------------------------------------------------*/
 
-import { AzExtParentTreeItem, TreeItemIconPath } from 'vscode-azureextensionui';
+import { AzExtParentTreeItem, TreeItemIconPath } from '@microsoft/vscode-azext-utils';
 import { getIconPath } from '../utils/pathUtils';
 
 export abstract class SiteTreeItemBase extends AzExtParentTreeItem {

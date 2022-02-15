@@ -3,8 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { DeploymentsTreeItem } from "vscode-azureappservice";
-import { AzExtTreeItem, IActionContext, openInPortal as uiOpenInPortal } from "vscode-azureextensionui";
+import { DeploymentsTreeItem } from "@microsoft/vscode-azext-azureappservice";
+import { openInPortal as uiOpenInPortal } from '@microsoft/vscode-azext-azureutils';
+import { AzExtTreeItem, IActionContext } from "@microsoft/vscode-azext-utils";
 import { ext } from "../extensionVariables";
 import { DeploymentSlotsTreeItem } from "../tree/DeploymentSlotsTreeItem";
 import { WebAppTreeItem } from "../tree/WebAppTreeItem";

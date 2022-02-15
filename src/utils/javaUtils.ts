@@ -3,13 +3,11 @@
 *  Licensed under the MIT License. See License.txt in the project root for license information.
 *--------------------------------------------------------------------------------------------*/
 
-import { WebSiteManagementModels } from "@azure/arm-appservice";
-// eslint-disable-next-line import/no-internal-modules
-import { SiteConfigResource } from "@azure/arm-appservice/esm/models";
+import { SiteConfigResource, StringDictionary } from "@azure/arm-appservice";
+import { IActionContext, UserCancelledError } from '@microsoft/vscode-azext-utils';
 import * as fse from 'fs-extra';
 import * as path from 'path';
 import { workspace } from "vscode";
-import { IActionContext, UserCancelledError } from 'vscode-azureextensionui';
 import { localize } from "../localize";
 import { SiteTreeItem } from "../tree/SiteTreeItem";
 
@@ -39,7 +37,7 @@ export namespace javaUtils {
         return ['jar', 'war'];
     }
 
-    function isJavaSERequiredPortConfigured(appSettings: WebSiteManagementModels.StringDictionary | undefined): boolean {
+    function isJavaSERequiredPortConfigured(appSettings: StringDictionary | undefined): boolean {
         if (appSettings && appSettings.properties) {
             for (const key of Object.keys(appSettings.properties)) {
                 if (key.toUpperCase() === PORT_KEY) {
@@ -81,9 +79,9 @@ export namespace javaUtils {
         return await fse.pathExists(path.join(fsPath, 'pom.xml')) || await fse.pathExists(path.join(fsPath, 'build.gradle'));
     }
 
-    export async function configureJavaSEAppSettings(context: IActionContext, node: SiteTreeItem): Promise<WebSiteManagementModels.StringDictionary | undefined> {
+    export async function configureJavaSEAppSettings(context: IActionContext, node: SiteTreeItem): Promise<StringDictionary | undefined> {
         const client = await node.site.createClient(context);
-        const appSettings: WebSiteManagementModels.StringDictionary = await client.listApplicationSettings();
+        const appSettings: StringDictionary = await client.listApplicationSettings();
         if (isJavaSERequiredPortConfigured(appSettings)) {
             return undefined;
         }
@@ -104,7 +102,7 @@ export namespace javaUtils {
         return client.updateApplicationSettings(appSettings);
     }
 
-    export async function getJavaFileExtensions(siteConfig: WebSiteManagementModels.SiteConfigResource | undefined): Promise<string[] | undefined> {
+    export async function getJavaFileExtensions(siteConfig: SiteConfigResource | undefined): Promise<string[] | undefined> {
         if (isJavaSERuntime(siteConfig)) {
             return ['jar'];
         } else if (isJavaWebContainerRuntime(siteConfig)) {

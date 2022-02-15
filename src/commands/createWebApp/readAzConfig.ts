@@ -4,7 +4,7 @@
 *--------------------------------------------------------------------------------------------*/
 
 import { WorkspaceFolder } from 'vscode';
-import { IDeployContext } from 'vscode-azureappservice';
+import { IDeployContext } from '@microsoft/vscode-azext-azureappservice';
 import { cpUtils } from '../../utils/cpUtils';
 import { getSingleRootWorkspace } from '../../utils/workspace';
 import { IWebAppWizardContext } from './IWebAppWizardContext';

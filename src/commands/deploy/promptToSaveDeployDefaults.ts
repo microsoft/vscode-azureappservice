@@ -3,9 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { DialogResponses, IActionContext } from "@microsoft/vscode-azext-utils";
 import * as path from 'path';
 import { MessageItem } from "vscode";
-import { DialogResponses, IActionContext } from "vscode-azureextensionui";
 import * as constants from '../../constants';
 import { localize } from '../../localize';
 import { SiteTreeItem } from '../../tree/SiteTreeItem';

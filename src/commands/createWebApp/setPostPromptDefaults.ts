@@ -3,10 +3,11 @@
 *  Licensed under the MIT License. See License.txt in the project root for license information.
 *--------------------------------------------------------------------------------------------*/
 
-import { WebSiteManagementClient, WebSiteManagementModels } from '@azure/arm-appservice';
+import { AppServicePlan, WebSiteManagementClient } from '@azure/arm-appservice';
+import { SiteNameStep, tryGetAppServicePlan, WebsiteOS } from "@microsoft/vscode-azext-azureappservice";
+import { AzExtLocation, LocationListStep, uiUtils } from '@microsoft/vscode-azext-azureutils';
+import { DialogResponses, IActionContext, parseError } from "@microsoft/vscode-azext-utils";
 import { MessageItem } from "vscode";
-import { SiteNameStep, tryGetAppServicePlan, WebsiteOS } from "vscode-azureappservice";
-import { AzExtLocation, DialogResponses, IActionContext, LocationListStep, parseError } from "vscode-azureextensionui";
 import { localize } from "../../localize";
 import { createWebSiteClient } from "../../utils/azureClients";
 import { getResourceGroupFromId } from '../../utils/azureUtils';
@@ -39,7 +40,7 @@ export async function setPostPromptDefaults(wizardContext: IWebAppWizardContext,
 
     try {
         const client: WebSiteManagementClient = await createWebSiteClient(wizardContext);
-        const asp: WebSiteManagementModels.AppServicePlan | undefined = await tryGetAppServicePlan(client, defaultGroupName, defaultPlanName);
+        const asp: AppServicePlan | undefined = await tryGetAppServicePlan(client, defaultGroupName, defaultPlanName);
         const hasPerfDrop = checkPlanForPerformanceDrop(asp);
         if (asp && (hasPerfDrop || !matchesTier(asp, newSkuTier))) {
             // Subscriptions can only have 1 free tier Linux plan so show a warning if there are too many apps on the plan
@@ -50,8 +51,8 @@ export async function setPostPromptDefaults(wizardContext: IWebAppWizardContext,
             } else {
                 // Check if there are plans prefixed with default name that match the tier and don't have a performance drop. If so, use that plan. Otherwise, create a new rg and asp using `getRelatedName`
 
-                const allAppServicePlans: WebSiteManagementModels.AppServicePlan[] = await client.appServicePlans.list();
-                const defaultPlans: WebSiteManagementModels.AppServicePlan[] = allAppServicePlans.filter(plan => {
+                const allAppServicePlans: AppServicePlan[] = await uiUtils.listAllIterator(client.appServicePlans.list());
+                const defaultPlans: AppServicePlan[] = allAppServicePlans.filter(plan => {
                     return plan.name && plan.name.includes(defaultPlanName) && getResourceGroupFromId(nonNullProp(plan, 'id')).includes(defaultGroupName);
                 });
 
@@ -59,7 +60,7 @@ export async function setPostPromptDefaults(wizardContext: IWebAppWizardContext,
                 for (const plan of defaultPlans) {
                     if (plan.name) {
                         const groupName: string = getResourceGroupFromId(nonNullProp(plan, 'id'));
-                        const fullPlanData: WebSiteManagementModels.AppServicePlan | undefined = await tryGetAppServicePlan(client, groupName, plan.name);
+                        const fullPlanData: AppServicePlan | undefined = await tryGetAppServicePlan(client, groupName, plan.name);
                         if (fullPlanData && matchesTier(fullPlanData, newSkuTier) && !checkPlanForPerformanceDrop(fullPlanData)) {
                             wizardContext.newResourceGroupName = groupName;
                             wizardContext.newPlanName = plan.name;
@@ -94,7 +95,7 @@ export async function setPostPromptDefaults(wizardContext: IWebAppWizardContext,
     }
 }
 
-function matchesTier(asp: WebSiteManagementModels.AppServicePlan | undefined, tier: string): boolean {
+function matchesTier(asp: AppServicePlan | undefined, tier: string): boolean {
     return normalizeTier(asp?.sku?.tier) === normalizeTier(tier);
 }
 
@@ -102,7 +103,7 @@ function normalizeTier(tier: string | undefined): string | undefined {
     return tier?.toLowerCase().replace(/\s/g, '');
 }
 
-function checkPlanForPerformanceDrop(asp: WebSiteManagementModels.AppServicePlan | undefined): boolean {
+function checkPlanForPerformanceDrop(asp: AppServicePlan | undefined): boolean {
     // for free and basic plans, there is a perf drop after 3 active apps are running
     if (asp && asp.numberOfSites !== undefined && asp.numberOfSites >= maxNumberOfSites) {
         const tier: string | undefined = asp.sku && asp.sku.tier;
@@ -114,7 +115,7 @@ function checkPlanForPerformanceDrop(asp: WebSiteManagementModels.AppServicePlan
     return false;
 }
 
-async function promptPerformanceWarning(context: IActionContext, asp: WebSiteManagementModels.AppServicePlan): Promise<void> {
+async function promptPerformanceWarning(context: IActionContext, asp: AppServicePlan): Promise<void> {
     context.telemetry.properties.performanceWarning = 'true';
     const showPlanPerformanceWarningSetting: string = 'showPlanPerformanceWarning';
     const showPerfWarning: boolean | undefined = getWorkspaceSetting(showPlanPerformanceWarningSetting);

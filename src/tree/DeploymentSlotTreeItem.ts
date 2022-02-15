@@ -3,8 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ParsedSite } from 'vscode-azureappservice';
-import { TreeItemIconPath } from 'vscode-azureextensionui';
+import { ParsedSite } from '@microsoft/vscode-azext-azureappservice';
+import { TreeItemIconPath } from '@microsoft/vscode-azext-utils';
 import { nonNullProp } from '../utils/nonNull';
 import { getThemedIconPath } from '../utils/pathUtils';
 import { DeploymentSlotsTreeItem } from './DeploymentSlotsTreeItem';

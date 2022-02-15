@@ -4,8 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { ServiceClient } from '@azure/ms-rest-js';
+import { createGenericClient } from '@microsoft/vscode-azext-azureutils';
+import { IActionContext } from "@microsoft/vscode-azext-utils";
 import * as moment from 'moment';
-import { createGenericClient, IActionContext } from "vscode-azureextensionui";
 import { detectorTimestampFormat } from "../../constants";
 import { localize } from "../../localize";
 import { SiteTreeItem } from "../../tree/SiteTreeItem";
