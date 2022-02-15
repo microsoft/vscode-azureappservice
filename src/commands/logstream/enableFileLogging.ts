@@ -3,9 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { LogFilesTreeItem } from '@microsoft/vscode-azext-azureappservice';
+import { DialogResponses, IActionContext } from '@microsoft/vscode-azext-utils';
 import * as vscode from 'vscode';
-import { LogFilesTreeItem } from 'vscode-azureappservice';
-import { DialogResponses, IActionContext } from 'vscode-azureextensionui';
 import { ext } from '../../extensionVariables';
 import { localize } from '../../localize';
 import { SiteTreeItem } from "../../tree/SiteTreeItem";

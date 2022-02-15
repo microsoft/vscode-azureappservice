@@ -3,9 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { WebSiteManagementClient, WebSiteManagementModels } from '@azure/arm-appservice';
-import { AppInsightsCreateStep, AppInsightsListStep, AppKind, AppServicePlanCreateStep, AppServicePlanListStep, AppServicePlanSkuStep, CustomLocationListStep, ParsedSite, setLocationsTask, SiteNameStep } from 'vscode-azureappservice';
-import { AzExtTreeItem, AzureWizard, AzureWizardExecuteStep, AzureWizardPromptStep, createAzureClient, IActionContext, ICreateChildImplContext, LocationListStep, parseError, ResourceGroupCreateStep, ResourceGroupListStep, SubscriptionTreeItemBase, VerifyProvidersStep } from 'vscode-azureextensionui';
+import { Site, WebSiteManagementClient } from '@azure/arm-appservice';
+import { AppInsightsCreateStep, AppInsightsListStep, AppKind, AppServicePlanCreateStep, AppServicePlanListStep, AppServicePlanSkuStep, CustomLocationListStep, ParsedSite, setLocationsTask, SiteNameStep } from '@microsoft/vscode-azext-azureappservice';
+import { createAzureClient, LocationListStep, ResourceGroupCreateStep, ResourceGroupListStep, SubscriptionTreeItemBase, uiUtils, VerifyProvidersStep } from '@microsoft/vscode-azext-azureutils';
+import { AzExtTreeItem, AzureWizard, AzureWizardExecuteStep, AzureWizardPromptStep, IActionContext, ICreateChildImplContext, parseError } from '@microsoft/vscode-azext-utils';
 import { IWebAppWizardContext } from '../commands/createWebApp/IWebAppWizardContext';
 import { setPostPromptDefaults } from '../commands/createWebApp/setPostPromptDefaults';
 import { setPrePromptDefaults } from '../commands/createWebApp/setPrePromptDefaults';
@@ -35,11 +36,9 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
 
         const client: WebSiteManagementClient = createAzureClient([context, this], WebSiteManagementClient);
 
-        let webAppCollection: WebSiteManagementModels.WebAppCollection;
+        let webAppCollection: Site[];
         try {
-            webAppCollection = this._nextLink ?
-                await client.webApps.listNext(this._nextLink) :
-                await client.webApps.list();
+            webAppCollection = await uiUtils.listAllIterator(client.webApps.list());
         } catch (error) {
             if (parseError(error).errorType.toLowerCase() === 'notfound') {
                 // This error type means the 'Microsoft.Web' provider has not been registered in this subscription
@@ -50,8 +49,6 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
                 throw error;
             }
         }
-
-        this._nextLink = webAppCollection.nextLink;
 
         return await this.createTreeItemsWithErrorHandling(
             webAppCollection,
@@ -118,7 +115,7 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
 
         await wizard.execute();
 
-        const rawSite: WebSiteManagementModels.Site = nonNullProp(wizardContext, 'site');
+        const rawSite: Site = nonNullProp(wizardContext, 'site');
         // site is set as a result of SiteCreateStep.execute()
         const site = new ParsedSite(rawSite, wizardContext);
         ext.outputChannel.appendLog(getCreatedWebAppMessage(site));

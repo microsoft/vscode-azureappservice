@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { AzExtParentTreeItem, AzExtTreeItem, IActionContext } from 'vscode-azureextensionui';
+import { AzExtParentTreeItem, AzExtTreeItem, IActionContext } from '@microsoft/vscode-azext-utils';
 import { ext } from "../../extensionVariables";
 import { CosmosDBTreeItem } from '../../tree/CosmosDBTreeItem';
 import { nonNullProp } from '../../utils/nonNull';

@@ -3,9 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { AppSettingTreeItem, registerSiteCommand } from '@microsoft/vscode-azext-azureappservice';
+import { openInPortal as uiOpenInPortal } from '@microsoft/vscode-azext-azureutils';
+import { AzExtTreeItem, IActionContext, registerCommand } from '@microsoft/vscode-azext-utils';
 import { commands } from 'vscode';
-import { AppSettingTreeItem, registerSiteCommand } from 'vscode-azureappservice';
-import { AzExtTreeItem, IActionContext, openInPortal as uiOpenInPortal, registerCommand } from 'vscode-azureextensionui';
 import { ext } from '../extensionVariables';
 import { DeploymentSlotsNATreeItem, ScaleUpTreeItem } from '../tree/DeploymentSlotsTreeItem';
 import { addAppSetting } from './appSettings/addAppSetting';

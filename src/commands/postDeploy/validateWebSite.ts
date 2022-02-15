@@ -4,8 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { HttpOperationResponse, RestError, ServiceClient } from '@azure/ms-rest-js';
+import { createGenericClient } from '@microsoft/vscode-azext-azureutils';
+import { callWithTelemetryAndErrorHandling, IActionContext, UserCancelledError } from '@microsoft/vscode-azext-utils';
 import { CancellationTokenSource } from 'vscode';
-import { callWithTelemetryAndErrorHandling, createGenericClient, IActionContext, UserCancelledError } from 'vscode-azureextensionui';
 import { SiteTreeItem } from '../../tree/SiteTreeItem';
 import { delay } from '../../utils/delay';
 

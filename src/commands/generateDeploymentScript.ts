@@ -4,10 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { ResourceManagementClient } from "@azure/arm-resources";
+import { IActionContext } from "@microsoft/vscode-azext-utils";
 import * as fse from 'fs-extra';
 import * as path from 'path';
 import { ProgressLocation, window, workspace } from "vscode";
-import { IActionContext } from "vscode-azureextensionui";
 import { ext } from "../extensionVariables";
 import { localize } from "../localize";
 import { WebAppTreeItem } from "../tree/WebAppTreeItem";

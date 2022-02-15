@@ -5,7 +5,7 @@
 
 import * as fse from 'fs-extra';
 import * as path from 'path';
-import { IDeployContext } from 'vscode-azureappservice';
+import { IDeployContext } from '@microsoft/vscode-azext-azureappservice';
 
 export async function tryGetCsprojFile(context: IDeployContext, projectPath: string): Promise<string | undefined> {
     const projectFiles: string[] = await checkFolderForCsproj(projectPath);

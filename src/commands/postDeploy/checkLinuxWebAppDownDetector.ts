@@ -4,9 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import moment = require("moment");
+import { createKuduClient } from "@microsoft/vscode-azext-azureappservice";
+import { openInPortal } from '@microsoft/vscode-azext-azureutils';
+import { callWithTelemetryAndErrorHandling, IActionContext, UserCancelledError } from "@microsoft/vscode-azext-utils";
 import { CancellationTokenSource } from "vscode";
-import { createKuduClient } from "vscode-azureappservice";
-import { callWithTelemetryAndErrorHandling, IActionContext, openInPortal, UserCancelledError } from "vscode-azureextensionui";
 import { KuduClient, KuduModels } from "vscode-azurekudu";
 import { detectorTimestampFormat } from '../../constants';
 import { ext } from '../../extensionVariables';

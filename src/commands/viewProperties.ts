@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IActionContext, openReadOnlyJson } from 'vscode-azureextensionui';
+import { IActionContext, openReadOnlyJson } from '@microsoft/vscode-azext-utils';
 import { ext } from '../extensionVariables';
 import { localize } from '../localize';
 import { SiteTreeItem } from '../tree/SiteTreeItem';

@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { AzExtParentTreeItem } from "vscode-azureextensionui";
+import { AzExtParentTreeItem } from "@microsoft/vscode-azext-utils";
 
 export abstract class NotAvailableTreeItem extends AzExtParentTreeItem {
     public constructor(parent: AzExtParentTreeItem) {

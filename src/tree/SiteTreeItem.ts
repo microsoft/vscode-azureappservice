@@ -3,9 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { WebSiteManagementModels } from '@azure/arm-appservice';
-import { AppSettingsTreeItem, AppSettingTreeItem, deleteSite, DeploymentsTreeItem, DeploymentTreeItem, FolderTreeItem, LogFilesTreeItem, ParsedSite, SiteFilesTreeItem } from 'vscode-azureappservice';
-import { AzExtParentTreeItem, AzExtTreeItem, IActionContext } from 'vscode-azureextensionui';
+import { SiteConfig, SiteLogsConfig, SiteSourceControl } from '@azure/arm-appservice';
+import { AppSettingsTreeItem, AppSettingTreeItem, deleteSite, DeploymentsTreeItem, DeploymentTreeItem, FolderTreeItem, LogFilesTreeItem, ParsedSite, SiteFilesTreeItem } from '@microsoft/vscode-azext-azureappservice';
+import { AzExtParentTreeItem, AzExtTreeItem, IActionContext } from '@microsoft/vscode-azext-utils';
 import { nonNullValue } from '../utils/nonNull';
 import { openUrl } from '../utils/openUrl';
 import { CosmosDBConnection } from './CosmosDBConnection';
@@ -87,8 +87,8 @@ export abstract class SiteTreeItem extends SiteTreeItemBase implements ISiteTree
 
     public async loadMoreChildrenImpl(_clearCache: boolean, context: IActionContext): Promise<AzExtTreeItem[]> {
         const client = await this.site.createClient(context);
-        const siteConfig: WebSiteManagementModels.SiteConfig = await client.getSiteConfig();
-        const sourceControl: WebSiteManagementModels.SiteSourceControl = await client.getSourceControl();
+        const siteConfig: SiteConfig = await client.getSiteConfig();
+        const sourceControl: SiteSourceControl = await client.getSourceControl();
         this.deploymentsNode = new DeploymentsTreeItem(this, this.site, siteConfig, sourceControl);
         return [this.appSettingsNode, this._connectionsNode, this.deploymentsNode, this._siteFilesNode, this._logFilesNode, this._webJobsNode];
     }
@@ -137,12 +137,12 @@ export abstract class SiteTreeItem extends SiteTreeItemBase implements ISiteTree
 
     public async isHttpLogsEnabled(context: IActionContext): Promise<boolean> {
         const client = await this.site.createClient(context);
-        const logsConfig: WebSiteManagementModels.SiteLogsConfig = await client.getLogsConfig();
+        const logsConfig: SiteLogsConfig = await client.getLogsConfig();
         return !!(logsConfig.httpLogs && logsConfig.httpLogs.fileSystem && logsConfig.httpLogs.fileSystem.enabled);
     }
 
     public async enableLogs(context: IActionContext): Promise<void> {
-        const logsConfig: WebSiteManagementModels.SiteLogsConfig = {};
+        const logsConfig: SiteLogsConfig = {};
         if (!this.site.isLinux) {
             logsConfig.applicationLogs = {
                 fileSystem: {

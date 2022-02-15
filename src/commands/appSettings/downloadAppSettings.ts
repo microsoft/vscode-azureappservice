@@ -3,14 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { WebSiteManagementModels } from "@azure/arm-appservice";
+import { StringDictionary } from "@azure/arm-appservice";
+import { AppSettingsTreeItem, confirmOverwriteSettings, IAppSettingsClient } from "@microsoft/vscode-azext-azureappservice";
+import { IActionContext, UserCancelledError } from "@microsoft/vscode-azext-utils";
 import { DotenvParseOutput } from "dotenv";
 import * as fse from 'fs-extra';
 import * as os from 'os';
 import * as vscode from 'vscode';
 import { window } from "vscode";
-import { AppSettingsTreeItem, confirmOverwriteSettings, IAppSettingsClient } from "vscode-azureappservice";
-import { IActionContext, UserCancelledError } from "vscode-azureextensionui";
 import { envFileName } from "../../constants";
 import { ext } from "../../extensionVariables";
 import { localize } from "../../localize";
@@ -31,7 +31,7 @@ export async function downloadAppSettings(context: IActionContext, node?: AppSet
     await node.runWithTemporaryDescription(context, localize('downloading', 'Downloading...'), async () => {
         ext.outputChannel.appendLog(localize('downloadingSettings', 'Downloading settings from "{0}"...', client.fullName));
         const localEnvVariables: DotenvParseOutput = await getLocalEnvironmentVariables(context, envVarPath, true /* allowOverwrite */);
-        const remoteEnvVariables: WebSiteManagementModels.StringDictionary = await client.listApplicationSettings();
+        const remoteEnvVariables: StringDictionary = await client.listApplicationSettings();
         if (remoteEnvVariables.properties) {
             await confirmOverwriteSettings(context, remoteEnvVariables.properties, localEnvVariables, envFileName);
         }

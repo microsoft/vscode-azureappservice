@@ -39,7 +39,7 @@ export async function beginDeleteResourceGroup(resourceGroup: string): Promise<v
     const client: ResourceManagementClient = await createResourceClient([await createTestActionContext(), <ISubscriptionContext>testAccount.getSubscriptionContext()]);
     if ((await client.resourceGroups.checkExistence(resourceGroup)).body) {
         console.log(`Started delete of resource group "${resourceGroup}"...`);
-        await client.resourceGroups.beginDeleteMethod(resourceGroup);
+        await client.resourceGroups.beginDeleteAndWait(resourceGroup);
         console.log(`Successfully started delete of resource group "${resourceGroup}".`);
     } else {
         // If the test failed, the resource group might not actually exist

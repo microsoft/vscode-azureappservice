@@ -3,11 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { WebSiteManagementModels } from "@azure/arm-appservice";
+import { StringDictionary } from "@azure/arm-appservice";
+import { AppSettingsTreeItem, confirmOverwriteSettings, IAppSettingsClient } from "@microsoft/vscode-azext-azureappservice";
+import { IActionContext } from "@microsoft/vscode-azext-utils";
 import * as dotenv from 'dotenv';
 import { Uri, window } from "vscode";
-import { AppSettingsTreeItem, confirmOverwriteSettings, IAppSettingsClient } from "vscode-azureappservice";
-import { IActionContext } from "vscode-azureextensionui";
 import { envFileName } from "../../constants";
 import { ext } from "../../extensionVariables";
 import { localize } from "../../localize";
@@ -35,7 +35,7 @@ export async function uploadAppSettings(context: IActionContext, target?: Uri | 
     await node.runWithTemporaryDescription(context, localize('uploading', 'Uploading settings to "{0}"...', client.fullName), async () => {
         const localEnvVariables: dotenv.DotenvParseOutput = await getLocalEnvironmentVariables(context, envPath);
         if (Object.keys(localEnvVariables).length > 0) {
-            const remoteSettings: WebSiteManagementModels.StringDictionary = await client.listApplicationSettings();
+            const remoteSettings: StringDictionary = await client.listApplicationSettings();
             if (!remoteSettings.properties) {
                 remoteSettings.properties = {};
             }

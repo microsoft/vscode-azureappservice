@@ -3,9 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { FileTreeItem, getFile, ISiteFile, putFile } from "@microsoft/vscode-azext-azureappservice";
+import { AzExtTreeFileSystem, DialogResponses, IActionContext, IParsedError, parseError, UserCancelledError } from '@microsoft/vscode-azext-utils';
 import { FileStat, FileType, MessageItem, Uri } from "vscode";
-import { FileTreeItem, getFile, ISiteFile, putFile } from "vscode-azureappservice";
-import { AzExtTreeFileSystem, DialogResponses, IActionContext, IParsedError, parseError, UserCancelledError } from 'vscode-azureextensionui';
 import { ext } from "./extensionVariables";
 import { localize } from "./localize";
 import { nonNullValue } from "./utils/nonNull";

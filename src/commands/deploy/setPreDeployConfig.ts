@@ -5,7 +5,7 @@
 
 import * as fse from 'fs-extra';
 import * as path from 'path';
-import { IDeployContext } from 'vscode-azureappservice';
+import { IDeployContext } from '@microsoft/vscode-azext-azureappservice';
 import * as constants from '../../constants';
 import { isPathEqual } from '../../utils/pathUtils';
 import { getWorkspaceSetting } from '../../vsCodeConfig/settings';

@@ -4,7 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { HttpOperationResponse, ServiceClient } from '@azure/ms-rest-js';
-import { createGenericClient, IAzureQuickPickItem, parseError } from 'vscode-azureextensionui';
+import { createGenericClient } from '@microsoft/vscode-azext-azureutils';
+import { IAzureQuickPickItem, parseError } from '@microsoft/vscode-azext-utils';
 import { localize } from '../../../localize';
 import { getWorkspaceSetting } from '../../../vsCodeConfig/settings';
 import { FullJavaStack, FullWebAppStack, IWebAppWizardContext } from '../IWebAppWizardContext';

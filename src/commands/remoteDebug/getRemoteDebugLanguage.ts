@@ -3,13 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { WebSiteManagementModels } from '@azure/arm-appservice';
-import { RemoteDebugLanguage } from 'vscode-azureappservice';
-import { IActionContext } from 'vscode-azureextensionui';
+import { SiteConfigResource } from '@azure/arm-appservice';
+import { RemoteDebugLanguage } from '@microsoft/vscode-azext-azureappservice';
+import { IActionContext } from '@microsoft/vscode-azext-utils';
 import { localize } from '../../localize';
 import { getWorkspaceSetting } from '../../vsCodeConfig/settings';
 
-export function getRemoteDebugLanguage(siteConfig: WebSiteManagementModels.SiteConfigResource, context: IActionContext): RemoteDebugLanguage {
+export function getRemoteDebugLanguage(siteConfig: SiteConfigResource, context: IActionContext): RemoteDebugLanguage {
     // We read siteConfig.linuxFxVersion to find the image version:
     //   If the app is running Windows, it will be empty
     //   If the app is running a blessed Linux image, it will contain the language and version, e.g. "NODE|8.11"

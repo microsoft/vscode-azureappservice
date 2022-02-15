@@ -3,12 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { WebSiteManagementModels } from '@azure/arm-appservice';
+import { Site } from '@azure/arm-appservice';
 import { HttpOperationResponse, ServiceClient } from '@azure/ms-rest-js';
+import { tryGetWebApp } from '@microsoft/vscode-azext-azureappservice';
 import * as assert from 'assert';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { tryGetWebApp } from 'vscode-azureappservice';
 import { createTestActionContext, runWithTestActionContext } from 'vscode-azureextensiondev';
 import { createGenericClient, createWebAppAdvanced, deploy, ext, getRandomHexString, nonNullProp, WebAppTreeItem } from '../../extension.bundle';
 import { longRunningTestsEnabled } from '../global.test';
@@ -126,7 +126,7 @@ suite('Create Web App and deploy', function (this: Mocha.Suite): void {
                 await createWebAppAdvanced(context);
             });
         });
-        const createdApp: WebSiteManagementModels.Site | undefined = await tryGetWebApp(webSiteClient, resourceGroupName, resourceName);
+        const createdApp: Site | undefined = await tryGetWebApp(webSiteClient, resourceGroupName, resourceName);
         assert.ok(createdApp);
 
         await runWithTestActionContext('Deploy', async context => {

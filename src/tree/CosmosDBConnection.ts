@@ -3,10 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { WebSiteManagementModels } from '@azure/arm-appservice';
+import { StringDictionary } from '@azure/arm-appservice';
+import { IAppSettingsClient } from '@microsoft/vscode-azext-azureappservice';
+import { AzExtTreeItem, DialogResponses, IActionContext, TreeItemIconPath } from '@microsoft/vscode-azext-utils';
 import { ThemeIcon } from 'vscode';
-import { IAppSettingsClient } from 'vscode-azureappservice';
-import { AzExtTreeItem, DialogResponses, IActionContext, TreeItemIconPath } from 'vscode-azureextensionui';
 import { localize } from '../localize';
 import { DatabaseAccountTreeItem, DatabaseTreeItem } from '../vscode-cosmos.api';
 import { CosmosDBTreeItem } from './CosmosDBTreeItem';
@@ -49,7 +49,7 @@ export class CosmosDBConnection extends AzExtTreeItem {
 
     public async deleteTreeItemImpl(context: IActionContext): Promise<void> {
         const appSettingsClient: IAppSettingsClient = await this.parent.site.createClient(context);
-        const appSettings: WebSiteManagementModels.StringDictionary = await appSettingsClient.listApplicationSettings();
+        const appSettings: StringDictionary = await appSettingsClient.listApplicationSettings();
         if (appSettings.properties) {
             const warning: string = localize(
                 'removeConnection', 'Are you sure you want to remove connection "{0}"? This will delete the following application settings: {1}',

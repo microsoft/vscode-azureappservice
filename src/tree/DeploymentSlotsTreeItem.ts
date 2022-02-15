@@ -3,9 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { WebSiteManagementClient, WebSiteManagementModels } from '@azure/arm-appservice';
-import { createSlot, ParsedSite } from 'vscode-azureappservice';
-import { AzExtParentTreeItem, AzExtTreeItem, IActionContext, ICreateChildImplContext, TreeItemIconPath } from 'vscode-azureextensionui';
+import { Site, WebSiteManagementClient } from '@azure/arm-appservice';
+import { createSlot, ParsedSite } from '@microsoft/vscode-azext-azureappservice';
+import { uiUtils } from '@microsoft/vscode-azext-azureutils';
+import { AzExtParentTreeItem, AzExtTreeItem, IActionContext, ICreateChildImplContext, TreeItemIconPath } from '@microsoft/vscode-azext-utils';
 import { getCreatedWebAppMessage } from '../commands/createWebApp/showCreatedWebAppMessage';
 import { ext } from '../extensionVariables';
 import { localize } from '../localize';
@@ -48,18 +49,14 @@ export class DeploymentSlotsTreeItem extends AzExtParentTreeItem {
         }
 
         const client: WebSiteManagementClient = await createWebSiteClient([context, this]);
-        const webAppCollection: WebSiteManagementModels.WebAppCollection = this._nextLink ?
-            await client.webApps.listSlotsNext(this._nextLink) :
-            await client.webApps.listSlots(this.parent.site.resourceGroup, this.parent.site.siteName);
-
-        this._nextLink = webAppCollection.nextLink;
+        const webAppCollection: Site[] = await uiUtils.listAllIterator(client.webApps.listSlots(this.parent.site.resourceGroup, this.parent.site.siteName));
 
         return webAppCollection.map(s => new DeploymentSlotTreeItem(this, new ParsedSite(s, this.subscription)));
     }
 
     public async createChildImpl(context: ICreateChildImplContext): Promise<AzExtTreeItem> {
         const existingSlots = (<DeploymentSlotTreeItem[]>await this.getCachedChildren(context)).map(ti => ti.site);
-        const rawSite: WebSiteManagementModels.Site = await createSlot(this.parent.site, existingSlots, context);
+        const rawSite: Site = await createSlot(this.parent.site, existingSlots, context);
         const site = new ParsedSite(rawSite, this.subscription);
         ext.outputChannel.appendLog(getCreatedWebAppMessage(site));
         return new DeploymentSlotTreeItem(this, site);

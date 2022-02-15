@@ -3,11 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { WebSiteManagementModels } from '@azure/arm-appservice';
+import { StringDictionary } from '@azure/arm-appservice';
+import { IAppSettingsClient, ParsedSite, validateAppSettingKey } from '@microsoft/vscode-azext-azureappservice';
+import { openInPortal } from '@microsoft/vscode-azext-azureutils';
+import { AzExtParentTreeItem, AzExtTreeItem, GenericTreeItem, IActionContext, ICreateChildImplContext, TreeItemIconPath, UserCancelledError } from '@microsoft/vscode-azext-utils';
+import { AzureExtensionApiProvider } from '@microsoft/vscode-azext-utils/api';
 import * as vscode from 'vscode';
-import { IAppSettingsClient, ParsedSite, validateAppSettingKey } from 'vscode-azureappservice';
-import { AzExtParentTreeItem, AzExtTreeItem, GenericTreeItem, IActionContext, ICreateChildImplContext, openInPortal, TreeItemIconPath, UserCancelledError } from 'vscode-azureextensionui';
-import { AzureExtensionApiProvider } from 'vscode-azureextensionui/api';
 import { localize } from '../localize';
 import { nonNullProp } from '../utils/nonNull';
 import { getThemedIconPath } from '../utils/pathUtils';
@@ -279,7 +280,7 @@ export class CosmosDBTreeItem extends AzExtParentTreeItem {
         return result;
     }
 
-    private async promptForAppSettings(context: IActionContext, appSettingsDict: WebSiteManagementModels.StringDictionary, accountAppSettings: Map<string | undefined, string | undefined>, suffixes: string[] | undefined, defaultPrefixString: string): Promise<Map<string, string>> {
+    private async promptForAppSettings(context: IActionContext, appSettingsDict: StringDictionary, accountAppSettings: Map<string | undefined, string | undefined>, suffixes: string[] | undefined, defaultPrefixString: string): Promise<Map<string, string>> {
         const prompt: string = suffixes ? localize('enterPrefix', 'Enter new connection setting prefix') : localize('enterKey', 'Enter new connection setting key');
         const errorMsg: string = suffixes ? localize('prefixError', 'Connection setting prefix cannot be empty.') : localize('keyError', 'Connection setting key cannot be empty.');
         const client = await this.parent.site.createClient(context);
@@ -312,7 +313,7 @@ export class CosmosDBTreeItem extends AzExtParentTreeItem {
         return result;
     }
 
-    private validateAppSettingPrefix(client: IAppSettingsClient, prefix: string, appSettingsDict: WebSiteManagementModels.StringDictionary, suffixes: string[] | undefined): string | undefined {
+    private validateAppSettingPrefix(client: IAppSettingsClient, prefix: string, appSettingsDict: StringDictionary, suffixes: string[] | undefined): string | undefined {
         if (suffixes) {
             return suffixes.reduce<string | undefined>((result, suffix) => result || validateAppSettingKey(appSettingsDict, client, prefix + suffix), undefined);
         }

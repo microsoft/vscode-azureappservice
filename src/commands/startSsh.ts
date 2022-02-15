@@ -3,12 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { WebSiteManagementModels } from '@azure/arm-appservice';
+import { SiteConfigResource, User } from '@azure/arm-appservice';
+import { reportMessage, setRemoteDebug, TunnelProxy } from '@microsoft/vscode-azext-azureappservice';
+import { IActionContext } from '@microsoft/vscode-azext-utils';
 import * as portfinder from 'portfinder';
 import * as vscode from 'vscode';
 import { TerminalDataWriteEvent } from 'vscode';
-import { reportMessage, setRemoteDebug, TunnelProxy } from 'vscode-azureappservice';
-import { IActionContext } from 'vscode-azureextensionui';
 import { ext } from '../extensionVariables';
 import { localize } from '../localize';
 import { SiteTreeItem } from '../tree/SiteTreeItem';
@@ -66,12 +66,12 @@ async function startSshInternal(context: IActionContext, node: SiteTreeItem): Pr
 
         const client = await node.site.createClient(context);
         const confirmDisableMessage: string = localize('confirmDisable', 'Remote debugging must be disabled in order to SSH. This will restart the app.');
-        const siteConfig: WebSiteManagementModels.SiteConfigResource = await client.getSiteConfig();
+        const siteConfig: SiteConfigResource = await client.getSiteConfig();
         // remote debugging has to be disabled in order to tunnel to the 2222 port
         await setRemoteDebug(context, false, confirmDisableMessage, undefined, node.site, siteConfig, progress, token);
 
         reportMessage(localize('initSsh', 'Initializing SSH...'), progress, token);
-        const publishCredential: WebSiteManagementModels.User = await client.getWebAppPublishCredential();
+        const publishCredential: User = await client.getWebAppPublishCredential();
         const localHostPortNumber: number = await portfinder.getPortPromise();
         // should always be an unbound port
         const tunnelProxy: TunnelProxy = new TunnelProxy(localHostPortNumber, node.site, publishCredential, true);

@@ -3,9 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { WebSiteManagementModels } from '@azure/arm-appservice';
+import { Site, SiteConfigResource, StringDictionary } from '@azure/arm-appservice';
+import { tryGetWebApp, WebsiteOS } from '@microsoft/vscode-azext-azureappservice';
 import * as assert from 'assert';
-import { tryGetWebApp, WebsiteOS } from 'vscode-azureappservice';
 import { runWithTestActionContext } from 'vscode-azureextensiondev';
 import { addAppSetting, constants, createWebAppAdvanced, deleteAppSetting, deleteWebApp, DialogResponses, editScmType, getRandomHexString } from '../../extension.bundle';
 import { longRunningTestsEnabled } from '../global.test';
@@ -33,7 +33,7 @@ suite('Web App actions', function (this: Mocha.Suite): void {
                 await createWebAppAdvanced(context);
             });
         });
-        const createdApp: WebSiteManagementModels.Site | undefined = await tryGetWebApp(webSiteClient, resourceName, resourceName);
+        const createdApp: Site | undefined = await tryGetWebApp(webSiteClient, resourceName, resourceName);
         assert.ok(createdApp);
     });
 
@@ -49,12 +49,12 @@ suite('Web App actions', function (this: Mocha.Suite): void {
                 await createWebAppAdvanced(context);
             });
         });
-        const createdApp: WebSiteManagementModels.Site | undefined = await tryGetWebApp(webSiteClient, resourceGroupName, webAppName);
+        const createdApp: Site | undefined = await tryGetWebApp(webSiteClient, resourceGroupName, webAppName);
         assert.ok(createdApp);
     });
 
     test(`Configure Deployment Source to LocalGit for ${WebsiteOS0} Web App`, async () => {
-        let createdApp: WebSiteManagementModels.SiteConfigResource = await webSiteClient.webApps.getConfiguration(resourceName, resourceName);
+        let createdApp: SiteConfigResource = await webSiteClient.webApps.getConfiguration(resourceName, resourceName);
         assert.notStrictEqual(createdApp?.scmType, constants.ScmType.LocalGit, `Web App scmType's property value shouldn't be ${createdApp?.scmType} before "Configure Deployment Source to LocalGit".`);
         await runWithTestActionContext('ConfigureDeploymentSource', async context => {
             await context.ui.runWithInputs([resourceName, constants.ScmType.LocalGit], async () => {
@@ -66,7 +66,7 @@ suite('Web App actions', function (this: Mocha.Suite): void {
     });
 
     test(`Configure Deployment Source to None for ${WebsiteOS0} Web App`, async () => {
-        let createdApp: WebSiteManagementModels.SiteConfigResource = await webSiteClient.webApps.getConfiguration(resourceName, resourceName);
+        let createdApp: SiteConfigResource = await webSiteClient.webApps.getConfiguration(resourceName, resourceName);
         assert.notStrictEqual(createdApp?.scmType, constants.ScmType.None, `Web App scmType's property value shouldn't be ${createdApp?.scmType} before "Configure Deployment Source to None".`);
         await runWithTestActionContext('ConfigureDeploymentSource', async context => {
             await context.ui.runWithInputs([resourceName, constants.ScmType.None], async () => {
@@ -80,7 +80,7 @@ suite('Web App actions', function (this: Mocha.Suite): void {
     test(`Add and delete settings for ${WebsiteOS0} Web App`, async () => {
         const appSettingKey: string = getRandomHexString();
         const appSettingValue: string = getRandomHexString();
-        const createdApp: WebSiteManagementModels.Site | undefined = await tryGetWebApp(webSiteClient, resourceName, resourceName);
+        const createdApp: Site | undefined = await tryGetWebApp(webSiteClient, resourceName, resourceName);
         assert.ok(createdApp);
         await runWithTestActionContext('appSettings.Add', async context => {
             await context.ui.runWithInputs([resourceName, appSettingKey, appSettingValue], async () => {
@@ -97,20 +97,20 @@ suite('Web App actions', function (this: Mocha.Suite): void {
     });
 
     test(`Delete Web App for ${WebsiteOS0} Web App`, async () => {
-        const createdApp: WebSiteManagementModels.Site | undefined = await tryGetWebApp(webSiteClient, resourceName, resourceName);
+        const createdApp: Site | undefined = await tryGetWebApp(webSiteClient, resourceName, resourceName);
         assert.ok(createdApp);
         await runWithTestActionContext('Delete', async context => {
             await context.ui.runWithInputs([resourceName, DialogResponses.deleteResponse.title, DialogResponses.yes.title], async () => {
                 await deleteWebApp(context);
             });
         });
-        const deletedApp: WebSiteManagementModels.Site | undefined = await tryGetWebApp(webSiteClient, resourceName, resourceName);
+        const deletedApp: Site | undefined = await tryGetWebApp(webSiteClient, resourceName, resourceName);
         assert.ifError(deletedApp); // if app was deleted, get() returns null.  assert.ifError throws if the value passed is not null/undefined
     });
 
     async function getAppSettingValue(resourceGroupName: string, webAppName: string, key: string): Promise<string | undefined> {
         let value: string | undefined;
-        const listAppSettings: WebSiteManagementModels.StringDictionary = await webSiteClient.webApps.listApplicationSettings(resourceGroupName, webAppName);
+        const listAppSettings: StringDictionary = await webSiteClient.webApps.listApplicationSettings(resourceGroupName, webAppName);
         if (listAppSettings.properties) {
             value = listAppSettings.properties[key];
         }
