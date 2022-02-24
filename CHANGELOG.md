@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.23.1 - 2022-02-24
+### Changed
+- Adopt VS Code's new [proposal API guidelines](https://github.com/microsoft/vscode/blob/fc7fb5d480418d149ee226ebd45e9c590e240cb5/src/vscode-dts/README.md)
+
 ## 0.23.0 - 2021-08-06
 ### Added
 - Smart defaults for deploying Java projects (adds settings and tasks for one-click deployment)
