@@ -9,7 +9,7 @@ import { tryGetWebApp } from '@microsoft/vscode-azext-azureappservice';
 import * as assert from 'assert';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { createTestActionContext, runWithTestActionContext } from 'vscode-azureextensiondev';
+import { createTestActionContext, runWithTestActionContext } from '@microsoft/vscode-azext-dev';
 import { createGenericClient, createWebAppAdvanced, deploy, ext, getRandomHexString, nonNullProp, WebAppTreeItem } from '../../extension.bundle';
 import { longRunningTestsEnabled } from '../global.test';
 import { getRotatingLocation, getRotatingPricingTier } from './getRotatingValue';
