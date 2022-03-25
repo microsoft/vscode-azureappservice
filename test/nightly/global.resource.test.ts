@@ -7,7 +7,7 @@ import { WebSiteManagementClient } from '@azure/arm-appservice';
 import { ResourceManagementClient } from "@azure/arm-resources";
 import * as vscode from 'vscode';
 import { createTestActionContext, TestAzureAccount } from 'vscode-azureextensiondev';
-import { AzExtTreeDataProvider, AzureAccountTreeItem, createResourceClient, createWebSiteClient, ext, ISubscriptionContext } from '../../extension.bundle';
+import { AzureAccountTreeItem, createResourceClient, createWebSiteClient, ext, ISubscriptionContext } from '../../extension.bundle';
 import { longRunningTestsEnabled } from '../global.test';
 
 export let testAccount: TestAzureAccount;
@@ -20,7 +20,6 @@ suiteSetup(async function (this: Mocha.Context): Promise<void> {
         testAccount = new TestAzureAccount(vscode);
         await testAccount.signIn();
         ext.azureAccountTreeItem = new AzureAccountTreeItem(testAccount);
-        ext.tree = new AzExtTreeDataProvider(ext.azureAccountTreeItem, 'appService.loadMore');
         webSiteClient = await createWebSiteClient([await createTestActionContext(), <ISubscriptionContext>testAccount.getSubscriptionContext()]);
     }
 });

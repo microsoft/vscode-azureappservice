@@ -11,8 +11,8 @@ import * as vscode from 'vscode';
 import { TerminalDataWriteEvent } from 'vscode';
 import { ext } from '../extensionVariables';
 import { localize } from '../localize';
+import { ResolvedWebAppResource } from '../tree/ResolvedWebAppResource';
 import { SiteTreeItem } from '../tree/SiteTreeItem';
-import { WebAppTreeItem } from '../tree/WebAppTreeItem';
 
 export type sshTerminal = {
     starting: boolean,
@@ -33,7 +33,7 @@ export const sshURL = 'root@127.0.0.1';
  */
 export async function startSsh(context: IActionContext, node?: SiteTreeItem): Promise<void> {
     if (!node) {
-        node = <SiteTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue, context);
+        node = <SiteTreeItem>await ext.rgApi.tree.showTreeItemPicker(new RegExp(ResolvedWebAppResource.webAppContextValue), context);
     }
 
     const currentSshTerminal: sshTerminal | undefined = sshSessionsMap.get(node.site.fullName);

@@ -8,12 +8,13 @@ import { openInPortal as uiOpenInPortal } from '@microsoft/vscode-azext-azureuti
 import { AzExtTreeItem, IActionContext } from "@microsoft/vscode-azext-utils";
 import { ext } from "../extensionVariables";
 import { DeploymentSlotsTreeItem } from "../tree/DeploymentSlotsTreeItem";
-import { WebAppTreeItem } from "../tree/WebAppTreeItem";
+import { ResolvedWebAppResource } from "../tree/ResolvedWebAppResource";
+import { SiteTreeItem } from "../tree/SiteTreeItem";
 import { nonNullProp } from "../utils/nonNull";
 
 export async function openInPortal(context: IActionContext, node?: AzExtTreeItem): Promise<void> {
     if (!node) {
-        node = await ext.tree.showTreeItemPicker<WebAppTreeItem>(WebAppTreeItem.contextValue, context);
+        node = await ext.rgApi.tree.showTreeItemPicker<SiteTreeItem>(new RegExp(ResolvedWebAppResource.webAppContextValue), context);
     }
 
     switch (node.contextValue) {

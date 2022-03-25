@@ -8,12 +8,12 @@ import { DeploymentsTreeItem } from "@microsoft/vscode-azext-azureappservice";
 import { IActionContext } from "@microsoft/vscode-azext-utils";
 import { ScmType } from "../../constants";
 import { ext } from "../../extensionVariables";
+import { ResolvedWebAppResource } from "../../tree/ResolvedWebAppResource";
 import { SiteTreeItem } from "../../tree/SiteTreeItem";
-import { WebAppTreeItem } from "../../tree/WebAppTreeItem";
 
 export async function editScmType(context: IActionContext, node?: SiteTreeItem | DeploymentsTreeItem, newScmType?: ScmType, showToast?: boolean): Promise<void> {
     if (!node) {
-        node = <SiteTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue, context);
+        node = <SiteTreeItem>await ext.rgApi.tree.showTreeItemPicker(new RegExp(ResolvedWebAppResource.webAppContextValue), context);
     } else if (node instanceof DeploymentsTreeItem) {
         node = <SiteTreeItem>node.parent;
     }

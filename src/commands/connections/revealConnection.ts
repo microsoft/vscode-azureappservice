@@ -9,7 +9,7 @@ import { CosmosDBConnection } from '../../tree/CosmosDBConnection';
 
 export async function revealConnection(context: IActionContext, node?: CosmosDBConnection): Promise<void> {
     if (!node) {
-        node = await ext.tree.showTreeItemPicker<CosmosDBConnection>(CosmosDBConnection.contextValue, { ...context, suppressCreatePick: true });
+        node = await ext.rgApi.tree.showTreeItemPicker<CosmosDBConnection>(CosmosDBConnection.contextValue, { ...context, suppressCreatePick: true });
     }
 
     await node.cosmosExtensionItem.reveal();

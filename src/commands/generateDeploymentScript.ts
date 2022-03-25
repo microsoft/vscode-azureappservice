@@ -10,14 +10,15 @@ import * as path from 'path';
 import { ProgressLocation, window, workspace } from "vscode";
 import { ext } from "../extensionVariables";
 import { localize } from "../localize";
-import { WebAppTreeItem } from "../tree/WebAppTreeItem";
+import { ResolvedWebAppResource } from "../tree/ResolvedWebAppResource";
+import { SiteTreeItem } from "../tree/SiteTreeItem";
 import { createResourceClient } from "../utils/azureClients";
 import { nonNullValue } from "../utils/nonNull";
 import { getResourcesPath } from "../utils/pathUtils";
 
-export async function generateDeploymentScript(context: IActionContext, node?: WebAppTreeItem): Promise<void> {
+export async function generateDeploymentScript(context: IActionContext, node?: SiteTreeItem): Promise<void> {
     if (!node) {
-        node = await ext.tree.showTreeItemPicker<WebAppTreeItem>(WebAppTreeItem.contextValue, context);
+        node = await ext.rgApi.tree.showTreeItemPicker<SiteTreeItem>(new RegExp(ResolvedWebAppResource.webAppContextValue), context);
     }
 
     await window.withProgress({ location: ProgressLocation.Window }, async p => {

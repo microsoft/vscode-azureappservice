@@ -12,7 +12,6 @@ import { ext } from '../extensionVariables';
 import { localize } from '../localize';
 import { createWebSiteClient } from '../utils/azureClients';
 import { getThemedIconPath } from '../utils/pathUtils';
-import { DeploymentSlotTreeItem } from './DeploymentSlotTreeItem';
 import { NotAvailableTreeItem } from './NotAvailableTreeItem';
 import { SiteTreeItem } from './SiteTreeItem';
 
@@ -52,15 +51,15 @@ export class DeploymentSlotsTreeItem extends AzExtParentTreeItem {
         // Load more currently broken https://github.com/Azure/azure-sdk-for-js/issues/20380
         const webAppCollection: Site[] = await uiUtils.listAllIterator(client.webApps.listSlots(this.parent.site.resourceGroup, this.parent.site.siteName));
 
-        return webAppCollection.map(s => new DeploymentSlotTreeItem(this, new ParsedSite(s, this.subscription)));
+        return webAppCollection.map(s => new SiteTreeItem(this, new ParsedSite(s, this.subscription)));
     }
 
     public async createChildImpl(context: ICreateChildImplContext): Promise<AzExtTreeItem> {
-        const existingSlots = (<DeploymentSlotTreeItem[]>await this.getCachedChildren(context)).map(ti => ti.site);
+        const existingSlots = (<SiteTreeItem[]>await this.getCachedChildren(context)).map(ti => ti.site);
         const rawSite: Site = await createSlot(this.parent.site, existingSlots, context);
         const site = new ParsedSite(rawSite, this.subscription);
         ext.outputChannel.appendLog(getCreatedWebAppMessage(site));
-        return new DeploymentSlotTreeItem(this, site);
+        return new SiteTreeItem(this, site);
     }
 }
 

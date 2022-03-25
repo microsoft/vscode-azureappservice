@@ -6,12 +6,12 @@
 import * as appservice from '@microsoft/vscode-azext-azureappservice';
 import { IActionContext } from '@microsoft/vscode-azext-utils';
 import { ext } from '../../extensionVariables';
+import { ResolvedWebAppResource } from '../../tree/ResolvedWebAppResource';
 import { SiteTreeItem } from '../../tree/SiteTreeItem';
-import { WebAppTreeItem } from '../../tree/WebAppTreeItem';
 
 export async function stopStreamingLogs(context: IActionContext, node?: SiteTreeItem): Promise<void> {
     if (!node) {
-        node = await ext.tree.showTreeItemPicker<WebAppTreeItem>(WebAppTreeItem.contextValue, { ...context, suppressCreatePick: true });
+        node = await ext.rgApi.tree.showTreeItemPicker<SiteTreeItem>(new RegExp(ResolvedWebAppResource.webAppContextValue), { ...context, suppressCreatePick: true });
     }
 
     await appservice.stopStreamingLogs(node.site);
