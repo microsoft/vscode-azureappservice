@@ -809,7 +809,7 @@
         "@azure/arm-appservice": "^11.0.0",
         "@azure/arm-resources": "^5.0.0",
         "@azure/ms-rest-js": "^2.2.1",
-        "@microsoft/vscode-azext-azureappservice": "^0.1.8",
+        "@microsoft/vscode-azext-azureappservice": "^0.1.10",
         "@microsoft/vscode-azext-azureutils": "^0.1.0",
         "@microsoft/vscode-azext-utils": "^0.1.0",
         "dayjs": "^1.11.0",
