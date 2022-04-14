@@ -6,10 +6,10 @@
 import { Site } from '@azure/arm-appservice';
 import { HttpOperationResponse, ServiceClient } from '@azure/ms-rest-js';
 import { tryGetWebApp } from '@microsoft/vscode-azext-azureappservice';
+import { createTestActionContext, runWithTestActionContext } from '@microsoft/vscode-azext-dev';
 import * as assert from 'assert';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { createTestActionContext, runWithTestActionContext } from 'vscode-azureextensiondev';
 import { createGenericClient, createWebAppAdvanced, deploy, ext, getRandomHexString, nonNullProp, WebAppTreeItem } from '../../extension.bundle';
 import { longRunningTestsEnabled } from '../global.test';
 import { getRotatingLocation, getRotatingPricingTier } from './getRotatingValue';
@@ -50,7 +50,7 @@ suite('Create Web App and deploy', function (this: Mocha.Suite): void {
             versions: [
                 { version: '12', supportedAppOs: 'Both', displayText: '12 LTS' },
                 { version: '14', supportedAppOs: 'Both', displayText: '14 LTS' },
-                { version: '16', supportedAppOs: 'Linux', displayText: '16 LTS' }
+                { version: '16', supportedAppOs: 'Both', displayText: '16 LTS' }
             ]
         },
         {
