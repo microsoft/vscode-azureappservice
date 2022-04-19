@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.23.3 - 2022-04-20
+### Fixed
+- `Deploy to Slot...` incorrectly deploys to a web app [#2210](https://github.com/microsoft/vscode-azureappservice/issues/2210)
+
 ## 0.23.2 - 2022-04-13
 ### Fixed
 - Zip deploy fails with ECONNRESET or 400 Bad Request on VS Code versions `>=1.66.0` [#2191](https://github.com/microsoft/vscode-azureappservice/issues/2191)
