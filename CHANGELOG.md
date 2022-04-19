@@ -1,6 +1,6 @@
 # Change Log
 
-## 0.23.3 - 2022-04-19
+## 0.23.3 - 2022-04-20
 ### Fixed
 - `Deploy to Slot...` incorrectly deploys to a web app [#2210](https://github.com/microsoft/vscode-azureappservice/issues/2210)
 
