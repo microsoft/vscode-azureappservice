@@ -9,13 +9,13 @@ import { IActionContext } from '@microsoft/vscode-azext-utils';
 import * as vscode from 'vscode';
 import { ext } from '../../extensionVariables';
 import { localize } from '../../localize';
+import { ResolvedWebAppResource } from '../../tree/ResolvedWebAppResource';
 import { SiteTreeItem } from '../../tree/SiteTreeItem';
-import { WebAppTreeItem } from '../../tree/WebAppTreeItem';
 import { getRemoteDebugLanguage } from './getRemoteDebugLanguage';
 
 export async function startRemoteDebug(context: IActionContext, node?: SiteTreeItem): Promise<void> {
     if (!node) {
-        node = <SiteTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue, context);
+        node = <SiteTreeItem>await ext.rgApi.tree.showTreeItemPicker(ResolvedWebAppResource.webAppContextValue, context);
     }
 
     const client = await node.site.createClient(context);

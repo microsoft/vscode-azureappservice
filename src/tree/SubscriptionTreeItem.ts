@@ -17,7 +17,7 @@ import { webProvider } from '../constants';
 import { ext } from '../extensionVariables';
 import { localize } from '../localize';
 import { nonNullProp } from '../utils/nonNull';
-import { WebAppTreeItem } from './WebAppTreeItem';
+import { SiteTreeItem } from './SiteTreeItem';
 
 export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
     public readonly childTypeLabel: string = localize('webApp', 'Web App');
@@ -56,7 +56,7 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
             'invalidAppService',
             s => {
                 const site = new ParsedSite(s, this.subscription);
-                return site.isFunctionApp ? undefined : new WebAppTreeItem(this, site);
+                return site.isFunctionApp ? undefined : new SiteTreeItem(this, site);
             },
             s => {
                 return s.name;
@@ -121,7 +121,7 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
         const site = new ParsedSite(rawSite, wizardContext);
         ext.outputChannel.appendLog(getCreatedWebAppMessage(site));
 
-        const newNode: WebAppTreeItem = new WebAppTreeItem(this, site);
+        const newNode: SiteTreeItem = new SiteTreeItem(this, site);
         try {
             //enable HTTP & Application logs (only for windows) by default
             await newNode.enableLogs(context);

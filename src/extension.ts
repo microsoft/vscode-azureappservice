@@ -5,7 +5,7 @@
 
 import { registerAppServiceExtensionVariables } from '@microsoft/vscode-azext-azureappservice';
 import { registerAzureUtilsExtensionVariables } from '@microsoft/vscode-azext-azureutils';
-import { AzExtTreeDataProvider, callWithTelemetryAndErrorHandling, createApiProvider, createAzExtOutputChannel, createExperimentationService, IActionContext, registerErrorHandler, registerReportIssueCommand, registerUIExtensionVariables } from '@microsoft/vscode-azext-utils';
+import { callWithTelemetryAndErrorHandling, createApiProvider, createAzExtOutputChannel, createExperimentationService, IActionContext, registerErrorHandler, registerReportIssueCommand, registerUIExtensionVariables } from '@microsoft/vscode-azext-utils';
 import { AzureExtensionApi, AzureExtensionApiProvider } from '@microsoft/vscode-azext-utils/api';
 import * as vscode from 'vscode';
 import { AppServiceFileSystem } from './AppServiceFileSystem';
@@ -13,6 +13,8 @@ import { revealTreeItem } from './commands/api/revealTreeItem';
 import { registerCommands } from './commands/registerCommands';
 import { ext } from './extensionVariables';
 import { AzureAccountTreeItem } from './tree/AzureAccountTreeItem';
+import { getResourceGroupsApi } from './utils/getExtensionApi';
+import { WebAppResolver } from './WebAppResolver';
 
 export async function activateInternal(
     context: vscode.ExtensionContext,
@@ -37,13 +39,6 @@ export async function activateInternal(
 
         ext.azureAccountTreeItem = new AzureAccountTreeItem();
         context.subscriptions.push(ext.azureAccountTreeItem);
-        ext.tree = new AzExtTreeDataProvider(ext.azureAccountTreeItem, 'appService.LoadMore');
-
-        ext.treeView = vscode.window.createTreeView('azureAppService', { treeDataProvider: ext.tree, showCollapseAll: true });
-        context.subscriptions.push(ext.treeView);
-
-        ext.fileSystem = new AppServiceFileSystem(ext.tree);
-        context.subscriptions.push(vscode.workspace.registerFileSystemProvider(AppServiceFileSystem.scheme, ext.fileSystem));
 
         registerCommands();
 
@@ -52,6 +47,11 @@ export async function activateInternal(
         registerReportIssueCommand('appService.ReportIssue');
 
         ext.experimentationService = await createExperimentationService(context);
+        ext.rgApi = await getResourceGroupsApi();
+        ext.rgApi.registerApplicationResourceResolver('ms-azuretools.vscode-azureappservice', new WebAppResolver());
+
+        ext.fileSystem = new AppServiceFileSystem(ext.rgApi.tree);
+        context.subscriptions.push(vscode.workspace.registerFileSystemProvider(AppServiceFileSystem.scheme, ext.fileSystem));
     });
 
     return createApiProvider([<AzureExtensionApi>{

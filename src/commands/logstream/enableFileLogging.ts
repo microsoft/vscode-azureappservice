@@ -8,8 +8,8 @@ import { DialogResponses, IActionContext } from '@microsoft/vscode-azext-utils';
 import * as vscode from 'vscode';
 import { ext } from '../../extensionVariables';
 import { localize } from '../../localize';
-import { SiteTreeItem } from "../../tree/SiteTreeItem";
-import { WebAppTreeItem } from '../../tree/WebAppTreeItem';
+import { ResolvedWebAppResource } from "../../tree/ResolvedWebAppResource";
+import { SiteTreeItem } from '../../tree/SiteTreeItem';
 
 export interface IEnableFileLoggingContext extends IActionContext {
     suppressAlreadyEnabledMessage?: boolean;
@@ -17,7 +17,7 @@ export interface IEnableFileLoggingContext extends IActionContext {
 
 export async function enableFileLogging(context: IEnableFileLoggingContext, node?: SiteTreeItem | LogFilesTreeItem): Promise<void> {
     if (!node) {
-        node = await ext.tree.showTreeItemPicker<SiteTreeItem>(WebAppTreeItem.contextValue, context);
+        node = await ext.rgApi.tree.showTreeItemPicker<SiteTreeItem>(new RegExp(ResolvedWebAppResource.webAppContextValue), context);
     }
 
     if (node instanceof LogFilesTreeItem) {

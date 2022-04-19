@@ -9,9 +9,9 @@ import { CosmosDBConnection } from '../../tree/CosmosDBConnection';
 
 export async function removeCosmosDBConnection(context: IActionContext, node?: CosmosDBConnection): Promise<void> {
     if (!node) {
-        node = await ext.tree.showTreeItemPicker<CosmosDBConnection>(CosmosDBConnection.contextValue, { ...context, suppressCreatePick: true });
+        node = await ext.rgApi.tree.showTreeItemPicker<CosmosDBConnection>(CosmosDBConnection.contextValue, { ...context, suppressCreatePick: true });
     }
 
     await node.deleteTreeItem(context);
-    await ext.tree.refresh(context, node.parent);
+    await ext.rgApi.tree.refresh(context, node.parent);
 }

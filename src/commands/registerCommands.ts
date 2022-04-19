@@ -67,10 +67,10 @@ export function registerCommands(): void {
     registerCommand('appService.DisconnectRepo', disconnectRepo);
     registerCommand('appService.EnableFileLogging', enableFileLogging);
     registerCommand('appService.InstallCosmosDBExtension', installCosmosDBExtension);
-    registerCommand('appService.LoadMore', async (actionContext: IActionContext, node: AzExtTreeItem) => await ext.tree.loadMore(node, actionContext));
+    registerCommand('appService.LoadMore', async (actionContext: IActionContext, node: AzExtTreeItem) => await ext.rgApi.tree.loadMore(node, actionContext));
     registerCommand('appService.openFile', showFile, 500);
     registerCommand('appService.OpenInPortal', openInPortal);
-    registerCommand('appService.Refresh', async (actionContext: IActionContext, node?: AzExtTreeItem) => await ext.tree.refresh(actionContext, node));
+    registerCommand('appService.Refresh', async (actionContext: IActionContext, node?: AzExtTreeItem) => await ext.rgApi.tree.refresh(actionContext, node));
     registerCommand('appService.RemoveCosmosDBConnection', removeCosmosDBConnection);
     registerCommand('appService.Restart', restartWebApp);
     registerCommand('appService.RevealConnection', revealConnection);
