@@ -31,7 +31,6 @@ export { activateInternal, deactivateInternal } from './src/extension';
 export { ext } from './src/extensionVariables';
 export { AzureAccountTreeItem } from './src/tree/AzureAccountTreeItem';
 export { SiteTreeItem } from './src/tree/SiteTreeItem';
-export { SubscriptionTreeItem } from './src/tree/SubscriptionTreeItem';
 export * from './src/utils/azureClients';
 export { getRandomHexString } from './src/utils/randomUtils';
 export { getGlobalSetting, updateGlobalSetting } from './src/vsCodeConfig/settings';

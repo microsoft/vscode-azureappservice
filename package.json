@@ -2,7 +2,7 @@
     "name": "vscode-azureappservice",
     "displayName": "Azure App Service",
     "description": "%appService.description%",
-    "version": "0.23.2-alpha",
+    "version": "0.23.3-alpha",
     "publisher": "ms-azuretools",
     "icon": "resources/WebApp.png",
     "aiKey": "AIF-d9b70cd4-b9f9-4d70-929b-a071c400b217",
@@ -80,7 +80,14 @@
                 "onResolve": [
                     "microsoft.web/sites"
                 ]
-            }
+            },
+            "commands": [
+                {
+                    "command": "appService.CreateWebApp",
+                    "title": "%appService.CreateWebApp%",
+                    "type": "microsoft.web/sites"
+                }
+            ]
         },
         "commands": [
             {
@@ -778,9 +785,9 @@
         "@azure/arm-appservice": "^11.0.0",
         "@azure/arm-resources": "^5.0.0",
         "@azure/ms-rest-js": "^2.2.1",
-        "@microsoft/vscode-azext-azureappservice": "^0.1.7",
-        "@microsoft/vscode-azext-azureutils": "^0.1.0",
-        "@microsoft/vscode-azext-utils": "^0.1.0",
+        "@microsoft/vscode-azext-azureappservice": "^0.2.0",
+        "@microsoft/vscode-azext-azureutils": "^0.2.0",
+        "@microsoft/vscode-azext-utils": "^0.2.0",
         "dotenv": "^6.2.0",
         "fast-xml-parser": "^3.19.0",
         "fs-extra": "^8.0.0",

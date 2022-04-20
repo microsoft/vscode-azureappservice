@@ -11,7 +11,7 @@ import { SiteTreeItem } from '../tree/SiteTreeItem';
 
 export async function viewProperties(context: IActionContext, node?: SiteTreeItem): Promise<void> {
     if (!node) {
-        node = await ext.rgApi.tree.showTreeItemPicker<SiteTreeItem>(new RegExp(ResolvedWebAppResource.webAppContextValue), context);
+        node = await ext.rgApi.appResourceTree.showTreeItemPicker<SiteTreeItem>(new RegExp(ResolvedWebAppResource.webAppContextValue), context);
     }
 
     const client = await node.site.createClient(context);
