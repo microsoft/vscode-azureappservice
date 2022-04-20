@@ -16,6 +16,7 @@ import { WebAppCreateStep } from '../commands/createWebApp/WebAppCreateStep';
 import { webProvider } from '../constants';
 import { ext } from '../extensionVariables';
 import { localize } from '../localize';
+import { createActivityContext } from '../utils/activityUtils';
 import { nonNullProp } from '../utils/nonNull';
 import { SiteTreeItem } from './SiteTreeItem';
 
@@ -67,7 +68,8 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
     public async createChildImpl(context: ICreateChildImplContext): Promise<AzExtTreeItem> {
         const wizardContext: IWebAppWizardContext = Object.assign(context, this.subscription, {
             newSiteKind: AppKind.app,
-            resourceGroupDeferLocationStep: true
+            resourceGroupDeferLocationStep: true,
+            ...(await createActivityContext())
         });
 
         await setPrePromptDefaults(wizardContext);
@@ -100,7 +102,7 @@ export class SubscriptionTreeItem extends SubscriptionTreeItemBase {
         }
 
         const title: string = localize('createApp', 'Create new web app');
-        const wizard: AzureWizard<IWebAppWizardContext> = new AzureWizard(wizardContext, { promptSteps, executeSteps, title });
+        const wizard: AzureWizard<IWebAppWizardContext> = new AzureWizard(wizardContext, { promptSteps, executeSteps, title, showLoadingPrompt: true });
 
         await wizard.prompt();
 

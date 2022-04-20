@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { IAppServiceWizardContext } from '@microsoft/vscode-azext-azureappservice';
-import { ICreateChildImplContext } from '@microsoft/vscode-azext-utils';
+import { ExecuteActivityContext } from '@microsoft/vscode-azext-utils';
 import { AppStackMajorVersion, AppStackMinorVersion } from './stacks/models/AppStackModel';
 import { JavaContainers, WebAppRuntimes, WebAppStack, WebAppStackValue } from './stacks/models/WebAppStackModel';
 
@@ -20,7 +20,7 @@ export type FullJavaStack = {
     minorVersion: AppStackMinorVersion<JavaContainers>;
 };
 
-export interface IWebAppWizardContext extends IAppServiceWizardContext, ICreateChildImplContext {
+export interface IWebAppWizardContext extends IAppServiceWizardContext, ExecuteActivityContext {
     newSiteRuntime?: string;
 
     usingBackupStacks?: boolean;

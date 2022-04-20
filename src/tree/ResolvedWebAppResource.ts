@@ -4,9 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { AppServicePlan, Site, SiteConfig, SiteLogsConfig, SiteSourceControl } from '@azure/arm-appservice';
-import { AppSettingsTreeItem, AppSettingTreeItem, deleteSite, DeploymentsTreeItem, DeploymentTreeItem, FolderTreeItem, LogFilesTreeItem, ParsedSite, SiteFilesTreeItem } from '@microsoft/vscode-azext-azureappservice';
-import { AzExtTreeItem, IActionContext, ISubscriptionContext, nonNullProp, TreeItemIconPath } from '@microsoft/vscode-azext-utils';
+import { AppSettingsTreeItem, AppSettingTreeItem, DeleteLastServicePlanStep, DeleteSiteStep, DeploymentsTreeItem, DeploymentTreeItem, FolderTreeItem, IDeleteSiteWizardContext, LogFilesTreeItem, ParsedSite, SiteFilesTreeItem } from '@microsoft/vscode-azext-azureappservice';
+import { ConfirmationStep } from '@microsoft/vscode-azext-azureutils';
+import { AzExtTreeItem, AzureWizard, IActionContext, ISubscriptionContext, nonNullProp, TreeItemIconPath } from '@microsoft/vscode-azext-utils';
 import { ResolvedAppResourceBase } from '../api';
+import { localize } from '../localize';
+import { createActivityContext } from '../utils/activityUtils';
 import { nonNullValue } from '../utils/nonNull';
 import { openUrl } from '../utils/openUrl';
 import { getIconPath, getThemedIconPath } from '../utils/pathUtils';
@@ -194,7 +197,23 @@ export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTre
     }
 
     public async deleteTreeItemImpl(context: IActionContext): Promise<void> {
-        await deleteSite(context, this.site);
+        const wizardContext: IDeleteSiteWizardContext = Object.assign(context, {
+            ...(await createActivityContext()),
+            site: this.site,
+        });
+
+        const confirmMessage: string = this.site.isSlot ?
+            localize('confirmDeleteSlot', 'Are you sure you want to delete slot "{0}"?', this.site.fullName) :
+            localize('confirmDeleteWebApp', 'Are you sure you want to delete web app "{0}"?', this.site.fullName);
+
+        const wizard = new AzureWizard(wizardContext, {
+            promptSteps: [new ConfirmationStep(confirmMessage), new DeleteLastServicePlanStep()],
+            executeSteps: [new DeleteSiteStep()],
+            title: localize('deleteWebApp', 'Delete web app "{0}"', this.site.fullName)
+        });
+
+        await wizard.prompt();
+        await wizard.execute();
     }
 
     public async isHttpLogsEnabled(context: IActionContext): Promise<boolean> {

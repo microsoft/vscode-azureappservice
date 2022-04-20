@@ -8,6 +8,7 @@ import { CustomLocation, WebsiteOS } from '@microsoft/vscode-azext-azureappservi
 import { LocationListStep } from '@microsoft/vscode-azext-azureutils';
 import { AzureWizardExecuteStep } from '@microsoft/vscode-azext-utils';
 import { Progress } from 'vscode';
+import { AppResource } from '../../api';
 import * as constants from '../../constants';
 import { ext } from '../../extensionVariables';
 import { localize } from '../../localize';
@@ -40,7 +41,8 @@ export class WebAppCreateStep extends AzureWizardExecuteStep<IWebAppWizardContex
         const rgName: string = nonNullProp(nonNullProp(context, 'resourceGroup'), 'name');
 
         const client: WebSiteManagementClient = await createWebSiteClient(context);
-        context.site = await client.webApps.beginCreateOrUpdateAndWait(rgName, siteName, await this.getNewSite(context));
+        context.site = (await client.webApps.beginCreateOrUpdateAndWait(rgName, siteName, await this.getNewSite(context)));
+        context.activityResult = context.site as AppResource;
     }
 
     public shouldExecute(context: IWebAppWizardContext): boolean {
