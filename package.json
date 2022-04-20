@@ -345,16 +345,6 @@
                 },
                 {
                     "command": "appService.OpenInPortal",
-                    "when": "view == azureResourceGroups && viewItem == azureextensionui.azureSubscription",
-                    "group": "1_subscriptionGeneralCommands@3"
-                },
-                {
-                    "command": "appService.Refresh",
-                    "when": "view == azureResourceGroups && viewItem == azureextensionui.azureSubscription",
-                    "group": "2_subscriptionGeneralCommands@1"
-                },
-                {
-                    "command": "appService.OpenInPortal",
                     "when": "view == azureResourceGroups && viewItem =~ /(azAppWebApp|azAppSlot)/",
                     "group": "1_appServiceGeneralCommands@1"
                 },
