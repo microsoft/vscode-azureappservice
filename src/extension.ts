@@ -12,7 +12,6 @@ import { AppServiceFileSystem } from './AppServiceFileSystem';
 import { revealTreeItem } from './commands/api/revealTreeItem';
 import { registerCommands } from './commands/registerCommands';
 import { ext } from './extensionVariables';
-import { AzureAccountTreeItem } from './tree/AzureAccountTreeItem';
 import { getResourceGroupsApi } from './utils/getExtensionApi';
 import { WebAppResolver } from './WebAppResolver';
 
@@ -36,9 +35,6 @@ export async function activateInternal(
     await callWithTelemetryAndErrorHandling('appService.activate', async (activateContext: IActionContext) => {
         activateContext.telemetry.properties.isActivationEvent = 'true';
         activateContext.telemetry.measurements.mainFileLoad = (perfStats.loadEndTime - perfStats.loadStartTime) / 1000;
-
-        ext.azureAccountTreeItem = new AzureAccountTreeItem();
-        context.subscriptions.push(ext.azureAccountTreeItem);
 
         registerCommands();
 

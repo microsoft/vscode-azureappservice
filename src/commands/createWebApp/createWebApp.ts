@@ -10,7 +10,6 @@ import { webProvider } from "../../constants";
 import { ext } from "../../extensionVariables";
 import { localize } from "../../localize";
 import { SiteTreeItem } from "../../tree/SiteTreeItem";
-import { SubscriptionTreeItem } from '../../tree/SubscriptionTreeItem';
 import { createActivityContext } from "../../utils/activityUtils";
 import { IWebAppWizardContext } from "./IWebAppWizardContext";
 import { SetPostPromptDefaultsStep } from "./SetPostPromptDefaultsStep";
@@ -21,7 +20,7 @@ import { WebAppCreateStep } from "./WebAppCreateStep";
 
 export async function createWebApp(context: IActionContext & Partial<ICreateChildImplContext>, node?: SubscriptionTreeItemBase | undefined, suppressCreatedWebAppMessage: boolean = false): Promise<SiteTreeItem> {
     if (!node) {
-        node = <SubscriptionTreeItemBase>await ext.rgApi.tree.showTreeItemPicker(SubscriptionTreeItem.contextValue, context);
+        node = <SubscriptionTreeItemBase>await ext.rgApi.tree.showTreeItemPicker(SubscriptionTreeItemBase.contextValue, context);
     }
 
     const wizardContext: IWebAppWizardContext = Object.assign(context, node.subscription, {
