@@ -125,7 +125,6 @@ export interface AbstractAzExtTreeItem {
       * @param context The action context
       */
     loadMoreChildrenImpl?(clearCache: boolean, context: IActionContext): Promise<AzExtTreeItem[]>;
-    loadMoreChildrenImpl2?(clearCache: boolean, context: IActionContext, resolved: ResolvedAppResourceBase): Promise<AzExtTreeItem[]>;
 
     /**
     * Implement this as a part of the "Load more..." action. Should not be called directly
