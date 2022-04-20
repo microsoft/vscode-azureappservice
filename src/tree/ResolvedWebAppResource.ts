@@ -5,9 +5,8 @@
 
 import { AppServicePlan, Site, SiteConfig, SiteLogsConfig, SiteSourceControl } from '@azure/arm-appservice';
 import { AppSettingsTreeItem, AppSettingTreeItem, DeleteLastServicePlanStep, DeleteSiteStep, DeploymentsTreeItem, DeploymentTreeItem, FolderTreeItem, IDeleteSiteWizardContext, LogFilesTreeItem, ParsedSite, SiteFilesTreeItem } from '@microsoft/vscode-azext-azureappservice';
-import { ConfirmationStep } from '@microsoft/vscode-azext-azureutils';
-import { AzExtTreeItem, AzureWizard, IActionContext, ISubscriptionContext, nonNullProp, TreeItemIconPath } from '@microsoft/vscode-azext-utils';
-import { ResolvedAppResourceBase } from '../api';
+import { AzExtTreeItem, AzureWizard, DeleteConfirmationStep, IActionContext, ISubscriptionContext, nonNullProp, TreeItemIconPath } from '@microsoft/vscode-azext-utils';
+import { ResolvedAppResourceBase } from '@microsoft/vscode-azext-utils/hostapi';
 import { localize } from '../localize';
 import { createActivityContext } from '../utils/activityUtils';
 import { nonNullValue } from '../utils/nonNull';
@@ -207,7 +206,7 @@ export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTre
             localize('confirmDeleteWebApp', 'Are you sure you want to delete web app "{0}"?', this.site.fullName);
 
         const wizard = new AzureWizard(wizardContext, {
-            promptSteps: [new ConfirmationStep(confirmMessage), new DeleteLastServicePlanStep()],
+            promptSteps: [new DeleteConfirmationStep(confirmMessage), new DeleteLastServicePlanStep()],
             executeSteps: [new DeleteSiteStep()],
             title: localize('deleteWebApp', 'Delete web app "{0}"', this.site.fullName)
         });

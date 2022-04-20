@@ -7,8 +7,8 @@ import { NameValuePair, Site, SiteConfig, WebSiteManagementClient } from '@azure
 import { CustomLocation, WebsiteOS } from '@microsoft/vscode-azext-azureappservice';
 import { LocationListStep } from '@microsoft/vscode-azext-azureutils';
 import { AzureWizardExecuteStep } from '@microsoft/vscode-azext-utils';
+import { AppResource } from '@microsoft/vscode-azext-utils/hostapi';
 import { Progress } from 'vscode';
-import { AppResource } from '../../api';
 import * as constants from '../../constants';
 import { ext } from '../../extensionVariables';
 import { localize } from '../../localize';

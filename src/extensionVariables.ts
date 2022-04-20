@@ -4,8 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { IAzExtOutputChannel, IExperimentationServiceAdapter } from "@microsoft/vscode-azext-utils";
+import { AzureHostExtensionApi } from "@microsoft/vscode-azext-utils/hostapi";
 import { ExtensionContext } from "vscode";
-import { AzureResourceGroupsExtensionApi } from "./api";
 import { AppServiceFileSystem } from "./AppServiceFileSystem";
 import { AzureAccountTreeItem } from "./tree/AzureAccountTreeItem";
 
@@ -21,5 +21,5 @@ export namespace ext {
 
     export let azureAccountTreeItem: AzureAccountTreeItem;
     export let experimentationService: IExperimentationServiceAdapter;
-    export let rgApi: AzureResourceGroupsExtensionApi;
+    export let rgApi: AzureHostExtensionApi;
 }
