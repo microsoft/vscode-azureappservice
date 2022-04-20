@@ -5,6 +5,7 @@
 
 import { Activity, AzExtParentTreeItem, AzExtTreeDataProvider, AzExtTreeItem, IActionContext, ICreateChildImplContext, ISubscriptionContext, TreeItemIconPath } from '@microsoft/vscode-azext-utils';
 import * as vscode from 'vscode';
+import { Disposable } from 'vscode';
 
 export interface AzureResourceGroupsExtensionApi {
     readonly tree: AzExtTreeDataProvider;
@@ -12,8 +13,8 @@ export interface AzureResourceGroupsExtensionApi {
 
     readonly apiVersion: string;
     revealTreeItem(resourceId: string): Promise<void>;
-    registerApplicationResourceResolver(id: string, resolver: AppResourceResolver): vscode.Disposable;
-    registerLocalResourceProvider(id: string, provider: LocalResourceProvider): vscode.Disposable;
+    registerApplicationResourceResolver(id: string, resolver: AppResourceResolver): Disposable;
+    registerLocalResourceProvider(id: string, provider: LocalResourceProvider): Disposable;
     registerActivity(activity: Activity): Promise<void>;
 }
 
@@ -39,12 +40,10 @@ export interface AppResource {
 export interface GroupNodeConfiguration {
     readonly label: string;
     readonly id: string;
-    // label for GroupBy Configurations
-    readonly keyLabel?: string;
     readonly description?: string;
     readonly icon?: vscode.ThemeIcon;
     readonly iconPath?: string | vscode.Uri | { light: string | vscode.Uri; dark: string | vscode.Uri } | vscode.ThemeIcon;
-    readonly contextValue?: string;
+    readonly contextValuesToAdd?: string[];
 }
 
 /**
@@ -112,6 +111,8 @@ export interface AbstractAzExtTreeItem {
     iconPath: TreeItemIconPath | undefined;
     commandId?: string;
     tooltip?: string;
+
+    collapsibleState?: vscode.TreeItemCollapsibleState;
 
     /**
      * The arguments to pass in when executing `commandId`. If not specified, this tree item will be used.
@@ -183,14 +184,9 @@ interface ContextValuesToAdd {
 
 export type ResolvedAppResourceBase = Partial<{ [P in keyof SealedAzExtTreeItem]: never }> & Partial<AbstractAzExtTreeItem> & ContextValuesToAdd;
 
-export type ResolvedAppResourceTreeItem<T extends ResolvedAppResourceBase> = AppResource & SealedAzExtTreeItem & Omit<T, keyof ResolvedAppResourceBase>;
+export type ResolvedAppResourceTreeItem<T extends ResolvedAppResourceBase> = SealedAzExtTreeItem & AbstractAzExtTreeItem & Omit<T, keyof ResolvedAppResourceBase>;
 
 export type LocalResource = AzExtTreeItem;
-
-export type ResolveResult<T> = {
-    createTreeItem: new (parent: AzExtParentTreeItem, data: T) => ResolvedAppResourceBase;
-    data: T;
-}
 
 export interface AppResourceResolver {
     resolveResource(subContext: ISubscriptionContext, resource: AppResource): vscode.ProviderResult<ResolvedAppResourceBase>;
@@ -226,4 +222,3 @@ export declare function registerApplicationResourceProvider(id: string, provider
 
 // resource extensions need to activate onView:localResourceView and call this
 export declare function registerLocalResourceProvider(id: string, provider: LocalResourceProvider): vscode.Disposable;
-
