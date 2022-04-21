@@ -113,7 +113,9 @@ export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTre
     public async loadMoreChildrenImpl(_clearCache: boolean, context: IActionContext): Promise<AzExtTreeItem[]> {
         const proxyTree: SiteTreeItem = this as unknown as SiteTreeItem;
 
-        this.appSettingsNode = new AppSettingsTreeItem(proxyTree, this.site);
+        this.appSettingsNode = new AppSettingsTreeItem(proxyTree, this.site, {
+            contextValuesToAdd: ['appService']
+        });
         this._connectionsNode = new CosmosDBTreeItem(proxyTree, this.site);
         this._siteFilesNode = new SiteFilesTreeItem(proxyTree, this.site, false);
         this._logFilesNode = new LogFilesTreeItem(proxyTree, this.site);

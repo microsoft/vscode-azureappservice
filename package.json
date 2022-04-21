@@ -465,47 +465,47 @@
                 },
                 {
                     "command": "appService.appSettings.Add",
-                    "when": "view == azureResourceGroups && viewItem == applicationSettings",
+                    "when": "view == azureResourceGroups && viewItem == /applicationSettings.*appService/",
                     "group": "1_appSettingEnv@1"
                 },
                 {
                     "command": "appService.Refresh",
-                    "when": "view == azureResourceGroups && viewItem == applicationSettings",
+                    "when": "view == azureResourceGroups && viewItem =~ /applicationSettings.*appService/",
                     "group": "2_appSettingsGeneral@1"
                 },
                 {
                     "command": "appService.appSettings.Download",
-                    "when": "view == azureResourceGroups && viewItem == applicationSettings",
+                    "when": "view == azureResourceGroups && viewItem =~ /applicationSettings.*appService/",
                     "group": "1_appSettingEnv@2"
                 },
                 {
                     "command": "appService.appSettings.Upload",
-                    "when": "view == azureResourceGroups && viewItem == applicationSettings",
+                    "when": "view == azureResourceGroups && viewItem =~ /applicationSettings.*appService/",
                     "group": "1_appSettingEnv@3"
                 },
                 {
                     "command": "appService.appSettings.Edit",
-                    "when": "view == azureResourceGroups && viewItem =~ /^applicationSettingItem(|NoSlots)$/",
+                    "when": "view == azureResourceGroups && viewItem =~ /applicationSettingItem(|NoSlots).*appService/",
                     "group": "1_appSettingItemEdit@1"
                 },
                 {
                     "command": "appService.appSettings.Rename",
-                    "when": "view == azureResourceGroups && viewItem =~ /^applicationSettingItem(|NoSlots)$/",
+                    "when": "view == azureResourceGroups && viewItem =~ /applicationSettingItem(|NoSlots).*appService/",
                     "group": "1_appSettingItemEdit@2"
                 },
                 {
                     "command": "appService.appSettings.Delete",
-                    "when": "view == azureResourceGroups && viewItem =~ /^applicationSettingItem(|NoSlots)$/",
+                    "when": "view == azureResourceGroups && viewItem =~ /applicationSettingItem(|NoSlots).*appService/",
                     "group": "1_appSettingItemEdit@3"
                 },
                 {
                     "command": "appService.appSettings.ToggleSlotSetting",
-                    "when": "view == azureResourceGroups && viewItem == applicationSettingItem",
+                    "when": "view == azureResourceGroups && /applicationSettingItem.*appService/",
                     "group": "1_appSettingItemEdit@4"
                 },
                 {
                     "command": "appService.toggleAppSettingVisibility",
-                    "when": "view == azureResourceGroups && viewItem =~ /^applicationSettingItem(|NoSlots)$/",
+                    "when": "view == azureResourceGroups && viewItem =~ /applicationSettingItem(|NoSlots).*appService/",
                     "group": "inline"
                 },
                 {
@@ -765,7 +765,7 @@
         "@azure/arm-appservice": "^11.0.0",
         "@azure/arm-resources": "^5.0.0",
         "@azure/ms-rest-js": "^2.2.1",
-        "@microsoft/vscode-azext-azureappservice": "^0.2.0",
+        "@microsoft/vscode-azext-azureappservice": "file:../vscode-azuretools/appservice/microsoft-vscode-azext-azureappservice-0.2.0.tgz",
         "@microsoft/vscode-azext-azureutils": "^0.2.0",
         "@microsoft/vscode-azext-utils": "^0.2.0",
         "dotenv": "^6.2.0",
