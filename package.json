@@ -2,7 +2,7 @@
     "name": "vscode-azureappservice",
     "displayName": "Azure App Service",
     "description": "%appService.description%",
-    "version": "0.23.3-alpha",
+    "version": "0.23.3-alpha.1",
     "publisher": "ms-azuretools",
     "icon": "resources/WebApp.png",
     "aiKey": "AIF-d9b70cd4-b9f9-4d70-929b-a071c400b217",
@@ -41,7 +41,6 @@
         "onCommand:appService.DeploymentScript",
         "onCommand:appService.DisconnectRepo",
         "onCommand:appService.EnableFileLogging",
-        "onCommand:appService.LoadMore",
         "onCommand:appService.OpenInPortal",
         "onCommand:appService.Redeploy",
         "onCommand:appService.Refresh",
@@ -74,9 +73,6 @@
     "contributes": {
         "x-azResources": {
             "activation": {
-                "onFetch": [
-                    "microsoft.web/sites"
-                ],
                 "onResolve": [
                     "microsoft.web/sites"
                 ]
@@ -198,11 +194,6 @@
                 "category": "Azure App Service"
             },
             {
-                "command": "appService.LoadMore",
-                "title": "%appService.LoadMore%",
-                "category": "Azure App Service"
-            },
-            {
                 "command": "appService.OpenInPortal",
                 "title": "%appService.OpenInPortal%",
                 "category": "Azure App Service"
@@ -316,10 +307,6 @@
                     "when": "never"
                 },
                 {
-                    "command": "appService.LoadMore",
-                    "when": "never"
-                },
-                {
                     "command": "appService.Refresh",
                     "when": "never"
                 },
@@ -335,12 +322,12 @@
             "view/item/context": [
                 {
                     "command": "appService.CreateWebApp",
-                    "when": "view == azureResourceGroups && viewItem == azureextensionui.azureSubscription",
+                    "when": "view == azureResourceGroups && viewItem =~ /azureResourceTypeGroup.*microsoft.web/sites(?!/)/",
                     "group": "1_subscriptionGeneralCommands@1"
                 },
                 {
                     "command": "appService.CreateWebAppAdvanced",
-                    "when": "view == azureResourceGroups && viewItem == azureextensionui.azureSubscription",
+                    "when": "view == azureResourceGroups && viewItem =~ /azureResourceTypeGroup.*microsoft.web/sites(?!/)/",
                     "group": "1_subscriptionGeneralCommands@2"
                 },
                 {
@@ -475,47 +462,47 @@
                 },
                 {
                     "command": "appService.appSettings.Add",
-                    "when": "view == azureResourceGroups && viewItem == applicationSettings",
+                    "when": "view == azureResourceGroups && viewItem == /appService.*applicationSettings/",
                     "group": "1_appSettingEnv@1"
                 },
                 {
                     "command": "appService.Refresh",
-                    "when": "view == azureResourceGroups && viewItem == applicationSettings",
+                    "when": "view == azureResourceGroups && viewItem =~ /appService.*applicationSettings/",
                     "group": "2_appSettingsGeneral@1"
                 },
                 {
                     "command": "appService.appSettings.Download",
-                    "when": "view == azureResourceGroups && viewItem == applicationSettings",
+                    "when": "view == azureResourceGroups && viewItem =~ /appService.*applicationSettings/",
                     "group": "1_appSettingEnv@2"
                 },
                 {
                     "command": "appService.appSettings.Upload",
-                    "when": "view == azureResourceGroups && viewItem == applicationSettings",
+                    "when": "view == azureResourceGroups && viewItem =~ /appService.*applicationSettings/",
                     "group": "1_appSettingEnv@3"
                 },
                 {
                     "command": "appService.appSettings.Edit",
-                    "when": "view == azureResourceGroups && viewItem =~ /^applicationSettingItem(|NoSlots)$/",
+                    "when": "view == azureResourceGroups && viewItem =~ /appService.*applicationSettingItem(|NoSlots)/",
                     "group": "1_appSettingItemEdit@1"
                 },
                 {
                     "command": "appService.appSettings.Rename",
-                    "when": "view == azureResourceGroups && viewItem =~ /^applicationSettingItem(|NoSlots)$/",
+                    "when": "view == azureResourceGroups && viewItem =~ /appService.*applicationSettingItem(|NoSlots)/",
                     "group": "1_appSettingItemEdit@2"
                 },
                 {
                     "command": "appService.appSettings.Delete",
-                    "when": "view == azureResourceGroups && viewItem =~ /^applicationSettingItem(|NoSlots)$/",
+                    "when": "view == azureResourceGroups && viewItem =~ /appService.*applicationSettingItem(|NoSlots)/",
                     "group": "1_appSettingItemEdit@3"
                 },
                 {
                     "command": "appService.appSettings.ToggleSlotSetting",
-                    "when": "view == azureResourceGroups && viewItem == applicationSettingItem",
+                    "when": "view == azureResourceGroups && viewItem =~ /appService.*applicationSettingItem/",
                     "group": "1_appSettingItemEdit@4"
                 },
                 {
                     "command": "appService.toggleAppSettingVisibility",
-                    "when": "view == azureResourceGroups && viewItem =~ /^applicationSettingItem(|NoSlots)$/",
+                    "when": "view == azureResourceGroups && viewItem =~ /appService.*applicationSettingItem(|NoSlots)/",
                     "group": "inline"
                 },
                 {
@@ -775,7 +762,7 @@
         "@azure/arm-appservice": "^11.0.0",
         "@azure/arm-resources": "^5.0.0",
         "@azure/ms-rest-js": "^2.2.1",
-        "@microsoft/vscode-azext-azureappservice": "^0.2.0",
+        "@microsoft/vscode-azext-azureappservice": "^0.3.0",
         "@microsoft/vscode-azext-azureutils": "^0.2.0",
         "@microsoft/vscode-azext-utils": "^0.2.0",
         "dotenv": "^6.2.0",
