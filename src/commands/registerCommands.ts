@@ -6,7 +6,6 @@
 import { AppSettingTreeItem, registerSiteCommand } from '@microsoft/vscode-azext-azureappservice';
 import { openInPortal as uiOpenInPortal } from '@microsoft/vscode-azext-azureutils';
 import { AzExtTreeItem, IActionContext, registerCommand } from '@microsoft/vscode-azext-utils';
-import { commands } from 'vscode';
 import { ext } from '../extensionVariables';
 import { DeploymentSlotsNATreeItem, ScaleUpTreeItem } from '../tree/DeploymentSlotsTreeItem';
 import { addAppSetting } from './appSettings/addAppSetting';
@@ -76,7 +75,6 @@ export function registerCommands(): void {
     registerCommand('appService.RevealConnection', revealConnection);
     registerCommand('appService.RevealConnectionInAppSettings', revealConnectionInAppSettings);
     registerCommand('appService.ScaleUp', async (_context: IActionContext, node: DeploymentSlotsNATreeItem | ScaleUpTreeItem) => await uiOpenInPortal(node, node.scaleUpId));
-    registerCommand('appService.selectSubscriptions', () => commands.executeCommand("azure-account.selectSubscriptions"));
     registerCommand('appService.showOutputChannel', () => { ext.outputChannel.show(); });
     registerCommand('appService.Start', startWebApp);
     registerCommand('appService.StartRemoteDebug', startRemoteDebug);

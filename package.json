@@ -41,7 +41,6 @@
         "onCommand:appService.DeploymentScript",
         "onCommand:appService.DisconnectRepo",
         "onCommand:appService.EnableFileLogging",
-        "onCommand:appService.LoadMore",
         "onCommand:appService.OpenInPortal",
         "onCommand:appService.Redeploy",
         "onCommand:appService.Refresh",
@@ -198,11 +197,6 @@
                 "category": "Azure App Service"
             },
             {
-                "command": "appService.LoadMore",
-                "title": "%appService.LoadMore%",
-                "category": "Azure App Service"
-            },
-            {
                 "command": "appService.OpenInPortal",
                 "title": "%appService.OpenInPortal%",
                 "category": "Azure App Service"
@@ -316,10 +310,6 @@
                     "when": "never"
                 },
                 {
-                    "command": "appService.LoadMore",
-                    "when": "never"
-                },
-                {
                     "command": "appService.Refresh",
                     "when": "never"
                 },
@@ -335,12 +325,12 @@
             "view/item/context": [
                 {
                     "command": "appService.CreateWebApp",
-                    "when": "view == azureResourceGroups && viewItem == azureextensionui.azureSubscription",
+                    "when": "view == azureResourceGroups && viewItem =~ /azureResourceTypeGroup.*microsoft.web/sites(?!/)/",
                     "group": "1_subscriptionGeneralCommands@1"
                 },
                 {
                     "command": "appService.CreateWebAppAdvanced",
-                    "when": "view == azureResourceGroups && viewItem == azureextensionui.azureSubscription",
+                    "when": "view == azureResourceGroups && viewItem =~ /azureResourceTypeGroup.*microsoft.web/sites(?!/)/",
                     "group": "1_subscriptionGeneralCommands@2"
                 },
                 {

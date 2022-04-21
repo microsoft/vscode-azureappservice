@@ -50,7 +50,6 @@
     "appService.enablePythonRemoteDebugging": "Enable remote debugging for Python web apps (experimental)",
     "appService.postDeployTask": "The name of the task to run after zip deployments.",
     "appService.preDeployTask": "The name of the task to run before deploying.",
-    "appService.selectSubscriptions": "Select Subscriptions...",
     "appService.showBuildDuringDeployPrompt": "Show prompt to improve performance of Zip Deploy by excluding build artifacts from the zip file and running a build during deployment.",
     "appService.showDeployConfirmation": "Ask for confirmation before deploying to Azure App Service (deploying will overwrite any previous deployment and cannot be undone).",
     "appService.showDeploySubpathWarning": "Show a warning when the \"deploySubpath\" setting does not match the selected folder for deploying.",
