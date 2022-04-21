@@ -73,9 +73,6 @@
     "contributes": {
         "x-azResources": {
             "activation": {
-                "onFetch": [
-                    "microsoft.web/sites"
-                ],
                 "onResolve": [
                     "microsoft.web/sites"
                 ]
