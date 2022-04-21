@@ -462,47 +462,47 @@
                 },
                 {
                     "command": "appService.appSettings.Add",
-                    "when": "view == azureResourceGroups && viewItem == /applicationSettings.*appService/",
+                    "when": "view == azureResourceGroups && viewItem == /appService.*applicationSettings/",
                     "group": "1_appSettingEnv@1"
                 },
                 {
                     "command": "appService.Refresh",
-                    "when": "view == azureResourceGroups && viewItem =~ /applicationSettings.*appService/",
+                    "when": "view == azureResourceGroups && viewItem =~ /appService.*applicationSettings/",
                     "group": "2_appSettingsGeneral@1"
                 },
                 {
                     "command": "appService.appSettings.Download",
-                    "when": "view == azureResourceGroups && viewItem =~ /applicationSettings.*appService/",
+                    "when": "view == azureResourceGroups && viewItem =~ /appService.*applicationSettings/",
                     "group": "1_appSettingEnv@2"
                 },
                 {
                     "command": "appService.appSettings.Upload",
-                    "when": "view == azureResourceGroups && viewItem =~ /applicationSettings.*appService/",
+                    "when": "view == azureResourceGroups && viewItem =~ /appService.*applicationSettings/",
                     "group": "1_appSettingEnv@3"
                 },
                 {
                     "command": "appService.appSettings.Edit",
-                    "when": "view == azureResourceGroups && viewItem =~ /applicationSettingItem(|NoSlots).*appService/",
+                    "when": "view == azureResourceGroups && viewItem =~ /appService.*applicationSettingItem(|NoSlots)/",
                     "group": "1_appSettingItemEdit@1"
                 },
                 {
                     "command": "appService.appSettings.Rename",
-                    "when": "view == azureResourceGroups && viewItem =~ /applicationSettingItem(|NoSlots).*appService/",
+                    "when": "view == azureResourceGroups && viewItem =~ /appService.*applicationSettingItem(|NoSlots)/",
                     "group": "1_appSettingItemEdit@2"
                 },
                 {
                     "command": "appService.appSettings.Delete",
-                    "when": "view == azureResourceGroups && viewItem =~ /applicationSettingItem(|NoSlots).*appService/",
+                    "when": "view == azureResourceGroups && viewItem =~ /appService.*applicationSettingItem(|NoSlots)/",
                     "group": "1_appSettingItemEdit@3"
                 },
                 {
                     "command": "appService.appSettings.ToggleSlotSetting",
-                    "when": "view == azureResourceGroups && /applicationSettingItem.*appService/",
+                    "when": "view == azureResourceGroups && viewItem =~ /appService.*applicationSettingItem/",
                     "group": "1_appSettingItemEdit@4"
                 },
                 {
                     "command": "appService.toggleAppSettingVisibility",
-                    "when": "view == azureResourceGroups && viewItem =~ /applicationSettingItem(|NoSlots).*appService/",
+                    "when": "view == azureResourceGroups && viewItem =~ /appService.*applicationSettingItem(|NoSlots)/",
                     "group": "inline"
                 },
                 {
