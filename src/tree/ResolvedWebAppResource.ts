@@ -117,15 +117,27 @@ export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTre
             contextValuesToAdd: ['appService']
         });
         this._connectionsNode = new CosmosDBTreeItem(proxyTree, this.site);
-        this._siteFilesNode = new SiteFilesTreeItem(proxyTree, this.site, false);
-        this._logFilesNode = new LogFilesTreeItem(proxyTree, this.site);
+        this._siteFilesNode = new SiteFilesTreeItem(proxyTree, {
+            site: this.site,
+            isReadOnly: false,
+            contextValuesToAdd: ['appService']
+        });
+        this._logFilesNode = new LogFilesTreeItem(proxyTree, {
+            site: this.site,
+            contextValuesToAdd: ['appService']
+        });
         // Can't find actual documentation on this, but the portal claims it and this feedback suggests it's not planned https://aka.ms/AA4q5gi
         this._webJobsNode = this.site.isLinux ? new WebJobsNATreeItem(proxyTree) : new WebJobsTreeItem(proxyTree);
 
         const client = await this.site.createClient(context);
         const siteConfig: SiteConfig = await client.getSiteConfig();
         const sourceControl: SiteSourceControl = await client.getSourceControl();
-        this.deploymentsNode = new DeploymentsTreeItem(proxyTree, this.site, siteConfig, sourceControl);
+        this.deploymentsNode = new DeploymentsTreeItem(proxyTree, {
+            site: this.site,
+            siteConfig,
+            sourceControl,
+            contextValuesToAdd: ['appService']
+        });
 
         const children: AzExtTreeItem[] = [this.appSettingsNode, this._connectionsNode, this.deploymentsNode, this._siteFilesNode, this._logFilesNode, this._webJobsNode];
 
