@@ -307,6 +307,10 @@
                     "when": "never"
                 },
                 {
+                    "command": "appService.OpenInPortal",
+                    "when": "never"
+                },
+                {
                     "command": "appService.Refresh",
                     "when": "never"
                 },
@@ -332,7 +336,7 @@
                 },
                 {
                     "command": "appService.OpenInPortal",
-                    "when": "view == azureResourceGroups && viewItem =~ /(azAppWebApp|azAppSlot)/",
+                    "when": "view == azureResourceGroups && viewItem =~ /(azAppSlot)/",
                     "group": "1_appServiceGeneralCommands@1"
                 },
                 {
@@ -402,7 +406,7 @@
                 },
                 {
                     "command": "appService.Refresh",
-                    "when": "view == azureResourceGroups && viewItem =~ /(azAppWebApp|azAppSlot)/",
+                    "when": "view == azureResourceGroups && viewItem =~ /(azAppSlot)/",
                     "group": "7_commonCommands@2"
                 },
                 {
@@ -417,17 +421,17 @@
                 },
                 {
                     "command": "appService.CreateSlot",
-                    "when": "view == azureResourceGroups && viewItem =~ /appService.*deploymentSlots/",
+                    "when": "view == azureResourceGroups && viewItem == deploymentSlots",
                     "group": "1_deploymentSlotsGeneralCommands@1"
                 },
                 {
                     "command": "appService.OpenInPortal",
-                    "when": "view == azureResourceGroups && viewItem =~ /appService.*deploymentSlots/",
+                    "when": "view == azureResourceGroups && viewItem == deploymentSlots",
                     "group": "1_deploymentSlotsGeneralCommands@2"
                 },
                 {
                     "command": "appService.Refresh",
-                    "when": "view == azureResourceGroups && viewItem =~ /appService.*deploymentSlots/",
+                    "when": "view == azureResourceGroups && viewItem == deploymentSlots",
                     "group": "2_deploymentSlotsGeneralCommands@1"
                 },
                 {
