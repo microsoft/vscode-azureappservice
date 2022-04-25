@@ -183,20 +183,26 @@ export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTre
         }
 
         for (const expectedContextValue of expectedContextValues) {
-            switch (expectedContextValue) {
-                case AppSettingsTreeItem.contextValue:
-                case AppSettingTreeItem.contextValue:
+
+            if (expectedContextValue instanceof RegExp) {
+                const appSettingsContextValues = [AppSettingsTreeItem.contextValue, AppSettingTreeItem.contextValue];
+                if (matchContextValue(expectedContextValue, appSettingsContextValues)) {
                     return this.appSettingsNode;
+                }
+                const deploymentsContextValues = [DeploymentsTreeItem.contextValueConnected, DeploymentsTreeItem.contextValueUnconnected, DeploymentTreeItem.contextValue];
+                if (matchContextValue(expectedContextValue, deploymentsContextValues)) {
+                    return this.deploymentsNode;
+                }
+                if (matchContextValue(expectedContextValue, [FolderTreeItem.contextValue])) {
+                    return this._siteFilesNode;
+                }
+            }
+
+            switch (expectedContextValue) {
                 case CosmosDBTreeItem.contextValueInstalled:
                 case CosmosDBTreeItem.contextValueNotInstalled:
                 case CosmosDBConnection.contextValue:
                     return this._connectionsNode;
-                case DeploymentsTreeItem.contextValueConnected:
-                case DeploymentsTreeItem.contextValueUnconnected:
-                case DeploymentTreeItem.contextValue:
-                    return this.deploymentsNode;
-                case FolderTreeItem.contextValue:
-                    return this._siteFilesNode;
                 case WebJobsTreeItem.contextValue:
                     return this._webJobsNode;
                 default:
@@ -253,5 +259,23 @@ export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTre
         };
         const client = await this.site.createClient(context);
         await client.updateLogsConfig(logsConfig);
+    }
+}
+
+function matchContextValue(expectedContextValue: RegExp | string, matches: (string | RegExp)[]): boolean {
+    if (expectedContextValue instanceof RegExp) {
+        return matches.some((match) => {
+            if (match instanceof RegExp) {
+                return expectedContextValue.toString() === match.toString();
+            }
+            return expectedContextValue.test(match);
+        });
+    } else {
+        return matches.some((match) => {
+            if (match instanceof RegExp) {
+                return match.test(expectedContextValue);
+            }
+            return expectedContextValue === match;
+        });
     }
 }

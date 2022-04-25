@@ -9,7 +9,7 @@ import { ext } from "../../extensionVariables";
 
 export async function toggleSlotSetting(context: IActionContext, node?: AppSettingTreeItem): Promise<void> {
     if (!node) {
-        node = <AppSettingTreeItem>await ext.rgApi.tree.showTreeItemPicker(AppSettingTreeItem.contextValue, context);
+        node = <AppSettingTreeItem>await ext.rgApi.tree.showTreeItemPicker(new RegExp(AppSettingTreeItem.contextValue), context);
     }
 
     await node.toggleSlotSetting(context);

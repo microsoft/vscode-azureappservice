@@ -9,7 +9,7 @@ import { ext } from "../../extensionVariables";
 
 export async function addAppSetting(context: IActionContext, node?: AppSettingsTreeItem): Promise<void> {
     if (!node) {
-        node = await ext.rgApi.tree.showTreeItemPicker<AppSettingsTreeItem>(AppSettingsTreeItem.contextValue, context);
+        node = await ext.rgApi.tree.showTreeItemPicker<AppSettingsTreeItem>(new RegExp(AppSettingsTreeItem.contextValue), context);
     }
 
     await node.createChild(context);

@@ -29,7 +29,7 @@ export async function uploadAppSettings(context: IActionContext, target?: Uri | 
     }
 
     if (!node) {
-        node = <AppSettingsTreeItem>await ext.rgApi.tree.showTreeItemPicker(AppSettingsTreeItem.contextValue, context);
+        node = <AppSettingsTreeItem>await ext.rgApi.tree.showTreeItemPicker(new RegExp(AppSettingsTreeItem.contextValue), context);
     }
     const client: IAppSettingsClient = await node.clientProvider.createClient(context);
     await node.runWithTemporaryDescription(context, localize('uploading', 'Uploading settings to "{0}"...', client.fullName), async () => {
