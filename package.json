@@ -2,7 +2,7 @@
     "name": "vscode-azureappservice",
     "displayName": "Azure App Service",
     "description": "%appService.description%",
-    "version": "0.23.3-alpha.2",
+    "version": "0.23.3-alpha.3",
     "publisher": "ms-azuretools",
     "icon": "resources/WebApp.png",
     "aiKey": "AIF-d9b70cd4-b9f9-4d70-929b-a071c400b217",
@@ -466,7 +466,7 @@
                 },
                 {
                     "command": "appService.appSettings.Add",
-                    "when": "view == azureResourceGroups && viewItem == /appService.*applicationSettings/",
+                    "when": "view == azureResourceGroups && viewItem =~ /appService.*applicationSettings/",
                     "group": "1_appSettingEnv@1"
                 },
                 {
