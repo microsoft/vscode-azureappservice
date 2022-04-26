@@ -22,6 +22,8 @@ export async function openInPortal(context: IActionContext, node: AzExtTreeItem)
         await uiOpenInPortal(node, id);
         return;
     }
+
+    await uiOpenInPortal(node, `${nonNullProp(node, 'parent').parent?.id}/Deployments/${nonNullProp(node, 'id')}`);
 }
 
 function matchContextValue(expectedContextValue: RegExp | string, matches: (string | RegExp)[]): boolean {
