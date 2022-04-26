@@ -351,7 +351,7 @@
                 },
                 {
                     "command": "appService.DeploySlot",
-                    "when": "view == azureResourceGroups && viewItem == azAppSlot",
+                    "when": "view == azureResourceGroups && viewItem =~ /azAppSlot/",
                     "group": "2_appServiceDeployCommands@1"
                 },
                 {
