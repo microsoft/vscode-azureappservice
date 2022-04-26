@@ -51,7 +51,7 @@ export class DeploymentSlotsTreeItem extends AzExtParentTreeItem {
         // Load more currently broken https://github.com/Azure/azure-sdk-for-js/issues/20380
         const webAppCollection: Site[] = await uiUtils.listAllIterator(client.webApps.listSlots(this.parent.site.resourceGroup, this.parent.site.siteName));
 
-        return webAppCollection.map(s => new SiteTreeItem(this, new ParsedSite(s, this.subscription)));
+        return webAppCollection.map(s => new SiteTreeItem(this, s));
     }
 
     public async createChildImpl(context: ICreateChildImplContext): Promise<AzExtTreeItem> {
@@ -59,7 +59,7 @@ export class DeploymentSlotsTreeItem extends AzExtParentTreeItem {
         const rawSite: Site = await createSlot(this.parent.site, existingSlots, context);
         const site = new ParsedSite(rawSite, this.subscription);
         ext.outputChannel.appendLog(getCreatedWebAppMessage(site));
-        return new SiteTreeItem(this, site);
+        return new SiteTreeItem(this, rawSite);
     }
 }
 
