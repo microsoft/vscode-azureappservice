@@ -466,7 +466,7 @@
                 },
                 {
                     "command": "appService.appSettings.Add",
-                    "when": "view == azureResourceGroups && viewItem == /appService.*applicationSettings/",
+                    "when": "view == azureResourceGroups && viewItem =~ /appService.*applicationSettings/",
                     "group": "1_appSettingEnv@1"
                 },
                 {
