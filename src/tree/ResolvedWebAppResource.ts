@@ -9,6 +9,7 @@ import { AzExtTreeItem, AzureWizard, DeleteConfirmationStep, IActionContext, ISu
 import { ResolvedAppResourceBase } from '@microsoft/vscode-azext-utils/hostapi';
 import { localize } from '../localize';
 import { createActivityContext } from '../utils/activityUtils';
+import { matchContextValue } from '../utils/contextUtils';
 import { nonNullValue } from '../utils/nonNull';
 import { openUrl } from '../utils/openUrl';
 import { getIconPath, getThemedIconPath } from '../utils/pathUtils';
@@ -259,23 +260,5 @@ export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTre
         };
         const client = await this.site.createClient(context);
         await client.updateLogsConfig(logsConfig);
-    }
-}
-
-function matchContextValue(expectedContextValue: RegExp | string, matches: (string | RegExp)[]): boolean {
-    if (expectedContextValue instanceof RegExp) {
-        return matches.some((match) => {
-            if (match instanceof RegExp) {
-                return expectedContextValue.toString() === match.toString();
-            }
-            return expectedContextValue.test(match);
-        });
-    } else {
-        return matches.some((match) => {
-            if (match instanceof RegExp) {
-                return match.test(expectedContextValue);
-            }
-            return expectedContextValue === match;
-        });
     }
 }
