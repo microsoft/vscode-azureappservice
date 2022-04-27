@@ -401,7 +401,7 @@
                 },
                 {
                     "command": "appService.ViewProperties",
-                    "when": "view == azureResourceGroups && viewItem =~ /(azAppWebApp|azAppSlot)/",
+                    "when": "view == azureResourceGroups && viewItem =~ /azAppSlot/",
                     "group": "7_commonCommands@1"
                 },
                 {
