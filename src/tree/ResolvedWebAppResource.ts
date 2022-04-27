@@ -21,8 +21,15 @@ import { NotAvailableTreeItem } from './NotAvailableTreeItem';
 import { SiteTreeItem } from './SiteTreeItem';
 import { WebJobsNATreeItem, WebJobsTreeItem } from './WebJobsTreeItem';
 
+export function isResolvedWebAppResource(ti: unknown): ti is ResolvedWebAppResource {
+    return (ti as unknown as ResolvedWebAppResource).kind === ResolvedWebAppResource.kind;
+}
+
 export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTreeItem {
     public site: ParsedSite;
+
+    public static kind = 'resolvedWebApp';
+    public readonly kind = ResolvedWebAppResource.kind;
 
     public contextValuesToAdd?: string[] | undefined;
     public maskedValuesToAdd: string[] = [];
