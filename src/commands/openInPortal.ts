@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { DeploymentsTreeItem } from "@microsoft/vscode-azext-azureappservice";
+import { DeploymentsTreeItem, DeploymentTreeItem } from "@microsoft/vscode-azext-azureappservice";
 import { openInPortal as uiOpenInPortal } from '@microsoft/vscode-azext-azureutils';
 import { AzExtTreeItem, IActionContext } from "@microsoft/vscode-azext-utils";
 import { DeploymentSlotsTreeItem } from "../tree/DeploymentSlotsTreeItem";
@@ -24,5 +24,10 @@ export async function openInPortal(context: IActionContext, node: AzExtTreeItem)
         return;
     }
 
-    await uiOpenInPortal(node, `${nonNullProp(node, 'parent').parent?.id}/Deployments/${nonNullProp(node, 'id')}`);
+    if (matchContextValue(node.contextValue, [new RegExp(DeploymentTreeItem.contextValue)])) {
+        await uiOpenInPortal(node, `${nonNullProp(node, 'parent').parent?.id}/Deployments/${nonNullProp(node, 'id')}`);
+        return;
+    }
+
+    await uiOpenInPortal(node, nonNullProp(node, 'id'));
 }

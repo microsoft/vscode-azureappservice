@@ -2,7 +2,7 @@
     "name": "vscode-azureappservice",
     "displayName": "Azure App Service",
     "description": "%appService.description%",
-    "version": "0.23.3-alpha.3",
+    "version": "0.23.3-alpha.4",
     "publisher": "ms-azuretools",
     "icon": "resources/WebApp.png",
     "aiKey": "AIF-d9b70cd4-b9f9-4d70-929b-a071c400b217",
@@ -351,7 +351,7 @@
                 },
                 {
                     "command": "appService.DeploySlot",
-                    "when": "view == azureResourceGroups && viewItem == azAppSlot",
+                    "when": "view == azureResourceGroups && viewItem =~ /azAppSlot/",
                     "group": "2_appServiceDeployCommands@1"
                 },
                 {

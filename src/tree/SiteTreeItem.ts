@@ -10,7 +10,7 @@ import { ISiteTreeItem } from './ISiteTreeItem';
 import { ResolvedWebAppResource } from './ResolvedWebAppResource';
 
 export class SiteTreeItem extends AzExtParentTreeItem implements ISiteTreeItem {
-    public contextValue!: string;
+    public contextValue: string = 'azAppSlot';
     public resolved: ResolvedWebAppResource;
 
     public appSettingsNode!: AppSettingsTreeItem;
@@ -62,7 +62,7 @@ export class SiteTreeItem extends AzExtParentTreeItem implements ISiteTreeItem {
     }
 
     public async loadMoreChildrenImpl(_clearCache: boolean, context: IActionContext): Promise<AzExtTreeItem[]> {
-        return await this.resolved.loadMoreChildrenImpl(_clearCache, context);
+        return await this.resolved.loadMoreChildrenImpl.call(this, _clearCache, context);
     }
 
     public pickTreeItemImpl(expectedContextValues: (string | RegExp)[]): AzExtTreeItem | undefined {
