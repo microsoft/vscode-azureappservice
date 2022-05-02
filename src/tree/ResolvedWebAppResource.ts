@@ -22,14 +22,14 @@ import { SiteTreeItem } from './SiteTreeItem';
 import { WebJobsNATreeItem, WebJobsTreeItem } from './WebJobsTreeItem';
 
 export function isResolvedWebAppResource(ti: unknown): ti is ResolvedWebAppResource {
-    return (ti as unknown as ResolvedWebAppResource).kind === ResolvedWebAppResource.kind;
+    return (ti as unknown as ResolvedWebAppResource).instance === ResolvedWebAppResource.instance;
 }
 
 export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTreeItem {
     public site: ParsedSite;
 
-    public static kind = 'resolvedWebApp';
-    public readonly kind = ResolvedWebAppResource.kind;
+    public static instance = 'resolvedWebApp';
+    public readonly instance = ResolvedWebAppResource.instance;
 
     public contextValuesToAdd?: string[] | undefined;
     public maskedValuesToAdd: string[] = [];
