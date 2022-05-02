@@ -7,14 +7,14 @@ import { DeploymentsTreeItem, disconnectRepo as disconnectRepository } from "@mi
 import { IActionContext } from "@microsoft/vscode-azext-utils";
 import { OperationNotSupportedError } from '../../errors';
 import { ext } from "../../extensionVariables";
-import { SiteTreeItem } from '../../tree/SiteTreeItem';
+import { isResolvedWebAppResource } from "../../tree/ResolvedWebAppResource";
 
 export async function disconnectRepo(context: IActionContext, node?: DeploymentsTreeItem): Promise<void> {
     if (!node) {
         node = await ext.rgApi.tree.showTreeItemPicker<DeploymentsTreeItem>(DeploymentsTreeItem.contextValueConnected, { ...context, suppressCreatePick: true });
     }
 
-    if (node.parent instanceof SiteTreeItem) {
+    if (isResolvedWebAppResource(node.parent)) {
         await disconnectRepository(context, node.parent.site, node.subscription);
     } else {
         throw new OperationNotSupportedError(context);
