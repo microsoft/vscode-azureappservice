@@ -4,12 +4,16 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { IActionContext } from '@microsoft/vscode-azext-utils';
+import { webAppFilter } from '../../constants';
 import { ext } from "../../extensionVariables";
 import { CosmosDBConnection } from '../../tree/CosmosDBConnection';
 
 export async function removeCosmosDBConnection(context: IActionContext, node?: CosmosDBConnection): Promise<void> {
     if (!node) {
-        node = await ext.rgApi.tree.showTreeItemPicker<CosmosDBConnection>(CosmosDBConnection.contextValue, { ...context, suppressCreatePick: true });
+        node = await ext.rgApi.pickAppResource<CosmosDBConnection>({ ...context, suppressCreatePick: true }, {
+            filter: webAppFilter,
+            expectedChildContextValue: CosmosDBConnection.contextValue
+        });
     }
 
     await node.deleteTreeItem(context);

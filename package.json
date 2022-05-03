@@ -321,6 +321,10 @@
                 {
                     "command": "appService.toggleAppSettingVisibility",
                     "when": "never"
+                },
+                {
+                    "command": "appService.ViewProperties",
+                    "when": "never"
                 }
             ],
             "view/item/context": [
@@ -768,7 +772,7 @@
         "@azure/ms-rest-js": "^2.2.1",
         "@microsoft/vscode-azext-azureappservice": "^0.4.2",
         "@microsoft/vscode-azext-azureutils": "^0.2.0",
-        "@microsoft/vscode-azext-utils": "^0.2.1",
+        "@microsoft/vscode-azext-utils": "^0.2.4",
         "dotenv": "^6.2.0",
         "fast-xml-parser": "^3.19.0",
         "fs-extra": "^8.0.0",

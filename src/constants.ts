@@ -38,3 +38,6 @@ export const detectorTimestampFormat: string = 'YYYY-MM-DDTHH:mm';
 
 export const webProvider: string = 'Microsoft.Web';
 
+export const webAppFilter = {
+    type: 'microsoft.web/sites'
+}

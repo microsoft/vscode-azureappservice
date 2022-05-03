@@ -11,7 +11,7 @@ import * as fse from 'fs-extra';
 import * as os from 'os';
 import * as vscode from 'vscode';
 import { window } from "vscode";
-import { envFileName } from "../../constants";
+import { envFileName, webAppFilter } from "../../constants";
 import { ext } from "../../extensionVariables";
 import { localize } from "../../localize";
 import * as workspaceUtil from '../../utils/workspace';
@@ -19,7 +19,10 @@ import { getLocalEnvironmentVariables } from './getLocalEnvironmentVariables';
 
 export async function downloadAppSettings(context: IActionContext, node?: AppSettingsTreeItem): Promise<void> {
     if (!node) {
-        node = <AppSettingsTreeItem>await ext.rgApi.tree.showTreeItemPicker(new RegExp(AppSettingsTreeItem.contextValue), context);
+        node = await ext.rgApi.pickAppResource<AppSettingsTreeItem>(context, {
+            filter: webAppFilter,
+            expectedChildContextValue: new RegExp(AppSettingsTreeItem.contextValue)
+        });
     }
 
     const client: IAppSettingsClient = await node.clientProvider.createClient(context);

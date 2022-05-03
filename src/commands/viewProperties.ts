@@ -4,16 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { IActionContext, nonNullValue, openReadOnlyJson } from '@microsoft/vscode-azext-utils';
-import { ext } from '../extensionVariables';
 import { localize } from '../localize';
-import { ResolvedWebAppResource } from '../tree/ResolvedWebAppResource';
 import { SiteTreeItem } from '../tree/SiteTreeItem';
 
-export async function viewProperties(context: IActionContext, node?: SiteTreeItem): Promise<void> {
-    if (!node) {
-        node = await ext.rgApi.appResourceTree.showTreeItemPicker<SiteTreeItem>(new RegExp(ResolvedWebAppResource.webAppContextValue), context);
-    }
-
+export async function viewProperties(context: IActionContext, node: SiteTreeItem): Promise<void> {
     const client = await node.site.createClient(context);
     await node.runWithTemporaryDescription(context, localize('retrievingProps', 'Retrieving properties...'), async () => {
         // `siteConfig` already exists on `node.site`, but has very limited properties for some reason. We want to get the full site config

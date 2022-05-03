@@ -5,6 +5,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { IActionContext } from "@microsoft/vscode-azext-utils";
+import { webAppFilter } from "../constants";
 import { ext } from "../extensionVariables";
 import { localize } from "../localize";
 import { ResolvedWebAppResource } from "../tree/ResolvedWebAppResource";
@@ -12,7 +13,10 @@ import { SiteTreeItem } from "../tree/SiteTreeItem";
 
 export async function stopWebApp(context: IActionContext, node?: SiteTreeItem): Promise<void> {
     if (!node) {
-        node = await ext.rgApi.tree.showTreeItemPicker<SiteTreeItem>(new RegExp(ResolvedWebAppResource.webAppContextValue), context);
+        node = await ext.rgApi.pickAppResource<SiteTreeItem>(context, {
+            filter: webAppFilter,
+            expectedChildContextValue: new RegExp(ResolvedWebAppResource.webAppContextValue)
+        });
     }
 
     const client = await node.site.createClient(context);

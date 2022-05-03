@@ -8,6 +8,7 @@ import { IActionContext } from "@microsoft/vscode-azext-utils";
 import * as fse from 'fs-extra';
 import * as path from 'path';
 import { ProgressLocation, window, workspace } from "vscode";
+import { webAppFilter } from "../constants";
 import { ext } from "../extensionVariables";
 import { localize } from "../localize";
 import { ResolvedWebAppResource } from "../tree/ResolvedWebAppResource";
@@ -18,7 +19,10 @@ import { getResourcesPath } from "../utils/pathUtils";
 
 export async function generateDeploymentScript(context: IActionContext, node?: SiteTreeItem): Promise<void> {
     if (!node) {
-        node = await ext.rgApi.tree.showTreeItemPicker<SiteTreeItem>(new RegExp(ResolvedWebAppResource.webAppContextValue), context);
+        node = await ext.rgApi.pickAppResource<SiteTreeItem>(context, {
+            filter: webAppFilter,
+            expectedChildContextValue: new RegExp(ResolvedWebAppResource.webAppContextValue)
+        });
     }
 
     await window.withProgress({ location: ProgressLocation.Window }, async p => {

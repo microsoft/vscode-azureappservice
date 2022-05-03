@@ -9,6 +9,7 @@ import { IActionContext } from '@microsoft/vscode-azext-utils';
 import * as portfinder from 'portfinder';
 import * as vscode from 'vscode';
 import { TerminalDataWriteEvent } from 'vscode';
+import { webAppFilter } from '../constants';
 import { ext } from '../extensionVariables';
 import { localize } from '../localize';
 import { ResolvedWebAppResource } from '../tree/ResolvedWebAppResource';
@@ -33,7 +34,10 @@ export const sshURL = 'root@127.0.0.1';
  */
 export async function startSsh(context: IActionContext, node?: SiteTreeItem): Promise<void> {
     if (!node) {
-        node = <SiteTreeItem>await ext.rgApi.tree.showTreeItemPicker(new RegExp(ResolvedWebAppResource.webAppContextValue), context);
+        node = await ext.rgApi.pickAppResource<SiteTreeItem>(context, {
+            filter: webAppFilter,
+            expectedChildContextValue: new RegExp(ResolvedWebAppResource.webAppContextValue)
+        });
     }
 
     const currentSshTerminal: sshTerminal | undefined = sshSessionsMap.get(node.site.fullName);
