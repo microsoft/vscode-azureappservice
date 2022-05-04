@@ -5,13 +5,17 @@
 
 import { DeploymentsTreeItem, disconnectRepo as disconnectRepository } from "@microsoft/vscode-azext-azureappservice";
 import { IActionContext } from "@microsoft/vscode-azext-utils";
+import { webAppFilter } from "../../constants";
 import { OperationNotSupportedError } from '../../errors';
 import { ext } from "../../extensionVariables";
 import { isResolvedWebAppResource } from "../../tree/ResolvedWebAppResource";
 
 export async function disconnectRepo(context: IActionContext, node?: DeploymentsTreeItem): Promise<void> {
     if (!node) {
-        node = await ext.rgApi.tree.showTreeItemPicker<DeploymentsTreeItem>(DeploymentsTreeItem.contextValueConnected, { ...context, suppressCreatePick: true });
+        node = await ext.rgApi.pickAppResource<DeploymentsTreeItem>({ ...context, suppressCreatePick: true }, {
+            filter: webAppFilter,
+            expectedChildContextValue: new RegExp(DeploymentsTreeItem.contextValueConnected)
+        });
     }
 
     if (isResolvedWebAppResource(node.parent)) {

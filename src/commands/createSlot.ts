@@ -5,7 +5,7 @@
 
 import { SiteConfigResource } from "@azure/arm-appservice";
 import { IActionContext } from "@microsoft/vscode-azext-utils";
-import { ScmType } from "../constants";
+import { ScmType, webAppFilter } from "../constants";
 import { ext } from "../extensionVariables";
 import { localize } from "../localize";
 import { DeploymentSlotsTreeItem } from "../tree/DeploymentSlotsTreeItem";
@@ -16,7 +16,10 @@ import { editScmType } from "./deployments/editScmType";
 export async function createSlot(context: IActionContext, node?: DeploymentSlotsTreeItem | undefined): Promise<void> {
     if (!node) {
         const noItemFoundErrorMessage: string = localize('noWebAppForSlot', 'The selected web app does not support slots. View supported plans [here](https://aka.ms/AA7aoe4).');
-        node = <DeploymentSlotsTreeItem>await ext.rgApi.tree.showTreeItemPicker(DeploymentSlotsTreeItem.contextValue, { ...context, noItemFoundErrorMessage });
+        node = await ext.rgApi.pickAppResource<DeploymentSlotsTreeItem>({ ...context, noItemFoundErrorMessage }, {
+            filter: webAppFilter,
+            expectedChildContextValue: new RegExp(DeploymentSlotsTreeItem.contextValue)
+        });
     }
 
     const createdSlot: SiteTreeItem = <SiteTreeItem>await node.createChild(context);

@@ -6,6 +6,7 @@
 import { LogFilesTreeItem } from '@microsoft/vscode-azext-azureappservice';
 import { DialogResponses, IActionContext } from '@microsoft/vscode-azext-utils';
 import * as vscode from 'vscode';
+import { webAppFilter } from '../../constants';
 import { ext } from '../../extensionVariables';
 import { localize } from '../../localize';
 import { ResolvedWebAppResource } from "../../tree/ResolvedWebAppResource";
@@ -17,7 +18,10 @@ export interface IEnableFileLoggingContext extends IActionContext {
 
 export async function enableFileLogging(context: IEnableFileLoggingContext, node?: SiteTreeItem | LogFilesTreeItem): Promise<void> {
     if (!node) {
-        node = await ext.rgApi.tree.showTreeItemPicker<SiteTreeItem>(new RegExp(ResolvedWebAppResource.webAppContextValue), context);
+        node = await ext.rgApi.pickAppResource<SiteTreeItem>(context, {
+            filter: webAppFilter,
+            expectedChildContextValue: new RegExp(ResolvedWebAppResource.webAppContextValue)
+        });
     }
 
     if (node instanceof LogFilesTreeItem) {
