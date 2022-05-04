@@ -770,7 +770,7 @@
         "@azure/arm-appservice": "^11.0.0",
         "@azure/arm-resources": "^5.0.0",
         "@azure/ms-rest-js": "^2.2.1",
-        "@microsoft/vscode-azext-azureappservice": "^0.4.2",
+        "@microsoft/vscode-azext-azureappservice": "^0.5.0",
         "@microsoft/vscode-azext-azureutils": "^0.2.0",
         "@microsoft/vscode-azext-utils": "^0.2.4",
         "dotenv": "^6.2.0",

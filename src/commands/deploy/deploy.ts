@@ -13,7 +13,6 @@ import * as vscode from 'vscode';
 import * as constants from '../../constants';
 import { ext } from '../../extensionVariables';
 import { localize } from '../../localize';
-import { ResolvedWebAppResource } from '../../tree/ResolvedWebAppResource';
 import { SiteTreeItem } from '../../tree/SiteTreeItem';
 import { javaUtils } from '../../utils/javaUtils';
 import { nonNullValue } from '../../utils/nonNull';
@@ -47,7 +46,9 @@ export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | 
 
     // because this is workspace dependant, do it before user selects app
     await setPreDeployConfig(context);
-    const node: SiteTreeItem = await getDeployNode(context, ext.rgApi.tree, arg1, arg2, [ResolvedWebAppResource.webAppContextValue]);
+    const node: SiteTreeItem = await getDeployNode(context, ext.rgApi.tree, arg1, arg2, () => ext.rgApi.pickAppResource(context, {
+        filter: constants.webAppFilter
+    }));
     client = await node.site.createClient(actionContext);
 
     const correlationId: string = getRandomHexString();
