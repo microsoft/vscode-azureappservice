@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as vscode from 'vscode';
-import { TestOutputChannel, TestUserInput } from 'vscode-azureextensiondev';
+import { TestOutputChannel, TestUserInput } from '@microsoft/vscode-azext-dev';
 import { ext, registerOnActionStartHandler } from '../extension.bundle';
 
 export const longRunningTestsEnabled: boolean = !/^(false|0)?$/i.test(process.env.ENABLE_LONG_RUNNING_TESTS || '');

@@ -5,8 +5,7 @@
 
 import { SiteConfigResource, User } from '@azure/arm-appservice';
 import { reportMessage, setRemoteDebug, TunnelProxy } from '@microsoft/vscode-azext-azureappservice';
-import { IActionContext } from '@microsoft/vscode-azext-utils';
-import * as portfinder from 'portfinder';
+import { findFreePort, IActionContext } from '@microsoft/vscode-azext-utils';
 import * as vscode from 'vscode';
 import { TerminalDataWriteEvent } from 'vscode';
 import { webAppFilter } from '../constants';
@@ -76,7 +75,7 @@ async function startSshInternal(context: IActionContext, node: SiteTreeItem): Pr
 
         reportMessage(localize('initSsh', 'Initializing SSH...'), progress, token);
         const publishCredential: User = await client.getWebAppPublishCredential();
-        const localHostPortNumber: number = await portfinder.getPortPromise();
+        const localHostPortNumber: number = await findFreePort();
         // should always be an unbound port
         const tunnelProxy: TunnelProxy = new TunnelProxy(localHostPortNumber, node.site, publishCredential, true);
 

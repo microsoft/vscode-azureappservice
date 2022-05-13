@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as assert from 'assert';
-import { createTestActionContext } from 'vscode-azureextensiondev';
+import { createTestActionContext } from '@microsoft/vscode-azext-dev';
 import { ColumnName, detectorTable, findTableByName, getValuesByColumnName, validateTimestamp } from "../extension.bundle";
 
 suite('Detector Dataset Parser', () => {

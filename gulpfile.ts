@@ -6,7 +6,7 @@
 import * as fse from 'fs-extra';
 import * as gulp from 'gulp';
 import * as path from 'path';
-import { gulp_installAzureAccount, gulp_installResourceGroups, gulp_webpack } from 'vscode-azureextensiondev';
+import { gulp_installAzureAccount, gulp_installResourceGroups, gulp_webpack } from '@microsoft/vscode-azext-dev';
 
 declare let exports: { [key: string]: unknown };
 

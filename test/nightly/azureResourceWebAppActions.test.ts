@@ -6,7 +6,7 @@
 import { Site, SiteConfigResource, StringDictionary } from '@azure/arm-appservice';
 import { tryGetWebApp, WebsiteOS } from '@microsoft/vscode-azext-azureappservice';
 import * as assert from 'assert';
-import { runWithTestActionContext } from 'vscode-azureextensiondev';
+import { runWithTestActionContext } from '@microsoft/vscode-azext-dev';
 import { addAppSetting, constants, createWebAppAdvanced, deleteAppSetting, deleteWebApp, DialogResponses, editScmType, getRandomHexString } from '../../extension.bundle';
 import { longRunningTestsEnabled } from '../global.test';
 import { getRotatingLocation, getRotatingPricingTier } from './getRotatingValue';

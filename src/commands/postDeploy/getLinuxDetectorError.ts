@@ -6,11 +6,15 @@
 import { ServiceClient } from '@azure/ms-rest-js';
 import { createGenericClient } from '@microsoft/vscode-azext-azureutils';
 import { IActionContext } from "@microsoft/vscode-azext-utils";
-import * as moment from 'moment';
+import * as dayjs from 'dayjs';
+// eslint-disable-next-line import/no-internal-modules
+import * as utc from 'dayjs/plugin/utc';
 import { detectorTimestampFormat } from "../../constants";
 import { localize } from "../../localize";
 import { SiteTreeItem } from "../../tree/SiteTreeItem";
 import { findTableByName, getValuesByColumnName } from "./parseDetectorResponse";
+
+dayjs.extend(utc);
 
 export enum ColumnName {
     status = "Status",
@@ -75,7 +79,7 @@ export async function getLinuxDetectorError(context: IActionContext, detectorId:
     // The format of the timestamp in the insight response is [1] 2020-04-21T18:23:50
     // The bracket are prefixed because internally the table is a Dictionary<string,object> so if the key is non-unique, it will throw an error
     const bracketsAndSpace: RegExp = /\[.*?\]\s/;
-    detectorTimestamp = moment.utc(detectorTimestamp.replace(bracketsAndSpace, '')).format(detectorTimestampFormat);
+    detectorTimestamp = dayjs.utc(detectorTimestamp.replace(bracketsAndSpace, '')).format(detectorTimestampFormat);
 
     if (!detectorTimestamp || !validateTimestamp(context, detectorTimestamp, deployEndTime)) {
         return undefined;

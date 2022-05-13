@@ -3,10 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import moment = require("moment");
 import { createKuduClient } from "@microsoft/vscode-azext-azureappservice";
 import { openInPortal } from '@microsoft/vscode-azext-azureutils';
 import { callWithTelemetryAndErrorHandling, IActionContext, UserCancelledError } from "@microsoft/vscode-azext-utils";
+import * as dayjs from "dayjs";
+// eslint-disable-next-line import/no-internal-modules
+import * as utc from 'dayjs/plugin/utc';
 import { CancellationTokenSource } from "vscode";
 import { KuduClient, KuduModels } from "vscode-azurekudu";
 import { detectorTimestampFormat } from '../../constants';
@@ -15,6 +17,8 @@ import { localize } from "../../localize";
 import { SiteTreeItem } from "../../tree/SiteTreeItem";
 import { delay } from "../../utils/delay";
 import { getLinuxDetectorError } from "./getLinuxDetectorError";
+
+dayjs.extend(utc);
 
 const linuxLogViewer: string = 'LinuxLogViewer';
 
@@ -54,9 +58,9 @@ export async function checkLinuxWebAppDownDetector(originalContext: IActionConte
             const startTimeDate: Date = new Date(nowTime - (60 * 60 * 1000));
             const endTimeDate: Date = new Date(nowTime - (30 * 60 * 1000));
 
-            const startTime: string = moment.utc(startTimeDate).format(detectorTimestampFormat);
-            const endTime: string = moment.utc(endTimeDate).format(detectorTimestampFormat);
-            const deployEndTime: string = moment.utc(deployment.endTime).format(detectorTimestampFormat);
+            const startTime: string = dayjs.utc(startTimeDate).format(detectorTimestampFormat);
+            const endTime: string = dayjs.utc(endTimeDate).format(detectorTimestampFormat);
+            const deployEndTime: string = dayjs.utc(deployment.endTime).format(detectorTimestampFormat);
 
             detectorErrorMessage = await getLinuxDetectorError(context, linuxLogViewer, node, startTime, endTime, deployEndTime);
 

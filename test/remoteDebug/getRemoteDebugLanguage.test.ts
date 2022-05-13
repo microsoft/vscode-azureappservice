@@ -5,7 +5,7 @@
 
 import * as assert from 'assert';
 import { RemoteDebugLanguage } from '@microsoft/vscode-azext-azureappservice';
-import { createTestActionContext } from 'vscode-azureextensiondev';
+import { createTestActionContext } from '@microsoft/vscode-azext-dev';
 import { getRemoteDebugLanguage } from '../../extension.bundle';
 import { runWithExtensionSetting } from '../runWithSetting';
 
