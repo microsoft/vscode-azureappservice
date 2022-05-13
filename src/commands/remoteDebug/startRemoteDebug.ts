@@ -7,15 +7,19 @@ import { SiteConfigResource } from '@azure/arm-appservice';
 import * as appservice from '@microsoft/vscode-azext-azureappservice';
 import { IActionContext } from '@microsoft/vscode-azext-utils';
 import * as vscode from 'vscode';
+import { webAppFilter } from '../../constants';
 import { ext } from '../../extensionVariables';
 import { localize } from '../../localize';
+import { ResolvedWebAppResource } from '../../tree/ResolvedWebAppResource';
 import { SiteTreeItem } from '../../tree/SiteTreeItem';
-import { WebAppTreeItem } from '../../tree/WebAppTreeItem';
 import { getRemoteDebugLanguage } from './getRemoteDebugLanguage';
 
 export async function startRemoteDebug(context: IActionContext, node?: SiteTreeItem): Promise<void> {
     if (!node) {
-        node = <SiteTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue, context);
+        node = await ext.rgApi.pickAppResource<SiteTreeItem>(context, {
+            filter: webAppFilter,
+            expectedChildContextValue: new RegExp(ResolvedWebAppResource.webAppContextValue)
+        });
     }
 
     const client = await node.site.createClient(context);

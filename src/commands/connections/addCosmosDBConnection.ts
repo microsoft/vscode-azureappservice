@@ -4,13 +4,17 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { AzExtParentTreeItem, AzExtTreeItem, IActionContext } from '@microsoft/vscode-azext-utils';
+import { webAppFilter } from '../../constants';
 import { ext } from "../../extensionVariables";
 import { CosmosDBTreeItem } from '../../tree/CosmosDBTreeItem';
 import { nonNullProp } from '../../utils/nonNull';
 
 export async function addCosmosDBConnection(context: IActionContext, node?: AzExtTreeItem): Promise<void> {
     if (!node) {
-        node = <CosmosDBTreeItem>await ext.tree.showTreeItemPicker([CosmosDBTreeItem.contextValueNotInstalled, CosmosDBTreeItem.contextValueInstalled], context);
+        node = await ext.rgApi.pickAppResource<CosmosDBTreeItem>(context, {
+            filter: webAppFilter,
+            expectedChildContextValue: [CosmosDBTreeItem.contextValueNotInstalled, CosmosDBTreeItem.contextValueInstalled]
+        });
     }
 
     let cosmosDBTreeItem: AzExtParentTreeItem;
@@ -20,5 +24,5 @@ export async function addCosmosDBConnection(context: IActionContext, node?: AzEx
         cosmosDBTreeItem = nonNullProp(node, 'parent');
     }
     await cosmosDBTreeItem.createChild(context);
-    await ext.tree.refresh(context, cosmosDBTreeItem);
+    await ext.rgApi.tree.refresh(context, cosmosDBTreeItem);
 }

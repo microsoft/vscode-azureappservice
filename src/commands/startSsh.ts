@@ -8,10 +8,11 @@ import { reportMessage, setRemoteDebug, TunnelProxy } from '@microsoft/vscode-az
 import { findFreePort, IActionContext } from '@microsoft/vscode-azext-utils';
 import * as vscode from 'vscode';
 import { TerminalDataWriteEvent } from 'vscode';
+import { webAppFilter } from '../constants';
 import { ext } from '../extensionVariables';
 import { localize } from '../localize';
+import { ResolvedWebAppResource } from '../tree/ResolvedWebAppResource';
 import { SiteTreeItem } from '../tree/SiteTreeItem';
-import { WebAppTreeItem } from '../tree/WebAppTreeItem';
 
 export type sshTerminal = {
     starting: boolean,
@@ -32,7 +33,10 @@ export const sshURL = 'root@127.0.0.1';
  */
 export async function startSsh(context: IActionContext, node?: SiteTreeItem): Promise<void> {
     if (!node) {
-        node = <SiteTreeItem>await ext.tree.showTreeItemPicker(WebAppTreeItem.contextValue, context);
+        node = await ext.rgApi.pickAppResource<SiteTreeItem>(context, {
+            filter: webAppFilter,
+            expectedChildContextValue: new RegExp(ResolvedWebAppResource.webAppContextValue)
+        });
     }
 
     const currentSshTerminal: sshTerminal | undefined = sshSessionsMap.get(node.site.fullName);

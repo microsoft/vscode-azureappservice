@@ -4,20 +4,24 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { AzExtTreeItem, IActionContext } from '@microsoft/vscode-azext-utils';
+import { webAppFilter } from '../../constants';
 import { ext } from "../../extensionVariables";
 import { localize } from '../../localize';
 import { CosmosDBConnection } from '../../tree/CosmosDBConnection';
 
 export async function revealConnectionInAppSettings(context: IActionContext, node?: CosmosDBConnection): Promise<void> {
     if (!node) {
-        node = await ext.tree.showTreeItemPicker<CosmosDBConnection>(CosmosDBConnection.contextValue, { ...context, suppressCreatePick: true });
+        node = await ext.rgApi.pickAppResource<CosmosDBConnection>({ ...context, suppressCreatePick: true }, {
+            filter: webAppFilter,
+            expectedChildContextValue: CosmosDBConnection.contextValue
+        });
     }
 
     // Ideally this reveals all appSettingKeys, but for now just reveal the first one
     const firstKey: string = node.appSettingKeys[0];
-    const nodeToReveal: AzExtTreeItem | undefined = await ext.tree.findTreeItem(`${node.parent.parent.appSettingsNode.fullId}/${firstKey}`, context);
+    const nodeToReveal: AzExtTreeItem | undefined = await ext.rgApi.tree.findTreeItem(`${node.parent.parent.appSettingsNode.fullId}/${firstKey}`, context);
     if (!nodeToReveal) {
         throw new Error(localize('revealFailed', 'Failed to find app setting with key "{0}".', firstKey));
     }
-    await ext.treeView.reveal(nodeToReveal);
+    await ext.rgApi.treeView.reveal(nodeToReveal);
 }

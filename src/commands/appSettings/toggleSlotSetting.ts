@@ -5,11 +5,15 @@
 
 import { AppSettingTreeItem } from "@microsoft/vscode-azext-azureappservice";
 import { IActionContext } from "@microsoft/vscode-azext-utils";
+import { webAppFilter } from "../../constants";
 import { ext } from "../../extensionVariables";
 
 export async function toggleSlotSetting(context: IActionContext, node?: AppSettingTreeItem): Promise<void> {
     if (!node) {
-        node = <AppSettingTreeItem>await ext.tree.showTreeItemPicker(AppSettingTreeItem.contextValue, context);
+        node = await ext.rgApi.pickAppResource<AppSettingTreeItem>(context, {
+            filter: webAppFilter,
+            expectedChildContextValue: new RegExp(AppSettingTreeItem.contextValue)
+        });
     }
 
     await node.toggleSlotSetting(context);

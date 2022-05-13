@@ -10,7 +10,7 @@ import { createTestActionContext, runWithTestActionContext } from '@microsoft/vs
 import * as assert from 'assert';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { createGenericClient, createWebAppAdvanced, deploy, ext, getRandomHexString, nonNullProp, WebAppTreeItem } from '../../extension.bundle';
+import { createGenericClient, createWebAppAdvanced, deploy, ext, getRandomHexString, nonNullProp, SiteTreeItem } from '../../extension.bundle';
 import { longRunningTestsEnabled } from '../global.test';
 import { getRotatingLocation, getRotatingPricingTier } from './getRotatingValue';
 import { resourceGroupsToDelete, webSiteClient } from './global.resource.test';
@@ -135,7 +135,7 @@ suite('Create Web App and deploy', function (this: Mocha.Suite): void {
             });
         });
 
-        const hostUrl: string | undefined = (<WebAppTreeItem>await ext.tree.findTreeItem(<string>createdApp?.id, await createTestActionContext())).site.defaultHostUrl;
+        const hostUrl: string | undefined = (<SiteTreeItem>await ext.rgApi.tree.findTreeItem(<string>createdApp?.id, await createTestActionContext())).site.defaultHostUrl;
         const client: ServiceClient = await createGenericClient(await createTestActionContext(), undefined);
         const response: HttpOperationResponse = await client.sendRequest({ method: 'GET', url: hostUrl });
         assert.strictEqual(response.bodyAsText, `Version: ${expectedVersion}`);

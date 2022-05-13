@@ -8,7 +8,7 @@ import { AppSettingsTreeItem, confirmOverwriteSettings, IAppSettingsClient } fro
 import { IActionContext } from "@microsoft/vscode-azext-utils";
 import * as dotenv from 'dotenv';
 import { Uri, window } from "vscode";
-import { envFileName } from "../../constants";
+import { envFileName, webAppFilter } from "../../constants";
 import { ext } from "../../extensionVariables";
 import { localize } from "../../localize";
 import * as workspaceUtil from '../../utils/workspace';
@@ -29,7 +29,10 @@ export async function uploadAppSettings(context: IActionContext, target?: Uri | 
     }
 
     if (!node) {
-        node = <AppSettingsTreeItem>await ext.tree.showTreeItemPicker(AppSettingsTreeItem.contextValue, context);
+        node = await ext.rgApi.pickAppResource<AppSettingsTreeItem>(context, {
+            filter: webAppFilter,
+            expectedChildContextValue: new RegExp(AppSettingsTreeItem.contextValue)
+        });
     }
     const client: IAppSettingsClient = await node.clientProvider.createClient(context);
     await node.runWithTemporaryDescription(context, localize('uploading', 'Uploading settings to "{0}"...', client.fullName), async () => {
