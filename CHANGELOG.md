@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 0.23.3 - 2022-04-21
+### Fixed
+- `Deploy to Slot...` incorrectly deploys to a web app [#2210](https://github.com/microsoft/vscode-azureappservice/issues/2210)
+
+## 0.23.2 - 2022-04-13
+### Fixed
+- Zip deploy fails with ECONNRESET or 400 Bad Request on VS Code versions `>=1.66.0` [#2191](https://github.com/microsoft/vscode-azureappservice/issues/2191)
+
 ## 0.23.1 - 2022-02-24
 ### Changed
 - Adopt VS Code's new [proposal API guidelines](https://github.com/microsoft/vscode/blob/fc7fb5d480418d149ee226ebd45e9c590e240cb5/src/vscode-dts/README.md)
