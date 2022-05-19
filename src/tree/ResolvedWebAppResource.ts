@@ -201,6 +201,10 @@ export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTre
                 if (matchContextValue(expectedContextValue, deploymentsContextValues)) {
                     return this.deploymentsNode;
                 }
+                const slotsContextValues = [DeploymentSlotsTreeItem.contextValue, ResolvedWebAppResource.slotContextValue];
+                if (matchContextValue(expectedContextValue, slotsContextValues)) {
+                    return this.deploymentSlotsNode;
+                }
                 if (matchContextValue(expectedContextValue, [FolderTreeItem.contextValue])) {
                     return this._siteFilesNode;
                 }
