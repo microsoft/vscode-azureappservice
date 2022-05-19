@@ -69,6 +69,7 @@ export async function createWebApp(context: IActionContext & Partial<ICreateChil
     wizardContext.activityTitle = localize('createWebApp', 'Create web app "{0}"...', newSiteName);
 
     await wizard.execute();
+    await ext.rgApi.appResourceTree.refresh(context);
 
     const rawSite = nonNullProp(wizardContext, 'site');
     // site is set as a result of SiteCreateStep.execute()
