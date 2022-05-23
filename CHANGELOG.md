@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.24.0 - 2022-05-24
+
+We've made some large design changes to the Azure extensions for VS Code. [View App Centric release notes](https://aka.ms/AzCode/AppCentric)
+
 ## 0.23.3 - 2022-04-21
 ### Fixed
 - `Deploy to Slot...` incorrectly deploys to a web app [#2210](https://github.com/microsoft/vscode-azureappservice/issues/2210)
