@@ -24,28 +24,39 @@ for VS Code to quickly create, manage, and deploy your websites.
 4. Sign in to your Azure Account by clicking Sign in to Azure…
     >  If you don't already have an Azure Account, click "Create a Free Azure Account"
 
+
 ## Deploy your first app to Azure
 
 Once you are signed in to your Azure account and you have your app open in Visual
-Studio Code, click the deploy button in the Azure App Service explorer - it's
-the blue up arrow - to deploy your app.
+Studio Code, click the Create Resource button - it's
+the plus icon - to create a Web App.
 
-![Deploy button](resources/deploy-button.png)
+![Create resource](resources/readme/createResource.png)
+
+Select "Create App Service Web App..."
+
+![Create resource](resources/readme/createWebApp.png)
 
 > Tip: Be sure that your application is listening on the port provided by the PORT environment variable: `server.listen(process.env.PORT)`
 
-1. Choose **Create New App**
-2. Type a globally unique name for your Web App and press Enter. Valid characters for an app name are 'a-z', '0-9', and '-'
-3. Choose your **Runtime stack**
-4. Select your current workspace if you have your app open already or browse to the directory containing your application code
+1. Type a globally unique name for your Web App and press Enter. Valid characters for an app name are 'a-z', '0-9', and '-'
+2. Choose your **Runtime stack**
+
+![Activity Log](resources/readme/activityLog.png)
+
+Once your Web App has been created, reveal the resource in the Resource explorer, right click on the Web App and select "Deploy to Web App...".
+
+![Deploy to Web App](resources/readme/deployToWebApp.png)
+
+1. Select your current workspace if you have your app open already or browse to the directory containing your application code
 
 Click **Yes** if prompted to update your configuration to run `npm install` on the target server.
 
-![Update build notification](resources/update-build-notification.png)
+![Update build notification](resources/readme/update-build-notification.png)
 
 Once the deployment starts, you're prompted to update your workspace so that subsequent deploys from this workspace automatically deploy to the same App Service web app. Choose **Yes** to ensure your changes are deployed to the correct app - you can change this later by editing your workspace settings (in `.vscode/settings.json`).
 
-![Always deploy notification](resources/always-deploy-notification.png)
+![Always deploy notification](resources/readme/always-deploy-notification.png)
 
 Once the deployment completes, click **Browse Website** in the prompt to view your freshly deployed website.
 
@@ -54,7 +65,7 @@ Once the deployment completes, click **Browse Website** in the prompt to view yo
 1. In the Azure App Service explorer, expand the app then expand **Logs**
 2. Click on **Connect to Log Stream...**
 
-![Connect to logstream](resources/connect-logstream.png)
+![Connect to Log Stream](resources/readme/connectToLogStream.png)
 
 3. Choose **Yes** when prompted to enable logging and restart the app
     > File logging is disabled by default and will automatically be disabled within 24 hours
