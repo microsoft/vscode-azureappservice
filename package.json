@@ -2,7 +2,7 @@
     "name": "vscode-azureappservice",
     "displayName": "Azure App Service",
     "description": "%appService.description%",
-    "version": "0.24.1-alpha.0",
+    "version": "0.24.1-alpha.1",
     "publisher": "ms-azuretools",
     "icon": "resources/WebApp.png",
     "aiKey": "AIF-d9b70cd4-b9f9-4d70-929b-a071c400b217",
@@ -298,6 +298,13 @@
             }
         ],
         "menus": {
+            "azureWorkspaceDeploy": [
+                {
+                    "command": "appService.Deploy",
+                    "when": "view == azureWorkspace",
+                    "group": "navigation@2"
+                }
+            ],
             "commandPalette": [
                 {
                     "command": "appService.appSettings.Delete",
@@ -326,6 +333,13 @@
                 {
                     "command": "appService.ViewProperties",
                     "when": "never"
+                }
+            ],
+            "view/title": [
+                {
+                    "submenu": "azureWorkspaceDeploy",
+                    "when": "view == azureWorkspace",
+                    "group": "navigation@2"
                 }
             ],
             "view/item/context": [
@@ -607,6 +621,13 @@
                 }
             ]
         },
+        "submenus": [
+            {
+                "id": "azureWorkspaceDeploy",
+                "icon": "$(cloud-upload)",
+                "label": "Deploy..."
+            }
+        ],
         "configuration": {
             "title": "Azure App Service",
             "properties": {
