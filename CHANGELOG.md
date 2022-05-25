@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.24.1 - 2022-05-26
+### Added
+- Deploy command is now accessible via the Workspace Deploy menu
+
 ## 0.24.0 - 2022-05-24
 
 We've made some large design changes to the Azure extensions for VS Code. [View App Centric release notes](https://aka.ms/AzCode/AppCentric)
