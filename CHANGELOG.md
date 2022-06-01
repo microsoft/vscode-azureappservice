@@ -4,7 +4,7 @@
 
 ## 0.24.2 - 2022-06-01
 ### Changed
-- Update @vscode/extension-telemetry to 0.5.2 [#2265](https://github.com/microsoft/vscode-azureappservice/pull/2256)
+- Update @vscode/extension-telemetry to 0.5.2 [#2265](https://github.com/microsoft/vscode-azureappservice/pull/2265)
 
 ## 0.24.1 - 2022-05-26
 ### Added
