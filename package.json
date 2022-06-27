@@ -794,7 +794,7 @@
         "@azure/ms-rest-js": "^2.2.1",
         "@microsoft/vscode-azext-azureappservice": "^0.6.3",
         "@microsoft/vscode-azext-azureutils": "^0.3.1",
-        "@microsoft/vscode-azext-utils": "^0.3.4",
+        "@microsoft/vscode-azext-utils": "^0.3.7",
         "dotenv": "^6.2.0",
         "fast-xml-parser": "^3.19.0",
         "fs-extra": "^8.0.0",
