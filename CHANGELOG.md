@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+## 0.24.3 - 2022-07-05
+
+### Changed
+- Update @vscode/extension-telemetry to 0.6.2 [#2276](https://github.com/microsoft/vscode-azureappservice/pull/2276)
+- Update minimum supported version of VS Code to 1.66.0 [#2280](https://github.com/microsoft/vscode-azureappservice/pull/2280)
+
+### Fixed
+- Include additional information for deployments [#2153](https://github.com/microsoft/vscode-azureappservice/issues/2153)
+
 ## 0.24.2 - 2022-06-01
 ### Changed
 - Update @vscode/extension-telemetry to 0.5.2 [#2265](https://github.com/microsoft/vscode-azureappservice/pull/2265)
