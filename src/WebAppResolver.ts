@@ -1,15 +1,15 @@
+import { parseAzureResourceId } from "@microsoft/vscode-azext-azureutils";
 import { callWithTelemetryAndErrorHandling, IActionContext, ISubscriptionContext, nonNullProp } from "@microsoft/vscode-azext-utils";
 import { AppResource, AppResourceResolver } from "@microsoft/vscode-azext-utils/hostapi";
 import { ResolvedWebAppResource } from "./tree/ResolvedWebAppResource";
 import { createWebSiteClient } from "./utils/azureClients";
-import { getResourceGroupFromId } from "./utils/azureUtils";
 
 export class WebAppResolver implements AppResourceResolver {
     public async resolveResource(subContext: ISubscriptionContext, resource: AppResource): Promise<ResolvedWebAppResource | null> {
         return await callWithTelemetryAndErrorHandling('resolveResource', async (context: IActionContext) => {
             try {
                 const client = await createWebSiteClient({ ...context, ...subContext });
-                const site = await client.webApps.get(getResourceGroupFromId(nonNullProp(resource, 'id')), nonNullProp(resource, 'name'));
+                const site = await client.webApps.get(parseAzureResourceId(nonNullProp(resource, 'id')).resourceGroupName, nonNullProp(resource, 'name'));
                 return new ResolvedWebAppResource(subContext, site);
 
             } catch (e) {
