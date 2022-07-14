@@ -52,13 +52,13 @@ export async function setPostPromptDefaults(wizardContext: IWebAppWizardContext,
 
                 const allAppServicePlans: AppServicePlan[] = await uiUtils.listAllIterator(client.appServicePlans.list());
                 const defaultPlans: AppServicePlan[] = allAppServicePlans.filter(plan => {
-                    return plan.name && plan.name.includes(defaultPlanName) && parseAzureResourceId(nonNullProp(plan, 'id')).resourceGroupName.includes(defaultGroupName);
+                    return plan.name && plan.name.includes(defaultPlanName) && parseAzureResourceId(nonNullProp(plan, 'id')).resourceGroup.includes(defaultGroupName);
                 });
 
                 // when using appServicePlans.list, the numOfSites are all set to 0 so individually get each plan and look for one with less than 3 sites
                 for (const plan of defaultPlans) {
                     if (plan.name) {
-                        const groupName: string = parseAzureResourceId(nonNullProp(plan, 'id')).resourceGroupName;
+                        const groupName: string = parseAzureResourceId(nonNullProp(plan, 'id')).resourceGroup;
                         const fullPlanData: AppServicePlan | undefined = await tryGetAppServicePlan(client, groupName, plan.name);
                         if (fullPlanData && matchesTier(fullPlanData, newSkuTier) && !checkPlanForPerformanceDrop(fullPlanData)) {
                             wizardContext.newResourceGroupName = groupName;

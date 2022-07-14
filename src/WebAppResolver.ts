@@ -9,7 +9,7 @@ export class WebAppResolver implements AppResourceResolver {
         return await callWithTelemetryAndErrorHandling('resolveResource', async (context: IActionContext) => {
             try {
                 const client = await createWebSiteClient({ ...context, ...subContext });
-                const site = await client.webApps.get(parseAzureResourceId(nonNullProp(resource, 'id')).resourceGroupName, nonNullProp(resource, 'name'));
+                const site = await client.webApps.get(parseAzureResourceId(nonNullProp(resource, 'id')).resourceGroup, nonNullProp(resource, 'name'));
                 return new ResolvedWebAppResource(subContext, site);
 
             } catch (e) {
