@@ -76,7 +76,7 @@ export async function checkLinuxWebAppDownDetector(originalContext: IActionConte
             await callWithTelemetryAndErrorHandling('viewedDetectorDetails', async (context2: IActionContext) => {
                 context2.valuesToMask.push(...originalContext.valuesToMask);
                 context2.telemetry.properties.viewed = 'true';
-                await openInPortal(node, `${node.site.id}/troubleshoot`, { queryPrefix: `websitesextension_ext=asd.featurePath%3Ddetectors%2F${linuxLogViewer}` });
+                await openInPortal(node.subscription, `${node.site.id}/troubleshoot`, { queryPrefix: `websitesextension_ext=asd.featurePath%3Ddetectors%2F${linuxLogViewer}` });
             });
         });
     });
