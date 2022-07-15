@@ -5,7 +5,7 @@
 
 import { AppServicePlan, WebSiteManagementClient } from '@azure/arm-appservice';
 import { SiteNameStep, tryGetAppServicePlan, WebsiteOS } from "@microsoft/vscode-azext-azureappservice";
-import { AzExtLocation, LocationListStep, parseAzureResourceId, uiUtils } from '@microsoft/vscode-azext-azureutils';
+import { AzExtLocation, getResourceGroupFromId, LocationListStep, uiUtils } from '@microsoft/vscode-azext-azureutils';
 import { DialogResponses, IActionContext, parseError } from "@microsoft/vscode-azext-utils";
 import { MessageItem } from "vscode";
 import { localize } from "../../localize";
@@ -52,13 +52,13 @@ export async function setPostPromptDefaults(wizardContext: IWebAppWizardContext,
 
                 const allAppServicePlans: AppServicePlan[] = await uiUtils.listAllIterator(client.appServicePlans.list());
                 const defaultPlans: AppServicePlan[] = allAppServicePlans.filter(plan => {
-                    return plan.name && plan.name.includes(defaultPlanName) && parseAzureResourceId(nonNullProp(plan, 'id')).resourceGroup.includes(defaultGroupName);
+                    return plan.name && plan.name.includes(defaultPlanName) && getResourceGroupFromId(nonNullProp(plan, 'id')).includes(defaultGroupName);
                 });
 
                 // when using appServicePlans.list, the numOfSites are all set to 0 so individually get each plan and look for one with less than 3 sites
                 for (const plan of defaultPlans) {
                     if (plan.name) {
-                        const groupName: string = parseAzureResourceId(nonNullProp(plan, 'id')).resourceGroup;
+                        const groupName: string = getResourceGroupFromId(nonNullProp(plan, 'id'));
                         const fullPlanData: AppServicePlan | undefined = await tryGetAppServicePlan(client, groupName, plan.name);
                         if (fullPlanData && matchesTier(fullPlanData, newSkuTier) && !checkPlanForPerformanceDrop(fullPlanData)) {
                             wizardContext.newResourceGroupName = groupName;
