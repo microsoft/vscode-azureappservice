@@ -5,12 +5,11 @@
 
 import { AppServicePlan, WebSiteManagementClient } from '@azure/arm-appservice';
 import { SiteNameStep, tryGetAppServicePlan, WebsiteOS } from "@microsoft/vscode-azext-azureappservice";
-import { AzExtLocation, LocationListStep, uiUtils } from '@microsoft/vscode-azext-azureutils';
+import { AzExtLocation, getResourceGroupFromId, LocationListStep, uiUtils } from '@microsoft/vscode-azext-azureutils';
 import { DialogResponses, IActionContext, parseError } from "@microsoft/vscode-azext-utils";
 import { MessageItem } from "vscode";
 import { localize } from "../../localize";
 import { createWebSiteClient } from "../../utils/azureClients";
-import { getResourceGroupFromId } from '../../utils/azureUtils';
 import { nonNullProp } from "../../utils/nonNull";
 import { getWorkspaceSetting, updateGlobalSetting } from "../../vsCodeConfig/settings";
 import { IWebAppWizardContext } from './IWebAppWizardContext';

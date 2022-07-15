@@ -1,8 +1,8 @@
+import { getResourceGroupFromId } from "@microsoft/vscode-azext-azureutils";
 import { callWithTelemetryAndErrorHandling, IActionContext, ISubscriptionContext, nonNullProp } from "@microsoft/vscode-azext-utils";
 import { AppResource, AppResourceResolver } from "@microsoft/vscode-azext-utils/hostapi";
 import { ResolvedWebAppResource } from "./tree/ResolvedWebAppResource";
 import { createWebSiteClient } from "./utils/azureClients";
-import { getResourceGroupFromId } from "./utils/azureUtils";
 
 export class WebAppResolver implements AppResourceResolver {
     public async resolveResource(subContext: ISubscriptionContext, resource: AppResource): Promise<ResolvedWebAppResource | null> {
