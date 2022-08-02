@@ -237,10 +237,14 @@ export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTre
             localize('confirmDeleteSlot', 'Are you sure you want to delete slot "{0}"?', this.site.fullName) :
             localize('confirmDeleteWebApp', 'Are you sure you want to delete web app "{0}"?', this.site.fullName);
 
+        const title: string = this.site.isSlot ?
+            localize('deleteSlot', 'Delete slot "{0}"', this.site.fullName):
+            localize('deleteWebApp', 'Delete web app "{0}"', this.site.fullName);
+
         const wizard = new AzureWizard(wizardContext, {
             promptSteps: [new DeleteConfirmationStep(confirmMessage), new DeleteLastServicePlanStep()],
             executeSteps: [new DeleteSiteStep()],
-            title: localize('deleteWebApp', 'Delete web app "{0}"', this.site.fullName)
+            title
         });
 
         await wizard.prompt();
