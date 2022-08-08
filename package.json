@@ -808,11 +808,5 @@
     ],
     "enabledApiProposals": [
         "terminalDataWriteEvent"
-    ],
-    "__metadata": {
-        "id": "42691ca6-18d6-4efe-9e9a-1aabad399d4b",
-        "publisherDisplayName": "Microsoft",
-        "publisherId": "52b787f2-79a9-4f32-99b4-393afe3005d3",
-        "isPreReleaseVersion": false
-    }
+    ]
 }
