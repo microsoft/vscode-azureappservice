@@ -3,8 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as assert from 'assert';
 import { createTestActionContext } from '@microsoft/vscode-azext-dev';
+import * as assert from 'assert';
 import { ColumnName, detectorTable, findTableByName, getValuesByColumnName, validateTimestamp } from "../extension.bundle";
 
 suite('Detector Dataset Parser', () => {
