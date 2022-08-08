@@ -773,6 +773,7 @@
         "@types/node": "^14.0.0",
         "@types/vscode": "1.57.0",
         "@typescript-eslint/eslint-plugin": "^4.28.3",
+        "@vscode/test-electron": "^2.1.5",
         "eslint": "^7.19.0",
         "eslint-plugin-import": "^2.22.1",
         "glob": "^7.1.6",
@@ -784,7 +785,6 @@
         "ts-node": "^7.0.1",
         "typescript": "^4.3.5",
         "vsce": "^1.87.0",
-        "vscode-test": "^1.5.2",
         "webpack": "^5.28.0",
         "webpack-cli": "^4.6.0"
     },
@@ -795,7 +795,6 @@
         "@microsoft/vscode-azext-azureappservice": "^0.7.0",
         "@microsoft/vscode-azext-azureutils": "^0.3.4",
         "@microsoft/vscode-azext-utils": "^0.3.7",
-        "@vscode/test-electron": "^2.1.5",
         "dotenv": "^6.2.0",
         "fast-xml-parser": "^3.19.0",
         "fs-extra": "^8.0.0",
