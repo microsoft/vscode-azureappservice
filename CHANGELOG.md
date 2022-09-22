@@ -1,6 +1,6 @@
 # Change Log
 
-## 0.24.4 - 2022-09-21
+## 0.24.4 - 2022-09-22
 
 ## Fixed
 - Deployment succeeds even after error "The request was aborted" is thrown [#2305](https://github.com/microsoft/vscode-azureappservice/issues/2305)
