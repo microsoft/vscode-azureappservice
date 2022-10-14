@@ -13,11 +13,13 @@ import * as vscode from 'vscode';
 import * as constants from '../../constants';
 import { ext } from '../../extensionVariables';
 import { localize } from '../../localize';
+import { ResolvedWebAppResource } from '../../tree/ResolvedWebAppResource';
 import { SiteTreeItem } from '../../tree/SiteTreeItem';
 import { javaUtils } from '../../utils/javaUtils';
 import { nonNullValue } from '../../utils/nonNull';
 import { isPathEqual } from '../../utils/pathUtils';
 import { getRandomHexString } from "../../utils/randomUtils";
+import { treeUtils } from '../../utils/treeUtils';
 import { getWorkspaceSetting } from '../../vsCodeConfig/settings';
 import { LinuxRuntimes } from '../createWebApp/LinuxRuntimes';
 import { runPostDeployTask } from '../postDeploy/runPostDeployTask';
@@ -33,10 +35,17 @@ export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | 
     actionContext.telemetry.properties.deployedWithConfigs = 'false';
     let siteConfig: SiteConfigResource | undefined;
     let client: SiteClient;
-    if (arg1 instanceof SiteTreeItem) {
-        client = await arg1.site.createClient(actionContext);
-        // we can only get the siteConfig earlier if the entry point was a treeItem
-        siteConfig = await client.getSiteConfig();
+
+    if (treeUtils.isAzExtTreeItem(arg1)) {
+        if (!arg1.contextValue.match(ResolvedWebAppResource.webAppContextValue) &&
+            !arg1.contextValue.match(ResolvedWebAppResource.slotContextValue)) {
+            // if the user uses the deploy button, it's possible for the local node to be passed in, so we should reset it to undefined
+            arg1 = undefined;
+        } else {
+            client = await arg1.site.createClient(actionContext);
+            // we can only get the siteConfig earlier if the entry point was a treeItem
+            siteConfig = await client.getSiteConfig();
+        }
     }
 
     const fileExtensions: string | string[] | undefined = await javaUtils.getJavaFileExtensions(siteConfig);
