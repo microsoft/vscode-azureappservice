@@ -23,5 +23,5 @@ export async function connectToGitHub(context: IActionContext, target?: GenericT
         node = <DeploymentsTreeItem>target.parent;
     }
 
-    await editScmType(context, node, ScmType.GitHub);
+    await editScmType(context, node, undefined, ScmType.GitHub);
 }

@@ -7,7 +7,8 @@ import { IActionContext, nonNullValue, openReadOnlyJson } from '@microsoft/vscod
 import { localize } from '../localize';
 import { SiteTreeItem } from '../tree/SiteTreeItem';
 
-export async function viewProperties(context: IActionContext, node: SiteTreeItem): Promise<void> {
+export async function viewProperties(context: IActionContext, treeItem?: SiteTreeItem): Promise<void> {
+    const node = nonNullValue(treeItem);
     const client = await node.site.createClient(context);
     await node.runWithTemporaryDescription(context, localize('retrievingProps', 'Retrieving properties...'), async () => {
         // `siteConfig` already exists on `node.site`, but has very limited properties for some reason. We want to get the full site config

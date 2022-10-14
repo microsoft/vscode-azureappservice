@@ -11,7 +11,7 @@ import { ext } from "../../extensionVariables";
 import { ResolvedWebAppResource } from "../../tree/ResolvedWebAppResource";
 import { SiteTreeItem } from "../../tree/SiteTreeItem";
 
-export async function editScmType(context: IActionContext, node?: SiteTreeItem | DeploymentsTreeItem, newScmType?: ScmType, showToast?: boolean): Promise<void> {
+export async function editScmType(context: IActionContext, node?: SiteTreeItem | DeploymentsTreeItem, _nodes?: (SiteTreeItem | DeploymentsTreeItem)[], newScmType?: ScmType, showToast?: boolean): Promise<void> {
     if (!node) {
         node = await ext.rgApi.pickAppResource<SiteTreeItem>(context, {
             filter: webAppFilter,

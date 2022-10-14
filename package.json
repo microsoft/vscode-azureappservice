@@ -71,6 +71,15 @@
     ],
     "main": "./main.js",
     "contributes": {
+        "x-azResourcesV2": {
+            "application": {
+                "branches": [
+                    {
+                        "type": "AppServices"
+                    }
+                ]
+            }
+        },
         "x-azResources": {
             "activation": {
                 "onResolve": [
@@ -345,261 +354,261 @@
             "view/item/context": [
                 {
                     "command": "appService.CreateWebApp",
-                    "when": "view == azureResourceGroups && viewItem =~ /azureResourceTypeGroup.*microsoft.web/sites(?!/)/",
+                    "when": "view == azureResourceGroupsV2  && viewItem =~ /appservices/i && viewItem =~ /azureResourceTypeGroup/i",
                     "group": "1_subscriptionGeneralCommands@1"
                 },
                 {
                     "command": "appService.CreateWebAppAdvanced",
-                    "when": "view == azureResourceGroups && viewItem =~ /azureResourceTypeGroup.*microsoft.web/sites(?!/)/",
+                    "when": "view == azureResourceGroupsV2  && viewItem =~ /appservices/i && viewItem =~ /azureResourceTypeGroup/i",
                     "group": "1_subscriptionGeneralCommands@2"
                 },
                 {
                     "command": "appService.OpenInPortal",
-                    "when": "view == azureResourceGroups && viewItem =~ /(azAppSlot)/",
+                    "when": "view == azureResourceGroupsV2  && viewItem =~ /(azAppSlot)/",
                     "group": "1_appServiceGeneralCommands@1"
                 },
                 {
                     "command": "appService.Browse",
-                    "when": "view == azureResourceGroups && viewItem =~ /(azAppWebApp|azAppSlot)/",
+                    "when": "view == azureResourceGroupsV2  && viewItem =~ /(azAppWebApp|azAppSlot)/",
                     "group": "1_appServiceGeneralCommands@2"
                 },
                 {
                     "command": "appService.Deploy",
-                    "when": "view == azureResourceGroups && viewItem =~ /azAppWebApp/",
+                    "when": "view == azureResourceGroupsV2  && viewItem =~ /azAppWebApp/",
                     "group": "2_appServiceDeployCommands@1"
                 },
                 {
                     "command": "appService.DeploySlot",
-                    "when": "view == azureResourceGroups && viewItem =~ /azAppSlot/",
+                    "when": "view == azureResourceGroupsV2  && viewItem =~ /azAppSlot/",
                     "group": "2_appServiceDeployCommands@1"
                 },
                 {
                     "command": "appService.ConfigureDeploymentSource",
-                    "when": "view == azureResourceGroups && viewItem =~ /(azAppWebApp|azAppSlot)/",
+                    "when": "view == azureResourceGroupsV2  && viewItem =~ /(azAppWebApp|azAppSlot)/",
                     "group": "2_appServiceDeployCommands@2"
                 },
                 {
                     "command": "appService.Start",
-                    "when": "view == azureResourceGroups && viewItem =~ /(azAppWebApp|azAppSlot)/",
+                    "when": "view == azureResourceGroupsV2  && viewItem =~ /(azAppWebApp|azAppSlot)/",
                     "group": "3_appServiceControlCommands@1"
                 },
                 {
                     "command": "appService.Stop",
-                    "when": "view == azureResourceGroups && viewItem =~ /(azAppWebApp|azAppSlot)/",
+                    "when": "view == azureResourceGroupsV2  && viewItem =~ /(azAppWebApp|azAppSlot)/",
                     "group": "3_appServiceControlCommands@2"
                 },
                 {
                     "command": "appService.Restart",
-                    "when": "view == azureResourceGroups && viewItem =~ /(azAppWebApp|azAppSlot)/",
+                    "when": "view == azureResourceGroupsV2  && viewItem =~ /(azAppWebApp|azAppSlot)/",
                     "group": "3_appServiceControlCommands@3"
                 },
                 {
                     "command": "appService.SwapSlots",
-                    "when": "view == azureResourceGroups && viewItem == azAppSlot",
+                    "when": "view == azureResourceGroupsV2  && viewItem == azAppSlot",
                     "group": "3_appServiceControlCommands@4"
                 },
                 {
                     "command": "appService.Delete",
-                    "when": "view == azureResourceGroups && viewItem =~ /(azAppWebApp|azAppSlot)/",
+                    "when": "view == azureResourceGroupsV2  && viewItem =~ /(azAppWebApp|azAppSlot)/",
                     "group": "3_appServiceControlCommands@5"
                 },
                 {
                     "command": "appService.startStreamingLogs",
-                    "when": "view == azureResourceGroups && viewItem =~ /(azAppWebApp|azAppSlot)/",
+                    "when": "view == azureResourceGroupsV2  && viewItem =~ /(azAppWebApp|azAppSlot)/",
                     "group": "4_appServiceDiagnosticsCommands@1"
                 },
                 {
                     "command": "appService.StopLogStream",
-                    "when": "view == azureResourceGroups && viewItem =~ /(azAppWebApp|azAppSlot)/",
+                    "when": "view == azureResourceGroupsV2  && viewItem =~ /(azAppWebApp|azAppSlot)/",
                     "group": "4_appServiceDiagnosticsCommands@2"
                 },
                 {
                     "command": "appService.DeploymentScript",
-                    "when": "view == azureResourceGroups && viewItem =~ /azAppWebApp/",
+                    "when": "view == azureResourceGroupsV2  && viewItem =~ /azAppWebApp/",
                     "group": "5_appServiceMiscCommands@1"
                 },
                 {
                     "command": "appService.ViewProperties",
-                    "when": "view == azureResourceGroups && viewItem =~ /azAppSlot/",
+                    "when": "view == azureResourceGroupsV2  && viewItem =~ /azAppSlot/",
                     "group": "7_commonCommands@1"
                 },
                 {
                     "command": "appService.Refresh",
-                    "when": "view == azureResourceGroups && viewItem =~ /(azAppSlot)/",
+                    "when": "view == azureResourceGroupsV2  && viewItem =~ /(azAppSlot)/",
                     "group": "7_commonCommands@2"
                 },
                 {
                     "command": "appService.StartRemoteDebug",
-                    "when": "view == azureResourceGroups && viewItem =~ /(azAppWebApp|azAppSlot)/",
+                    "when": "view == azureResourceGroupsV2  && viewItem =~ /(azAppWebApp|azAppSlot)/",
                     "group": "5_appServiceRemoteCommands@1"
                 },
                 {
                     "command": "appService.StartSsh",
-                    "when": "view == azureResourceGroups && viewItem =~ /(azAppWebApp|azAppSlot)/",
+                    "when": "view == azureResourceGroupsV2  && viewItem =~ /(azAppWebApp|azAppSlot)/",
                     "group": "5_appServiceRemoteCommands@2"
                 },
                 {
                     "command": "appService.CreateSlot",
-                    "when": "view == azureResourceGroups && viewItem == deploymentSlots",
+                    "when": "view == azureResourceGroupsV2  && viewItem == deploymentSlots",
                     "group": "1_deploymentSlotsGeneralCommands@1"
                 },
                 {
                     "command": "appService.OpenInPortal",
-                    "when": "view == azureResourceGroups && viewItem == deploymentSlots",
+                    "when": "view == azureResourceGroupsV2  && viewItem == deploymentSlots",
                     "group": "1_deploymentSlotsGeneralCommands@2"
                 },
                 {
                     "command": "appService.Refresh",
-                    "when": "view == azureResourceGroups && viewItem == deploymentSlots",
+                    "when": "view == azureResourceGroupsV2  && viewItem == deploymentSlots",
                     "group": "2_deploymentSlotsGeneralCommands@1"
                 },
                 {
                     "command": "appService.EnableFileLogging",
-                    "when": "view == azureResourceGroups && viewItem =~ /appService.*logFiles/",
+                    "when": "view == azureResourceGroupsV2  && viewItem =~ /appService.*logFiles/",
                     "group": "1_folderGeneralCommands@1"
                 },
                 {
                     "command": "appService.Refresh",
-                    "when": "view == azureResourceGroups && viewItem =~ /appService.*siteFiles/",
+                    "when": "view == azureResourceGroupsV2  && viewItem =~ /appService.*siteFiles/",
                     "group": "1_folderGeneralCommands@2"
                 },
                 {
                     "command": "appService.Refresh",
-                    "when": "view == azureResourceGroups && viewItem =~ /appService.*folder/",
+                    "when": "view == azureResourceGroupsV2  && viewItem =~ /appService.*folder/",
                     "group": "1_subFolderRefreshCommands@1"
                 },
                 {
                     "command": "appService.Refresh",
-                    "when": "view == azureResourceGroups && viewItem =~ /appService.*logFiles/",
+                    "when": "view == azureResourceGroupsV2  && viewItem =~ /appService.*logFiles/",
                     "group": "2_folderGeneralCommands@1"
                 },
                 {
                     "command": "appService.OpenInPortal",
-                    "when": "view == azureResourceGroups && viewItem == webJobs",
+                    "when": "view == azureResourceGroupsV2  && viewItem == webJobs",
                     "group": "1_webJobsGeneralCommands@1"
                 },
                 {
                     "command": "appService.Refresh",
-                    "when": "view == azureResourceGroups && viewItem == webJobs",
+                    "when": "view == azureResourceGroupsV2  && viewItem == webJobs",
                     "group": "2_webJobsGeneralCommands@1"
                 },
                 {
                     "command": "appService.appSettings.Add",
-                    "when": "view == azureResourceGroups && viewItem =~ /appService.*applicationSettings/",
+                    "when": "view == azureResourceGroupsV2  && viewItem =~ /appService.*applicationSettings/",
                     "group": "1_appSettingEnv@1"
                 },
                 {
                     "command": "appService.Refresh",
-                    "when": "view == azureResourceGroups && viewItem =~ /appService.*applicationSettings/",
+                    "when": "view == azureResourceGroupsV2  && viewItem =~ /appService.*applicationSettings/",
                     "group": "2_appSettingsGeneral@1"
                 },
                 {
                     "command": "appService.appSettings.Download",
-                    "when": "view == azureResourceGroups && viewItem =~ /appService.*applicationSettings/",
+                    "when": "view == azureResourceGroupsV2  && viewItem =~ /appService.*applicationSettings/",
                     "group": "1_appSettingEnv@2"
                 },
                 {
                     "command": "appService.appSettings.Upload",
-                    "when": "view == azureResourceGroups && viewItem =~ /appService.*applicationSettings/",
+                    "when": "view == azureResourceGroupsV2  && viewItem =~ /appService.*applicationSettings/",
                     "group": "1_appSettingEnv@3"
                 },
                 {
                     "command": "appService.appSettings.Edit",
-                    "when": "view == azureResourceGroups && viewItem =~ /appService.*applicationSettingItem(|NoSlots)/",
+                    "when": "view == azureResourceGroupsV2  && viewItem =~ /appService.*applicationSettingItem(|NoSlots)/",
                     "group": "1_appSettingItemEdit@1"
                 },
                 {
                     "command": "appService.appSettings.Rename",
-                    "when": "view == azureResourceGroups && viewItem =~ /appService.*applicationSettingItem(|NoSlots)/",
+                    "when": "view == azureResourceGroupsV2  && viewItem =~ /appService.*applicationSettingItem(|NoSlots)/",
                     "group": "1_appSettingItemEdit@2"
                 },
                 {
                     "command": "appService.appSettings.Delete",
-                    "when": "view == azureResourceGroups && viewItem =~ /appService.*applicationSettingItem(|NoSlots)/",
+                    "when": "view == azureResourceGroupsV2  && viewItem =~ /appService.*applicationSettingItem(|NoSlots)/",
                     "group": "1_appSettingItemEdit@3"
                 },
                 {
                     "command": "appService.appSettings.ToggleSlotSetting",
-                    "when": "view == azureResourceGroups && viewItem =~ /appService.*applicationSettingItem/",
+                    "when": "view == azureResourceGroupsV2  && viewItem =~ /appService.*applicationSettingItem/",
                     "group": "1_appSettingItemEdit@4"
                 },
                 {
                     "command": "appService.toggleAppSettingVisibility",
-                    "when": "view == azureResourceGroups && viewItem =~ /appService.*applicationSettingItem(|NoSlots)/",
+                    "when": "view == azureResourceGroupsV2  && viewItem =~ /appService.*applicationSettingItem(|NoSlots)/",
                     "group": "inline"
                 },
                 {
                     "command": "appService.ScaleUp",
-                    "when": "view == azureResourceGroups && viewItem == deploymentNASlots"
+                    "when": "view == azureResourceGroupsV2  && viewItem == deploymentNASlots"
                 },
                 {
                     "command": "appService.Refresh",
-                    "when": "view == azureResourceGroups && viewItem == connections",
+                    "when": "view == azureResourceGroupsV2  && viewItem == connections",
                     "group": "1@1"
                 },
                 {
                     "command": "appService.AddAzureDatabasesConnection",
-                    "when": "view == azureResourceGroups && viewItem == сosmosDBConnections",
+                    "when": "view == azureResourceGroupsV2  && viewItem == сosmosDBConnections",
                     "group": "1@1"
                 },
                 {
                     "command": "appService.Refresh",
-                    "when": "view == azureResourceGroups && viewItem == сosmosDBConnections",
+                    "when": "view == azureResourceGroupsV2  && viewItem == сosmosDBConnections",
                     "group": "2@2"
                 },
                 {
                     "command": "appService.RevealConnection",
-                    "when": "view == azureResourceGroups && viewItem == cosmosDBConnection",
+                    "when": "view == azureResourceGroupsV2  && viewItem == cosmosDBConnection",
                     "group": "1@1"
                 },
                 {
                     "command": "appService.RevealConnectionInAppSettings",
-                    "when": "view == azureResourceGroups && viewItem == cosmosDBConnection",
+                    "when": "view == azureResourceGroupsV2  && viewItem == cosmosDBConnection",
                     "group": "1@2"
                 },
                 {
                     "command": "appService.RemoveCosmosDBConnection",
-                    "when": "view == azureResourceGroups && viewItem == cosmosDBConnection",
+                    "when": "view == azureResourceGroupsV2  && viewItem == cosmosDBConnection",
                     "group": "2@1"
                 },
                 {
                     "command": "appService.OpenInPortal",
-                    "when": "view == azureResourceGroups && viewItem =~ /appService.*(deployments(C|Unc)onnected)/",
+                    "when": "view == azureResourceGroupsV2  && viewItem =~ /appService.*(deployments(C|Unc)onnected)/",
                     "group": "1@1"
                 },
                 {
                     "command": "appService.ConfigureDeploymentSource",
-                    "when": "view == azureResourceGroups && viewItem =~ /appService.*(deployments(C|Unc)onnected)/",
+                    "when": "view == azureResourceGroupsV2  && viewItem =~ /appService.*(deployments(C|Unc)onnected)/",
                     "group": "1@2"
                 },
                 {
                     "command": "appService.DisconnectRepo",
-                    "when": "view == azureResourceGroups && viewItem =~ /appService.*deploymentsConnected/",
+                    "when": "view == azureResourceGroupsV2  && viewItem =~ /appService.*deploymentsConnected/",
                     "group": "1@3"
                 },
                 {
                     "command": "appService.Refresh",
-                    "when": "view == azureResourceGroups && viewItem =~ /appService.*deployments(C|Unc)onnected/",
+                    "when": "view == azureResourceGroupsV2  && viewItem =~ /appService.*deployments(C|Unc)onnected/",
                     "group": "2@1"
                 },
                 {
                     "command": "appService.viewDeploymentLogs",
-                    "when": "view == azureResourceGroups && viewItem =~ /appService.*deployment//",
+                    "when": "view == azureResourceGroupsV2  && viewItem =~ /appService.*deployment//",
                     "group": "1@1"
                 },
                 {
                     "command": "appService.Redeploy",
-                    "when": "view == azureResourceGroups && viewItem =~ /appService.*deployment//",
+                    "when": "view == azureResourceGroupsV2  && viewItem =~ /appService.*deployment//",
                     "group": "1@2"
                 },
                 {
                     "command": "appService.ViewCommitInGitHub",
-                    "when": "view == azureResourceGroups && viewItem =~ /appService.*deployment/github/",
+                    "when": "view == azureResourceGroupsV2  && viewItem =~ /appService.*deployment/github/",
                     "group": "1@3"
                 },
                 {
                     "command": "appService.OpenInPortal",
-                    "when": "view == azureResourceGroups && viewItem =~ /appService.*deployment//",
+                    "when": "view == azureResourceGroupsV2  && viewItem =~ /appService.*deployment//",
                     "group": "1@4"
                 }
             ],
@@ -794,7 +803,7 @@
         "@azure/ms-rest-js": "^2.2.1",
         "@microsoft/vscode-azext-azureappservice": "^0.7.4",
         "@microsoft/vscode-azext-azureutils": "^0.3.4",
-        "@microsoft/vscode-azext-utils": "^0.3.7",
+        "@microsoft/vscode-azext-utils": "file:../vscode-azuretools/utils/microsoft-vscode-azext-utils-0.3.15.tgz",
         "dotenv": "^6.2.0",
         "fast-xml-parser": "^3.19.0",
         "fs-extra": "^8.0.0",
