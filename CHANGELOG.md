@@ -1,6 +1,6 @@
 # Change Log
 
-## 0.24.5 - 2022-10-17
+## 0.24.5 - 2022-10-18
 
 ### Fixed
 - Deployment failures initialized from "Deploy..." button on Workspace ribbon [#2304](https://github.com/microsoft/vscode-azureappservice/issues/2304)
