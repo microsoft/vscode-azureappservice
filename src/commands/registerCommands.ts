@@ -5,7 +5,7 @@
 
 import { AppSettingTreeItem, registerSiteCommand } from '@microsoft/vscode-azext-azureappservice';
 import { openInPortal as uiOpenInPortal } from '@microsoft/vscode-azext-azureutils';
-import { AzExtTreeItem, IActionContext, nonNullValue, registerCommandWithTreeNodeUnwrapping } from '@microsoft/vscode-azext-utils';
+import { AzExtTreeItem, IActionContext, nonNullValue, registerCommandWithTreeNodeUnwrapping, unwrapArgs } from '@microsoft/vscode-azext-utils';
 import { ext } from '../extensionVariables';
 import { DeploymentSlotsNATreeItem, ScaleUpTreeItem } from '../tree/DeploymentSlotsTreeItem';
 import { addAppSetting } from './appSettings/addAppSetting';
@@ -86,8 +86,8 @@ export function registerCommands(): void {
     registerCommandWithTreeNodeUnwrapping('appService.toggleAppSettingVisibility', async (actionContext: IActionContext, node?: AppSettingTreeItem) => { await nonNullValue(node).toggleValueVisibility(actionContext); }, 250);
     registerCommandWithTreeNodeUnwrapping('appService.ViewCommitInGitHub', viewCommitInGitHub);
     registerCommandWithTreeNodeUnwrapping('appService.ViewProperties', viewProperties);
-    registerSiteCommand('appService.Deploy', deploy);
-    registerSiteCommand('appService.DeploySlot', deploySlot);
-    registerSiteCommand('appService.Redeploy', redeployDeployment);
-    registerSiteCommand('appService.viewDeploymentLogs', viewDeploymentLogs);
+    registerSiteCommand('appService.Deploy', unwrapArgs(deploy));
+    registerSiteCommand('appService.DeploySlot', unwrapArgs(deploySlot));
+    registerSiteCommand('appService.Redeploy', unwrapArgs(redeployDeployment));
+    registerSiteCommand('appService.viewDeploymentLogs', unwrapArgs(viewDeploymentLogs));
 }
