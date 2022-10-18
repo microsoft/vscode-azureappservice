@@ -31,10 +31,10 @@ export async function createSlot(context: IActionContext, node?: DeploymentSlots
     if (siteConfig.scmType !== ScmType.None) {
         switch (siteConfig.scmType) {
             case ScmType.LocalGit:
-                await editScmType(context, createdSlot, ScmType.LocalGit, false);
+                await editScmType(context, createdSlot, undefined, ScmType.LocalGit, false);
                 break;
             case ScmType.GitHub:
-                await editScmType(context, createdSlot, ScmType.GitHub, false);
+                await editScmType(context, createdSlot, undefined, ScmType.GitHub, false);
                 break;
             default:
                 break;
