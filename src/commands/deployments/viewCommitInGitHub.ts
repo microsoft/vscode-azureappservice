@@ -12,7 +12,7 @@ export async function viewCommitInGitHub(context: IActionContext, node?: Deploym
     if (!node) {
         node = await ext.rgApi.pickAppResource<DeploymentTreeItem>({ ...context, suppressCreatePick: true }, {
             filter: webAppFilter,
-            expectedChildContextValue: 'deployment/github'
+            expectedChildContextValue: new RegExp('deployment/github')
         });
     }
     await node.viewCommitInGitHub(context);
