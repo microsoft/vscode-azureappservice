@@ -15,6 +15,7 @@ export let webSiteClient: WebSiteManagementClient;
 export const resourceGroupsToDelete: string[] = [];
 
 suiteSetup(async function (this: Mocha.Context): Promise<void> {
+    this.skip();
     if (longRunningTestsEnabled) {
         this.timeout(2 * 60 * 1000);
         testAccount = new TestAzureAccount(vscode);
@@ -25,6 +26,7 @@ suiteSetup(async function (this: Mocha.Context): Promise<void> {
 });
 
 suiteTeardown(async function (this: Mocha.Context): Promise<void> {
+    this.skip();
     if (longRunningTestsEnabled) {
         this.timeout(10 * 60 * 1000);
         await Promise.all(resourceGroupsToDelete.map(async resource => {
