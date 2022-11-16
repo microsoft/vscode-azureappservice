@@ -31,7 +31,7 @@ suiteTeardown(async function (this: Mocha.Context): Promise<void> {
         await Promise.all(resourceGroupsToDelete.map(async resource => {
             await beginDeleteResourceGroup(resource);
         }));
-        ext.azureAccountTreeItem.dispose();
+        // ext.azureAccountTreeItem.dispose();
     }
 });
 
