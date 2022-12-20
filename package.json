@@ -71,19 +71,12 @@
     ],
     "main": "./main.js",
     "contributes": {
-        "x-azResourcesV2": {
-            "application": {
+        "x-azResources": {
+            "azure": {
                 "branches": [
                     {
                         "type": "AppServices"
                     }
-                ]
-            }
-        },
-        "x-azResources": {
-            "activation": {
-                "onResolve": [
-                    "microsoft.web/sites"
                 ]
             },
             "commands": [
@@ -803,7 +796,7 @@
         "@azure/ms-rest-js": "^2.2.1",
         "@microsoft/vscode-azext-azureappservice": "^0.7.4",
         "@microsoft/vscode-azext-azureutils": "^0.3.4",
-        "@microsoft/vscode-azext-utils": "file:../vscode-azuretools/utils/microsoft-vscode-azext-utils-0.3.15.tgz",
+        "@microsoft/vscode-azext-utils": "^0.3.20",
         "dotenv": "^6.2.0",
         "fast-xml-parser": "^3.19.0",
         "fs-extra": "^8.0.0",
