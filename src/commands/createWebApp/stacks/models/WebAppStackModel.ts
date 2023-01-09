@@ -35,5 +35,6 @@ export interface WindowsJavaContainerSettings extends CommonSettings {
 
 export interface LinuxJavaContainerSettings extends CommonSettings {
     java11Runtime?: string;
+    java17Runtime?: string;
     java8Runtime?: string;
 }
