@@ -9,6 +9,8 @@ import { JavaContainers } from './models/WebAppStackModel';
 
 export function getJavaLinuxRuntime(javaMajorVersion: string, containerMinorVersion: AppStackMinorVersion<JavaContainers>): string | undefined {
     switch (javaMajorVersion) {
+        case '17':
+            return containerMinorVersion.stackSettings.linuxContainerSettings?.java17Runtime;
         case '11':
             return containerMinorVersion.stackSettings.linuxContainerSettings?.java11Runtime;
         case '8':
