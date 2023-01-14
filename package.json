@@ -72,6 +72,11 @@
     "main": "./main.js",
     "contributes": {
         "x-azResources": {
+            "activation": {
+                "onResolve": [
+                    "microsoft.web/sites"
+                ]
+            },
             "azure": {
                 "branches": [
                     {
