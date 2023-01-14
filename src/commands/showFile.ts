@@ -16,6 +16,8 @@ export async function showFile(context: IActionContext, treeItem?: FileTreeItem 
     if (node.isReadOnly) {
         await node.openReadOnly(context);
     } else {
+        // ensure node.id is defined
+        node.id = node.fullId;
         await ext.fileSystem.showTextDocument(node);
     }
 }
