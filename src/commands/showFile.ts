@@ -8,7 +8,7 @@ import { IActionContext, nonNullValue } from "@microsoft/vscode-azext-utils";
 import { ext } from "../extensionVariables";
 import { localize } from "../localize";
 
-export async function showFile(context: IActionContext, treeItem?: FileTreeItem): Promise<void> {
+export async function showFile(context: IActionContext, treeItem?: FileTreeItem & { id: string }): Promise<void> {
     const node = nonNullValue(treeItem);
     context.telemetry.eventVersion = 2;
 
