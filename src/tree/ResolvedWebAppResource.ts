@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { AppServicePlan, Site, SiteConfig, SiteLogsConfig, SiteSourceControl } from '@azure/arm-appservice';
-import { AppSettingsTreeItem, AppSettingTreeItem, DeleteLastServicePlanStep, DeleteSiteStep, DeploymentsTreeItem, DeploymentTreeItem, FolderTreeItem, IDeleteSiteWizardContext, LogFilesTreeItem, ParsedSite, SiteFilesTreeItem } from '@microsoft/vscode-azext-azureappservice';
+import { AppSettingsTreeItem, AppSettingTreeItem, DeleteLastServicePlanStep, DeleteSiteStep, DeploymentsTreeItem, DeploymentTreeItem, FolderTreeItem, LogFilesTreeItem, ParsedSite, SiteFilesTreeItem } from '@microsoft/vscode-azext-azureappservice';
 import { AzExtTreeItem, AzureWizard, DeleteConfirmationStep, IActionContext, ISubscriptionContext, nonNullProp, TreeItemIconPath } from '@microsoft/vscode-azext-utils';
 import { ResolvedAppResourceBase } from '@microsoft/vscode-azext-utils/hostapi';
 import { localize } from '../localize';
@@ -228,7 +228,7 @@ export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTre
     }
 
     public async deleteTreeItemImpl(context: IActionContext): Promise<void> {
-        const wizardContext: IDeleteSiteWizardContext = Object.assign(context, {
+        const wizardContext = Object.assign(context, {
             ...(await createActivityContext()),
             site: this.site,
         });
@@ -238,7 +238,7 @@ export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTre
             localize('confirmDeleteWebApp', 'Are you sure you want to delete web app "{0}"?', this.site.fullName);
 
         const title: string = this.site.isSlot ?
-            localize('deleteSlot', 'Delete slot "{0}"', this.site.fullName):
+            localize('deleteSlot', 'Delete slot "{0}"', this.site.fullName) :
             localize('deleteWebApp', 'Delete web app "{0}"', this.site.fullName);
 
         const wizard = new AzureWizard(wizardContext, {
