@@ -2,7 +2,7 @@
 
 <!-- region exclude-from-marketplace -->
 
-[![Version](https://vsmarketplacebadge.apphb.com/version/ms-azuretools.vscode-azureappservice.svg)](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-azureappservice) [![Installs](https://vsmarketplacebadge.apphb.com/installs-short/ms-azuretools.vscode-azureappservice.svg)](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-azureappservice) [![Build Status](https://dev.azure.com/ms-azuretools/AzCode/_apis/build/status/vscode-azureappservice)](https://dev.azure.com/ms-azuretools/AzCode/_build/latest?definitionId=5)
+[![Version](https://img.shields.io/visual-studio-marketplace/v/ms-azuretools.vscode-azureappservice.svg)](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-azureappservice) [![Installs](https://img.shields.io/visual-studio-marketplace/i/ms-azuretools.vscode-azureappservice.svg)](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-azureappservice) [![Build Status](https://dev.azure.com/ms-azuretools/AzCode/_apis/build/status/vscode-azureappservice)](https://dev.azure.com/ms-azuretools/AzCode/_build/latest?definitionId=5)
 
 <!-- endregion exclude-from-marketplace -->
 
