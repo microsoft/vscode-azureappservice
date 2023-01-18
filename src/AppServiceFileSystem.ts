@@ -11,7 +11,7 @@ import { localize } from "./localize";
 import { nonNullValue } from "./utils/nonNull";
 import { getWorkspaceSetting, updateGlobalSetting } from "./vsCodeConfig/settings";
 
-type FileSystemItem = FileTreeItem & { id: string };
+export type FileSystemItem = FileTreeItem & { id: string };
 
 export class AppServiceFileSystem extends AzExtTreeFileSystem<FileSystemItem> {
     public static scheme: string = 'azureAppService';

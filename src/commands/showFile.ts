@@ -5,6 +5,7 @@
 
 import { FileTreeItem } from "@microsoft/vscode-azext-azureappservice";
 import { IActionContext, nonNullValue } from "@microsoft/vscode-azext-utils";
+import { FileSystemItem } from "../AppServiceFileSystem";
 import { ext } from "../extensionVariables";
 import { localize } from "../localize";
 
@@ -18,6 +19,6 @@ export async function showFile(context: IActionContext, treeItem?: FileTreeItem)
     } else {
         // ensure node.id is defined
         node.id = node.fullId;
-        await ext.fileSystem.showTextDocument(node as FileTreeItem & { id: string });
+        await ext.fileSystem.showTextDocument(node as FileSystemItem);
     }
 }
