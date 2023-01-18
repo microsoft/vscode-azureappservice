@@ -5,12 +5,13 @@
 
 import { DeploymentsTreeItem, DeploymentTreeItem } from "@microsoft/vscode-azext-azureappservice";
 import { openInPortal as uiOpenInPortal } from '@microsoft/vscode-azext-azureutils';
-import { AzExtTreeItem, IActionContext } from "@microsoft/vscode-azext-utils";
+import { AzExtTreeItem, IActionContext, nonNullValue } from "@microsoft/vscode-azext-utils";
 import { DeploymentSlotsTreeItem } from "../tree/DeploymentSlotsTreeItem";
 import { matchContextValue } from "../utils/contextUtils";
 import { nonNullProp } from "../utils/nonNull";
 
-export async function openInPortal(context: IActionContext, node: AzExtTreeItem): Promise<void> {
+export async function openInPortal(context: IActionContext, treeItem?: AzExtTreeItem): Promise<void> {
+    const node = nonNullValue(treeItem);
     if (matchContextValue(node.contextValue, [DeploymentSlotsTreeItem.contextValue])) {
         // the deep link for slots does not follow the conventional pattern of including its parent in the path name so this is how we extract the slot's id
         await uiOpenInPortal(node, `${nonNullProp(node, 'parent').id}/deploymentSlotsV2`);

@@ -5,7 +5,7 @@
 
 import { registerAppServiceExtensionVariables } from '@microsoft/vscode-azext-azureappservice';
 import { registerAzureUtilsExtensionVariables } from '@microsoft/vscode-azext-azureutils';
-import { callWithTelemetryAndErrorHandling, createApiProvider, createAzExtOutputChannel, createExperimentationService, IActionContext, registerErrorHandler, registerReportIssueCommand, registerUIExtensionVariables } from '@microsoft/vscode-azext-utils';
+import { AzExtResourceType, callWithTelemetryAndErrorHandling, createApiProvider, createAzExtOutputChannel, createExperimentationService, IActionContext, registerErrorHandler, registerReportIssueCommand, registerUIExtensionVariables } from '@microsoft/vscode-azext-utils';
 import { AzureExtensionApi, AzureExtensionApiProvider } from '@microsoft/vscode-azext-utils/api';
 import * as vscode from 'vscode';
 import { AppServiceFileSystem } from './AppServiceFileSystem';
@@ -44,7 +44,7 @@ export async function activateInternal(
 
         ext.experimentationService = await createExperimentationService(context);
         ext.rgApi = await getResourceGroupsApi();
-        ext.rgApi.registerApplicationResourceResolver('ms-azuretools.vscode-azureappservice', new WebAppResolver());
+        ext.rgApi.registerApplicationResourceResolver(AzExtResourceType.AppServices, new WebAppResolver());
 
         ext.fileSystem = new AppServiceFileSystem(ext.rgApi.tree);
         context.subscriptions.push(vscode.workspace.registerFileSystemProvider(AppServiceFileSystem.scheme, ext.fileSystem));

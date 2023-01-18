@@ -4,17 +4,21 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { FileTreeItem } from "@microsoft/vscode-azext-azureappservice";
-import { IActionContext } from "@microsoft/vscode-azext-utils";
+import { IActionContext, nonNullValue } from "@microsoft/vscode-azext-utils";
+import { FileSystemItem } from "../AppServiceFileSystem";
 import { ext } from "../extensionVariables";
 import { localize } from "../localize";
 
-export async function showFile(context: IActionContext, node: FileTreeItem): Promise<void> {
+export async function showFile(context: IActionContext, treeItem?: FileTreeItem): Promise<void> {
+    const node = nonNullValue(treeItem);
     context.telemetry.eventVersion = 2;
 
     ext.fileSystem.appendLineToOutput(localize('opening', 'Opening "{0}"...', node.label), { resourceName: node.site.fullName });
     if (node.isReadOnly) {
         await node.openReadOnly(context);
     } else {
-        await ext.fileSystem.showTextDocument(node);
+        // ensure node.id is defined
+        node.id = node.fullId;
+        await ext.fileSystem.showTextDocument(node as FileSystemItem);
     }
 }
