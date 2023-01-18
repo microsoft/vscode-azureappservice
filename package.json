@@ -77,6 +77,13 @@
                     "microsoft.web/sites"
                 ]
             },
+            "azure": {
+                "branches": [
+                    {
+                        "type": "AppServices"
+                    }
+                ]
+            },
             "commands": [
                 {
                     "command": "appService.CreateWebApp",
@@ -345,12 +352,12 @@
             "view/item/context": [
                 {
                     "command": "appService.CreateWebApp",
-                    "when": "view == azureResourceGroups && viewItem =~ /azureResourceTypeGroup.*microsoft.web/sites(?!/)/",
+                    "when": "view == azureResourceGroups && viewItem =~ /appservices/i && viewItem =~ /azureResourceTypeGroup/i",
                     "group": "1_subscriptionGeneralCommands@1"
                 },
                 {
                     "command": "appService.CreateWebAppAdvanced",
-                    "when": "view == azureResourceGroups && viewItem =~ /azureResourceTypeGroup.*microsoft.web/sites(?!/)/",
+                    "when": "view == azureResourceGroups && viewItem =~ /appservices/i && viewItem =~ /azureResourceTypeGroup/i",
                     "group": "1_subscriptionGeneralCommands@2"
                 },
                 {
