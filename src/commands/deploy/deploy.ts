@@ -70,7 +70,7 @@ export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | 
         await javaUtils.configureJavaSEAppSettings(context, node);
     }
 
-    const isZipDeploy: boolean = siteConfig.scmType !== constants.ScmType.LocalGit && siteConfig !== constants.ScmType.GitHub;
+    const isZipDeploy: boolean = siteConfig.scmType !== constants.ScmType.LocalGit && siteConfig.scmType !== constants.ScmType.GitHub;
     // only check enableScmDoBuildDuringDeploy if currentWorkspace matches the workspace being deployed as a user can "Browse" to a different project
     if (getWorkspaceSetting<boolean>(constants.configurationSettings.showBuildDuringDeployPrompt, context.effectiveDeployFsPath)) {
         const remoteSettings: StringDictionary = await client.listApplicationSettings();
