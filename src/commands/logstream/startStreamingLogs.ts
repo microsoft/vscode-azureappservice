@@ -5,18 +5,13 @@
 
 import * as appservice from '@microsoft/vscode-azext-azureappservice';
 import { IActionContext } from '@microsoft/vscode-azext-utils';
-import { webAppFilter } from '../../constants';
-import { ext } from '../../extensionVariables';
-import { ResolvedWebAppResource } from '../../tree/ResolvedWebAppResource';
 import { SiteTreeItem } from '../../tree/SiteTreeItem';
+import { pickWebApp } from '../../utils/pickWebApp';
 import { enableFileLogging } from './enableFileLogging';
 
 export async function startStreamingLogs(context: IActionContext, node?: SiteTreeItem): Promise<void> {
     if (!node) {
-        node = await ext.rgApi.pickAppResource<SiteTreeItem>({ ...context, suppressCreatePick: true }, {
-            filter: webAppFilter,
-            expectedChildContextValue: new RegExp(ResolvedWebAppResource.webAppContextValue)
-        });
+        node = await pickWebApp({ ...context, suppressCreatePick: true });
     }
 
     const verifyLoggingEnabled: () => Promise<void> = async (): Promise<void> => {

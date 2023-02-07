@@ -5,20 +5,16 @@
 
 import { DeploymentsTreeItem } from "@microsoft/vscode-azext-azureappservice";
 import { GenericTreeItem, IActionContext } from "@microsoft/vscode-azext-utils";
-import { ScmType, webAppFilter } from "../../constants";
-import { ext } from "../../extensionVariables";
-import { ResolvedWebAppResource } from "../../tree/ResolvedWebAppResource";
+import { ScmType } from "../../constants";
 import { SiteTreeItem } from "../../tree/SiteTreeItem";
+import { pickWebApp } from "../../utils/pickWebApp";
 import { editScmType } from './editScmType';
 
 export async function connectToGitHub(context: IActionContext, target?: GenericTreeItem): Promise<void> {
     let node: SiteTreeItem | DeploymentsTreeItem;
 
     if (!target) {
-        node = await ext.rgApi.pickAppResource<SiteTreeItem>(context, {
-            filter: webAppFilter,
-            expectedChildContextValue: new RegExp(ResolvedWebAppResource.webAppContextValue)
-        });
+        node ??= await pickWebApp(context);
     } else {
         node = <DeploymentsTreeItem>target.parent;
     }

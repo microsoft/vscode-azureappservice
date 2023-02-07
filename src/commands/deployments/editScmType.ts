@@ -6,17 +6,13 @@
 import * as appservice from "@microsoft/vscode-azext-azureappservice";
 import { DeploymentsTreeItem } from "@microsoft/vscode-azext-azureappservice";
 import { IActionContext } from "@microsoft/vscode-azext-utils";
-import { ScmType, webAppFilter } from "../../constants";
-import { ext } from "../../extensionVariables";
-import { ResolvedWebAppResource } from "../../tree/ResolvedWebAppResource";
+import { ScmType } from "../../constants";
 import { SiteTreeItem } from "../../tree/SiteTreeItem";
+import { pickWebApp } from "../../utils/pickWebApp";
 
 export async function editScmType(context: IActionContext, node?: SiteTreeItem | DeploymentsTreeItem, _nodes?: (SiteTreeItem | DeploymentsTreeItem)[], newScmType?: ScmType, showToast?: boolean): Promise<void> {
     if (!node) {
-        node = await ext.rgApi.pickAppResource<SiteTreeItem>(context, {
-            filter: webAppFilter,
-            expectedChildContextValue: new RegExp(ResolvedWebAppResource.webAppContextValue)
-        });
+        node = await pickWebApp(context);
     } else if (node instanceof DeploymentsTreeItem) {
         node = <SiteTreeItem>node.parent;
     }
