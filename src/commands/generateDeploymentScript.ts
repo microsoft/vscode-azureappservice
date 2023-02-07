@@ -8,22 +8,15 @@ import { IActionContext } from "@microsoft/vscode-azext-utils";
 import * as fse from 'fs-extra';
 import * as path from 'path';
 import { ProgressLocation, window, workspace } from "vscode";
-import { webAppFilter } from "../constants";
-import { ext } from "../extensionVariables";
 import { localize } from "../localize";
-import { ResolvedWebAppResource } from "../tree/ResolvedWebAppResource";
 import { SiteTreeItem } from "../tree/SiteTreeItem";
 import { createResourceClient } from "../utils/azureClients";
 import { nonNullValue } from "../utils/nonNull";
 import { getResourcesPath } from "../utils/pathUtils";
+import { pickWebApp } from "../utils/pickWebApp";
 
 export async function generateDeploymentScript(context: IActionContext, node?: SiteTreeItem): Promise<void> {
-    if (!node) {
-        node = await ext.rgApi.pickAppResource<SiteTreeItem>(context, {
-            filter: webAppFilter,
-            expectedChildContextValue: new RegExp(ResolvedWebAppResource.webAppContextValue)
-        });
-    }
+    node ??= await pickWebApp(context);
 
     await window.withProgress({ location: ProgressLocation.Window }, async p => {
         p.report({ message: localize('generatingScript', 'Generating script...') });
