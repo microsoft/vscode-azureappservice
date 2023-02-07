@@ -3,14 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { createKuduClient } from "@microsoft/vscode-azext-azureappservice";
+import { SiteClient } from '@microsoft/vscode-azext-azureappservice';
 import { openInPortal } from '@microsoft/vscode-azext-azureutils';
 import { callWithTelemetryAndErrorHandling, IActionContext, UserCancelledError } from "@microsoft/vscode-azext-utils";
 import * as dayjs from "dayjs";
 // eslint-disable-next-line import/no-internal-modules
 import * as utc from 'dayjs/plugin/utc';
 import { CancellationTokenSource } from "vscode";
-import { KuduClient, KuduModels } from "vscode-azurekudu";
 import { detectorTimestampFormat } from '../../constants';
 import { ext } from '../../extensionVariables';
 import { localize } from "../../localize";
@@ -28,8 +27,8 @@ export async function checkLinuxWebAppDownDetector(originalContext: IActionConte
         context.valuesToMask.push(...originalContext.valuesToMask);
         context.telemetry.properties.correlationId = correlationId;
 
-        const kuduClient: KuduClient = await createKuduClient(context, node.site);
-        const deployment: KuduModels.DeployResult = await kuduClient.deployment.getResult('latest');
+        const kuduClient: SiteClient = await node.site.createClient(context);
+        const deployment = await kuduClient.getDeployResult(context, 'latest');
 
         if (!deployment.endTime) {
             // if there's no deployment detected, nothing can be done
