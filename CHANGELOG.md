@@ -1,5 +1,30 @@
 # Change Log
 
+## 0.24.6 - 2022-10-18
+
+### Fixed
+- Fix `invalid java version 17` when create web app with java 17 runtime by @Flanker32 in [#2350](https://github.com/microsoft/vscode-azureappservice/pull/2350)
+
+### Engineering
+- Change context value to a regexp by @nturinski in [#2297](https://github.com/microsoft/vscode-azureappservice/pull/2297)
+- Skip Azure tests by @nturinski in [#2335](https://github.com/microsoft/vscode-azureappservice/pull/2335)
+- Add .nvmrc file by @alexweininger in [#2346](https://github.com/microsoft/vscode-azureappservice/pull/2346)
+- Respond to AzExtTreeFileSystem changes by @alexweininger in [#2352](https://github.com/microsoft/vscode-azureappservice/pull/2352)
+- Check `scmType` on an existing `siteConfig` comparison by @MicroFish91 in [#2354](https://github.com/microsoft/vscode-azureappservice/pull/2354)
+- Add and use `pickWebApp` util by @alexweininger in [#2367](https://github.com/microsoft/vscode-azureappservice/pull/2367)
+- Update azureutils from 0.3.7 to 0.3.8 by @alexweininger in [#2364](https://github.com/microsoft/vscode-azureappservice/pull/2364)
+- Bump appservice package and remove kudu dependency by @Flanker32 in [#2365](https://github.com/microsoft/vscode-azureappservice/pull/2365)
+
+### Dependencies
+- Bump version after release by @github-actions in [#2329](https://github.com/microsoft/vscode-azureappservice/pull/2329)
+- Bump @xmldom/xmldom from 0.7.5 to 0.7.6 by @dependabot in [#2327](https://github.com/microsoft/vscode-azureappservice/pull/2327)
+- Bump loader-utils from 1.4.0 to 1.4.2 by @dependabot in [#2336](https://github.com/microsoft/vscode-azureappservice/pull/2336)
+- Bump @xmldom/xmldom from 0.7.6 to 0.7.9 by @dependabot in [#2337](https://github.com/microsoft/vscode-azureappservice/pull/2337)
+- Bump decode-uri-component from 0.2.0 to 0.2.2 by @dependabot in [#2342](https://github.com/microsoft/vscode-azureappservice/pull/2342)
+- Bump simple-git from 3.7.1 to 3.15.1 by @dependabot in [#2345](https://github.com/microsoft/vscode-azureappservice/pull/2345)
+- Bump json5 from 1.0.1 to 1.0.2 by @dependabot in [#2349](https://github.com/microsoft/vscode-azureappservice/pull/2349)
+- Bump simple-git from 3.15.1 to 3.16.0 by @dependabot in [#2356](https://github.com/microsoft/vscode-azureappservice/pull/2356)
+
 ## 0.24.5 - 2022-10-18
 
 ### Fixed
