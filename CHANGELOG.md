@@ -2,6 +2,9 @@
 
 ## 0.24.6 - 2023-02-08
 
+### Added
+- Support for Azure Resources API v2
+
 ### Fixed
 - Fix `invalid java version 17` when create web app with java 17 runtime by @Flanker32 in [#2350](https://github.com/microsoft/vscode-azureappservice/pull/2350)
 
