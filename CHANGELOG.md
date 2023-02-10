@@ -1,5 +1,10 @@
 # Change Log
 
+## 0.24.7 - 2023-02-10
+
+### Fixed
+- Error 404 when browsing site files by @alexweininger in [#2371](https://github.com/microsoft/vscode-azureappservice/pull/2371)
+
 ## 0.24.6 - 2023-02-08
 
 ### Added
