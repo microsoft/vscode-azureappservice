@@ -20,6 +20,7 @@ export async function disconnectRepo(context: IActionContext, node?: Deployments
 
     if (isResolvedWebAppResource(node.parent)) {
         await disconnectRepository(context, node.parent.site, node.subscription);
+        await ext.rgApi.appResourceTree.refresh(context, node.parent);
     } else {
         throw new OperationNotSupportedError(context);
     }
