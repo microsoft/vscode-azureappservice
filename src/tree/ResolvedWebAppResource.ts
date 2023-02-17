@@ -7,6 +7,7 @@ import { AppServicePlan, Site, SiteConfig, SiteLogsConfig, SiteSourceControl } f
 import { AppSettingsTreeItem, AppSettingTreeItem, DeleteLastServicePlanStep, DeleteSiteStep, DeploymentsTreeItem, DeploymentTreeItem, FolderTreeItem, LogFilesTreeItem, ParsedSite, SiteFilesTreeItem } from '@microsoft/vscode-azext-azureappservice';
 import { AzExtTreeItem, AzureWizard, DeleteConfirmationStep, IActionContext, ISubscriptionContext, nonNullProp, TreeItemIconPath } from '@microsoft/vscode-azext-utils';
 import { ResolvedAppResourceBase } from '@microsoft/vscode-azext-utils/hostapi';
+import { githubCommitContextValueRegExp } from '../commands/deployments/viewCommitInGitHub';
 import { localize } from '../localize';
 import { createActivityContext } from '../utils/activityUtils';
 import { matchContextValue } from '../utils/contextUtils';
@@ -197,7 +198,7 @@ export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTre
                 if (matchContextValue(expectedContextValue, appSettingsContextValues)) {
                     return this.appSettingsNode;
                 }
-                const deploymentsContextValues = [DeploymentsTreeItem.contextValueConnected, DeploymentsTreeItem.contextValueUnconnected, DeploymentTreeItem.contextValue];
+                const deploymentsContextValues = [githubCommitContextValueRegExp, DeploymentsTreeItem.contextValueConnected, DeploymentsTreeItem.contextValueUnconnected, DeploymentTreeItem.contextValue];
                 if (matchContextValue(expectedContextValue, deploymentsContextValues)) {
                     return this.deploymentsNode;
                 }
