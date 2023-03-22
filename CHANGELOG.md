@@ -1,5 +1,12 @@
 # Change Log
 
+## 0.24.8 - 2023-03-22
+
+### Fixed
+- Fix when clause contexts for upcoming VS Code (v1.77) release by @MicroFish91 in [#2420](https://github.com/microsoft/vscode-azureappservice/pull/2420)
+- Fix extra step in view commit in GitHub command by @alexweininger in [#2389](https://github.com/microsoft/vscode-azureappservice/pull/2389)
+- Refresh web app after disconnecting from GitHub by @alexweininger in [#2381](https://github.com/microsoft/vscode-azureappservice/pull/2381)
+
 ## 0.24.7 - 2023-02-10
 
 ### Fixed
