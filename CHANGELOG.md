@@ -1,6 +1,6 @@
 # Change Log
 
-## 0.24.8 - TBD
+## 0.24.8 - 2023-03-22
 
 ### Fixed
 - Fix when clause contexts for upcoming VS Code (v1.77) release by @MicroFish91 in [#2420](https://github.com/microsoft/vscode-azureappservice/pull/2420)
