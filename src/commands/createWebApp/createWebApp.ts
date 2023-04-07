@@ -66,7 +66,7 @@ export async function createWebApp(context: IActionContext & Partial<ICreateChil
 
     const newSiteName = nonNullProp(wizardContext, 'newSiteName');
 
-    wizardContext.activityTitle = localize('createWebApp', 'Create web app "{0}"...', newSiteName);
+    wizardContext.activityTitle = localize('createWebApp', 'Create Web App "{0}"', newSiteName);
 
     await wizard.execute();
     await ext.rgApi.appResourceTree.refresh(context);
