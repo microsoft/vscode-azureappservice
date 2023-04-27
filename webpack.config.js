@@ -11,13 +11,11 @@
 
 const process = require('process');
 const dev = require("@microsoft/vscode-azext-dev");
-<<<<<<< Updated upstream
-=======
 const webpack = require('webpack');
 const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const NodePolyfillPlugin = require('node-polyfill-webpack-plugin');
->>>>>>> Stashed changes
+
 
 let DEBUG_WEBPACK = !/^(false|0)?$/i.test(process.env.DEBUG_WEBPACK || '');
 
