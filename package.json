@@ -785,6 +785,7 @@
         "eslint-plugin-import": "^2.22.1",
         "glob": "^7.1.6",
         "gulp": "^4.0.2",
+        "html-webpack-plugin": "^5.5.1",
         "husky": "^7.0.2",
         "mocha": "^10.0.0",
         "mocha-junit-reporter": "^2.0.0",
@@ -796,21 +797,21 @@
         "webpack-cli": "^4.6.0"
     },
     "dependencies": {
-        "@azure/arm-appservice": "^11.0.0",
+        "@azure/arm-appservice": "^13.0.2",
         "@azure/arm-resources": "^5.0.0",
-        "@azure/ms-rest-js": "^2.2.1",
-        "@microsoft/vscode-azext-azureappservice": "^0.7.4",
-        "@microsoft/vscode-azext-azureutils": "^0.3.8",
-        "@microsoft/vscode-azext-utils": "^0.4.0",
+        "@microsoft/vscode-azext-azureappservice": "file:../vscode-azuretools/appservice/microsoft-vscode-azext-azureappservice-1.0.2.tgz",
+        "@microsoft/vscode-azext-azureappsettings": "^0.1.0",
+        "@microsoft/vscode-azext-azureutils": "^1.0.1",
+        "@microsoft/vscode-azext-utils": "^1.1.0",
+        "@microsoft/vscode-azureresources-api": "^2.0.4",
         "dotenv": "^6.2.0",
         "fast-xml-parser": "^3.19.0",
-        "fs-extra": "^8.0.0",
-        "open": "^8.0.4",
-        "vscode-azurekudu": "^0.2.2",
+        "jsdom": "^21.1.1",
+        "node-polyfill-webpack-plugin": "^2.0.1",
+        "timers-browserify": "^2.0.12",
         "vscode-nls": "^4.1.1"
     },
     "extensionDependencies": [
-        "ms-vscode.azure-account",
         "ms-azuretools.vscode-azureresourcegroups"
     ],
     "enabledApiProposals": [
