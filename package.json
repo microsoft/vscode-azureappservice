@@ -302,6 +302,21 @@
                 "command": "appService.ViewProperties",
                 "title": "%appService.ViewProperties%",
                 "category": "Azure App Service"
+            },
+            {
+                "command": "appService.createServiceConnector",
+                "title": "%appService.createServiceConnector%",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.deleteServiceConnector",
+                "title": "%appService.deleteServiceConnector%",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.validateServiceConnector",
+                "title": "%appService.validateServiceConnector%",
+                "category": "Azure App Service"
             }
         ],
         "menus": {
@@ -608,6 +623,21 @@
                     "command": "appService.OpenInPortal",
                     "when": "view =~ /(azureResourceGroups|azureFocusView)/ && viewItem =~ /appService.*deployment\\//",
                     "group": "1@4"
+                },
+                {
+                    "command": "appService.createServiceConnector",
+                    "when": "view == azureResourceGroups && viewItem =~ /azAppWebApp/",
+                    "group": "4@1"
+                },
+                {
+                    "command": "appService.deleteServiceConnector",
+                    "when": "view == azureResourceGroups && viewItem =~ /azAppWebApp/",
+                    "group": "4@2"
+                },
+                {
+                    "command": "appService.validateServiceConnector",
+                    "when": "view == azureResourceGroups && viewItem =~ /azAppWebApp/",
+                    "group": "4@3"
                 }
             ],
             "explorer/context": [
@@ -801,6 +831,7 @@
         "@azure/ms-rest-js": "^2.2.1",
         "@microsoft/vscode-azext-azureappservice": "^0.7.4",
         "@microsoft/vscode-azext-azureutils": "^0.3.8",
+        "@microsoft/vscode-azext-serviceconnector": "file:../vscode-azuretools/serviceconnector/microsoft-vscode-azext-serviceconnector-0.0.1.tgz",
         "@microsoft/vscode-azext-utils": "^0.4.0",
         "dotenv": "^6.2.0",
         "fast-xml-parser": "^3.19.0",

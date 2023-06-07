@@ -64,5 +64,8 @@
     "appService.toggleAppSettingVisibility": "Toggle App Value Visibility",
     "appService.viewDeploymentLogs": "View Deployment Logs",
     "appService.zipGlobPattern": "Defines which files in the workspace to deploy. This applies to Zip deploy only, has no effect on other deployment methods.",
-    "appService.zipIgnorePattern": "Defines which files in the workspace to ignore for Zip deploy. This applies to Zip deploy only, has no effect on other deployment methods."
+    "appService.zipIgnorePattern": "Defines which files in the workspace to ignore for Zip deploy. This applies to Zip deploy only, has no effect on other deployment methods.",
+    "appService.createServiceConnector": "Create Service Connector...",
+    "appService.deleteServiceConnector": "Delete Service Connector...",
+    "appService.validateServiceConnector": "Validate Service Connector..."
 }
