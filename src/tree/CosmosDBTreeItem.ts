@@ -6,8 +6,7 @@
 import { StringDictionary } from '@azure/arm-appservice';
 import { IAppSettingsClient, ParsedSite, validateAppSettingKey } from '@microsoft/vscode-azext-azureappservice';
 import { openInPortal } from '@microsoft/vscode-azext-azureutils';
-import { AzExtParentTreeItem, AzExtTreeItem, GenericTreeItem, IActionContext, ICreateChildImplContext, TreeItemIconPath, UserCancelledError } from '@microsoft/vscode-azext-utils';
-import { AzureExtensionApiProvider } from '@microsoft/vscode-azext-utils/api';
+import { AzExtParentTreeItem, AzExtTreeItem, GenericTreeItem, IActionContext, ICreateChildImplContext, TreeItemIconPath, UserCancelledError, apiUtils } from '@microsoft/vscode-azext-utils';
 import * as vscode from 'vscode';
 import { localize } from '../localize';
 import { nonNullProp } from '../utils/nonNull';
@@ -23,7 +22,7 @@ export class CosmosDBTreeItem extends AzExtParentTreeItem {
     public readonly childTypeLabel: string = 'Connection';
     public readonly parent!: SiteTreeItem;
     public readonly site: ParsedSite;
-    public cosmosDBExtension: vscode.Extension<AzureExtensionApiProvider | undefined> | undefined;
+    public cosmosDBExtension: vscode.Extension<apiUtils.AzureExtensionApiProvider | undefined> | undefined;
     public suppressMaskLabel = true;
 
     private readonly _endpointSuffix: string = '_ENDPOINT';
