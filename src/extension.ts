@@ -5,15 +5,15 @@
 
 import { registerAppServiceExtensionVariables } from '@microsoft/vscode-azext-azureappservice';
 import { registerAzureUtilsExtensionVariables } from '@microsoft/vscode-azext-azureutils';
-import { AzExtResourceType, callWithTelemetryAndErrorHandling, createApiProvider, createAzExtOutputChannel, createExperimentationService, IActionContext, registerErrorHandler, registerReportIssueCommand, registerUIExtensionVariables } from '@microsoft/vscode-azext-utils';
-import { AzureExtensionApi, AzureExtensionApiProvider } from '@microsoft/vscode-azext-utils/api';
+import { AzureExtensionApi, IActionContext, apiUtils, callWithTelemetryAndErrorHandling, createApiProvider, createAzExtOutputChannel, createExperimentationService, registerErrorHandler, registerReportIssueCommand, registerUIExtensionVariables } from '@microsoft/vscode-azext-utils';
+import { AzExtResourceType } from '@microsoft/vscode-azureresources-api';
 import * as vscode from 'vscode';
 import { AppServiceFileSystem } from './AppServiceFileSystem';
+import { WebAppResolver } from './WebAppResolver';
 import { revealTreeItem } from './commands/api/revealTreeItem';
 import { registerCommands } from './commands/registerCommands';
 import { ext } from './extensionVariables';
 import { getResourceGroupsApi } from './utils/getExtensionApi';
-import { WebAppResolver } from './WebAppResolver';
 
 export async function activateInternal(
     context: vscode.ExtensionContext,
@@ -21,7 +21,7 @@ export async function activateInternal(
         loadStartTime: number, loadEndTime: number
     },
     ignoreBundle?: boolean
-): Promise<AzureExtensionApiProvider> {
+): Promise<apiUtils.AzureExtensionApiProvider> {
     ext.context = context;
     ext.ignoreBundle = ignoreBundle;
 

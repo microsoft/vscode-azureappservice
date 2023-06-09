@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { AzureExtensionApiProvider } from "@microsoft/vscode-azext-utils/api";
+import { apiUtils } from "@microsoft/vscode-azext-utils";
 import { AzureHostExtensionApi } from "@microsoft/vscode-azext-utils/hostapi";
 import { Extension, extensions } from "vscode";
 import { localize } from "../localize";
@@ -23,7 +23,7 @@ export async function getApiExport<T>(extensionId: string): Promise<T | undefine
 }
 
 export async function getResourceGroupsApi(): Promise<AzureHostExtensionApi> {
-    const rgApiProvider = await getApiExport<AzureExtensionApiProvider>('ms-azuretools.vscode-azureresourcegroups');
+    const rgApiProvider = await getApiExport<apiUtils.AzureExtensionApiProvider>('ms-azuretools.vscode-azureresourcegroups');
     if (rgApiProvider) {
         return rgApiProvider.getApi<AzureHostExtensionApi>('0.0.1');
     } else {
@@ -32,7 +32,7 @@ export async function getResourceGroupsApi(): Promise<AzureHostExtensionApi> {
 }
 
 export async function getCosmosDBApi(): Promise<AzureDatabasesExtensionApi> {
-    const dbApiProvider = await getApiExport<AzureExtensionApiProvider>('ms-azuretools.vscode-cosmosdb');
+    const dbApiProvider = await getApiExport<apiUtils.AzureExtensionApiProvider>('ms-azuretools.vscode-cosmosdb');
     if (dbApiProvider) {
         return dbApiProvider.getApi<AzureDatabasesExtensionApi>('^1.0.0');
     } else {

@@ -5,11 +5,18 @@
 
 import { validateLinker } from "@microsoft/vscode-azext-serviceconnector";
 import { IActionContext } from "@microsoft/vscode-azext-utils";
+import { localize } from "../../localize";
 import { SiteTreeItem } from "../../tree/SiteTreeItem";
 import { createActivityContext } from "../../utils/activityUtils";
 import { pickWebApp } from "../../utils/pickWebApp";
 
 export async function validateServiceConnector(context: IActionContext, item?: SiteTreeItem): Promise<void> {
     item ??= await pickWebApp(context);
-    await validateLinker(context, item, await createActivityContext());
+    const activityContext = {
+        ...context,
+        ...await createActivityContext(),
+        activityTitle: localize('validateServiceConnector', 'Validate Service Connector'),
+    }
+
+    await validateLinker(activityContext, item);
 }

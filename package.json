@@ -150,6 +150,11 @@
                 "category": "Azure App Service"
             },
             {
+                "command": "appService.createServiceConnector",
+                "title": "%appService.createServiceConnector%",
+                "category": "Azure App Service"
+            },
+            {
                 "command": "appService.CreateSlot",
                 "title": "%appService.CreateSlot%",
                 "category": "Azure App Service"
@@ -168,6 +173,11 @@
             {
                 "command": "appService.Delete",
                 "title": "%appService.Delete%",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.deleteServiceConnector",
+                "title": "%appService.deleteServiceConnector%",
                 "category": "Azure App Service"
             },
             {
@@ -289,6 +299,11 @@
                 "icon": "$(eye)"
             },
             {
+                "command": "appService.validateServiceConnector",
+                "title": "%appService.validateServiceConnector%",
+                "category": "Azure App Service"
+            },
+            {
                 "command": "appService.ViewCommitInGitHub",
                 "title": "%appService.ViewCommitInGitHub%",
                 "category": "Azure App Service"
@@ -301,21 +316,6 @@
             {
                 "command": "appService.ViewProperties",
                 "title": "%appService.ViewProperties%",
-                "category": "Azure App Service"
-            },
-            {
-                "command": "appService.createServiceConnector",
-                "title": "%appService.createServiceConnector%",
-                "category": "Azure App Service"
-            },
-            {
-                "command": "appService.deleteServiceConnector",
-                "title": "%appService.deleteServiceConnector%",
-                "category": "Azure App Service"
-            },
-            {
-                "command": "appService.validateServiceConnector",
-                "title": "%appService.validateServiceConnector%",
                 "category": "Azure App Service"
             }
         ],
@@ -832,7 +832,7 @@
         "@microsoft/vscode-azext-azureappservice": "^0.7.4",
         "@microsoft/vscode-azext-azureutils": "^0.3.8",
         "@microsoft/vscode-azext-serviceconnector": "file:../vscode-azuretools/serviceconnector/microsoft-vscode-azext-serviceconnector-0.0.1.tgz",
-        "@microsoft/vscode-azext-utils": "^0.4.0",
+        "@microsoft/vscode-azext-utils": "^1.2.2",
         "dotenv": "^6.2.0",
         "fast-xml-parser": "^3.19.0",
         "fs-extra": "^8.0.0",
