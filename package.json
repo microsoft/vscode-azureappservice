@@ -803,7 +803,7 @@
         "@microsoft/vscode-azext-azureutils": "^0.3.8",
         "@microsoft/vscode-azext-utils": "^0.4.0",
         "dotenv": "^6.2.0",
-        "fast-xml-parser": "^3.19.0",
+        "fast-xml-parser": "^4.2.4",
         "fs-extra": "^8.0.0",
         "open": "^8.0.4",
         "vscode-azurekudu": "^0.2.2",

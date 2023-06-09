@@ -3,10 +3,10 @@
 *  Licensed under the MIT License. See License.txt in the project root for license information.
 *--------------------------------------------------------------------------------------------*/
 
-import * as parser from 'fast-xml-parser';
+import { IDeployContext } from '@microsoft/vscode-azext-azureappservice';
+import { XMLParser } from 'fast-xml-parser';
 import * as fse from 'fs-extra';
 import * as path from 'path';
-import { IDeployContext } from '@microsoft/vscode-azext-azureappservice';
 
 type MavenModule = { path: string, artifactId: string, artifactFinalName: string };
 type MavenPom = {
@@ -30,6 +30,7 @@ export async function tryGetMavenModule(context: IDeployContext, projectPath: st
 async function getMavenModuleFromPom(pomFile: string): Promise<MavenModule | undefined> {
     const pomContent: Buffer = await fse.readFile(pomFile);
     try {
+        const parser = new XMLParser();
         const pom = parser.parse(pomContent.toString()) as MavenPom;
         const pj = pom.project;
         if (pj && pj.artifactId) {
