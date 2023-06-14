@@ -4,9 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { AppServicePlan, Site, SiteConfig, SiteLogsConfig, SiteSourceControl } from '@azure/arm-appservice';
-import { AppSettingsTreeItem, AppSettingTreeItem, DeleteLastServicePlanStep, DeleteSiteStep, DeploymentsTreeItem, DeploymentTreeItem, FolderTreeItem, LogFilesTreeItem, ParsedSite, SiteFilesTreeItem } from '@microsoft/vscode-azext-azureappservice';
-import { AzExtTreeItem, AzureWizard, DeleteConfirmationStep, IActionContext, ISubscriptionContext, nonNullProp, TreeItemIconPath } from '@microsoft/vscode-azext-utils';
+import { AppSettingTreeItem, AppSettingsTreeItem, DeleteLastServicePlanStep, DeleteSiteStep, DeploymentTreeItem, DeploymentsTreeItem, FolderTreeItem, LogFilesTreeItem, ParsedSite, SiteFilesTreeItem } from '@microsoft/vscode-azext-azureappservice';
+import { AzExtTreeItem, AzureWizard, DeleteConfirmationStep, IActionContext, ISubscriptionContext, TreeItemIconPath, nonNullProp } from '@microsoft/vscode-azext-utils';
 import { ResolvedAppResourceBase } from '@microsoft/vscode-azext-utils/hostapi';
+import { ViewPropertiesModel } from '@microsoft/vscode-azext-utils/hostapi.v2';
 import { githubCommitContextValueRegExp } from '../commands/deployments/viewCommitInGitHub';
 import { localize } from '../localize';
 import { createActivityContext } from '../utils/activityUtils';
@@ -88,6 +89,13 @@ export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTre
 
     public get logStreamLabel(): string {
         return this.site.fullName;
+    }
+
+    public get viewProperties(): ViewPropertiesModel {
+        return {
+            data: this.site,
+            label: this.name,
+        }
     }
 
     public async refreshImpl(context: IActionContext): Promise<void> {
