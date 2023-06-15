@@ -304,14 +304,14 @@
                 "category": "Azure App Service"
             }
         ],
+        "submenus": [
+            {
+                "id": "appService.submenus.workspaceActions",
+                "icon": "resources/WebApp.svg",
+                "label": "Azure App Service"
+            }
+        ],
         "menus": {
-            "azureWorkspaceDeploy": [
-                {
-                    "command": "appService.Deploy",
-                    "when": "view == azureWorkspace",
-                    "group": "navigation@2"
-                }
-            ],
             "commandPalette": [
                 {
                     "command": "appService.appSettings.Delete",
@@ -342,9 +342,23 @@
                     "when": "never"
                 }
             ],
+            "appService.submenus.workspaceActions": [
+                {
+                    "command": "appService.CreateWebApp",
+                    "group": "2_create@1"
+                },
+                {
+                    "command": "appService.CreateWebAppAdvanced",
+                    "group": "2_create@2"
+                },
+                {
+                    "command": "appService.Deploy",
+                    "group": "1_deploy@1"
+                }
+            ],
             "view/title": [
                 {
-                    "submenu": "azureWorkspaceDeploy",
+                    "submenu": "appService.submenus.workspaceActions",
                     "when": "view == azureWorkspace",
                     "group": "navigation@2"
                 }
@@ -628,13 +642,6 @@
                 }
             ]
         },
-        "submenus": [
-            {
-                "id": "azureWorkspaceDeploy",
-                "icon": "$(cloud-upload)",
-                "label": "Deploy..."
-            }
-        ],
         "configuration": {
             "title": "Azure App Service",
             "properties": {
