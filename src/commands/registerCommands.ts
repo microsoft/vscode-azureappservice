@@ -3,7 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { AppSettingTreeItem, registerSiteCommand } from '@microsoft/vscode-azext-azureappservice';
+import { registerSiteCommand } from '@microsoft/vscode-azext-azureappservice';
+import { AppSettingTreeItem } from '@microsoft/vscode-azext-azureappsettings';
 import { openInPortal as uiOpenInPortal } from '@microsoft/vscode-azext-azureutils';
 import { AzExtTreeItem, IActionContext, nonNullValue, registerCommandWithTreeNodeUnwrapping, unwrapTreeNodeCommandCallback } from '@microsoft/vscode-azext-utils';
 import { ext } from '../extensionVariables';
@@ -56,13 +57,9 @@ export function registerCommands(): void {
     registerCommandWithTreeNodeUnwrapping('appService.appSettings.ToggleSlotSetting', toggleSlotSetting);
     registerCommandWithTreeNodeUnwrapping('appService.appSettings.Upload', uploadAppSettings);
     registerCommandWithTreeNodeUnwrapping('appService.Browse', browseWebsite);
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-ignore
     registerCommandWithTreeNodeUnwrapping('appService.ConfigureDeploymentSource', editScmType);
     registerCommandWithTreeNodeUnwrapping('appService.connectToGitHub', connectToGitHub);
     registerCommandWithTreeNodeUnwrapping('appService.CreateSlot', createSlot);
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-ignore
     registerCommandWithTreeNodeUnwrapping('appService.CreateWebApp', createWebApp);
     registerCommandWithTreeNodeUnwrapping('appService.CreateWebAppAdvanced', createWebAppAdvanced);
     registerCommandWithTreeNodeUnwrapping('appService.Delete', deleteWebApp);
@@ -90,8 +87,6 @@ export function registerCommands(): void {
     registerCommandWithTreeNodeUnwrapping('appService.toggleAppSettingVisibility', async (actionContext: IActionContext, node?: AppSettingTreeItem) => { await nonNullValue(node).toggleValueVisibility(actionContext); }, 250);
     registerCommandWithTreeNodeUnwrapping('appService.ViewCommitInGitHub', viewCommitInGitHub);
     registerCommandWithTreeNodeUnwrapping('appService.ViewProperties', viewProperties);
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    //@ts-ignore
     registerSiteCommand('appService.Deploy', unwrapTreeNodeCommandCallback(deploy));
     registerSiteCommand('appService.DeploySlot', unwrapTreeNodeCommandCallback(deploySlot));
     registerSiteCommand('appService.Redeploy', unwrapTreeNodeCommandCallback(redeployDeployment));

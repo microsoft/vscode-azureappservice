@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { StringDictionary } from '@azure/arm-appservice';
-import { IAppSettingsClient } from '@microsoft/vscode-azext-azureappservice';
+import { IAppSettingsClient } from '@microsoft/vscode-azext-azureappsettings';
 import { AzExtTreeItem, DialogResponses, IActionContext, TreeItemIconPath } from '@microsoft/vscode-azext-utils';
 import { ThemeIcon } from 'vscode';
 import { localize } from '../localize';
