@@ -8,6 +8,7 @@ import { DeleteLastServicePlanStep, DeleteSiteStep, DeploymentTreeItem, Deployme
 import { AppSettingTreeItem, AppSettingsTreeItem } from '@microsoft/vscode-azext-azureappsettings';
 import { AzExtTreeItem, AzureWizard, DeleteConfirmationStep, IActionContext, ISubscriptionContext, TreeItemIconPath, nonNullProp } from '@microsoft/vscode-azext-utils';
 import { ResolvedAppResourceBase } from '@microsoft/vscode-azext-utils/hostapi';
+import { ViewPropertiesModel } from '@microsoft/vscode-azext-utils/hostapi.v2';
 import { githubCommitContextValueRegExp } from '../commands/deployments/viewCommitInGitHub';
 import { ext } from '../extensionVariables';
 import { localize } from '../localize';
@@ -90,6 +91,13 @@ export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTre
 
     public get logStreamLabel(): string {
         return this.site.fullName;
+    }
+
+    public get viewProperties(): ViewPropertiesModel {
+        return {
+            data: this.site,
+            label: this.name,
+        }
     }
 
     public async refreshImpl(context: IActionContext): Promise<void> {

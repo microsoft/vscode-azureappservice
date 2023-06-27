@@ -304,14 +304,14 @@
                 "category": "Azure App Service"
             }
         ],
+        "submenus": [
+            {
+                "id": "appService.submenus.workspaceActions",
+                "icon": "resources/WebApp.svg",
+                "label": "Azure App Service"
+            }
+        ],
         "menus": {
-            "azureWorkspaceDeploy": [
-                {
-                    "command": "appService.Deploy",
-                    "when": "view == azureWorkspace",
-                    "group": "navigation@2"
-                }
-            ],
             "commandPalette": [
                 {
                     "command": "appService.appSettings.Delete",
@@ -342,9 +342,23 @@
                     "when": "never"
                 }
             ],
+            "appService.submenus.workspaceActions": [
+                {
+                    "command": "appService.CreateWebApp",
+                    "group": "2_create@1"
+                },
+                {
+                    "command": "appService.CreateWebAppAdvanced",
+                    "group": "2_create@2"
+                },
+                {
+                    "command": "appService.Deploy",
+                    "group": "1_deploy@1"
+                }
+            ],
             "view/title": [
                 {
-                    "submenu": "azureWorkspaceDeploy",
+                    "submenu": "appService.submenus.workspaceActions",
                     "when": "view == azureWorkspace",
                     "group": "navigation@2"
                 }
@@ -628,13 +642,6 @@
                 }
             ]
         },
-        "submenus": [
-            {
-                "id": "azureWorkspaceDeploy",
-                "icon": "$(cloud-upload)",
-                "label": "Deploy..."
-            }
-        ],
         "configuration": {
             "title": "Azure App Service",
             "properties": {
@@ -771,27 +778,27 @@
         "prepare": "husky install"
     },
     "devDependencies": {
-        "@microsoft/eslint-config-azuretools": "^0.1.0",
-        "@microsoft/vscode-azext-dev": "^2.0.0",
+        "@microsoft/vscode-azext-dev": "^2.0.1",
+        "@microsoft/eslint-config-azuretools": "^0.2.1",
         "@types/dotenv": "^6.1.1",
         "@types/fs-extra": "^8.0.0",
         "@types/gulp": "^4.0.6",
         "@types/mocha": "^8.2.2",
-        "@types/node": "^14.0.0",
         "@types/vscode": "1.79.0",
-        "@typescript-eslint/eslint-plugin": "^4.28.3",
+        "@types/node": "^16.18.36",
+        "@typescript-eslint/eslint-plugin": "^5.59.11",
         "@vscode/test-electron": "^2.1.5",
-        "eslint": "^7.19.0",
-        "eslint-plugin-import": "^2.22.1",
+        "@vscode/vsce": "^2.19.0",
+        "eslint": "^8.42.0",
+        "eslint-plugin-import": "^2.27.5",
         "glob": "^7.1.6",
         "gulp": "^4.0.2",
         "husky": "^7.0.2",
         "mocha": "^10.0.0",
         "mocha-junit-reporter": "^2.0.0",
         "mocha-multi-reporters": "^1.5.1",
-        "ts-node": "^7.0.1",
-        "typescript": "^4.3.5",
-        "vsce": "^2.11.0",
+        "ts-node": "^10.9.1",
+        "typescript": "^5.1.3",
         "webpack": "^5.76.0",
         "webpack-cli": "^4.6.0"
     },
