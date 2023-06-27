@@ -9,7 +9,6 @@ import { AzExtLocation, LocationListStep, getResourceGroupFromId, uiUtils } from
 import { DialogResponses, IActionContext, parseError } from "@microsoft/vscode-azext-utils";
 import { MessageItem } from "vscode";
 import { localize } from "../../localize";
-
 import { createWebSiteClient } from '../../utils/azureClients';
 import { nonNullProp } from "../../utils/nonNull";
 import { getWorkspaceSetting, updateGlobalSetting } from "../../vsCodeConfig/settings";
