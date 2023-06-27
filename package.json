@@ -344,16 +344,16 @@
             ],
             "appService.submenus.workspaceActions": [
                 {
+                    "command": "appService.Deploy",
+                    "group": "1_deploy@1"
+                },
+                {
                     "command": "appService.CreateWebApp",
                     "group": "2_create@1"
                 },
                 {
                     "command": "appService.CreateWebAppAdvanced",
                     "group": "2_create@2"
-                },
-                {
-                    "command": "appService.Deploy",
-                    "group": "1_deploy@1"
                 }
             ],
             "view/title": [
@@ -811,6 +811,7 @@
         "@microsoft/vscode-azext-azureappsettings": "^0.2.0",
         "@microsoft/vscode-azext-azureutils": "^2.0.0",
         "@microsoft/vscode-azext-utils": "^2.0.1",
+        "@microsoft/vscode-azureresources-api": "^2.0.2",
         "dotenv": "^6.2.0",
         "fast-xml-parser": "^4.2.4",
         "fs-extra": "^8.0.0",

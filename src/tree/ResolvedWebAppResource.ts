@@ -7,8 +7,8 @@ import { AppServicePlan, Site, SiteConfig, SiteLogsConfig, SiteSourceControl } f
 import { DeleteLastServicePlanStep, DeleteSiteStep, DeploymentTreeItem, DeploymentsTreeItem, FolderTreeItem, LogFilesTreeItem, ParsedSite, SiteFilesTreeItem } from '@microsoft/vscode-azext-azureappservice';
 import { AppSettingTreeItem, AppSettingsTreeItem } from '@microsoft/vscode-azext-azureappsettings';
 import { AzExtTreeItem, AzureWizard, DeleteConfirmationStep, IActionContext, ISubscriptionContext, TreeItemIconPath, nonNullProp } from '@microsoft/vscode-azext-utils';
-import { ResolvedAppResourceBase } from '@microsoft/vscode-azext-utils/hostapi';
-import { ViewPropertiesModel } from '@microsoft/vscode-azext-utils/hostapi.v2';
+import { ResolvedAppResourceBase, } from '@microsoft/vscode-azext-utils/hostapi';
+import { ViewPropertiesModel } from '@microsoft/vscode-azureresources-api';
 import { githubCommitContextValueRegExp } from '../commands/deployments/viewCommitInGitHub';
 import { ext } from '../extensionVariables';
 import { localize } from '../localize';
