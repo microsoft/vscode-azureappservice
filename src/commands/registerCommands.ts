@@ -3,9 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { AppSettingTreeItem, registerSiteCommand } from '@microsoft/vscode-azext-azureappservice';
+import { registerSiteCommand } from '@microsoft/vscode-azext-azureappservice';
+import { AppSettingTreeItem } from '@microsoft/vscode-azext-azureappsettings';
 import { openInPortal as uiOpenInPortal } from '@microsoft/vscode-azext-azureutils';
-import { AzExtTreeItem, IActionContext, nonNullValue, registerCommandWithTreeNodeUnwrapping, unwrapArgs } from '@microsoft/vscode-azext-utils';
+import { AzExtTreeItem, IActionContext, nonNullValue, registerCommandWithTreeNodeUnwrapping, unwrapTreeNodeCommandCallback } from '@microsoft/vscode-azext-utils';
 import { ext } from '../extensionVariables';
 import { DeploymentSlotsNATreeItem, ScaleUpTreeItem } from '../tree/DeploymentSlotsTreeItem';
 import { addAppSetting } from './appSettings/addAppSetting';
@@ -86,8 +87,8 @@ export function registerCommands(): void {
     registerCommandWithTreeNodeUnwrapping('appService.toggleAppSettingVisibility', async (actionContext: IActionContext, node?: AppSettingTreeItem) => { await nonNullValue(node).toggleValueVisibility(actionContext); }, 250);
     registerCommandWithTreeNodeUnwrapping('appService.ViewCommitInGitHub', viewCommitInGitHub);
     registerCommandWithTreeNodeUnwrapping('appService.ViewProperties', viewProperties);
-    registerSiteCommand('appService.Deploy', unwrapArgs(deploy));
-    registerSiteCommand('appService.DeploySlot', unwrapArgs(deploySlot));
-    registerSiteCommand('appService.Redeploy', unwrapArgs(redeployDeployment));
-    registerSiteCommand('appService.viewDeploymentLogs', unwrapArgs(viewDeploymentLogs));
+    registerSiteCommand('appService.Deploy', unwrapTreeNodeCommandCallback(deploy));
+    registerSiteCommand('appService.DeploySlot', unwrapTreeNodeCommandCallback(deploySlot));
+    registerSiteCommand('appService.Redeploy', unwrapTreeNodeCommandCallback(redeployDeployment));
+    registerSiteCommand('appService.viewDeploymentLogs', unwrapTreeNodeCommandCallback(viewDeploymentLogs));
 }

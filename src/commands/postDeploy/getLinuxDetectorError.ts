@@ -3,8 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ServiceClient } from '@azure/ms-rest-js';
-import { createGenericClient } from '@microsoft/vscode-azext-azureutils';
+import { ServiceClient } from '@azure/core-client';
+import { createPipelineRequest } from '@azure/core-rest-pipeline';
+import { AzExtPipelineResponse, createGenericClient } from '@microsoft/vscode-azext-azureutils';
 import { IActionContext } from "@microsoft/vscode-azext-utils";
 import * as dayjs from 'dayjs';
 // eslint-disable-next-line import/no-internal-modules
@@ -12,6 +13,7 @@ import * as utc from 'dayjs/plugin/utc';
 import { detectorTimestampFormat } from "../../constants";
 import { localize } from "../../localize";
 import { SiteTreeItem } from "../../tree/SiteTreeItem";
+import { createRequestUrl } from '../../utils/requestUtils';
 import { findTableByName, getValuesByColumnName } from "./parseDetectorResponse";
 
 dayjs.extend(utc);
@@ -34,15 +36,18 @@ export async function getLinuxDetectorError(context: IActionContext, detectorId:
     const detectorUri: string = `${node.id}/detectors/${detectorId}`;
     const client: ServiceClient = await createGenericClient(context, node.subscription);
 
-    const queryParameters: { [key: string]: string } = {
-        'api-version': "2015-08-01",
-        startTime,
-        endTime,
-        // query param to return plain text rather than html
-        logFormat: 'plain'
-    };
+    const response: AzExtPipelineResponse = <AzExtPipelineResponse>await client.sendRequest(createPipelineRequest({
+        method: 'GET', url: createRequestUrl(detectorUri, {
+            'api-version': "2015-08-01",
+            startTime,
+            endTime,
+            // query param to return plain text rather than html
+            logFormat: 'plain'
+        })
+    }));
 
-    const responseJson: detectorResponseJSON = <detectorResponseJSON>(await client.sendRequest({ method: 'GET', url: detectorUri, queryParameters })).parsedBody;
+    const responseJson: detectorResponseJSON = <detectorResponseJSON>response.parsedBody;
+
     if (!responseJson.properties) {
         return undefined;
     }

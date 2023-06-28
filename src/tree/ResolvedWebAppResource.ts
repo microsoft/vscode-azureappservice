@@ -4,11 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { AppServicePlan, Site, SiteConfig, SiteLogsConfig, SiteSourceControl } from '@azure/arm-appservice';
-import { AppSettingTreeItem, AppSettingsTreeItem, DeleteLastServicePlanStep, DeleteSiteStep, DeploymentTreeItem, DeploymentsTreeItem, FolderTreeItem, LogFilesTreeItem, ParsedSite, SiteFilesTreeItem } from '@microsoft/vscode-azext-azureappservice';
+import { DeleteLastServicePlanStep, DeleteSiteStep, DeploymentTreeItem, DeploymentsTreeItem, FolderTreeItem, LogFilesTreeItem, ParsedSite, SiteFilesTreeItem } from '@microsoft/vscode-azext-azureappservice';
+import { AppSettingTreeItem, AppSettingsTreeItem } from '@microsoft/vscode-azext-azureappsettings';
 import { AzExtTreeItem, AzureWizard, DeleteConfirmationStep, IActionContext, ISubscriptionContext, TreeItemIconPath, nonNullProp } from '@microsoft/vscode-azext-utils';
-import { ResolvedAppResourceBase } from '@microsoft/vscode-azext-utils/hostapi';
-import { ViewPropertiesModel } from '@microsoft/vscode-azext-utils/hostapi.v2';
+import { ResolvedAppResourceBase, } from '@microsoft/vscode-azext-utils/hostapi';
+import { ViewPropertiesModel } from '@microsoft/vscode-azureresources-api';
 import { githubCommitContextValueRegExp } from '../commands/deployments/viewCommitInGitHub';
+import { ext } from '../extensionVariables';
 import { localize } from '../localize';
 import { createActivityContext } from '../utils/activityUtils';
 import { matchContextValue } from '../utils/contextUtils';
@@ -130,7 +132,7 @@ export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTre
     public async loadMoreChildrenImpl(_clearCache: boolean, context: IActionContext): Promise<AzExtTreeItem[]> {
         const proxyTree: SiteTreeItem = this as unknown as SiteTreeItem;
 
-        this.appSettingsNode = new AppSettingsTreeItem(proxyTree, this.site, {
+        this.appSettingsNode = new AppSettingsTreeItem(proxyTree, this.site, ext.prefix, {
             contextValuesToAdd: ['appService']
         });
         this._connectionsNode = new CosmosDBTreeItem(proxyTree, this.site);
