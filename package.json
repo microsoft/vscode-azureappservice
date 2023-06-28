@@ -813,7 +813,7 @@
         "@microsoft/vscode-azext-utils": "^2.0.1",
         "@microsoft/vscode-azureresources-api": "^2.0.2",
         "dotenv": "^6.2.0",
-        "fast-xml-parser": "^4.2.4",
+        "fast-xml-parser": "^4.2.5",
         "fs-extra": "^8.0.0",
         "open": "^8.0.4",
         "vscode-nls": "^4.1.1"
