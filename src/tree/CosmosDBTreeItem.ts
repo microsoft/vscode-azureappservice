@@ -4,7 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { StringDictionary } from '@azure/arm-appservice';
-import { IAppSettingsClient, ParsedSite, validateAppSettingKey } from '@microsoft/vscode-azext-azureappservice';
+import { ParsedSite } from '@microsoft/vscode-azext-azureappservice';
+import { IAppSettingsClient, validateAppSettingKey } from '@microsoft/vscode-azext-azureappsettings';
 import { openInPortal } from '@microsoft/vscode-azext-azureutils';
 import { AzExtParentTreeItem, AzExtTreeItem, GenericTreeItem, IActionContext, ICreateChildImplContext, TreeItemIconPath, UserCancelledError, apiUtils } from '@microsoft/vscode-azext-utils';
 import * as vscode from 'vscode';
