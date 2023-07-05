@@ -18,5 +18,5 @@ export async function createServiceConnector(context: IActionContext, item?: Sit
         activityTitle: localize('createServiceConnector', 'Create Service Connector'),
     }
 
-    await createLinker(activityContext, item,);
+    await createLinker(activityContext, item);
 }
