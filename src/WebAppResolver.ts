@@ -1,22 +1,29 @@
-import { getResourceGroupFromId } from "@microsoft/vscode-azext-azureutils";
-import { callWithTelemetryAndErrorHandling, IActionContext, ISubscriptionContext, nonNullProp } from "@microsoft/vscode-azext-utils";
+import { Site } from "@azure/arm-appservice";
+import { uiUtils } from "@microsoft/vscode-azext-azureutils";
+import { IActionContext, ISubscriptionContext, callWithTelemetryAndErrorHandling, nonNullProp, nonNullValue } from "@microsoft/vscode-azext-utils";
 import { AppResource, AppResourceResolver } from "@microsoft/vscode-azext-utils/hostapi";
 import { ResolvedWebAppResource } from "./tree/ResolvedWebAppResource";
 import { createWebSiteClient } from "./utils/azureClients";
 
 export class WebAppResolver implements AppResourceResolver {
-    public async resolveResource(subContext: ISubscriptionContext, resource: AppResource): Promise<ResolvedWebAppResource | null> {
-        return await callWithTelemetryAndErrorHandling('resolveResource', async (context: IActionContext) => {
-            try {
-                const client = await createWebSiteClient({ ...context, ...subContext });
-                const site = await client.webApps.get(getResourceGroupFromId(nonNullProp(resource, 'id')), nonNullProp(resource, 'name'));
-                return new ResolvedWebAppResource(subContext, site);
 
-            } catch (e) {
-                console.error({ ...context, ...subContext });
-                throw e;
+    private siteCacheLastUpdated = 0;
+    private siteCache: Map<string, Site> = new Map<string, Site>();
+
+    public async resolveResource(subContext: ISubscriptionContext, resource: AppResource): Promise<ResolvedWebAppResource | undefined> {
+        return await callWithTelemetryAndErrorHandling('resolveResource', async (context: IActionContext) => {
+            const client = await createWebSiteClient({ ...context, ...subContext });
+
+            if (this.siteCacheLastUpdated < Date.now() - 1000 * 3) {
+                this.siteCache.clear();
+                const sites = await uiUtils.listAllIterator(client.webApps.list());
+                sites.forEach(site => this.siteCache.set(nonNullProp(site, 'id').toLowerCase(), site));
+                this.siteCacheLastUpdated = Date.now();
             }
-        }) ?? null;
+
+            const site = this.siteCache.get(nonNullProp(resource, 'id').toLowerCase());
+            return new ResolvedWebAppResource(subContext, nonNullValue(site));
+        });
     }
 
     public matchesResource(resource: AppResource): boolean {
