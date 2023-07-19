@@ -6,7 +6,8 @@
 import { Site } from '@azure/arm-appservice';
 import { DeploymentsTreeItem, ParsedSite } from '@microsoft/vscode-azext-azureappservice';
 import { AppSettingsTreeItem } from '@microsoft/vscode-azext-azureappsettings';
-import { AzExtParentTreeItem, AzExtTreeItem, IActionContext, TreeItemIconPath } from '@microsoft/vscode-azext-utils';
+import { AzExtParentTreeItem, AzExtTreeDataProvider, AzExtTreeItem, IActionContext, TreeItemIconPath } from '@microsoft/vscode-azext-utils';
+import { ext } from '../extensionVariables';
 import { ISiteTreeItem } from './ISiteTreeItem';
 import { ResolvedWebAppResource } from './ResolvedWebAppResource';
 
@@ -17,8 +18,10 @@ export class SiteTreeItem extends AzExtParentTreeItem implements ISiteTreeItem {
     public appSettingsNode!: AppSettingsTreeItem;
     public deploymentsNode: DeploymentsTreeItem | undefined;
 
+    public treeDataProvider: AzExtTreeDataProvider;
     public constructor(parent: AzExtParentTreeItem, site: Site) {
         super(parent);
+        this.treeDataProvider = parent.treeDataProvider ?? ext.rgApi.appResourceTree;
         this.resolved = new ResolvedWebAppResource(parent.subscription, site);
     }
 
