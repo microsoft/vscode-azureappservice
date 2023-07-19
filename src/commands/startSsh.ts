@@ -3,9 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { SiteConfigResource, User } from '@azure/arm-appservice';
-import { reportMessage, setRemoteDebug, TunnelProxy } from '@microsoft/vscode-azext-azureappservice';
-import { findFreePort, IActionContext } from '@microsoft/vscode-azext-utils';
+import { SiteConfigResource } from '@azure/arm-appservice';
+import { TunnelProxy, reportMessage, setRemoteDebug } from '@microsoft/vscode-azext-azureappservice';
+import { IActionContext, findFreePort } from '@microsoft/vscode-azext-utils';
 import * as vscode from 'vscode';
 import { TerminalDataWriteEvent } from 'vscode';
 import { ext } from '../extensionVariables';
@@ -68,11 +68,11 @@ async function startSshInternal(context: IActionContext, node: SiteTreeItem): Pr
         await setRemoteDebug(context, false, confirmDisableMessage, undefined, node.site, siteConfig, progress, token);
 
         reportMessage(localize('initSsh', 'Initializing SSH...'), progress, token);
-        const publishCredential: User = await client.getWebAppPublishCredential();
-        const localHostPortNumber: number = await findFreePort();
-        // should always be an unbound port
-        const tunnelProxy: TunnelProxy = new TunnelProxy(localHostPortNumber, node.site, publishCredential, true);
 
+        const localHostPortNumber: number = await findFreePort();
+
+        // should always be an unbound port
+        const tunnelProxy: TunnelProxy = new TunnelProxy(localHostPortNumber, node.site, node.subscription.credentials, true);
         await tunnelProxy.startProxy(context, token);
 
         reportMessage(localize('connectingSsh', 'Connecting to SSH...'), progress, token);
