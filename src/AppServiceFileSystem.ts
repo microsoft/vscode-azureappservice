@@ -29,7 +29,7 @@ export class AppServiceFileSystem extends AzExtTreeFileSystem<FileSystemItem> {
     }
 
     public async readFileImpl(context: IActionContext, node: FileSystemItem): Promise<Uint8Array> {
-        const result: ISiteFile = await getFile(context, node.site, node.path);
+        const result: ISiteFile = await getFile(context, node.site, node.url);
         this._etags.set(node.fullId, result.etag);
         return Buffer.from(result.data);
     }
@@ -49,7 +49,7 @@ export class AppServiceFileSystem extends AzExtTreeFileSystem<FileSystemItem> {
         let etag: string = nonNullValue(this._etags.get(node.fullId), 'etag');
         try {
             this.appendLineToOutput(localize('updating', 'Updating "{0}" ...', node.label), { resourceName: node.site.fullName });
-            await putFile(context, node.site, content, node.path, etag);
+            await putFile(context, node.site, content, node.url, etag);
             this.appendLineToOutput(localize('done', 'Updated "{0}".', node.label), { resourceName: node.site.fullName });
         } catch (error) {
             const parsedError: IParsedError = parseError(error);
@@ -59,7 +59,7 @@ export class AppServiceFileSystem extends AzExtTreeFileSystem<FileSystemItem> {
             throw error;
         }
 
-        etag = (await getFile(context, node.site, node.path)).etag;
+        etag = (await getFile(context, node.site, node.url)).etag;
         this._etags.set(node.fullId, etag);
         await node.refresh(context);
     }
