@@ -18,5 +18,14 @@ export async function deleteServiceConnector(context: IActionContext, item?: Sit
         activityTitle: localize('deleteServiceConnector', 'Delete Service Connector'),
     }
 
-    await deleteLinker(activityContext, item);
+    const id = item.id.includes('/ServiceConnector') ? item.id.split('/ServiceConnector')[0] : item.id;
+    const name = item.id.includes('/ServiceConnector') ? item.id.split('/ServiceConnector/')[1] : undefined;
+
+    await deleteLinker(activityContext, id, item.subscription, name);
+
+    if (item.id.includes('/ServiceConnector')) {
+        await item.parent?.refresh(context);
+    } else {
+        await item.refresh(context);
+    }
 }

@@ -18,5 +18,8 @@ export async function validateServiceConnector(context: IActionContext, item?: S
         activityTitle: localize('validateServiceConnector', 'Validate Service Connector'),
     }
 
-    await validateLinker(activityContext, item);
+    const id = item.id.includes('/ServiceConnector') ? item.id.split('/ServiceConnector')[0] : item.id;
+    const name = item.id.includes('/ServiceConnector') ? item.id.split('/ServiceConnector/')[1] : undefined;
+
+    await validateLinker(activityContext, id, item.subscription, name);
 }

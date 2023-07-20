@@ -12,11 +12,18 @@ import { pickWebApp } from "../../utils/pickWebApp";
 
 export async function createServiceConnector(context: IActionContext, item?: SiteTreeItem): Promise<void> {
     item ??= await pickWebApp(context);
+
     const activityContext = {
         ...context,
         ...await createActivityContext(),
         activityTitle: localize('createServiceConnector', 'Create Service Connector'),
     }
 
-    await createLinker(activityContext, item);
+    await createLinker(activityContext, item.id.includes('/ServiceConnector') ? item.id.split('/ServiceConnector')[0] : item.id, item.subscription);
+
+    if (item.id.includes('/ServiceConnector')) {
+        await item.parent?.refresh(context);
+    } else {
+        await item.refresh(context);
+    }
 }
