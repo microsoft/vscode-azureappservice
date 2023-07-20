@@ -1,5 +1,24 @@
 # Change Log
 
+## 0.25.0 - 2023-05-20
+
+### Changed
+* [[#2519]](https://github.com/microsoft/vscode-azureappservice/pull/2519) Workspace commands have been organized into a submenu with an App Service icon.
+
+<img width="511" alt="Screenshot 2023-07-19 at 4 51 39 PM" src="https://github.com/microsoft/vscode-azureappservice/assets/12476526/27e4ad87-d09f-4b04-a12f-9120c01f67b3">
+
+* [[#2542]](https://github.com/microsoft/vscode-azureappservice/pull/2542) Make Web App items load significantly faster in the tree view.
+
+### Bugs Fixed
+* [[#2549]](https://github.com/microsoft/vscode-azureappservice/pull/2549) Fix Remote Debugging feature for Web Apps.
+* [[#2549]](https://github.com/microsoft/vscode-azureappservice/pull/2549) Fix authentication error for the "SSH into Web App" command.
+* [[#2518]](https://github.com/microsoft/vscode-azureappservice/pull/2518) Fix "View Properties" command for Web Apps.
+* [[#2546]](https://github.com/microsoft/vscode-azureappservice/pull/2546) Fix Deploying to a Web App from the Web App created notification.
+
+### Engineering
+* [[#2512]](https://github.com/microsoft/vscode-azureappservice/pull/2512) Move to Track 2 Azure SDKs, remove dependence on `ms-rest-js`.
+* [[#2517]](https://github.com/microsoft/vscode-azureappservice/pull/2517) Update to TS 5.1.3.
+
 ## 0.24.9 - 2023-05-17
 
 ### Added
