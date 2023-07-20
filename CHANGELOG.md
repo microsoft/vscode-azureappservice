@@ -1,5 +1,27 @@
 # Change Log
 
+## 0.25.0 - 2023-05-20
+
+### Added
+* Add actions submenu to workspace view title by @alexweininger in [#2519](https://github.com/microsoft/vscode-azureappservice/pull/2519)
+
+### Fixed
+* Fix SSH and remote debugging by @alexweininger in [#2549](https://github.com/microsoft/vscode-azureappservice/pull/2549)
+* Fix view properties for web apps by @alexweininger in [#2518](https://github.com/microsoft/vscode-azureappservice/pull/2518)
+* Ensure `treeDataProvider` exists on created web app item by @alexweininger in [#2546](https://github.com/microsoft/vscode-azureappservice/pull/2546)
+
+### Engineering
+* Move to Track 2 Azure SDKs by @motm32 in [#2512](https://github.com/microsoft/vscode-azureappservice/pull/2512)
+* Resolve using list instead of get by @alexweininger in [#2542](https://github.com/microsoft/vscode-azureappservice/pull/2542)
+* Update to TS 5.1.3 by @alexweininger in [#2517](https://github.com/microsoft/vscode-azureappservice/pull/2517)
+
+### Dependencies
+* Update fast-xml-parser to latest version by @alexweininger in [#2509](https://github.com/microsoft/vscode-azureappservice/pull/2509)
+* Use `@vscode/vsce` instead of `vsce`, and `npm audit fix` by @bwateratmsft in [#2520](https://github.com/microsoft/vscode-azureappservice/pull/2520)
+* Bump fast-xml-parser from 4.2.4 to 4.2.5 by @dependabot in [#2528](https://github.com/microsoft/vscode-azureappservice/pull/2528)
+* Bump tough-cookie from 4.0.0 to 4.1.3 by @dependabot in [#2535](https://github.com/microsoft/vscode-azureappservice/pull/2535)
+* Bump word-wrap from 1.2.3 to 1.2.4 by @dependabot in [#2547](https://github.com/microsoft/vscode-azureappservice/pull/2547)
+
 ## 0.24.9 - 2023-05-17
 
 ### Added
