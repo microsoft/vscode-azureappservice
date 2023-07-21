@@ -3,15 +3,18 @@
 *  Licensed under the MIT License. See License.md in the project root for license information.
 *--------------------------------------------------------------------------------------------*/
 
-import { createLinker } from "@microsoft/vscode-azext-serviceconnector";
+import { ServiceConnectorGroupTreeItem, createLinker } from "@microsoft/vscode-azext-serviceconnector";
 import { IActionContext } from "@microsoft/vscode-azext-utils";
 import { localize } from "../../localize";
 import { SiteTreeItem } from "../../tree/SiteTreeItem";
 import { createActivityContext } from "../../utils/activityUtils";
 import { pickWebApp } from "../../utils/pickWebApp";
 
-export async function createServiceConnector(context: IActionContext, item?: SiteTreeItem): Promise<void> {
+export async function createServiceConnector(context: IActionContext, item?: SiteTreeItem | ServiceConnectorGroupTreeItem): Promise<void> {
     item ??= await pickWebApp(context);
+    if (item instanceof SiteTreeItem) {
+        item = <ServiceConnectorGroupTreeItem>item.parent;
+    }
 
     const activityContext = {
         ...context,
@@ -19,9 +22,9 @@ export async function createServiceConnector(context: IActionContext, item?: Sit
         activityTitle: localize('createServiceConnector', 'Create Service Connector'),
     }
 
-    await createLinker(activityContext, item.id.includes('/ServiceConnector') ? item.id.split('/ServiceConnector')[0] : item.id, item.subscription);
+    await createLinker(activityContext, item.resourceId || item.id, item.subscription);
 
-    if (item.id.includes('/ServiceConnector')) {
+    if (item.resourceId) {
         await item.parent?.refresh(context);
     } else {
         await item.refresh(context);
