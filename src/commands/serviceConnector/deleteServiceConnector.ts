@@ -11,9 +11,12 @@ import { createActivityContext } from "../../utils/activityUtils";
 import { pickWebApp } from "../../utils/pickWebApp";
 
 export async function deleteServiceConnector(context: IActionContext, item?: SiteTreeItem | ServiceConnectorTreeItem): Promise<void> {
+    let serviceConnectorName = undefined
     item ??= await pickWebApp(context);
-    if (item instanceof SiteTreeItem) {
-        item = <ServiceConnectorTreeItem><unknown>item.parent;
+
+    if (item instanceof ServiceConnectorTreeItem) {
+        serviceConnectorName = item.label;
+        item = <SiteTreeItem>item.parent?.parent;
     }
 
     const activityContext = {
@@ -22,11 +25,6 @@ export async function deleteServiceConnector(context: IActionContext, item?: Sit
         activityTitle: localize('deleteServiceConnector', 'Delete Service Connector'),
     }
 
-    await deleteLinker(activityContext, item.resourceId || item.id, item.subscription, item.resourceId ? item.label : undefined);
-
-    if (item.resourceId) {
-        await item.parent?.refresh(context);
-    } else {
-        await item.refresh(context);
-    }
+    await deleteLinker(activityContext, item.id, item.subscription, serviceConnectorName);
+    await item.refresh(context);
 }

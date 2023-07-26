@@ -11,9 +11,12 @@ import { createActivityContext } from "../../utils/activityUtils";
 import { pickWebApp } from "../../utils/pickWebApp";
 
 export async function validateServiceConnector(context: IActionContext, item?: SiteTreeItem | ServiceConnectorTreeItem): Promise<void> {
+    let serviceConnectorName = undefined
     item ??= await pickWebApp(context);
-    if (item instanceof SiteTreeItem) {
-        item = <ServiceConnectorTreeItem><unknown>item.parent;
+
+    if (item instanceof ServiceConnectorTreeItem) {
+        serviceConnectorName = item.label;
+        item = <SiteTreeItem>item.parent?.parent;
     }
 
     const activityContext = {
@@ -22,5 +25,5 @@ export async function validateServiceConnector(context: IActionContext, item?: S
         activityTitle: localize('validateServiceConnector', 'Validate Service Connector'),
     }
 
-    await validateLinker(activityContext, item.resourceId || item.id, item.subscription, item.resourceId ? item.label : undefined);
+    await validateLinker(activityContext, item.id, item.subscription, serviceConnectorName);
 }
