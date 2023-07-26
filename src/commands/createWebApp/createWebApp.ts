@@ -18,8 +18,18 @@ import { getCreatedWebAppMessage, showCreatedWebAppMessage } from "./showCreated
 import { WebAppStackStep } from "./stacks/WebAppStackStep";
 import { WebAppCreateStep } from "./WebAppCreateStep";
 
+function isSubscription(item?: AzExtParentTreeItem): boolean {
+    try {
+        // Accessing item.subscription throws an error for some workspace items
+        // see https://github.com/microsoft/vscode-azurefunctions/issues/3731
+        return !!item && !!item.subscription;
+    } catch {
+        return false;
+    }
+}
+
 export async function createWebApp(context: IActionContext & Partial<ICreateChildImplContext>, node?: SubscriptionTreeItemBase | undefined, _nodes?: (SubscriptionTreeItemBase | undefined)[], suppressCreatedWebAppMessage: boolean = false): Promise<SiteTreeItem> {
-    if (!node) {
+    if (!node || !isSubscription(node)) {
         node = <SubscriptionTreeItemBase>await ext.rgApi.tree.showTreeItemPicker(SubscriptionTreeItemBase.contextValue, context);
     }
 
