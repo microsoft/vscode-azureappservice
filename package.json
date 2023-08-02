@@ -307,7 +307,10 @@
         "submenus": [
             {
                 "id": "appService.submenus.workspaceActions",
-                "icon": "resources/WebApp.svg",
+                "icon": {
+                    "light": "resources/WebApp.svg",
+                    "dark": "resources/WebApp.svg"
+                },
                 "label": "Azure App Service"
             }
         ],
