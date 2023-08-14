@@ -88,7 +88,7 @@
                 {
                     "command": "appService.CreateWebApp",
                     "title": "%appService.createWebAppTitle%",
-                    "type": "microsoft.web/sites",
+                    "type": "AppServices",
                     "detail": "%appService.createWebAppDetail%"
                 }
             ]
