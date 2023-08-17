@@ -64,7 +64,7 @@
     "appService.showSavePrompt": "Show warning dialog on remote file uploading.",
     "appService.startStreamingLogs": "Start Streaming Logs",
     "appService.toggleAppSettingVisibility": "Toggle App Value Visibility",
-    "appService.validateServiceConnector": "Validate Service Connector...",
+    "appService.validateServiceConnector": "Validate",
     "appService.viewDeploymentLogs": "View Deployment Logs",
     "appService.zipGlobPattern": "Defines which files in the workspace to deploy. This applies to Zip deploy only, has no effect on other deployment methods.",
     "appService.zipIgnorePattern": "Defines which files in the workspace to ignore for Zip deploy. This applies to Zip deploy only, has no effect on other deployment methods."
