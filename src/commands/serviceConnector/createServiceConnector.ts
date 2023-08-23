@@ -19,7 +19,7 @@ export async function createServiceConnector(context: IActionContext, item?: Sit
     const activityContext = {
         ...context,
         ...await createActivityContext(),
-        activityTitle: localize('createServiceConnector', 'Create Service Connector'),
+        activityTitle: localize('createServiceConnector', 'Create connection'),
     }
 
     await createLinker(activityContext, item.id, item.subscription);
