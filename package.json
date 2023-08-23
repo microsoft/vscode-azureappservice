@@ -150,6 +150,11 @@
                 "category": "Azure App Service"
             },
             {
+                "command": "appService.createServiceConnector",
+                "title": "%appService.createServiceConnector%",
+                "category": "Azure App Service"
+            },
+            {
                 "command": "appService.CreateSlot",
                 "title": "%appService.CreateSlot%",
                 "category": "Azure App Service"
@@ -168,6 +173,11 @@
             {
                 "command": "appService.Delete",
                 "title": "%appService.Delete%",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.deleteServiceConnector",
+                "title": "%appService.deleteServiceConnector%",
                 "category": "Azure App Service"
             },
             {
@@ -289,6 +299,11 @@
                 "icon": "$(eye)"
             },
             {
+                "command": "appService.validateServiceConnector",
+                "title": "%appService.validateServiceConnector%",
+                "category": "Azure App Service"
+            },
+            {
                 "command": "appService.ViewCommitInGitHub",
                 "title": "%appService.ViewCommitInGitHub%",
                 "category": "Azure App Service"
@@ -342,6 +357,10 @@
                 },
                 {
                     "command": "appService.ViewProperties",
+                    "when": "never"
+                },
+                {
+                    "command": "appService.validateServiceConnector",
                     "when": "never"
                 }
             ],
@@ -625,6 +644,21 @@
                     "command": "appService.OpenInPortal",
                     "when": "view =~ /(azureResourceGroups|azureFocusView)/ && viewItem =~ /appService.*deployment\\//",
                     "group": "1@4"
+                },
+                {
+                    "command": "appService.createServiceConnector",
+                    "when": "view == azureResourceGroups && viewItem =~ /serviceConnectorGroupItem/",
+                    "group": "1@1"
+                },
+                {
+                    "command": "appService.deleteServiceConnector",
+                    "when": "view == azureResourceGroups && viewItem =~ /serviceConnectorItem/",
+                    "group": "1@1"
+                },
+                {
+                    "command": "appService.validateServiceConnector",
+                    "when": "view == azureResourceGroups && viewItem =~ /serviceConnectorItem/",
+                    "group": "1@2"
                 }
             ],
             "explorer/context": [
@@ -813,6 +847,7 @@
         "@microsoft/vscode-azext-azureappservice": "^2.2.0",
         "@microsoft/vscode-azext-azureappsettings": "^0.2.0",
         "@microsoft/vscode-azext-azureutils": "^2.0.1",
+        "@microsoft/vscode-azext-serviceconnector": "0.1.1",
         "@microsoft/vscode-azext-utils": "^2.0.1",
         "@microsoft/vscode-azureresources-api": "^2.0.2",
         "dotenv": "^6.2.0",
