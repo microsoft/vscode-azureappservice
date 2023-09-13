@@ -4,10 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { StringDictionary } from "@azure/arm-appservice";
-import { AppSettingsTreeItem, confirmOverwriteSettings, IAppSettingsClient } from "@microsoft/vscode-azext-azureappservice";
-import { IActionContext, UserCancelledError } from "@microsoft/vscode-azext-utils";
+import { confirmOverwriteSettings } from "@microsoft/vscode-azext-azureappservice";
+import { AppSettingsTreeItem, IAppSettingsClient } from "@microsoft/vscode-azext-azureappsettings";
+import { AzExtFsExtra, IActionContext, UserCancelledError } from "@microsoft/vscode-azext-utils";
 import { DotenvParseOutput } from "dotenv";
-import * as fse from 'fs-extra';
 import * as os from 'os';
 import * as vscode from 'vscode';
 import { window } from "vscode";
@@ -39,8 +39,8 @@ export async function downloadAppSettings(context: IActionContext, node?: AppSet
             await confirmOverwriteSettings(context, remoteEnvVariables.properties, localEnvVariables, envFileName);
         }
 
-        await fse.ensureFile(envVarPath);
-        await fse.writeFile(envVarPath, convertAppSettingsToEnvVariables(localEnvVariables, client.fullName));
+        await AzExtFsExtra.ensureFile(envVarPath);
+        await AzExtFsExtra.writeFile(envVarPath, convertAppSettingsToEnvVariables(localEnvVariables, client.fullName));
     });
 
     void window.showInformationMessage(localize('Settings', 'Downloaded settings from "{0}".  View settings file?', client.fullName), localize('view', 'View file')).then(async (input) => {

@@ -50,25 +50,35 @@ let webConfig = dev.getDefaultWebpackConfig({
         '../build/default/bufferutil': 'commonjs ../build/default/bufferutil',
     },
     target: 'webworker',
-    entries: { polyfill: './src/polyfill.worker.ts', },
     plugins: [new webpack.ProvidePlugin({
-        Buffer: ['buffer', 'Buffer'],
+        Buffer: ['buffer', 'Buffer']
     }),
     new HtmlWebpackPlugin({
         title: 'Storage Web Worker Sample',
     }),
     new NodePolyfillPlugin({
         includeAliases: [
-            "path", "stream", "process", "Buffer"
+            "path", "stream", "process", "Buffer", "zlib"
         ]
+    }),
+    new webpack.IgnorePlugin({
+        resourceRegExp: /canvas/,
+        contextRegExp: /jsdom$/,
     })],
     suppressCleanDistFolder: true,
     resolveFallbackAliases: {
         "timers": require.resolve("timers-browserify"),
-        'constants': false,
-        'tls': false,
-        'bufferutil': false,
-        'utf-8-validate': false
+        child_process: false,
+        crypto: false,
+        http: false,
+        https: false,
+        os: false,
+        perf_hooks: false,
+        fs: false,
+        net: false,
+        tls: false,
+        canvas: false,
+        constants: false
     }
 });
 
@@ -76,4 +86,4 @@ if (DEBUG_WEBPACK) {
     console.log('Config:', config);
 }
 
-module.exports = config;
+module.exports = [config, webConfig];

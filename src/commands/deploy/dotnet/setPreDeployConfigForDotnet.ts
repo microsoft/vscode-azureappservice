@@ -3,10 +3,10 @@
 *  Licensed under the MIT License. See License.txt in the project root for license information.
 *--------------------------------------------------------------------------------------------*/
 
-import * as fse from 'fs-extra';
+import { IDeployContext } from '@microsoft/vscode-azext-azureappservice';
+import { AzExtFsExtra } from '@microsoft/vscode-azext-utils';
 import * as path from 'path';
 import { MessageItem, TaskDefinition } from 'vscode';
-import { IDeployContext } from '@microsoft/vscode-azext-azureappservice';
 import * as constants from '../../../constants';
 import { localize } from '../../../localize';
 import { updateWorkspaceSetting } from '../../../vsCodeConfig/settings';
@@ -68,7 +68,7 @@ export async function setPreDeployConfigForDotnet(context: IDeployContext, cspro
 }
 
 async function tryGetTargetFramework(projFilePath: string): Promise<string | undefined> {
-    const projContents: string = (await fse.readFile(projFilePath)).toString();
+    const projContents: string = (await AzExtFsExtra.readFile(projFilePath)).toString();
     const matches: RegExpMatchArray | null = projContents.match(/<TargetFramework>(.*)<\/TargetFramework>/);
     return matches === null ? undefined : matches[1];
 }

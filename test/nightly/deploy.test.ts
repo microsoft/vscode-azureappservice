@@ -4,13 +4,15 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Site } from '@azure/arm-appservice';
-import { HttpOperationResponse, ServiceClient } from '@azure/ms-rest-js';
+import { ServiceClient } from '@azure/core-client';
+import { createPipelineRequest } from '@azure/core-rest-pipeline';
 import { tryGetWebApp } from '@microsoft/vscode-azext-azureappservice';
+import { AzExtPipelineResponse } from '@microsoft/vscode-azext-azureutils';
 import { createTestActionContext, runWithTestActionContext } from '@microsoft/vscode-azext-dev';
 import * as assert from 'assert';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { createGenericClient, createWebAppAdvanced, deploy, ext, getRandomHexString, nonNullProp, SiteTreeItem } from '../../extension.bundle';
+import { SiteTreeItem, createGenericClient, createWebAppAdvanced, deploy, ext, nonNullProp, randomUtils } from '../../extension.bundle';
 import { longRunningTestsEnabled } from '../global.test';
 import { getRotatingLocation, getRotatingPricingTier } from './getRotatingValue';
 import { resourceGroupsToDelete, webSiteClient } from './global.resource.test';
@@ -110,8 +112,8 @@ suite('Create Web App and deploy', function (this: Mocha.Suite): void {
     }
 
     async function testCreateWebAppAndDeploy(os: string, promptForOs: boolean, runtime: string, workspacePath: string, expectedVersion: string): Promise<void> {
-        const resourceName: string = getRandomHexString();
-        const resourceGroupName = getRandomHexString();
+        const resourceName: string = randomUtils.getRandomHexString();
+        const resourceGroupName = randomUtils.getRandomHexString();
         resourceGroupsToDelete.push(resourceGroupName);
 
         const testInputs: (string | RegExp)[] = [resourceName, '$(plus) Create new resource group', resourceGroupName, runtime];
@@ -119,7 +121,7 @@ suite('Create Web App and deploy', function (this: Mocha.Suite): void {
             testInputs.push(os);
         }
 
-        testInputs.push(getRotatingLocation(), '$(plus) Create new App Service plan', getRandomHexString(), getRotatingPricingTier(), '$(plus) Create new Application Insights resource', getRandomHexString());
+        testInputs.push(getRotatingLocation(), '$(plus) Create new App Service plan', randomUtils.getRandomHexString(), getRotatingPricingTier(), '$(plus) Create new Application Insights resource', randomUtils.getRandomHexString());
 
         await runWithTestActionContext('CreateWebAppAdvanced', async context => {
             await context.ui.runWithInputs(testInputs, async () => {
@@ -137,7 +139,7 @@ suite('Create Web App and deploy', function (this: Mocha.Suite): void {
 
         const hostUrl: string | undefined = (<SiteTreeItem>await ext.rgApi.tree.findTreeItem(<string>createdApp?.id, await createTestActionContext())).site.defaultHostUrl;
         const client: ServiceClient = await createGenericClient(await createTestActionContext(), undefined);
-        const response: HttpOperationResponse = await client.sendRequest({ method: 'GET', url: hostUrl });
+        const response: AzExtPipelineResponse = await client.sendRequest(createPipelineRequest({ method: 'GET', url: hostUrl }));
         assert.strictEqual(response.bodyAsText, `Version: ${expectedVersion}`);
     }
 });

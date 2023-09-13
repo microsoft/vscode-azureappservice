@@ -3,8 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ServiceClient } from '@azure/ms-rest-js';
-import { createGenericClient } from '@microsoft/vscode-azext-azureutils';
+import { ServiceClient } from '@azure/core-client';
+import { createPipelineRequest } from '@azure/core-rest-pipeline';
+import { AzExtPipelineResponse, createGenericClient } from '@microsoft/vscode-azext-azureutils';
 import { IActionContext } from "@microsoft/vscode-azext-utils";
 import * as dayjs from 'dayjs';
 // eslint-disable-next-line import/no-internal-modules
@@ -42,7 +43,10 @@ export async function getLinuxDetectorError(context: IActionContext, detectorId:
         logFormat: 'plain'
     };
 
-    const responseJson: detectorResponseJSON = <detectorResponseJSON>(await client.sendRequest({ method: 'GET', url: detectorUri, queryParameters })).parsedBody;
+    const queryString = Object.keys(queryParameters).map(key => key + '=' + queryParameters[key]).join('&');
+    const response: AzExtPipelineResponse = await client.sendRequest(createPipelineRequest({ method: 'GET', url: `${detectorUri}?${queryString}` }))
+    const responseJson: detectorResponseJSON = response.parsedBody as detectorResponseJSON;
+
     if (!responseJson.properties) {
         return undefined;
     }

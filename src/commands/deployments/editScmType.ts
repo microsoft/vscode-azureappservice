@@ -10,7 +10,7 @@ import { ScmType } from "../../constants";
 import { SiteTreeItem } from "../../tree/SiteTreeItem";
 import { pickWebApp } from "../../utils/pickWebApp";
 
-export async function editScmType(context: IActionContext, node?: SiteTreeItem | DeploymentsTreeItem, _nodes?: (SiteTreeItem | DeploymentsTreeItem)[], newScmType?: ScmType, showToast?: boolean): Promise<void> {
+export async function editScmType(context: IActionContext, node?: SiteTreeItem | DeploymentsTreeItem, _nodes?: (SiteTreeItem | DeploymentsTreeItem)[], newScmType?: ScmType | unknown, showToast?: boolean | unknown): Promise<void> {
     if (!node) {
         node = await pickWebApp(context);
     } else if (node instanceof DeploymentsTreeItem) {
@@ -20,7 +20,9 @@ export async function editScmType(context: IActionContext, node?: SiteTreeItem |
     if (node.deploymentsNode === undefined) {
         await node.refresh(context);
     }
+    const _newScmType = newScmType as ScmType;
+    const _showToast = showToast as boolean;
 
-    await appservice.editScmType(context, node.site, node.subscription, newScmType, showToast);
+    await appservice.editScmType(context, node.site, node.subscription, _newScmType, _showToast);
     await node.deploymentsNode?.refresh(context);
 }

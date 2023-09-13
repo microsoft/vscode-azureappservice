@@ -3,8 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { DialogResponses, IActionContext } from "@microsoft/vscode-azext-utils";
-import * as fse from 'fs-extra';
+import { AzExtFsExtra, DialogResponses, IActionContext } from "@microsoft/vscode-azext-utils";
 import * as path from 'path';
 import { MessageItem } from "vscode";
 import * as constants from '../../constants';
@@ -46,7 +45,7 @@ export async function enableScmDoBuildDuringDeploy(fsPath: string, runtime: stri
         }
     }
     await updateWorkspaceSetting(constants.configurationSettings.zipIgnorePattern, newSettings, fsPath);
-    await fse.writeFile(path.join(fsPath, constants.deploymentFileName), constants.deploymentFile);
+    await AzExtFsExtra.writeFile(path.join(fsPath, constants.deploymentFileName), constants.deploymentFile);
 }
 
 async function getIgnoredFoldersForDeployment(fsPath: string, runtime: string): Promise<string[]> {

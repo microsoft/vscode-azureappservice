@@ -4,8 +4,7 @@
 *--------------------------------------------------------------------------------------------*/
 
 import { SiteConfigResource, StringDictionary } from "@azure/arm-appservice";
-import { IActionContext, UserCancelledError } from '@microsoft/vscode-azext-utils';
-import * as fse from 'fs-extra';
+import { AzExtFsExtra, IActionContext, UserCancelledError } from '@microsoft/vscode-azext-utils';
 import * as path from 'path';
 import { workspace } from "vscode";
 import { localize } from "../localize";
@@ -76,7 +75,7 @@ export namespace javaUtils {
     }
 
     async function isJavaFolder(fsPath: string): Promise<boolean> {
-        return await fse.pathExists(path.join(fsPath, 'pom.xml')) || await fse.pathExists(path.join(fsPath, 'build.gradle'));
+        return await AzExtFsExtra.pathExists(path.join(fsPath, 'pom.xml')) || await AzExtFsExtra.pathExists(path.join(fsPath, 'build.gradle'));
     }
 
     export async function configureJavaSEAppSettings(context: IActionContext, node: SiteTreeItem): Promise<StringDictionary | undefined> {

@@ -3,9 +3,9 @@
 *  Licensed under the MIT License. See License.txt in the project root for license information.
 *--------------------------------------------------------------------------------------------*/
 
-import * as fse from 'fs-extra';
-import * as path from 'path';
 import { IDeployContext } from '@microsoft/vscode-azext-azureappservice';
+import { AzExtFsExtra } from '@microsoft/vscode-azext-utils';
+import * as path from 'path';
 import * as constants from '../../constants';
 import { isPathEqual } from '../../utils/pathUtils';
 import { getWorkspaceSetting } from '../../vsCodeConfig/settings';
@@ -31,7 +31,7 @@ export async function setPreDeployConfig(context: IDeployContext): Promise<void>
     }
 
     // if the user has a ".deployment" file - assume they've already configured their project's deploy settings
-    if (await fse.pathExists(path.join(context.effectiveDeployFsPath, constants.deploymentFileName))) {
+    if (await AzExtFsExtra.pathExists(path.join(context.effectiveDeployFsPath, constants.deploymentFileName))) {
         return;
     }
 

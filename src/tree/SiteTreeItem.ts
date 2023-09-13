@@ -4,7 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Site } from '@azure/arm-appservice';
-import { AppSettingsTreeItem, DeploymentsTreeItem, ParsedSite } from '@microsoft/vscode-azext-azureappservice';
+import { DeploymentsTreeItem, ParsedSite } from '@microsoft/vscode-azext-azureappservice';
+import { AppSettingsTreeItem } from '@microsoft/vscode-azext-azureappsettings';
 import { AzExtParentTreeItem, AzExtTreeItem, IActionContext, TreeItemIconPath } from '@microsoft/vscode-azext-utils';
 import { ISiteTreeItem } from './ISiteTreeItem';
 import { ResolvedWebAppResource } from './ResolvedWebAppResource';

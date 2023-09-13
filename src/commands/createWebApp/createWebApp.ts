@@ -18,7 +18,7 @@ import { getCreatedWebAppMessage, showCreatedWebAppMessage } from "./showCreated
 import { WebAppStackStep } from "./stacks/WebAppStackStep";
 import { WebAppCreateStep } from "./WebAppCreateStep";
 
-export async function createWebApp(context: IActionContext & Partial<ICreateChildImplContext>, node?: SubscriptionTreeItemBase | undefined, _nodes?: (SubscriptionTreeItemBase | undefined)[], suppressCreatedWebAppMessage: boolean = false): Promise<SiteTreeItem> {
+export async function createWebApp(context: IActionContext & Partial<ICreateChildImplContext>, node?: SubscriptionTreeItemBase | undefined, _nodes?: (SubscriptionTreeItemBase | undefined)[], suppressCreatedWebAppMessage?: boolean | unknown): Promise<SiteTreeItem> {
     if (!node) {
         node = <SubscriptionTreeItemBase>await ext.rgApi.tree.showTreeItemPicker(SubscriptionTreeItemBase.contextValue, context);
     }

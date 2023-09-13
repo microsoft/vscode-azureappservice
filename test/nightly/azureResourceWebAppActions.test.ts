@@ -4,10 +4,10 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Site, SiteConfigResource, StringDictionary } from '@azure/arm-appservice';
-import { tryGetWebApp, WebsiteOS } from '@microsoft/vscode-azext-azureappservice';
-import * as assert from 'assert';
+import { WebsiteOS, tryGetWebApp } from '@microsoft/vscode-azext-azureappservice';
 import { runWithTestActionContext } from '@microsoft/vscode-azext-dev';
-import { addAppSetting, constants, createWebAppAdvanced, deleteAppSetting, deleteWebApp, DialogResponses, editScmType, getRandomHexString } from '../../extension.bundle';
+import * as assert from 'assert';
+import { DialogResponses, addAppSetting, constants, createWebAppAdvanced, deleteAppSetting, deleteWebApp, editScmType, randomUtils } from '../../extension.bundle';
 import { longRunningTestsEnabled } from '../global.test';
 import { getRotatingLocation, getRotatingPricingTier } from './getRotatingValue';
 import { resourceGroupsToDelete, webSiteClient } from './global.resource.test';
@@ -22,7 +22,7 @@ suite('Web App actions', function (this: Mocha.Suite): void {
         if (!longRunningTestsEnabled) {
             this.skip();
         }
-        resourceName = getRandomHexString();
+        resourceName = randomUtils.getRandomHexString();
     });
 
     test(`Create New ${WebsiteOS0} Web App (Advanced)`, async () => {
@@ -38,10 +38,10 @@ suite('Web App actions', function (this: Mocha.Suite): void {
     });
 
     test(`Create New ${WebsiteOS1} Web App (Advanced)`, async () => {
-        const resourceGroupName: string = getRandomHexString();
-        const webAppName: string = getRandomHexString();
-        const appServicePlanName: string = getRandomHexString();
-        const applicationInsightsName: string = getRandomHexString();
+        const resourceGroupName: string = randomUtils.getRandomHexString();
+        const webAppName: string = randomUtils.getRandomHexString();
+        const appServicePlanName: string = randomUtils.getRandomHexString();
+        const applicationInsightsName: string = randomUtils.getRandomHexString();
         resourceGroupsToDelete.push(resourceGroupName);
         const testInputs: (string | RegExp)[] = [webAppName, '$(plus) Create new resource group', resourceGroupName, ...getInput(WebsiteOS1), getRotatingLocation(), '$(plus) Create new App Service plan', appServicePlanName, getRotatingPricingTier(), '$(plus) Create new Application Insights resource', applicationInsightsName];
         await runWithTestActionContext('CreateWebAppAdvanced', async context => {
@@ -78,8 +78,8 @@ suite('Web App actions', function (this: Mocha.Suite): void {
     });
 
     test(`Add and delete settings for ${WebsiteOS0} Web App`, async () => {
-        const appSettingKey: string = getRandomHexString();
-        const appSettingValue: string = getRandomHexString();
+        const appSettingKey: string = randomUtils.getRandomHexString();
+        const appSettingValue: string = randomUtils.getRandomHexString();
         const createdApp: Site | undefined = await tryGetWebApp(webSiteClient, resourceName, resourceName);
         assert.ok(createdApp);
         await runWithTestActionContext('appSettings.Add', async context => {

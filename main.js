@@ -16,14 +16,14 @@ let perfStats = {
 
 Object.defineProperty(exports, "__esModule", { value: true });
 
-const extension = require('./out/src/extension');
+const extension = require('./dist/extension.bundle');
 
 async function activate(ctx) {
-    return await extension.activateInternal(ctx, perfStats, true /* ignoreBundle */);
+    return await extension.activate(ctx, perfStats);
 }
 
 async function deactivate(ctx) {
-    return await extension.deactivateInternal(ctx, perfStats);
+    return await extension.deactivate(ctx, perfStats);
 }
 
 // Export as entrypoints for vscode

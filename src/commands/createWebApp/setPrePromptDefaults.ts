@@ -5,8 +5,7 @@
 
 import { IDeployContext } from '@microsoft/vscode-azext-azureappservice';
 import { LocationListStep } from '@microsoft/vscode-azext-azureutils';
-import { ICreateChildImplContext } from '@microsoft/vscode-azext-utils';
-import * as fse from 'fs-extra';
+import { AzExtFsExtra, ICreateChildImplContext } from '@microsoft/vscode-azext-utils';
 import * as path from 'path';
 import { WorkspaceFolder } from 'vscode';
 import { javaUtils } from '../../utils/javaUtils';
@@ -21,9 +20,9 @@ export async function setPrePromptDefaults(wizardContext: IWebAppWizardContext &
     if (workspaceForRecommendation) {
         const fsPath: string = workspaceForRecommendation.uri.fsPath;
 
-        if (await fse.pathExists(path.join(fsPath, 'package.json'))) {
+        if (await AzExtFsExtra.pathExists(path.join(fsPath, 'package.json'))) {
             wizardContext.recommendedSiteRuntime = ['node'];
-        } else if (await fse.pathExists(path.join(fsPath, 'requirements.txt'))) {
+        } else if (await AzExtFsExtra.pathExists(path.join(fsPath, 'requirements.txt'))) {
             wizardContext.recommendedSiteRuntime = ['python'];
         } else if ((await findFilesByFileExtension(workspaceForRecommendation.uri.fsPath, 'csproj')).length > 0) {
             wizardContext.recommendedSiteRuntime = ['dotnet'];

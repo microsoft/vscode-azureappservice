@@ -3,8 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { HttpOperationResponse, ServiceClient } from '@azure/ms-rest-js';
-import { createGenericClient } from '@microsoft/vscode-azext-azureutils';
+import { ServiceClient } from '@azure/core-client';
+import { createPipelineRequest } from '@azure/core-rest-pipeline';
+import { AzExtPipelineResponse, createGenericClient } from '@microsoft/vscode-azext-azureutils';
 import { IAzureQuickPickItem, parseError } from '@microsoft/vscode-azext-utils';
 import { localize } from '../../../localize';
 import { getWorkspaceSetting } from '../../../vsCodeConfig/settings';
@@ -95,15 +96,18 @@ async function getStacks(context: IWebAppWizardContext & { _stacks?: WebAppStack
         let stacksArmResponse: StacksArmResponse;
         try {
             const client: ServiceClient = await createGenericClient(context, context);
-            const result: HttpOperationResponse = await client.sendRequest({
+            const queryOptions: { [key: string]: string } = {
+                'api-version': '2020-10-01',
+                removeHiddenStacks: String(!getWorkspaceSetting<boolean>('showHiddenStacks')),
+                removeDeprecatedStacks: 'true'
+            };
+
+            const queryString = Object.keys(queryOptions).map(key => key + '=' + queryOptions[key]).join('&');
+            const result: AzExtPipelineResponse = await client.sendRequest(createPipelineRequest({
+                url: `/providers/Microsoft.Web/webappstacks?${queryString}`,
                 method: 'GET',
-                pathTemplate: '/providers/Microsoft.Web/webappstacks',
-                queryParameters: {
-                    'api-version': '2020-10-01',
-                    removeHiddenStacks: String(!getWorkspaceSetting<boolean>('showHiddenStacks')),
-                    removeDeprecatedStacks: 'true'
-                }
-            });
+            }));
+
             stacksArmResponse = <StacksArmResponse>result.parsedBody;
             context.usingBackupStacks = false;
         } catch (error) {

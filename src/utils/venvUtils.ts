@@ -3,16 +3,16 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import * as fse from 'fs-extra';
+import { AzExtFsExtra } from '@microsoft/vscode-azext-utils';
 import * as path from 'path';
 
 export namespace venvUtils {
     export async function getExistingVenvs(projectPath: string): Promise<string[]> {
         const venvs: string[] = [];
-        const fsPaths: string[] = await fse.readdir(projectPath);
-        await Promise.all(fsPaths.map(async (venvName: string) => {
-            if (await venvExists(venvName, projectPath)) {
-                venvs.push(venvName);
+        const fsPaths = await AzExtFsExtra.readDirectory(projectPath);
+        await Promise.all(fsPaths.map(async (venvName) => {
+            if (await venvExists(venvName.fsPath, projectPath)) {
+                venvs.push(venvName.fsPath);
             }
         }));
 
@@ -21,11 +21,10 @@ export namespace venvUtils {
 
     export async function venvExists(venvName: string, rootFolder: string): Promise<boolean> {
         const venvPath: string = path.join(rootFolder, venvName);
-        if (await fse.pathExists(venvPath)) {
-            const stat: fse.Stats = await fse.stat(venvPath);
-            if (stat.isDirectory()) {
+        if (await AzExtFsExtra.pathExists(venvPath)) {
+            if (await AzExtFsExtra.isDirectory(venvPath)) {
                 const venvActivatePath: string = getVenvPath(venvName, 'activate', process.platform, path.join);
-                if (await fse.pathExists(path.join(rootFolder, venvActivatePath))) {
+                if (await AzExtFsExtra.pathExists(path.join(rootFolder, venvActivatePath))) {
                     return true;
                 }
             }

@@ -5,9 +5,8 @@
 
 import { SiteConfigResource, StringDictionary } from '@azure/arm-appservice';
 import * as appservice from '@microsoft/vscode-azext-azureappservice';
-import { getDeployFsPath, getDeployNode, IDeployContext, IDeployPaths, showDeployConfirmation, SiteClient } from '@microsoft/vscode-azext-azureappservice';
-import { IActionContext, parseError } from '@microsoft/vscode-azext-utils';
-import { pathExists } from 'fs-extra';
+import { IDeployContext, IDeployPaths, SiteClient, getDeployFsPath, getDeployNode, showDeployConfirmation } from '@microsoft/vscode-azext-azureappservice';
+import { AzExtFsExtra, IActionContext, parseError, randomUtils } from '@microsoft/vscode-azext-utils';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import * as constants from '../../constants';
@@ -18,7 +17,6 @@ import { SiteTreeItem } from '../../tree/SiteTreeItem';
 import { javaUtils } from '../../utils/javaUtils';
 import { nonNullValue } from '../../utils/nonNull';
 import { isPathEqual } from '../../utils/pathUtils';
-import { getRandomHexString } from "../../utils/randomUtils";
 import { treeUtils } from '../../utils/treeUtils';
 import { getWorkspaceSetting } from '../../vsCodeConfig/settings';
 import { LinuxRuntimes } from '../createWebApp/LinuxRuntimes';
@@ -31,7 +29,7 @@ import { showDeployCompletedMessage } from './showDeployCompletedMessage';
 
 const postDeployCancelTokens: Map<string, vscode.CancellationTokenSource> = new Map<string, vscode.CancellationTokenSource>();
 
-export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | SiteTreeItem, arg2?: (vscode.Uri | SiteTreeItem)[], isNewApp: boolean = false): Promise<void> {
+export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | SiteTreeItem, arg2?: (vscode.Uri | SiteTreeItem)[], isNewApp?: boolean | unknown): Promise<void> {
     actionContext.telemetry.properties.deployedWithConfigs = 'false';
     let siteConfig: SiteConfigResource | undefined;
     let client: SiteClient;
@@ -51,7 +49,9 @@ export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | 
     const fileExtensions: string | string[] | undefined = await javaUtils.getJavaFileExtensions(siteConfig);
 
     const deployPaths: IDeployPaths = await getDeployFsPath(actionContext, arg1, fileExtensions);
-    const context: IDeployContext = Object.assign(actionContext, deployPaths, { defaultAppSetting: constants.configurationSettings.defaultWebAppToDeploy, isNewApp });
+
+    const _isNewApp = isNewApp as boolean;
+    const context: IDeployContext = Object.assign(actionContext, deployPaths, { defaultAppSetting: constants.configurationSettings.defaultWebAppToDeploy, isNewApp: _isNewApp });
 
     // because this is workspace dependant, do it before user selects app
     await setPreDeployConfig(context);
@@ -60,7 +60,7 @@ export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | 
     }));
     client = await node.site.createClient(actionContext);
 
-    const correlationId: string = getRandomHexString();
+    const correlationId: string = randomUtils.getRandomHexString();
     context.telemetry.properties.correlationId = correlationId;
 
     // if we already got siteConfig, don't waste time getting it again
@@ -76,7 +76,7 @@ export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | 
         const remoteSettings: StringDictionary = await client.listApplicationSettings();
         const hasSCMDoBuildSetting: boolean = !!remoteSettings.properties && 'SCM_DO_BUILD_DURING_DEPLOYMENT' in remoteSettings.properties;
         //check if node is being zipdeployed and that there is no .deployment file
-        if (!hasSCMDoBuildSetting && siteConfig.linuxFxVersion && isZipDeploy && !(await pathExists(path.join(context.effectiveDeployFsPath, constants.deploymentFileName)))) {
+        if (!hasSCMDoBuildSetting && siteConfig.linuxFxVersion && isZipDeploy && !(await AzExtFsExtra.pathExists(path.join(context.effectiveDeployFsPath, constants.deploymentFileName)))) {
             const linuxFxVersion: string = siteConfig.linuxFxVersion.toLowerCase();
             if (linuxFxVersion.startsWith(LinuxRuntimes.node)) {
                 // if it is node or python, prompt the user (as we can break them)

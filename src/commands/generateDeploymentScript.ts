@@ -4,8 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { ResourceManagementClient } from "@azure/arm-resources";
-import { IActionContext } from "@microsoft/vscode-azext-utils";
-import * as fse from 'fs-extra';
+import { AzExtFsExtra, IActionContext } from "@microsoft/vscode-azext-utils";
 import * as path from 'path';
 import { ProgressLocation, window, workspace } from "vscode";
 import { localize } from "../localize";
@@ -86,5 +85,5 @@ export async function generateDeploymentScript(context: IActionContext, node?: S
 
 async function loadScriptTemplate(scriptName: string): Promise<string> {
     const templatePath = path.join(getResourcesPath(), 'deploymentScripts', scriptName);
-    return await fse.readFile(templatePath, 'utf8');
+    return await AzExtFsExtra.readFile(templatePath);
 }

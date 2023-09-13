@@ -3,10 +3,10 @@
 *  Licensed under the MIT License. See License.txt in the project root for license information.
 *--------------------------------------------------------------------------------------------*/
 
-import * as parser from 'fast-xml-parser';
-import * as fse from 'fs-extra';
-import * as path from 'path';
 import { IDeployContext } from '@microsoft/vscode-azext-azureappservice';
+import { AzExtFsExtra } from '@microsoft/vscode-azext-utils';
+import * as parser from 'fast-xml-parser';
+import * as path from 'path';
 
 type MavenModule = { path: string, artifactId: string, artifactFinalName: string };
 type MavenPom = {
@@ -21,16 +21,16 @@ type MavenPom = {
 
 export async function tryGetMavenModule(context: IDeployContext, projectPath: string): Promise<MavenModule | undefined> {
     const pomFile = path.join(projectPath, 'pom.xml');
-    if ((await fse.pathExists(projectPath)) && (await fse.lstat(projectPath)).isDirectory() && (await fse.pathExists(pomFile))) {
+    if ((await AzExtFsExtra.pathExists(projectPath)) && (await AzExtFsExtra.isDirectory(projectPath) && (await AzExtFsExtra.pathExists(pomFile)))) {
         return getMavenModuleFromPom(pomFile);
     }
     return undefined;
 }
 
 async function getMavenModuleFromPom(pomFile: string): Promise<MavenModule | undefined> {
-    const pomContent: Buffer = await fse.readFile(pomFile);
+    const pomContent: string = await AzExtFsExtra.readFile(pomFile);
     try {
-        const pom = parser.parse(pomContent.toString()) as MavenPom;
+        const pom = parser.parse(pomContent) as MavenPom;
         const pj = pom.project;
         if (pj && pj.artifactId) {
             const version = pj.version || pj.parent?.version;
