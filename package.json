@@ -647,17 +647,17 @@
                 },
                 {
                     "command": "appService.createServiceConnector",
-                    "when": "view == azureResourceGroups && viewItem =~ /serviceConnectorGroupItem/",
+                    "when": "view =~ /(azureResourceGroups|azureFocusView)/ && viewItem =~ /serviceConnectorGroupItem/",
                     "group": "1@1"
                 },
                 {
                     "command": "appService.deleteServiceConnector",
-                    "when": "view == azureResourceGroups && viewItem =~ /serviceConnectorItem/",
+                    "when": "view =~ /(azureResourceGroups|azureFocusView)/ && viewItem =~ /serviceConnectorItem/",
                     "group": "1@1"
                 },
                 {
                     "command": "appService.validateServiceConnector",
-                    "when": "view == azureResourceGroups && viewItem =~ /serviceConnectorItem/",
+                    "when": "view =~ /(azureResourceGroups|azureFocusView)/ && viewItem =~ /serviceConnectorItem/",
                     "group": "1@2"
                 }
             ],
