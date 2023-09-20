@@ -149,7 +149,7 @@ export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTre
         });
         // Can't find actual documentation on this, but the portal claims it and this feedback suggests it's not planned https://aka.ms/AA4q5gi
         this._webJobsNode = this.site.isLinux ? new WebJobsNATreeItem(proxyTree) : new WebJobsTreeItem(proxyTree);
-        this._serviceConnectorNode = new ServiceConnectorGroupTreeItem(proxyTree, this.site.id);
+        this._serviceConnectorNode = new ServiceConnectorGroupTreeItem(proxyTree, this.site.id, ['appService']);
 
         const client = await this.site.createClient(context);
         const siteConfig: SiteConfig = await client.getSiteConfig();
