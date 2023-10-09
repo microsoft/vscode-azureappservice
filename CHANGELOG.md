@@ -1,5 +1,18 @@
 # Change Log
 
+## 0.25.1 - 2023-10-10
+### Bugs Fixed
+* Fix submenu icon not appearing in workspace by @nturinski in https://github.com/microsoft/vscode-azureappservice/pull/2554
+* Add icon to create command by @alexweininger in https://github.com/microsoft/vscode-azureappservice/pull/2558
+* Fix "Files" node not displaying files after deploying a new project by @alexweininger in https://github.com/microsoft/vscode-azureappservice/pull/2566
+* Fix "SSH into Web App" and "Start Log Streaming" commands by @alexweininger in https://github.com/microsoft/vscode-azureappservice/pull/2566
+
+### Engineering
+* Use Node 18.15 by @alexweininger in https://github.com/microsoft/vscode-azureappservice/pull/2567
+
+**Full Changelog**: https://github.com/microsoft/vscode-azureappservice/compare/v0.25.0...v0.25.1
+
+
 ## 0.25.0 - 2023-05-20
 
 ### Changed
