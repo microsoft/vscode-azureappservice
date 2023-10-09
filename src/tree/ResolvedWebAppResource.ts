@@ -6,7 +6,6 @@
 import { AppServicePlan, Site, SiteConfig, SiteLogsConfig, SiteSourceControl } from '@azure/arm-appservice';
 import { DeleteLastServicePlanStep, DeleteSiteStep, DeploymentTreeItem, DeploymentsTreeItem, FolderTreeItem, LogFilesTreeItem, ParsedSite, SiteFilesTreeItem } from '@microsoft/vscode-azext-azureappservice';
 import { AppSettingTreeItem, AppSettingsTreeItem } from '@microsoft/vscode-azext-azureappsettings';
-import { ServiceConnectorGroupTreeItem } from '@microsoft/vscode-azext-serviceconnector';
 import { AzExtTreeItem, AzureWizard, DeleteConfirmationStep, IActionContext, ISubscriptionContext, TreeItemIconPath, nonNullProp } from '@microsoft/vscode-azext-utils';
 import { ResolvedAppResourceBase, } from '@microsoft/vscode-azext-utils/hostapi';
 import { ViewPropertiesModel } from '@microsoft/vscode-azureresources-api';
@@ -53,7 +52,6 @@ export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTre
     private _siteFilesNode!: SiteFilesTreeItem;
     private _logFilesNode!: LogFilesTreeItem;
     private _webJobsNode!: WebJobsTreeItem | WebJobsNATreeItem;
-    private _serviceConnectorNode!: ServiceConnectorGroupTreeItem;
 
     private _subscription: ISubscriptionContext;
 
@@ -149,7 +147,6 @@ export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTre
         });
         // Can't find actual documentation on this, but the portal claims it and this feedback suggests it's not planned https://aka.ms/AA4q5gi
         this._webJobsNode = this.site.isLinux ? new WebJobsNATreeItem(proxyTree) : new WebJobsTreeItem(proxyTree);
-        this._serviceConnectorNode = new ServiceConnectorGroupTreeItem(proxyTree, this.site.id, ['appService']);
 
         const client = await this.site.createClient(context);
         const siteConfig: SiteConfig = await client.getSiteConfig();
@@ -161,7 +158,7 @@ export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTre
             contextValuesToAdd: ['appService']
         });
 
-        const children: AzExtTreeItem[] = [this.appSettingsNode, this._connectionsNode, this.deploymentsNode, this._siteFilesNode, this._logFilesNode, this._webJobsNode, this._serviceConnectorNode];
+        const children: AzExtTreeItem[] = [this.appSettingsNode, this._connectionsNode, this.deploymentsNode, this._siteFilesNode, this._logFilesNode, this._webJobsNode];
 
         if (!this.site.isSlot) {
             let tier: string | undefined;
