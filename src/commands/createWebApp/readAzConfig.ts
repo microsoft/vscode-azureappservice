@@ -3,11 +3,11 @@
 *  Licensed under the MIT License. See License.txt in the project root for license information.
 *--------------------------------------------------------------------------------------------*/
 
-import { WorkspaceFolder } from 'vscode';
-import { IDeployContext } from '@microsoft/vscode-azext-azureappservice';
+import { type IDeployContext } from '@microsoft/vscode-azext-azureappservice';
+import { type WorkspaceFolder } from 'vscode';
 import { cpUtils } from '../../utils/cpUtils';
 import { getSingleRootWorkspace } from '../../utils/workspace';
-import { IWebAppWizardContext } from './IWebAppWizardContext';
+import { type IWebAppWizardContext } from './IWebAppWizardContext';
 
 /**
  * Takes any number of Azure config properties to read and returns their configured values.

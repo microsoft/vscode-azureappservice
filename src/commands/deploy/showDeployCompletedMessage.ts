@@ -3,12 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { callWithTelemetryAndErrorHandling, IActionContext } from "@microsoft/vscode-azext-utils";
-import { MessageItem, window } from "vscode";
+import { callWithTelemetryAndErrorHandling, type IActionContext } from "@microsoft/vscode-azext-utils";
+import { window, type MessageItem } from "vscode";
 import { AppServiceDialogResponses } from "../../constants";
 import { ext } from "../../extensionVariables";
 import { localize } from "../../localize";
-import { SiteTreeItem } from "../../tree/SiteTreeItem";
+import { type SiteTreeItem } from "../../tree/SiteTreeItem";
 import { uploadAppSettings } from "../appSettings/uploadAppSettings";
 import { startStreamingLogs } from '../logstream/startStreamingLogs';
 

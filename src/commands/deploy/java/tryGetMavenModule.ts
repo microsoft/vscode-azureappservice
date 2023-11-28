@@ -3,7 +3,7 @@
 *  Licensed under the MIT License. See License.txt in the project root for license information.
 *--------------------------------------------------------------------------------------------*/
 
-import { IDeployContext } from '@microsoft/vscode-azext-azureappservice';
+import { type IDeployContext } from '@microsoft/vscode-azext-azureappservice';
 import { XMLParser } from 'fast-xml-parser';
 import * as fse from 'fs-extra';
 import * as path from 'path';

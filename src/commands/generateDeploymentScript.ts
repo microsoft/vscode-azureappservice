@@ -3,13 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ResourceManagementClient } from "@azure/arm-resources";
-import { IActionContext } from "@microsoft/vscode-azext-utils";
+import { type ResourceManagementClient } from "@azure/arm-resources";
+import { type IActionContext } from "@microsoft/vscode-azext-utils";
 import * as fse from 'fs-extra';
 import * as path from 'path';
 import { ProgressLocation, window, workspace } from "vscode";
 import { localize } from "../localize";
-import { SiteTreeItem } from "../tree/SiteTreeItem";
+import { type SiteTreeItem } from "../tree/SiteTreeItem";
 import { createResourceClient } from "../utils/azureClients";
 import { nonNullValue } from "../utils/nonNull";
 import { getResourcesPath } from "../utils/pathUtils";

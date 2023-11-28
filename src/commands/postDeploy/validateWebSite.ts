@@ -3,12 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ServiceClient } from '@azure/core-client';
+import { type ServiceClient } from '@azure/core-client';
 import { RestError, createPipelineRequest } from '@azure/core-rest-pipeline';
-import { AzExtPipelineResponse, createGenericClient } from '@microsoft/vscode-azext-azureutils';
-import { IActionContext, UserCancelledError, callWithTelemetryAndErrorHandling } from '@microsoft/vscode-azext-utils';
-import { CancellationTokenSource } from 'vscode';
-import { SiteTreeItem } from '../../tree/SiteTreeItem';
+import { createGenericClient, type AzExtPipelineResponse } from '@microsoft/vscode-azext-azureutils';
+import { UserCancelledError, callWithTelemetryAndErrorHandling, type IActionContext } from '@microsoft/vscode-azext-utils';
+import { type CancellationTokenSource } from 'vscode';
+import { type SiteTreeItem } from '../../tree/SiteTreeItem';
 import { delay } from '../../utils/delay';
 
 interface IValidateProperties {

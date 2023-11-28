@@ -3,9 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IActionContext, nonNullValue, openReadOnlyJson } from '@microsoft/vscode-azext-utils';
+import { nonNullValue, openReadOnlyJson, type IActionContext } from '@microsoft/vscode-azext-utils';
 import { localize } from '../localize';
-import { SiteTreeItem } from '../tree/SiteTreeItem';
+import { type SiteTreeItem } from '../tree/SiteTreeItem';
 
 export async function viewProperties(context: IActionContext, treeItem?: SiteTreeItem): Promise<void> {
     const node = nonNullValue(treeItem);

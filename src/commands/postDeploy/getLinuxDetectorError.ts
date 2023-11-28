@@ -3,16 +3,16 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ServiceClient } from '@azure/core-client';
+import { type ServiceClient } from '@azure/core-client';
 import { createPipelineRequest } from '@azure/core-rest-pipeline';
-import { AzExtPipelineResponse, createGenericClient } from '@microsoft/vscode-azext-azureutils';
-import { IActionContext } from "@microsoft/vscode-azext-utils";
+import { createGenericClient, type AzExtPipelineResponse } from '@microsoft/vscode-azext-azureutils';
+import { type IActionContext } from "@microsoft/vscode-azext-utils";
 import * as dayjs from 'dayjs';
 // eslint-disable-next-line import/no-internal-modules
 import * as utc from 'dayjs/plugin/utc';
 import { detectorTimestampFormat } from "../../constants";
 import { localize } from "../../localize";
-import { SiteTreeItem } from "../../tree/SiteTreeItem";
+import { type SiteTreeItem } from "../../tree/SiteTreeItem";
 import { createRequestUrl } from '../../utils/requestUtils';
 import { findTableByName, getValuesByColumnName } from "./parseDetectorResponse";
 

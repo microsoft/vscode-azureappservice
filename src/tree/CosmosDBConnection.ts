@@ -3,13 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { StringDictionary } from '@azure/arm-appservice';
-import { IAppSettingsClient } from '@microsoft/vscode-azext-azureappsettings';
-import { AzExtTreeItem, DialogResponses, IActionContext, TreeItemIconPath } from '@microsoft/vscode-azext-utils';
+import { type StringDictionary } from '@azure/arm-appservice';
+import { type IAppSettingsClient } from '@microsoft/vscode-azext-azureappsettings';
+import { AzExtTreeItem, DialogResponses, type IActionContext, type TreeItemIconPath } from '@microsoft/vscode-azext-utils';
 import { ThemeIcon } from 'vscode';
 import { localize } from '../localize';
-import { DatabaseAccountTreeItem, DatabaseTreeItem } from '../vscode-cosmos.api';
-import { CosmosDBTreeItem } from './CosmosDBTreeItem';
+import { type DatabaseAccountTreeItem, type DatabaseTreeItem } from '../vscode-cosmos.api';
+import { type CosmosDBTreeItem } from './CosmosDBTreeItem';
 
 export class CosmosDBConnection extends AzExtTreeItem {
     public static contextValue: string = 'cosmosDBConnection';

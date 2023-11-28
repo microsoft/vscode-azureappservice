@@ -3,8 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { AzExtTreeItem, IActionContext, nonNullValue } from '@microsoft/vscode-azext-utils';
-import { CosmosDBTreeItem } from '../tree/CosmosDBTreeItem';
+import { nonNullValue, type AzExtTreeItem, type IActionContext } from '@microsoft/vscode-azext-utils';
+import { type CosmosDBTreeItem } from '../tree/CosmosDBTreeItem';
 import { installExtension } from '../utils/installExtension';
 
 export async function installCosmosDBExtension(context: IActionContext, node?: AzExtTreeItem): Promise<void> {

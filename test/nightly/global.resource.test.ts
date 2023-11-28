@@ -3,10 +3,10 @@
  *  Licensed under the MIT License. See LICENSE.md in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { WebSiteManagementClient } from '@azure/arm-appservice';
+import { type WebSiteManagementClient } from '@azure/arm-appservice';
 import { createTestActionContext, TestAzureAccount } from '@microsoft/vscode-azext-dev';
 import * as vscode from 'vscode';
-import { AzureAccountTreeItem, createWebSiteClient, ext, ISubscriptionContext } from '../../extension.bundle';
+import { AzureAccountTreeItem, createWebSiteClient, ext, type ISubscriptionContext } from '../../extension.bundle';
 import { longRunningTestsEnabled } from '../global.test';
 
 export let testAccount: TestAzureAccount;

@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { LogFilesTreeItem } from '@microsoft/vscode-azext-azureappservice';
-import { DialogResponses, IActionContext } from '@microsoft/vscode-azext-utils';
+import { DialogResponses, type IActionContext } from '@microsoft/vscode-azext-utils';
 import * as vscode from 'vscode';
 import { ext } from '../../extensionVariables';
 import { localize } from '../../localize';

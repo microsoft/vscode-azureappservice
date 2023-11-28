@@ -5,9 +5,9 @@
 
 import * as appservice from "@microsoft/vscode-azext-azureappservice";
 import { DeploymentsTreeItem } from "@microsoft/vscode-azext-azureappservice";
-import { IActionContext } from "@microsoft/vscode-azext-utils";
-import { ScmType } from "../../constants";
-import { SiteTreeItem } from "../../tree/SiteTreeItem";
+import { type IActionContext } from "@microsoft/vscode-azext-utils";
+import { type ScmType } from "../../constants";
+import { type SiteTreeItem } from "../../tree/SiteTreeItem";
 import { pickWebApp } from "../../utils/pickWebApp";
 
 export async function editScmType(context: IActionContext, node?: SiteTreeItem | DeploymentsTreeItem, _nodes?: (SiteTreeItem | DeploymentsTreeItem)[], newScmType?: ScmType, showToast?: boolean): Promise<void> {

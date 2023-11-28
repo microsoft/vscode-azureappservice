@@ -3,12 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { AzExtParentTreeItem, AzExtTreeItem, GenericTreeItem, IActionContext, TreeItemIconPath } from '@microsoft/vscode-azext-utils';
+import { AzExtParentTreeItem, GenericTreeItem, type AzExtTreeItem, type IActionContext, type TreeItemIconPath } from '@microsoft/vscode-azext-utils';
 import { localize } from '../localize';
 import { nonNullProp } from '../utils/nonNull';
 import { getThemedIconPath } from '../utils/pathUtils';
 import { NotAvailableTreeItem } from './NotAvailableTreeItem';
-import { SiteTreeItem } from './SiteTreeItem';
+import { type SiteTreeItem } from './SiteTreeItem';
 
 const label: string = localize('webJobs', 'WebJobs');
 export class WebJobsTreeItem extends AzExtParentTreeItem {

@@ -3,8 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IDeployContext } from '@microsoft/vscode-azext-azureappservice';
-import { IActionContext, IAzureQuickPickItem } from '@microsoft/vscode-azext-utils';
+import { type IDeployContext } from '@microsoft/vscode-azext-azureappservice';
+import { type IActionContext, type IAzureQuickPickItem } from '@microsoft/vscode-azext-utils';
 import * as path from 'path';
 import * as vscode from 'vscode';
 import { localize } from '../localize';

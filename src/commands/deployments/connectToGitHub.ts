@@ -3,10 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { DeploymentsTreeItem } from "@microsoft/vscode-azext-azureappservice";
-import { GenericTreeItem, IActionContext } from "@microsoft/vscode-azext-utils";
+import { type DeploymentsTreeItem } from "@microsoft/vscode-azext-azureappservice";
+import { type GenericTreeItem, type IActionContext } from "@microsoft/vscode-azext-utils";
 import { ScmType } from "../../constants";
-import { SiteTreeItem } from "../../tree/SiteTreeItem";
+import { type SiteTreeItem } from "../../tree/SiteTreeItem";
 import { pickWebApp } from "../../utils/pickWebApp";
 import { editScmType } from './editScmType';
 

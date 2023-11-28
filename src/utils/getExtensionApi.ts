@@ -3,11 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { apiUtils } from "@microsoft/vscode-azext-utils";
-import { AzureHostExtensionApi } from "@microsoft/vscode-azext-utils/hostapi";
-import { Extension, extensions } from "vscode";
+import { type apiUtils } from "@microsoft/vscode-azext-utils";
+import { type AzureHostExtensionApi } from "@microsoft/vscode-azext-utils/hostapi";
+import { extensions, type Extension } from "vscode";
 import { localize } from "../localize";
-import { AzureDatabasesExtensionApi } from "../vscode-cosmos.api";
+import { type AzureDatabasesExtensionApi } from "../vscode-cosmos.api";
 
 export async function getApiExport<T>(extensionId: string): Promise<T | undefined> {
     const extension: Extension<T> | undefined = extensions.getExtension(extensionId);

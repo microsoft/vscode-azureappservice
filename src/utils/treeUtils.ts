@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { AzExtTreeItem } from '@microsoft/vscode-azext-utils';
+import { type AzExtTreeItem } from '@microsoft/vscode-azext-utils';
 
 export namespace treeUtils {
     // replace with azext-utils when it's released

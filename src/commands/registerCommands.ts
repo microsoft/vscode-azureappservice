@@ -4,11 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { registerSiteCommand } from '@microsoft/vscode-azext-azureappservice';
-import { AppSettingTreeItem } from '@microsoft/vscode-azext-azureappsettings';
+import { type AppSettingTreeItem } from '@microsoft/vscode-azext-azureappsettings';
 import { openInPortal as uiOpenInPortal } from '@microsoft/vscode-azext-azureutils';
-import { AzExtTreeItem, IActionContext, nonNullValue, registerCommandWithTreeNodeUnwrapping, unwrapTreeNodeCommandCallback } from '@microsoft/vscode-azext-utils';
+import { nonNullValue, registerCommandWithTreeNodeUnwrapping, unwrapTreeNodeCommandCallback, type AzExtTreeItem, type IActionContext } from '@microsoft/vscode-azext-utils';
 import { ext } from '../extensionVariables';
-import { DeploymentSlotsNATreeItem, ScaleUpTreeItem } from '../tree/DeploymentSlotsTreeItem';
+import { type DeploymentSlotsNATreeItem, type ScaleUpTreeItem } from '../tree/DeploymentSlotsTreeItem';
 import { addAppSetting } from './appSettings/addAppSetting';
 import { deleteAppSetting } from './appSettings/deleteAppSettings';
 import { downloadAppSettings } from './appSettings/downloadAppSettings';

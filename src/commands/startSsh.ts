@@ -3,14 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { SiteConfigResource } from '@azure/arm-appservice';
+import { type SiteConfigResource } from '@azure/arm-appservice';
 import { TunnelProxy, reportMessage, setRemoteDebug } from '@microsoft/vscode-azext-azureappservice';
-import { IActionContext, findFreePort } from '@microsoft/vscode-azext-utils';
+import { findFreePort, type IActionContext } from '@microsoft/vscode-azext-utils';
 import * as vscode from 'vscode';
-import { TerminalDataWriteEvent } from 'vscode';
+import { type TerminalDataWriteEvent } from 'vscode';
 import { ext } from '../extensionVariables';
 import { localize } from '../localize';
-import { SiteTreeItem } from '../tree/SiteTreeItem';
+import { type SiteTreeItem } from '../tree/SiteTreeItem';
 import { pickWebApp } from '../utils/pickWebApp';
 
 export type sshTerminal = {

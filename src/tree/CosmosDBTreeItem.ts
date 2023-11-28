@@ -3,18 +3,18 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { StringDictionary } from '@azure/arm-appservice';
-import { ParsedSite } from '@microsoft/vscode-azext-azureappservice';
-import { IAppSettingsClient, validateAppSettingKey } from '@microsoft/vscode-azext-azureappsettings';
+import { type StringDictionary } from '@azure/arm-appservice';
+import { type ParsedSite } from '@microsoft/vscode-azext-azureappservice';
+import { validateAppSettingKey, type IAppSettingsClient } from '@microsoft/vscode-azext-azureappsettings';
 import { openInPortal } from '@microsoft/vscode-azext-azureutils';
-import { AzExtParentTreeItem, AzExtTreeItem, GenericTreeItem, IActionContext, ICreateChildImplContext, TreeItemIconPath, UserCancelledError, apiUtils } from '@microsoft/vscode-azext-utils';
+import { AzExtParentTreeItem, GenericTreeItem, UserCancelledError, type AzExtTreeItem, type IActionContext, type ICreateChildImplContext, type TreeItemIconPath, type apiUtils } from '@microsoft/vscode-azext-utils';
 import * as vscode from 'vscode';
 import { localize } from '../localize';
 import { nonNullProp } from '../utils/nonNull';
 import { getThemedIconPath } from '../utils/pathUtils';
-import { AzureDatabasesExtensionApi } from '../vscode-cosmos.api';
+import { type AzureDatabasesExtensionApi } from '../vscode-cosmos.api';
 import { CosmosDBConnection } from './CosmosDBConnection';
-import { SiteTreeItem } from './SiteTreeItem';
+import { type SiteTreeItem } from './SiteTreeItem';
 
 export class CosmosDBTreeItem extends AzExtParentTreeItem {
     public static contextValueInstalled: string = 'сosmosDBConnections';

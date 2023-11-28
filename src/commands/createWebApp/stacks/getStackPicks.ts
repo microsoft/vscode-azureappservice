@@ -3,17 +3,17 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ServiceClient } from '@azure/core-client';
+import { type ServiceClient } from '@azure/core-client';
 import { createPipelineRequest } from '@azure/core-rest-pipeline';
-import { AzExtPipelineResponse, createGenericClient } from '@microsoft/vscode-azext-azureutils';
-import { IAzureQuickPickItem, parseError } from '@microsoft/vscode-azext-utils';
+import { createGenericClient, type AzExtPipelineResponse } from '@microsoft/vscode-azext-azureutils';
+import { parseError, type IAzureQuickPickItem } from '@microsoft/vscode-azext-utils';
 import { localize } from '../../../localize';
 import { createRequestUrl } from '../../../utils/requestUtils';
 import { getWorkspaceSetting } from '../../../vsCodeConfig/settings';
-import { FullJavaStack, FullWebAppStack, IWebAppWizardContext } from '../IWebAppWizardContext';
+import { type FullJavaStack, type FullWebAppStack, type IWebAppWizardContext } from '../IWebAppWizardContext';
 import { backupStacks } from './backupStacks';
-import { AppStackMinorVersion } from './models/AppStackModel';
-import { JavaContainers, WebAppRuntimes, WebAppStack, WebAppStackValue } from './models/WebAppStackModel';
+import { type AppStackMinorVersion } from './models/AppStackModel';
+import { type JavaContainers, type WebAppRuntimes, type WebAppStack, type WebAppStackValue } from './models/WebAppStackModel';
 
 export async function getStackPicks(context: IWebAppWizardContext): Promise<IAzureQuickPickItem<FullWebAppStack>[]>;
 export async function getStackPicks(context: IWebAppWizardContext, javaVersion: string): Promise<IAzureQuickPickItem<FullJavaStack>[]>;

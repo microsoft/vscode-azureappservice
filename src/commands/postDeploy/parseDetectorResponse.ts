@@ -3,8 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IActionContext } from "@microsoft/vscode-azext-utils";
-import { ColumnName, detectorDataset, detectorTable } from "./getLinuxDetectorError";
+import { type IActionContext } from "@microsoft/vscode-azext-utils";
+import { type ColumnName, type detectorDataset, type detectorTable } from "./getLinuxDetectorError";
 
 export function findTableByName(datasets: detectorDataset[], tableName: string): detectorTable | undefined {
     for (const dataset of datasets) {

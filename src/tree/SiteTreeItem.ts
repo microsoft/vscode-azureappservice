@@ -3,12 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Site } from '@azure/arm-appservice';
-import { DeploymentsTreeItem, ParsedSite } from '@microsoft/vscode-azext-azureappservice';
-import { AppSettingsTreeItem } from '@microsoft/vscode-azext-azureappsettings';
-import { AzExtParentTreeItem, AzExtTreeDataProvider, AzExtTreeItem, IActionContext, TreeItemIconPath } from '@microsoft/vscode-azext-utils';
+import { type Site } from '@azure/arm-appservice';
+import { type DeploymentsTreeItem, type ParsedSite } from '@microsoft/vscode-azext-azureappservice';
+import { type AppSettingsTreeItem } from '@microsoft/vscode-azext-azureappsettings';
+import { AzExtParentTreeItem, type AzExtTreeDataProvider, type AzExtTreeItem, type IActionContext, type TreeItemIconPath } from '@microsoft/vscode-azext-utils';
 import { ext } from '../extensionVariables';
-import { ISiteTreeItem } from './ISiteTreeItem';
+import { type ISiteTreeItem } from './ISiteTreeItem';
 import { ResolvedWebAppResource } from './ResolvedWebAppResource';
 
 export class SiteTreeItem extends AzExtParentTreeItem implements ISiteTreeItem {

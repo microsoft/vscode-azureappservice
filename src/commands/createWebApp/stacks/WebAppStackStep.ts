@@ -4,9 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { setLocationsTask, SiteOSStep, WebsiteOS } from '@microsoft/vscode-azext-azureappservice';
-import { AzureWizardPromptStep, IWizardOptions } from '@microsoft/vscode-azext-utils';
+import { AzureWizardPromptStep, type IWizardOptions } from '@microsoft/vscode-azext-utils';
 import { localize } from '../../../localize';
-import { IWebAppWizardContext } from '../IWebAppWizardContext';
+import { type IWebAppWizardContext } from '../IWebAppWizardContext';
 import { getStackPicks } from './getStackPicks';
 import { JavaServerStackStep } from './JavaServerStackStep';
 

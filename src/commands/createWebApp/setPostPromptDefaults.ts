@@ -3,17 +3,17 @@
 *  Licensed under the MIT License. See License.txt in the project root for license information.
 *--------------------------------------------------------------------------------------------*/
 
-import { AppServicePlan, WebSiteManagementClient } from '@azure/arm-appservice';
-import { SiteNameStep, WebsiteOS, tryGetAppServicePlan } from "@microsoft/vscode-azext-azureappservice";
-import { AzExtLocation, LocationListStep, getResourceGroupFromId, uiUtils } from '@microsoft/vscode-azext-azureutils';
-import { DialogResponses, IActionContext, parseError } from "@microsoft/vscode-azext-utils";
-import { MessageItem } from "vscode";
+import { type AppServicePlan, type WebSiteManagementClient } from '@azure/arm-appservice';
+import { WebsiteOS, tryGetAppServicePlan, type SiteNameStep } from "@microsoft/vscode-azext-azureappservice";
+import { LocationListStep, getResourceGroupFromId, uiUtils, type AzExtLocation } from '@microsoft/vscode-azext-azureutils';
+import { DialogResponses, parseError, type IActionContext } from "@microsoft/vscode-azext-utils";
+import { type MessageItem } from "vscode";
 import { localize } from "../../localize";
 import { createWebSiteClient } from '../../utils/azureClients';
 import { nonNullProp } from "../../utils/nonNull";
 import { getWorkspaceSetting, updateGlobalSetting } from "../../vsCodeConfig/settings";
-import { IWebAppWizardContext } from './IWebAppWizardContext';
-import { AzConfig, AzConfigProperty, readAzConfig } from "./readAzConfig";
+import { type IWebAppWizardContext } from './IWebAppWizardContext';
+import { AzConfigProperty, readAzConfig, type AzConfig } from "./readAzConfig";
 
 const maxNumberOfSites: number = 3;
 const freeTier = 'free';

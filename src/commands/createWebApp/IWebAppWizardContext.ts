@@ -3,10 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IAppServiceWizardContext } from '@microsoft/vscode-azext-azureappservice';
-import { ExecuteActivityContext } from '@microsoft/vscode-azext-utils';
-import { AppStackMajorVersion, AppStackMinorVersion } from './stacks/models/AppStackModel';
-import { JavaContainers, WebAppRuntimes, WebAppStack, WebAppStackValue } from './stacks/models/WebAppStackModel';
+import { type IAppServiceWizardContext } from '@microsoft/vscode-azext-azureappservice';
+import { type ExecuteActivityContext } from '@microsoft/vscode-azext-utils';
+import { type AppStackMajorVersion, type AppStackMinorVersion } from './stacks/models/AppStackModel';
+import { type JavaContainers, type WebAppRuntimes, type WebAppStack, type WebAppStackValue } from './stacks/models/WebAppStackModel';
 
 export type FullWebAppStack = {
     stack: WebAppStack;

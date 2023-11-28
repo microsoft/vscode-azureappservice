@@ -3,11 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IAzExtOutputChannel, IExperimentationServiceAdapter } from "@microsoft/vscode-azext-utils";
-import { AzureHostExtensionApi } from "@microsoft/vscode-azext-utils/hostapi";
-import { ExtensionContext } from "vscode";
-import { AppServiceFileSystem } from "./AppServiceFileSystem";
-import { AzureAccountTreeItem } from "./tree/AzureAccountTreeItem";
+import { type IAzExtOutputChannel, type IExperimentationServiceAdapter } from "@microsoft/vscode-azext-utils";
+import { type AzureHostExtensionApi } from "@microsoft/vscode-azext-utils/hostapi";
+import { type ExtensionContext } from "vscode";
+import { type AppServiceFileSystem } from "./AppServiceFileSystem";
+import { type AzureAccountTreeItem } from "./tree/AzureAccountTreeItem";
 
 /**
  * Namespace for common variables used throughout the extension. They must be initialized in the activate() method of extension.ts

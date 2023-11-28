@@ -1,7 +1,7 @@
-import { Site } from "@azure/arm-appservice";
+import { type Site } from "@azure/arm-appservice";
 import { uiUtils } from "@microsoft/vscode-azext-azureutils";
-import { IActionContext, ISubscriptionContext, callWithTelemetryAndErrorHandling, nonNullProp, nonNullValue } from "@microsoft/vscode-azext-utils";
-import { AppResource, AppResourceResolver } from "@microsoft/vscode-azext-utils/hostapi";
+import { callWithTelemetryAndErrorHandling, nonNullProp, nonNullValue, type IActionContext, type ISubscriptionContext } from "@microsoft/vscode-azext-utils";
+import { type AppResource, type AppResourceResolver } from "@microsoft/vscode-azext-utils/hostapi";
 import { ResolvedWebAppResource } from "./tree/ResolvedWebAppResource";
 import { createWebSiteClient } from "./utils/azureClients";
 

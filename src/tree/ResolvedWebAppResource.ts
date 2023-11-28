@@ -3,12 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { AppServicePlan, Site, SiteConfig, SiteLogsConfig, SiteSourceControl } from '@azure/arm-appservice';
+import { type AppServicePlan, type Site, type SiteConfig, type SiteLogsConfig, type SiteSourceControl } from '@azure/arm-appservice';
 import { DeleteLastServicePlanStep, DeleteSiteStep, DeploymentTreeItem, DeploymentsTreeItem, FolderTreeItem, LogFilesTreeItem, ParsedSite, SiteFilesTreeItem } from '@microsoft/vscode-azext-azureappservice';
 import { AppSettingTreeItem, AppSettingsTreeItem } from '@microsoft/vscode-azext-azureappsettings';
-import { AzExtTreeItem, AzureWizard, DeleteConfirmationStep, IActionContext, ISubscriptionContext, TreeItemIconPath, nonNullProp } from '@microsoft/vscode-azext-utils';
-import { ResolvedAppResourceBase, } from '@microsoft/vscode-azext-utils/hostapi';
-import { ViewPropertiesModel } from '@microsoft/vscode-azureresources-api';
+import { AzureWizard, DeleteConfirmationStep, nonNullProp, type AzExtTreeItem, type IActionContext, type ISubscriptionContext, type TreeItemIconPath } from '@microsoft/vscode-azext-utils';
+import { type ResolvedAppResourceBase, } from '@microsoft/vscode-azext-utils/hostapi';
+import { type ViewPropertiesModel } from '@microsoft/vscode-azureresources-api';
 import { githubCommitContextValueRegExp } from '../commands/deployments/viewCommitInGitHub';
 import { ext } from '../extensionVariables';
 import { localize } from '../localize';
@@ -20,9 +20,9 @@ import { getIconPath, getThemedIconPath } from '../utils/pathUtils';
 import { CosmosDBConnection } from './CosmosDBConnection';
 import { CosmosDBTreeItem } from './CosmosDBTreeItem';
 import { DeploymentSlotsNATreeItem, DeploymentSlotsTreeItem } from './DeploymentSlotsTreeItem';
-import { ISiteTreeItem } from './ISiteTreeItem';
+import { type ISiteTreeItem } from './ISiteTreeItem';
 import { NotAvailableTreeItem } from './NotAvailableTreeItem';
-import { SiteTreeItem } from './SiteTreeItem';
+import { type SiteTreeItem } from './SiteTreeItem';
 import { WebJobsNATreeItem, WebJobsTreeItem } from './WebJobsTreeItem';
 
 export function isResolvedWebAppResource(ti: unknown): ti is ResolvedWebAppResource {
