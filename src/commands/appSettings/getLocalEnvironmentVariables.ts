@@ -2,10 +2,10 @@
  *  Copyright (c) Microsoft Corporation. All rights reserved.
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
-import { IActionContext, parseError } from '@microsoft/vscode-azext-utils';
+import { parseError, type IActionContext } from '@microsoft/vscode-azext-utils';
 import * as dotenv from 'dotenv';
 import * as fse from 'fs-extra';
-import { MessageItem } from 'vscode';
+import { type MessageItem } from 'vscode';
 import { localize } from '../../localize';
 
 export async function getLocalEnvironmentVariables(context: IActionContext, localSettingsPath: string, allowOverwrite: boolean = false): Promise<dotenv.DotenvParseOutput> {

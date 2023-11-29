@@ -3,12 +3,12 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { SiteConfigResource } from '@azure/arm-appservice';
+import { type SiteConfigResource } from '@azure/arm-appservice';
 import * as appservice from '@microsoft/vscode-azext-azureappservice';
-import { IActionContext } from '@microsoft/vscode-azext-utils';
+import { type IActionContext } from '@microsoft/vscode-azext-utils';
 import * as vscode from 'vscode';
 import { localize } from '../../localize';
-import { SiteTreeItem } from '../../tree/SiteTreeItem';
+import { type SiteTreeItem } from '../../tree/SiteTreeItem';
 import { pickWebApp } from '../../utils/pickWebApp';
 import { getRemoteDebugLanguage } from './getRemoteDebugLanguage';
 

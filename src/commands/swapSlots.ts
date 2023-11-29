@@ -4,11 +4,11 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as appservice from '@microsoft/vscode-azext-azureappservice';
-import { IActionContext } from '@microsoft/vscode-azext-utils';
+import { type IActionContext } from '@microsoft/vscode-azext-utils';
 import { webAppFilter } from '../constants';
 import { ext } from '../extensionVariables';
 import { ResolvedWebAppResource } from '../tree/ResolvedWebAppResource';
-import { SiteTreeItem } from '../tree/SiteTreeItem';
+import { type SiteTreeItem } from '../tree/SiteTreeItem';
 
 export async function swapSlots(context: IActionContext, sourceSlotNode: SiteTreeItem | undefined): Promise<void> {
     if (!sourceSlotNode) {

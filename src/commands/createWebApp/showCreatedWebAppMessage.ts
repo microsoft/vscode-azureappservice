@@ -3,13 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { ParsedSite } from "@microsoft/vscode-azext-azureappservice";
-import { callWithTelemetryAndErrorHandling, IActionContext } from "@microsoft/vscode-azext-utils";
-import { MessageItem, window } from "vscode";
+import { type ParsedSite } from "@microsoft/vscode-azext-azureappservice";
+import { callWithTelemetryAndErrorHandling, type IActionContext } from "@microsoft/vscode-azext-utils";
+import { window, type MessageItem } from "vscode";
 import { AppServiceDialogResponses } from "../../constants";
 import { ext } from "../../extensionVariables";
 import { localize } from "../../localize";
-import { SiteTreeItem } from "../../tree/SiteTreeItem";
+import { type SiteTreeItem } from "../../tree/SiteTreeItem";
 import { deploy } from '../deploy/deploy';
 
 export function showCreatedWebAppMessage(originalContext: IActionContext, node: SiteTreeItem): void {

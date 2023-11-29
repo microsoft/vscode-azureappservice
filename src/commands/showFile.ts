@@ -3,9 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { FileTreeItem } from "@microsoft/vscode-azext-azureappservice";
-import { IActionContext, nonNullValue } from "@microsoft/vscode-azext-utils";
-import { FileSystemItem } from "../AppServiceFileSystem";
+import { type FileTreeItem } from "@microsoft/vscode-azext-azureappservice";
+import { nonNullValue, type IActionContext } from "@microsoft/vscode-azext-utils";
+import { type FileSystemItem } from "../AppServiceFileSystem";
 import { ext } from "../extensionVariables";
 import { localize } from "../localize";
 

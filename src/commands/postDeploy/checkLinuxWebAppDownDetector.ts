@@ -3,17 +3,17 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { DeployResult } from '@microsoft/vscode-azext-azureappservice';
+import { type DeployResult } from '@microsoft/vscode-azext-azureappservice';
 import { openInPortal } from '@microsoft/vscode-azext-azureutils';
-import { callWithTelemetryAndErrorHandling, IActionContext, UserCancelledError } from "@microsoft/vscode-azext-utils";
+import { callWithTelemetryAndErrorHandling, UserCancelledError, type IActionContext } from "@microsoft/vscode-azext-utils";
 import * as dayjs from "dayjs";
 // eslint-disable-next-line import/no-internal-modules
 import * as utc from 'dayjs/plugin/utc';
-import { CancellationTokenSource } from "vscode";
+import { type CancellationTokenSource } from "vscode";
 import { detectorTimestampFormat } from '../../constants';
 import { ext } from '../../extensionVariables';
 import { localize } from "../../localize";
-import { SiteTreeItem } from "../../tree/SiteTreeItem";
+import { type SiteTreeItem } from "../../tree/SiteTreeItem";
 import { delay } from "../../utils/delay";
 import { getLinuxDetectorError } from "./getLinuxDetectorError";
 

@@ -3,15 +3,15 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IDeployContext } from '@microsoft/vscode-azext-azureappservice';
+import { type IDeployContext } from '@microsoft/vscode-azext-azureappservice';
 import { LocationListStep } from '@microsoft/vscode-azext-azureutils';
-import { ICreateChildImplContext } from '@microsoft/vscode-azext-utils';
+import { type ICreateChildImplContext } from '@microsoft/vscode-azext-utils';
 import * as fse from 'fs-extra';
 import * as path from 'path';
-import { WorkspaceFolder } from 'vscode';
+import { type WorkspaceFolder } from 'vscode';
 import { javaUtils } from '../../utils/javaUtils';
 import { findFilesByFileExtension, getSingleRootWorkspace } from '../../utils/workspace';
-import { IWebAppWizardContext } from './IWebAppWizardContext';
+import { type IWebAppWizardContext } from './IWebAppWizardContext';
 
 export async function setPrePromptDefaults(wizardContext: IWebAppWizardContext & Partial<IDeployContext> & Partial<ICreateChildImplContext>): Promise<void> {
     // if the user entered through "Deploy", we'll have a project to base our recommendations on

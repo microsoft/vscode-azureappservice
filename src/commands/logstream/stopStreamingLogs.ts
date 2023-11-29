@@ -4,8 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import * as appservice from '@microsoft/vscode-azext-azureappservice';
-import { IActionContext } from '@microsoft/vscode-azext-utils';
-import { SiteTreeItem } from '../../tree/SiteTreeItem';
+import { type IActionContext } from '@microsoft/vscode-azext-utils';
+import { type SiteTreeItem } from '../../tree/SiteTreeItem';
 import { pickWebApp } from '../../utils/pickWebApp';
 
 export async function stopStreamingLogs(context: IActionContext, node?: SiteTreeItem): Promise<void> {

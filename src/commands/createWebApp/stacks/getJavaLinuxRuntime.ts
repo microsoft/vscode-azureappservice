@@ -4,8 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { localize } from '../../../localize';
-import { AppStackMinorVersion } from './models/AppStackModel';
-import { JavaContainers } from './models/WebAppStackModel';
+import { type AppStackMinorVersion } from './models/AppStackModel';
+import { type JavaContainers } from './models/WebAppStackModel';
 
 export function getJavaLinuxRuntime(javaMajorVersion: string, containerMinorVersion: AppStackMinorVersion<JavaContainers>): string | undefined {
     switch (javaMajorVersion) {

@@ -3,9 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { SiteConfigResource } from '@azure/arm-appservice';
-import { DialogResponses, IParsedError } from '@microsoft/vscode-azext-utils';
-import { env, MessageItem, Uri, window } from 'vscode';
+import { type SiteConfigResource } from '@azure/arm-appservice';
+import { DialogResponses, type IParsedError } from '@microsoft/vscode-azext-utils';
+import { env, Uri, window, type MessageItem } from 'vscode';
 import { localize } from "../../localize";
 import { LinuxRuntimes } from "../createWebApp/LinuxRuntimes";
 

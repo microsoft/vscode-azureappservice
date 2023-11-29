@@ -3,20 +3,20 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { NameValuePair, Site, SiteConfig, WebSiteManagementClient } from '@azure/arm-appservice';
-import { CustomLocation, WebsiteOS } from '@microsoft/vscode-azext-azureappservice';
+import { type NameValuePair, type Site, type SiteConfig, type WebSiteManagementClient } from '@azure/arm-appservice';
+import { WebsiteOS, type CustomLocation } from '@microsoft/vscode-azext-azureappservice';
 import { LocationListStep } from '@microsoft/vscode-azext-azureutils';
 import { AzureWizardExecuteStep } from '@microsoft/vscode-azext-utils';
-import { AppResource } from '@microsoft/vscode-azext-utils/hostapi';
-import { Progress } from 'vscode';
+import { type AppResource } from '@microsoft/vscode-azext-utils/hostapi';
+import { type Progress } from 'vscode';
 import * as constants from '../../constants';
 import { ext } from '../../extensionVariables';
 import { localize } from '../../localize';
 import { createWebSiteClient } from '../../utils/azureClients';
 import { nonNullProp } from '../../utils/nonNull';
-import { FullJavaStack, FullWebAppStack, IWebAppWizardContext } from './IWebAppWizardContext';
+import { type FullJavaStack, type FullWebAppStack, type IWebAppWizardContext } from './IWebAppWizardContext';
 import { getJavaLinuxRuntime } from './stacks/getJavaLinuxRuntime';
-import { WebAppStackValue, WindowsJavaContainerSettings } from './stacks/models/WebAppStackModel';
+import { type WebAppStackValue, type WindowsJavaContainerSettings } from './stacks/models/WebAppStackModel';
 
 export class WebAppCreateStep extends AzureWizardExecuteStep<IWebAppWizardContext> {
     public priority: number = 140;

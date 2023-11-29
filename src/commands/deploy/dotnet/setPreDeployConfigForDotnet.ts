@@ -3,10 +3,10 @@
 *  Licensed under the MIT License. See License.txt in the project root for license information.
 *--------------------------------------------------------------------------------------------*/
 
+import { type IDeployContext } from '@microsoft/vscode-azext-azureappservice';
 import * as fse from 'fs-extra';
 import * as path from 'path';
-import { MessageItem, TaskDefinition } from 'vscode';
-import { IDeployContext } from '@microsoft/vscode-azext-azureappservice';
+import { type MessageItem, type TaskDefinition } from 'vscode';
 import * as constants from '../../../constants';
 import { localize } from '../../../localize';
 import { updateWorkspaceSetting } from '../../../vsCodeConfig/settings';

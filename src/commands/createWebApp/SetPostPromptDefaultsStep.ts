@@ -3,10 +3,10 @@
 *  Licensed under the MIT License. See License.txt in the project root for license information.
 *--------------------------------------------------------------------------------------------*/
 
-import { SiteNameStep } from "@microsoft/vscode-azext-azureappservice";
+import { type SiteNameStep } from "@microsoft/vscode-azext-azureappservice";
 import { AzureWizardExecuteStep } from "@microsoft/vscode-azext-utils";
 import { localize } from "../../localize";
-import { IWebAppWizardContext } from "./IWebAppWizardContext";
+import { type IWebAppWizardContext } from "./IWebAppWizardContext";
 import { setPostPromptDefaults } from "./setPostPromptDefaults";
 
 export class SetPostPromptDefaultsStep extends AzureWizardExecuteStep<IWebAppWizardContext> {

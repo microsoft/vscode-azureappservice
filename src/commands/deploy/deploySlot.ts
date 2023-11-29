@@ -4,12 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { openInPortal } from '@microsoft/vscode-azext-azureutils';
-import { IActionContext } from '@microsoft/vscode-azext-utils';
+import { type IActionContext } from '@microsoft/vscode-azext-utils';
 import { webAppFilter } from '../../constants';
 import { ext } from '../../extensionVariables';
 import { ScaleUpTreeItem } from '../../tree/DeploymentSlotsTreeItem';
 import { ResolvedWebAppResource } from '../../tree/ResolvedWebAppResource';
-import { SiteTreeItem } from '../../tree/SiteTreeItem';
+import { type SiteTreeItem } from '../../tree/SiteTreeItem';
 import { deploy } from './deploy';
 
 export async function deploySlot(context: IActionContext, node?: SiteTreeItem | ScaleUpTreeItem): Promise<void> {

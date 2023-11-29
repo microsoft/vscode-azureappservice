@@ -3,10 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { DialogResponses, IActionContext } from "@microsoft/vscode-azext-utils";
+import { DialogResponses, type IActionContext } from "@microsoft/vscode-azext-utils";
 import * as fse from 'fs-extra';
 import * as path from 'path';
-import { MessageItem } from "vscode";
+import { type MessageItem } from "vscode";
 import * as constants from '../../constants';
 import { localize } from '../../localize';
 import { venvUtils } from '../../utils/venvUtils';

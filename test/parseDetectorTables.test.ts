@@ -6,7 +6,7 @@
 
 import { createTestActionContext } from '@microsoft/vscode-azext-dev';
 import * as assert from 'assert';
-import { ColumnName, detectorTable, findTableByName, getValuesByColumnName, validateTimestamp } from "../extension.bundle";
+import { ColumnName, findTableByName, getValuesByColumnName, validateTimestamp, type detectorTable } from "../extension.bundle";
 
 suite('Detector Dataset Parser', () => {
     test('Find table by table name', () => {

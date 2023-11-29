@@ -3,10 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { SiteConfigResource, StringDictionary } from '@azure/arm-appservice';
+import { type SiteConfigResource, type StringDictionary } from '@azure/arm-appservice';
 import * as appservice from '@microsoft/vscode-azext-azureappservice';
-import { getDeployFsPath, getDeployNode, IDeployContext, IDeployPaths, showDeployConfirmation, SiteClient } from '@microsoft/vscode-azext-azureappservice';
-import { IActionContext, parseError } from '@microsoft/vscode-azext-utils';
+import { getDeployFsPath, getDeployNode, showDeployConfirmation, type IDeployContext, type IDeployPaths, type SiteClient } from '@microsoft/vscode-azext-azureappservice';
+import { parseError, type IActionContext } from '@microsoft/vscode-azext-utils';
 import { pathExists } from 'fs-extra';
 import * as path from 'path';
 import * as vscode from 'vscode';
@@ -14,7 +14,7 @@ import * as constants from '../../constants';
 import { ext } from '../../extensionVariables';
 import { localize } from '../../localize';
 import { ResolvedWebAppResource } from '../../tree/ResolvedWebAppResource';
-import { SiteTreeItem } from '../../tree/SiteTreeItem';
+import { type SiteTreeItem } from '../../tree/SiteTreeItem';
 import { javaUtils } from '../../utils/javaUtils';
 import { nonNullValue } from '../../utils/nonNull';
 import { isPathEqual } from '../../utils/pathUtils';

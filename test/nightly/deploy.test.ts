@@ -3,16 +3,16 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Site } from '@azure/arm-appservice';
-import { ServiceClient } from '@azure/core-client';
+import { type Site } from '@azure/arm-appservice';
+import { type ServiceClient } from '@azure/core-client';
 import { createPipelineRequest } from '@azure/core-rest-pipeline';
 import { tryGetWebApp } from '@microsoft/vscode-azext-azureappservice';
-import { AzExtPipelineResponse } from '@microsoft/vscode-azext-azureutils';
+import { type AzExtPipelineResponse } from '@microsoft/vscode-azext-azureutils';
 import { createTestActionContext, runWithTestActionContext } from '@microsoft/vscode-azext-dev';
 import * as assert from 'assert';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { SiteTreeItem, createGenericClient, createWebAppAdvanced, deploy, ext, getRandomHexString, nonNullProp } from '../../extension.bundle';
+import { createGenericClient, createWebAppAdvanced, deploy, ext, getRandomHexString, nonNullProp, type SiteTreeItem } from '../../extension.bundle';
 import { longRunningTestsEnabled } from '../global.test';
 import { getRotatingLocation, getRotatingPricingTier } from './getRotatingValue';
 import { resourceGroupsToDelete, webSiteClient } from './global.resource.test';

@@ -3,11 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { StringDictionary } from "@azure/arm-appservice";
+import { type StringDictionary } from "@azure/arm-appservice";
 import { confirmOverwriteSettings } from "@microsoft/vscode-azext-azureappservice";
-import { AppSettingsTreeItem, IAppSettingsClient } from "@microsoft/vscode-azext-azureappsettings";
-import { IActionContext } from "@microsoft/vscode-azext-utils";
-import * as dotenv from 'dotenv';
+import { AppSettingsTreeItem, type IAppSettingsClient } from "@microsoft/vscode-azext-azureappsettings";
+import { type IActionContext } from "@microsoft/vscode-azext-utils";
+import type * as dotenv from 'dotenv';
 import { Uri, window } from "vscode";
 import { envFileName, webAppFilter } from "../../constants";
 import { ext } from "../../extensionVariables";

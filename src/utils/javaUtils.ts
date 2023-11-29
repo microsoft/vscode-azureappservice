@@ -3,13 +3,13 @@
 *  Licensed under the MIT License. See License.txt in the project root for license information.
 *--------------------------------------------------------------------------------------------*/
 
-import { SiteConfigResource, StringDictionary } from "@azure/arm-appservice";
-import { IActionContext, UserCancelledError } from '@microsoft/vscode-azext-utils';
+import { type SiteConfigResource, type StringDictionary } from "@azure/arm-appservice";
+import { UserCancelledError, type IActionContext } from '@microsoft/vscode-azext-utils';
 import * as fse from 'fs-extra';
 import * as path from 'path';
 import { workspace } from "vscode";
 import { localize } from "../localize";
-import { SiteTreeItem } from "../tree/SiteTreeItem";
+import { type SiteTreeItem } from "../tree/SiteTreeItem";
 
 export namespace javaUtils {
     const DEFAULT_PORT: string = '8080';

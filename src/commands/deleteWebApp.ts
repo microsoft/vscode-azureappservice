@@ -3,8 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { IActionContext } from "@microsoft/vscode-azext-utils";
-import { SiteTreeItem } from "../tree/SiteTreeItem";
+import { type IActionContext } from "@microsoft/vscode-azext-utils";
+import { type SiteTreeItem } from "../tree/SiteTreeItem";
 import { pickWebApp } from "../utils/pickWebApp";
 
 export async function deleteWebApp(context: IActionContext, node?: SiteTreeItem): Promise<void> {

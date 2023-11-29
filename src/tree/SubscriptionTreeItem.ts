@@ -3,10 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Site, WebSiteManagementClient } from '@azure/arm-appservice';
+import { WebSiteManagementClient, type Site } from '@azure/arm-appservice';
 import { ParsedSite } from '@microsoft/vscode-azext-azureappservice';
 import { createAzureClient, SubscriptionTreeItemBase, uiUtils } from '@microsoft/vscode-azext-azureutils';
-import { AzExtTreeItem, IActionContext, parseError } from '@microsoft/vscode-azext-utils';
+import { parseError, type AzExtTreeItem, type IActionContext } from '@microsoft/vscode-azext-utils';
 import { localize } from '../localize';
 import { SiteTreeItem } from './SiteTreeItem';
 

@@ -3,11 +3,11 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { Site, SiteConfigResource, StringDictionary } from '@azure/arm-appservice';
-import { tryGetWebApp, WebsiteOS } from '@microsoft/vscode-azext-azureappservice';
-import * as assert from 'assert';
+import { type Site, type SiteConfigResource, type StringDictionary } from '@azure/arm-appservice';
+import { WebsiteOS, tryGetWebApp } from '@microsoft/vscode-azext-azureappservice';
 import { runWithTestActionContext } from '@microsoft/vscode-azext-dev';
-import { addAppSetting, constants, createWebAppAdvanced, deleteAppSetting, deleteWebApp, DialogResponses, editScmType, getRandomHexString } from '../../extension.bundle';
+import * as assert from 'assert';
+import { DialogResponses, addAppSetting, constants, createWebAppAdvanced, deleteAppSetting, deleteWebApp, editScmType, getRandomHexString } from '../../extension.bundle';
 import { longRunningTestsEnabled } from '../global.test';
 import { getRotatingLocation, getRotatingPricingTier } from './getRotatingValue';
 import { resourceGroupsToDelete, webSiteClient } from './global.resource.test';
