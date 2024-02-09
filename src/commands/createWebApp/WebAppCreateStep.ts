@@ -143,8 +143,8 @@ export class WebAppCreateStep extends AzureWizardExecuteStep<IWebAppWizardContex
         }
         if (context.appInsightsComponent) {
             appSettings.push({
-                name: 'APPINSIGHTS_INSTRUMENTATIONKEY',
-                value: context.appInsightsComponent.instrumentationKey
+                name: 'APPLICATIONINSIGHTS_CONNECTION_STRING',
+                value: context.appInsightsComponent.connectionString
             });
 
             // all these settings are set on the portal if AI is enabled for Windows apps
