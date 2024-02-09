@@ -15,6 +15,7 @@ import { ext } from '../../extensionVariables';
 import { localize } from '../../localize';
 import { ResolvedWebAppResource } from '../../tree/ResolvedWebAppResource';
 import { type SiteTreeItem } from '../../tree/SiteTreeItem';
+import { createActivityContext } from '../../utils/activityUtils';
 import { javaUtils } from '../../utils/javaUtils';
 import { nonNullValue } from '../../utils/nonNull';
 import { isPathEqual } from '../../utils/pathUtils';
@@ -111,7 +112,10 @@ export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | 
 
     await node.runWithTemporaryDescription(context, localize('deploying', "Deploying..."), async () => {
         try {
-            await appservice.deploy(nonNullValue(node).site, <string>deployPath, context);
+            await appservice.deploy(nonNullValue(node).site, <string>deployPath, {
+                ...context,
+                ...(await createActivityContext())
+            });
         } catch (error) {
             if (!actionContext.errorHandling.suppressDisplay
                 && failureMoreInfoSurvey(parseError(error), nonNullValue(siteConfig))) {
