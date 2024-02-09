@@ -640,6 +640,11 @@
                 },
                 {
                     "command": "appService.Deploy",
+                    "when": "resourceExtname == .zip",
+                    "group": "zzz_azuretools_deploy@1"
+                },
+                {
+                    "command": "appService.Deploy",
                     "when": "explorerResourceIsFolder == false && resourceExtname =~ /.[j|w]ar$/",
                     "group": "zzz_azuretools_deploy@1"
                 }
