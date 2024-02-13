@@ -24,6 +24,7 @@ interface ITestCase {
     workspaceFolder: string | undefined;
     runtimePrefix: string;
     versions: IVersionInfo[];
+    zipFile?: string | undefined;
 }
 
 interface IVersionInfo {
@@ -52,6 +53,14 @@ suite('Create Web App and deploy', function (this: Mocha.Suite): void {
             versions: [
                 { version: '12', supportedAppOs: 'Both', displayText: '12 LTS' },
                 { version: '14', supportedAppOs: 'Both', displayText: '14 LTS' },
+                { version: '16', supportedAppOs: 'Both', displayText: '16 LTS' }
+            ]
+        },
+        {
+            runtimePrefix: 'Node',
+            workspaceFolder: 'testFolder',
+            zipFile: 'node-hello-1.zip',
+            versions: [
                 { version: '16', supportedAppOs: 'Both', displayText: '16 LTS' }
             ]
         },
@@ -111,7 +120,7 @@ suite('Create Web App and deploy', function (this: Mocha.Suite): void {
         });
     }
 
-    async function testCreateWebAppAndDeploy(os: string, promptForOs: boolean, runtime: string, workspacePath: string, expectedVersion: string): Promise<void> {
+    async function testCreateWebAppAndDeploy(os: string, promptForOs: boolean, runtime: string, workspacePath: string, expectedVersion: string, zipFile?: string): Promise<void> {
         const resourceName: string = getRandomHexString();
         const resourceGroupName = getRandomHexString();
         resourceGroupsToDelete.push(resourceGroupName);
@@ -132,8 +141,13 @@ suite('Create Web App and deploy', function (this: Mocha.Suite): void {
         assert.ok(createdApp);
 
         await runWithTestActionContext('Deploy', async context => {
+
             await context.ui.runWithInputs([workspacePath, resourceName, 'Deploy'], async () => {
-                await deploy(context);
+                if (zipFile) {
+                    await vscode.commands.executeCommand('appService.Deploy', vscode.Uri.file(path.join(workspacePath, zipFile)), undefined, true /*isNewApp*/);
+                } else {
+                    await deploy(context);
+                }
             });
         });
 
