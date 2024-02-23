@@ -147,6 +147,11 @@ export class WebAppCreateStep extends AzureWizardExecuteStep<IWebAppWizardContex
                 value: context.appInsightsComponent.connectionString
             });
 
+            appSettings.push({
+                name: 'ApplicationInsightsAgent_EXTENSION_VERSION',
+                value: context.newSiteOS === WebsiteOS.windows ? '~2' : '~3' // ~2 is for Windows, ~3 is for Linux
+            });
+
             // all these settings are set on the portal if AI is enabled for Windows apps
             if (context.newSiteOS === WebsiteOS.windows) {
                 appSettings.push(
@@ -157,10 +162,6 @@ export class WebAppCreateStep extends AzureWizardExecuteStep<IWebAppWizardContex
                     {
                         name: 'APPINSIGHTS_SNAPSHOTFEATURE_VERSION',
                         value: disabled
-                    },
-                    {
-                        name: 'ApplicationInsightsAgent_EXTENSION_VERSION',
-                        value: '~2'
                     },
                     {
                         name: 'DiagnosticServices_EXTENSION_VERSION',
