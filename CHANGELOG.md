@@ -1,15 +1,20 @@
 # Change Log
 
-## 0.25.2 - 2024-01-XX
+## 0.25.2 - 2024-02-29
+### Added
+* [[2621]](https://github.com/microsoft/vscode-azureappservice/pull/2621) Deploy `.zip` files with right-click deployment
+* [[2619]](https://github.com/microsoft/vscode-azureappservice/pull/2619) Create log analytics workspace to enable workspace-based app insights
+
+
 ### Bugs Fixed
-* Bump appservice to fix the gitignore issue and remove globby by @nturinski in https://github.com/microsoft/vscode-azureappservice/pull/2595
+* [[2595]](https://github.com/microsoft/vscode-azureappservice/pull/2595) Bump appservice to fix the gitignore issue and remove globby
 
 ### Removed
-* Remove Azure Account from extension dependencies by @alexweininger in https://github.com/microsoft/vscode-azureappservice/pull/2589
+* [[2589]](https://github.com/microsoft/vscode-azureappservice/pull/2589) Remove Azure Account from extension dependencies
 
 ### Engineering
-* Update `eslint-config` to enforce import types by @MicroFish91 in https://github.com/microsoft/vscode-azureappservice/pull/2594
-* Upgrade `@vscode/test-electron` by @MicroFish91 in https://github.com/microsoft/vscode-azureappservice/pull/2601
+* [[2594]](https://github.com/microsoft/vscode-azureappservice/pull/2594) Update `eslint-config` to enforce import types
+* [[2601]](https://github.com/microsoft/vscode-azureappservice/pull/2601) Upgrade `@vscode/test-electron
 
 
 **Full Changelog**: https://github.com/microsoft/vscode-azureappservice/compare/v0.25.1...v0.25.2
