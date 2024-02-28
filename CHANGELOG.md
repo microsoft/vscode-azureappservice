@@ -13,7 +13,7 @@
 
 ### Engineering
 * [[2594]](https://github.com/microsoft/vscode-azureappservice/pull/2594) Update `eslint-config` to enforce import types
-* [[2601]](https://github.com/microsoft/vscode-azureappservice/pull/2601) Upgrade `@vscode/test-electron
+* [[2601]](https://github.com/microsoft/vscode-azureappservice/pull/2601) Upgrade `@vscode/test-electron`
 
 
 **Full Changelog**: https://github.com/microsoft/vscode-azureappservice/compare/v0.25.1...v0.25.2
