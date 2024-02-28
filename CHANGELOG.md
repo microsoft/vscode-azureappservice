@@ -5,7 +5,6 @@
 * [[2621]](https://github.com/microsoft/vscode-azureappservice/pull/2621) Deploy `.zip` files with right-click deployment
 * [[2619]](https://github.com/microsoft/vscode-azureappservice/pull/2619) Create log analytics workspace to enable workspace-based app insights
 
-
 ### Bugs Fixed
 * [[2595]](https://github.com/microsoft/vscode-azureappservice/pull/2595) Bump appservice to fix the gitignore issue and remove globby
 
