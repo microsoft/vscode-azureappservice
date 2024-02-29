@@ -100,7 +100,7 @@ async function getStacks(context: IWebAppWizardContext & { _stacks?: WebAppStack
             const result: AzExtPipelineResponse = await client.sendRequest(createPipelineRequest({
                 method: 'GET',
                 url: createRequestUrl('/providers/Microsoft.Web/webappstacks', {
-                    'api-version': '2020-10-01',
+                    'api-version': '2023-01-01',
                     removeHiddenStacks: String(!getWorkspaceSetting<boolean>('showHiddenStacks')),
                     removeDeprecatedStacks: 'true'
                 })
