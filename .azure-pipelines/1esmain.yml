@@ -27,5 +27,3 @@ resources:
 # Use those templates
 extends:
   template: azure-pipelines/1esmain.yml@azExtTemplates
-  parameters:
-    useAzureFederatedCredentials: true
