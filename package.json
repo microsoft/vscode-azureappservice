@@ -762,7 +762,7 @@
         "eslint": "^8.42.0",
         "eslint-plugin-import": "^2.27.5",
         "glob": "^7.1.6",
-        "gulp": "^4.0.2",
+        "gulp": "^5.0.0",
         "husky": "^7.0.2",
         "mocha": "^10.0.0",
         "mocha-junit-reporter": "^2.0.0",
