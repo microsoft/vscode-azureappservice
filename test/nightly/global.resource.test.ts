@@ -4,32 +4,53 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { type WebSiteManagementClient } from '@azure/arm-appservice';
-import { createTestActionContext, TestAzureAccount } from '@microsoft/vscode-azext-dev';
+import { ResourceManagementClient } from '@azure/arm-resources';
+import { createAzureClient } from '@microsoft/vscode-azext-azureutils';
+import { createTestActionContext, type TestActionContext } from '@microsoft/vscode-azext-dev';
+import { type AzureSubscription } from '@microsoft/vscode-azureresources-api';
 import * as vscode from 'vscode';
-import { AzureAccountTreeItem, createWebSiteClient, ext, type ISubscriptionContext } from '../../extension.bundle';
+import { createSubscriptionContext, createWebSiteClient, ext, subscriptionExperience, type ISubscriptionContext } from '../../extension.bundle';
 import { longRunningTestsEnabled } from '../global.test';
 
-export let testAccount: TestAzureAccount;
+export let subscriptionContext: ISubscriptionContext;
 export let webSiteClient: WebSiteManagementClient;
-export const resourceGroupsToDelete: string[] = [];
+export const resourceGroupsToDelete = new Set<string>();
 
 suiteSetup(async function (this: Mocha.Context): Promise<void> {
-    this.skip();
-    if (longRunningTestsEnabled) {
-        this.timeout(2 * 60 * 1000);
-        testAccount = new TestAzureAccount(vscode);
-        await testAccount.signIn();
-        ext.azureAccountTreeItem = new AzureAccountTreeItem(testAccount);
-        webSiteClient = await createWebSiteClient([await createTestActionContext(), <ISubscriptionContext>testAccount.getSubscriptionContext()]);
+    if (!longRunningTestsEnabled) {
+        this.skip();
     }
+
+    this.timeout(2 * 60 * 1000);
+    await vscode.commands.executeCommand('azureResourceGroups.logIn');
+
+    const context: TestActionContext = await createTestActionContext();
+    const subscription: AzureSubscription = await subscriptionExperience(context, ext.rgApi.appResourceTree);
+
+    subscriptionContext = createSubscriptionContext(subscription);
+    webSiteClient = await createWebSiteClient([context, subscriptionContext]);
 });
 
 suiteTeardown(async function (this: Mocha.Context): Promise<void> {
-    if (longRunningTestsEnabled) {
-        this.timeout(10 * 60 * 1000);
-        // await Promise.all(resourceGroupsToDelete.map(async resource => {
-        //     await beginDeleteResourceGroup(resource);
-        // }));
-        // ext.azureAccountTreeItem.dispose();
+    if (!longRunningTestsEnabled) {
+        this.skip();
     }
+
+    this.timeout(10 * 60 * 1000);
+    await deleteResourceGroups();
 });
+
+async function deleteResourceGroups(): Promise<void> {
+    const context: TestActionContext = await createTestActionContext();
+    const rgClient: ResourceManagementClient = createAzureClient([context, subscriptionContext], ResourceManagementClient);
+
+    await Promise.all(Array.from(resourceGroupsToDelete).map(async resourceGroup => {
+        if (!(await rgClient.resourceGroups.checkExistence(resourceGroup)).body) {
+            return;
+        }
+
+        console.log(`Deleting resource group "${resourceGroup}"...`);
+        await rgClient.resourceGroups.beginDeleteAndWait(resourceGroup);
+        console.log(`Successfully deleted resource group "${resourceGroup}".`);
+    }));
+}

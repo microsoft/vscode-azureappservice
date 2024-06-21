@@ -27,7 +27,7 @@ suite('Web App actions', function (this: Mocha.Suite): void {
 
     test(`Create New ${WebsiteOS0} Web App (Advanced)`, async () => {
         const testInputs: (string | RegExp)[] = [resourceName, '$(plus) Create new resource group', resourceName, ...getInput(WebsiteOS0), getRotatingLocation(), '$(plus) Create new App Service plan', resourceName, getRotatingPricingTier(), '$(plus) Create new Application Insights resource', resourceName];
-        resourceGroupsToDelete.push(resourceName);
+        resourceGroupsToDelete.add(resourceName);
         await runWithTestActionContext('CreateWebAppAdvanced', async context => {
             await context.ui.runWithInputs(testInputs, async () => {
                 await createWebAppAdvanced(context);
@@ -42,7 +42,7 @@ suite('Web App actions', function (this: Mocha.Suite): void {
         const webAppName: string = getRandomHexString();
         const appServicePlanName: string = getRandomHexString();
         const applicationInsightsName: string = getRandomHexString();
-        resourceGroupsToDelete.push(resourceGroupName);
+        resourceGroupsToDelete.add(resourceGroupName);
         const testInputs: (string | RegExp)[] = [webAppName, '$(plus) Create new resource group', resourceGroupName, ...getInput(WebsiteOS1), getRotatingLocation(), '$(plus) Create new App Service plan', appServicePlanName, getRotatingPricingTier(), '$(plus) Create new Application Insights resource', applicationInsightsName];
         await runWithTestActionContext('CreateWebAppAdvanced', async context => {
             await context.ui.runWithInputs(testInputs, async () => {

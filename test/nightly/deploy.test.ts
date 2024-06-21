@@ -123,7 +123,7 @@ suite('Create Web App and deploy', function (this: Mocha.Suite): void {
     async function testCreateWebAppAndDeploy(os: string, promptForOs: boolean, runtime: string, workspacePath: string, expectedVersion: string, zipFile?: string): Promise<void> {
         const resourceName: string = getRandomHexString();
         const resourceGroupName = getRandomHexString();
-        resourceGroupsToDelete.push(resourceGroupName);
+        resourceGroupsToDelete.add(resourceGroupName);
 
         const testInputs: (string | RegExp)[] = [resourceName, '$(plus) Create new resource group', resourceGroupName, runtime];
         if (promptForOs) {
