@@ -10,7 +10,7 @@ import * as assert from 'assert';
 import { DialogResponses, addAppSetting, constants, createWebAppAdvanced, deleteAppSetting, deleteWebApp, editScmType, getRandomHexString } from '../../extension.bundle';
 import { longRunningTestsEnabled } from '../global.test';
 import { getRotatingLocation, getRotatingPricingTier } from './getRotatingValue';
-import { resourceGroupsToDelete, webSiteClient } from './global.resource.test';
+import { resourceGroupsToDelete, webSiteClient } from './global.nightly.test';
 
 suite('Web App actions', function (this: Mocha.Suite): void {
     this.timeout(6 * 60 * 1000);

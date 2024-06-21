@@ -7,7 +7,8 @@ import { TestOutputChannel, TestUserInput } from '@microsoft/vscode-azext-dev';
 import * as vscode from 'vscode';
 import { ext, registerOnActionStartHandler } from '../extension.bundle';
 
-export const longRunningTestsEnabled: boolean = !/^(false|0)?$/i.test(process.env.AzCode_UseAzureFederatedCredentials || '');
+// export const longRunningTestsEnabled: boolean = !/^(false|0)?$/i.test(process.env.AzCode_UseAzureFederatedCredentials || '');
+export const longRunningTestsEnabled = true;
 
 // Runs before all tests
 suiteSetup(async function (this: Mocha.Context): Promise<void> {

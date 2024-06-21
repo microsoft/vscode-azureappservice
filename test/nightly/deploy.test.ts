@@ -15,7 +15,7 @@ import * as vscode from 'vscode';
 import { createGenericClient, createWebAppAdvanced, deploy, ext, getRandomHexString, nonNullProp, type SiteTreeItem } from '../../extension.bundle';
 import { longRunningTestsEnabled } from '../global.test';
 import { getRotatingLocation, getRotatingPricingTier } from './getRotatingValue';
-import { resourceGroupsToDelete, webSiteClient } from './global.resource.test';
+import { resourceGroupsToDelete, webSiteClient } from './global.nightly.test';
 
 interface ITestCase {
     /**

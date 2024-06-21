@@ -26,14 +26,14 @@ suiteSetup(async function (this: Mocha.Context): Promise<void> {
 
     const context: TestActionContext = await createTestActionContext();
     const subscription: AzureSubscription = await subscriptionExperience(context, ext.rgApi.appResourceTree);
-
     subscriptionContext = createSubscriptionContext(subscription);
+
     webSiteClient = await createWebSiteClient([context, subscriptionContext]);
 });
 
 suiteTeardown(async function (this: Mocha.Context): Promise<void> {
     if (!longRunningTestsEnabled) {
-        this.skip();
+        return;
     }
 
     this.timeout(10 * 60 * 1000);
