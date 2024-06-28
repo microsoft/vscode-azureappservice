@@ -15,6 +15,7 @@ import { longRunningTestsEnabled } from '../global.test';
 export let subscriptionContext: ISubscriptionContext;
 export let webSiteClient: WebSiteManagementClient;
 export const resourceGroupsToDelete = new Set<string>();
+export const azcodePrefix: string = 'azcode';
 
 suiteSetup(async function (this: Mocha.Context): Promise<void> {
     if (!longRunningTestsEnabled) {
