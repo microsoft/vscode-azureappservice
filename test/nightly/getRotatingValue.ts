@@ -3,11 +3,9 @@
  *  Licensed under the MIT License. See LICENSE.md in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-let locationCount: number = getStartingIndex();
 const locations: string[] = ['Australia East', 'East Asia', 'East US', 'North Europe', 'South Central US', 'Southeast Asia', 'UK South', 'West Europe'];
 export function getRotatingLocation(): string {
-    locationCount += 1;
-    return locations[locationCount % locations.length];
+    return locations[2];
 }
 
 let pricingTierCount: number = getStartingIndex();
