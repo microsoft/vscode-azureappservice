@@ -16,6 +16,7 @@ const azcodeResourcePrefix: string = 'azc-app';
 
 suite.only('Web App actions', function (this: Mocha.Suite): void {
     this.timeout(6 * 60 * 1000);
+
     let resourceName: string;
     const WebsiteOS0: WebsiteOS = (new Date().getDate()) % 2 === 0 ? WebsiteOS.linux : WebsiteOS.windows;
     const WebsiteOS1: WebsiteOS = WebsiteOS0 === WebsiteOS.windows ? WebsiteOS.linux : WebsiteOS.windows;
