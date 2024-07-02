@@ -44,7 +44,7 @@ async function deleteResourceGroups(): Promise<void> {
     const context: TestActionContext = await createTestActionContext();
     const rgClient: ResourceManagementClient = createAzureClient([context, subscriptionContext], ResourceManagementClient);
 
-    await Promise.all(Array.from(resourceGroupsToDelete).map(async resourceGroup => {
+    await Promise.allSettled(Array.from(resourceGroupsToDelete).map(async resourceGroup => {
         if (!(await rgClient.resourceGroups.checkExistence(resourceGroup)).body) {
             return;
         }
