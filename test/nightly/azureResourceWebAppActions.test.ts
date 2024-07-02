@@ -9,10 +9,12 @@ import { runWithTestActionContext } from '@microsoft/vscode-azext-dev';
 import * as assert from 'assert';
 import { DialogResponses, addAppSetting, constants, createWebAppAdvanced, deleteAppSetting, deleteWebApp, editScmType, getRandomHexString } from '../../extension.bundle';
 import { longRunningTestsEnabled } from '../global.test';
-import { getRotatingLocation, getRotatingPricingTier } from './getRotatingValue';
-import { resourceGroupsToDelete, webSiteClient } from './global.resource.test';
+import { getRotatingPricingTier } from './getRotatingValue';
+import { resourceGroupsToDelete, webSiteClient } from './global.nightly.test';
 
-suite('Web App actions', function (this: Mocha.Suite): void {
+const azcodePrefix: string = 'azc-app';
+
+suite.only('Web App actions', function (this: Mocha.Suite): void {
     this.timeout(6 * 60 * 1000);
     let resourceName: string;
     const WebsiteOS0: WebsiteOS = (new Date().getDate()) % 2 === 0 ? WebsiteOS.linux : WebsiteOS.windows;
@@ -22,12 +24,12 @@ suite('Web App actions', function (this: Mocha.Suite): void {
         if (!longRunningTestsEnabled) {
             this.skip();
         }
-        resourceName = getRandomHexString();
+        resourceName = azcodePrefix + getRandomHexString(6);
     });
 
     test(`Create New ${WebsiteOS0} Web App (Advanced)`, async () => {
-        const testInputs: (string | RegExp)[] = [resourceName, '$(plus) Create new resource group', resourceName, ...getInput(WebsiteOS0), getRotatingLocation(), '$(plus) Create new App Service plan', resourceName, getRotatingPricingTier(), '$(plus) Create new Application Insights resource', resourceName];
-        resourceGroupsToDelete.push(resourceName);
+        const testInputs: (string | RegExp)[] = [resourceName, '$(plus) Create new resource group', resourceName, ...getInput(WebsiteOS0), 'East US', '$(plus) Create new App Service plan', resourceName, getRotatingPricingTier(), 'Enabled', '$(plus) Create new Application Insights resource', resourceName];
+        resourceGroupsToDelete.add(resourceName);
         await runWithTestActionContext('CreateWebAppAdvanced', async context => {
             await context.ui.runWithInputs(testInputs, async () => {
                 await createWebAppAdvanced(context);
@@ -38,12 +40,12 @@ suite('Web App actions', function (this: Mocha.Suite): void {
     });
 
     test(`Create New ${WebsiteOS1} Web App (Advanced)`, async () => {
-        const resourceGroupName: string = getRandomHexString();
-        const webAppName: string = getRandomHexString();
-        const appServicePlanName: string = getRandomHexString();
-        const applicationInsightsName: string = getRandomHexString();
-        resourceGroupsToDelete.push(resourceGroupName);
-        const testInputs: (string | RegExp)[] = [webAppName, '$(plus) Create new resource group', resourceGroupName, ...getInput(WebsiteOS1), getRotatingLocation(), '$(plus) Create new App Service plan', appServicePlanName, getRotatingPricingTier(), '$(plus) Create new Application Insights resource', applicationInsightsName];
+        const resourceGroupName: string = azcodePrefix + getRandomHexString(6);
+        const webAppName: string = azcodePrefix + getRandomHexString(6);
+        const appServicePlanName: string = azcodePrefix + getRandomHexString(6);
+        const applicationInsightsName: string = azcodePrefix + getRandomHexString(6);
+        resourceGroupsToDelete.add(resourceGroupName);
+        const testInputs: (string | RegExp)[] = [webAppName, '$(plus) Create new resource group', resourceGroupName, ...getInput(WebsiteOS1), 'West US', '$(plus) Create new App Service plan', appServicePlanName, getRotatingPricingTier(), '$(plus) Create new Application Insights resource', applicationInsightsName];
         await runWithTestActionContext('CreateWebAppAdvanced', async context => {
             await context.ui.runWithInputs(testInputs, async () => {
                 await createWebAppAdvanced(context);
