@@ -12,7 +12,7 @@ import { longRunningTestsEnabled } from '../global.test';
 import { getRotatingPricingTier } from './getRotatingValue';
 import { resourceGroupsToDelete, webSiteClient } from './global.nightly.test';
 
-const azcodePrefix: string = 'azc-app';
+const azcodeResourcePrefix: string = 'azc-app';
 
 suite.only('Web App actions', function (this: Mocha.Suite): void {
     this.timeout(6 * 60 * 1000);
@@ -24,7 +24,7 @@ suite.only('Web App actions', function (this: Mocha.Suite): void {
         if (!longRunningTestsEnabled) {
             this.skip();
         }
-        resourceName = azcodePrefix + getRandomHexString(6);
+        resourceName = azcodeResourcePrefix + getRandomHexString(6);
     });
 
     test(`Create New ${WebsiteOS0} Web App (Advanced)`, async () => {
@@ -40,10 +40,10 @@ suite.only('Web App actions', function (this: Mocha.Suite): void {
     });
 
     test(`Create New ${WebsiteOS1} Web App (Advanced)`, async () => {
-        const resourceGroupName: string = azcodePrefix + getRandomHexString(6);
-        const webAppName: string = azcodePrefix + getRandomHexString(6);
-        const appServicePlanName: string = azcodePrefix + getRandomHexString(6);
-        const applicationInsightsName: string = azcodePrefix + getRandomHexString(6);
+        const resourceGroupName: string = azcodeResourcePrefix + getRandomHexString(6);
+        const webAppName: string = azcodeResourcePrefix + getRandomHexString(6);
+        const appServicePlanName: string = azcodeResourcePrefix + getRandomHexString(6);
+        const applicationInsightsName: string = azcodeResourcePrefix + getRandomHexString(6);
         resourceGroupsToDelete.add(resourceGroupName);
         const testInputs: (string | RegExp)[] = [webAppName, '$(plus) Create new resource group', resourceGroupName, ...getInput(WebsiteOS1), 'West US', '$(plus) Create new App Service plan', appServicePlanName, getRotatingPricingTier(), '$(plus) Create new Application Insights resource', applicationInsightsName];
         await runWithTestActionContext('CreateWebAppAdvanced', async context => {
