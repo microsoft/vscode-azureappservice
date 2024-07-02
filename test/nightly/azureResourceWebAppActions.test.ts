@@ -28,7 +28,7 @@ suite.only('Web App actions', function (this: Mocha.Suite): void {
     });
 
     test(`Create New ${WebsiteOS0} Web App (Advanced)`, async () => {
-        const testInputs: (string | RegExp)[] = [resourceName, '$(plus) Create new resource group', resourceName, ...getInput(WebsiteOS0), 'East US', '$(plus) Create new App Service plan', resourceName, getRotatingPricingTier(), 'Enabled', '$(plus) Create new Application Insights resource', resourceName];
+        const testInputs: (string | RegExp)[] = [resourceName, '$(plus) Create new resource group', resourceName, ...getInput(WebsiteOS0), 'East US', '$(plus) Create new App Service plan', resourceName, getRotatingPricingTier(), 'Disabled', '$(plus) Create new Application Insights resource', resourceName];
         resourceGroupsToDelete.add(resourceName);
         await runWithTestActionContext('CreateWebAppAdvanced', async context => {
             await context.ui.runWithInputs(testInputs, async () => {
