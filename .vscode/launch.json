@@ -97,7 +97,7 @@
                 "DEBUGTELEMETRY": "v",
                 "NODE_DEBUG": "",
                 "DEBUG_WEBPACK": "1",
-                "AzCode_UseAzureFederatedCredentials": ""
+                "ENABLE_LONG_RUNNING_TESTS": ""
             }
         }
     ]
