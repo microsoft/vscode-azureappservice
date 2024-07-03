@@ -30,7 +30,8 @@ async function main(): Promise<void> {
             extensionDevelopmentPath: repoRoot,
             launchArgs: [
                 path.resolve(repoRoot, 'test', 'test.code-workspace'),
-                '--disable-workspace-trust'
+                '--disable-workspace-trust',
+                '--parallel'
             ],
             extensionTestsPath: path.resolve(repoRoot, 'dist', 'test', 'index'),
             extensionTestsEnv: {

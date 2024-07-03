@@ -30,7 +30,7 @@ function isSubscription(item?: AzExtParentTreeItem): boolean {
 
 export async function createWebApp(context: IActionContext & Partial<ICreateChildImplContext>, node?: SubscriptionTreeItemBase | undefined, _nodes?: (SubscriptionTreeItemBase | undefined)[], suppressCreatedWebAppMessage: boolean = false): Promise<SiteTreeItem> {
     if (!node || !isSubscription(node)) {
-        node = <SubscriptionTreeItemBase>await ext.rgApi.tree.showTreeItemPicker(SubscriptionTreeItemBase.contextValue, context);
+        node = <SubscriptionTreeItemBase>await ext.rgApi.tree.showTreeItemPicker(new RegExp(SubscriptionTreeItemBase.contextValue, 'i'), context);
     }
 
     const wizardContext: IWebAppWizardContext = Object.assign(context, node.subscription, {

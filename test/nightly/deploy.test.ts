@@ -52,8 +52,8 @@ suite.only('Create Web App and deploy', function (this: Mocha.Suite): void {
             workspaceFolder: 'nodejs-docs-hello-world',
             versions: [
                 { version: '16', supportedAppOs: 'Both', displayText: '16 LTS' },
-                // { version: '18', supportedAppOs: 'Both', displayText: '18 LTS' },
-                // { version: '20', supportedAppOs: 'Both', displayText: '20 LTS' }
+                { version: '18', supportedAppOs: 'Both', displayText: '18 LTS' },
+                { version: '20', supportedAppOs: 'Both', displayText: '20 LTS' }
             ]
         },
         // {
@@ -127,7 +127,7 @@ suite.only('Create Web App and deploy', function (this: Mocha.Suite): void {
         const resourceGroupName: string = azcodeResourcePrefix + getRandomHexString(6);
         resourceGroupsToDelete.add(resourceGroupName);
 
-        const testInputs: (string | RegExp)[] = [resourceName, '$(plus) Create new resource group', resourceGroupName, runtime];
+        const testInputs: (string | RegExp)[] = [/Manual\sTest/i, resourceName, '$(plus) Create new resource group', resourceGroupName, runtime];
         if (promptForOs) {
             testInputs.push(os);
         }
@@ -136,7 +136,8 @@ suite.only('Create Web App and deploy', function (this: Mocha.Suite): void {
         await runWithTestActionContext('CreateWebAppAdvanced', async context => {
             await context.ui.runWithInputs(testInputs, async () => {
                 try {
-                    await createWebAppAdvanced(context);
+                    const result = await createWebAppAdvanced(context);
+                    console.log(result)
                 } catch (e) {
                     console.error(e);
                 }
