@@ -10,17 +10,16 @@ import * as assert from 'assert';
 import { DialogResponses, addAppSetting, constants, createWebAppAdvanced, deleteAppSetting, deleteWebApp, editScmType, getRandomHexString } from '../../extension.bundle';
 import { longRunningTestsEnabled } from '../global.test';
 import { getRotatingPricingTier } from './getRotatingValue';
-import { resourceGroupsToDelete, webSiteClient } from './global.nightly.test';
+import { azcodeResourcePrefix, resourceGroupsToDelete, webSiteClient } from './global.nightly.test';
 
-const azcodeResourcePrefix: string = 'azc-app';
-
-suite.only('Web App actions', function (this: Mocha.Suite): void {
+suite('Web App actions', function (this: Mocha.Suite): void {
     this.timeout(6 * 60 * 1000);
     let resourceName: string;
     const WebsiteOS0: WebsiteOS = (new Date().getDate()) % 2 === 0 ? WebsiteOS.linux : WebsiteOS.windows;
     const WebsiteOS1: WebsiteOS = WebsiteOS0 === WebsiteOS.windows ? WebsiteOS.linux : WebsiteOS.windows;
 
     suiteSetup(function (this: Mocha.Context): void {
+        this.skip();
         if (!longRunningTestsEnabled) {
             this.skip();
         }

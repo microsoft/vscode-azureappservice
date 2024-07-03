@@ -14,6 +14,9 @@
         },
         {
             "path": "./nightly/testFolder/python-docs-hello-world"
+        },
+        {
+            "path": "./nightly/testFolder/node-zip"
         }
     ],
     "settings": {
