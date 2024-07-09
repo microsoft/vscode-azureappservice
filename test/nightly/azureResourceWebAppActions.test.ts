@@ -9,7 +9,6 @@ import { runWithTestActionContext } from '@microsoft/vscode-azext-dev';
 import * as assert from 'assert';
 import { DialogResponses, addAppSetting, constants, createWebAppAdvanced, deleteAppSetting, deleteWebApp, editScmType, getRandomHexString } from '../../extension.bundle';
 import { longRunningTestsEnabled } from '../global.test';
-import { getRotatingPricingTier } from './getRotatingValue';
 import { azcodeResourcePrefix, resourceGroupsToDelete, webSiteClient } from './global.nightly.test';
 
 suite('Web App actions', function (this: Mocha.Suite): void {
@@ -27,7 +26,7 @@ suite('Web App actions', function (this: Mocha.Suite): void {
     });
 
     test(`Create New ${WebsiteOS0} Web App (Advanced)`, async () => {
-        const testInputs: (string | RegExp)[] = [resourceName, '$(plus) Create new resource group', resourceName, ...getInput(WebsiteOS0), 'East US', '$(plus) Create new App Service plan', resourceName, getRotatingPricingTier(), 'Enabled', '$(plus) Create new Application Insights resource', resourceName];
+        const testInputs: (string | RegExp)[] = [resourceName, '$(plus) Create new resource group', resourceName, ...getInput(WebsiteOS0), 'East US', '$(plus) Create new App Service plan', resourceName, 'Enabled', '$(plus) Create new Application Insights resource', resourceName];
         resourceGroupsToDelete.add(resourceName);
         await runWithTestActionContext('CreateWebAppAdvanced', async context => {
             await context.ui.runWithInputs(testInputs, async () => {
@@ -44,7 +43,8 @@ suite('Web App actions', function (this: Mocha.Suite): void {
         const appServicePlanName: string = azcodeResourcePrefix + getRandomHexString(6);
         const applicationInsightsName: string = azcodeResourcePrefix + getRandomHexString(6);
         resourceGroupsToDelete.add(resourceGroupName);
-        const testInputs: (string | RegExp)[] = [webAppName, '$(plus) Create new resource group', resourceGroupName, ...getInput(WebsiteOS1), 'West US', '$(plus) Create new App Service plan', appServicePlanName, getRotatingPricingTier(), '$(plus) Create new Application Insights resource', applicationInsightsName];
+
+        const testInputs: (string | RegExp)[] = [webAppName, '$(plus) Create new resource group', resourceGroupName, ...getInput(WebsiteOS1), 'West US', '$(plus) Create new App Service plan', appServicePlanName, '$(plus) Create new Application Insights resource', applicationInsightsName];
         await runWithTestActionContext('CreateWebAppAdvanced', async context => {
             await context.ui.runWithInputs(testInputs, async () => {
                 await createWebAppAdvanced(context);

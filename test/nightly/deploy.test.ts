@@ -6,7 +6,7 @@
 import { type Site } from '@azure/arm-appservice';
 import { type ServiceClient } from '@azure/core-client';
 import { createPipelineRequest } from '@azure/core-rest-pipeline';
-import { tryGetWebApp } from '@microsoft/vscode-azext-azureappservice';
+import { AppServicePlanRedundancyStep, tryGetWebApp } from '@microsoft/vscode-azext-azureappservice';
 import { type AzExtPipelineResponse } from '@microsoft/vscode-azext-azureutils';
 import { createTestActionContext, runWithTestActionContext } from '@microsoft/vscode-azext-dev';
 import * as assert from 'assert';
@@ -14,7 +14,7 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { createGenericClient, createWebAppAdvanced, deploy, ext, getRandomHexString, nonNullProp, type SiteTreeItem } from '../../extension.bundle';
 import { longRunningTestsEnabled } from '../global.test';
-import { getRotatingPricingTier } from './getRotatingValue';
+import { getRotatingLocation, getRotatingPricingTier, getRotatingZoneRedundancyEnablement, type RotatingPricingTier } from './getRotatingValue';
 import { azcodeResourcePrefix, resourceGroupsToDelete, webSiteClient } from './global.nightly.test';
 
 interface ITestCase {
@@ -45,7 +45,7 @@ interface IParallelTest {
 }
 
 suite.only('Create Web App and deploy', function (this: Mocha.Suite): void {
-    this.timeout(6 * 60 * 1000);
+    this.timeout(15 * 60 * 1000);
     const testCases: ITestCase[] = [
         {
             runtimePrefix: 'Node',
@@ -131,16 +131,20 @@ suite.only('Create Web App and deploy', function (this: Mocha.Suite): void {
         if (promptForOs) {
             testInputs.push(os);
         }
-        testInputs.push('East US', '$(plus) Create new App Service plan', getRandomHexString(), getRotatingPricingTier(), 'Enabled', '$(plus) Create new Application Insights resource', getRandomHexString());
+
+        const location: string = getRotatingLocation();
+        const pricingTier: RotatingPricingTier = getRotatingPricingTier();
+        testInputs.push(location, '$(plus) Create new App Service plan', getRandomHexString(), pricingTier.name);
+
+        if (AppServicePlanRedundancyStep.isZoneRedundancySupported(location, pricingTier.family)) {
+            testInputs.push(getRotatingZoneRedundancyEnablement());
+        }
+
+        testInputs.push('$(plus) Create new Application Insights resource', getRandomHexString());
 
         await runWithTestActionContext('CreateWebAppAdvanced', async context => {
             await context.ui.runWithInputs(testInputs, async () => {
-                try {
-                    const result = await createWebAppAdvanced(context);
-                    console.log(result)
-                } catch (e) {
-                    console.error(e);
-                }
+                await createWebAppAdvanced(context);
             });
         });
 
@@ -160,6 +164,7 @@ suite.only('Create Web App and deploy', function (this: Mocha.Suite): void {
         const hostUrl: string | undefined = (<SiteTreeItem>await ext.rgApi.tree.findTreeItem(<string>createdApp?.id, await createTestActionContext())).site.defaultHostUrl;
         const client: ServiceClient = await createGenericClient(await createTestActionContext(), undefined);
         const response: AzExtPipelineResponse = await client.sendRequest(createPipelineRequest({ method: 'GET', url: hostUrl }));
+        console.log("OS: ", os, " RUNTIME: ", runtime, " RESPONSE: ", response, " HOST URL: ", hostUrl)
         assert.strictEqual(response.bodyAsText, `Version: ${expectedVersion}`);
     }
 });
