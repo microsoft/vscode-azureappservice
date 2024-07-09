@@ -42,7 +42,7 @@ interface IParallelTest {
 }
 
 suite.only('Create Web App and deploy', function (this: Mocha.Suite): void {
-    this.timeout(15 * 60 * 1000);
+    this.timeout(6 * 60 * 1000);
     const testCases: ITestCase[] = [
         {
             runtimePrefix: 'Node',
