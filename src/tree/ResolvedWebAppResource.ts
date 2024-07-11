@@ -17,8 +17,6 @@ import { matchContextValue } from '../utils/contextUtils';
 import { nonNullValue } from '../utils/nonNull';
 import { openUrl } from '../utils/openUrl';
 import { getIconPath, getThemedIconPath } from '../utils/pathUtils';
-import { CosmosDBConnection } from './CosmosDBConnection';
-import { CosmosDBTreeItem } from './CosmosDBTreeItem';
 import { DeploymentSlotsNATreeItem, DeploymentSlotsTreeItem } from './DeploymentSlotsTreeItem';
 import { type ISiteTreeItem } from './ISiteTreeItem';
 import { NotAvailableTreeItem } from './NotAvailableTreeItem';
@@ -48,7 +46,6 @@ export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTre
     public deploymentSlotsNode: DeploymentSlotsTreeItem | DeploymentSlotsNATreeItem | undefined;
     public deploymentsNode: DeploymentsTreeItem | undefined;
     public appSettingsNode!: AppSettingsTreeItem;
-    private _connectionsNode!: CosmosDBTreeItem;
     private _siteFilesNode!: SiteFilesTreeItem;
     private _logFilesNode!: LogFilesTreeItem;
     private _webJobsNode!: WebJobsTreeItem | WebJobsNATreeItem;
@@ -135,7 +132,6 @@ export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTre
         this.appSettingsNode = new AppSettingsTreeItem(proxyTree, this.site, ext.prefix, {
             contextValuesToAdd: ['appService']
         });
-        this._connectionsNode = new CosmosDBTreeItem(proxyTree, this.site);
         this._siteFilesNode = new SiteFilesTreeItem(proxyTree, {
             site: this.site,
             isReadOnly: false,
@@ -158,7 +154,7 @@ export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTre
             contextValuesToAdd: ['appService']
         });
 
-        const children: AzExtTreeItem[] = [this.appSettingsNode, this._connectionsNode, this.deploymentsNode, this._siteFilesNode, this._logFilesNode, this._webJobsNode];
+        const children: AzExtTreeItem[] = [this.appSettingsNode, this.deploymentsNode, this._siteFilesNode, this._logFilesNode, this._webJobsNode];
 
         if (!this.site.isSlot) {
             let tier: string | undefined;
@@ -221,17 +217,10 @@ export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTre
                 }
             }
 
-            switch (expectedContextValue) {
-                case CosmosDBTreeItem.contextValueInstalled:
-                case CosmosDBTreeItem.contextValueNotInstalled:
-                case CosmosDBConnection.contextValue:
-                    return this._connectionsNode;
-                case WebJobsTreeItem.contextValue:
-                    return this._webJobsNode;
-                default:
-                    if (typeof expectedContextValue === 'string' && DeploymentTreeItem.contextValue.test(expectedContextValue)) {
-                        return this.deploymentsNode;
-                    }
+            if (expectedContextValue) {
+                return this._webJobsNode;
+            } else if (typeof expectedContextValue === 'string' && DeploymentTreeItem.contextValue.test(expectedContextValue)) {
+                return this.deploymentsNode;
             }
         }
 
