@@ -217,7 +217,7 @@ export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTre
                 }
             }
 
-            if (expectedContextValue) {
+            if (expectedContextValue === WebJobsTreeItem.contextValue) {
                 return this._webJobsNode;
             } else if (typeof expectedContextValue === 'string' && DeploymentTreeItem.contextValue.test(expectedContextValue)) {
                 return this.deploymentsNode;
