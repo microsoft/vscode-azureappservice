@@ -57,11 +57,6 @@
         },
         "commands": [
             {
-                "command": "appService.AddAzureDatabasesConnection",
-                "title": "%appService.AddAzureDatabasesConnection%",
-                "category": "Azure App Service"
-            },
-            {
                 "command": "appService.appSettings.Add",
                 "title": "%appService.appSettings.Add%",
                 "category": "Azure App Service"
@@ -159,11 +154,6 @@
                 "category": "Azure App Service"
             },
             {
-                "command": "appService.InstallCosmosDBExtension",
-                "title": "%appService.InstallCosmosDBExtension%",
-                "category": "Azure App Service"
-            },
-            {
                 "command": "appService.OpenInPortal",
                 "title": "%appService.OpenInPortal%",
                 "category": "Azure App Service"
@@ -180,11 +170,6 @@
                 "icon": "$(refresh)"
             },
             {
-                "command": "appService.RemoveCosmosDBConnection",
-                "title": "%appService.RemoveCosmosDBConnection%",
-                "category": "Azure App Service"
-            },
-            {
                 "command": "appService.ReportIssue",
                 "title": "%appService.ReportIssue%",
                 "category": "Azure App Service"
@@ -192,16 +177,6 @@
             {
                 "command": "appService.Restart",
                 "title": "%appService.Restart%",
-                "category": "Azure App Service"
-            },
-            {
-                "command": "appService.RevealConnection",
-                "title": "%appService.RevealConnection%",
-                "category": "Azure App Service"
-            },
-            {
-                "command": "appService.RevealConnectionInAppSettings",
-                "title": "%appService.RevealConnectionInAppSettings%",
                 "category": "Azure App Service"
             },
             {
@@ -280,10 +255,6 @@
             "commandPalette": [
                 {
                     "command": "appService.appSettings.Delete",
-                    "when": "never"
-                },
-                {
-                    "command": "appService.InstallCosmosDBExtension",
                     "when": "never"
                 },
                 {
@@ -524,29 +495,9 @@
                     "group": "1@1"
                 },
                 {
-                    "command": "appService.AddAzureDatabasesConnection",
-                    "when": "view =~ /(azureResourceGroups|azureFocusView)/ && viewItem == сosmosDBConnections",
-                    "group": "1@1"
-                },
-                {
                     "command": "appService.Refresh",
                     "when": "view =~ /(azureResourceGroups|azureFocusView)/ && viewItem == сosmosDBConnections",
                     "group": "2@2"
-                },
-                {
-                    "command": "appService.RevealConnection",
-                    "when": "view =~ /(azureResourceGroups|azureFocusView)/ && viewItem == cosmosDBConnection",
-                    "group": "1@1"
-                },
-                {
-                    "command": "appService.RevealConnectionInAppSettings",
-                    "when": "view =~ /(azureResourceGroups|azureFocusView)/ && viewItem == cosmosDBConnection",
-                    "group": "1@2"
-                },
-                {
-                    "command": "appService.RemoveCosmosDBConnection",
-                    "when": "view =~ /(azureResourceGroups|azureFocusView)/ && viewItem == cosmosDBConnection",
-                    "group": "2@1"
                 },
                 {
                     "command": "appService.OpenInPortal",
@@ -656,32 +607,6 @@
                     "type": "string",
                     "description": "%appService.defaultWebAppToDeploy%"
                 },
-                "appService.connections": {
-                    "type": "array",
-                    "description": "%appService.connections%",
-                    "required": [
-                        "webAppId"
-                    ],
-                    "items": {
-                        "type": "object",
-                        "description": "%appService.connections.connection%",
-                        "additionalProperties": false,
-                        "properties": {
-                            "webAppId": {
-                                "type": "string",
-                                "description": "%appService.connections.appId%"
-                            },
-                            "cosmosDB": {
-                                "type": "array",
-                                "description": "%appService.connections.dbArray%",
-                                "items": {
-                                    "type": "string",
-                                    "description": "%appService.connections.connId%"
-                                }
-                            }
-                        }
-                    }
-                },
                 "appService.showPreDeployWarning": {
                     "scope": "resource",
                     "type": "boolean",
@@ -749,7 +674,7 @@
     },
     "devDependencies": {
         "@microsoft/eslint-config-azuretools": "^0.2.2",
-        "@microsoft/vscode-azext-dev": "^2.0.4",
+        "@microsoft/vscode-azext-dev": "^2.0.2",
         "@types/dotenv": "^6.1.1",
         "@types/fs-extra": "^8.0.0",
         "@types/gulp": "^4.0.6",
@@ -773,11 +698,11 @@
         "webpack-cli": "^4.6.0"
     },
     "dependencies": {
-        "@azure/arm-appservice": "^15.0.0",
+        "@azure/arm-appservice": "^13.0.2",
         "@azure/arm-resources": "^5.0.0",
         "@azure/core-client": "^1.7.3",
         "@azure/core-rest-pipeline": "^1.11.0",
-        "@microsoft/vscode-azext-azureappservice": "file:../vscode-azuretools/appservice/microsoft-vscode-azext-azureappservice-3.3.0.tgz",
+        "@microsoft/vscode-azext-azureappservice": "^3.1.0",
         "@microsoft/vscode-azext-azureappsettings": "^0.2.0",
         "@microsoft/vscode-azext-azureutils": "^3.0.0",
         "@microsoft/vscode-azext-utils": "^2.3.1",
