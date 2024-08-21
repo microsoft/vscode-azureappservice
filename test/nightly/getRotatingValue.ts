@@ -3,18 +3,42 @@
  *  Licensed under the MIT License. See LICENSE.md in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-let locationCount: number = getStartingIndex();
+export interface RotatingPricingTier {
+    name: string | RegExp;
+    family: string;
+}
+
+const pricingTiers: RotatingPricingTier[] = [
+    { name: /P1v2/, family: "Pv2" },
+    { name: 'P2v2', family: "Pv2" },
+    { name: 'P3v2', family: "Pv2" },
+    { name: /B1/, family: "B" },
+    { name: 'B2', family: "B" },
+    { name: 'B3', family: "B" },
+    { name: 'S1', family: "S" },
+    { name: 'S2', family: "S" },
+    { name: 'S3', family: "S" },
+];
+
+let pricingTierCount: number = getStartingIndex();
+export function getRotatingPricingTier(): RotatingPricingTier {
+    pricingTierCount += 1;
+    return pricingTiers[pricingTierCount % pricingTiers.length];
+}
+
 const locations: string[] = ['Australia East', 'East Asia', 'East US', 'North Europe', 'South Central US', 'Southeast Asia', 'UK South', 'West Europe'];
+let locationCount: number = getStartingIndex();
 export function getRotatingLocation(): string {
     locationCount += 1;
     return locations[locationCount % locations.length];
 }
 
-let pricingTierCount: number = getStartingIndex();
-const pricingTiers: (string | RegExp)[] = [/P1v2/, 'P2v2', 'P3v2', /B1/, 'B2', 'B3', 'S1', 'S2', 'S3'];
-export function getRotatingPricingTier(): string | RegExp {
-    pricingTierCount += 1;
-    return pricingTiers[pricingTierCount % pricingTiers.length];
+
+let zoneRedundancyCount: number = getStartingIndex();
+const zoneRedundancyEnablement: string[] = ['Enabled', 'Disabled'];
+export function getRotatingZoneRedundancyEnablement(): string {
+    zoneRedundancyCount += 1;
+    return zoneRedundancyEnablement[zoneRedundancyCount % zoneRedundancyEnablement.length];
 }
 
 /**
