@@ -4,9 +4,6 @@
 ### Added
 * [[2662]](https://github.com/microsoft/vscode-azureappservice/pull/2662) Use a list task for the cache that is used for all resolving
 
-### Removed
-* [[2654]](https://github.com/microsoft/vscode-azureappservice/pull/2654) Remove database connection logic and view
-
 ### Engineering
 * [[2663]](https://github.com/microsoft/vscode-azureappservice/pull/2663),  [[2655]](https://github.com/microsoft/vscode-azureappservice/pull/2655) Improve telemetry and performance
 
