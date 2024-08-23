@@ -1,5 +1,15 @@
 # Change Log
 
+## 0.25.3 - 2024-08-23
+### Added
+* [[2662]](https://github.com/microsoft/vscode-azureappservice/pull/2662) Use a list task for the cache that is used for all resolving
+
+### Removed
+* [[2654]](https://github.com/microsoft/vscode-azureappservice/pull/2654) Remove database connection logic and view
+
+### Engineering
+* [[2663]](https://github.com/microsoft/vscode-azureappservice/pull/2663),  [[2655]](https://github.com/microsoft/vscode-azureappservice/pull/2655) Improve telemetry and performance
+
 ## 0.25.2 - 2024-02-29
 ### Added
 * [[2621]](https://github.com/microsoft/vscode-azureappservice/pull/2621) Deploy `.zip` files with right-click deployment
