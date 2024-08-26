@@ -26,7 +26,7 @@ jobs:
         with:
           token: ${{secrets.AZCODE_BOT_PAT}}
           owner: "microsoft"
-          repo: "vscode-azureresourcegroups"
+          repo: "vscode-azureappservice"
           candidateMilestoneID: 34
           candidateMilestoneName: "Backlog Candidates"
           backlogMilestoneID: 39
