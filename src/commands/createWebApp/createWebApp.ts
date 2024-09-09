@@ -5,7 +5,7 @@
 
 import { AppInsightsCreateStep, AppInsightsListStep, AppKind, AppServicePlanCreateStep, AppServicePlanListStep, AppServicePlanSkuStep, CustomLocationListStep, LogAnalyticsCreateStep, ParsedSite, setLocationsTask, SiteNameStep } from "@microsoft/vscode-azext-azureappservice";
 import { LocationListStep, ResourceGroupCreateStep, ResourceGroupListStep, SubscriptionTreeItemBase, VerifyProvidersStep } from "@microsoft/vscode-azext-azureutils";
-import { AzureWizard, nonNullProp, parseError, type AzExtParentTreeItem, type AzureWizardExecuteStep, type AzureWizardPromptStep, type IActionContext, type ICreateChildImplContext } from "@microsoft/vscode-azext-utils";
+import { AzureWizard, maskUserInfo, nonNullProp, parseError, type AzExtParentTreeItem, type AzureWizardExecuteStep, type AzureWizardPromptStep, type IActionContext, type ICreateChildImplContext } from "@microsoft/vscode-azext-utils";
 import { webProvider } from "../../constants";
 import { ext } from "../../extensionVariables";
 import { localize } from "../../localize";
@@ -93,7 +93,7 @@ export async function createWebApp(context: IActionContext & Partial<ICreateChil
         await newNode.enableLogs(context);
     } catch (error) {
         // optional part of creating web app, so not worth blocking on error
-        context.telemetry.properties.fileLoggingError = parseError(error).message;
+        context.telemetry.properties.fileLoggingError = maskUserInfo(parseError(error).message, []);
     }
 
     if (!suppressCreatedWebAppMessage) {
