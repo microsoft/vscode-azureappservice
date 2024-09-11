@@ -7,7 +7,6 @@ import { type IAzExtOutputChannel, type IExperimentationServiceAdapter } from "@
 import { type AzureHostExtensionApi } from "@microsoft/vscode-azext-utils/hostapi";
 import { type ExtensionContext } from "vscode";
 import { type AppServiceFileSystem } from "./AppServiceFileSystem";
-import { type AzureAccountTreeItem } from "./tree/AzureAccountTreeItem";
 
 /**
  * Namespace for common variables used throughout the extension. They must be initialized in the activate() method of extension.ts
@@ -19,7 +18,6 @@ export namespace ext {
     export let fileSystem: AppServiceFileSystem;
     export const prefix: string = 'appService';
 
-    export let azureAccountTreeItem: AzureAccountTreeItem;
     export let experimentationService: IExperimentationServiceAdapter;
     export let rgApi: AzureHostExtensionApi;
 }
