@@ -1,4 +1,8 @@
 # Change Log
+## 0.25.3 - 2024-08-23
+### Engineering
+* [[2667](https://github.com/microsoft/vscode-azureappservice/pull/2667)] [[2676](https://github.com/microsoft/vscode-azureappservice/pull/2676)] Update release pipeline to support signing
+* [[2674](https://github.com/microsoft/vscode-azureappservice/pull/2674)] [[2675](https://github.com/microsoft/vscode-azureappservice/pull/2675)] Upgrade packages for various improvements to telemetry reporting
 
 ## 0.25.3 - 2024-08-23
 ### Added
