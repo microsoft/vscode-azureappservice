@@ -33,4 +33,5 @@ extends:
     runID: $(resources.pipeline.build.runID)
     publishVersion: ${{ parameters.publishVersion }}
     dryRun: ${{ parameters.dryRun }}
+    publishParameters: "--allow-proposed-apis terminalDataWriteEvent"
     environmentName: AzCodeDeploy
