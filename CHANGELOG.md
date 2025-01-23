@@ -1,4 +1,15 @@
 # Change Log
+## 0.25.4 - 2024-10-04
+### Engineering
+* [[2667](https://github.com/microsoft/vscode-azureappservice/pull/2667)] [[2676](https://github.com/microsoft/vscode-azureappservice/pull/2676)] Update release pipeline to support signing
+* [[2674](https://github.com/microsoft/vscode-azureappservice/pull/2674)] [[2675](https://github.com/microsoft/vscode-azureappservice/pull/2675)] Upgrade packages for various improvements to telemetry reporting
+
+## 0.25.3 - 2024-08-23
+### Added
+* [[2662]](https://github.com/microsoft/vscode-azureappservice/pull/2662) Use a list task for the cache that is used for all resolving
+
+### Engineering
+* [[2663]](https://github.com/microsoft/vscode-azureappservice/pull/2663),  [[2655]](https://github.com/microsoft/vscode-azureappservice/pull/2655) Improve telemetry and performance
 
 ## 0.25.2 - 2024-02-29
 ### Added

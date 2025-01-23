@@ -6,7 +6,7 @@
 import { type ServiceClient } from '@azure/core-client';
 import { createPipelineRequest } from '@azure/core-rest-pipeline';
 import { createGenericClient, type AzExtPipelineResponse } from '@microsoft/vscode-azext-azureutils';
-import { parseError, type IAzureQuickPickItem } from '@microsoft/vscode-azext-utils';
+import { maskUserInfo, parseError, type IAzureQuickPickItem } from '@microsoft/vscode-azext-utils';
 import { localize } from '../../../localize';
 import { createRequestUrl } from '../../../utils/requestUtils';
 import { getWorkspaceSetting } from '../../../vsCodeConfig/settings';
@@ -111,7 +111,7 @@ async function getStacks(context: IWebAppWizardContext & { _stacks?: WebAppStack
             // Some environments (like Azure Germany/Mooncake) don't support the stacks ARM API yet
             // And since the stacks don't change _that_ often, we'll just use a backup hard-coded value
             stacksArmResponse = <StacksArmResponse>JSON.parse(backupStacks);
-            context.telemetry.properties.getStacksError = parseError(error).message;
+            context.telemetry.properties.getStacksError = maskUserInfo(parseError(error).message, []);
             context.usingBackupStacks = true;
         }
 

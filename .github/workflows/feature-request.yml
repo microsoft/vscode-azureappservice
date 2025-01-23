@@ -27,6 +27,8 @@ jobs:
           app_id: ${{ secrets.AZURETOOLS_VSCODE_BOT_APP_ID }}
           app_installation_id: ${{ secrets.AZURETOOLS_VSCODE_BOT_APP_INSTALLATION_ID }}
           app_private_key: ${{ secrets.AZURETOOLS_VSCODE_BOT_APP_PRIVATE_KEY }}
+          owner: "microsoft"
+          repo: "vscode-azureappservice"
           candidateMilestoneID: 34
           candidateMilestoneName: "Backlog Candidates"
           backlogMilestoneID: 39
