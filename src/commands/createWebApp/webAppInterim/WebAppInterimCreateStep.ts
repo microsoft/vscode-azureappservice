@@ -3,9 +3,9 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { type NameValuePair, type Site, type SiteConfig } from '@azure/arm-appservice';
+import { type NameValuePair, type SiteConfig, type WebSiteManagementClient } from '@azure/arm-appservice';
 import { createHttpHeaders, createPipelineRequest } from '@azure/core-rest-pipeline';
-import { WebsiteOS, type CustomLocation } from '@microsoft/vscode-azext-azureappservice';
+import { createWebSiteClient, WebsiteOS, type CustomLocation } from '@microsoft/vscode-azext-azureappservice';
 import { createGenericClient, LocationListStep, type AzExtPipelineResponse, type AzExtRequestPrepareOptions } from '@microsoft/vscode-azext-azureutils';
 import { AzureWizardExecuteStep } from '@microsoft/vscode-azext-utils';
 import { type AppResource } from '@microsoft/vscode-azext-utils/hostapi';
@@ -41,6 +41,7 @@ export class WebAppInterimCreateStep extends AzureWizardExecuteStep<IWebAppWizar
         const siteName: string = nonNullProp(context, 'newSiteName');
         const rgName: string = nonNullProp(nonNullProp(context, 'resourceGroup'), 'name');
 
+        // The SDK does not currently support this updated api version, so we should make the call to the endpoint manually until the SDK gets updated
         const authToken = (await context.credentials.getToken() as { token?: string }).token;
         const options: AzExtRequestPrepareOptions = {
             url: `https://management.azure.com/subscriptions/${context.subscriptionId}/resourceGroups/${rgName}/providers/Microsoft.Web/sites/${siteName}?api-version=2024-04-01`,
@@ -53,9 +54,12 @@ export class WebAppInterimCreateStep extends AzureWizardExecuteStep<IWebAppWizar
         };
 
         const client = await createGenericClient(context, undefined);
-        const response = await client.sendRequest(createPipelineRequest(options)) as AzExtPipelineResponse;
+        // We don't care about storing the response here because the manual response returned is different from the SDK formatting that our code expects.
+        // The stored site should come from the SDK instead.
+        await client.sendRequest(createPipelineRequest(options)) as AzExtPipelineResponse;
 
-        context.site = response.parsedBody as Site;
+        const sdkClient: WebSiteManagementClient = await createWebSiteClient(context);
+        context.site = await sdkClient.webApps.get(rgName, siteName);
         context.activityResult = context.site as AppResource;
     }
 
