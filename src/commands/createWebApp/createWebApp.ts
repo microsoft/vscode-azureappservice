@@ -16,7 +16,7 @@ import { SetPostPromptDefaultsStep } from "./SetPostPromptDefaultsStep";
 import { setPrePromptDefaults } from "./setPrePromptDefaults";
 import { getCreatedWebAppMessage, showCreatedWebAppMessage } from "./showCreatedWebAppMessage";
 import { WebAppStackStep } from "./stacks/WebAppStackStep";
-import { WebAppCreateStep } from "./WebAppCreateStep";
+import { WebAppInterimCreateStep } from "./webAppInterim/WebAppInterimCreateStep";
 
 function isSubscription(item?: AzExtParentTreeItem): boolean {
     try {
@@ -64,7 +64,7 @@ export async function createWebApp(context: IActionContext & Partial<ICreateChil
 
     executeSteps.push(new VerifyProvidersStep([webProvider, 'Microsoft.Insights']));
     executeSteps.push(new LogAnalyticsCreateStep());
-    executeSteps.push(new WebAppCreateStep());
+    executeSteps.push(new WebAppInterimCreateStep());
 
     if (wizardContext.newSiteOS !== undefined) {
         await setLocationsTask(wizardContext);

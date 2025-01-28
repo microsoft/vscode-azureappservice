@@ -773,15 +773,15 @@
         "webpack-cli": "^4.6.0"
     },
     "dependencies": {
-        "@azure/arm-appservice": "^13.0.2",
+        "@azure/arm-appservice": "^15.0.0",
         "@azure/arm-resources": "^5.0.0",
         "@azure/core-client": "^1.7.3",
         "@azure/core-rest-pipeline": "^1.11.0",
-        "@microsoft/vscode-azext-azureappservice": "^3.1.0",
+        "@microsoft/vscode-azext-azureappservice": "^3.3.1",
         "@microsoft/vscode-azext-azureappsettings": "^0.2.0",
         "@microsoft/vscode-azext-azureutils": "^3.1.1",
         "@microsoft/vscode-azext-utils": "^2.5.7",
-        "@microsoft/vscode-azureresources-api": "^2.1.0",
+        "@microsoft/vscode-azureresources-api": "^2.3.2",
         "dotenv": "^6.2.0",
         "fast-xml-parser": "^4.4.1",
         "fs-extra": "^8.0.0",
