@@ -53,9 +53,9 @@ export async function createWebApp(context: IActionContext & Partial<ICreateChil
         promptSteps.push(new AppServicePlanListStep());
         promptSteps.push(new AppInsightsListStep());
     } else {
+        LocationListStep.addStep(wizardContext, promptSteps);
         promptSteps.push(new WebAppStackStep());
         promptSteps.push(new AppServicePlanSkuStep());
-        LocationListStep.addStep(wizardContext, promptSteps);
         executeSteps.push(new ResourceGroupCreateStep());
         executeSteps.push(new AppServicePlanCreateStep());
         executeSteps.push(new AppInsightsCreateStep());

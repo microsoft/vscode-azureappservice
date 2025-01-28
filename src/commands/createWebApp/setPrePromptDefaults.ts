@@ -34,10 +34,4 @@ export async function setPrePromptDefaults(wizardContext: IWebAppWizardContext &
             await LocationListStep.setLocation(wizardContext, 'weseteurope');
         }
     }
-
-    if (!wizardContext.advancedCreation) {
-        if (!LocationListStep.hasLocation(wizardContext)) {
-            await LocationListStep.setLocation(wizardContext, 'centralus');
-        }
-    }
 }
