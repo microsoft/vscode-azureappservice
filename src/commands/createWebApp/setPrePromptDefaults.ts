@@ -31,7 +31,7 @@ export async function setPrePromptDefaults(wizardContext: IWebAppWizardContext &
             wizardContext.recommendedSiteRuntime = ['java'];
 
             // to avoid 'Requested features are not supported in region' error
-            await LocationListStep.setLocation(wizardContext, 'weseteurope');
+            await LocationListStep.setLocation(wizardContext, 'westeurope');
         }
     }
 }
