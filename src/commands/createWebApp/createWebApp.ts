@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { AppInsightsCreateStep, AppInsightsListStep, AppKind, AppServicePlanCreateStep, AppServicePlanListStep, AppServicePlanSkuStep, CustomLocationListStep, LogAnalyticsCreateStep, ParsedSite, setLocationsTask, SiteNameStep } from "@microsoft/vscode-azext-azureappservice";
+import { AppInsightsCreateStep, AppInsightsListStep, AppKind, AppServicePlanCreateStep, AppServicePlanListStep, AppServicePlanSkuStep, CustomLocationListStep, LogAnalyticsCreateStep, ParsedSite, setLocationsTask, SiteDomainNameLabelScopeStep, SiteNameStep } from "@microsoft/vscode-azext-azureappservice";
 import { LocationListStep, ResourceGroupCreateStep, ResourceGroupListStep, SubscriptionTreeItemBase, VerifyProvidersStep } from "@microsoft/vscode-azext-azureutils";
 import { AzureWizard, maskUserInfo, nonNullProp, parseError, type AzExtParentTreeItem, type AzureWizardExecuteStep, type AzureWizardPromptStep, type IActionContext, type ICreateChildImplContext } from "@microsoft/vscode-azext-utils";
 import { webProvider } from "../../constants";
@@ -11,12 +11,12 @@ import { ext } from "../../extensionVariables";
 import { localize } from "../../localize";
 import { SiteTreeItem } from "../../tree/SiteTreeItem";
 import { createActivityContext } from "../../utils/activityUtils";
+import { WebAppInterimCreateStep } from "./interimResources/WebAppInterimCreateStep";
 import { type IWebAppWizardContext } from "./IWebAppWizardContext";
 import { SetPostPromptDefaultsStep } from "./SetPostPromptDefaultsStep";
 import { setPrePromptDefaults } from "./setPrePromptDefaults";
 import { getCreatedWebAppMessage, showCreatedWebAppMessage } from "./showCreatedWebAppMessage";
 import { WebAppStackStep } from "./stacks/WebAppStackStep";
-import { WebAppInterimCreateStep } from "./webAppInterim/WebAppInterimCreateStep";
 
 function isSubscription(item?: AzExtParentTreeItem): boolean {
     try {
@@ -43,6 +43,11 @@ export async function createWebApp(context: IActionContext & Partial<ICreateChil
 
     const promptSteps: AzureWizardPromptStep<IWebAppWizardContext>[] = [];
     const executeSteps: AzureWizardExecuteStep<IWebAppWizardContext>[] = [];
+
+    // Add these steps to the front because we need the location information first for checking name availability later
+    LocationListStep.addStep(wizardContext, promptSteps);
+    promptSteps.push(new SiteDomainNameLabelScopeStep());
+
     const siteStep: SiteNameStep = new SiteNameStep();
     promptSteps.push(siteStep);
 
@@ -53,7 +58,6 @@ export async function createWebApp(context: IActionContext & Partial<ICreateChil
         promptSteps.push(new AppServicePlanListStep());
         promptSteps.push(new AppInsightsListStep());
     } else {
-        LocationListStep.addStep(wizardContext, promptSteps);
         promptSteps.push(new WebAppStackStep());
         promptSteps.push(new AppServicePlanSkuStep());
         executeSteps.push(new ResourceGroupCreateStep());
