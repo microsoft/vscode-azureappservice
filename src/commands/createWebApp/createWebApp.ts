@@ -44,15 +44,17 @@ export async function createWebApp(context: IActionContext & Partial<ICreateChil
     const promptSteps: AzureWizardPromptStep<IWebAppWizardContext>[] = [];
     const executeSteps: AzureWizardExecuteStep<IWebAppWizardContext>[] = [];
 
-    // Add these steps to the front because we need the location information first for checking name availability later
+    // Add these steps to the front because we need this information for checking site name availability
     LocationListStep.addStep(wizardContext, promptSteps);
     promptSteps.push(new SiteDomainNameLabelScopeStep());
+    if (context.advancedCreation) {
+        promptSteps.push(new ResourceGroupListStep());
+    }
 
     const siteStep: SiteNameStep = new SiteNameStep();
     promptSteps.push(siteStep);
 
     if (context.advancedCreation) {
-        promptSteps.push(new ResourceGroupListStep());
         promptSteps.push(new WebAppStackStep());
         CustomLocationListStep.addStep(wizardContext, promptSteps);
         promptSteps.push(new AppServicePlanListStep());

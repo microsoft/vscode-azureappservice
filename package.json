@@ -780,7 +780,7 @@
         "@microsoft/vscode-azext-azureappservice": "file:../vscode-azuretools/appservice/microsoft-vscode-azext-azureappservice-3.3.1.tgz",
         "@microsoft/vscode-azext-azureappsettings": "^0.2.0",
         "@microsoft/vscode-azext-azureutils": "^3.1.1",
-        "@microsoft/vscode-azext-utils": "^2.5.7",
+        "@microsoft/vscode-azext-utils": "file:../vscode-azuretools/utils/microsoft-vscode-azext-utils-2.5.13.tgz",
         "@microsoft/vscode-azureresources-api": "^2.3.2",
         "dotenv": "^6.2.0",
         "fast-xml-parser": "^4.4.1",

@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { type IDeployContext } from '@microsoft/vscode-azext-azureappservice';
+import { DomainNameLabelScope, type IDeployContext } from '@microsoft/vscode-azext-azureappservice';
 import { LocationListStep } from '@microsoft/vscode-azext-azureutils';
 import { type ICreateChildImplContext } from '@microsoft/vscode-azext-utils';
 import * as fse from 'fs-extra';
@@ -33,5 +33,9 @@ export async function setPrePromptDefaults(wizardContext: IWebAppWizardContext &
             // to avoid 'Requested features are not supported in region' error
             await LocationListStep.setLocation(wizardContext, 'westeurope');
         }
+    }
+
+    if (!wizardContext.advancedCreation) {
+        wizardContext.newSiteDomainNameLabelScope = DomainNameLabelScope.Tenant;
     }
 }
