@@ -18,8 +18,11 @@ export class WebAppResolver implements AppResourceResolver {
 
             if (this.siteCacheLastUpdated < Date.now() - 1000 * 3) {
                 this.siteCacheLastUpdated = Date.now();
+
                 this.listWebAppsTask = new Promise((resolve, reject) => {
                     this.siteCache.clear();
+                    this.siteNameCounter.clear();
+
                     uiUtils.listAllIterator(client.webApps.list()).then((sites) => {
                         for (const site of sites) {
                             const siteName: string = nonNullProp(site, 'name');
@@ -41,7 +44,7 @@ export class WebAppResolver implements AppResourceResolver {
 
             return new ResolvedWebAppResource(subContext, nonNullValue(site), {
                 // Multiple sites with the same name could be displayed as long as they are in different locations
-                // To help distinguish these apps for our users, lookahead and determine if the location should be provided for duplicate site names
+                // To help distinguish these apps for our users, lookahead and determine if the location should be provided for duplicated site names
                 showLocationAsTreeItemDescription: (this.siteNameCounter.get(nonNullValueAndProp(site, 'name')) ?? 1) > 1,
             });
         });

@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { AppInsightsCreateStep, AppInsightsListStep, AppKind, AppServicePlanCreateStep, AppServicePlanListStep, AppServicePlanSkuStep, CustomLocationListStep, LogAnalyticsCreateStep, ParsedSite, setLocationsTask, SiteDomainNameLabelScopeStep, SiteNameStep } from "@microsoft/vscode-azext-azureappservice";
+import { AppInsightsCreateStep, AppInsightsListStep, AppKind, AppServicePlanCreateStep, AppServicePlanListStep, AppServicePlanSkuStep, CustomLocationListStep, DomainNameLabelScope, LogAnalyticsCreateStep, ParsedSite, setLocationsTask, SiteDomainNameLabelScopeStep, SiteNameStep } from "@microsoft/vscode-azext-azureappservice";
 import { LocationListStep, ResourceGroupCreateStep, ResourceGroupListStep, SubscriptionTreeItemBase, VerifyProvidersStep } from "@microsoft/vscode-azext-azureutils";
 import { AzureWizard, maskUserInfo, nonNullProp, parseError, type AzExtParentTreeItem, type AzureWizardExecuteStep, type AzureWizardPromptStep, type IActionContext, type ICreateChildImplContext } from "@microsoft/vscode-azext-utils";
 import { webProvider } from "../../constants";
@@ -11,12 +11,13 @@ import { ext } from "../../extensionVariables";
 import { localize } from "../../localize";
 import { SiteTreeItem } from "../../tree/SiteTreeItem";
 import { createActivityContext } from "../../utils/activityUtils";
-import { WebAppInterimCreateStep } from "./interimResources/WebAppInterimCreateStep";
+import { WebAppWithDomainLabelScopeCreateStep } from "./domainLabelScope/WebAppWithDomainLabelScopeCreateStep";
 import { type IWebAppWizardContext } from "./IWebAppWizardContext";
 import { SetPostPromptDefaultsStep } from "./SetPostPromptDefaultsStep";
 import { setPrePromptDefaults } from "./setPrePromptDefaults";
 import { getCreatedWebAppMessage, showCreatedWebAppMessage } from "./showCreatedWebAppMessage";
 import { WebAppStackStep } from "./stacks/WebAppStackStep";
+import { WebAppCreateStep } from "./WebAppCreateStep";
 
 function isSubscription(item?: AzExtParentTreeItem): boolean {
     try {
@@ -70,7 +71,6 @@ export async function createWebApp(context: IActionContext & Partial<ICreateChil
 
     executeSteps.push(new VerifyProvidersStep([webProvider, 'Microsoft.Insights']));
     executeSteps.push(new LogAnalyticsCreateStep());
-    executeSteps.push(new WebAppInterimCreateStep());
 
     if (wizardContext.newSiteOS !== undefined) {
         await setLocationsTask(wizardContext);
@@ -82,14 +82,18 @@ export async function createWebApp(context: IActionContext & Partial<ICreateChil
     await wizard.prompt();
 
     const newSiteName = nonNullProp(wizardContext, 'newSiteName');
-
     wizardContext.activityTitle = localize('createWebApp', 'Create Web App "{0}"', newSiteName);
+
+    if (wizardContext.newSiteDomainNameLabelScope === DomainNameLabelScope.Global) {
+        executeSteps.push(new WebAppCreateStep());
+    } else {
+        executeSteps.push(new WebAppWithDomainLabelScopeCreateStep());
+    }
 
     await wizard.execute();
     await ext.rgApi.appResourceTree.refresh(context);
 
     const rawSite = nonNullProp(wizardContext, 'site');
-    // site is set as a result of SiteCreateStep.execute()
     const site = new ParsedSite(rawSite, wizardContext);
     ext.outputChannel.appendLog(getCreatedWebAppMessage(site));
 

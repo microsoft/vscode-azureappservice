@@ -1,11 +1,5 @@
 import { type SiteConfig } from "@azure/arm-appservice";
-
-export enum DomainNameLabelScope {
-    Tenant = 'TenantReuse',
-    Subscription = 'SubscriptionReuse',
-    ResourceGroup = 'ResourceGroupReuse',
-    Global = 'NoReuse',
-}
+import { type DomainNameLabelScope } from "@microsoft/vscode-azext-azureappservice";
 
 export interface SiteInterim {
     name?: string;
