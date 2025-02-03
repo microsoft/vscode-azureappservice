@@ -17,7 +17,7 @@ import { nonNullProp } from '../../../utils/nonNull';
 import { type FullJavaStack, type FullWebAppStack, type IWebAppWizardContext } from '../IWebAppWizardContext';
 import { getJavaLinuxRuntime } from '../stacks/getJavaLinuxRuntime';
 import { type WebAppStackValue, type WindowsJavaContainerSettings } from '../stacks/models/WebAppStackModel';
-import { type SiteInterim } from './types';
+import { type SitePayload } from './types';
 
 export class WebAppWithDomainLabelScopeCreateStep extends AzureWizardExecuteStep<IWebAppWizardContext> {
     public priority: number = 140;
@@ -67,11 +67,11 @@ export class WebAppWithDomainLabelScopeCreateStep extends AzureWizardExecuteStep
         return !context.site;
     }
 
-    private async getNewSite(context: IWebAppWizardContext): Promise<SiteInterim> {
+    private async getNewSite(context: IWebAppWizardContext): Promise<SitePayload> {
         const location = await LocationListStep.getLocation(context, constants.webProvider);
         const newSiteConfig: SiteConfig = this.getSiteConfig(context);
 
-        const site: SiteInterim = {
+        const site: SitePayload = {
             name: context.newSiteName,
             kind: this.getKind(context),
             location: nonNullProp(location, 'name'),
@@ -102,7 +102,7 @@ export class WebAppWithDomainLabelScopeCreateStep extends AzureWizardExecuteStep
         return kind;
     }
 
-    private addCustomLocationProperties(site: SiteInterim, customLocation: CustomLocation): void {
+    private addCustomLocationProperties(site: SitePayload, customLocation: CustomLocation): void {
         site.extendedLocation = { name: customLocation.id, type: 'customLocation' };
     }
 
