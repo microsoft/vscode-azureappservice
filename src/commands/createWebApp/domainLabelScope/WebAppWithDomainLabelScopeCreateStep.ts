@@ -44,7 +44,7 @@ export class WebAppWithDomainLabelScopeCreateStep extends AzureWizardExecuteStep
         // The SDK does not currently support this updated api version, so we should make the call to the endpoint manually until the SDK gets updated
         const authToken = (await context.credentials.getToken() as { token?: string }).token;
         const options: AzExtRequestPrepareOptions = {
-            url: `https://management.azure.com/subscriptions/${context.subscriptionId}/resourceGroups/${rgName}/providers/Microsoft.Web/sites/${siteName}?api-version=2024-04-01`,
+            url: `${context.environment.resourceManagerEndpointUrl}subscriptions/${context.subscriptionId}/resourceGroups/${rgName}/providers/Microsoft.Web/sites/${siteName}?api-version=2024-04-01`,
             method: 'PUT',
             headers: createHttpHeaders({
                 'Content-Type': 'application/json',
