@@ -4,16 +4,16 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { type NameValuePair, type Site, type SiteConfig, type WebSiteManagementClient } from '@azure/arm-appservice';
-import { WebsiteOS, type CustomLocation } from '@microsoft/vscode-azext-azureappservice';
-import { LocationListStep } from '@microsoft/vscode-azext-azureutils';
-import { AzureWizardExecuteStep } from '@microsoft/vscode-azext-utils';
+import { createHttpHeaders, createPipelineRequest } from '@azure/core-rest-pipeline';
+import { createWebSiteClient, DomainNameLabelScope, WebsiteOS, type CustomLocation } from '@microsoft/vscode-azext-azureappservice';
+import { createGenericClient, LocationListStep, type AzExtPipelineResponse, type AzExtRequestPrepareOptions } from '@microsoft/vscode-azext-azureutils';
+import { AzureWizardExecuteStep, nonNullProp } from '@microsoft/vscode-azext-utils';
 import { type AppResource } from '@microsoft/vscode-azext-utils/hostapi';
 import { type Progress } from 'vscode';
-import * as constants from '../../constants';
+import { webProvider } from '../../constants';
 import { ext } from '../../extensionVariables';
 import { localize } from '../../localize';
-import { createWebSiteClient } from '../../utils/azureClients';
-import { nonNullProp } from '../../utils/nonNull';
+import { type SitePayload } from './domainLabelScopeTypes';
 import { type FullJavaStack, type FullWebAppStack, type IWebAppWizardContext } from './IWebAppWizardContext';
 import { getJavaLinuxRuntime } from './stacks/getJavaLinuxRuntime';
 import { type WebAppStackValue, type WindowsJavaContainerSettings } from './stacks/models/WebAppStackModel';
@@ -40,8 +40,7 @@ export class WebAppCreateStep extends AzureWizardExecuteStep<IWebAppWizardContex
         const siteName: string = nonNullProp(context, 'newSiteName');
         const rgName: string = nonNullProp(nonNullProp(context, 'resourceGroup'), 'name');
 
-        const client: WebSiteManagementClient = await createWebSiteClient(context);
-        context.site = (await client.webApps.beginCreateOrUpdateAndWait(rgName, siteName, await this.getNewSite(context)));
+        context.site = await this.createWebApp(context, rgName, siteName);
         context.activityResult = context.site as AppResource;
     }
 
@@ -49,8 +48,21 @@ export class WebAppCreateStep extends AzureWizardExecuteStep<IWebAppWizardContex
         return !context.site;
     }
 
+    private async createWebApp(context: IWebAppWizardContext, rgName: string, siteName: string): Promise<Site> {
+        const client: WebSiteManagementClient = await createWebSiteClient(context);
+
+        return context.newSiteDomainNameLabelScope === DomainNameLabelScope.Global ?
+            await this.createNewSite(context, client, rgName, siteName) :
+            await this.createNewSiteWithDomainLabelScope(context, client, rgName, siteName);
+    }
+
+    // #region createNewSite
+    private async createNewSite(context: IWebAppWizardContext, client: WebSiteManagementClient, rgName: string, siteName: string): Promise<Site> {
+        return await client.webApps.beginCreateOrUpdateAndWait(rgName, siteName, await this.getNewSite(context));
+    }
+
     private async getNewSite(context: IWebAppWizardContext): Promise<Site> {
-        const location = await LocationListStep.getLocation(context, constants.webProvider);
+        const location = await LocationListStep.getLocation(context, webProvider);
         const newSiteConfig: SiteConfig = this.getSiteConfig(context);
 
         const site: Site = {
@@ -69,6 +81,53 @@ export class WebAppCreateStep extends AzureWizardExecuteStep<IWebAppWizardContex
 
         return site;
     }
+    // #endregion
+
+    // #region createNewSiteWithDomainLabelScope
+    private async createNewSiteWithDomainLabelScope(context: IWebAppWizardContext, sdkClient: WebSiteManagementClient, rgName: string, siteName: string): Promise<Site> {
+        // The SDK does not currently support this updated api version, so we should make the call to the endpoint manually until the SDK gets updated
+        const authToken = (await context.credentials.getToken() as { token?: string }).token;
+        const options: AzExtRequestPrepareOptions = {
+            url: `${context.environment.resourceManagerEndpointUrl}subscriptions/${context.subscriptionId}/resourceGroups/${rgName}/providers/Microsoft.Web/sites/${siteName}?api-version=2024-04-01`,
+            method: 'PUT',
+            headers: createHttpHeaders({
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${authToken}`,
+            }),
+            body: JSON.stringify(await this.getNewSiteWithDomainLabelScope(context)),
+        };
+
+        const client = await createGenericClient(context, undefined);
+        // We don't care about storing the response here because the manual response returned is different from the SDK formatting that our code expects.
+        // The stored site should come from the SDK instead.
+        await client.sendRequest(createPipelineRequest(options)) as AzExtPipelineResponse;
+        return await sdkClient.webApps.get(rgName, siteName);
+    }
+
+    private async getNewSiteWithDomainLabelScope(context: IWebAppWizardContext): Promise<SitePayload> {
+        const location = await LocationListStep.getLocation(context, webProvider);
+        const newSiteConfig: SiteConfig = this.getSiteConfig(context);
+
+        const sitePayload: SitePayload = {
+            name: context.newSiteName,
+            kind: this.getKind(context),
+            location: nonNullProp(location, 'name'),
+            properties: {
+                autoGeneratedDomainNameLabelScope: context.newSiteDomainNameLabelScope,
+                clientAffinityEnabled: true,
+                serverFarmId: context.plan && context.plan.id,
+                reserved: context.newSiteOS === WebsiteOS.linux, // The secret property - must be set to true to make it a Linux plan. Confirmed by the team who owns this API.
+                siteConfig: newSiteConfig,
+            },
+        };
+
+        if (context.customLocation) {
+            this.addCustomLocationProperties(sitePayload, context.customLocation);
+        }
+
+        return sitePayload;
+    }
+    // #endregion
 
     private getKind(context: IWebAppWizardContext): string {
         let kind: string = context.newSiteKind;
@@ -81,7 +140,7 @@ export class WebAppCreateStep extends AzureWizardExecuteStep<IWebAppWizardContex
         return kind;
     }
 
-    private addCustomLocationProperties(site: Site, customLocation: CustomLocation): void {
+    private addCustomLocationProperties(site: Site | SitePayload, customLocation: CustomLocation): void {
         site.extendedLocation = { name: customLocation.id, type: 'customLocation' };
     }
 
