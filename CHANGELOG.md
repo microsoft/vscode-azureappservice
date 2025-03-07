@@ -1,4 +1,11 @@
 # Change Log
+
+## 0.25.4 - 2024-10-04
+
+### Changed
+* [[2707](https://github.com/microsoft/vscode-azureappservice/pull/2707)] Automatically collect subscription and resource information for telemetry. [How to disable telemetry reporting](https://code.visualstudio.com/docs/supporting/FAQ#_how-to-disable-telemetry-reporting)
+* [[2708](https://github.com/microsoft/vscode-azureappservice/pull/2708)] Require a minimum version of VS Code 1.95.0 (October 2024)
+
 ## 0.25.4 - 2024-10-04
 ### Engineering
 * [[2667](https://github.com/microsoft/vscode-azureappservice/pull/2667)] [[2676](https://github.com/microsoft/vscode-azureappservice/pull/2676)] Update release pipeline to support signing
