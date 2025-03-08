@@ -49,15 +49,14 @@ export class WebAppCreateStep extends AzureWizardExecuteStep<IWebAppWizardContex
     }
 
     private async createWebApp(context: IWebAppWizardContext, rgName: string, siteName: string): Promise<Site> {
-        const client: WebSiteManagementClient = await createWebSiteClient(context);
-
         return context.newSiteDomainNameLabelScope === DomainNameLabelScope.Global ?
-            await this.createNewSite(context, client, rgName, siteName) :
-            await this.createNewSiteWithDomainLabelScope(context, client, rgName, siteName);
+            await this.createNewSite(context, rgName, siteName) :
+            await this.createNewSiteWithDomainLabelScope(context, rgName, siteName);
     }
 
     // #region createNewSite
-    private async createNewSite(context: IWebAppWizardContext, client: WebSiteManagementClient, rgName: string, siteName: string): Promise<Site> {
+    private async createNewSite(context: IWebAppWizardContext, rgName: string, siteName: string): Promise<Site> {
+        const client: WebSiteManagementClient = await createWebSiteClient(context);
         return await client.webApps.beginCreateOrUpdateAndWait(rgName, siteName, await this.getNewSite(context));
     }
 
@@ -84,7 +83,7 @@ export class WebAppCreateStep extends AzureWizardExecuteStep<IWebAppWizardContex
     // #endregion
 
     // #region createNewSiteWithDomainLabelScope
-    private async createNewSiteWithDomainLabelScope(context: IWebAppWizardContext, sdkClient: WebSiteManagementClient, rgName: string, siteName: string): Promise<Site> {
+    private async createNewSiteWithDomainLabelScope(context: IWebAppWizardContext, rgName: string, siteName: string): Promise<Site> {
         // The SDK does not currently support this updated api version, so we should make the call to the endpoint manually until the SDK gets updated
         const apiVersion: string = '2024-04-01';
         const authToken = (await context.credentials.getToken() as { token?: string }).token;
@@ -102,6 +101,8 @@ export class WebAppCreateStep extends AzureWizardExecuteStep<IWebAppWizardContex
         // We don't care about storing the response here because the manual response returned is different from the SDK formatting that our code expects.
         // The stored site should come from the SDK instead.
         await client.sendRequest(createPipelineRequest(options)) as AzExtPipelineResponse;
+
+        const sdkClient: WebSiteManagementClient = await createWebSiteClient(context);
         return await sdkClient.webApps.get(rgName, siteName);
     }
 
