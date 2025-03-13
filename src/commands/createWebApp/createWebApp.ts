@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { AppInsightsCreateStep, AppInsightsListStep, AppKind, AppServicePlanCreateStep, AppServicePlanListStep, AppServicePlanSkuStep, CustomLocationListStep, LogAnalyticsCreateStep, ParsedSite, setLocationsTask, SiteNameStep } from "@microsoft/vscode-azext-azureappservice";
+import { AppInsightsCreateStep, AppInsightsListStep, AppKind, AppServicePlanCreateStep, AppServicePlanListStep, AppServicePlanSkuStep, CustomLocationListStep, LogAnalyticsCreateStep, ParsedSite, setLocationsTask, SiteDomainNameLabelScopeStep, SiteNameStep } from "@microsoft/vscode-azext-azureappservice";
 import { LocationListStep, ResourceGroupCreateStep, ResourceGroupListStep, SubscriptionTreeItemBase, VerifyProvidersStep } from "@microsoft/vscode-azext-azureutils";
 import { AzureWizard, maskUserInfo, nonNullProp, parseError, type AzExtParentTreeItem, type AzureWizardExecuteStep, type AzureWizardPromptStep, type IActionContext, type ICreateChildImplContext } from "@microsoft/vscode-azext-utils";
 import { webProvider } from "../../constants";
@@ -43,11 +43,19 @@ export async function createWebApp(context: IActionContext & Partial<ICreateChil
 
     const promptSteps: AzureWizardPromptStep<IWebAppWizardContext>[] = [];
     const executeSteps: AzureWizardExecuteStep<IWebAppWizardContext>[] = [];
+
+    // #region SiteNameStep pre-requisites
+    LocationListStep.addStep(wizardContext, promptSteps);
+    promptSteps.push(new SiteDomainNameLabelScopeStep());
+    if (context.advancedCreation) {
+        promptSteps.push(new ResourceGroupListStep());
+    }
+    // #endregion
+
     const siteStep: SiteNameStep = new SiteNameStep();
     promptSteps.push(siteStep);
 
     if (context.advancedCreation) {
-        promptSteps.push(new ResourceGroupListStep());
         promptSteps.push(new WebAppStackStep());
         CustomLocationListStep.addStep(wizardContext, promptSteps);
         promptSteps.push(new AppServicePlanListStep());
@@ -55,7 +63,6 @@ export async function createWebApp(context: IActionContext & Partial<ICreateChil
     } else {
         promptSteps.push(new WebAppStackStep());
         promptSteps.push(new AppServicePlanSkuStep());
-        LocationListStep.addStep(wizardContext, promptSteps);
         executeSteps.push(new ResourceGroupCreateStep());
         executeSteps.push(new AppServicePlanCreateStep());
         executeSteps.push(new AppInsightsCreateStep());
@@ -76,14 +83,12 @@ export async function createWebApp(context: IActionContext & Partial<ICreateChil
     await wizard.prompt();
 
     const newSiteName = nonNullProp(wizardContext, 'newSiteName');
-
     wizardContext.activityTitle = localize('createWebApp', 'Create Web App "{0}"', newSiteName);
 
     await wizard.execute();
     await ext.rgApi.appResourceTree.refresh(context);
 
     const rawSite = nonNullProp(wizardContext, 'site');
-    // site is set as a result of SiteCreateStep.execute()
     const site = new ParsedSite(rawSite, wizardContext);
     ext.outputChannel.appendLog(getCreatedWebAppMessage(site));
 
