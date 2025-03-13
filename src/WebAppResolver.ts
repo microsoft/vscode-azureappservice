@@ -4,6 +4,7 @@ import { callWithTelemetryAndErrorHandling, nonNullProp, nonNullValue, nonNullVa
 import { type AppResource, type AppResourceResolver } from "@microsoft/vscode-azext-utils/hostapi";
 import { ResolvedWebAppResource } from "./tree/ResolvedWebAppResource";
 import { createWebSiteClient } from "./utils/azureClients";
+import { getGlobalSetting } from "./vsCodeConfig/settings";
 
 export class WebAppResolver implements AppResourceResolver {
 
@@ -42,10 +43,11 @@ export class WebAppResolver implements AppResourceResolver {
             await this.listWebAppsTask;
             const site = this.siteCache.get(nonNullProp(resource, 'id').toLowerCase());
 
+            const groupBy: string | undefined = getGlobalSetting<string>('groupBy', 'azureResourceGroups');
             return new ResolvedWebAppResource(subContext, nonNullValue(site), {
                 // Multiple sites with the same name could be displayed as long as they are in different locations
                 // To help distinguish these apps for our users, lookahead and determine if the location should be provided for duplicated site names
-                showLocationAsTreeItemDescription: (this.siteNameCounter.get(nonNullValueAndProp(site, 'name')) ?? 1) > 1,
+                showLocationAsTreeItemDescription: groupBy !== 'location' && (this.siteNameCounter.get(nonNullValueAndProp(site, 'name')) ?? 1) > 1,
             });
         });
     }
