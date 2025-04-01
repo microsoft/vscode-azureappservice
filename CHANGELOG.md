@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.25.6 - 2025-04-01
+### Added
+* [[2703](https://github.com/microsoft/vscode-azureappservice/pull/2703)] Add support for domain name label scopes
+
 ## 0.25.5 - 2025-03-13
 
 ### Changed
