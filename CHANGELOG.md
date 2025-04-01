@@ -9,6 +9,9 @@ please refer to this [post](https://aka.ms/AAu7lhs).
 ### Added
 * [[2703](https://github.com/microsoft/vscode-azureappservice/pull/2703)] Add support for unique default hostnames when creating a new web app.
 
+### Changed
+* [[2703](https://github.com/microsoft/vscode-azureappservice/pull/2703)] Re-ordered some steps in the `createWebApp` experience in order to support new unique default hostname CNA requirements
+
 ## 0.25.5 - 2025-03-13
 
 ### Changed
