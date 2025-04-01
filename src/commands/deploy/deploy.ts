@@ -25,6 +25,7 @@ import { getWorkspaceSetting } from '../../vsCodeConfig/settings';
 import { LinuxRuntimes } from '../createWebApp/LinuxRuntimes';
 import { runPostDeployTask } from '../postDeploy/runPostDeployTask';
 import { failureMoreInfoSurvey } from './failureMoreInfoSurvey';
+import { getDomainNameLabelScope } from './getDomainNameLabelScope';
 import { promptScmDoBuildDeploy } from './promptScmDoBuildDeploy';
 import { promptToSaveDeployDefaults } from './promptToSaveDeployDefaults';
 import { setPreDeployConfig } from './setPreDeployConfig';
@@ -63,6 +64,7 @@ export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | 
 
     const correlationId: string = getRandomHexString();
     context.telemetry.properties.correlationId = correlationId;
+    context.telemetry.properties.domainNameLabelScope = await getDomainNameLabelScope(Object.assign(context, node.subscription), node.site.resourceGroup, node.site.siteName);
 
     // if we already got siteConfig, don't waste time getting it again
     siteConfig = siteConfig ? siteConfig : await client.getSiteConfig();
