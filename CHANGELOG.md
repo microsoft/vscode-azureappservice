@@ -1,5 +1,15 @@
 # Change Log
 
+## 0.26.0 - 2025-04-02
+### Overview
+This release enables the creation of web apps with a unique default hostname to avoid a high-severity threat of subdomain takeover. The web app basic create will now default to a `tenant` scoped hostname uniqueness, while the web app advanced create will allow the choice of either `tenant` (tenant reuse) or `global` (no reuse) level domain name scope.  For full context on this topic, please refer to this [post](https://aka.ms/AAvc42l).
+
+### Added
+* [[2703](https://github.com/microsoft/vscode-azureappservice/pull/2703)] Add support for unique default hostnames when creating a new web app.
+
+### Changed
+* [[2703](https://github.com/microsoft/vscode-azureappservice/pull/2703)] Re-ordered some steps in the `createWebApp` experience in order to support new unique default hostname CNA requirements
+
 ## 0.25.5 - 2025-03-13
 
 ### Changed
