@@ -36,7 +36,7 @@ export async function createWebApp(context: IActionContext & Partial<ICreateChil
     const wizardContext: IWebAppWizardContext = Object.assign(context, node.subscription, {
         newSiteKind: AppKind.app,
         resourceGroupDeferLocationStep: true,
-        ...(await createActivityContext())
+        ...(await createActivityContext({ withChildren: true }))
     });
 
     await setPrePromptDefaults(wizardContext);
