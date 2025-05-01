@@ -2,7 +2,7 @@
 
 ## 0.26.1 - 2025-05-01
 ## Fixed
-* [[2738]](https://github.com/microsoft/vscode-azureappservice/pull/2738)Incomplete telemetry data capture in specific scenarios.
+* [[2738]](https://github.com/microsoft/vscode-azureappservice/pull/2738) Incomplete telemetry data capture in specific scenarios.
 
 ## 0.26.0 - 2025-04-02
 ### Overview
