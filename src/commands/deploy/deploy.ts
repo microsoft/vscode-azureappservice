@@ -115,10 +115,9 @@ export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | 
 
     await node.runWithTemporaryDescription(context, localize('deploying', "Deploying..."), async () => {
         try {
-            await appservice.deploy(nonNullValue(node).site, <string>deployPath, {
-                ...context,
-                ...(await createActivityContext())
-            });
+            const deployContext = Object.assign(context, await createActivityContext());
+            deployContext.activityChildren = [];
+            await appservice.deploy(nonNullValue(node).site, <string>deployPath, deployContext);
         } catch (error) {
             if (!actionContext.errorHandling.suppressDisplay
                 && failureMoreInfoSurvey(parseError(error), nonNullValue(siteConfig))) {

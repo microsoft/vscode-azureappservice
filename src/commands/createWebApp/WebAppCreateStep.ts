@@ -7,19 +7,25 @@ import { type NameValuePair, type Site, type SiteConfig, type WebSiteManagementC
 import { createHttpHeaders, createPipelineRequest } from '@azure/core-rest-pipeline';
 import { createWebSiteClient, DomainNameLabelScope, WebsiteOS, type CustomLocation } from '@microsoft/vscode-azext-azureappservice';
 import { createGenericClient, LocationListStep, type AzExtPipelineResponse, type AzExtRequestPrepareOptions } from '@microsoft/vscode-azext-azureutils';
-import { AzureWizardExecuteStep, nonNullProp } from '@microsoft/vscode-azext-utils';
+import { AzureWizardExecuteStepWithActivityOutput, nonNullProp } from '@microsoft/vscode-azext-utils';
 import { type AppResource } from '@microsoft/vscode-azext-utils/hostapi';
 import { type Progress } from 'vscode';
 import { webProvider } from '../../constants';
-import { ext } from '../../extensionVariables';
 import { localize } from '../../localize';
 import { type SitePayload } from './domainLabelScopeTypes';
 import { type FullJavaStack, type FullWebAppStack, type IWebAppWizardContext } from './IWebAppWizardContext';
 import { getJavaLinuxRuntime } from './stacks/getJavaLinuxRuntime';
 import { type WebAppStackValue, type WindowsJavaContainerSettings } from './stacks/models/WebAppStackModel';
 
-export class WebAppCreateStep extends AzureWizardExecuteStep<IWebAppWizardContext> {
+export class WebAppCreateStep extends AzureWizardExecuteStepWithActivityOutput<IWebAppWizardContext> {
     public priority: number = 140;
+    public stepName: string = 'webAppCreateStep';
+    protected getOutputLogSuccess = (context: IWebAppWizardContext): string =>
+        localize('createdWebApp', 'Successfully created web app "{0}"', context.newSiteName);
+    protected getOutputLogFail = (context: IWebAppWizardContext): string =>
+        localize('failedToCreateWebApp', 'Failed to create web app "{0}"', context.newSiteName);
+    protected getTreeItemLabel = (context: IWebAppWizardContext): string =>
+        localize('createWebApp', 'Create web app "{0}"', context.newSiteName);
 
     public async execute(context: IWebAppWizardContext, progress: Progress<{ message?: string; increment?: number }>): Promise<void> {
         context.telemetry.properties.newSiteOS = context.newSiteOS;
@@ -34,7 +40,6 @@ export class WebAppCreateStep extends AzureWizardExecuteStep<IWebAppWizardContex
         context.telemetry.properties.planSkuTier = context.plan && context.plan.sku && context.plan.sku.tier;
 
         const message: string = localize('creatingNewApp', 'Creating new web app "{0}"...', context.newSiteName);
-        ext.outputChannel.appendLog(message);
         progress.report({ message });
 
         const siteName: string = nonNullProp(context, 'newSiteName');
