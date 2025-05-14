@@ -11,6 +11,7 @@ import { ext } from "../../extensionVariables";
 import { localize } from "../../localize";
 import { SiteTreeItem } from "../../tree/SiteTreeItem";
 import { createActivityContext } from "../../utils/activityUtils";
+import { StartingResourcesLogStep } from "../StartingResourcesLogStep";
 import { type IWebAppWizardContext } from "./IWebAppWizardContext";
 import { SetPostPromptDefaultsStep } from "./SetPostPromptDefaultsStep";
 import { setPrePromptDefaults } from "./setPrePromptDefaults";
@@ -36,7 +37,7 @@ export async function createWebApp(context: IActionContext & Partial<ICreateChil
     const wizardContext: IWebAppWizardContext = Object.assign(context, node.subscription, {
         newSiteKind: AppKind.app,
         resourceGroupDeferLocationStep: true,
-        ...(await createActivityContext())
+        ...(await createActivityContext({ withChildren: true }))
     });
 
     await setPrePromptDefaults(wizardContext);
@@ -69,6 +70,8 @@ export async function createWebApp(context: IActionContext & Partial<ICreateChil
         executeSteps.push(new SetPostPromptDefaultsStep(siteStep));
     }
 
+
+    promptSteps.push(new StartingResourcesLogStep());
     executeSteps.push(new VerifyProvidersStep([webProvider, 'Microsoft.Insights']));
     executeSteps.push(new LogAnalyticsCreateStep());
     executeSteps.push(new WebAppCreateStep());
