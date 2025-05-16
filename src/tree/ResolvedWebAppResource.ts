@@ -25,10 +25,6 @@ import { NotAvailableTreeItem } from './NotAvailableTreeItem';
 import { type SiteTreeItem } from './SiteTreeItem';
 import { WebJobsNATreeItem, WebJobsTreeItem } from './WebJobsTreeItem';
 
-type ResolvedWebAppResourceOptions = {
-    showLocationAsTreeItemDescription?: boolean;
-};
-
 export function isResolvedWebAppResource(ti: unknown): ti is ResolvedWebAppResource {
     return (ti as unknown as ResolvedWebAppResource).instance === ResolvedWebAppResource.instance;
 }
@@ -59,7 +55,7 @@ export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTre
 
     private _subscription: ISubscriptionContext;
 
-    constructor(subscription: ISubscriptionContext, site: Site, readonly options?: ResolvedWebAppResourceOptions) {
+    constructor(subscription: ISubscriptionContext, site: Site) {
         this.site = new ParsedSite(site, subscription);
         this._subscription = subscription;
         this.contextValuesToAdd = [this.site.isSlot ? ResolvedWebAppResource.slotContextValue : ResolvedWebAppResource.webAppContextValue];
@@ -90,10 +86,7 @@ export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTre
     }
 
     public get description(): string | undefined {
-        if (this._state?.toLowerCase() !== 'running') {
-            return this._state;
-        }
-        return this.options?.showLocationAsTreeItemDescription ? this.site.location : undefined;
+        return this._state?.toLowerCase() !== 'running' ? this._state : undefined;
     }
 
     public get logStreamLabel(): string {
