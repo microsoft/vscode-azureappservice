@@ -44,10 +44,13 @@ export class WebAppResolver implements AppResourceResolver {
             const site = this.siteCache.get(nonNullProp(resource, 'id').toLowerCase());
 
             const groupBy: string | undefined = getGlobalSetting<string>('groupBy', 'azureResourceGroups');
+            const hasDuplicateSiteName: boolean = (this.siteNameCounter.get(nonNullValueAndProp(site, 'name')) ?? 1) > 1;
+            context.telemetry.properties.hasDuplicateSiteName = String(hasDuplicateSiteName);
+
             return new ResolvedWebAppResource(subContext, nonNullValue(site), {
                 // Multiple sites with the same name could be displayed as long as they are in different locations
                 // To help distinguish these apps for our users, lookahead and determine if the location should be provided for duplicated site names
-                showLocationAsTreeItemDescription: groupBy === 'resourceType' && (this.siteNameCounter.get(nonNullValueAndProp(site, 'name')) ?? 1) > 1,
+                showLocationAsTreeItemDescription: groupBy === 'resourceType' && hasDuplicateSiteName,
             });
         });
     }

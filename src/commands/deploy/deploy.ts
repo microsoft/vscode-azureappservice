@@ -65,7 +65,7 @@ export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | 
     const correlationId: string = getRandomHexString();
     context.telemetry.properties.correlationId = correlationId;
     context.telemetry.properties.siteLocation = node.site.location;
-    context.telemetry.properties.domainNameLabelScope = await getDomainNameLabelScope(Object.assign(context, node.subscription), node.site.resourceGroup, node.site.siteName);
+    context.telemetry.properties.siteDomainNameLabelScope = await getDomainNameLabelScope(Object.assign(context, node.subscription), node.site.resourceGroup, node.site.siteName);
 
     // if we already got siteConfig, don't waste time getting it again
     siteConfig = siteConfig ? siteConfig : await client.getSiteConfig();
