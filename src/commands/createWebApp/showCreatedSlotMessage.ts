@@ -12,8 +12,8 @@ import { localize } from "../../localize";
 import { type SiteTreeItem } from "../../tree/SiteTreeItem";
 import { deploy } from '../deploy/deploy';
 
-export function showCreatedWebAppMessage(originalContext: IActionContext, node: SiteTreeItem): void {
-    const message: string = getCreatedWebAppMessage(node.site);
+export function showCreatedSlotMessage(originalContext: IActionContext, node: SiteTreeItem): void {
+    const message: string = getCreatedSlotMessage(node.site);
 
     // don't wait
     void window.showInformationMessage(message, AppServiceDialogResponses.deploy, AppServiceDialogResponses.viewOutput).then(async (result: MessageItem | undefined) => {
@@ -30,8 +30,6 @@ export function showCreatedWebAppMessage(originalContext: IActionContext, node: 
     });
 }
 
-export function getCreatedWebAppMessage(site: ParsedSite): string {
-    return site.isSlot ?
-        localize('createdSlot', 'Created new slot "{0}": {1}', site.slotName, site.defaultHostUrl) :
-        localize('createdWebApp', 'Created new web app "{0}": {1}', site.fullName, site.defaultHostUrl);
+export function getCreatedSlotMessage(site: ParsedSite): string {
+    return localize('createdSlot', 'Created new slot "{0}": {1}', site.slotName, site.defaultHostUrl)
 }

@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { AppInsightsCreateStep, AppInsightsListStep, AppKind, AppServicePlanCreateStep, AppServicePlanListStep, AppServicePlanSkuStep, CustomLocationListStep, LogAnalyticsCreateStep, ParsedSite, setLocationsTask, SiteDomainNameLabelScopeStep, SiteNameStep } from "@microsoft/vscode-azext-azureappservice";
+import { AppInsightsCreateStep, AppInsightsListStep, AppKind, AppServicePlanCreateStep, AppServicePlanListStep, AppServicePlanSkuStep, CustomLocationListStep, LogAnalyticsCreateStep, setLocationsTask, SiteDomainNameLabelScopeStep, SiteNameStep } from "@microsoft/vscode-azext-azureappservice";
 import { LocationListStep, ResourceGroupCreateStep, ResourceGroupListStep, SubscriptionTreeItemBase, VerifyProvidersStep } from "@microsoft/vscode-azext-azureutils";
 import { AzureWizard, maskUserInfo, nonNullProp, parseError, type AzExtParentTreeItem, type AzureWizardExecuteStep, type AzureWizardPromptStep, type IActionContext, type ICreateChildImplContext } from "@microsoft/vscode-azext-utils";
 import { webProvider } from "../../constants";
@@ -15,7 +15,6 @@ import { StartingResourcesLogStep } from "../StartingResourcesLogStep";
 import { type IWebAppWizardContext } from "./IWebAppWizardContext";
 import { SetPostPromptDefaultsStep } from "./SetPostPromptDefaultsStep";
 import { setPrePromptDefaults } from "./setPrePromptDefaults";
-import { getCreatedWebAppMessage, showCreatedWebAppMessage } from "./showCreatedWebAppMessage";
 import { WebAppStackStep } from "./stacks/WebAppStackStep";
 import { WebAppCreateStep } from "./WebAppCreateStep";
 
@@ -29,7 +28,7 @@ function isSubscription(item?: AzExtParentTreeItem): boolean {
     }
 }
 
-export async function createWebApp(context: IActionContext & Partial<ICreateChildImplContext>, node?: SubscriptionTreeItemBase | undefined, _nodes?: (SubscriptionTreeItemBase | undefined)[], suppressCreatedWebAppMessage: boolean = false): Promise<SiteTreeItem> {
+export async function createWebApp(context: IActionContext & Partial<ICreateChildImplContext>, node?: SubscriptionTreeItemBase | undefined, _nodes?: (SubscriptionTreeItemBase | undefined)[]): Promise<SiteTreeItem> {
     if (!node || !isSubscription(node)) {
         node = <SubscriptionTreeItemBase>await ext.rgApi.tree.showTreeItemPicker(SubscriptionTreeItemBase.contextValue, context);
     }
@@ -92,8 +91,6 @@ export async function createWebApp(context: IActionContext & Partial<ICreateChil
     await ext.rgApi.appResourceTree.refresh(context);
 
     const rawSite = nonNullProp(wizardContext, 'site');
-    const site = new ParsedSite(rawSite, wizardContext);
-    ext.outputChannel.appendLog(getCreatedWebAppMessage(site));
 
     const newNode: SiteTreeItem = new SiteTreeItem(node, rawSite);
     try {
@@ -104,9 +101,6 @@ export async function createWebApp(context: IActionContext & Partial<ICreateChil
         context.telemetry.properties.fileLoggingError = maskUserInfo(parseError(error).message, []);
     }
 
-    if (!suppressCreatedWebAppMessage) {
-        showCreatedWebAppMessage(context, newNode);
-    }
     return newNode;
 }
 

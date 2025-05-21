@@ -21,7 +21,7 @@ export class WebAppCreateStep extends AzureWizardExecuteStepWithActivityOutput<I
     public priority: number = 140;
     public stepName: string = 'webAppCreateStep';
     protected getOutputLogSuccess = (context: IWebAppWizardContext): string =>
-        localize('createdWebApp', 'Successfully created web app "{0}"', context.newSiteName);
+        localize('createdWebApp', 'Successfully created web app "{0}": {1}', context.newSiteName, context.site?.defaultHostName);
     protected getOutputLogFail = (context: IWebAppWizardContext): string =>
         localize('failedToCreateWebApp', 'Failed to create web app "{0}"', context.newSiteName);
     protected getTreeItemLabel = (context: IWebAppWizardContext): string =>
