@@ -10,7 +10,7 @@ import { ext } from "../extensionVariables";
 import { localize } from "../localize";
 import { DeploymentSlotsTreeItem } from "../tree/DeploymentSlotsTreeItem";
 import { type SiteTreeItem } from "../tree/SiteTreeItem";
-import { showCreatedWebAppMessage } from "./createWebApp/showCreatedWebAppMessage";
+import { showCreatedSlotMessage } from "./createWebApp/showCreatedSlotMessage";
 import { editScmType } from "./deployments/editScmType";
 
 export async function createSlot(context: IActionContext, node?: DeploymentSlotsTreeItem | undefined): Promise<void> {
@@ -23,7 +23,7 @@ export async function createSlot(context: IActionContext, node?: DeploymentSlots
     }
 
     const createdSlot: SiteTreeItem = <SiteTreeItem>await node.createChild(context);
-    showCreatedWebAppMessage(context, createdSlot);
+    showCreatedSlotMessage(context, createdSlot);
 
     const client = await node.parent.site.createClient(context);
     // set the deploy source as the same as its production slot

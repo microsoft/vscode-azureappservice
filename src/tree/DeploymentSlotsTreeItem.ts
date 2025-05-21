@@ -7,7 +7,7 @@ import { type Site, type WebSiteManagementClient } from '@azure/arm-appservice';
 import { ParsedSite, createSlot } from '@microsoft/vscode-azext-azureappservice';
 import { uiUtils } from '@microsoft/vscode-azext-azureutils';
 import { AzExtParentTreeItem, AzExtTreeItem, type IActionContext, type ICreateChildImplContext, type TreeItemIconPath } from '@microsoft/vscode-azext-utils';
-import { getCreatedWebAppMessage } from '../commands/createWebApp/showCreatedWebAppMessage';
+import { getCreatedSlotMessage } from '../commands/createWebApp/showCreatedSlotMessage';
 import { ext } from '../extensionVariables';
 import { localize } from '../localize';
 import { createWebSiteClient } from '../utils/azureClients';
@@ -58,7 +58,7 @@ export class DeploymentSlotsTreeItem extends AzExtParentTreeItem {
         const existingSlots = (<SiteTreeItem[]>await this.getCachedChildren(context)).map(ti => ti.site);
         const rawSite: Site = await createSlot(this.parent.site, existingSlots, context);
         const site = new ParsedSite(rawSite, this.subscription);
-        ext.outputChannel.appendLog(getCreatedWebAppMessage(site));
+        ext.outputChannel.appendLog(getCreatedSlotMessage(site));
         return new SiteTreeItem(this, rawSite);
     }
 }
