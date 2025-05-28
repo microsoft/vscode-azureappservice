@@ -1,5 +1,9 @@
 # Change Log
 
+## 0.26.2 - 2025-05-28
+## Added
+* [[2736]](https://github.com/microsoft/vscode-azureappservice/pull/2736) Upgrade to latest version of the Azure Activity Log (v2). Now shows live progress on each activity child with timers.
+
 ## 0.26.1 - 2025-05-01
 ## Fixed
 * [[2738]](https://github.com/microsoft/vscode-azureappservice/pull/2738) Incomplete telemetry data capture in specific scenarios.
