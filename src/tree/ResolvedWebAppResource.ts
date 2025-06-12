@@ -35,7 +35,7 @@ export function isResolvedWebAppResource(ti: unknown): ti is ResolvedWebAppResou
 }
 
 export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTreeItem {
-    public site: ParsedSite;
+    public site!: ParsedSite;
 
     public static instance = 'resolvedWebApp';
     public readonly instance = ResolvedWebAppResource.instance;

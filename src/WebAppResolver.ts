@@ -8,14 +8,14 @@ export type AppServiceQueryResult = {
     id: string,
     name: string,
     type: string,
-    king: string,
-    location: string,
-    subscriptionId: string,
+    kind?: string,
+    location?: string,
+    subscriptionId?: string,
     resourceGroup: string,
-    status: string,
-    pricingTier: string,
-    appServicePlanId: string,
-    appType: string
+    status?: string,
+    pricingTier?: string,
+    appServicePlanId?: string,
+    appType?: string
 }
 export class WebAppResolver implements AppResourceResolver {
 

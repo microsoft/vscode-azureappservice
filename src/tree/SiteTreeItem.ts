@@ -22,7 +22,8 @@ export class SiteTreeItem extends AzExtParentTreeItem implements ISiteTreeItem {
     public constructor(parent: AzExtParentTreeItem, site: Site) {
         super(parent);
         this.treeDataProvider = parent.treeDataProvider ?? ext.rgApi.appResourceTree;
-        this.resolved = new ResolvedWebAppResource(parent.subscription, site);
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        this.resolved = new ResolvedWebAppResource(parent.subscription, { id: site.id!, name: site.name!, type: site.type!, location: site.location, resourceGroup: site.resourceGroup! });
     }
 
     public get label(): string {
