@@ -3,8 +3,8 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { type AppServicePlan, type Site, type SiteConfig, type SiteLogsConfig, type SiteSourceControl } from '@azure/arm-appservice';
-import { DeleteLastServicePlanStep, DeleteSiteStep, DeploymentTreeItem, DeploymentsTreeItem, FolderTreeItem, LogFilesTreeItem, ParsedSite, SiteFilesTreeItem } from '@microsoft/vscode-azext-azureappservice';
+import { type AppServicePlan, type SiteConfig, type SiteLogsConfig, type SiteSourceControl } from '@azure/arm-appservice';
+import { DeleteLastServicePlanStep, DeleteSiteStep, DeploymentTreeItem, DeploymentsTreeItem, FolderTreeItem, LogFilesTreeItem, ParsedSite, SiteFilesTreeItem, createWebSiteClient } from '@microsoft/vscode-azext-azureappservice';
 import { AppSettingTreeItem, AppSettingsTreeItem } from '@microsoft/vscode-azext-azureappsettings';
 import { AzureWizard, DeleteConfirmationStep, nonNullProp, type AzExtTreeItem, type IActionContext, type ISubscriptionContext, type TreeItemIconPath } from '@microsoft/vscode-azext-utils';
 import { type ResolvedAppResourceBase, } from '@microsoft/vscode-azext-utils/hostapi';
@@ -17,6 +17,7 @@ import { matchContextValue } from '../utils/contextUtils';
 import { nonNullValue } from '../utils/nonNull';
 import { openUrl } from '../utils/openUrl';
 import { getIconPath, getThemedIconPath } from '../utils/pathUtils';
+import { type AppServiceQueryResult } from '../WebAppResolver';
 import { CosmosDBConnection } from './CosmosDBConnection';
 import { CosmosDBTreeItem } from './CosmosDBTreeItem';
 import { DeploymentSlotsNATreeItem, DeploymentSlotsTreeItem } from './DeploymentSlotsTreeItem';
@@ -34,7 +35,7 @@ export function isResolvedWebAppResource(ti: unknown): ti is ResolvedWebAppResou
 }
 
 export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTreeItem {
-    public site: ParsedSite;
+    public site!: ParsedSite;
 
     public static instance = 'resolvedWebApp';
     public readonly instance = ResolvedWebAppResource.instance;
@@ -59,22 +60,22 @@ export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTre
 
     private _subscription: ISubscriptionContext;
 
-    constructor(subscription: ISubscriptionContext, site: Site, readonly options?: ResolvedWebAppResourceOptions) {
-        this.site = new ParsedSite(site, subscription);
+    constructor(subscription: ISubscriptionContext, readonly queryResult: AppServiceQueryResult, readonly options?: ResolvedWebAppResourceOptions) {
+
         this._subscription = subscription;
-        this.contextValuesToAdd = [this.site.isSlot ? ResolvedWebAppResource.slotContextValue : ResolvedWebAppResource.webAppContextValue];
+        // this.contextValuesToAdd = [this.site.isSlot ? ResolvedWebAppResource.slotContextValue : ResolvedWebAppResource.webAppContextValue];
 
-        const valuesToMask = [
-            this.site.siteName, this.site.slotName, this.site.defaultHostName, this.site.resourceGroup,
-            this.site.planName, this.site.planResourceGroup, this.site.kuduHostName, this.site.gitUrl,
-            this.site.rawSite.repositorySiteName, ...(this.site.rawSite.hostNames || []), ...(this.site.rawSite.enabledHostNames || [])
-        ];
+        // const valuesToMask = [
+        //     this.site.siteName, this.site.slotName, this.site.defaultHostName, this.site.resourceGroup,
+        //     this.site.planName, this.site.planResourceGroup, this.site.kuduHostName, this.site.gitUrl,
+        //     this.site.rawSite.repositorySiteName, ...(this.site.rawSite.hostNames || []), ...(this.site.rawSite.enabledHostNames || [])
+        // ];
 
-        for (const v of valuesToMask) {
-            if (v) {
-                this.maskedValuesToAdd.push(v);
-            }
-        }
+        // for (const v of valuesToMask) {
+        //     if (v) {
+        //         this.maskedValuesToAdd.push(v);
+        //     }
+        // }
     }
 
     public get defaultHostUrl(): string {
@@ -108,8 +109,8 @@ export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTre
     }
 
     public async refreshImpl(context: IActionContext): Promise<void> {
-        const client = await this.site.createClient(context);
-        this.site = new ParsedSite(nonNullValue(await client.getSite(), 'site'), this._subscription);
+        const client = await createWebSiteClient({ ...context, ...this._subscription });
+        this.site = new ParsedSite(await client.webApps.get(this.queryResult.resourceGroup, this.queryResult.name), this._subscription);
     }
 
     public hasMoreChildrenImpl(): boolean {
@@ -117,11 +118,11 @@ export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTre
     }
 
     public get id(): string {
-        return this.site.id;
+        return this.queryResult.id;
     }
 
     public get label(): string {
-        return this.site.slotName ?? this.site.siteName;
+        return this.site?.slotName ?? this.queryResult.name;
     }
 
     public get name(): string {
@@ -129,14 +130,15 @@ export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTre
     }
 
     private get _state(): string | undefined {
-        return this.site.rawSite.state;
+        return this.queryResult.status;
     }
 
     public get iconPath(): TreeItemIconPath {
-        return this.site.isSlot ? getThemedIconPath('DeploymentSlot_color') : getIconPath('WebApp');
+        return this.site?.isSlot ? getThemedIconPath('DeploymentSlot_color') : getIconPath('WebApp');
     }
 
     public async loadMoreChildrenImpl(_clearCache: boolean, context: IActionContext): Promise<AzExtTreeItem[]> {
+        await this.refreshImpl(context);
         const proxyTree: SiteTreeItem = this as unknown as SiteTreeItem;
 
         this.appSettingsNode = new AppSettingsTreeItem(proxyTree, this.site, ext.prefix, {
