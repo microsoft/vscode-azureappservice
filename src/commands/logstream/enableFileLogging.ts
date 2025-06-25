@@ -20,12 +20,14 @@ export async function enableFileLogging(context: IEnableFileLoggingContext, node
         node ??= await pickWebApp(context);
     }
 
+
     if (node instanceof LogFilesTreeItem) {
         // If the entry point was the Log Files node, pass the parent as that's where the logic lives
         node = <SiteTreeItem>node.parent;
     }
 
     const siteNode: SiteTreeItem = node;
+    await siteNode.initSite(context);
 
     const isEnabled: boolean = await vscode.window.withProgress({ location: vscode.ProgressLocation.Notification }, async p => {
         p.report({ message: localize('checkingDiag', 'Checking container diagnostics settings...') });

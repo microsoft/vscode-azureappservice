@@ -15,6 +15,7 @@ export async function stopWebApp(context: IActionContext, node?: SiteTreeItem): 
         node = await pickWebApp(context);
     }
 
+    await node.initSite(context);
     const client = await node.site.createClient(context);
     const stoppingApp: string = localize('stoppingApp', 'Stopping "{0}"...', node.site.fullName);
     const stoppedApp: string = localize('stoppedApp', '"{0}" has been stopped. App Service plan charges still apply.', node.site.fullName);

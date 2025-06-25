@@ -32,7 +32,7 @@ export const sshURL = 'root@127.0.0.1';
  */
 export async function startSsh(context: IActionContext, node?: SiteTreeItem): Promise<void> {
     node ??= await pickWebApp(context);
-
+    await node.initSite(context);
     const currentSshTerminal: sshTerminal | undefined = sshSessionsMap.get(node.site.fullName);
     if (currentSshTerminal) {
         if (currentSshTerminal.starting) {
@@ -53,6 +53,7 @@ export async function startSsh(context: IActionContext, node?: SiteTreeItem): Pr
 }
 
 async function startSshInternal(context: IActionContext, node: SiteTreeItem): Promise<void> {
+    await node.initSite(context);
     if (!node.site.isLinux) {
         throw new Error(localize('sshLinuxError', 'Azure SSH is only supported for Linux web apps.'));
     }
@@ -81,6 +82,7 @@ async function startSshInternal(context: IActionContext, node: SiteTreeItem): Pr
 }
 
 function connectToTunnelProxy(node: SiteTreeItem, tunnelProxy: TunnelProxy, port: number): void {
+    // site will be initialized by startSshInternal, so we can safely use it here
     const sshTerminalName: string = `${node.site.fullName} - SSH`;
     // -o StrictHostKeyChecking=no doesn't prompt for adding to hosts
     // -o "UserKnownHostsFile /dev/null" doesn't add host to known_user file

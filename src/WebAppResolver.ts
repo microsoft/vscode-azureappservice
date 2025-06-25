@@ -1,72 +1,100 @@
-import { ResourceGraphClient } from "@azure/arm-resourcegraph";
-import { callWithTelemetryAndErrorHandling, nonNullProp, nonNullValue, nonNullValueAndProp, type IActionContext, type ISubscriptionContext } from "@microsoft/vscode-azext-utils";
+import { callWithTelemetryAndErrorHandling, nonNullProp, nonNullValueAndProp, type IActionContext, type ISubscriptionContext } from "@microsoft/vscode-azext-utils";
 import { type AppResource, type AppResourceResolver } from "@microsoft/vscode-azext-utils/hostapi";
 import { ResolvedWebAppResource } from "./tree/ResolvedWebAppResource";
+import { createResourceGraphClient } from "./utils/azureClients";
 import { getGlobalSetting } from "./vsCodeConfig/settings";
 
-export type AppServiceQueryResult = {
+export type AppServiceDataModel = {
     id: string,
     name: string,
     type: string,
-    kind?: string,
-    location?: string,
-    subscriptionId?: string,
+    kind: string,
+    location: string,
     resourceGroup: string,
-    status?: string,
-    pricingTier?: string,
-    appServicePlanId?: string,
-    appType?: string
+    status: string,
+}
+
+type AppServiceQueryModel = {
+    properties: {
+        sku: string,
+        state: string
+    },
+    location: string,
+    id: string,
+    type: string,
+    kind: string,
+    name: string,
+    resourceGroup: string
 }
 export class WebAppResolver implements AppResourceResolver {
-
+    private loaded: boolean = false;
     private siteCacheLastUpdated = 0;
-    private siteCache: Map<string, AppServiceQueryResult> = new Map<string, AppServiceQueryResult>();
+    private siteCache: Map<string, AppServiceDataModel> = new Map<string, AppServiceDataModel>();
     private siteNameCounter: Map<string, number> = new Map<string, number>();
     private listWebAppsTask: Promise<void> | undefined;
 
     public async resolveResource(subContext: ISubscriptionContext, resource: AppResource): Promise<ResolvedWebAppResource | undefined> {
         return await callWithTelemetryAndErrorHandling('resolveResource', async (context: IActionContext) => {
             if (this.siteCacheLastUpdated < Date.now() - 1000 * 3) {
-                const graphClient = new ResourceGraphClient(subContext.credentials);
-                const subscriptions = [subContext.subscriptionId];
-                const query = "resources|where type == 'microsoft.web/sites'\r\n| extend appServiceEnvironment = iff(properties.hostingEnvironmentId != 'null', extract('hostingEnvironments/([^/]+)', 1, tostring(properties.hostingEnvironmentId)), '')\r\n| extend appServicePlan = extract('serverfarms/([^/]+)', 1, tostring(properties.serverFarmId))\r\n| extend appServicePlanId = properties.serverFarmId\r\n| extend appServiceEnvironmentId = properties.hostingEnvironmentId\r\n| extend sku = tolower(properties.sku)\r\n| extend pricingTier = case(\r\nsku == 'free',\r\n'Free',\r\nsku == 'shared',\r\n'Shared',\r\nsku == 'dynamic',\r\n'Dynamic',\r\nsku == 'isolated',\r\n'Isolated',\r\nsku == 'isolatedv2' or sku == 'isolatedmv2',\r\n'Isolated V2',\r\nsku == 'premiumv2',\r\n'Premium V2',\r\nsku == 'premium',\r\n'Premium',\r\nsku == 'basic',\r\n'Basic',\r\nsku == 'elasticpremium',\r\n'Elastic Premium',\r\nsku == 'premiumv3' or sku == 'premium0v3' or sku == 'premiummv3',\r\n'Premium V3',\r\nsku == 'premiumv4' or sku == 'premiummv4',\r\n'Premium V4',\r\nsku == 'flexconsumption',\r\n'Flex Consumption',\r\n'Standard')\r\n| extend state = tolower(properties.state)\r\n| extend status = case(\r\nstate == 'stopped',\r\n'Stopped',\r\nstate == 'running',\r\n'Running',\r\n'Other')\r\n| extend appType = case(\r\nkind contains 'botapp',\r\n'Bot Service',\r\nkind contains 'api',\r\n'Api App',\r\nkind contains 'functionapp' and kind !contains 'workflowapp',\r\n'Function App',\r\nkind contains 'functionapp' and kind contains 'workflowapp',\r\n'Logic App (Standard)',\r\n'Web App')\r\n| project id, status, appType, appServicePlanId, pricingTier, location, subscriptionId, name, resourceGroup, kind, type, tags, appServiceEnvironmentId|where (type !~ ('dell.storage/filesystems'))|where (type !~ ('microsoft.weightsandbiases/instances'))|where (type !~ ('pinecone.vectordb/organizations'))|where (type !~ ('mongodb.atlas/organizations'))|where (type !~ ('commvault.contentstore/cloudaccounts'))|where (type !~ ('microsoft.liftrpilot/organizations'))|where (type !~ ('purestorage.block/storagepools/avsstoragecontainers'))|where (type !~ ('purestorage.block/reservations'))|where (type !~ ('purestorage.block/storagepools'))|where (type !~ ('solarwinds.observability/organizations'))|where (type !~ ('microsoft.agfoodplatform/farmbeats'))|where (type !~ ('microsoft.agricultureplatform/agriservices'))|where (type !~ ('microsoft.appsecurity/policies'))|where (type !~ ('microsoft.arc/allfairfax'))|where (type !~ ('microsoft.arc/all'))|where (type !~ ('microsoft.cdn/profiles/securitypolicies'))|where (type !~ ('microsoft.cdn/profiles/secrets'))|where (type !~ ('microsoft.cdn/profiles/rulesets'))|where (type !~ ('microsoft.cdn/profiles/rulesets/rules'))|where (type !~ ('microsoft.cdn/profiles/afdendpoints/routes'))|where (type !~ ('microsoft.cdn/profiles/origingroups'))|where (type !~ ('microsoft.cdn/profiles/origingroups/origins'))|where (type !~ ('microsoft.cdn/profiles/afdendpoints'))|where (type !~ ('microsoft.cdn/profiles/customdomains'))|where (type !~ ('microsoft.chaos/privateaccesses'))|where (type !~ ('microsoft.sovereign/transparencylogs'))|where (type !~ ('microsoft.compute/virtualmachineflexinstances'))|where (type !~ ('microsoft.compute/standbypoolinstance'))|where (type !~ ('microsoft.compute/computefleetscalesets'))|where (type !~ ('microsoft.compute/computefleetinstances'))|where (type !~ ('microsoft.containerservice/managedclusters/microsoft.kubernetesconfiguration/fluxconfigurations'))|where (type !~ ('microsoft.kubernetes/connectedclusters/microsoft.kubernetesconfiguration/fluxconfigurations'))|where (type !~ ('microsoft.containerservice/managedclusters/microsoft.kubernetesconfiguration/namespaces'))|where (type !~ ('microsoft.kubernetes/connectedclusters/microsoft.kubernetesconfiguration/namespaces'))|where (type !~ ('microsoft.containerservice/managedclusters/managednamespaces'))|where (type !~ ('microsoft.containerservice/managedclusters/microsoft.kubernetesconfiguration/extensions'))|where (type !~ ('microsoft.kubernetesconfiguration/extensions'))|where (type !~ ('microsoft.portalservices/extensions/deployments'))|where (type !~ ('microsoft.portalservices/extensions'))|where (type !~ ('microsoft.portalservices/extensions/slots'))|where (type !~ ('microsoft.portalservices/extensions/versions'))|where (type !~ ('microsoft.deviceregistry/devices'))|where (type !~ ('microsoft.deviceupdate/updateaccounts'))|where (type !~ ('microsoft.deviceupdate/updateaccounts/updates'))|where (type !~ ('microsoft.deviceupdate/updateaccounts/deviceclasses'))|where (type !~ ('microsoft.deviceupdate/updateaccounts/deployments'))|where (type !~ ('microsoft.deviceupdate/updateaccounts/agents'))|where (type !~ ('microsoft.deviceupdate/updateaccounts/activedeployments'))|where (type !~ ('private.devtunnels/tunnelplans'))|where (type !~ ('microsoft.discovery/datacontainers/dataassets'))|where (type !~ ('microsoft.documentdb/fleetspacepotentialdatabaseaccountswithlocations'))|where (type !~ ('microsoft.documentdb/fleetspacepotentialdatabaseaccounts'))|where (type !~ ('private.easm/workspaces'))|where (type !~ ('microsoft.workloads/epicvirtualinstances'))|where (type !~ ('microsoft.fairfieldgardens/provisioningresources'))|where (type !~ ('microsoft.fairfieldgardens/provisioningresources/provisioningpolicies'))|where (type !~ ('microsoft.healthmodel/healthmodels'))|where (type !~ ('microsoft.hybridcompute/machinessoftwareassurance'))|where (type !~ ('microsoft.hybridcompute/machinespaygo'))|where (type !~ ('microsoft.hybridcompute/machinesesu'))|where (type !~ ('microsoft.hybridcompute/machinessovereign'))|where (type !~ ('microsoft.hybridcompute/arcserverwithwac'))|where (type !~ ('microsoft.network/networkvirtualappliances'))|where (type !~ ('microsoft.network/virtualhubs')) or ((kind =~ ('routeserver')))|where (type !~ ('microsoft.devhub/iacprofiles'))|where (type !~ ('private.monitorgrafana/dashboards'))|where (type !~ ('microsoft.insights/diagnosticsettings'))|where not((type =~ ('microsoft.network/serviceendpointpolicies')) and ((kind =~ ('internal'))))|where (type !~ ('microsoft.resources/resourcegraphvisualizer'))|where (type !~ ('microsoft.orbital/l2connections'))|where (type !~ ('microsoft.orbital/groundstations'))|where (type !~ ('microsoft.orbital/edgesites'))|where (type !~ ('microsoft.recommendationsservice/accounts/modeling'))|where (type !~ ('microsoft.recommendationsservice/accounts/serviceendpoints'))|where (type !~ ('microsoft.recoveryservicesintd2/vaults'))|where (type !~ ('microsoft.recoveryservicesintd/vaults'))|where (type !~ ('microsoft.recoveryservicesbvtd2/vaults'))|where (type !~ ('microsoft.recoveryservicesbvtd/vaults'))|where (type !~ ('microsoft.billingbenefits/discounts'))|where (type !~ ('microsoft.billingbenefits/credits'))|where (type !~ ('microsoft.relationships/servicegrouprelationships'))|where (type !~ ('microsoft.resources/virtualsubscriptionsforresourcepicker'))|where (type !~ ('microsoft.resources/deletedresources'))|where (type !~ ('microsoft.deploymentmanager/rollouts'))|where (type !~ ('microsoft.features/featureprovidernamespaces/featureconfigurations'))|where (type !~ ('microsoft.saashub/cloudservices/hidden'))|where (type !~ ('microsoft.providerhub/providerregistrations'))|where (type !~ ('microsoft.providerhub/providerregistrations/customrollouts'))|where (type !~ ('microsoft.providerhub/providerregistrations/defaultrollouts'))|where (type !~ ('microsoft.edge/configurations'))|where (type !~ ('microsoft.storagediscovery/storagediscoveryworkspaces'))|where not((type =~ ('microsoft.synapse/workspaces/sqlpools')) and ((kind =~ ('v3'))))|where (type !~ ('microsoft.mission/virtualenclaves/workloads'))|where (type !~ ('microsoft.mission/virtualenclaves'))|where (type !~ ('microsoft.mission/communities/transithubs'))|where (type !~ ('microsoft.mission/virtualenclaves/enclaveendpoints'))|where (type !~ ('microsoft.mission/enclaveconnections'))|where (type !~ ('microsoft.mission/communities/communityendpoints'))|where (type !~ ('microsoft.mission/communities'))|where (type !~ ('microsoft.mission/catalogs'))|where (type !~ ('microsoft.mission/approvals'))|where (type !~ ('microsoft.workloads/insights'))|where (type !~ ('microsoft.cloudhealth/healthmodels'))|where (type !~ ('microsoft.connectedcache/enterprisemcccustomers/enterprisemcccachenodes'))|where not((type =~ ('microsoft.sql/servers')) and ((kind =~ ('v12.0,analytics'))))|where not((type =~ ('microsoft.sql/servers/databases')) and ((kind in~ ('system','v2.0,system','v12.0,system','v12.0,system,serverless','v12.0,user,datawarehouse,gen2,analytics'))))|project id,name,type,kind,location,subscriptionId,resourceGroup,tags,status,pricingTier,appServicePlanId,appType|sort by (tolower(tostring(name))) asc";
-                const queryRequest = {
-                    subscriptions,
-                    query
-                };
+                this.loaded = false;
+                this.siteCache.clear();
+                this.siteNameCounter.clear();
                 this.siteCacheLastUpdated = Date.now();
 
-                this.listWebAppsTask = new Promise((resolve, reject) => {
-                    this.siteCache.clear();
-                    this.siteNameCounter.clear();
+                async function fetchAllApps(subContext: ISubscriptionContext, resolver: WebAppResolver): Promise<void> {
+                    const graphClient = await createResourceGraphClient({ ...context, ...subContext });
+                    const query = `resources | where type == 'microsoft.web/sites' and kind !contains 'functionapp' and kind !contains 'workflowapp'`;
 
-                    graphClient.resources(queryRequest).then(response => {
-                        const record = response.data as Record<string, AppServiceQueryResult>;
+                    async function fetchApps(skipToken?: string): Promise<void> {
+                        const response = await graphClient.resources({
+                            query,
+                            subscriptions: [subContext.subscriptionId],
+                            options: {
+                                skipToken
+                            }
+                        });
+
+                        const record = response.data as Record<string, AppServiceQueryModel>;
                         Object.values(record).forEach(data => {
-                            const count: number = (this.siteNameCounter.get(data.name) ?? 0) + 1;
-                            this.siteNameCounter.set(data.name, count);
-                            this.siteCache.set(data.id.toLowerCase(), data);
+                            const count: number = (resolver.siteNameCounter.get(data.name) ?? 0) + 1;
+                            resolver.siteNameCounter.set(data.name, count);
+                            const model = {
+                                id: data.id,
+                                name: data.name,
+                                type: data.type,
+                                kind: data.kind,
+                                location: data.location,
+                                resourceGroup: data.resourceGroup,
+                                status: data.properties?.state ?? 'Unknown',
+                            } as AppServiceDataModel;
+                            resolver.siteCache.set(data.id.toLowerCase(), model);
                         });
-                        resolve();
 
+                        const nextSkipToken = response?.skipToken;
+                        if (nextSkipToken) {
+                            await fetchApps(nextSkipToken);
+                        } else {
+                            resolver.loaded = true;
+                            return;
+                        }
+                    }
 
+                    return await fetchApps();
+                }
 
-
-                    })
-                        .catch((reason) => {
-                            reject(reason);
-                        });
-                });
+                this.listWebAppsTask = fetchAllApps(subContext, this);
             }
 
-            await this.listWebAppsTask;
-            const site = this.siteCache.get(nonNullProp(resource, 'id').toLowerCase());
+            if (!this.loaded) {
+                await this.listWebAppsTask;
+            }
+            const siteModel = this.siteCache.get(nonNullProp(resource, 'id').toLowerCase());
 
             const groupBy: string | undefined = getGlobalSetting<string>('groupBy', 'azureResourceGroups');
-            const hasDuplicateSiteName: boolean = (this.siteNameCounter.get(nonNullValueAndProp(site, 'name')) ?? 1) > 1;
+            const hasDuplicateSiteName: boolean = (this.siteNameCounter.get(nonNullValueAndProp(siteModel, 'name')) ?? 1) > 1;
             context.telemetry.properties.hasDuplicateSiteName = String(hasDuplicateSiteName);
 
-            return new ResolvedWebAppResource(subContext, nonNullValue(site), {
+            return new ResolvedWebAppResource(subContext, undefined, siteModel, {
                 // Multiple sites with the same name could be displayed as long as they are in different locations
                 // To help distinguish these apps for our users, lookahead and determine if the location should be provided for duplicated site names
                 showLocationAsTreeItemDescription: groupBy === 'resourceType' && hasDuplicateSiteName,

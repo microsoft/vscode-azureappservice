@@ -44,6 +44,7 @@ export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | 
             // if the user uses the deploy button, it's possible for the local node to be passed in, so we should reset it to undefined
             arg1 = undefined;
         } else {
+            await arg1.initSite(actionContext);
             client = await arg1.site.createClient(actionContext);
             // we can only get the siteConfig earlier if the entry point was a treeItem
             siteConfig = await client.getSiteConfig();
@@ -60,6 +61,7 @@ export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | 
     const node: SiteTreeItem = await getDeployNode(context, ext.rgApi.tree, arg1, arg2, () => ext.rgApi.pickAppResource(context, {
         filter: constants.webAppFilter
     }));
+    await node.initSite(context);
     client = await node.site.createClient(actionContext);
 
     const correlationId: string = getRandomHexString();

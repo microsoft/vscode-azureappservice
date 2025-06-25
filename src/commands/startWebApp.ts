@@ -11,7 +11,7 @@ import { pickWebApp } from "../utils/pickWebApp";
 
 export async function startWebApp(context: IActionContext, node?: SiteTreeItem): Promise<void> {
     node ??= await pickWebApp(context);
-
+    await node.initSite(context);
     const startingApp: string = localize('startingApp', 'Starting "{0}"...', node.site.fullName);
     const startedApp: string = localize('startedApp', '"{0}" has been started.', node.site.fullName);
 

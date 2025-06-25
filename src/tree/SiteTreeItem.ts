@@ -57,6 +57,10 @@ export class SiteTreeItem extends AzExtParentTreeItem implements ISiteTreeItem {
         return this.resolved.site;
     }
 
+    public async initSite(context: IActionContext): Promise<void> {
+        return await this.resolved.initSite(context);
+    }
+
     public hasMoreChildrenImpl(): boolean {
         return this.resolved.hasMoreChildrenImpl();
     }
@@ -81,8 +85,8 @@ export class SiteTreeItem extends AzExtParentTreeItem implements ISiteTreeItem {
         return await this.resolved.deleteTreeItemImpl(context);
     }
 
-    public async browse(): Promise<void> {
-        return await this.resolved.browse();
+    public async browse(context: IActionContext): Promise<void> {
+        return await this.resolved.browse(context);
     }
 
     public async isHttpLogsEnabled(context: IActionContext): Promise<boolean> {
