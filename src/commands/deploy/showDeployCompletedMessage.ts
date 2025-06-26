@@ -31,7 +31,7 @@ export function showDeployCompletedMessage(originalContext: IActionContext, node
             if (result === AppServiceDialogResponses.viewOutput) {
                 ext.outputChannel.show();
             } else if (result === browseWebsiteBtn) {
-                await node.browse();
+                await node.browse(context);
             } else if (result === streamLogs) {
                 await startStreamingLogs(context, node);
             } else if (result === uploadSettingsBtn) {

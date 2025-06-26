@@ -80,6 +80,7 @@ export namespace javaUtils {
     }
 
     export async function configureJavaSEAppSettings(context: IActionContext, node: SiteTreeItem): Promise<StringDictionary | undefined> {
+        await node.initSite(context);
         const client = await node.site.createClient(context);
         const appSettings: StringDictionary = await client.listApplicationSettings();
         if (isJavaSERequiredPortConfigured(appSettings)) {

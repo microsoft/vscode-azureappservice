@@ -13,5 +13,6 @@ export async function stopStreamingLogs(context: IActionContext, node?: SiteTree
         node = await pickWebApp({ ...context, suppressCreatePick: true });
     }
 
+    await node.initSite(context);
     await appservice.stopStreamingLogs(node.site);
 }

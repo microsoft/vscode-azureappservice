@@ -4,8 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { type WebSiteManagementClient } from '@azure/arm-appservice';
+import { type ResourceGraphClient } from '@azure/arm-resourcegraph';
 import { type ResourceManagementClient } from '@azure/arm-resources';
-import { createAzureClient, type AzExtClientContext } from '@microsoft/vscode-azext-azureutils';
+import { createAzureClient, createAzureSubscriptionClient, type AzExtClientContext } from '@microsoft/vscode-azext-azureutils';
 
 // Lazy-load @azure packages to improve startup performance.
 // NOTE: The client is the only import that matters, the rest of the types disappear when compiled to JavaScript
@@ -15,4 +16,8 @@ export async function createWebSiteClient(clientContext: AzExtClientContext): Pr
 }
 export async function createResourceClient(clientContext: AzExtClientContext): Promise<ResourceManagementClient> {
     return createAzureClient(clientContext, (await import('@azure/arm-resources')).ResourceManagementClient);
+}
+
+export async function createResourceGraphClient(context: AzExtClientContext): Promise<ResourceGraphClient> {
+    return createAzureSubscriptionClient(context, (await import('@azure/arm-resourcegraph')).ResourceGraphClient);
 }

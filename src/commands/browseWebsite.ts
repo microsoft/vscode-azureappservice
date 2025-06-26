@@ -9,5 +9,5 @@ import { pickWebApp } from '../utils/pickWebApp';
 
 export async function browseWebsite(context: IActionContext, node?: ISiteTreeItem): Promise<void> {
     node ??= await pickWebApp(context);
-    await node.browse();
+    await node.browse(context);
 }

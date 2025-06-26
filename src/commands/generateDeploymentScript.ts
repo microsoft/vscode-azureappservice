@@ -24,6 +24,7 @@ export async function generateDeploymentScript(context: IActionContext, node?: S
         node = nonNullValue(node);
 
         const resourceClient: ResourceManagementClient = await createResourceClient([context, node.subscription]);
+        await node.initSite(context);
         const client = await node.site.createClient(context);
         const tasks = Promise.all([
             resourceClient.resourceGroups.get(node.site.resourceGroup),

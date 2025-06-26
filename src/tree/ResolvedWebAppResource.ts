@@ -4,9 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { type AppServicePlan, type Site, type SiteConfig, type SiteLogsConfig, type SiteSourceControl } from '@azure/arm-appservice';
-import { DeleteLastServicePlanStep, DeleteSiteStep, DeploymentTreeItem, DeploymentsTreeItem, FolderTreeItem, LogFilesTreeItem, ParsedSite, SiteFilesTreeItem } from '@microsoft/vscode-azext-azureappservice';
+import { DeleteLastServicePlanStep, DeleteSiteStep, DeploymentTreeItem, DeploymentsTreeItem, FolderTreeItem, LogFilesTreeItem, ParsedSite, SiteFilesTreeItem, createWebSiteClient } from '@microsoft/vscode-azext-azureappservice';
 import { AppSettingTreeItem, AppSettingsTreeItem } from '@microsoft/vscode-azext-azureappsettings';
-import { AzureWizard, DeleteConfirmationStep, nonNullProp, type AzExtTreeItem, type IActionContext, type ISubscriptionContext, type TreeItemIconPath } from '@microsoft/vscode-azext-utils';
+import { AzureWizard, DeleteConfirmationStep, callWithTelemetryAndErrorHandling, nonNullProp, type AzExtTreeItem, type IActionContext, type ISubscriptionContext, type TreeItemIconPath } from '@microsoft/vscode-azext-utils';
 import { type ResolvedAppResourceBase, } from '@microsoft/vscode-azext-utils/hostapi';
 import { type ViewPropertiesModel } from '@microsoft/vscode-azureresources-api';
 import { githubCommitContextValueRegExp } from '../commands/deployments/viewCommitInGitHub';
@@ -17,6 +17,7 @@ import { matchContextValue } from '../utils/contextUtils';
 import { nonNullValue } from '../utils/nonNull';
 import { openUrl } from '../utils/openUrl';
 import { getIconPath, getThemedIconPath } from '../utils/pathUtils';
+import { type AppServiceDataModel } from '../WebAppResolver';
 import { CosmosDBConnection } from './CosmosDBConnection';
 import { CosmosDBTreeItem } from './CosmosDBTreeItem';
 import { DeploymentSlotsNATreeItem, DeploymentSlotsTreeItem } from './DeploymentSlotsTreeItem';
@@ -34,7 +35,8 @@ export function isResolvedWebAppResource(ti: unknown): ti is ResolvedWebAppResou
 }
 
 export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTreeItem {
-    public site: ParsedSite;
+    protected _site: ParsedSite | undefined = undefined;
+    public dataModel!: AppServiceDataModel;
 
     public static instance = 'resolvedWebApp';
     public readonly instance = ResolvedWebAppResource.instance;
@@ -59,15 +61,26 @@ export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTre
 
     private _subscription: ISubscriptionContext;
 
-    constructor(subscription: ISubscriptionContext, site: Site, readonly options?: ResolvedWebAppResourceOptions) {
-        this.site = new ParsedSite(site, subscription);
-        this._subscription = subscription;
-        this.contextValuesToAdd = [this.site.isSlot ? ResolvedWebAppResource.slotContextValue : ResolvedWebAppResource.webAppContextValue];
+    constructor(subscription: ISubscriptionContext, site: Site | undefined, dataModel?: AppServiceDataModel, readonly options?: ResolvedWebAppResourceOptions) {
+        if (site) {
+            this._site = new ParsedSite(site, subscription);
+            this.addValuesToMask(this.site);
+            this.dataModel = this.createDataModelFromSite(site);
+            this.contextValuesToAdd = [this.site?.isSlot ? ResolvedWebAppResource.slotContextValue : ResolvedWebAppResource.webAppContextValue];
+        } else if (dataModel) {
+            // need to initialize site later
+            this.dataModel = dataModel;
+            this.contextValuesToAdd = [ResolvedWebAppResource.webAppContextValue];
+        }
 
+        this._subscription = subscription;
+    }
+
+    private addValuesToMask(site: ParsedSite): void {
         const valuesToMask = [
-            this.site.siteName, this.site.slotName, this.site.defaultHostName, this.site.resourceGroup,
-            this.site.planName, this.site.planResourceGroup, this.site.kuduHostName, this.site.gitUrl,
-            this.site.rawSite.repositorySiteName, ...(this.site.rawSite.hostNames || []), ...(this.site.rawSite.enabledHostNames || [])
+            site.siteName, site.slotName, site.defaultHostName, site.resourceGroup,
+            site.planName, site.planResourceGroup, site.kuduHostName, site.gitUrl,
+            site.rawSite.repositorySiteName, ...(site.rawSite.hostNames || []), ...(site.rawSite.enabledHostNames || [])
         ];
 
         for (const v of valuesToMask) {
@@ -75,6 +88,38 @@ export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTre
                 this.maskedValuesToAdd.push(v);
             }
         }
+    }
+
+    private createDataModelFromSite(site: Site): AppServiceDataModel {
+        return {
+            id: site.id ?? '',
+            name: site.name ?? '',
+            type: site.type ?? '',
+            kind: site.kind ?? '',
+            location: site.location,
+            resourceGroup: nonNullProp(site, 'resourceGroup'),
+            status: site.state ?? 'Unknown',
+        };
+    }
+
+    public async initSite(context: IActionContext): Promise<void> {
+        if (!this._site) {
+            const webClient = await createWebSiteClient({ ...context, ...this._subscription });
+            const rawSite = await webClient.webApps.get(this.dataModel.resourceGroup, this.dataModel.name);
+            this._site = new ParsedSite(rawSite, this._subscription);
+            this.addValuesToMask(this._site);
+        }
+    }
+
+    public get site(): ParsedSite {
+        if (!this._site) {
+            void callWithTelemetryAndErrorHandling('functionApp.initSiteFailed', async (context: IActionContext) => {
+                // try to lazy load the site if it hasn't been initialized yet
+                void this.initSite(context);
+            });
+            throw new Error(localize('siteNotSet', 'Site is not initialized. Please try again in a moment.'));
+        }
+        return this._site;
     }
 
     public get defaultHostUrl(): string {
@@ -85,7 +130,8 @@ export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTre
         return this.site.defaultHostName;
     }
 
-    public async browse(): Promise<void> {
+    public async browse(context: IActionContext): Promise<void> {
+        await this.initSite(context);
         await openUrl(this.site.defaultHostUrl);
     }
 
@@ -93,7 +139,7 @@ export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTre
         if (this._state?.toLowerCase() !== 'running') {
             return this._state;
         }
-        return this.options?.showLocationAsTreeItemDescription ? this.site.location : undefined;
+        return this.options?.showLocationAsTreeItemDescription ? this.dataModel.location : undefined;
     }
 
     public get logStreamLabel(): string {
@@ -102,14 +148,25 @@ export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTre
 
     public get viewProperties(): ViewPropertiesModel {
         return {
-            data: this.site,
             label: this.name,
+            getData: () => this.getData(),
         }
     }
 
+    private async getData(): Promise<Site> {
+        if (!this._site) {
+            await callWithTelemetryAndErrorHandling('getData.initSite', async (context: IActionContext) => {
+                await this.initSite(context);
+            });
+        }
+        return this._site as Site;
+    }
+
     public async refreshImpl(context: IActionContext): Promise<void> {
-        const client = await this.site.createClient(context);
-        this.site = new ParsedSite(nonNullValue(await client.getSite(), 'site'), this._subscription);
+        const client = await createWebSiteClient({ ...context, ...this._subscription });
+        this._site = new ParsedSite(await client.webApps.get(this.dataModel.resourceGroup, this.dataModel.name), this._subscription);
+        this.dataModel = this.createDataModelFromSite(this.site.rawSite);
+        this.addValuesToMask(this.site);
     }
 
     public hasMoreChildrenImpl(): boolean {
@@ -117,11 +174,14 @@ export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTre
     }
 
     public get id(): string {
-        return this.site.id;
+        return this.dataModel.id;
     }
 
     public get label(): string {
-        return this.site.slotName ?? this.site.siteName;
+        if (this.dataModel.type.includes('slots')) {
+            return this.site.slotName ?? this.dataModel.name;
+        }
+        return this.dataModel.name;
     }
 
     public get name(): string {
@@ -129,14 +189,15 @@ export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTre
     }
 
     private get _state(): string | undefined {
-        return this.site.rawSite.state;
+        return this.dataModel.status;
     }
 
     public get iconPath(): TreeItemIconPath {
-        return this.site.isSlot ? getThemedIconPath('DeploymentSlot_color') : getIconPath('WebApp');
+        return this.site?.isSlot ? getThemedIconPath('DeploymentSlot_color') : getIconPath('WebApp');
     }
 
     public async loadMoreChildrenImpl(_clearCache: boolean, context: IActionContext): Promise<AzExtTreeItem[]> {
+        await this.initSite(context);
         const proxyTree: SiteTreeItem = this as unknown as SiteTreeItem;
 
         this.appSettingsNode = new AppSettingsTreeItem(proxyTree, this.site, ext.prefix, {
@@ -197,7 +258,7 @@ export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTre
     }
 
     public pickTreeItemImpl(expectedContextValues: (string | RegExp)[]): AzExtTreeItem | undefined {
-        if (!this.site.isSlot) {
+        if (!this.site?.isSlot) {
             for (const expectedContextValue of expectedContextValues) {
                 switch (expectedContextValue) {
                     case DeploymentSlotsTreeItem.contextValue:
@@ -246,6 +307,7 @@ export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTre
     }
 
     public async deleteTreeItemImpl(context: IActionContext): Promise<void> {
+        await this.initSite(context);
         const wizardContext = Object.assign(context, {
             ...(await createActivityContext()),
             site: this.site,
@@ -270,6 +332,7 @@ export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTre
     }
 
     public async isHttpLogsEnabled(context: IActionContext): Promise<boolean> {
+        await this.initSite(context);
         const client = await this.site.createClient(context);
         const logsConfig: SiteLogsConfig = await client.getLogsConfig();
         return !!(logsConfig.httpLogs && logsConfig.httpLogs.fileSystem && logsConfig.httpLogs.fileSystem.enabled);
@@ -277,6 +340,7 @@ export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTre
 
     public async enableLogs(context: IActionContext): Promise<void> {
         const logsConfig: SiteLogsConfig = {};
+        await this.initSite(context);
         if (!this.site.isLinux) {
             logsConfig.applicationLogs = {
                 fileSystem: {

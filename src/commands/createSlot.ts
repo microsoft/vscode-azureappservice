@@ -24,7 +24,7 @@ export async function createSlot(context: IActionContext, node?: DeploymentSlots
 
     const createdSlot: SiteTreeItem = <SiteTreeItem>await node.createChild(context);
     showCreatedSlotMessage(context, createdSlot);
-
+    await node.parent.initSite(context);
     const client = await node.parent.site.createClient(context);
     // set the deploy source as the same as its production slot
     const siteConfig: SiteConfigResource = await client.getSiteConfig();

@@ -14,6 +14,8 @@ export async function startStreamingLogs(context: IActionContext, node?: SiteTre
         node = await pickWebApp({ ...context, suppressCreatePick: true });
     }
 
+    await node.initSite(context);
+
     const verifyLoggingEnabled: () => Promise<void> = async (): Promise<void> => {
         await enableFileLogging({ ...context, suppressAlreadyEnabledMessage: true }, node);
     };

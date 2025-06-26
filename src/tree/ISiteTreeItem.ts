@@ -3,8 +3,10 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import { type IActionContext } from "@microsoft/vscode-azext-utils";
+
 export interface ISiteTreeItem {
     defaultHostUrl: string;
     defaultHostName: string;
-    browse(): Promise<void>;
+    browse(context: IActionContext): Promise<void>;
 }
