@@ -1,7 +1,9 @@
-import { callWithTelemetryAndErrorHandling, nonNullProp, nonNullValueAndProp, type IActionContext, type ISubscriptionContext } from "@microsoft/vscode-azext-utils";
+import { type Site } from "@azure/arm-appservice";
+import { getResourceGroupFromId } from "@microsoft/vscode-azext-azureutils";
+import { callWithTelemetryAndErrorHandling, nonNullProp, type IActionContext, type ISubscriptionContext } from "@microsoft/vscode-azext-utils";
 import { type AppResource, type AppResourceResolver } from "@microsoft/vscode-azext-utils/hostapi";
 import { ResolvedWebAppResource } from "./tree/ResolvedWebAppResource";
-import { createResourceGraphClient } from "./utils/azureClients";
+import { createResourceGraphClient, createWebSiteClient } from "./utils/azureClients";
 import { getGlobalSetting } from "./vsCodeConfig/settings";
 
 export type AppServiceDataModel = {
@@ -56,8 +58,7 @@ export class WebAppResolver implements AppResourceResolver {
 
                         const record = response.data as Record<string, AppServiceQueryModel>;
                         Object.values(record).forEach(data => {
-                            const count: number = (resolver.siteNameCounter.get(data.name) ?? 0) + 1;
-                            resolver.siteNameCounter.set(data.name, count);
+                            resolver.countSiteName(nonNullProp(data, 'name'));
                             const model = {
                                 id: data.id,
                                 name: data.name,
@@ -86,15 +87,24 @@ export class WebAppResolver implements AppResourceResolver {
             }
 
             if (!this.loaded) {
+                // because resolveResource is called per resource and this is asynchronous,
+                // we need to wait for the task to complete otherwise we may return before the cache is populated
                 await this.listWebAppsTask;
             }
             const siteModel = this.siteCache.get(nonNullProp(resource, 'id').toLowerCase());
+            let site: Site | undefined = undefined;
+            if (!siteModel) {
+                // siteModel can be undefined after createWebApp because it seems the result does not propagate to Azure Resource Graph so we need to fetch the site directly
+                const client = await createWebSiteClient({ ...context, ...subContext });
+                site = await client.webApps.get(getResourceGroupFromId(resource.id), nonNullProp(resource, 'name'));
+                this.countSiteName(nonNullProp(resource, 'name'));
+            }
 
             const groupBy: string | undefined = getGlobalSetting<string>('groupBy', 'azureResourceGroups');
-            const hasDuplicateSiteName: boolean = (this.siteNameCounter.get(nonNullValueAndProp(siteModel, 'name')) ?? 1) > 1;
+            const hasDuplicateSiteName: boolean = (this.siteNameCounter.get(nonNullProp(resource, 'name')) ?? 1) > 1;
             context.telemetry.properties.hasDuplicateSiteName = String(hasDuplicateSiteName);
 
-            return new ResolvedWebAppResource(subContext, undefined, siteModel, {
+            return new ResolvedWebAppResource(subContext, site, siteModel, {
                 // Multiple sites with the same name could be displayed as long as they are in different locations
                 // To help distinguish these apps for our users, lookahead and determine if the location should be provided for duplicated site names
                 showLocationAsTreeItemDescription: groupBy === 'resourceType' && hasDuplicateSiteName,
@@ -104,5 +114,10 @@ export class WebAppResolver implements AppResourceResolver {
 
     public matchesResource(resource: AppResource): boolean {
         return resource.type.toLowerCase() === 'microsoft.web/sites' && !resource.kind?.includes('functionapp');
+    }
+
+    private countSiteName(siteName: string): void {
+        const count: number = (this.siteNameCounter.get(siteName) ?? 0) + 1;
+        this.siteNameCounter.set(siteName, count);
     }
 }
