@@ -94,6 +94,7 @@ export class WebAppResolver implements AppResourceResolver {
             const siteModel = this.siteCache.get(nonNullProp(resource, 'id').toLowerCase());
             let site: Site | undefined = undefined;
             if (!siteModel) {
+                // siteModel can be undefined after createWebApp because it seems the result does not propagate to Azure Resource Graph so we need to fetch the site directly
                 const client = await createWebSiteClient({ ...context, ...subContext });
                 site = await client.webApps.get(getResourceGroupFromId(resource.id), nonNullProp(resource, 'name'));
                 this.countSiteName(nonNullProp(resource, 'name'));
