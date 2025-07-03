@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { type AppServicePlan, type Site, type SiteConfig, type SiteLogsConfig, type SiteSourceControl } from '@azure/arm-appservice';
+import { type AppServicePlan, type Site, type SiteLogsConfig } from '@azure/arm-appservice';
 import { DeleteLastServicePlanStep, DeleteSiteStep, DeploymentTreeItem, DeploymentsTreeItem, FolderTreeItem, LogFilesTreeItem, ParsedSite, SiteFilesTreeItem, createWebSiteClient } from '@microsoft/vscode-azext-azureappservice';
 import { AppSettingTreeItem, AppSettingsTreeItem } from '@microsoft/vscode-azext-azureappsettings';
 import { AzureWizard, DeleteConfirmationStep, callWithTelemetryAndErrorHandling, nonNullProp, type AzExtTreeItem, type IActionContext, type ISubscriptionContext, type TreeItemIconPath } from '@microsoft/vscode-azext-utils';
@@ -215,14 +215,8 @@ export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTre
         });
         // Can't find actual documentation on this, but the portal claims it and this feedback suggests it's not planned https://aka.ms/AA4q5gi
         this._webJobsNode = this.site.isLinux ? new WebJobsNATreeItem(proxyTree) : new WebJobsTreeItem(proxyTree);
-
-        const client = await this.site.createClient(context);
-        const siteConfig: SiteConfig = await client.getSiteConfig();
-        const sourceControl: SiteSourceControl = await client.getSourceControl();
         this.deploymentsNode = new DeploymentsTreeItem(proxyTree, {
             site: this.site,
-            siteConfig,
-            sourceControl,
             contextValuesToAdd: ['appService']
         });
 
