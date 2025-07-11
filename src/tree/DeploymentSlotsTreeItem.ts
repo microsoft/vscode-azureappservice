@@ -4,12 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { type Site, type WebSiteManagementClient } from '@azure/arm-appservice';
-import { ParsedSite, createSlot } from '@microsoft/vscode-azext-azureappservice';
+import { ParsedSite, createSlot, type IAppServiceWizardContext } from '@microsoft/vscode-azext-azureappservice';
 import { uiUtils } from '@microsoft/vscode-azext-azureutils';
-import { AzExtParentTreeItem, AzExtTreeItem, type IActionContext, type ICreateChildImplContext, type TreeItemIconPath } from '@microsoft/vscode-azext-utils';
+import { AzExtParentTreeItem, AzExtTreeItem, AzureWizard, AzureWizardExecuteStep, nonNullProp, type ExecuteActivityContext, type IActionContext, type ICreateChildImplContext, type TreeItemIconPath } from '@microsoft/vscode-azext-utils';
 import { getCreatedSlotMessage } from '../commands/createWebApp/showCreatedSlotMessage';
 import { ext } from '../extensionVariables';
 import { localize } from '../localize';
+import { createActivityContext } from '../utils/activityUtils';
 import { createWebSiteClient } from '../utils/azureClients';
 import { getThemedIconPath } from '../utils/pathUtils';
 import { NotAvailableTreeItem } from './NotAvailableTreeItem';
@@ -54,12 +55,38 @@ export class DeploymentSlotsTreeItem extends AzExtParentTreeItem {
         return webAppCollection.map(s => new SiteTreeItem(this, s));
     }
 
-    public async createChildImpl(context: ICreateChildImplContext): Promise<AzExtTreeItem> {
+    public async createChildImpl(context: ICreateChildImplContext & Partial<IAppServiceWizardContext>): Promise<AzExtTreeItem> {
         const existingSlots = (<SiteTreeItem[]>await this.getCachedChildren(context)).map(ti => ti.site);
-        const rawSite: Site = await createSlot(this.parent.site, existingSlots, context);
-        const site = new ParsedSite(rawSite, this.subscription);
-        ext.outputChannel.appendLog(getCreatedSlotMessage(site));
-        return new SiteTreeItem(this, rawSite);
+        const wizardContext: ICreateChildImplContext & ExecuteActivityContext & Partial<IAppServiceWizardContext> = Object.assign(context, {
+            activityTitle: localize('createDeploymentSlot', 'Create Deployment Slot'),
+            ...(await createActivityContext({ withChildren: true }))
+        });
+
+        const wizard = new AzureWizard<ICreateChildImplContext & ExecuteActivityContext>(wizardContext, {
+            promptSteps: [],
+            executeSteps: [new CreateSlotWrapperExecuteStep(this, existingSlots)]
+        });
+
+        await wizard.execute();
+        return new SiteTreeItem(this, nonNullProp(wizardContext, 'site'));
+    }
+}
+
+// `createSlot` doesn't use any wizard steps so this wrapper is neccessary for it to appear in the Azure Activity log
+class CreateSlotWrapperExecuteStep extends AzureWizardExecuteStep<ICreateChildImplContext> {
+    public priority: number = 100;
+    constructor(private readonly deploymentTreeItem: DeploymentSlotsTreeItem, readonly existingSlots: ParsedSite[]) {
+        super();
+    }
+    public async execute(context: ICreateChildImplContext & Partial<IAppServiceWizardContext>): Promise<void> {
+        const site: Site = await createSlot(this.deploymentTreeItem.parent.site, this.existingSlots, context);
+        const newSite = new ParsedSite(site, this.deploymentTreeItem.parent.subscription);
+        context.site = site;
+        ext.outputChannel.appendLog(getCreatedSlotMessage(newSite));
+    }
+
+    public shouldExecute(): boolean {
+        return true;
     }
 }
 
