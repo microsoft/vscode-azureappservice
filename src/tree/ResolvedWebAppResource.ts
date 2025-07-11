@@ -163,8 +163,9 @@ export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTre
     }
 
     public async refreshImpl(context: IActionContext): Promise<void> {
-        const client = await createWebSiteClient({ ...context, ...this._subscription });
-        this._site = new ParsedSite(await client.webApps.get(this.dataModel.resourceGroup, this.dataModel.name), this._subscription);
+        await this.initSite(context);
+        const client = await this.site.createClient(context);
+        this._site = new ParsedSite(nonNullValue(await client.getSite(), 'site'), this._subscription);
         this.dataModel = this.createDataModelFromSite(this.site.rawSite);
         this.addValuesToMask(this.site);
     }
