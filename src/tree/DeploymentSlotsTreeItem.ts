@@ -59,7 +59,7 @@ export class DeploymentSlotsTreeItem extends AzExtParentTreeItem {
         const existingSlots = (<SiteTreeItem[]>await this.getCachedChildren(context)).map(ti => ti.site);
         const wizardContext: ICreateChildImplContext & ExecuteActivityContext & Partial<IAppServiceWizardContext> = Object.assign(context, {
             activityTitle: localize('createDeploymentSlot', 'Create Deployment Slot'),
-            ...(await createActivityContext({ withChildren: false }))
+            ...(await createActivityContext({ withChildren: true }))
         });
 
         const wizard = new AzureWizard<ICreateChildImplContext & ExecuteActivityContext>(wizardContext, {
