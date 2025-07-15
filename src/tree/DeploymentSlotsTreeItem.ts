@@ -58,8 +58,8 @@ export class DeploymentSlotsTreeItem extends AzExtParentTreeItem {
     public async createChildImpl(context: ICreateChildImplContext & Partial<IAppServiceWizardContext>): Promise<AzExtTreeItem> {
         const existingSlots = (<SiteTreeItem[]>await this.getCachedChildren(context)).map(ti => ti.site);
         const wizardContext: ICreateChildImplContext & ExecuteActivityContext & Partial<IAppServiceWizardContext> = Object.assign(context, {
-            activityTitle: localize('createDeploymentSlot', 'Create Deployment Slot'),
-            ...(await createActivityContext({ withChildren: true }))
+            activityTitle: localize('createDeploymentSlot', 'Create deployment slot'),
+            ...(await createActivityContext({ withChildren: false }))
         });
 
         const wizard = new AzureWizard<ICreateChildImplContext & ExecuteActivityContext>(wizardContext, {
@@ -78,10 +78,11 @@ class CreateSlotWrapperExecuteStep extends AzureWizardExecuteStep<ICreateChildIm
     constructor(private readonly deploymentTreeItem: DeploymentSlotsTreeItem, readonly existingSlots: ParsedSite[]) {
         super();
     }
-    public async execute(context: ICreateChildImplContext & Partial<IAppServiceWizardContext>): Promise<void> {
+    public async execute(context: ICreateChildImplContext & ExecuteActivityContext & Partial<IAppServiceWizardContext>): Promise<void> {
         const site: Site = await createSlot(this.deploymentTreeItem.parent.site, this.existingSlots, context);
         const newSite = new ParsedSite(site, this.deploymentTreeItem.parent.subscription);
         context.site = site;
+        context.activityTitle = localize('createdDeploymentSlot', 'Create slot "{0}"', newSite.fullName);
         ext.outputChannel.appendLog(getCreatedSlotMessage(newSite));
     }
 
