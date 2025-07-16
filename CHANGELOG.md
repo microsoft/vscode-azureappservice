@@ -12,7 +12,6 @@
 ### Removed
 * [[2763](https://github.com/microsoft/vscode-azureappservice/pull/2763)] Remove command and tree node for **MongoDB connection**, which is no longer supported.
 
-
 ## 0.26.2 - 2025-05-29
 ## Added
 * [[2736]](https://github.com/microsoft/vscode-azureappservice/pull/2736) Upgrade to latest version of the Azure Activity Log (v2). Now shows live progress on each activity child with timers.
