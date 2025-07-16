@@ -1,5 +1,4 @@
 {
-    "appService.AddAzureDatabasesConnection": "Add Database Connection to Web App...",
     "appService.Browse": "Browse Website",
     "appService.ConfigureDeploymentSource": "Configure Deployment Source...",
     "appService.CreateSlot": "Create New Deployment Slot...",

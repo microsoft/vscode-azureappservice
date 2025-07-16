@@ -57,11 +57,6 @@
         },
         "commands": [
             {
-                "command": "appService.AddAzureDatabasesConnection",
-                "title": "%appService.AddAzureDatabasesConnection%",
-                "category": "Azure App Service"
-            },
-            {
                 "command": "appService.appSettings.Add",
                 "title": "%appService.appSettings.Add%",
                 "category": "Azure App Service"
@@ -521,11 +516,6 @@
                 {
                     "command": "appService.Refresh",
                     "when": "view =~ /(azureResourceGroups|azureFocusView)/ && viewItem == connections",
-                    "group": "1@1"
-                },
-                {
-                    "command": "appService.AddAzureDatabasesConnection",
-                    "when": "view =~ /(azureResourceGroups|azureFocusView)/ && viewItem == сosmosDBConnections",
                     "group": "1@1"
                 },
                 {
