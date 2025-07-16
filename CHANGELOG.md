@@ -2,9 +2,6 @@
 
 ## 0.26.3 - 2025-07-17
 
-### Overview
-This release improves performance and usability in the Azure App Service extension with lazy-loading, deployment enhancements, and refined slot behavior. It also includes several key bug fixes and command cleanups.
-
 ### Added
 * [[2751](https://github.com/microsoft/vscode-azureappservice/pull/2751)] Integrate deployment with Copilot, offering richer error analysis when deploying to Web Apps.
 
