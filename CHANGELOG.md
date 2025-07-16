@@ -1,5 +1,17 @@
 # Change Log
 
+## 0.26.3 - 2025-07-17
+
+### Added
+* [[2751](https://github.com/microsoft/vscode-azureappservice/pull/2751)] Integrate deployment with Copilot, offering richer error analysis when deploying to Web Apps.
+
+### Changed
+* [[2749](https://github.com/microsoft/vscode-azureappservice/pull/2749)] Use **ARM Graph** query to list App Services and **lazy load** site payloads for better performance.
+* [[2764](https://github.com/microsoft/vscode-azureappservice/pull/2764)] Rename **toggle slot setting** command to improve clarity.
+
+### Removed
+* [[2763](https://github.com/microsoft/vscode-azureappservice/pull/2763)] Remove command and tree node for **MongoDB connection**, which is no longer supported.
+
 ## 0.26.2 - 2025-05-29
 ## Added
 * [[2736]](https://github.com/microsoft/vscode-azureappservice/pull/2736) Upgrade to latest version of the Azure Activity Log (v2). Now shows live progress on each activity child with timers.
