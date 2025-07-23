@@ -27,8 +27,16 @@ export async function checkLinuxWebAppDownDetector(originalContext: IActionConte
         context.valuesToMask.push(...originalContext.valuesToMask);
         context.telemetry.properties.correlationId = correlationId;
 
-        const kuduClient = await node.site.createClient(context);
-        const deployment: DeployResult = await kuduClient.getDeployResult(context, 'latest');
+        let kuduClient, deployment: DeployResult;
+        try {
+            kuduClient = await node.site.createClient(context);
+            deployment = await kuduClient.getDeployResult(context, 'latest');
+        } catch (error) {
+            // If kudu client fails (e.g., for custom domains), don't block deployment completion
+            context.telemetry.properties.kuduClientError = 'true';
+            context.telemetry.properties.lastStep = 'kuduClientFailed';
+            return;
+        }
 
         if (!deployment.endTime) {
             // if there's no deployment detected, nothing can be done
