@@ -15,6 +15,10 @@ interface IValidateProperties {
     statusCodes?: string; // [[code,elapsedSeconds], [code,elapsedSeconds]...]
     canceled?: 'true' | 'false';
     correlationId?: string;
+    isCustomDomain?: string;
+    earlyExit?: string;
+    timeoutReason?: string;
+    finalStatusCode?: string;
 }
 
 const initialPollingIntervalMs = 5000;
@@ -36,6 +40,13 @@ export async function validateWebSite(originalContext: IActionContext, deploymen
         let currentStatusCode: number | undefined = 0;
         const statusCodes: { code: number | undefined, elapsed: number }[] = [];
 
+        // Check if this is a custom domain (not *.azurewebsites.net)
+        const isCustomDomain = !url.includes('azurewebsites.net');
+        const customDomainMaxValidationMs = 30 * 1000; // Reduce timeout for custom domains
+        const maxValidationMs = isCustomDomain ? customDomainMaxValidationMs : maximumValidationMs;
+        
+        properties.isCustomDomain = isCustomDomain.toString();
+
         const client: ServiceClient = await createGenericClient(context, undefined);
 
         // eslint-disable-next-line no-constant-condition
@@ -55,7 +66,23 @@ export async function validateWebSite(originalContext: IActionContext, deploymen
             const elapsedSeconds = Math.round((Date.now() - start) / 1000);
             statusCodes.push({ code: currentStatusCode, elapsed: elapsedSeconds });
 
-            if (Date.now() > start + maximumValidationMs) {
+            // Exit early on successful response codes to avoid hanging
+            if (currentStatusCode && currentStatusCode >= 200 && currentStatusCode < 400) {
+                properties.earlyExit = 'success';
+                break;
+            }
+
+            // For custom domains, be more lenient with certain error codes that might be expected
+            if (isCustomDomain && currentStatusCode && (currentStatusCode === 403 || currentStatusCode === 404)) {
+                // These might be expected for custom domains during propagation
+                if (elapsedSeconds >= 15) { // Give it at least 15 seconds
+                    properties.earlyExit = 'customDomainTolerance';
+                    break;
+                }
+            }
+
+            if (Date.now() > start + maxValidationMs) {
+                properties.timeoutReason = isCustomDomain ? 'customDomainTimeout' : 'standardTimeout';
                 break;
             }
 
@@ -64,5 +91,6 @@ export async function validateWebSite(originalContext: IActionContext, deploymen
         }
 
         properties.statusCodes = JSON.stringify(statusCodes);
+        properties.finalStatusCode = currentStatusCode?.toString();
     });
 }
