@@ -22,7 +22,7 @@ async function prepareForWebpack(): Promise<void> {
 async function cleanReadme(): Promise<void> {
     const readmePath: string = path.join(__dirname, 'README.md');
     let data: string = (await fse.readFile(readmePath)).toString();
-    data = data.replace(/<!-- region exclude-from-marketplace -->.*?<!-- endregion exclude-from-marketplace -->/gis, '');
+    data = data.replace(/<!-- region exclude-from-marketplace -->[\s\S]*?<!-- endregion exclude-from-marketplace -->/gi, '');
     await fse.writeFile(readmePath, data);
 }
 
