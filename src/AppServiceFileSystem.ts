@@ -31,7 +31,7 @@ export class AppServiceFileSystem extends AzExtTreeFileSystem<FileSystemItem> {
     public async readFileImpl(context: IActionContext, node: FileSystemItem): Promise<Uint8Array> {
         const result: ISiteFile = await getFile(context, node.site, node.url);
         this._etags.set(node.fullId, result.etag);
-        return Buffer.from(result.data);
+        return new Uint8Array(Buffer.from(result.data));
     }
 
     public async writeFileImpl(context: IActionContext, node: FileSystemItem, content: Uint8Array, _originalUri: Uri): Promise<void> {
@@ -49,7 +49,9 @@ export class AppServiceFileSystem extends AzExtTreeFileSystem<FileSystemItem> {
         let etag: string = nonNullValue(this._etags.get(node.fullId), 'etag');
         try {
             this.appendLineToOutput(localize('updating', 'Updating "{0}" ...', node.label), { resourceName: node.site.fullName });
-            await putFile(context, node.site, content, node.url, etag);
+            const buffer = Buffer.from(content);
+            const arrayBuffer = buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength) as ArrayBuffer;
+            await putFile(context, node.site, arrayBuffer, node.url, etag);
             this.appendLineToOutput(localize('done', 'Updated "{0}".', node.label), { resourceName: node.site.fullName });
         } catch (error) {
             const parsedError: IParsedError = parseError(error);
