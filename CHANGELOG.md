@@ -1,5 +1,10 @@
 # Change Log
 
+## 0.26.4 - TBD
+
+### Fixed
+* [[2745](https://github.com/microsoft/vscode-azureappservice/issues/2745)] Fix deployment hanging when deploying to custom domain web apps by optimizing post-deployment validation.
+
 ## 0.26.3 - 2025-07-17
 
 ### Added
