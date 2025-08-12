@@ -49,7 +49,7 @@ export class AppServiceFileSystem extends AzExtTreeFileSystem<FileSystemItem> {
         let etag: string = nonNullValue(this._etags.get(node.fullId), 'etag');
         try {
             this.appendLineToOutput(localize('updating', 'Updating "{0}" ...', node.label), { resourceName: node.site.fullName });
-            await putFile(context, node.site, content, node.url, etag);
+            await putFile(context, node.site, content.buffer as ArrayBuffer, node.url, etag);
             this.appendLineToOutput(localize('done', 'Updated "{0}".', node.label), { resourceName: node.site.fullName });
         } catch (error) {
             const parsedError: IParsedError = parseError(error);
