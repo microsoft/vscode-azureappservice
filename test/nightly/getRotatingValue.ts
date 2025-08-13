@@ -11,7 +11,7 @@ export function getRotatingLocation(): string {
 }
 
 let pricingTierCount: number = getStartingIndex();
-const pricingTiers: (string | RegExp)[] = [/P1v2/, 'P2v2', 'P3v2', /B1/, 'B2', 'B3', 'S1', 'S2', 'S3'];
+const pricingTiers: (string | RegExp)[] = [/P0V4/, /P1V4/, /P1MV4/, /P0V3/, /P1V3/, /P1MV3/, /B1/, 'B2', 'B3', 'S1', 'S2', 'S3'];
 export function getRotatingPricingTier(): string | RegExp {
     pricingTierCount += 1;
     return pricingTiers[pricingTierCount % pricingTiers.length];

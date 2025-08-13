@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { AppInsightsCreateStep, AppInsightsListStep, AppKind, AppServicePlanCreateStep, AppServicePlanListStep, AppServicePlanSkuStep, CustomLocationListStep, LogAnalyticsCreateStep, setLocationsTask, SiteDomainNameLabelScopeStep, SiteNameStep } from "@microsoft/vscode-azext-azureappservice";
+import { AppInsightsCreateStep, AppInsightsListStep, AppKind, AppServicePlanCreateStep, AppServicePlanListStep, CustomLocationListStep, LogAnalyticsCreateStep, setLocationsTask, SiteDomainNameLabelScopeStep, SiteNameStep } from "@microsoft/vscode-azext-azureappservice";
 import { LocationListStep, ResourceGroupCreateStep, ResourceGroupListStep, SubscriptionTreeItemBase, VerifyProvidersStep } from "@microsoft/vscode-azext-azureutils";
 import { AzureWizard, maskUserInfo, nonNullProp, parseError, type AzExtParentTreeItem, type AzureWizardExecuteStep, type AzureWizardPromptStep, type IActionContext, type ICreateChildImplContext } from "@microsoft/vscode-azext-utils";
 import { webProvider } from "../../constants";
@@ -12,6 +12,7 @@ import { localize } from "../../localize";
 import { SiteTreeItem } from "../../tree/SiteTreeItem";
 import { createActivityContext } from "../../utils/activityUtils";
 import { StartingResourcesLogStep } from "../StartingResourcesLogStep";
+import { CustomAppServicePlanSkuStep } from "./CustomAppServicePlanSkuStep";
 import { type IWebAppWizardContext } from "./IWebAppWizardContext";
 import { SetPostPromptDefaultsStep } from "./SetPostPromptDefaultsStep";
 import { setPrePromptDefaults } from "./setPrePromptDefaults";
@@ -62,7 +63,7 @@ export async function createWebApp(context: IActionContext & Partial<ICreateChil
         promptSteps.push(new AppInsightsListStep());
     } else {
         promptSteps.push(new WebAppStackStep());
-        promptSteps.push(new AppServicePlanSkuStep());
+        promptSteps.push(new CustomAppServicePlanSkuStep());
         executeSteps.push(new ResourceGroupCreateStep());
         executeSteps.push(new AppServicePlanCreateStep());
         executeSteps.push(new AppInsightsCreateStep());
