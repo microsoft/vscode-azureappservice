@@ -5,6 +5,7 @@
 
 import { type TreeItemIconPath } from '@microsoft/vscode-azext-utils';
 import * as path from 'path';
+import { Uri } from 'vscode';
 import { ext } from '../extensionVariables';
 
 export function isSubpath(expectedParent: string, expectedChild: string): boolean {
@@ -17,14 +18,14 @@ export function isPathEqual(fsPath1: string, fsPath2: string): boolean {
     return relativePath === '';
 }
 
-export function getIconPath(iconName: string): string {
-    return path.join(getResourcesPath(), `${iconName}.svg`);
+export function getIconPath(iconName: string): Uri {
+    return Uri.file(path.join(getResourcesPath(), `${iconName}.svg`));
 }
 
 export function getThemedIconPath(iconName: string): TreeItemIconPath {
     return {
-        light: path.join(getResourcesPath(), 'light', `${iconName}.svg`),
-        dark: path.join(getResourcesPath(), 'dark', `${iconName}.svg`)
+        light: Uri.file(path.join(getResourcesPath(), 'light', `${iconName}.svg`)),
+        dark: Uri.file(path.join(getResourcesPath(), 'dark', `${iconName}.svg`))
     };
 }
 
