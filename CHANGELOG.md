@@ -1,5 +1,13 @@
 # Change Log
 
+## 0.26.4 - 2025-09-25
+
+### Added
+* [[2780](https://github.com/microsoft/vscode-azureappservice/pull/2780)] Add Premium V4 SKUs as options to ASP when creating an app service.
+
+### Changed
+* [[2779](https://github.com/microsoft/vscode-azureappservice/pull/2779)] Changes were made to support the upcoming multi-factor authentication requirements for Azure
+
 ## 0.26.3 - 2025-07-17
 
 ### Added
