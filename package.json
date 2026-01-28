@@ -722,18 +722,12 @@
         }
     },
     "scripts": {
-        "vscode:prepublish": "npm run webpack-prod",
-        "build": "tsc",
-        "cleanReadme": "gulp cleanReadme",
-        "compile": "tsc -watch",
+        "build": "npm run build:esbuild & npm run build:check",
+        "build:esbuild": "node esbuild.mjs",
+        "build:check": "tsc --noEmit",
         "package": "vsce package --githubBranch main",
         "lint": "eslint --max-warnings 0",
-        "pretest": "npm run webpack-prod && gulp preTest",
-        "test": "node ./out/test/runTest.js",
-        "webpack": "npm run build && gulp webpack-dev",
-        "webpack-prod": "npm run build && gulp webpack-prod",
-        "webpack-profile": "webpack --profile --json --mode production > webpack-stats.json && echo Use http://webpack.github.io/analyse to analyze the stats",
-        "all": "npm i && npm run lint && npm test"
+        "test": "node ./out/test/runTest.js"
     },
     "devDependencies": {
         "@microsoft/vscode-azext-eng": "^1.0.0-alpha.1",
