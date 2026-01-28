@@ -4,6 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { registerOnActionStartHandler, TestOutputChannel, TestUserInput } from '@microsoft/vscode-azext-utils';
+import * as assert from 'assert';
 import * as vscode from 'vscode';
 import { ext } from '../src/extensionVariables';
 
@@ -15,7 +16,12 @@ export const longRunningTestsEnabled: boolean = longRunningLocalTestsEnabled || 
 // Runs before all tests
 suiteSetup(async function (this: Mocha.Context): Promise<void> {
     this.timeout(120 * 1000);
-    await vscode.commands.executeCommand('appService.Refresh'); // activate the extension before tests begin
+    const extension = vscode.extensions.getExtension('ms-azuretools.vscode-azureappservice');
+    if (!extension) {
+        assert.fail('Failed to find extension.');
+    } else {
+        await extension.activate(); // activate the extension before tests begin
+    }
     ext.outputChannel = new TestOutputChannel();
 
     registerOnActionStartHandler(context => {
