@@ -7,4 +7,27 @@ import { defineConfig } from 'eslint/config';
 
 export default defineConfig([
     azExtEslintRecommended,
+    {
+        rules: {
+            '@typescript-eslint/no-namespace': 'off',
+            'no-useless-escape': 'off',
+            '@typescript-eslint/no-unused-vars': [
+                'error',
+                {
+                    argsIgnorePattern: '^_',
+                    varsIgnorePattern: '^_',
+                    caughtErrorsIgnorePattern: '^_',
+                },
+            ],
+            '@typescript-eslint/naming-convention': [
+                'error',
+                {
+                    selector: 'default',
+                    format: ['camelCase', 'PascalCase', 'snake_case', 'UPPER_CASE'],
+                    leadingUnderscore: 'allow'
+                },
+
+            ]
+        }
+    }
 ]);

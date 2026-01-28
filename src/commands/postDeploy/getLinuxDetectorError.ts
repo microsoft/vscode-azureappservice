@@ -8,7 +8,6 @@ import { createPipelineRequest } from '@azure/core-rest-pipeline';
 import { createGenericClient, type AzExtPipelineResponse } from '@microsoft/vscode-azext-azureutils';
 import { type IActionContext } from "@microsoft/vscode-azext-utils";
 import * as dayjs from 'dayjs';
-// eslint-disable-next-line import/no-internal-modules
 import * as utc from 'dayjs/plugin/utc';
 import { detectorTimestampFormat } from "../../constants";
 import { localize } from "../../localize";
@@ -38,6 +37,7 @@ export async function getLinuxDetectorError(context: IActionContext, detectorId:
 
     const response: AzExtPipelineResponse = <AzExtPipelineResponse>await client.sendRequest(createPipelineRequest({
         method: 'GET', url: createRequestUrl(detectorUri, {
+            /* eslint-disable-next-line @typescript-eslint/naming-convention */
             'api-version': "2015-08-01",
             startTime,
             endTime,

@@ -43,7 +43,7 @@ async function getMavenModuleFromPom(pomFile: string): Promise<MavenModule | und
                 artifactFinalName
             };
         }
-    } catch (e) {
+    } catch (_e) {
         return undefined;
     }
     return undefined;

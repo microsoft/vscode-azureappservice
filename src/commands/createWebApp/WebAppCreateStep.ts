@@ -96,6 +96,7 @@ export class WebAppCreateStep extends AzureWizardExecuteStepWithActivityOutput<I
             url: `${context.environment.resourceManagerEndpointUrl}subscriptions/${context.subscriptionId}/resourceGroups/${rgName}/providers/Microsoft.Web/sites/${siteName}?api-version=${apiVersion}`,
             method: 'PUT',
             headers: createHttpHeaders({
+                /* eslint-disable-next-line @typescript-eslint/naming-convention */
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${authToken}`,
             }),
@@ -179,13 +180,14 @@ export class WebAppCreateStep extends AzureWizardExecuteStepWithActivityOutput<I
                         value: runtimeVersion
                     });
                     break;
-                case 'java':
+                case 'java': {
                     newSiteConfig.javaVersion = runtimeVersion;
                     const javaStack: FullJavaStack = nonNullProp(context, 'newSiteJavaStack');
                     const windowsStackSettings: WindowsJavaContainerSettings = nonNullProp(javaStack.minorVersion.stackSettings, 'windowsContainerSettings');
                     newSiteConfig.javaContainer = windowsStackSettings.javaContainer;
                     newSiteConfig.javaContainerVersion = windowsStackSettings.javaContainerVersion;
                     break;
+                }
                 case 'python':
                     newSiteConfig.pythonVersion = runtimeVersion;
                     break;
