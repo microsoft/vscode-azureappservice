@@ -8,7 +8,7 @@ import { type IActionContext } from "@microsoft/vscode-azext-utils";
 import { webAppFilter } from "../../constants";
 import { ext } from "../../extensionVariables";
 
-export const githubCommitContextValueRegExp: RegExp = new RegExp('deployment/github')
+export const githubCommitContextValueRegExp: RegExp = new RegExp('deployment/github');
 
 export async function viewCommitInGitHub(context: IActionContext, node?: DeploymentTreeItem): Promise<void> {
     if (!node) {

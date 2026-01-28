@@ -80,7 +80,7 @@ export async function createWebApp(context: IActionContext & Partial<ICreateChil
     }
 
     const title: string = localize('createApp', 'Create new web app');
-    const wizard: AzureWizard<IWebAppWizardContext> = new AzureWizard(wizardContext, { promptSteps, executeSteps, title });
+    const wizard = new AzureWizard<IWebAppWizardContext>(wizardContext, { promptSteps, executeSteps, title });
 
     await wizard.prompt();
 

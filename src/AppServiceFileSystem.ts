@@ -22,7 +22,7 @@ export class AppServiceFileSystem extends AzExtTreeFileSystem<FileSystemItem> {
         return node.label;
     }
 
-    // eslint-disable-next-line @typescript-eslint/require-await
+     
     public async statImpl(_context: IActionContext, _node: FileSystemItem): Promise<FileStat> {
         // this is not implemented for Azure App Services
         return { type: FileType.File, ctime: 0, mtime: 0, size: 0 };

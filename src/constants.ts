@@ -40,4 +40,4 @@ export const webProvider: string = 'Microsoft.Web';
 
 export const webAppFilter = {
     type: 'microsoft.web/sites'
-}
+};

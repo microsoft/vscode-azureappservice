@@ -38,7 +38,7 @@ export async function validateWebSite(originalContext: IActionContext, deploymen
 
         const client: ServiceClient = await createGenericClient(context, undefined);
 
-        // eslint-disable-next-line no-constant-condition
+         
         while (true) {
             if (tokenSource.token.isCancellationRequested) {
                 // the user cancelled the check by deploying again

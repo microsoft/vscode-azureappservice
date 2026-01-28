@@ -69,9 +69,9 @@ export async function getStackPicks(context: IWebAppWizardContext, javaVersion?:
         picks.unshift({
             label: localize('backupStacksWarning', '$(warning) Failed to retrieve latest stacks. This list may be out of date.'),
             onPicked: () => { /* do nothing */ },
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             data: <any>undefined
-        })
+        });
     }
 
     return picks;
