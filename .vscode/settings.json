@@ -16,7 +16,5 @@
         "out": true,
         "**/node_modules": true,
         ".vscode-test": true
-    },
-    "typescript.preferences.importModuleSpecifier": "relative",
-    "typescript.tsdk": "node_modules/typescript/lib"
+    }
 }
