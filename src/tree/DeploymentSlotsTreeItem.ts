@@ -23,12 +23,13 @@ export class DeploymentSlotsTreeItem extends AzExtParentTreeItem {
     public readonly label: string = label;
     public readonly childTypeLabel: string = 'Deployment Slot';
     public suppressMaskLabel = true;
-    public parent!: SiteTreeItem;
+    public parent: SiteTreeItem;
 
     private _nextLink: string | undefined;
 
     constructor(parent: SiteTreeItem) {
         super(parent);
+        this.parent = parent;
     }
 
     public get iconPath(): TreeItemIconPath {

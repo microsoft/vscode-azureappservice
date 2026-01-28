@@ -4,9 +4,10 @@
 *--------------------------------------------------------------------------------------------*/
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 
-import { createTestActionContext } from '@microsoft/vscode-azext-dev';
+import { createTestActionContext } from '@microsoft/vscode-azext-utils';
 import * as assert from 'assert';
-import { ColumnName, findTableByName, getValuesByColumnName, validateTimestamp, type detectorTable } from "../extension.bundle";
+import { ColumnName, detectorTable, validateTimestamp } from '../src/commands/postDeploy/getLinuxDetectorError';
+import { findTableByName, getValuesByColumnName } from '../src/commands/postDeploy/parseDetectorResponse';
 
 suite('Detector Dataset Parser', () => {
     test('Find table by table name', () => {

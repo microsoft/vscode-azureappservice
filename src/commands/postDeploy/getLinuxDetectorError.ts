@@ -7,9 +7,9 @@ import { type ServiceClient } from '@azure/core-client';
 import { createPipelineRequest } from '@azure/core-rest-pipeline';
 import { createGenericClient, type AzExtPipelineResponse } from '@microsoft/vscode-azext-azureutils';
 import { type IActionContext } from "@microsoft/vscode-azext-utils";
-import * as dayjs from 'dayjs';
+import dayjs from 'dayjs';
 // eslint-disable-next-line import/no-internal-modules
-import * as utc from 'dayjs/plugin/utc';
+import utc from 'dayjs/plugin/utc';
 import { detectorTimestampFormat } from "../../constants";
 import { localize } from "../../localize";
 import { type SiteTreeItem } from "../../tree/SiteTreeItem";
