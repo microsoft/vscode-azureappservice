@@ -44,6 +44,7 @@ export async function setPreDeployTaskForMavenModule(context: IDeployContext, mo
 
 function generateMavenPackageTask(relativeModulePath: string): TaskDefinition {
     // always use posix for debug config because it's committed to source control and works on all OS's
+    // eslint-disable-next-line no-template-curly-in-string
     const cwd: string = path.posix.join('${workspaceFolder}', relativeModulePath);
 
     return {

@@ -55,11 +55,11 @@ async function getIgnoredFoldersForDeployment(fsPath: string, runtime: string): 
         case LinuxRuntimes.node:
             ignoredFolders = ['node_modules{,/**}'];
             break;
-        case LinuxRuntimes.python:
+        case LinuxRuntimes.python: {
             let venvFsPaths: string[];
             try {
                 venvFsPaths = (await venvUtils.getExistingVenvs(fsPath)).map(venvPath => `${venvPath}{,/**}`);
-            } catch (error) {
+            } catch (_error) {
                 // if there was an error here, don't block-- just assume none could be detected
                 venvFsPaths = [];
             }
@@ -82,6 +82,7 @@ async function getIgnoredFoldersForDeployment(fsPath: string, runtime: string): 
 
             ignoredFolders = ignoredFolders.concat(defaultVenvPaths);
             break;
+        }
         default:
             ignoredFolders = [];
     }
