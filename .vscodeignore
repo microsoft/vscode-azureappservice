@@ -22,3 +22,7 @@ testOutput/**
 tsconfig.json
 typings/**
 webpack.config*
+vscode-test.mjs
+esbuild.mjs
+eslint.config.mjs
+.nvmrc

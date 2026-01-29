@@ -4,24 +4,14 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { type WebSiteManagementClient } from '@azure/arm-appservice';
-import { createTestActionContext, TestAzureAccount } from '@microsoft/vscode-azext-dev';
-import * as vscode from 'vscode';
-import { AzureAccountTreeItem, createWebSiteClient, ext, type ISubscriptionContext } from '../../extension.bundle';
 import { longRunningTestsEnabled } from '../global.test';
 
-export let testAccount: TestAzureAccount;
 export let webSiteClient: WebSiteManagementClient;
 export const resourceGroupsToDelete: string[] = [];
 
 suiteSetup(async function (this: Mocha.Context): Promise<void> {
     this.skip();
-    if (longRunningTestsEnabled) {
-        this.timeout(2 * 60 * 1000);
-        testAccount = new TestAzureAccount(vscode);
-        await testAccount.signIn();
-        ext.azureAccountTreeItem = new AzureAccountTreeItem(testAccount);
-        webSiteClient = await createWebSiteClient([await createTestActionContext(), <ISubscriptionContext>testAccount.getSubscriptionContext()]);
-    }
+    // This was originally for the end to end azure tests but this was never updated after they were fixed. Leaving this as a placeholder in case we want to re-enable these tests in the future.
 });
 
 suiteTeardown(async function (this: Mocha.Context): Promise<void> {

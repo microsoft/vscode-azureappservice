@@ -17,10 +17,11 @@ export class WebJobsTreeItem extends AzExtParentTreeItem {
     public readonly contextValue: string = WebJobsTreeItem.contextValue;
     public readonly childTypeLabel: string = localize('webJob', 'Web Job');
     public suppressMaskLabel = true;
-    public parent!: SiteTreeItem;
+    public parent: SiteTreeItem;
 
     constructor(parent: SiteTreeItem) {
         super(parent);
+        this.parent = parent;
     }
 
     public get id(): string {

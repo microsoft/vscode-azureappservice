@@ -49,7 +49,6 @@ export async function setPreDeployConfigForDotnet(context: IDeployContext, cspro
 
     if (publishTask) {
         // if the "publish" task exists and it doesn't dependOn a task, have it depend on clean
-
         publishTask.dependsOn = publishTask.dependsOn || cleanId;
     }
 

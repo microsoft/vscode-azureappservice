@@ -5,9 +5,15 @@
 
 import { type Site, type SiteConfigResource, type StringDictionary } from '@azure/arm-appservice';
 import { WebsiteOS, tryGetWebApp } from '@microsoft/vscode-azext-azureappservice';
-import { runWithTestActionContext } from '@microsoft/vscode-azext-dev';
+import { DialogResponses, runWithTestActionContext } from '@microsoft/vscode-azext-utils';
 import * as assert from 'assert';
-import { DialogResponses, addAppSetting, constants, createWebAppAdvanced, deleteAppSetting, deleteWebApp, editScmType, getRandomHexString } from '../../extension.bundle';
+import { addAppSetting } from '../../src/commands/appSettings/addAppSetting';
+import { deleteAppSetting } from '../../src/commands/appSettings/deleteAppSettings';
+import { createWebAppAdvanced } from '../../src/commands/createWebApp/createWebApp';
+import { deleteWebApp } from '../../src/commands/deleteWebApp';
+import { editScmType } from '../../src/commands/deployments/editScmType';
+import { ScmType } from '../../src/constants';
+import { getRandomHexString } from '../../src/utils/randomUtils';
 import { longRunningTestsEnabled } from '../global.test';
 import { getRotatingLocation, getRotatingPricingTier } from './getRotatingValue';
 import { resourceGroupsToDelete, webSiteClient } from './global.resource.test';
@@ -55,26 +61,26 @@ suite('Web App actions', function (this: Mocha.Suite): void {
 
     test(`Configure Deployment Source to LocalGit for ${WebsiteOS0} Web App`, async () => {
         let createdApp: SiteConfigResource = await webSiteClient.webApps.getConfiguration(resourceName, resourceName);
-        assert.notStrictEqual(createdApp?.scmType, constants.ScmType.LocalGit, `Web App scmType's property value shouldn't be ${createdApp?.scmType} before "Configure Deployment Source to LocalGit".`);
+        assert.notStrictEqual(createdApp?.scmType, ScmType.LocalGit, `Web App scmType's property value shouldn't be ${createdApp?.scmType} before "Configure Deployment Source to LocalGit".`);
         await runWithTestActionContext('ConfigureDeploymentSource', async context => {
-            await context.ui.runWithInputs([resourceName, constants.ScmType.LocalGit], async () => {
+            await context.ui.runWithInputs([resourceName, ScmType.LocalGit], async () => {
                 await editScmType(context);
             });
         });
         createdApp = await webSiteClient.webApps.getConfiguration(resourceName, resourceName);
-        assert.strictEqual(createdApp?.scmType, constants.ScmType.LocalGit, `Web App scmType's property value should be ${constants.ScmType.LocalGit} rather than ${createdApp?.scmType}.`);
+        assert.strictEqual(createdApp?.scmType, ScmType.LocalGit, `Web App scmType's property value should be ${ScmType.LocalGit} rather than ${createdApp?.scmType}.`);
     });
 
     test(`Configure Deployment Source to None for ${WebsiteOS0} Web App`, async () => {
         let createdApp: SiteConfigResource = await webSiteClient.webApps.getConfiguration(resourceName, resourceName);
-        assert.notStrictEqual(createdApp?.scmType, constants.ScmType.None, `Web App scmType's property value shouldn't be ${createdApp?.scmType} before "Configure Deployment Source to None".`);
+        assert.notStrictEqual(createdApp?.scmType, ScmType.None, `Web App scmType's property value shouldn't be ${createdApp?.scmType} before "Configure Deployment Source to None".`);
         await runWithTestActionContext('ConfigureDeploymentSource', async context => {
-            await context.ui.runWithInputs([resourceName, constants.ScmType.None], async () => {
+            await context.ui.runWithInputs([resourceName, ScmType.None], async () => {
                 await editScmType(context);
             });
         });
         createdApp = await webSiteClient.webApps.getConfiguration(resourceName, resourceName);
-        assert.strictEqual(createdApp?.scmType, constants.ScmType.None, `Web App scmType's property value should be ${constants.ScmType.None} rather than ${createdApp?.scmType}.`);
+        assert.strictEqual(createdApp?.scmType, ScmType.None, `Web App scmType's property value should be ${ScmType.None} rather than ${createdApp?.scmType}.`);
     });
 
     test(`Add and delete settings for ${WebsiteOS0} Web App`, async () => {

@@ -6,8 +6,8 @@
 import { type DeployResult } from '@microsoft/vscode-azext-azureappservice';
 import { openInPortal } from '@microsoft/vscode-azext-azureutils';
 import { callWithTelemetryAndErrorHandling, UserCancelledError, type IActionContext } from "@microsoft/vscode-azext-utils";
-import * as dayjs from "dayjs";
-import * as utc from 'dayjs/plugin/utc';
+import dayjs from "dayjs";
+import utc from 'dayjs/plugin/utc';
 import { type CancellationTokenSource } from "vscode";
 import { detectorTimestampFormat } from '../../constants';
 import { ext } from '../../extensionVariables';
