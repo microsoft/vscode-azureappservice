@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { type ResourceManagementClient } from "@azure/arm-resources";
-import { type IActionContext } from "@microsoft/vscode-azext-utils";
+import { nonNullValueAndProp, type IActionContext } from "@microsoft/vscode-azext-utils";
 import * as fse from 'fs-extra';
 import * as path from 'path';
 import { ProgressLocation, window, workspace } from "vscode";
@@ -71,14 +71,14 @@ export async function generateDeploymentScript(context: IActionContext, node?: S
             script = scriptTemplate.replace('%RUNTIME%', siteConfig.linuxFxVersion);
         }
 
-         
+
         script = script.replace('%SUBSCRIPTION_NAME%', node.subscription.subscriptionDisplayName)
-            .replace('%RG_NAME%', rg.name!)
+            .replace('%RG_NAME%', nonNullValue(rg.name))
             .replace('%LOCATION%', rg.location)
-            .replace('%PLAN_NAME%', plan!.name!)
-            .replace('%PLAN_SKU%', plan!.sku!.name!)
+            .replace('%PLAN_NAME%', nonNullValueAndProp(plan, 'name'))
+            .replace('%PLAN_SKU%', nonNullValueAndProp(nonNullValue(plan).sku, 'name'))
             .replace('%SITE_NAME%', node.site.siteName);
-         
+
 
         const doc = await workspace.openTextDocument({ language: 'shellscript', content: script });
         await window.showTextDocument(doc);
