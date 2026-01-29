@@ -8,6 +8,7 @@ import { type ISubscriptionContext } from '@microsoft/vscode-azext-utils';
 import { SubscriptionTreeItem } from './SubscriptionTreeItem';
 
 export class AzureAccountTreeItem extends AzureAccountTreeItemBase {
+    /* eslint-disable-next-line @typescript-eslint/no-empty-object-type */
     public constructor(testAccount?: {}) {
         super(undefined, testAccount);
     }

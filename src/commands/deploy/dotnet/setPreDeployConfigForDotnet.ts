@@ -49,7 +49,6 @@ export async function setPreDeployConfigForDotnet(context: IDeployContext, cspro
 
     if (publishTask) {
         // if the "publish" task exists and it doesn't dependOn a task, have it depend on clean
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
         publishTask.dependsOn = publishTask.dependsOn || cleanId;
     }
 
@@ -75,6 +74,7 @@ async function tryGetTargetFramework(projFilePath: string): Promise<string | und
 
 function generateDotnetTasks(subfolder: string): TaskDefinition[] {
     // always use posix for debug config because it's committed to source control and works on all OS's
+    // eslint-disable-next-line no-template-curly-in-string
     const cwd: string = path.posix.join('${workspaceFolder}', subfolder);
 
     const cleanTask: TaskDefinition = {

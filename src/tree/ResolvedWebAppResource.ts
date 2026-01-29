@@ -147,7 +147,7 @@ export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTre
         return {
             label: this.name,
             getData: () => this.getData(),
-        }
+        };
     }
 
     private async getData(): Promise<Site> {
@@ -226,7 +226,7 @@ export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTre
                 const client = await this.site.createClient(context);
                 asp = await client.getAppServicePlan();
                 tier = asp && asp.sku && asp.sku.tier;
-            } catch (err) {
+            } catch (_err) {
                 // ignore this error, we don't want to block users for deployment slots
                 tier = 'unknown';
             }

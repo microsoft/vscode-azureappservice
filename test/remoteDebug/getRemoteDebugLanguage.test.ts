@@ -69,7 +69,7 @@ suite('getRemoteDebugLanguage', () => {
         // Docker image information should be removed from telemetry
         try {
             getRemoteDebugLanguage({ linuxFxVersion: 'docker|image' }, context);
-        } catch (e) {
+        } catch (_e) {
             // ignore error
         }
         assert.strictEqual(context.telemetry.properties.linuxFxVersion, 'docker');

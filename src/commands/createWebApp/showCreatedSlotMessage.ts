@@ -31,5 +31,5 @@ export function showCreatedSlotMessage(originalContext: IActionContext, node: Si
 }
 
 export function getCreatedSlotMessage(site: ParsedSite): string {
-    return localize('createdSlot', 'Created new slot "{0}": {1}', site.slotName, site.defaultHostUrl)
+    return localize('createdSlot', 'Created new slot "{0}": {1}', site.slotName, site.defaultHostUrl);
 }

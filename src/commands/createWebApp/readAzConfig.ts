@@ -26,7 +26,7 @@ export async function readAzConfig(wizardContext: IWebAppWizardContext & Partial
 
         // Default to local config values if they exist
         readAzConfigListing(wizardContext, propertiesToRead, azLocalConfigListing, config);
-    } catch (error) {
+    } catch (_error) {
         // Suppress errors - this functionality should not block creating a web app
     }
 

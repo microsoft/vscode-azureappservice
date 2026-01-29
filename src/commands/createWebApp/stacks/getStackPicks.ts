@@ -69,9 +69,9 @@ export async function getStackPicks(context: IWebAppWizardContext, javaVersion?:
         picks.unshift({
             label: localize('backupStacksWarning', '$(warning) Failed to retrieve latest stacks. This list may be out of date.'),
             onPicked: () => { /* do nothing */ },
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-explicit-any
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
             data: <any>undefined
-        })
+        });
     }
 
     return picks;
@@ -92,14 +92,15 @@ function getFlagOs(ss: WebAppRuntimes & JavaContainers, key: 'isPreview' | 'isEa
 }
 
 type StacksArmResponse = { value: { properties: WebAppStack }[] };
-async function getStacks(context: IWebAppWizardContext & { _stacks?: WebAppStack[]; }): Promise<WebAppStack[]> {
-    if (!context._stacks) {
+async function getStacks(context: IWebAppWizardContext & { stacks?: WebAppStack[]; }): Promise<WebAppStack[]> {
+    if (!context.stacks) {
         let stacksArmResponse: StacksArmResponse;
         try {
             const client: ServiceClient = await createGenericClient(context, context);
             const result: AzExtPipelineResponse = await client.sendRequest(createPipelineRequest({
                 method: 'GET',
                 url: createRequestUrl('/providers/Microsoft.Web/webappstacks', {
+                    /* eslint-disable-next-line @typescript-eslint/naming-convention */
                     'api-version': '2023-01-01',
                     removeHiddenStacks: String(!getWorkspaceSetting<boolean>('showHiddenStacks')),
                     removeDeprecatedStacks: 'true'
@@ -115,10 +116,10 @@ async function getStacks(context: IWebAppWizardContext & { _stacks?: WebAppStack
             context.usingBackupStacks = true;
         }
 
-        context._stacks = stacksArmResponse.value.map(d => d.properties);
+        context.stacks = stacksArmResponse.value.map(d => d.properties);
     }
 
-    return sortStacks(context, context._stacks);
+    return sortStacks(context, context.stacks);
 }
 
 function sortStacks(context: IWebAppWizardContext, stacks: WebAppStack[]): WebAppStack[] {
