@@ -727,7 +727,7 @@
         "build:check": "tsc --noEmit",
         "package": "vsce package --githubBranch main",
         "lint": "eslint --max-warnings 0",
-        "test": "node ./out/test/runTest.js"
+        "test": "vscode-test"
     },
     "devDependencies": {
         "@microsoft/vscode-azext-eng": "^1.0.0-alpha.1",

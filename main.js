@@ -19,7 +19,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const extension = require('./dist/extension.bundle');
 
 async function activate(ctx) {
-    return await extension.activate(ctx, perfStats);
+    return await extension.activateInternal(ctx, perfStats);
 }
 
 async function deactivate(ctx) {
