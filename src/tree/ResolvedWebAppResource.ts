@@ -147,7 +147,7 @@ export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTre
         return {
             label: this.name,
             getData: () => this.getData(),
-        }
+        };
     }
 
     private async getData(): Promise<Site> {

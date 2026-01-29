@@ -49,7 +49,7 @@ export async function setPreDeployConfigForDotnet(context: IDeployContext, cspro
 
     if (publishTask) {
         // if the "publish" task exists and it doesn't dependOn a task, have it depend on clean
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+         
         publishTask.dependsOn = publishTask.dependsOn || cleanId;
     }
 

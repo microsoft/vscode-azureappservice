@@ -128,7 +128,7 @@ export class DeploymentSlotsNATreeItem extends NotAvailableTreeItem {
         return false;
     }
 
-    // eslint-disable-next-line @typescript-eslint/require-await
+     
     public async loadMoreChildrenImpl(_clearCache: boolean): Promise<AzExtTreeItem[]> {
         return [new ScaleUpTreeItem(this, this.scaleUpId)];
     }

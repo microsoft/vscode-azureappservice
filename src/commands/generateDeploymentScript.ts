@@ -71,14 +71,14 @@ export async function generateDeploymentScript(context: IActionContext, node?: S
             script = scriptTemplate.replace('%RUNTIME%', siteConfig.linuxFxVersion);
         }
 
-        /* eslint-disable @typescript-eslint/no-non-null-assertion */
+         
         script = script.replace('%SUBSCRIPTION_NAME%', node.subscription.subscriptionDisplayName)
             .replace('%RG_NAME%', rg.name!)
             .replace('%LOCATION%', rg.location)
             .replace('%PLAN_NAME%', plan!.name!)
             .replace('%PLAN_SKU%', plan!.sku!.name!)
             .replace('%SITE_NAME%', node.site.siteName);
-        /* eslint-enable @typescript-eslint/no-non-null-assertion */
+         
 
         const doc = await workspace.openTextDocument({ language: 'shellscript', content: script });
         await window.showTextDocument(doc);
