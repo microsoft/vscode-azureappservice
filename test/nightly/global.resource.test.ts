@@ -10,8 +10,6 @@ export let webSiteClient: WebSiteManagementClient;
 export const resourceGroupsToDelete: string[] = [];
 
 suiteSetup(async function (this: Mocha.Context): Promise<void> {
-    this.skip();
-    // This was originally for the end to end azure tests but this was never updated after they were fixed. Leaving this as a placeholder in case we want to re-enable these tests in the future.
 });
 
 suiteTeardown(async function (this: Mocha.Context): Promise<void> {
