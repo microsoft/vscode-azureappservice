@@ -110,6 +110,7 @@ suite('Create Web App and deploy', function (this: Mocha.Suite): void {
     suiteSetup(function (this: Mocha.Context): void {
         if (!longRunningTestsEnabled) {
             this.skip();
+            return;
         }
 
         for (const t of parallelTests) {
