@@ -37,5 +37,6 @@ export async function setPrePromptDefaults(wizardContext: IWebAppWizardContext &
 
     if (!wizardContext.advancedCreation) {
         wizardContext.newSiteDomainNameLabelScope = DomainNameLabelScope.Tenant;
+        wizardContext.telemetry.properties.siteDomainNameLabelScope = DomainNameLabelScope.Tenant;
     }
 }

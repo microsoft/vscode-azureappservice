@@ -112,7 +112,7 @@ export class WebAppResolver implements AppResourceResolver {
             return new ResolvedWebAppResource(subContext, site, siteModel, {
                 // Multiple sites with the same name could be displayed as long as they are in different locations
                 // To help distinguish these apps for our users, lookahead and determine if the location should be provided for duplicated site names
-                showLocationAsTreeItemDescription: groupBy === 'resourceType' && hasDuplicateSiteName,
+                showLocationInTreeItemDescription: groupBy === 'resourceType' && hasDuplicateSiteName,
             });
         });
     }

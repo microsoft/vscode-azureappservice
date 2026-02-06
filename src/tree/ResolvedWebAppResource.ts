@@ -25,7 +25,7 @@ import { type SiteTreeItem } from './SiteTreeItem';
 import { WebJobsNATreeItem, WebJobsTreeItem } from './WebJobsTreeItem';
 
 type ResolvedWebAppResourceOptions = {
-    showLocationAsTreeItemDescription?: boolean;
+    showLocationInTreeItemDescription?: boolean;
 };
 
 export function isResolvedWebAppResource(ti: unknown): ti is ResolvedWebAppResource {
@@ -136,7 +136,7 @@ export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTre
         if (this._state?.toLowerCase() !== 'running') {
             return this._state;
         }
-        return this.options?.showLocationAsTreeItemDescription ? this.dataModel.location : undefined;
+        return this.options?.showLocationInTreeItemDescription ? this.dataModel.location : undefined;
     }
 
     public get logStreamLabel(): string {
