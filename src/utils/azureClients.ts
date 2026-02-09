@@ -12,6 +12,7 @@ import { AzExtClientType, createAzureClient, createAzureSubscriptionClient, type
 // NOTE: The client is the only import that matters, the rest of the types disappear when compiled to JavaScript
 
 export async function createWebSiteClient(clientContext: AzExtClientContext): Promise<WebSiteManagementClient> {
+    // For typecast reasoning, see: https://github.com/microsoft/vscode-azuretools/pull/2184
     return createAzureClient(clientContext, (await import('@azure/arm-appservice')).WebSiteManagementClient as unknown as AzExtClientType<WebSiteManagementClient>);
 }
 export async function createResourceClient(clientContext: AzExtClientContext): Promise<ResourceManagementClient> {
