@@ -4,15 +4,16 @@
  *--------------------------------------------------------------------------------------------*/
 
 let locationCount: number = getStartingIndex();
-const locations: string[] = ['Australia East', 'East Asia', 'East US', 'North Europe', 'South Central US', 'Southeast Asia', 'UK South', 'West Europe'];
+// other locations have better allocation for dev accounts
+const locations: string[] = ['West US 3', /*'East US 2', 'South Central US', 'North Central US', 'Korea South' */];
 export function getRotatingLocation(): string {
     locationCount += 1;
     return locations[locationCount % locations.length];
 }
 
 let pricingTierCount: number = getStartingIndex();
-const pricingTiers: (string | RegExp)[] = [/P1v2/, 'P2v2', 'P3v2', /B1/, 'B2', 'B3', 'S1', 'S2', 'S3'];
-export function getRotatingPricingTier(): string | RegExp {
+const pricingTiers: (RegExp)[] = [/F1/, /B1/, /B2/, /B3/, /S1/, /S2/, /S3/];
+export function getRotatingPricingTier(): RegExp {
     pricingTierCount += 1;
     return pricingTiers[pricingTierCount % pricingTiers.length];
 }

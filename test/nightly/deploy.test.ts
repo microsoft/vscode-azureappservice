@@ -4,22 +4,20 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { type Site } from '@azure/arm-appservice';
-import { type ServiceClient } from '@azure/core-client';
-import { createPipelineRequest } from '@azure/core-rest-pipeline';
 import { tryGetWebApp } from '@microsoft/vscode-azext-azureappservice';
-import { createGenericClient, type AzExtPipelineResponse } from '@microsoft/vscode-azext-azureutils';
 import { createTestActionContext, nonNullProp, runWithTestActionContext } from '@microsoft/vscode-azext-utils';
 import * as assert from 'assert';
 import * as path from 'path';
 import * as vscode from 'vscode';
-import { createWebAppAdvanced } from '../../src/commands/createWebApp/createWebApp';
-import { deploy } from '../../src/commands/deploy/deploy';
-import { ext } from '../../src/extensionVariables';
 import { SiteTreeItem } from '../../src/tree/SiteTreeItem';
+import { cpUtils } from '../../src/utils/cpUtils';
+import { delay } from '../../src/utils/delay';
 import { getRandomHexString } from '../../src/utils/randomUtils';
-import { longRunningTestsEnabled } from '../global.test';
+import { longRunningTestsEnabled, webSiteClient } from '../global.test';
+import { getResourceGroupsTestApi } from '../utils/resourceGroupsTestApiAccess';
+import { getCachedTestApi } from '../utils/testApiAccess';
+import { resourceGroupsToDelete, testSubscription } from './aaa_global.resource.test';
 import { getRotatingLocation, getRotatingPricingTier } from './getRotatingValue';
-import { resourceGroupsToDelete, webSiteClient } from './global.resource.test';
 
 interface ITestCase {
     /**
@@ -48,16 +46,16 @@ interface IParallelTest {
     callback(): Promise<void>;
 }
 
-suite('Create Web App and deploy', function (this: Mocha.Suite): void {
+suite('Create Web App and deploy', async function (this: Mocha.Suite): Promise<void> {
     this.timeout(6 * 60 * 1000);
     const testCases: ITestCase[] = [
         {
             runtimePrefix: 'Node',
             workspaceFolder: 'nodejs-docs-hello-world',
             versions: [
-                { version: '12', supportedAppOs: 'Both', displayText: '12 LTS' },
-                { version: '14', supportedAppOs: 'Both', displayText: '14 LTS' },
-                { version: '16', supportedAppOs: 'Both', displayText: '16 LTS' }
+                { version: '18', supportedAppOs: 'Both', displayText: '18 LTS' },
+                { version: '20', supportedAppOs: 'Both', displayText: '20 LTS' },
+                { version: '22', supportedAppOs: 'Both', displayText: '22 LTS' },
             ]
         },
         {
@@ -65,25 +63,25 @@ suite('Create Web App and deploy', function (this: Mocha.Suite): void {
             workspaceFolder: 'testFolder',
             zipFile: 'node-hello-1.zip',
             versions: [
-                { version: '16', supportedAppOs: 'Both', displayText: '16 LTS' }
+                { version: '22', supportedAppOs: 'Both', displayText: '22 LTS' }
             ]
         },
         {
             runtimePrefix: '.NET',
             workspaceFolder: undefined,
             versions: [
-                { version: '3.1', supportedAppOs: 'Both', displayText: 'Core 3.1 (LTS)' },
-                { version: '5.0', supportedAppOs: 'Both', displayText: '5', buildMachineOsToSkip: 'darwin' }, // Not sure why this fails on mac build machines - worth investigating in the future
-                { version: '6.0', supportedAppOs: 'Both', displayText: '6 (LTS)', buildMachineOsToSkip: 'darwin' }
+                { version: '10.0', supportedAppOs: 'Both', displayText: '10 (LTS)' },
+                { version: '9.0', supportedAppOs: 'Both', displayText: '9 (STS)', buildMachineOsToSkip: 'darwin' }, // Not sure why this fails on mac build machines - worth investigating in the future
+                { version: '8.0', supportedAppOs: 'Both', displayText: '8 (LTS)', buildMachineOsToSkip: 'darwin' }
             ]
         },
         {
             runtimePrefix: 'Python',
             workspaceFolder: 'python-docs-hello-world',
             versions: [
-                { version: '3.7', supportedAppOs: 'Linux' },
-                { version: '3.8', supportedAppOs: 'Linux' },
-                { version: '3.9', supportedAppOs: 'Linux' }
+                { version: '3.13', supportedAppOs: 'Linux' },
+                { version: '3.12', supportedAppOs: 'Linux' },
+                { version: '3.11', supportedAppOs: 'Linux' }
             ]
         }
     ];
@@ -99,8 +97,10 @@ suite('Create Web App and deploy', function (this: Mocha.Suite): void {
                     parallelTests.push({
                         title: `${runtime} - ${os}`,
                         callback: async () => {
+                            // if the testFolderPath is just testFolder, we need to use the zip file that is in there
                             const testFolderPath: string = getWorkspacePath(testCase.workspaceFolder || version.version);
-                            await testCreateWebAppAndDeploy(os, promptForOs, runtime, testFolderPath, version.version);
+                            const zipFile: string | undefined = testCase.zipFile;
+                            await testCreateWebAppAndDeploy(os, promptForOs, runtime, testFolderPath, version.version, zipFile);
                         }
                     });
                 }
@@ -108,7 +108,7 @@ suite('Create Web App and deploy', function (this: Mocha.Suite): void {
         }
     }
 
-    suiteSetup(function (this: Mocha.Context): void {
+    suiteSetup(async function (this: Mocha.Context): Promise<void> {
         if (!longRunningTestsEnabled) {
             this.skip();
         }
@@ -117,48 +117,68 @@ suite('Create Web App and deploy', function (this: Mocha.Suite): void {
             t.task = t.callback();
         }
     });
-
     for (const t of parallelTests) {
         test(t.title, async () => {
             await nonNullProp(t, 'task');
         });
     }
 
-    async function testCreateWebAppAndDeploy(os: string, promptForOs: boolean, runtime: string, workspacePath: string, expectedVersion: string, zipFile?: string): Promise<void> {
+    async function testCreateWebAppAndDeploy(os: string, promptForOs: boolean, runtime: string, workspacePath: string, expectedVersion: string, _zipFile?: string): Promise<void> {
         const resourceName: string = getRandomHexString();
         const resourceGroupName = getRandomHexString();
         resourceGroupsToDelete.push(resourceGroupName);
 
-        const testInputs: (string | RegExp)[] = [resourceName, '$(plus) Create new resource group', resourceGroupName, runtime];
+        const testInputs: (string | RegExp)[] = [getRotatingLocation(), 'Secure unique default hostname', '$(plus) Create new resource group', resourceGroupName, resourceName, runtime];
         if (promptForOs) {
             testInputs.push(os);
         }
 
-        testInputs.push(getRotatingLocation(), '$(plus) Create new App Service plan', getRandomHexString(), getRotatingPricingTier(), '$(plus) Create new Application Insights resource', getRandomHexString());
+        testInputs.push('$(plus) Create new App Service plan', getRandomHexString(), getRotatingPricingTier(), '$(plus) Create new Application Insights resource', getRandomHexString());
 
+        const testApi = getCachedTestApi();
         await runWithTestActionContext('CreateWebAppAdvanced', async context => {
             await context.ui.runWithInputs(testInputs, async () => {
-                await createWebAppAdvanced(context);
+                await testApi.commands.createWebAppAdvanced(context, testSubscription);
             });
         });
         const createdApp: Site | undefined = await tryGetWebApp(webSiteClient, resourceGroupName, resourceName);
         assert.ok(createdApp);
-
+        const createdAppId: string = nonNullProp(createdApp, 'id');
         await runWithTestActionContext('Deploy', async context => {
-
-            await context.ui.runWithInputs([workspacePath, resourceName, 'Deploy'], async () => {
-                if (zipFile) {
-                    await vscode.commands.executeCommand('appService.Deploy', vscode.Uri.file(path.join(workspacePath, zipFile)), undefined, true /*isNewApp*/);
-                } else {
-                    await deploy(context);
-                }
+            const inputs = [workspacePath];
+            await context.ui.runWithInputs(inputs, async () => {
+                await testApi.commands.deploy(context, createdAppId);
             });
+
         });
 
-        const hostUrl: string | undefined = (<SiteTreeItem>await ext.rgApi.tree.findTreeItem(<string>createdApp?.id, await createTestActionContext())).site.defaultHostUrl;
-        const client: ServiceClient = await createGenericClient(await createTestActionContext(), undefined);
-        const response: AzExtPipelineResponse = await client.sendRequest(createPipelineRequest({ method: 'GET', url: hostUrl }));
-        assert.strictEqual(response.bodyAsText, `Version: ${expectedVersion}`);
+        const rgTestApi = await getResourceGroupsTestApi();
+        const context = await createTestActionContext();
+        const siteTreeItem: SiteTreeItem = (<SiteTreeItem>await rgTestApi.compatibility.getAppResourceTree().findTreeItem(createdAppId, context));
+        await siteTreeItem.initSite(context);
+        const hostUrl = siteTreeItem.site.defaultHostName;
+
+        // Use curl for a simple end-to-end verification that the deployed site is serving expected content.
+        // Note: defaultHostName is typically a hostname (no protocol), so we normalize to an https URL.
+        const url: string = /^https?:\/\//i.test(hostUrl) ? hostUrl : `https://${hostUrl}`;
+
+        // Retry up to 5 times over ~1 minute to allow the app time to finish building/starting.
+        const maxAttempts = 5;
+        const delayMs = 15_000; // 15 seconds between attempts
+        let lastError: unknown;
+        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+            try {
+                const body: string = await cpUtils.executeCommand(undefined, undefined, 'curl', '--fail', '--silent', '--show-error', '--location', url);
+                assert.strictEqual(body.trim(), `Version: ${expectedVersion}`);
+                return; // success
+            } catch (error) {
+                lastError = error;
+                if (attempt < maxAttempts) {
+                    await delay(delayMs);
+                }
+            }
+        }
+        throw lastError;
     }
 });
 

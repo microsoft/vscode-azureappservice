@@ -3,4 +3,12 @@
  *  Licensed under the MIT License. See LICENSE.md in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-export { azExtTestConfig as default } from '@microsoft/vscode-azext-eng/vscode-test'; // Other configurations exist
+import { azExtTestConfig } from '@microsoft/vscode-azext-eng/vscode-test';
+
+export default {
+    ...azExtTestConfig,
+    mocha: {
+        ...azExtTestConfig.mocha,
+    }
+};
+

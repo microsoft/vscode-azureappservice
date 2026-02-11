@@ -24,6 +24,7 @@ export async function getApiExport<T>(extensionId: string): Promise<T | undefine
 
 export async function getResourceGroupsApi(): Promise<AzureHostExtensionApi> {
     const rgApiProvider = await getApiExport<apiUtils.AzureExtensionApiProvider>('ms-azuretools.vscode-azureresourcegroups');
+    console.log('RG API Provider', rgApiProvider);
     if (rgApiProvider) {
         return rgApiProvider.getApi<AzureHostExtensionApi>('0.0.1');
     } else {

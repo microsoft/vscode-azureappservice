@@ -1,22 +1,36 @@
 {
     "folders": [
         {
-            "path": "./nightly/testFolder/dotnet-hello-world/3.1"
+            "path": "./nightly/testFolder/dotnet-hello-world/8.0"
         },
         {
-            "path": "./nightly/testFolder/dotnet-hello-world/5.0"
+            "path": "./nightly/testFolder/dotnet-hello-world/9.0"
         },
         {
-            "path": "./nightly/testFolder/dotnet-hello-world/6.0"
+            "path": "./nightly/testFolder/dotnet-hello-world/10.0"
         },
         {
             "path": "./nightly/testFolder/nodejs-docs-hello-world"
         },
         {
             "path": "./nightly/testFolder/python-docs-hello-world"
+        },
+        {
+            "path": "./nightly/testFolder"
         }
     ],
     "settings": {
         "appService.defaultWebAppToDeploy": "None"
+    },
+    "tasks": {
+        "version": "2.0.0",
+        "tasks": [
+            {
+                "label": "publish-release",
+                "type": "shell",
+                "command": "dotnet publish \"${workspaceFolder:8.0}\" --configuration Release /property:GenerateFullPaths=true /consoleloggerparameters:NoSummary && dotnet publish \"${workspaceFolder:9.0}\" --configuration Release /property:GenerateFullPaths=true /consoleloggerparameters:NoSummary && dotnet publish \"${workspaceFolder:10.0}\" --configuration Release /property:GenerateFullPaths=true /consoleloggerparameters:NoSummary",
+                "problemMatcher": "$msCompile"
+            }
+        ]
     }
 }

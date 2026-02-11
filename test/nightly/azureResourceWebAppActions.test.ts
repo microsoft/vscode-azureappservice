@@ -7,16 +7,13 @@ import { type Site, type SiteConfigResource, type StringDictionary } from '@azur
 import { WebsiteOS, tryGetWebApp } from '@microsoft/vscode-azext-azureappservice';
 import { DialogResponses, runWithTestActionContext } from '@microsoft/vscode-azext-utils';
 import * as assert from 'assert';
-import { addAppSetting } from '../../src/commands/appSettings/addAppSetting';
-import { deleteAppSetting } from '../../src/commands/appSettings/deleteAppSettings';
-import { createWebAppAdvanced } from '../../src/commands/createWebApp/createWebApp';
-import { deleteWebApp } from '../../src/commands/deleteWebApp';
-import { editScmType } from '../../src/commands/deployments/editScmType';
 import { ScmType } from '../../src/constants';
+import { delay } from '../../src/utils/delay';
 import { getRandomHexString } from '../../src/utils/randomUtils';
-import { longRunningTestsEnabled } from '../global.test';
-import { getRotatingLocation, getRotatingPricingTier } from './getRotatingValue';
-import { resourceGroupsToDelete, webSiteClient } from './global.resource.test';
+import { longRunningTestsEnabled, testSubscription, webSiteClient } from '../global.test';
+import { getCachedTestApi } from '../utils/testApiAccess';
+import { resourceGroupsToDelete } from './aaa_global.resource.test';
+import { getRotatingPricingTier } from './getRotatingValue';
 
 suite('Web App actions', function (this: Mocha.Suite): void {
     this.timeout(6 * 60 * 1000);
@@ -32,14 +29,27 @@ suite('Web App actions', function (this: Mocha.Suite): void {
     });
 
     test(`Create New ${WebsiteOS0} Web App (Advanced)`, async () => {
-        const testInputs: (string | RegExp)[] = [resourceName, '$(plus) Create new resource group', resourceName, ...getInput(WebsiteOS0), getRotatingLocation(), '$(plus) Create new App Service plan', resourceName, getRotatingPricingTier(), '$(plus) Create new Application Insights resource', resourceName];
+        const testInputs: (string | RegExp)[] = ['West US 3', 'Secure unique default hostname', '$(plus) Create new resource group', resourceName, resourceName, ...getInput(WebsiteOS0), '$(plus) Create new App Service plan', resourceName, getRotatingPricingTier(), '$(plus) Create new Application Insights resource', resourceName];
         resourceGroupsToDelete.push(resourceName);
+        const testApi = getCachedTestApi();
         await runWithTestActionContext('CreateWebAppAdvanced', async context => {
             await context.ui.runWithInputs(testInputs, async () => {
-                await createWebAppAdvanced(context);
+                await testApi.commands.createWebAppAdvanced(context, testSubscription);
             });
         });
-        const createdApp: Site | undefined = await tryGetWebApp(webSiteClient, resourceName, resourceName);
+        // Retry up to 5 times over ~1 minute to allow the app time to finish provisioning.
+        const maxAttempts = 5;
+        const delayMs = 15_000;
+        let createdApp: Site | undefined;
+        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+            createdApp = await tryGetWebApp(webSiteClient, resourceName, resourceName);
+            if (createdApp) {
+                break;
+            }
+            if (attempt < maxAttempts) {
+                await delay(delayMs);
+            }
+        }
         assert.ok(createdApp);
     });
 
@@ -49,22 +59,36 @@ suite('Web App actions', function (this: Mocha.Suite): void {
         const appServicePlanName: string = getRandomHexString();
         const applicationInsightsName: string = getRandomHexString();
         resourceGroupsToDelete.push(resourceGroupName);
-        const testInputs: (string | RegExp)[] = [webAppName, '$(plus) Create new resource group', resourceGroupName, ...getInput(WebsiteOS1), getRotatingLocation(), '$(plus) Create new App Service plan', appServicePlanName, getRotatingPricingTier(), '$(plus) Create new Application Insights resource', applicationInsightsName];
+        const testInputs: (string | RegExp)[] = ['West US 3', 'Secure unique default hostname', '$(plus) Create new resource group', resourceGroupName, resourceGroupName, ...getInput(WebsiteOS1), '$(plus) Create new App Service plan', appServicePlanName, getRotatingPricingTier(), '$(plus) Create new Application Insights resource', applicationInsightsName];
+        const testApi = getCachedTestApi();
         await runWithTestActionContext('CreateWebAppAdvanced', async context => {
             await context.ui.runWithInputs(testInputs, async () => {
-                await createWebAppAdvanced(context);
+                await testApi.commands.createWebAppAdvanced(context, testSubscription);
             });
         });
-        const createdApp: Site | undefined = await tryGetWebApp(webSiteClient, resourceGroupName, webAppName);
+        // Retry up to 5 times over ~1 minute to allow the app time to finish provisioning.
+        const maxAttempts = 5;
+        const delayMs = 15_000;
+        let createdApp: Site | undefined;
+        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+            createdApp = await tryGetWebApp(webSiteClient, resourceGroupName, webAppName);
+            if (createdApp) {
+                break;
+            }
+            if (attempt < maxAttempts) {
+                await delay(delayMs);
+            }
+        }
         assert.ok(createdApp);
     });
 
     test(`Configure Deployment Source to LocalGit for ${WebsiteOS0} Web App`, async () => {
         let createdApp: SiteConfigResource = await webSiteClient.webApps.getConfiguration(resourceName, resourceName);
         assert.notStrictEqual(createdApp?.scmType, ScmType.LocalGit, `Web App scmType's property value shouldn't be ${createdApp?.scmType} before "Configure Deployment Source to LocalGit".`);
+        const testApi = getCachedTestApi();
         await runWithTestActionContext('ConfigureDeploymentSource', async context => {
             await context.ui.runWithInputs([resourceName, ScmType.LocalGit], async () => {
-                await editScmType(context);
+                await testApi.commands.editScmType(context);
             });
         });
         createdApp = await webSiteClient.webApps.getConfiguration(resourceName, resourceName);
@@ -74,9 +98,10 @@ suite('Web App actions', function (this: Mocha.Suite): void {
     test(`Configure Deployment Source to None for ${WebsiteOS0} Web App`, async () => {
         let createdApp: SiteConfigResource = await webSiteClient.webApps.getConfiguration(resourceName, resourceName);
         assert.notStrictEqual(createdApp?.scmType, ScmType.None, `Web App scmType's property value shouldn't be ${createdApp?.scmType} before "Configure Deployment Source to None".`);
+        const testApi = getCachedTestApi();
         await runWithTestActionContext('ConfigureDeploymentSource', async context => {
             await context.ui.runWithInputs([resourceName, ScmType.None], async () => {
-                await editScmType(context);
+                await testApi.commands.editScmType(context);
             });
         });
         createdApp = await webSiteClient.webApps.getConfiguration(resourceName, resourceName);
@@ -88,15 +113,16 @@ suite('Web App actions', function (this: Mocha.Suite): void {
         const appSettingValue: string = getRandomHexString();
         const createdApp: Site | undefined = await tryGetWebApp(webSiteClient, resourceName, resourceName);
         assert.ok(createdApp);
+        const testApi = getCachedTestApi();
         await runWithTestActionContext('appSettings.Add', async context => {
             await context.ui.runWithInputs([resourceName, appSettingKey, appSettingValue], async () => {
-                await addAppSetting(context);
+                await testApi.commands.addAppSetting(context);
             });
         });
         assert.strictEqual(await getAppSettingValue(resourceName, resourceName, appSettingKey), appSettingValue, `Fail to add setting "${appSettingKey}"`);
         await runWithTestActionContext('appSettings.Delete', async context => {
             await context.ui.runWithInputs([resourceName, `${appSettingKey}=Hidden value. Click to view.`, DialogResponses.deleteResponse.title], async () => {
-                await deleteAppSetting(context);
+                await testApi.commands.deleteAppSetting(context);
             });
         });
         assert.ifError(await getAppSettingValue(resourceName, resourceName, appSettingKey));
@@ -105,9 +131,10 @@ suite('Web App actions', function (this: Mocha.Suite): void {
     test(`Delete Web App for ${WebsiteOS0} Web App`, async () => {
         const createdApp: Site | undefined = await tryGetWebApp(webSiteClient, resourceName, resourceName);
         assert.ok(createdApp);
+        const testApi = getCachedTestApi();
         await runWithTestActionContext('Delete', async context => {
             await context.ui.runWithInputs([resourceName, DialogResponses.deleteResponse.title, DialogResponses.yes.title], async () => {
-                await deleteWebApp(context);
+                await testApi.commands.deleteWebApp(context);
             });
         });
         const deletedApp: Site | undefined = await tryGetWebApp(webSiteClient, resourceName, resourceName);

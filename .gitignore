@@ -294,3 +294,4 @@ out
 test-results.xml
 dist
 stats.json
+.env

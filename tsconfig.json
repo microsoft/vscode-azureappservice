@@ -10,13 +10,10 @@
         "sourceMap": true,
         "rootDir": ".",
         "strict": true,
-        "baseUrl": "./",
-        "paths": {
-            "*": [
-                "node_modules/@types/*",
-                "*"
-            ]
-        }
+        "types": [
+            "mocha",
+            "node"
+        ]
     },
     "exclude": [
         "node_modules",
