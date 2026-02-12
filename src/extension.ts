@@ -115,8 +115,8 @@ export async function activateInternal(
                 addAppSetting,
                 deleteAppSetting,
                 deleteWebApp,
-                deploy: async (context: IActionContext, appId: string) => {
-                    await deploy(context, undefined, appId, true);
+                deploy: async (context: IActionContext, zipFilePath?: vscode.Uri) => {
+                    await deploy(context, zipFilePath, undefined, true);
                     return;
                 }
             }

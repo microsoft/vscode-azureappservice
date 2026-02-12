@@ -47,7 +47,7 @@ export interface TestApi {
     commands: {
         createWebApp(context: IActionContext, node?: SubscriptionTreeItemBase): Promise<SiteTreeItem>;
         createWebAppAdvanced(context: IActionContext, node?: SubscriptionTreeItemBase): Promise<SiteTreeItem>;
-        deploy(context: IActionContext, appId: string): Promise<void>;
+        deploy(context: IActionContext, zipFilePath?: vscode.Uri): Promise<void>;
 
         editScmType(context: IActionContext, node?: SiteTreeItem | DeploymentsTreeItem, _nodes?: (SiteTreeItem | DeploymentsTreeItem)[], newScmType?: ScmType, showToast?: boolean): Promise<void>;
 

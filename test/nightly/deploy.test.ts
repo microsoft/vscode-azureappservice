@@ -123,7 +123,7 @@ suite('Create Web App and deploy', async function (this: Mocha.Suite): Promise<v
         });
     }
 
-    async function testCreateWebAppAndDeploy(os: string, promptForOs: boolean, runtime: string, workspacePath: string, expectedVersion: string, _zipFile?: string): Promise<void> {
+    async function testCreateWebAppAndDeploy(os: string, promptForOs: boolean, runtime: string, workspacePath: string, expectedVersion: string, zipFile?: string): Promise<void> {
         const resourceName: string = getRandomHexString();
         const resourceGroupName = getRandomHexString();
         resourceGroupsToDelete.push(resourceGroupName);
@@ -141,13 +141,19 @@ suite('Create Web App and deploy', async function (this: Mocha.Suite): Promise<v
                 await testApi.commands.createWebAppAdvanced(context, testSubscription);
             });
         });
+        await delay(10 * 1000); // give some time for the web app to be fully provisioned before we try to deploy
         const createdApp: Site | undefined = await tryGetWebApp(webSiteClient, resourceGroupName, resourceName);
         assert.ok(createdApp);
+        const createdAppName: string = nonNullProp(createdApp, 'name');
         const createdAppId: string = nonNullProp(createdApp, 'id');
         await runWithTestActionContext('Deploy', async context => {
-            const inputs = [workspacePath];
+            const inputs = [workspacePath, createdAppName];
+            if (zipFile) {
+                inputs.shift(); // remove workspacePath since we will be passing the zip file directly to the deploy command
+            }
+
             await context.ui.runWithInputs(inputs, async () => {
-                await testApi.commands.deploy(context, createdAppId);
+                await testApi.commands.deploy(context, zipFile ? vscode.Uri.file(path.join(workspacePath, zipFile)) : undefined);
             });
 
         });
@@ -162,15 +168,22 @@ suite('Create Web App and deploy', async function (this: Mocha.Suite): Promise<v
         // Note: defaultHostName is typically a hostname (no protocol), so we normalize to an https URL.
         const url: string = /^https?:\/\//i.test(hostUrl) ? hostUrl : `https://${hostUrl}`;
 
-        // Retry up to 5 times over ~1 minute to allow the app time to finish building/starting.
+        // Retry up to 10 times over ~5 minutes to allow the app time to finish building/starting.
+        // Linux apps can take 2-5 minutes for remote builds (e.g. Oryx for Python).
         const maxAttempts = 5;
-        const delayMs = 15_000; // 15 seconds between attempts
+        const delayMs = 15_000; // 30 seconds between attempts
         let lastError: unknown;
         for (let attempt = 1; attempt <= maxAttempts; attempt++) {
             try {
                 const body: string = await cpUtils.executeCommand(undefined, undefined, 'curl', '--fail', '--silent', '--show-error', '--location', url);
-                assert.strictEqual(body.trim(), `Version: ${expectedVersion}`);
-                return; // success
+                if (zipFile) {
+                    assert.strictEqual(body.trim(), 'Hello World!');
+                    return;
+
+                } else {
+                    assert.strictEqual(body.trim(), `Version: ${expectedVersion}`);
+                    return; // success
+                }
             } catch (error) {
                 lastError = error;
                 if (attempt < maxAttempts) {

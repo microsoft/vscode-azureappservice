@@ -8,7 +8,6 @@ import { WebsiteOS, tryGetWebApp } from '@microsoft/vscode-azext-azureappservice
 import { DialogResponses, runWithTestActionContext } from '@microsoft/vscode-azext-utils';
 import * as assert from 'assert';
 import { ScmType } from '../../src/constants';
-import { delay } from '../../src/utils/delay';
 import { getRandomHexString } from '../../src/utils/randomUtils';
 import { longRunningTestsEnabled, testSubscription, webSiteClient } from '../global.test';
 import { getCachedTestApi } from '../utils/testApiAccess';
@@ -29,7 +28,9 @@ suite('Web App actions', function (this: Mocha.Suite): void {
     });
 
     test(`Create New ${WebsiteOS0} Web App (Advanced)`, async () => {
-        const testInputs: (string | RegExp)[] = ['West US 3', 'Secure unique default hostname', '$(plus) Create new resource group', resourceName, resourceName, ...getInput(WebsiteOS0), '$(plus) Create new App Service plan', resourceName, getRotatingPricingTier(), '$(plus) Create new Application Insights resource', resourceName];
+        const appServicePlanName: string = getRandomHexString();
+        const applicationInsightsName: string = getRandomHexString();
+        const testInputs: (string | RegExp)[] = ['West US 3', 'Secure unique default hostname', '$(plus) Create new resource group', resourceName, resourceName, ...getInput(WebsiteOS0), '$(plus) Create new App Service plan', appServicePlanName, getRotatingPricingTier(), '$(plus) Create new Application Insights resource', applicationInsightsName];
         resourceGroupsToDelete.push(resourceName);
         const testApi = getCachedTestApi();
         await runWithTestActionContext('CreateWebAppAdvanced', async context => {
@@ -37,19 +38,8 @@ suite('Web App actions', function (this: Mocha.Suite): void {
                 await testApi.commands.createWebAppAdvanced(context, testSubscription);
             });
         });
-        // Retry up to 5 times over ~1 minute to allow the app time to finish provisioning.
-        const maxAttempts = 5;
-        const delayMs = 15_000;
-        let createdApp: Site | undefined;
-        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-            createdApp = await tryGetWebApp(webSiteClient, resourceName, resourceName);
-            if (createdApp) {
-                break;
-            }
-            if (attempt < maxAttempts) {
-                await delay(delayMs);
-            }
-        }
+
+        const createdApp: Site | undefined = await tryGetWebApp(webSiteClient, resourceName, resourceName);
         assert.ok(createdApp);
     });
 
@@ -59,26 +49,14 @@ suite('Web App actions', function (this: Mocha.Suite): void {
         const appServicePlanName: string = getRandomHexString();
         const applicationInsightsName: string = getRandomHexString();
         resourceGroupsToDelete.push(resourceGroupName);
-        const testInputs: (string | RegExp)[] = ['West US 3', 'Secure unique default hostname', '$(plus) Create new resource group', resourceGroupName, resourceGroupName, ...getInput(WebsiteOS1), '$(plus) Create new App Service plan', appServicePlanName, getRotatingPricingTier(), '$(plus) Create new Application Insights resource', applicationInsightsName];
+        const testInputs: (string | RegExp)[] = ['West US 3', 'Secure unique default hostname', '$(plus) Create new resource group', resourceGroupName, webAppName, ...getInput(WebsiteOS1), '$(plus) Create new App Service plan', appServicePlanName, getRotatingPricingTier(), '$(plus) Create new Application Insights resource', applicationInsightsName];
         const testApi = getCachedTestApi();
         await runWithTestActionContext('CreateWebAppAdvanced', async context => {
             await context.ui.runWithInputs(testInputs, async () => {
                 await testApi.commands.createWebAppAdvanced(context, testSubscription);
             });
         });
-        // Retry up to 5 times over ~1 minute to allow the app time to finish provisioning.
-        const maxAttempts = 5;
-        const delayMs = 15_000;
-        let createdApp: Site | undefined;
-        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-            createdApp = await tryGetWebApp(webSiteClient, resourceGroupName, webAppName);
-            if (createdApp) {
-                break;
-            }
-            if (attempt < maxAttempts) {
-                await delay(delayMs);
-            }
-        }
+        const createdApp: Site | undefined = await tryGetWebApp(webSiteClient, resourceGroupName, webAppName);
         assert.ok(createdApp);
     });
 
