@@ -54,7 +54,7 @@ export class WebAppCreateStep extends AzureWizardExecuteStepWithActivityOutput<I
     }
 
     private async createWebApp(context: IWebAppWizardContext, rgName: string, siteName: string): Promise<Site> {
-        return context.newSiteDomainNameLabelScope === DomainNameLabelScope.Global ?
+        return context.newSiteDomainNameLabelScope === DomainNameLabelScope.NoReuse ?
             await this.createNewSite(context, rgName, siteName) :
             await this.createNewSiteWithDomainLabelScope(context, rgName, siteName);
     }

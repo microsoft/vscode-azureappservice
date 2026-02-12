@@ -27,16 +27,9 @@ export async function activateInternal(
     perfStats: {
         loadStartTime: number, loadEndTime: number
     },
-    ignoreBundle?: boolean,
-    overrideExt?: typeof ext
+    ignoreBundle?: boolean
 ): Promise<apiUtils.AzureExtensionApiProvider> {
-    if (overrideExt) {
-        console.log('Activating Azure App Service extension with override...');
-    } else {
-        console.log('Activating Azure App Service extension without override...');
-    }
     ext.context = context;
-
     ext.ignoreBundle = ignoreBundle;
 
     ext.outputChannel = createAzExtOutputChannel("Azure App Service", ext.prefix);
@@ -51,34 +44,22 @@ export async function activateInternal(
         activateContext.telemetry.measurements.mainFileLoad = (perfStats.loadEndTime - perfStats.loadStartTime) / 1000;
         activateContext.errorHandling.rethrow = true;
 
-        if (!overrideExt) {
+        registerCommands();
 
+        // Suppress "Report an Issue" button for all errors in favor of the command
+        registerErrorHandler(c => c.errorHandling.suppressReportIssue = true);
+        registerReportIssueCommand('appService.ReportIssue');
 
-            registerCommands();
+        ext.experimentationService = await createExperimentationService(context);
 
-            // Suppress "Report an Issue" button for all errors in favor of the command
-            registerErrorHandler(c => c.errorHandling.suppressReportIssue = true);
-            registerReportIssueCommand('appService.ReportIssue');
+        ext.rgApi = await getResourceGroupsApi();
 
-            ext.experimentationService = await createExperimentationService(context);
+        ext.rgApi.registerApplicationResourceResolver(AzExtResourceType.AppServices, new WebAppResolver());
 
-            ext.rgApi = await getResourceGroupsApi();
-
-            ext.rgApi.registerApplicationResourceResolver(AzExtResourceType.AppServices, new WebAppResolver());
-
-            ext.fileSystem = new AppServiceFileSystem(ext.rgApi.tree);
-            context.subscriptions.push(vscode.workspace.registerFileSystemProvider(AppServiceFileSystem.scheme, ext.fileSystem));
-        }
-
-        if (overrideExt) {
-            console.log('EXT before override', ext);
-            ext.rgApi = overrideExt.rgApi;
-            ext.azureAccountTreeItem = overrideExt.azureAccountTreeItem;
-            ext.experimentationService = overrideExt.experimentationService;
-            console.log('EXT after override', ext);
-        }
-
-    });
+        ext.fileSystem = new AppServiceFileSystem(ext.rgApi.tree);
+        context.subscriptions.push(vscode.workspace.registerFileSystemProvider(AppServiceFileSystem.scheme, ext.fileSystem));
+    }
+    );
     const apis: (AzureExtensionApi | TestApi)[] = [
         <AzureExtensionApi>{
             deploy,

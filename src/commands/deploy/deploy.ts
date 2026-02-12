@@ -5,7 +5,7 @@
 
 import { type SiteConfigResource, type StringDictionary } from '@azure/arm-appservice';
 import * as appservice from '@microsoft/vscode-azext-azureappservice';
-import { getDeployFsPath, getDeployNode, showDeployConfirmation, type IDeployContext, type IDeployPaths } from '@microsoft/vscode-azext-azureappservice';
+import { getDeployFsPath, getDeployNode, showDeployConfirmation, type IDeployContext, type IDeployPaths, type SiteClient } from '@microsoft/vscode-azext-azureappservice';
 import { parseError, type IActionContext } from '@microsoft/vscode-azext-utils';
 import { pathExists } from 'fs-extra';
 import * as path from 'path';
@@ -33,10 +33,10 @@ import { showDeployCompletedMessage } from './showDeployCompletedMessage';
 
 const postDeployCancelTokens: Map<string, vscode.CancellationTokenSource> = new Map<string, vscode.CancellationTokenSource>();
 
-export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | SiteTreeItem, arg2?: string, isNewApp: boolean = false): Promise<void> {
+export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | SiteTreeItem, arg2?: (vscode.Uri | SiteTreeItem)[], isNewApp: boolean = false): Promise<void> {
     actionContext.telemetry.properties.deployedWithConfigs = 'false';
     let siteConfig: SiteConfigResource | undefined;
-    let client: appservice.SiteClient;
+    let client: SiteClient;
     if (treeUtils.isAzExtTreeItem(arg1)) {
         if (!arg1.contextValue.match(ResolvedWebAppResource.webAppContextValue) &&
             !arg1.contextValue.match(ResolvedWebAppResource.slotContextValue)) {

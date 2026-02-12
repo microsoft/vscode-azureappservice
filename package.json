@@ -733,7 +733,6 @@
         "@microsoft/vscode-azext-eng": "^1.0.0-alpha.11",
         "@types/dotenv": "^6.1.1",
         "@types/fs-extra": "^8.0.0",
-        "@types/mocha": "^10.0.10",
         "@types/node": "22.x",
         "@types/vscode": "1.104.0",
         "@vscode/test-cli": "*",
