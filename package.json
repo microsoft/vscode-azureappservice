@@ -730,6 +730,7 @@
         "test": "vscode-test"
     },
     "devDependencies": {
+        "@microsoft/vscode-azext-azureauth": "^6.0.0-alpha.2",
         "@microsoft/vscode-azext-eng": "^1.0.0-alpha.11",
         "@types/dotenv": "^6.1.1",
         "@types/fs-extra": "^8.0.0",

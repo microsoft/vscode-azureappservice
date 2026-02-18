@@ -10,6 +10,7 @@ import { createTestActionContext, registerOnActionStartHandler, testGlobalSetup,
 import * as assert from 'assert';
 import * as vscode from 'vscode';
 import { ext } from '../src/extensionVariables';
+import { setupAzureDevOpsSubscriptionProvider } from './utils/azureDevOpsSubscriptionProvider';
 import { getResourceGroupsTestApi } from './utils/resourceGroupsTestApiAccess';
 import { getTestApi } from './utils/testApiAccess';
 
@@ -59,11 +60,20 @@ suiteSetup(async function (this: Mocha.Context): Promise<void> {
             console.log(`  env ${v} = ${display}`);
         }
 
+        // Set up the AzDO federated subscription provider on the RG extension
+        // so the tree loads real subscriptions instead of "Sign in to Azure..." placeholders.
+        const useAzureFederatedCredentials: boolean = !/^(false|0)?$/i.test(process.env['AzCode_UseAzureFederatedCredentials'] || '');
+        if (useAzureFederatedCredentials) {
+            await setupAzureDevOpsSubscriptionProvider();
+        }
+
+        // Trigger a login / tree refresh so subscription nodes load
+        await vscode.commands.executeCommand('azureResourceGroups.logIn');
+
         const rgTestApi = await getResourceGroupsTestApi();
         await getTestApi();
 
-        // The tree may not have loaded subscriptions yet (especially in CI where auth can be slower).
-        // Retry with backoff until subscription nodes appear.
+        // Wait for the tree to populate with subscription nodes after auth.
         const maxAttempts = 10;
         const delayMs = 3000;
         for (let attempt = 1; attempt <= maxAttempts; attempt++) {
