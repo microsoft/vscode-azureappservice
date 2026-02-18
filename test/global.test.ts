@@ -41,20 +41,46 @@ suiteSetup(async function (this: Mocha.Context): Promise<void> {
 
     if (longRunningTestsEnabled) {
         const rgTestApi = await getResourceGroupsTestApi();
-        const rootChildren = await rgTestApi.compatibility.getAppResourceTree().getChildren();
         await getTestApi();
-        // The RG compatibility tree may include non-subscription nodes depending on grouping; pick only nodes that actually expose a subscription context.
-        subscriptionTreeItems = rootChildren.filter((c: unknown) => {
-            try {
-                const subId = (c as { subscription?: { subscriptionId?: string } } | undefined)?.subscription?.subscriptionId;
-                return typeof subId === 'string' && subId.length > 0;
-            } catch {
-                return false;
+
+        // The tree may not have loaded subscriptions yet (especially in CI where auth can be slower).
+        // Retry with backoff until subscription nodes appear.
+        const maxAttempts = 10;
+        const delayMs = 3000;
+        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+            const rootChildren = await rgTestApi.compatibility.getAppResourceTree().getChildren();
+            console.log(`Attempt ${attempt}/${maxAttempts}: getChildren() returned ${rootChildren.length} node(s)`);
+            for (const child of rootChildren) {
+                console.log(`  - Node: label=${(child as { label?: string }).label}, subscriptionId=${(child as { subscription?: { subscriptionId?: string } }).subscription?.subscriptionId ?? '<none>'}`);
             }
-        }) as unknown as SubscriptionTreeItemBase[];
+
+            // The RG compatibility tree may include non-subscription nodes depending on grouping; pick only nodes that actually expose a subscription context.
+            subscriptionTreeItems = rootChildren.filter((c: unknown) => {
+                try {
+                    const subId = (c as { subscription?: { subscriptionId?: string } } | undefined)?.subscription?.subscriptionId;
+                    return typeof subId === 'string' && subId.length > 0;
+                } catch {
+                    return false;
+                }
+            }) as unknown as SubscriptionTreeItemBase[];
+
+            if (subscriptionTreeItems.length > 0) {
+                break;
+            }
+
+            if (attempt < maxAttempts) {
+                console.log(`No subscription nodes found yet, waiting ${delayMs}ms before retry...`);
+                await new Promise(resolve => setTimeout(resolve, delayMs));
+            }
+        }
+
         testSubscription = subscriptionTreeItems[0];
-        console.log('Test subscription tree items:', subscriptionTreeItems);
-        console.log('Test subscription:', testSubscription);
+        console.log('Test subscription tree items:', subscriptionTreeItems.length);
+        console.log('Test subscription:', testSubscription?.subscription?.subscriptionId);
+
+        if (!testSubscription) {
+            throw new Error(`No subscription tree items found after ${maxAttempts} attempts (${maxAttempts * delayMs / 1000}s). The Azure Resources tree may not have loaded subscriptions. Verify that authentication succeeded and VSCODE_RUNNING_TESTS is set for the Resource Groups extension.`);
+        }
 
         const appExtension = vscode.extensions.getExtension('ms-azuretools.vscode-azureappservice');
         if (!appExtension) {
