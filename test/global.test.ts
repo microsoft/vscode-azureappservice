@@ -40,6 +40,25 @@ suiteSetup(async function (this: Mocha.Context): Promise<void> {
     });
 
     if (longRunningTestsEnabled) {
+        // Log federated credential env vars to diagnose CI auth issues
+        const federatedVars = [
+            'AzCode_UseAzureFederatedCredentials',
+            'AzCode_ServiceConnectionID',
+            'AzCode_ServiceConnectionDomain',
+            'AzCode_ServiceConnectionClientID',
+            'SYSTEM_ACCESSTOKEN',
+            'AGENT_BUILDDIRECTORY',
+            'VSCODE_RUNNING_TESTS',
+        ];
+        for (const v of federatedVars) {
+            const val = process.env[v];
+            // Mask tokens, just show presence/absence
+            const display = v === 'SYSTEM_ACCESSTOKEN'
+                ? (val ? `<set, length=${val.length}>` : '<NOT SET>')
+                : (val ?? '<NOT SET>');
+            console.log(`  env ${v} = ${display}`);
+        }
+
         const rgTestApi = await getResourceGroupsTestApi();
         await getTestApi();
 
