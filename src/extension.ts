@@ -19,6 +19,7 @@ import { editScmType } from './commands/deployments/editScmType';
 import { registerCommands } from './commands/registerCommands';
 import { ext } from './extensionVariables';
 import type { TestApi } from './testApi';
+import { SiteTreeItem } from './tree/SiteTreeItem';
 import { getResourceGroupsApi } from './utils/getExtensionApi';
 import { WebAppResolver } from './WebAppResolver';
 
@@ -96,8 +97,8 @@ export async function activateInternal(
                 addAppSetting,
                 deleteAppSetting,
                 deleteWebApp,
-                deploy: async (context: IActionContext, zipFilePath?: vscode.Uri) => {
-                    await deploy(context, zipFilePath, undefined, true);
+                deploy: async (context: IActionContext, node?: SiteTreeItem, zipFilePath?: vscode.Uri) => {
+                    await deploy(context, node, zipFilePath ? [zipFilePath] : undefined, true);
                     return;
                 }
             }

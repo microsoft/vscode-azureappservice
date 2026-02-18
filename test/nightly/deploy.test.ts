@@ -13,10 +13,10 @@ import { SiteTreeItem } from '../../src/tree/SiteTreeItem';
 import { cpUtils } from '../../src/utils/cpUtils';
 import { delay } from '../../src/utils/delay';
 import { getRandomHexString } from '../../src/utils/randomUtils';
-import { longRunningTestsEnabled, webSiteClient } from '../global.test';
+import { longRunningTestsEnabled, testSubscription, webSiteClient } from '../global.test';
 import { getResourceGroupsTestApi } from '../utils/resourceGroupsTestApiAccess';
 import { getCachedTestApi } from '../utils/testApiAccess';
-import { resourceGroupsToDelete, testSubscription } from './aaa_global.resource.test';
+import { resourceGroupsToDelete } from './aaa_global.resource.test';
 import { getRotatingLocation, getRotatingPricingTier } from './getRotatingValue';
 
 interface ITestCase {
@@ -144,23 +144,23 @@ suite('Create Web App and deploy', async function (this: Mocha.Suite): Promise<v
         await delay(10 * 1000); // give some time for the web app to be fully provisioned before we try to deploy
         const createdApp: Site | undefined = await tryGetWebApp(webSiteClient, resourceGroupName, resourceName);
         assert.ok(createdApp);
-        const createdAppName: string = nonNullProp(createdApp, 'name');
         const createdAppId: string = nonNullProp(createdApp, 'id');
+        const rgTestApi = await getResourceGroupsTestApi();
+        const context = await createTestActionContext();
+        const siteTreeItem: SiteTreeItem = (<SiteTreeItem>await rgTestApi.compatibility.getAppResourceTree().findTreeItem(createdAppId, context));
+
         await runWithTestActionContext('Deploy', async context => {
-            const inputs = [workspacePath, createdAppName];
+            const inputs = [workspacePath];
             if (zipFile) {
                 inputs.shift(); // remove workspacePath since we will be passing the zip file directly to the deploy command
             }
 
             await context.ui.runWithInputs(inputs, async () => {
-                await testApi.commands.deploy(context, zipFile ? vscode.Uri.file(path.join(workspacePath, zipFile)) : undefined);
+                await testApi.commands.deploy(context, siteTreeItem, zipFile ? vscode.Uri.file(path.join(workspacePath, zipFile)) : undefined);
             });
 
         });
 
-        const rgTestApi = await getResourceGroupsTestApi();
-        const context = await createTestActionContext();
-        const siteTreeItem: SiteTreeItem = (<SiteTreeItem>await rgTestApi.compatibility.getAppResourceTree().findTreeItem(createdAppId, context));
         await siteTreeItem.initSite(context);
         const hostUrl = siteTreeItem.site.defaultHostName;
 
@@ -177,7 +177,7 @@ suite('Create Web App and deploy', async function (this: Mocha.Suite): Promise<v
             try {
                 const body: string = await cpUtils.executeCommand(undefined, undefined, 'curl', '--fail', '--silent', '--show-error', '--location', url);
                 if (zipFile) {
-                    assert.strictEqual(body.trim(), 'Hello World!');
+                    assert.strictEqual(body.trim(), 'Hello Node!');
                     return;
 
                 } else {

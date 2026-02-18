@@ -52,7 +52,8 @@ export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | 
 
     const fileExtensions: string | string[] | undefined = await javaUtils.getJavaFileExtensions(siteConfig);
 
-    const deployPaths: IDeployPaths = await getDeployFsPath(actionContext, arg1, fileExtensions);
+    // since arg1 or arg2 can be the zipfile path, we need to check both
+    const deployPaths: IDeployPaths = await getDeployFsPath(actionContext, typeof arg1 === 'string' ? arg1 : arg2?.pop(), fileExtensions);
     const context: IDeployContext = Object.assign(actionContext, deployPaths, { defaultAppSetting: constants.configurationSettings.defaultWebAppToDeploy, isNewApp });
 
     // because this is workspace dependant, do it before user selects app
