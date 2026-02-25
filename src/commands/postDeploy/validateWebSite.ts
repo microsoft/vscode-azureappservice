@@ -33,12 +33,12 @@ export async function validateWebSite(originalContext: IActionContext, deploymen
         let pollingIntervalMs = initialPollingIntervalMs;
         const start = Date.now();
         const url = siteTreeItem.site.defaultHostUrl;
-        let currentStatusCode: number | undefined = 0;
+        let currentStatusCode: number | undefined;
         const statusCodes: { code: number | undefined, elapsed: number }[] = [];
 
         const client: ServiceClient = await createGenericClient(context, undefined);
 
-         
+
         while (true) {
             if (tokenSource.token.isCancellationRequested) {
                 // the user cancelled the check by deploying again
