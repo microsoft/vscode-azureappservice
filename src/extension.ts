@@ -4,7 +4,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { registerAppServiceExtensionVariables } from '@microsoft/vscode-azext-azureappservice';
-import { registerAzureUtilsExtensionVariables } from '@microsoft/vscode-azext-azureutils';
+import { registerAzureUtilsExtensionVariables, SubscriptionTreeItemBase } from '@microsoft/vscode-azext-azureutils';
 import { callWithTelemetryAndErrorHandling, createApiProvider, createAzExtOutputChannel, createExperimentationService, registerErrorHandler, registerReportIssueCommand, registerUIExtensionVariables, type apiUtils, type AzureExtensionApi, type IActionContext } from '@microsoft/vscode-azext-utils';
 import { AzExtResourceType } from '@microsoft/vscode-azureresources-api';
 import * as vscode from 'vscode';
@@ -96,8 +96,8 @@ export async function activateInternal(
                 addAppSetting,
                 deleteAppSetting,
                 deleteWebApp,
-                deploy: async (context: IActionContext, zipFilePath?: vscode.Uri) => {
-                    await deploy(context, zipFilePath, undefined, true);
+                deploy: async (context: IActionContext, zipFilePath?: vscode.Uri, testSubscription?: SubscriptionTreeItemBase) => {
+                    await deploy(context, zipFilePath, undefined, true, testSubscription);
                     return;
                 }
             }

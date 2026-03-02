@@ -13,10 +13,10 @@ import { SiteTreeItem } from '../../src/tree/SiteTreeItem';
 import { cpUtils } from '../../src/utils/cpUtils';
 import { delay } from '../../src/utils/delay';
 import { getRandomHexString } from '../../src/utils/randomUtils';
-import { longRunningTestsEnabled, webSiteClient } from '../global.test';
+import { longRunningTestsEnabled, testSubscription, webSiteClient } from '../global.test';
 import { getResourceGroupsTestApi } from '../utils/resourceGroupsTestApiAccess';
 import { getCachedTestApi } from '../utils/testApiAccess';
-import { resourceGroupsToDelete, testSubscription } from './aaa_global.resource.test';
+import { resourceGroupsToDelete } from './aaa_global.resource.test';
 import { getRotatingLocation, getRotatingPricingTier } from './getRotatingValue';
 
 interface ITestCase {
@@ -153,7 +153,7 @@ suite('Create Web App and deploy', async function (this: Mocha.Suite): Promise<v
             }
 
             await context.ui.runWithInputs(inputs, async () => {
-                await testApi.commands.deploy(context, zipFile ? vscode.Uri.file(path.join(workspacePath, zipFile)) : undefined);
+                await testApi.commands.deploy(context, zipFile ? vscode.Uri.file(path.join(workspacePath, zipFile)) : undefined, testSubscription);
             });
 
         });

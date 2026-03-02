@@ -6,6 +6,7 @@
 import { type SiteConfigResource, type StringDictionary } from '@azure/arm-appservice';
 import * as appservice from '@microsoft/vscode-azext-azureappservice';
 import { getDeployFsPath, getDeployNode, showDeployConfirmation, type IDeployContext, type IDeployPaths, type SiteClient } from '@microsoft/vscode-azext-azureappservice';
+import { SubscriptionTreeItemBase } from '@microsoft/vscode-azext-azureutils';
 import { parseError, type IActionContext } from '@microsoft/vscode-azext-utils';
 import { pathExists } from 'fs-extra';
 import * as path from 'path';
@@ -26,6 +27,7 @@ import { LinuxRuntimes } from '../createWebApp/LinuxRuntimes';
 import { runPostDeployTask } from '../postDeploy/runPostDeployTask';
 import { failureMoreInfoSurvey } from './failureMoreInfoSurvey';
 import { getDomainNameLabelScope } from './getDomainNameLabelScope';
+import { getOrCreateWebApp } from './getOrCreateWebApp';
 import { promptScmDoBuildDeploy } from './promptScmDoBuildDeploy';
 import { promptToSaveDeployDefaults } from './promptToSaveDeployDefaults';
 import { setPreDeployConfig } from './setPreDeployConfig';
@@ -33,7 +35,7 @@ import { showDeployCompletedMessage } from './showDeployCompletedMessage';
 
 const postDeployCancelTokens: Map<string, vscode.CancellationTokenSource> = new Map<string, vscode.CancellationTokenSource>();
 
-export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | SiteTreeItem, arg2?: (vscode.Uri | SiteTreeItem)[], isNewApp: boolean = false): Promise<void> {
+export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | SiteTreeItem, arg2?: (vscode.Uri | SiteTreeItem)[], isNewApp: boolean = false, subscription?: SubscriptionTreeItemBase): Promise<void> {
     actionContext.telemetry.properties.deployedWithConfigs = 'false';
     let siteConfig: SiteConfigResource | undefined;
     let client: SiteClient;
@@ -53,13 +55,14 @@ export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | 
     const fileExtensions: string | string[] | undefined = await javaUtils.getJavaFileExtensions(siteConfig);
 
     const deployPaths: IDeployPaths = await getDeployFsPath(actionContext, arg1, fileExtensions);
-    const context: IDeployContext = Object.assign(actionContext, deployPaths, { defaultAppSetting: constants.configurationSettings.defaultWebAppToDeploy, isNewApp });
+    const context: IDeployContext = Object.assign(actionContext, deployPaths,
+        { defaultAppSetting: constants.configurationSettings.defaultWebAppToDeploy, isNewApp },
+        subscription?.subscription ?? {});
 
     // because this is workspace dependant, do it before user selects app
     await setPreDeployConfig(context);
-    const node: SiteTreeItem = await getDeployNode(context, ext.rgApi.tree, arg1, arg2, () => ext.rgApi.pickAppResource(context, {
-        filter: constants.webAppFilter
-    }));
+    const node: SiteTreeItem = await getDeployNode(context, ext.rgApi.tree, arg1, arg2,
+        async () => await getOrCreateWebApp(context));
     await node.initSite(context);
     client = await node.site.createClient(actionContext);
 
