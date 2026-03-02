@@ -10,7 +10,6 @@ import { beginDeleteResourceGroup } from './utils/beginDeleteResourceGroup';
 
 export const resourceGroupsToDelete: string[] = [];
 export const subscriptionTreeItems: SubscriptionTreeItemBase[] = [];
-export let testSubscription: SubscriptionTreeItemBase | undefined;
 export let webSiteClient: WebSiteManagementClient;
 
 suite('Nightly test resources', function () {

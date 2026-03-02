@@ -3,6 +3,7 @@
  *  Licensed under the MIT License. See LICENSE.md in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import type { AzureSubscriptionProvider } from '@microsoft/vscode-azext-azureauth';
 import type { apiUtils, AzExtTreeDataProvider } from '@microsoft/vscode-azext-utils';
 import * as vscode from 'vscode';
 
@@ -15,6 +16,9 @@ export interface ResourceGroupsTestApi {
     apiVersion: '99.0.0';
     compatibility: {
         getAppResourceTree(): AzExtTreeDataProvider;
+    };
+    testing: {
+        setOverrideAzureSubscriptionProvider(provider: (() => AzureSubscriptionProvider) | undefined): void;
     };
 }
 
