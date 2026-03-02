@@ -145,12 +145,13 @@ suite('Create Web App and deploy', async function (this: Mocha.Suite): Promise<v
         const createdApp: Site | undefined = await tryGetWebApp(webSiteClient, resourceGroupName, resourceName);
         assert.ok(createdApp);
         const createdAppId: string = nonNullProp(createdApp, 'id');
+        const createdAppName: string = nonNullProp(createdApp, 'name');
         const rgTestApi = await getResourceGroupsTestApi();
         const context = await createTestActionContext();
         const siteTreeItem: SiteTreeItem = (<SiteTreeItem>await rgTestApi.compatibility.getAppResourceTree().findTreeItem(createdAppId, context));
 
         await runWithTestActionContext('Deploy', async context => {
-            const inputs = [workspacePath];
+            const inputs = [workspacePath, createdAppName];
             if (zipFile) {
                 inputs.shift(); // remove workspacePath since we will be passing the zip file directly to the deploy command
             }
