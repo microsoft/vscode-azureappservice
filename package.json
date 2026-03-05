@@ -520,7 +520,7 @@
                 },
                 {
                     "command": "appService.Refresh",
-                    "when": "view =~ /(azureResourceGroups|azureFocusView)/ && viewItem == сosmosDBConnections",
+                    "when": "view =~ /(azureResourceGroups|azureFocusView)/ && viewItem == \u0441osmosDBConnections",
                     "group": "2@2"
                 },
                 {
@@ -727,7 +727,8 @@
         "build:check": "tsc --noEmit",
         "package": "vsce package --githubBranch main",
         "lint": "eslint --max-warnings 0",
-        "test": "vscode-test"
+        "test": "vscode-test",
+        "test:signin": "echo \"Opening test VS Code. Sign in to Azure (Cmd+Shift+P -> Azure: Sign In), then close.\" && \".vscode-test/vscode-darwin-arm64-1.109.0/Visual Studio Code.app/Contents/MacOS/Electron\" --extensionDevelopmentPath=. test/test.code-workspace --user-data-dir=.vscode-test/user-data --password-store=basic"
     },
     "devDependencies": {
         "@microsoft/vscode-azext-eng": "^1.0.0-alpha.11",

@@ -3,10 +3,11 @@
  *  Licensed under the MIT License. See LICENSE.md in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { registerOnActionStartHandler, TestOutputChannel, TestUserInput } from '@microsoft/vscode-azext-utils';
-import * as assert from 'assert';
+import { registerAppServiceExtensionVariables } from '@microsoft/vscode-azext-azureappservice';
+import { registerOnActionStartHandler, testGlobalSetup, TestUserInput } from '@microsoft/vscode-azext-utils';
 import * as vscode from 'vscode';
-import { ext } from '../src/extensionVariables';
+import { ext, registerExtensionVariables, type IAppServiceExtensionVariables } from '../src/extensionVariables';
+import { getResourceGroupsApi } from '../src/utils/getExtensionApi';
 
 const longRunningLocalTestsEnabled: boolean = !/^(false|0)?$/i.test(process.env.AzCode_EnableLongRunningTestsLocal || '');
 const longRunningRemoteTestsEnabled: boolean = !/^(false|0)?$/i.test(process.env.AzCode_UseAzureFederatedCredentials || '');
@@ -16,16 +17,31 @@ export const longRunningTestsEnabled: boolean = longRunningLocalTestsEnabled || 
 // Runs before all tests
 suiteSetup(async function (this: Mocha.Context): Promise<void> {
     this.timeout(120 * 1000);
-    const extension = vscode.extensions.getExtension('ms-azuretools.vscode-azureappservice');
-    if (!extension) {
-        assert.fail('Failed to find extension.');
-    } else {
-        await extension.activate(); // activate the extension before tests begin
+
+    // Initialize extension variables using testGlobalSetup pattern
+    const baseVars = testGlobalSetup();
+    const extVars: IAppServiceExtensionVariables = {
+        ...baseVars,
+        prefix: 'appService',
+    } as IAppServiceExtensionVariables;
+
+    registerExtensionVariables(extVars);
+    registerAppServiceExtensionVariables(ext);
+
+    // For nightly tests, we need the Azure Resource Groups API
+    if (longRunningTestsEnabled) {
+        try {
+            ext.rgApi = await getResourceGroupsApi();
+        } catch (error) {
+            console.warn('Failed to get Resource Groups API:', error);
+            // Tests that need rgApi will fail, but unit tests can continue
+        }
     }
-    ext.outputChannel = new TestOutputChannel();
 
     registerOnActionStartHandler(context => {
         // Use `TestUserInput` by default so we get an error if an unexpected call to `context.ui` occurs, rather than timing out
         context.ui = new TestUserInput(vscode);
     });
 });
+
+export { ext };

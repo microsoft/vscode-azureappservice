@@ -14,10 +14,9 @@ import * as path from 'path';
 import * as vscode from 'vscode';
 import { createWebAppAdvanced } from '../../src/commands/createWebApp/createWebApp';
 import { deploy } from '../../src/commands/deploy/deploy';
-import { ext } from '../../src/extensionVariables';
 import { SiteTreeItem } from '../../src/tree/SiteTreeItem';
 import { getRandomHexString } from '../../src/utils/randomUtils';
-import { longRunningTestsEnabled } from '../global.test';
+import { ext, longRunningTestsEnabled } from '../global.test';
 import { getRotatingLocation, getRotatingPricingTier } from './getRotatingValue';
 import { resourceGroupsToDelete, webSiteClient } from './global.resource.test';
 
@@ -111,6 +110,7 @@ suite('Create Web App and deploy', function (this: Mocha.Suite): void {
     suiteSetup(function (this: Mocha.Context): void {
         if (!longRunningTestsEnabled) {
             this.skip();
+            return;
         }
 
         for (const t of parallelTests) {

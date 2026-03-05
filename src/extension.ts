@@ -4,14 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { registerAppServiceExtensionVariables } from '@microsoft/vscode-azext-azureappservice';
-import { registerAzureUtilsExtensionVariables } from '@microsoft/vscode-azext-azureutils';
-import { callWithTelemetryAndErrorHandling, createApiProvider, createAzExtOutputChannel, createExperimentationService, registerErrorHandler, registerReportIssueCommand, registerUIExtensionVariables, type apiUtils, type AzureExtensionApi, type IActionContext } from '@microsoft/vscode-azext-utils';
+import { callWithTelemetryAndErrorHandling, createApiProvider, createAzExtOutputChannel, createExperimentationService, registerErrorHandler, registerReportIssueCommand, type apiUtils, type AzureExtensionApi, type IActionContext } from '@microsoft/vscode-azext-utils';
 import { AzExtResourceType } from '@microsoft/vscode-azureresources-api';
 import * as vscode from 'vscode';
 import { AppServiceFileSystem } from './AppServiceFileSystem';
 import { revealTreeItem } from './commands/api/revealTreeItem';
 import { registerCommands } from './commands/registerCommands';
-import { ext } from './extensionVariables';
+import { ext, registerExtensionVariables, type IAppServiceExtensionVariables } from './extensionVariables';
 import { getResourceGroupsApi } from './utils/getExtensionApi';
 import { WebAppResolver } from './WebAppResolver';
 
@@ -22,14 +21,18 @@ export async function activateInternal(
     },
     ignoreBundle?: boolean
 ): Promise<apiUtils.AzureExtensionApiProvider> {
-    ext.context = context;
-    ext.ignoreBundle = ignoreBundle;
+    // Create and register extension variables
+    const outputChannel = createAzExtOutputChannel("Azure App Service", 'appService');
+    context.subscriptions.push(outputChannel);
 
-    ext.outputChannel = createAzExtOutputChannel("Azure App Service", ext.prefix);
-    context.subscriptions.push(ext.outputChannel);
+    const extVars: IAppServiceExtensionVariables = {
+        context,
+        outputChannel,
+        prefix: 'appService',
+        ignoreBundle,
+    } as IAppServiceExtensionVariables;
 
-    registerUIExtensionVariables(ext);
-    registerAzureUtilsExtensionVariables(ext);
+    registerExtensionVariables(extVars);
     registerAppServiceExtensionVariables(ext);
 
     await callWithTelemetryAndErrorHandling('appService.activate', async (activateContext: IActionContext) => {
