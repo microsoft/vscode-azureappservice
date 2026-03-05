@@ -12,6 +12,7 @@ import { localize } from "../../localize";
 import { SiteTreeItem } from "../../tree/SiteTreeItem";
 import { createActivityContext } from "../../utils/activityUtils";
 import { StartingResourcesLogStep } from "../StartingResourcesLogStep";
+import { CodeOptimizationsStep } from "./CodeOptimizationsStep";
 import { type IWebAppWizardContext } from "./IWebAppWizardContext";
 import { SetPostPromptDefaultsStep } from "./SetPostPromptDefaultsStep";
 import { setPrePromptDefaults } from "./setPrePromptDefaults";
@@ -60,12 +61,14 @@ export async function createWebApp(context: IActionContext & Partial<ICreateChil
         CustomLocationListStep.addStep(wizardContext, promptSteps);
         promptSteps.push(new AppServicePlanListStep());
         promptSteps.push(new AppInsightsListStep());
+        promptSteps.push(new CodeOptimizationsStep());
     } else {
         promptSteps.push(new WebAppStackStep());
         promptSteps.push(new AppServicePlanSkuStep());
         executeSteps.push(new ResourceGroupCreateStep());
         executeSteps.push(new AppServicePlanCreateStep());
         executeSteps.push(new AppInsightsCreateStep());
+        promptSteps.push(new CodeOptimizationsStep());
         executeSteps.push(new SetPostPromptDefaultsStep(siteStep));
     }
 

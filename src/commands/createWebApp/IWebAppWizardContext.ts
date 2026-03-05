@@ -33,4 +33,9 @@ export interface IWebAppWizardContext extends ISubscriptionActionContext, IAppSe
 
     newSiteStack?: FullWebAppStack;
     newSiteJavaStack?: FullJavaStack;
+
+    /**
+     * Whether to enable Application Insights Code Optimizations for .NET apps
+     */
+    enableProfiler?: boolean;
 }

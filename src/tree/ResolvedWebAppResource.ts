@@ -18,6 +18,7 @@ import { nonNullValue } from '../utils/nonNull';
 import { openUrl } from '../utils/openUrl';
 import { getIconPath, getThemedIconPath } from '../utils/pathUtils';
 import { type AppServiceDataModel } from '../WebAppResolver';
+import { CodeOptimizationsTreeItem } from './CodeOptimizationTreeItem';
 import { DeploymentSlotsNATreeItem, DeploymentSlotsTreeItem } from './DeploymentSlotsTreeItem';
 import { type ISiteTreeItem } from './ISiteTreeItem';
 import { NotAvailableTreeItem } from './NotAvailableTreeItem';
@@ -55,6 +56,7 @@ export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTre
     private _siteFilesNode!: SiteFilesTreeItem;
     private _logFilesNode!: LogFilesTreeItem;
     private _webJobsNode!: WebJobsTreeItem | WebJobsNATreeItem;
+    private _codeOptimizationsNode!: CodeOptimizationsTreeItem;
 
     private _subscription: ISubscriptionContext;
 
@@ -219,6 +221,14 @@ export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTre
 
         const children: AzExtTreeItem[] = [this.appSettingsNode, this.deploymentsNode, this._siteFilesNode, this._logFilesNode, this._webJobsNode];
 
+        try {
+            if (await this.isDotnetProject(context)) {
+                const codeOptimizationsNode = new CodeOptimizationsTreeItem(proxyTree);
+                children.push(codeOptimizationsNode);
+            }
+        } catch (err) { /* empty */ }
+
+
         if (!this.site.isSlot) {
             let tier: string | undefined;
             let asp: AppServicePlan | undefined;
@@ -344,5 +354,18 @@ export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTre
         };
         const client = await this.site.createClient(context);
         await client.updateLogsConfig(logsConfig);
+    }
+
+    private async isDotnetProject(context: IActionContext): Promise<boolean> {
+        const client = await this.site.createClient(context);
+        const siteConfig = await client.getSiteConfig();
+        const netFrameworkVersion = siteConfig?.netFrameworkVersion;
+        const linuxFxVersion = siteConfig?.linuxFxVersion;
+        // The .net version is defaulted to 4.0 even for non .net apps, so we have to check if its actually set to something first before using it to determine whether or not to show code optimizations
+        if ((!!netFrameworkVersion && netFrameworkVersion.toLowerCase() !== 'v4.0')
+            || (!!linuxFxVersion && linuxFxVersion.substring(0, linuxFxVersion.indexOf('|')) === 'DOTNETCORE')) {
+            return true;
+        }
+        return false;
     }
 }
