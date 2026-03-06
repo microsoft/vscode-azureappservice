@@ -176,12 +176,11 @@ export function findBugLocationInCode(
 
     const possibleStarts = findAllOccurrences(code, `${parentFunctionSignature}(`);
 
-    for (let i = 0; i < possibleStarts.length; i++) {
-        const start = possibleStarts[i];
+    for (const start of possibleStarts) {
         const end = getBalancedEndIndex(code.substring(start));
 
         // It's not a valid function declaration; most likely a function call instead.
-        if (end === -1) continue;
+        if (end === -1) { continue };
 
         const block = code.substring(start, start + end);
 
@@ -212,12 +211,11 @@ export function findBugLocationInCode(
     // Alternatively, we can locate the whole parent function and hope that the LLM can figure out the issue.
     // For this, we return the original symbol for the LLM to have better context.
     if (ignoreBottleneck) {
-        for (let i = 0; i < possibleStarts.length; i++) {
-            const start = possibleStarts[i];
+        for (const start of possibleStarts) {
             const end = getBalancedEndIndex(code.substring(start));
 
             // It's not a valid function declaration; most likely a function call instead.
-            if (end === -1) continue;
+            if (end === -1) { continue };
 
             const blockStartLineNumber = code.substring(0, start).split("\n").length;
             const blockEndLineNumber = code

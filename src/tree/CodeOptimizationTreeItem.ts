@@ -1,3 +1,8 @@
+/*---------------------------------------------------------------------------------------------
+*  Copyright (c) Microsoft Corporation. All rights reserved.
+*  Licensed under the MIT License. See License.txt in the project root for license information.
+*--------------------------------------------------------------------------------------------*/
+
 import { type ApplicationInsightsComponent, type ApplicationInsightsManagementClient } from '@azure/arm-appinsights';
 import { type StringDictionary } from '@azure/arm-appservice';
 import { createAppInsightsClient } from '@microsoft/vscode-azext-azureappservice';

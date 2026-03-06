@@ -63,6 +63,7 @@ export async function getDataplaneIssues(
         method: 'GET',
         headers: createHttpHeaders({
             'Authorization': authToken,
+            // eslint-disable-next-line @typescript-eslint/naming-convention
             'Content-Type': 'application/json',
             'Accept': 'application/json'
         }),

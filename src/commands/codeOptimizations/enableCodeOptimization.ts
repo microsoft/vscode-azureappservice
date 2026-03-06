@@ -47,7 +47,7 @@ export async function enableProfiler(context: IActionContext, node?: GenericTree
     await client.updateApplicationSettings(settings);
 
     // Enable Always On so the profiler can run continuously without being unloaded due to inactivity
-    const config = await client.getSiteConfig()
+    const config = await client.getSiteConfig();
     config.alwaysOn = true;
     await client.updateConfiguration(config);
 
@@ -66,26 +66,28 @@ export async function enableProfiler(context: IActionContext, node?: GenericTree
  */
 export async function promptAddProfilerLinux(context: IActionContext, node?: GenericTreeItem | undefined): Promise<void> {
     // If invoked without a specific tree node, prompt the user to pick a Linux web app
+    let siteTreeItem: SiteTreeItem;
     if (!node || !(node.parent instanceof CodeOptimizationsTreeItem)) {
-        const noItemFoundErrorMessage: string = localize('somethingWrongInsights', 'Unable to add profiler support');
-        node = await ext.rgApi.pickAppResource<GenericTreeItem>({ ...context, noItemFoundErrorMessage }, {
+        const noItemFoundErrorMessage: string = localize('noEnabledProfilerLinux', 'Select a web app to prompt adding profiler support');
+        siteTreeItem = await ext.rgApi.pickAppResource<SiteTreeItem>({ ...context, noItemFoundErrorMessage }, {
             filter: webAppFilter,
-            expectedChildContextValue: new RegExp("codeOptimizationNoResultLinux")
+            expectedChildContextValue: new RegExp("profilerNotEnabled")
         });
+    } else {
+        siteTreeItem = node.parent.parent;
     }
-    else {
-        // Retrieve the App Insights connection string from the web app's settings
-        const client = await node.parent.parent.site.createClient(context);
-        const settings: StringDictionary = await client.listApplicationSettings();
 
-        const connectionString = settings?.properties?.APPLICATIONINSIGHTS_CONNECTION_STRING;
+    // Retrieve the App Insights connection string from the web app's settings
+    const client = await siteTreeItem.site.createClient(context);
+    const settings: StringDictionary = await client.listApplicationSettings();
 
-        // Build an LLM prompt that explains how to instrument the app with profiler support
-        const prompt = await getPromptForAddingProfilerSupport(connectionString ?? "");
+    const connectionString = settings?.properties?.APPLICATIONINSIGHTS_CONNECTION_STRING;
 
-        // Open a new Copilot Chat session with the generated prompt
-        context.telemetry.properties.codeOptimizationChatOpened = 'true';
-        await vscode.commands.executeCommand("workbench.action.chat.newChat");
-        await vscode.commands.executeCommand("workbench.action.chat.open", { query: prompt });
-    }
+    // Build an LLM prompt that explains how to instrument the app with profiler support
+    const prompt = await getPromptForAddingProfilerSupport(connectionString ?? "");
+
+    // Open a new Copilot Chat session with the generated prompt
+    context.telemetry.properties.codeOptimizationChatOpened = 'true';
+    await vscode.commands.executeCommand("workbench.action.chat.newChat");
+    await vscode.commands.executeCommand("workbench.action.chat.open", { query: prompt });
 }
