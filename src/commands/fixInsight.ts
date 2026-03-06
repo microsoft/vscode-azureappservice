@@ -95,6 +95,6 @@ async function openFile(
         editor.selections = [new vscode.Selection(fixStartLine, fixEndLine)];
         return editor;
     } catch (error) {
-        throw new Error(`Could not open file: ${filePath}. Error: ${error instanceof Error ? error.message : String(error)}`);
+        throw new Error(`Could not open file: ${filePath}. Error: ${error instanceof Error ? error.message : String(error)}`, { cause: error });
     }
 }

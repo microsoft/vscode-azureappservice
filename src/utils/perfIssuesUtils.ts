@@ -6,7 +6,6 @@
 import { createHttpHeaders, createPipelineRequest } from "@azure/core-rest-pipeline";
 import { createGenericClient, type AzExtPipelineResponse, type AzExtRequestPrepareOptions } from "@microsoft/vscode-azext-azureutils";
 import { type ISubscriptionActionContext } from "@microsoft/vscode-azext-utils";
-// eslint-disable-next-line import/no-internal-modules
 import * as OPIResourcesJson from "@opi-perf/json/OPIResources.json";
 
 export interface PerfIssue {

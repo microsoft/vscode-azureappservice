@@ -141,12 +141,10 @@ export function findBugLocationInCode(
 ): CodeLocation | undefined {
 
     const parentFunction: string = parentSymbol.split(".").slice(-1)[0];
-    //'List.Enumerable::ToList'
-    //const bottleneckFunction: string = symbolToFind.split(".").slice(-1)[0];
     const bottleneckFunction: string = symbolToFind.split("::").slice(-1)[0];
 
-    let parentFunctionSignature = "";
-    let bottleneckFunctionCall = "";
+    let parentFunctionSignature: string;
+    let bottleneckFunctionCall: string;
 
     // Calculate Parent Function Signature
     const localFuncOrLambaExpMatch = isLocalFuncOrLambaExp(parentFunction);
@@ -180,7 +178,7 @@ export function findBugLocationInCode(
         const end = getBalancedEndIndex(code.substring(start));
 
         // It's not a valid function declaration; most likely a function call instead.
-        if (end === -1) { continue };
+        if (end === -1) { continue; };
 
         const block = code.substring(start, start + end);
 
@@ -215,7 +213,7 @@ export function findBugLocationInCode(
             const end = getBalancedEndIndex(code.substring(start));
 
             // It's not a valid function declaration; most likely a function call instead.
-            if (end === -1) { continue };
+            if (end === -1) { continue; };
 
             const blockStartLineNumber = code.substring(0, start).split("\n").length;
             const blockEndLineNumber = code

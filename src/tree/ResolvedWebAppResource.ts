@@ -226,7 +226,7 @@ export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTre
                 const codeOptimizationsNode = new CodeOptimizationsTreeItem(proxyTree);
                 children.push(codeOptimizationsNode);
             }
-        } catch (err) { /* empty */ }
+        } catch (_err) { /* empty */ }
 
 
         if (!this.site.isSlot) {

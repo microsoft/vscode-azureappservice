@@ -101,7 +101,7 @@ export class CodeOptimizationsTreeItem extends AzExtParentTreeItem {
 
     public async getPortalUrl(context: IActionContext): Promise<string> {
         const appInsightsComponent = await this.resolveAppInsightsComponent(context);
-        return `${this.subscription.environment.portalUrl}/${this.subscription.tenantId}/#view/Microsoft_Azure_CodeOptimizations/CodeOptimizationsBlade/ComponentId~/%7B%22TenantId%22%3A%22${this.subscription.tenantId}%22%2C%22SubscriptionId%22%3A%22${this.subscription.subscriptionId}%22%2C%22ResourceGroup%22%3A%22${this.parent.site.resourceGroup}%22%2C%22Name%22%3A%22${appInsightsComponent?.name ?? ''}%22%2C%22LinkedApplicationType%22%3A0%2C%22ResourceId%22%3A%22${encodeURIComponent(appInsightsComponent?.id ?? '')}%22%2C%22ResourceType%22%3A%22microsoft.insights%2Fcomponents%22%2C%22IsAzureFirst%22%3Afalse%7D/OpenedFrom/app-services-vscode/AppId/${appInsightsComponent?.appId ?? ''}`
+        return `${this.subscription.environment.portalUrl}/${this.subscription.tenantId}/#view/Microsoft_Azure_CodeOptimizations/CodeOptimizationsBlade/ComponentId~/%7B%22TenantId%22%3A%22${this.subscription.tenantId}%22%2C%22SubscriptionId%22%3A%22${this.subscription.subscriptionId}%22%2C%22ResourceGroup%22%3A%22${this.parent.site.resourceGroup}%22%2C%22Name%22%3A%22${appInsightsComponent?.name ?? ''}%22%2C%22LinkedApplicationType%22%3A0%2C%22ResourceId%22%3A%22${encodeURIComponent(appInsightsComponent?.id ?? '')}%22%2C%22ResourceType%22%3A%22microsoft.insights%2Fcomponents%22%2C%22IsAzureFirst%22%3Afalse%7D/OpenedFrom/app-services-vscode/AppId/${appInsightsComponent?.appId ?? ''}`;
     }
 
     public async getAppInsightsResource(context: IActionContext): Promise<ApplicationInsightsComponent | undefined> {
