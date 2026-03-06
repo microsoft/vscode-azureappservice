@@ -23,7 +23,7 @@ import { findBuggyFile, getInsightPromptForGenericLLM } from "../utils/fixInsigh
 export async function fixInsight(context: IActionContext, node?: CodeOptimizationsIssueTreeItem | undefined): Promise<void> {
     // If no tree item was passed (e.g. invoked from the command palette), prompt the user to pick one
     if (!node) {
-        const noItemFoundErrorMessage: string = localize('somethingWrongInsights', 'The selected thing doesnt work, idk why.');
+        const noItemFoundErrorMessage: string = localize('noCodeOptimizationIssue', 'Select a code optimization issue to fix.');
         node = await ext.rgApi.pickAppResource<CodeOptimizationsIssueTreeItem>({ ...context, noItemFoundErrorMessage }, {
             filter: webAppFilter,
             expectedChildContextValue: new RegExp(CodeOptimizationsIssueTreeItem.contextValue)
@@ -45,7 +45,7 @@ export async function fixInsight(context: IActionContext, node?: CodeOptimizatio
 
     if (!localizationInsight) {
         context.telemetry.properties.codeOptimizationCodeFound = 'false';
-        throw new Error("Could not find the code in the given workspace for the given context.");
+        throw new Error(localize('codeNotFound', 'Could not find the code in the given workspace for the given context.'));
     }
 
     context.telemetry.properties.codeOptimizationCodeFound = 'true';
@@ -65,9 +65,10 @@ export async function fixInsight(context: IActionContext, node?: CodeOptimizatio
     const prompt = await getInsightPromptForGenericLLM(dataplaneIssue, parentMethod);
 
     // Open a new Copilot Chat session with the generated prompt so the user can review the suggested fix
-    context.telemetry.properties.codeOptimizationChatOpened = 'true';
+    context.telemetry.properties.codeOptimizationChatOpened = 'false';
     await vscode.commands.executeCommand("workbench.action.chat.newChat");
     await vscode.commands.executeCommand("workbench.action.chat.open", { query: prompt });
+    context.telemetry.properties.codeOptimizationChatOpened = 'true';
 }
 
 /**
@@ -94,6 +95,6 @@ async function openFile(
         editor.selections = [new vscode.Selection(fixStartLine, fixEndLine)];
         return editor;
     } catch (error) {
-        throw new Error(`Could not open file: ${filePath}. Error: ${error}`);
+        throw new Error(`Could not open file: ${filePath}. Error: ${error instanceof Error ? error.message : String(error)}`);
     }
 }

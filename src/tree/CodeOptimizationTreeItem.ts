@@ -1,7 +1,7 @@
 import { type ApplicationInsightsComponent, type ApplicationInsightsManagementClient } from '@azure/arm-appinsights';
 import { type StringDictionary } from '@azure/arm-appservice';
 import { createAppInsightsClient } from '@microsoft/vscode-azext-azureappservice';
-import { AzExtParentTreeItem, GenericTreeItem, type AzExtTreeItem, type IActionContext, type IGenericTreeItemOptions, type TreeItemIconPath } from '@microsoft/vscode-azext-utils';
+import { AzExtParentTreeItem, GenericTreeItem, type AzExtTreeItem, type IActionContext, type TreeItemIconPath } from '@microsoft/vscode-azext-utils';
 import { ThemeIcon, TreeItemCollapsibleState } from 'vscode';
 import { localize } from '../localize';
 import { getDataplaneIssues, type DataplaneIssue } from '../utils/perfIssuesUtils';
@@ -28,6 +28,10 @@ export class CodeOptimizationsTreeItem extends AzExtParentTreeItem {
     }
 
     public async loadMoreChildrenImpl(clearCache: boolean, context: IActionContext): Promise<AzExtTreeItem[]> {
+        if (clearCache) {
+            this._appInsightsComponent = undefined;
+        }
+
         const client = await this.parent.site.createClient(context);
         const settings: StringDictionary = await client.listApplicationSettings();
         const appInsightsComponent = await this.resolveAppInsightsComponent(context);
@@ -35,7 +39,7 @@ export class CodeOptimizationsTreeItem extends AzExtParentTreeItem {
         if (!appInsightsComponent) {
             return [new GenericTreeItem(this, {
                 id: "applicationInsightsNotEnabled",
-                label: 'No application insights resource linked. Please add or create an Application Insights resource to get code optimizations',
+                label: localize('labelNoAppInsightsLinked', 'No application insights resource linked. Please add or create an Application Insights resource to get code optimizations'),
                 contextValue: 'applicationInsightsNotEnabled',
                 iconPath: new ThemeIcon('error')
             })];
@@ -44,7 +48,7 @@ export class CodeOptimizationsTreeItem extends AzExtParentTreeItem {
         if (!this.parent.site.isLinux && (this.isUndefinedOrDefaultValue(settings?.properties?.APPINSIGHTS_PROFILERFEATURE_VERSION, 'default') || this.isUndefinedOrDefaultValue(settings?.properties?.XDT_MicrosoftApplicationInsights_Mode, 'default') || !appInsightsComponent)) {
             return [new GenericTreeItem(this, {
                 id: "profilerNotEnabled",
-                label: 'Enable profiling for code optimization',
+                label: localize('labelEnableProfiling', 'Enable profiling for code optimization'),
                 contextValue: 'profilerNotEnabled',
                 iconPath: new ThemeIcon('error')
             })];
@@ -56,8 +60,8 @@ export class CodeOptimizationsTreeItem extends AzExtParentTreeItem {
             context.telemetry.properties.codeOptimizationCount = String(issues.length);
             if (issues.length > 0) {
                 return issues.map(issue => {
-                    const title = `\`${issue.function}\` is causing high ${issue.issueCategory} usage.`;
-                    return new CodeOptimizationsIssueTreeItem(this, { id: issue.key, label: title, contextValue: 'codeOptimizationIssue' }, issue);
+                    const title = localize('labelIssueTitle', '`{0}` is causing high {1} usage.', issue.function, issue.issueCategory);
+                    return new CodeOptimizationsIssueTreeItem(this, `${this.id}/${issue.key}`, title, issue);
                 });
             }
             else {
@@ -66,14 +70,14 @@ export class CodeOptimizationsTreeItem extends AzExtParentTreeItem {
                 if (this.parent.site.isLinux) {
                     return [new GenericTreeItem(this, {
                         id: "noResultLinux",
-                        label: 'No Code Optimizations found. It may take some time to appear',
+                        label: localize('labelNoCodeOptimizationsLinux', 'No Code Optimizations found. It may take some time to appear'),
                         contextValue: 'codeOptimizationNoResultLinux',
                         iconPath: new ThemeIcon('pass-filled')
                     })];
                 } else {
                     return [new GenericTreeItem(this, {
                         id: "noResult",
-                        label: 'No CodeOptimizations found. It may take some time to appear',
+                        label: localize('labelNoCodeOptimizations', 'No Code Optimizations found. It may take some time to appear'),
                         contextValue: 'codeOptimization',
                         iconPath: new ThemeIcon('pass-filled')
                     })];
@@ -83,7 +87,7 @@ export class CodeOptimizationsTreeItem extends AzExtParentTreeItem {
 
         // Error case
         context.telemetry.properties.codeOptimizationCount = 'error';
-        return [new GenericTreeItem(this, { id: "errorcodeOptimization", label: 'Unable to get code optimizations', contextValue: 'codeOptimization' })];
+        return [new GenericTreeItem(this, { id: "errorcodeOptimization", label: localize('labelUnableToGetCodeOptimizations', 'Unable to get code optimizations'), contextValue: 'codeOptimization' })];
     }
 
     public hasMoreChildrenImpl(): boolean {
@@ -143,11 +147,10 @@ export class CodeOptimizationsIssueTreeItem extends AzExtParentTreeItem {
     public label: string;
     declare public parent: CodeOptimizationsTreeItem;
 
-    constructor(parent: CodeOptimizationsTreeItem, options: IGenericTreeItemOptions, issue: DataplaneIssue) {
+    constructor(parent: CodeOptimizationsTreeItem, id: string, label: string, issue: DataplaneIssue) {
         super(parent);
-        this.label = options.label;
-        this.id = options.id;
-        this.contextValue = options.contextValue;
+        this.label = label;
+        this.id = id;
         this.issue = issue;
     }
 

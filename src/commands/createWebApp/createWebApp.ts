@@ -68,7 +68,6 @@ export async function createWebApp(context: IActionContext & Partial<ICreateChil
         executeSteps.push(new ResourceGroupCreateStep());
         executeSteps.push(new AppServicePlanCreateStep());
         executeSteps.push(new AppInsightsCreateStep());
-        promptSteps.push(new CodeOptimizationsStep());
         executeSteps.push(new SetPostPromptDefaultsStep(siteStep));
     }
 

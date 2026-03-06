@@ -3,12 +3,13 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-/* eslint-disable @typescript-eslint/no-unsafe-argument */
 
-import { runWithTestActionContext } from '@microsoft/vscode-azext-dev';
 import * as assert from 'assert';
+import { runWithTestActionContext } from 'node_modules/@microsoft/vscode-azext-utils';
+import { fixInsight } from 'src/commands/fixInsight';
+import { findBuggyFile } from 'src/utils/fixInsightsUtils';
+import { DataplaneIssue } from 'src/utils/perfIssuesUtils';
 import * as vscode from 'vscode';
-import { findBuggyFile, fixInsight, type DataplaneIssue } from '../../extension.bundle';
 
 /**
  * Build a mock DataplaneIssue with the required fields.

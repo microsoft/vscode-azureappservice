@@ -5,7 +5,8 @@
 
 import { DeploymentsTreeItem, DeploymentTreeItem } from "@microsoft/vscode-azext-azureappservice";
 import { openInPortal as uiOpenInPortal } from '@microsoft/vscode-azext-azureutils';
-import { nonNullValue, openUrl, type AzExtTreeItem, type IActionContext } from "@microsoft/vscode-azext-utils";
+import { nonNullValue, type AzExtTreeItem, type IActionContext } from "@microsoft/vscode-azext-utils";
+import { openUrl } from "src/utils/openUrl";
 import { CodeOptimizationsIssueTreeItem, CodeOptimizationsTreeItem } from "../tree/CodeOptimizationTreeItem";
 import { DeploymentSlotsTreeItem } from "../tree/DeploymentSlotsTreeItem";
 import { matchContextValue } from "../utils/contextUtils";

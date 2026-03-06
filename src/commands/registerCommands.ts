@@ -65,7 +65,7 @@ export function registerCommands(): void {
     registerCommandWithTreeNodeUnwrapping('appService.DisconnectRepo', disconnectRepo);
     registerCommandWithTreeNodeUnwrapping('appService.EnableFileLogging', enableFileLogging);
     registerCommandWithTreeNodeUnwrapping('appService.fixCodeOptimization', fixInsight);
-    registerCommandWithTreeNodeUnwrapping('appService.enableProfiler', enableProfiler);
+    registerCommandWithTreeNodeUnwrapping('appService.enableProfilerCodeOptimization', enableProfiler);
     registerCommandWithTreeNodeUnwrapping('appService.promptAddProfilerLinux', promptAddProfilerLinux);
     registerCommandWithTreeNodeUnwrapping('appService.enableAppInsights', enableAppInsights);
     registerCommandWithTreeNodeUnwrapping('appService.learnMoreCodeOptimizations', async () => { await openUrl('https://aka.ms/CodeOptimizations/Docs'); });

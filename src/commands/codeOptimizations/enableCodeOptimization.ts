@@ -5,6 +5,7 @@
 
 import { type StringDictionary } from "@azure/arm-appservice";
 import { type GenericTreeItem, type IActionContext } from "@microsoft/vscode-azext-utils";
+import { SiteTreeItem } from "src/tree/SiteTreeItem";
 import * as vscode from 'vscode';
 import { webAppFilter } from "../../constants";
 import { ext } from "../../extensionVariables";
@@ -22,34 +23,36 @@ import { getPromptForAddingProfilerSupport } from "../../utils/addProfilerUtils"
  */
 export async function enableProfiler(context: IActionContext, node?: GenericTreeItem | undefined): Promise<void> {
     // If invoked without a specific tree node, prompt the user to pick a web app that needs the profiler
+    let siteTreeItem: SiteTreeItem;
     if (!node || !(node.parent instanceof CodeOptimizationsTreeItem)) {
-        const noItemFoundErrorMessage: string = localize('somethingWrongInsights', 'Unable to enable profiler');
-        node = await ext.rgApi.pickAppResource<GenericTreeItem>({ ...context, noItemFoundErrorMessage }, {
+        const noItemFoundErrorMessage: string = localize('noEnabledProfiler', 'Select a web app to enable the profiler on.');
+        siteTreeItem = await ext.rgApi.pickAppResource<SiteTreeItem>({ ...context, noItemFoundErrorMessage }, {
             filter: webAppFilter,
             expectedChildContextValue: new RegExp("profilerNotEnabled")
         });
+    } else {
+        siteTreeItem = node.parent.parent;
     }
-    else {
-        const client = await node.parent.parent.site.createClient(context);
-        const settings = await client.listApplicationSettings();
 
-        // Set the app settings required to activate the Application Insights profiler
-        if (settings.properties) {
-            settings.properties['APPINSIGHTS_PROFILERFEATURE_VERSION'] = '1.0.0';
-            settings.properties['XDT_MicrosoftApplicationInsights_Mode'] = 'recommended';
-            settings.properties['DiagnosticServices_EXTENSION_VERSION'] = '~3';
-        }
+    const client = await siteTreeItem.site.createClient(context);
+    const settings = await client.listApplicationSettings();
 
-        await client.updateApplicationSettings(settings);
-
-        // Enable Always On so the profiler can run continuously without being unloaded due to inactivity
-        const config = await client.getSiteConfig()
-        config.alwaysOn = true;
-        await client.updateConfiguration(config);
-
-        // Refresh the tree so the "not enabled" node is replaced with the actual profiler status
-        await node.parent.refresh(context);
+    // Set the app settings required to activate the Application Insights profiler
+    if (settings.properties) {
+        settings.properties['APPINSIGHTS_PROFILERFEATURE_VERSION'] = '1.0.0';
+        settings.properties['XDT_MicrosoftApplicationInsights_Mode'] = 'recommended';
+        settings.properties['DiagnosticServices_EXTENSION_VERSION'] = '~3';
     }
+
+    await client.updateApplicationSettings(settings);
+
+    // Enable Always On so the profiler can run continuously without being unloaded due to inactivity
+    const config = await client.getSiteConfig()
+    config.alwaysOn = true;
+    await client.updateConfiguration(config);
+
+    // Refresh the tree so the "not enabled" node is replaced with the actual profiler status
+    await siteTreeItem.refresh(context);
 }
 
 /**
