@@ -62,7 +62,7 @@ export async function deploy(actionContext: IActionContext, arg1?: vscode.Uri | 
     // because this is workspace dependant, do it before user selects app
     await setPreDeployConfig(context);
     const node: SiteTreeItem = await getDeployNode(context, ext.rgApi.tree, arg1, arg2,
-        async () => await getOrCreateWebApp(context));
+        async () => await getOrCreateWebApp(context, subscription?.subscription.subscriptionId));
     await node.initSite(context);
     client = await node.site.createClient(actionContext);
 

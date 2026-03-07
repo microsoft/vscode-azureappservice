@@ -5,13 +5,13 @@
 
 import { type Site } from "@azure/arm-appservice";
 import { type IDeployContext } from "@microsoft/vscode-azext-azureappservice";
-import { AzureWizard, nonNullProp, nonNullValueAndProp, type ExecuteActivityContext, type IActionContext, type ISubscriptionContext } from "@microsoft/vscode-azext-utils";
+import { AzExtParentTreeItem, AzureWizard, createSubscriptionContext, nonNullProp, nonNullValueAndProp, type ExecuteActivityContext, type IActionContext, type ISubscriptionContext } from "@microsoft/vscode-azext-utils";
 import { type AzureSubscription } from "@microsoft/vscode-azureresources-api";
 import { ProgressLocation, window } from "vscode";
 import { ext } from "../../extensionVariables";
 import { localize } from "../../localize";
 import { ResolvedWebAppResource } from "../../tree/ResolvedWebAppResource";
-import { type SiteTreeItem } from "../../tree/SiteTreeItem";
+import { SiteTreeItem } from "../../tree/SiteTreeItem";
 import { createActivityContext } from "../../utils/activityUtils";
 import { SubscriptionListStep } from "../SubscriptionListStep";
 import { type IWebAppWizardContext } from "../createWebApp/IWebAppWizardContext";
@@ -24,19 +24,18 @@ export type IWebAppDeployContext = IActionContext & Partial<IDeployContext> & Pa
     advancedCreation?: boolean;
 };
 
-export async function getOrCreateWebApp(context: IWebAppDeployContext): Promise<SiteTreeItem> {
+export async function getOrCreateWebApp(context: IWebAppDeployContext, subscriptionId?: string): Promise<SiteTreeItem> {
     let node: SiteTreeItem | undefined;
 
     const activityContext = await createActivityContext();
     Object.assign(context, activityContext);
 
     const wizard = new AzureWizard<IWebAppDeployContext>(context, {
-        promptSteps: [new SubscriptionListStep(), new WebAppListStep()],
+        promptSteps: [new SubscriptionListStep(subscriptionId), new WebAppListStep()],
         title: localize('selectWebApp', 'Select Web App')
     });
 
     await wizard.prompt();
-    console.log('**********', context.site?.name);
 
     if (context.site) {
         await window.withProgress({ location: ProgressLocation.Notification, cancellable: false, title: localize('deploySetUp', 'Loading deployment configurations...') },
@@ -61,9 +60,14 @@ export async function getOrCreateWebApp(context: IWebAppDeployContext): Promise<
     }
 
     if (!node) {
-        // if we can't find the node for whatever reason, just create one now
-        const resolved = new ResolvedWebAppResource(context as unknown as ISubscriptionContext, nonNullProp(context, 'site'));
-        node = await ext.rgApi.tree.findTreeItem(resolved.id, context);
+        // if we can't find the node for whatever reason, just create one now.
+        // context.subscription is AzureSubscription (from SubscriptionListStep), but SiteTreeItem
+        // needs ISubscriptionContext with credentials. Convert it before creating the node.
+        const subContext = context.subscription
+            ? createSubscriptionContext(context.subscription)
+            : context as unknown as ISubscriptionContext;
+        const pseudoParent = Object.assign({}, context, { subscription: subContext }) as unknown as AzExtParentTreeItem;
+        node = new SiteTreeItem(pseudoParent, nonNullProp(context, 'site'));
     }
 
     if (!node) {

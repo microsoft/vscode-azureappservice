@@ -148,7 +148,6 @@ suite('Create Web App and deploy', async function (this: Mocha.Suite): Promise<v
         const createdAppName: string = nonNullProp(createdApp, 'name');
         const rgTestApi = await getResourceGroupsTestApi();
         const context = await createTestActionContext();
-        const siteTreeItem: SiteTreeItem = (<SiteTreeItem>await rgTestApi.compatibility.getAppResourceTree().findTreeItem(createdAppId, context));
 
         await runWithTestActionContext('Deploy', async context => {
             const inputs = [workspacePath, createdAppName];
@@ -162,6 +161,21 @@ suite('Create Web App and deploy', async function (this: Mocha.Suite): Promise<v
 
         });
 
+        // The tree may not have the newly created app yet. Retry a few times before giving up.
+        let siteTreeItem: SiteTreeItem | undefined;
+        for (let attempt = 1; attempt <= 3; attempt++) {
+            siteTreeItem = <SiteTreeItem | undefined>await rgTestApi.compatibility.getAppResourceTree().findTreeItem(createdAppId, context);
+            if (siteTreeItem) {
+                break;
+            }
+            if (attempt < 3) {
+                console.log(`findTreeItem attempt ${attempt}/3 returned undefined for "${createdAppId}", retrying in 20s...`);
+                await delay(20_000);
+            }
+        }
+        if (!siteTreeItem) {
+            throw new Error(`Failed to find site tree item for "${createdAppId}" after 3 attempts.`);
+        }
         await siteTreeItem.initSite(context);
         const hostUrl = siteTreeItem.site.defaultHostName;
 
