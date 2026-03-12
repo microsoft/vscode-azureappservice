@@ -4,10 +4,12 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { DeploymentsTreeItem, disconnectRepo as disconnectRepository } from "@microsoft/vscode-azext-azureappservice";
-import { type IActionContext } from "@microsoft/vscode-azext-utils";
-import { webAppFilter } from "../../constants";
+import { UserCancelledError, type IActionContext } from "@microsoft/vscode-azext-utils";
+import { window } from "vscode";
+import { ScmType, webAppFilter } from "../../constants";
 import { OperationNotSupportedError } from '../../errors';
 import { ext } from "../../extensionVariables";
+import { localize } from "../../localize";
 import { isResolvedWebAppResource } from "../../tree/ResolvedWebAppResource";
 
 export async function disconnectRepo(context: IActionContext, node?: DeploymentsTreeItem): Promise<void> {
@@ -19,6 +21,15 @@ export async function disconnectRepo(context: IActionContext, node?: Deployments
     }
 
     if (isResolvedWebAppResource(node.parent)) {
+        // Check if the app is already disconnected from any repository
+        const client = await node.parent.site.createClient(context);
+        const siteConfig = await client.getSiteConfig();
+        
+        if (siteConfig.scmType === ScmType.None) {
+            void window.showWarningMessage(localize('notConnectedToRepo', 'This app is not connected to any repository.'));
+            throw new UserCancelledError('notConnectedToRepo');
+        }
+        
         await disconnectRepository(context, node.parent.site, node.subscription);
         await ext.rgApi.appResourceTree.refresh(context, node.parent);
     } else {

@@ -34,7 +34,7 @@ export async function selectWorkspaceFile(context: IActionContext, placeHolder: 
 
 async function selectWorkspaceItem(context: IActionContext, placeHolder: string, options: vscode.OpenDialogOptions, getSubPath?: (f: vscode.WorkspaceFolder) => string | undefined, fileExtension?: string): Promise<string> {
     let folder: IAzureQuickPickItem<string | undefined> | undefined;
-    let quickPicks: IAzureQuickPickItem<string | undefined>[] = [];
+    let quickPicks: IAzureQuickPickItem<string | undefined>[];
     if (vscode.workspace.workspaceFolders) {
         // if there's a fileExtension, then only populate the quickPick menu with that, otherwise show the current folders in the workspace
         quickPicks = fileExtension ? mapFilesToQuickPickItems(await findFilesByFileExtension(undefined, fileExtension)) :
