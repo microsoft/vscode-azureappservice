@@ -4,7 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { DeploymentsTreeItem, disconnectRepo as disconnectRepository } from "@microsoft/vscode-azext-azureappservice";
-import { type IActionContext } from "@microsoft/vscode-azext-utils";
+import { UserCancelledError, type IActionContext } from "@microsoft/vscode-azext-utils";
+import { window } from "vscode";
 import { ScmType, webAppFilter } from "../../constants";
 import { OperationNotSupportedError } from '../../errors';
 import { ext } from "../../extensionVariables";
@@ -25,7 +26,8 @@ export async function disconnectRepo(context: IActionContext, node?: Deployments
         const siteConfig = await client.getSiteConfig();
         
         if (siteConfig.scmType === ScmType.None) {
-            throw new Error(localize('notConnectedToRepo', 'This app is not connected to any repository.'));
+            void window.showWarningMessage(localize('notConnectedToRepo', 'This app is not connected to any repository.'));
+            throw new UserCancelledError('notConnectedToRepo');
         }
         
         await disconnectRepository(context, node.parent.site, node.subscription);
