@@ -8,7 +8,8 @@
     "editor.insertSpaces": true,
     "editor.tabSize": 4,
     "files.exclude": {
-        "test/nightly/testFolder/*hello-world": true
+        "test/nightly/testFolder/*hello-world": true,
+        "test/nightly/testFolder/code-optimization-example": true,
     },
     "files.insertFinalNewline": true,
     "files.trimTrailingWhitespace": true,

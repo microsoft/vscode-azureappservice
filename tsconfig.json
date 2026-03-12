@@ -16,7 +16,8 @@
                 "node_modules/@types/*",
                 "*"
             ]
-        }
+        },
+        "resolveJsonModule": true
     },
     "exclude": [
         "node_modules",

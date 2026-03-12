@@ -6,6 +6,8 @@
 import { DeploymentsTreeItem, DeploymentTreeItem } from "@microsoft/vscode-azext-azureappservice";
 import { openInPortal as uiOpenInPortal } from '@microsoft/vscode-azext-azureutils';
 import { nonNullValue, type AzExtTreeItem, type IActionContext } from "@microsoft/vscode-azext-utils";
+import { openUrl } from "../utils/openUrl";
+import { CodeOptimizationsIssueTreeItem, CodeOptimizationsTreeItem } from "../tree/CodeOptimizationTreeItem";
 import { DeploymentSlotsTreeItem } from "../tree/DeploymentSlotsTreeItem";
 import { matchContextValue } from "../utils/contextUtils";
 import { nonNullProp } from "../utils/nonNull";
@@ -27,6 +29,13 @@ export async function openInPortal(context: IActionContext, treeItem?: AzExtTree
 
     if (matchContextValue(node.contextValue, [new RegExp(DeploymentTreeItem.contextValue)])) {
         await uiOpenInPortal(node, `${nonNullProp(node, 'parent').parent?.id}/Deployments/${nonNullProp(node, 'id')}`);
+        return;
+    }
+
+    if (matchContextValue(node.contextValue, [new RegExp(CodeOptimizationsTreeItem.contextValue), new RegExp(CodeOptimizationsIssueTreeItem.contextValue)])) {
+        context.telemetry.properties.openInPortalTarget = node.contextValue;
+        const url = await (node as CodeOptimizationsTreeItem | CodeOptimizationsIssueTreeItem).getPortalUrl(context);
+        await openUrl(url);
         return;
     }
 
