@@ -111,7 +111,9 @@ export class WebAppCreateStep extends AzureWizardExecuteStepWithActivityOutput<I
                     if (!/core/i.test(stack.minorVersion.displayText)) { // Filter out .NET _Core_ stacks because this is a .NET _Framework_ property
                         newSiteConfig.netFrameworkVersion = runtimeVersion;
                     }
-                    newSiteConfig.alwaysOn = context.enableProfiler === true;
+                    if (context.enableProfiler) {
+                        newSiteConfig.alwaysOn = true;
+                    }
                     break;
                 case 'php':
                     newSiteConfig.phpVersion = runtimeVersion;

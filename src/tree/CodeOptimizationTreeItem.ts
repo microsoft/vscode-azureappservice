@@ -8,8 +8,9 @@ import { type StringDictionary } from '@azure/arm-appservice';
 import { createAppInsightsClient } from '@microsoft/vscode-azext-azureappservice';
 import { AzExtParentTreeItem, GenericTreeItem, type AzExtTreeItem, type IActionContext, type TreeItemIconPath } from '@microsoft/vscode-azext-utils';
 import { ThemeIcon, TreeItemCollapsibleState } from 'vscode';
+import { ext } from '../extensionVariables';
 import { localize } from '../localize';
-import { getDataplaneIssues, type DataplaneIssue } from '../utils/perfIssuesUtils';
+import { getDataplaneIssues, type DataplaneIssue, type FailedResponse } from '../utils/perfIssuesUtils';
 import { type SiteTreeItem } from './SiteTreeItem';
 
 const label: string = localize('codeOptimizations', 'Code Optimizations');
@@ -39,7 +40,7 @@ export class CodeOptimizationsTreeItem extends AzExtParentTreeItem {
 
         const client = await this.parent.site.createClient(context);
         const settings: StringDictionary = await client.listApplicationSettings();
-        const appInsightsComponent = await this.resolveAppInsightsComponent(context);
+        const appInsightsComponent = await this.resolveAppInsightsComponent(context, settings);
 
         if (!appInsightsComponent) {
             return [new GenericTreeItem(this, {
@@ -50,7 +51,7 @@ export class CodeOptimizationsTreeItem extends AzExtParentTreeItem {
             })];
         }
 
-        if (!this.parent.site.isLinux && (this.isUndefinedOrDefaultValue(settings?.properties?.APPINSIGHTS_PROFILERFEATURE_VERSION, 'default') || this.isUndefinedOrDefaultValue(settings?.properties?.XDT_MicrosoftApplicationInsights_Mode, 'default') || !appInsightsComponent)) {
+        if (!this.parent.site.isLinux && (this.isUndefinedOrDefaultValue(settings?.properties?.APPINSIGHTS_PROFILERFEATURE_VERSION, 'default') || this.isUndefinedOrDefaultValue(settings?.properties?.XDT_MicrosoftApplicationInsights_Mode, 'default'))) {
             return [new GenericTreeItem(this, {
                 id: "profilerNotEnabled",
                 label: localize('labelEnableProfiling', 'Enable profiling for code optimization'),
@@ -87,11 +88,14 @@ export class CodeOptimizationsTreeItem extends AzExtParentTreeItem {
                     })];
                 }
             }
+        } else {
+            // Error case
+            const failedResponse = issues as FailedResponse;
+            context.telemetry.properties.codeOptimizationCount = 'error';
+            context.telemetry.properties.codeOptimizationError = failedResponse.message;
+            ext.outputChannel.appendLog(localize('codeOptimizationError', 'Failed to get code optimizations: {0}', failedResponse.message));
+            return [new GenericTreeItem(this, { id: "errorcodeOptimization", label: localize('labelUnableToGetCodeOptimizations', 'Unable to get code optimizations'), contextValue: 'codeOptimization' })];
         }
-
-        // Error case
-        context.telemetry.properties.codeOptimizationCount = 'error';
-        return [new GenericTreeItem(this, { id: "errorcodeOptimization", label: localize('labelUnableToGetCodeOptimizations', 'Unable to get code optimizations'), contextValue: 'codeOptimization' })];
     }
 
     public hasMoreChildrenImpl(): boolean {
@@ -111,13 +115,15 @@ export class CodeOptimizationsTreeItem extends AzExtParentTreeItem {
         return (value === undefined || value === null || value === defaultValue);
     }
 
-    private async resolveAppInsightsComponent(context: IActionContext): Promise<ApplicationInsightsComponent | undefined> {
+    private async resolveAppInsightsComponent(context: IActionContext, settings?: StringDictionary): Promise<ApplicationInsightsComponent | undefined> {
         if (this._appInsightsComponent) {
             return this._appInsightsComponent;
         }
 
-        const client = await this.parent.site.createClient(context);
-        const settings: StringDictionary = await client.listApplicationSettings();
+        if (!settings) {
+            const client = await this.parent.site.createClient(context);
+            settings = await client.listApplicationSettings();
+        }
 
         // Extract instrumentation key from connection string or the dedicated app setting
         const connectionString = settings?.properties?.APPLICATIONINSIGHTS_CONNECTION_STRING;
@@ -146,7 +152,7 @@ export class CodeOptimizationsTreeItem extends AzExtParentTreeItem {
 
 export class CodeOptimizationsIssueTreeItem extends AzExtParentTreeItem {
     public static contextValue: string = 'codeOptimizationIssue';
-    public readonly contextValue: string = CodeOptimizationsTreeItem.contextValue;
+    public readonly contextValue: string = CodeOptimizationsIssueTreeItem.contextValue;
     public issue: DataplaneIssue;
     public label: string;
     declare public parent: CodeOptimizationsTreeItem;
