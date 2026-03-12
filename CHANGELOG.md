@@ -1,5 +1,17 @@
 # Change Log
 
+## 0.26.5 - 2026-03-12
+
+### Fixed
+* [[2799](https://github.com/microsoft/vscode-azureappservice/pull/2799)] Validate repository connection before disconnect operation to prevent confusing dialog when no repo is connected.
+* [[2828](https://github.com/microsoft/vscode-azureappservice/pull/2828)] Fix deployment status misreporting due to incorrect falsey check.
+* [[2800](https://github.com/microsoft/vscode-azureappservice/pull/2800)] Fix SKU display names in app service plan selection.
+
+### Changed
+* [[2828](https://github.com/microsoft/vscode-azureappservice/pull/2828)] Pre-populate site name during Advanced web app creation when a new resource group is used.
+* [[2813](https://github.com/microsoft/vscode-azureappservice/pull/2813)] Upgrade Azure App Service SDK, removing manual workarounds for domain name label scope.
+* [[2803](https://github.com/microsoft/vscode-azureappservice/pull/2803)] Migrate build system from webpack/gulp to esbuild.
+
 ## 0.26.4 - 2025-09-25
 
 ### Added
