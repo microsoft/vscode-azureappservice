@@ -68,8 +68,7 @@ export class CodeOptimizationsTreeItem extends AzExtParentTreeItem {
                     const title = localize('labelIssueTitle', '`{0}` is causing high {1} usage.', issue.function, issue.issueCategory);
                     return new CodeOptimizationsIssueTreeItem(this, `${this.id}/${issue.key}`, title, issue);
                 });
-            }
-            else {
+            } else {
                 // For linux we dont know if the profile is enabled and enabling it is not as easy.
                 // So add an option to prompt co pilot to add support.
                 if (this.parent.site.isLinux) {

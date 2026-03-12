@@ -6,9 +6,9 @@
 
 import * as assert from 'assert';
 import { runWithTestActionContext } from 'node_modules/@microsoft/vscode-azext-utils';
-import { fixInsight } from 'src/commands/fixInsight';
-import { findBuggyFile } from 'src/utils/fixInsightsUtils';
-import { DataplaneIssue } from 'src/utils/perfIssuesUtils';
+import { fixInsight } from '../../src/commands/fixInsight';
+import { findBuggyFile } from '../../src/utils/fixInsightsUtils';
+import { DataplaneIssue } from '../../src/utils/perfIssuesUtils';
 import * as vscode from 'vscode';
 
 /**

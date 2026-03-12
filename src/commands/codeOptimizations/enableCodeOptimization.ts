@@ -5,7 +5,7 @@
 
 import { type StringDictionary } from "@azure/arm-appservice";
 import { type GenericTreeItem, type IActionContext } from "@microsoft/vscode-azext-utils";
-import { SiteTreeItem } from "src/tree/SiteTreeItem";
+import { SiteTreeItem } from "../../tree/SiteTreeItem";
 import * as vscode from 'vscode';
 import { webAppFilter } from "../../constants";
 import { ext } from "../../extensionVariables";
@@ -38,11 +38,10 @@ export async function enableProfiler(context: IActionContext, node?: GenericTree
     const settings = await client.listApplicationSettings();
 
     // Set the app settings required to activate the Application Insights profiler
-    if (settings.properties) {
-        settings.properties['APPINSIGHTS_PROFILERFEATURE_VERSION'] = '1.0.0';
-        settings.properties['XDT_MicrosoftApplicationInsights_Mode'] = 'recommended';
-        settings.properties['DiagnosticServices_EXTENSION_VERSION'] = '~3';
-    }
+    settings.properties ??= {};
+    settings.properties['APPINSIGHTS_PROFILERFEATURE_VERSION'] = '1.0.0';
+    settings.properties['XDT_MicrosoftApplicationInsights_Mode'] = 'recommended';
+    settings.properties['DiagnosticServices_EXTENSION_VERSION'] = '~3';
 
     await client.updateApplicationSettings(settings);
 

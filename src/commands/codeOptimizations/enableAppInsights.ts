@@ -5,11 +5,11 @@
 
 import { AppInsightsCreateStep, AppInsightsListStep, LogAnalyticsCreateStep, type IAppServiceWizardContext } from "@microsoft/vscode-azext-azureappservice";
 import { AzureWizard, type AzureWizardExecuteStep, type AzureWizardPromptStep, type GenericTreeItem, type IActionContext } from "@microsoft/vscode-azext-utils";
-import { SiteTreeItem } from "src/tree/SiteTreeItem";
 import { webAppFilter } from "../../constants";
 import { ext } from "../../extensionVariables";
 import { localize } from "../../localize";
 import { CodeOptimizationsTreeItem } from "../../tree/CodeOptimizationTreeItem";
+import { SiteTreeItem } from "../../tree/SiteTreeItem";
 
 /**
  * Attaches an Application Insights resource to a web app that doesn't already have one.

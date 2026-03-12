@@ -67,7 +67,7 @@ export async function fixInsight(context: IActionContext, node?: CodeOptimizatio
     // Open a new Copilot Chat session with the generated prompt so the user can review the suggested fix
     context.telemetry.properties.codeOptimizationChatOpened = 'false';
     await vscode.commands.executeCommand("workbench.action.chat.newChat");
-    await vscode.commands.executeCommand("workbench.action.chat.open", { query: prompt });
+    await vscode.commands.executeCommand("workbench.action.chat.open", { query: prompt, mode: "agent" });
     context.telemetry.properties.codeOptimizationChatOpened = 'true';
 }
 

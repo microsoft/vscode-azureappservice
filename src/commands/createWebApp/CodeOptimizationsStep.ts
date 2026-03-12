@@ -3,16 +3,17 @@
 *  Licensed under the MIT License. See License.txt in the project root for license information.
 *--------------------------------------------------------------------------------------------*/
 
-import { AzureWizardPromptStep, type IAzureQuickPickItem } from '@microsoft/vscode-azext-utils';
-import { WebsiteOS } from 'node_modules/@microsoft/vscode-azext-azureappservice/dist/esm/src/createAppService/AppKind';
+import { WebsiteOS } from "@microsoft/vscode-azext-azureappservice";
+import { AzureWizardPromptStep, DialogResponses, type IAzureQuickPickItem } from '@microsoft/vscode-azext-utils';
 import { localize } from '../../localize';
 import { type IWebAppWizardContext } from './IWebAppWizardContext';
+
 
 export class CodeOptimizationsStep extends AzureWizardPromptStep<IWebAppWizardContext> {
     public async prompt(context: IWebAppWizardContext): Promise<void> {
         const picks: IAzureQuickPickItem<boolean>[] = [
-            { label: localize('yes', 'Yes'), data: true },
-            { label: localize('no', 'No'), data: false }
+            { label: DialogResponses.yes.title, data: true },
+            { label: DialogResponses.no.title, data: false }
         ];
 
         const placeHolder: string = localize('enableProfiler', 'Enable Profiler for Code Optimization support?');
