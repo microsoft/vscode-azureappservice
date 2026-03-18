@@ -10,7 +10,7 @@ import { AzExtParentTreeItem, GenericTreeItem, type AzExtTreeItem, type IActionC
 import { ThemeIcon, TreeItemCollapsibleState } from 'vscode';
 import { ext } from '../extensionVariables';
 import { localize } from '../localize';
-import { getDataplaneIssues, type DataplaneIssue, type FailedResponse } from '../utils/perfIssuesUtils';
+import { getDataplaneIssues, type DataplaneIssue } from '../utils/perfIssuesUtils';
 import { type SiteTreeItem } from './SiteTreeItem';
 
 const label: string = localize('codeOptimizations', 'Code Optimizations');
@@ -90,7 +90,7 @@ export class CodeOptimizationsTreeItem extends AzExtParentTreeItem {
             }
         } else {
             // Error case
-            const failedResponse = issues as FailedResponse;
+            const failedResponse = issues;
             context.telemetry.properties.codeOptimizationCount = 'error';
             context.telemetry.properties.codeOptimizationError = failedResponse.message;
             ext.outputChannel.appendLog(localize('codeOptimizationError', 'Failed to get code optimizations: {0}', failedResponse.message));
