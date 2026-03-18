@@ -4,9 +4,9 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { type Site, type WebSiteManagementClient } from '@azure/arm-appservice';
-import { ParsedSite, createSlot, type IAppServiceWizardContext } from '@microsoft/vscode-azext-azureappservice';
+import { DeploymentSlotConfigSourceStep, DeploymentSlotCreateStep, DeploymentSlotNameStep, ParsedSite, type IAppServiceWizardContext, type ICreateSlotContext } from '@microsoft/vscode-azext-azureappservice';
 import { uiUtils } from '@microsoft/vscode-azext-azureutils';
-import { AzExtParentTreeItem, AzExtTreeItem, AzureWizard, AzureWizardExecuteStep, nonNullProp, type ExecuteActivityContext, type IActionContext, type ICreateChildImplContext, type TreeItemIconPath } from '@microsoft/vscode-azext-utils';
+import { AzExtParentTreeItem, AzExtTreeItem, AzureWizard, nonNullProp, type ExecuteActivityContext, type IActionContext, type ICreateChildImplContext, type TreeItemIconPath } from '@microsoft/vscode-azext-utils';
 import { getCreatedSlotMessage } from '../commands/createWebApp/showCreatedSlotMessage';
 import { ext } from '../extensionVariables';
 import { localize } from '../localize';
@@ -58,37 +58,26 @@ export class DeploymentSlotsTreeItem extends AzExtParentTreeItem {
 
     public async createChildImpl(context: ICreateChildImplContext & Partial<IAppServiceWizardContext>): Promise<AzExtTreeItem> {
         const existingSlots = (<SiteTreeItem[]>await this.getCachedChildren(context)).map(ti => ti.site);
-        const wizardContext: ICreateChildImplContext & ExecuteActivityContext & Partial<IAppServiceWizardContext> = Object.assign(context, {
+        const wizardContext: ICreateSlotContext & ExecuteActivityContext = Object.assign(context, {
             activityTitle: localize('createDeploymentSlot', 'Create deployment slot'),
-            ...(await createActivityContext({ withChildren: false }))
+            ...(await createActivityContext({ withChildren: false })),
+            parentSite: this.parent.site,
+            existingSlots,
         });
 
-        const wizard = new AzureWizard<ICreateChildImplContext & ExecuteActivityContext>(wizardContext, {
-            promptSteps: [],
-            executeSteps: [new CreateSlotWrapperExecuteStep(this, existingSlots)]
+        const wizard = new AzureWizard<ICreateSlotContext & ExecuteActivityContext>(wizardContext, {
+            promptSteps: [new DeploymentSlotNameStep(), new DeploymentSlotConfigSourceStep()],
+            executeSteps: [new DeploymentSlotCreateStep()]
         });
 
+        await wizard.prompt();
+        // Update the activity title now that we have the slot name
+        wizardContext.activityTitle = localize('createdDeploymentSlot', 'Create slot "{0}"', wizardContext.newDeploymentSlotName);
         await wizard.execute();
-        return new SiteTreeItem(this, nonNullProp(wizardContext, 'site'));
-    }
-}
 
-// `createSlot` doesn't use any wizard steps so this wrapper is neccessary for it to appear in the Azure Activity log
-class CreateSlotWrapperExecuteStep extends AzureWizardExecuteStep<ICreateChildImplContext> {
-    public priority: number = 100;
-    constructor(private readonly deploymentTreeItem: DeploymentSlotsTreeItem, readonly existingSlots: ParsedSite[]) {
-        super();
-    }
-    public async execute(context: ICreateChildImplContext & ExecuteActivityContext & Partial<IAppServiceWizardContext>): Promise<void> {
-        const site: Site = await createSlot(this.deploymentTreeItem.parent.site, this.existingSlots, context);
-        const newSite = new ParsedSite(site, this.deploymentTreeItem.parent.subscription);
-        context.site = site;
-        context.activityTitle = localize('createdDeploymentSlot', 'Create slot "{0}"', newSite.fullName);
+        const newSite = new ParsedSite(nonNullProp(wizardContext, 'site'), this.parent.subscription);
         ext.outputChannel.appendLog(getCreatedSlotMessage(newSite));
-    }
-
-    public shouldExecute(): boolean {
-        return true;
+        return new SiteTreeItem(this, nonNullProp(wizardContext, 'site'));
     }
 }
 
