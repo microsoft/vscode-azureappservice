@@ -154,6 +154,31 @@
                 "category": "Azure App Service"
             },
             {
+                "command": "appService.fixCodeOptimization",
+                "title": "%appService.fixCodeOptimization%",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.enableProfilerCodeOptimization",
+                "title": "%appService.enableProfilerCodeOptimization%",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.enableAppInsights",
+                "title": "%appService.enableAppInsights%",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.learnMoreCodeOptimizations",
+                "title": "%appService.learnMoreCodeOptimizations%",
+                "category": "Azure App Service"
+            },
+            {
+                "command": "appService.promptAddProfilerLinux",
+                "title": "%appService.promptAddProfilerLinux%",
+                "category": "Azure App Service"
+            },
+            {
                 "command": "appService.InstallCosmosDBExtension",
                 "title": "%appService.InstallCosmosDBExtension%",
                 "category": "Azure App Service"
@@ -433,6 +458,41 @@
                     "command": "appService.Refresh",
                     "when": "view =~ /(azureResourceGroups|azureFocusView)/ && viewItem == deploymentSlots",
                     "group": "2_deploymentSlotsGeneralCommands@1"
+                },
+                {
+                    "command": "appService.fixCodeOptimization",
+                    "when": "view =~ /(azureResourceGroups|azureFocusView)/ && viewItem == codeOptimizationIssue",
+                    "group": "1_codeOptimizationsGeneralCommands@1"
+                },
+                {
+                    "command": "appService.enableProfilerCodeOptimization",
+                    "when": "view =~ /(azureResourceGroups|azureFocusView)/ && viewItem == profilerNotEnabled",
+                    "group": "2_codeOptimizationsGeneralCommands@1"
+                },
+                {
+                    "command": "appService.enableAppInsights",
+                    "when": "view =~ /(azureResourceGroups|azureFocusView)/ && viewItem == applicationInsightsNotEnabled",
+                    "group": "2_codeOptimizationsGeneralCommands@1"
+                },
+                {
+                    "command": "appService.learnMoreCodeOptimizations",
+                    "when": "view =~ /(azureResourceGroups|azureFocusView)/ && viewItem == codeOptimizations",
+                    "group": "1_codeOptimizationsGeneralCommands@1"
+                },
+                {
+                    "command": "appService.promptAddProfilerLinux",
+                    "when": "view =~ /(azureResourceGroups|azureFocusView)/ && viewItem == codeOptimizationNoResultLinux",
+                    "group": "2_codeOptimizationsGeneralCommands@1"
+                },
+                {
+                    "command": "appService.OpenInPortal",
+                    "when": "view =~ /(azureResourceGroups|azureFocusView)/ && (viewItem == codeOptimizations || viewItem == codeOptimizationIssue)",
+                    "group": "2_codeOptimizationsGeneralCommands@1"
+                },
+                {
+                    "command": "appService.Refresh",
+                    "when": "view =~ /(azureResourceGroups|azureFocusView)/ && viewItem == codeOptimizations",
+                    "group": "2_codeOptimizationsGeneralCommands@2"
                 },
                 {
                     "command": "appService.EnableFileLogging",
@@ -754,6 +814,7 @@
         "@microsoft/vscode-azext-azureutils": "^4.0.1",
         "@microsoft/vscode-azext-utils": "^4.0.4",
         "@microsoft/vscode-azureresources-api": "^2.6.2",
+        "@opi-perf/json": "^1.0.0-alpha10",
         "dotenv": "^6.2.0",
         "fast-xml-parser": "^5.5.6",
         "open": "^8.0.4",

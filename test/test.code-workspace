@@ -1,6 +1,9 @@
 {
     "folders": [
         {
+            "path": "./nightly/testFolder/code-optimization-example"
+        },
+        {
             "path": "./nightly/testFolder/dotnet-hello-world/3.1"
         },
         {

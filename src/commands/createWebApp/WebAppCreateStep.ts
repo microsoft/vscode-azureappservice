@@ -111,6 +111,9 @@ export class WebAppCreateStep extends AzureWizardExecuteStepWithActivityOutput<I
                     if (!/core/i.test(stack.minorVersion.displayText)) { // Filter out .NET _Core_ stacks because this is a .NET _Framework_ property
                         newSiteConfig.netFrameworkVersion = runtimeVersion;
                     }
+                    if (context.enableProfiler) {
+                        newSiteConfig.alwaysOn = true;
+                    }
                     break;
                 case 'php':
                     newSiteConfig.phpVersion = runtimeVersion;
@@ -162,12 +165,15 @@ export class WebAppCreateStep extends AzureWizardExecuteStepWithActivityOutput<I
                 value: context.newSiteOS === WebsiteOS.windows ? '~2' : '~3' // ~2 is for Windows, ~3 is for Linux
             });
 
+            // Configure Code Optimizations settings based on user preference
+            const enableProfiler = context.enableProfiler === true;
+
             // all these settings are set on the portal if AI is enabled for Windows apps
             if (context.newSiteOS === WebsiteOS.windows) {
                 appSettings.push(
                     {
                         name: 'APPINSIGHTS_PROFILERFEATURE_VERSION',
-                        value: disabled
+                        value: enableProfiler ? '1.0.0' : disabled
                     },
                     {
                         name: 'APPINSIGHTS_SNAPSHOTFEATURE_VERSION',
@@ -175,7 +181,7 @@ export class WebAppCreateStep extends AzureWizardExecuteStepWithActivityOutput<I
                     },
                     {
                         name: 'DiagnosticServices_EXTENSION_VERSION',
-                        value: disabled
+                        value: enableProfiler ? '~3' : disabled
                     },
                     {
                         name: 'InstrumentationEngine_EXTENSION_VERSION',
@@ -191,7 +197,7 @@ export class WebAppCreateStep extends AzureWizardExecuteStepWithActivityOutput<I
                     },
                     {
                         name: 'XDT_MicrosoftApplicationInsights_Mode',
-                        value: 'default'
+                        value: enableProfiler ? 'recommended' : 'default'
                     });
             } else {
                 appSettings.push({
