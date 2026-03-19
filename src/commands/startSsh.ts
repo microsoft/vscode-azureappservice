@@ -6,8 +6,10 @@
 import { type SiteConfigResource } from '@azure/arm-appservice';
 import { TunnelProxy, reportMessage, setRemoteDebug } from '@microsoft/vscode-azext-azureappservice';
 import { findFreePort, type IActionContext } from '@microsoft/vscode-azext-utils';
+import * as fs from 'fs';
+import * as os from 'os';
+import * as path from 'path';
 import * as vscode from 'vscode';
-import { type TerminalDataWriteEvent } from 'vscode';
 import { ext } from '../extensionVariables';
 import { localize } from '../localize';
 import { type SiteTreeItem } from '../tree/SiteTreeItem';
@@ -24,12 +26,27 @@ export const sshSessionsMap: Map<string, sshTerminal> = new Map<string, sshTermi
 
 export const sshURL = 'root@127.0.0.1';
 
+const defaultContainerPassword = 'Docker!';
+
 /**
- * Usage is dependent on vscode.prososed.d.ts ("onDidWriteTerminalData")
- * @param context
- * @param node
- * @returns
+ * Returns the path to a temporary script that outputs the default SSH password.
+ * Used with SSH_ASKPASS so the password is entered automatically.
  */
+function getAskpassScriptPath(): string {
+    const tmpDir = os.tmpdir();
+    const isWindows = process.platform === 'win32';
+    const scriptName = isWindows ? 'vscode-appservice-askpass.cmd' : 'vscode-appservice-askpass.sh';
+    const scriptPath = path.join(tmpDir, scriptName);
+
+    if (!fs.existsSync(scriptPath)) {
+        const content = isWindows
+            ? `@echo off\r\necho ${defaultContainerPassword}\r\n`
+            : `#!/bin/sh\necho '${defaultContainerPassword}'\n`;
+        fs.writeFileSync(scriptPath, content, { mode: isWindows ? 0o644 : 0o755 });
+    }
+
+    return scriptPath;
+}
 export async function startSsh(context: IActionContext, node?: SiteTreeItem): Promise<void> {
     node ??= await pickWebApp(context);
     await node.initSite(context);
@@ -84,24 +101,31 @@ async function startSshInternal(context: IActionContext, node: SiteTreeItem): Pr
 function connectToTunnelProxy(node: SiteTreeItem, tunnelProxy: TunnelProxy, port: number): void {
     // site will be initialized by startSshInternal, so we can safely use it here
     const sshTerminalName: string = `${node.site.fullName} - SSH`;
+
+    // Close any existing terminal with this name to ensure fresh env vars
+    const existingTerminal = vscode.window.terminals.find((t: vscode.Terminal) => t.name === sshTerminalName);
+    if (existingTerminal) {
+        existingTerminal.dispose();
+    }
+
+    const askpassScript = getAskpassScriptPath();
+
     // -o StrictHostKeyChecking=no doesn't prompt for adding to hosts
     // -o "UserKnownHostsFile /dev/null" doesn't add host to known_user file
     // -o "LogLevel ERROR" doesn't display Warning: Permanently added 'hostname,ip' (RSA) to the list of known hosts.
-    const sshCommand: string = `ssh -c aes256-cbc -o StrictHostKeyChecking=no -o "UserKnownHostsFile /dev/null" -o "LogLevel ERROR" ${sshURL} -p ${port}`;
+    const sshCommand: string = `ssh -o StrictHostKeyChecking=no -o "UserKnownHostsFile /dev/null" -o "LogLevel ERROR" ${sshURL} -p ${port}`;
 
-    // if this terminal already exists, just reuse it otherwise create a new terminal.
-    const terminal: vscode.Terminal = vscode.window.terminals.find((activeTerminal: vscode.Terminal) => { return activeTerminal.name === sshTerminalName; }) || vscode.window.createTerminal(sshTerminalName);
-    terminal.sendText(sshCommand, true);
-
-    // The default password for logging into the container (after you have SSHed in) is Docker!
-    // onDidWriteTerminalData is part of the vscode.proposed.d.ts
-    const verifyPassPrompt = vscode.window.onDidWriteTerminalData((event: TerminalDataWriteEvent) => {
-        if (event.terminal === terminal) {
-            if (event.data.includes(`${sshURL}\'s password:`)) {
-                terminal.sendText('Docker!', true);
-            }
-        }
+    // Use SSH_ASKPASS to provide the default container password automatically.
+    // SSH_ASKPASS_REQUIRE=prefer tells OpenSSH 8.4+ to use the askpass program even with a TTY.
+    const terminal: vscode.Terminal = vscode.window.createTerminal({
+        name: sshTerminalName,
+        env: {
+            SSH_ASKPASS: askpassScript,
+            SSH_ASKPASS_REQUIRE: 'prefer',
+            DISPLAY: ':0',
+        },
     });
+    terminal.sendText(sshCommand, true);
 
     terminal.show();
     ext.context.subscriptions.push(terminal);
@@ -110,9 +134,6 @@ function connectToTunnelProxy(node: SiteTreeItem, tunnelProxy: TunnelProxy, port
 
     const onCloseEvent: vscode.Disposable = vscode.window.onDidCloseTerminal((e: vscode.Terminal) => {
         if (e.processId === terminal.processId) {
-            // clean up if the SSH task ends
-            verifyPassPrompt.dispose();
-
             if (tunnelProxy !== undefined) {
                 tunnelProxy.dispose();
             }

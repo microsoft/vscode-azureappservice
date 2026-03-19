@@ -580,7 +580,7 @@
                 },
                 {
                     "command": "appService.Refresh",
-                    "when": "view =~ /(azureResourceGroups|azureFocusView)/ && viewItem == сosmosDBConnections",
+                    "when": "view =~ /(azureResourceGroups|azureFocusView)/ && viewItem == \u0441osmosDBConnections",
                     "group": "2@2"
                 },
                 {
@@ -822,8 +822,5 @@
     },
     "extensionDependencies": [
         "ms-azuretools.vscode-azureresourcegroups"
-    ],
-    "enabledApiProposals": [
-        "terminalDataWriteEvent"
     ]
 }
