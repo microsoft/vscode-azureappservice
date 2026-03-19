@@ -25,7 +25,7 @@ export class CodeOptimizationsStep extends AzureWizardPromptStep<IWebAppWizardCo
         const stack = context.newSiteStack?.stack.value;
         const isDotNet = stack === 'dotnet';
         const isWindows = context.newSiteOS === WebsiteOS.windows;
-        const hasAppInsights = !!context.appInsightsComponent || context.advancedCreation !== true; // App Insights is created by default in simple mode
+        const hasAppInsights = !context.appInsightsSkip;
 
         return isDotNet && isWindows && hasAppInsights && context.enableProfiler === undefined;
     }
