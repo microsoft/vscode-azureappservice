@@ -53,7 +53,8 @@ export async function setPreDeployConfigForDotnet(context: IDeployContext, cspro
     }
 
     // do not overwrite any dotnet tasks the user already defined
-    let newTasks: tasks.ITask[] = generateDotnetTasks(subfolder);
+    const csprojRelativePath: string = path.relative(workspaceFspath, csprojFile);
+    let newTasks: tasks.ITask[] = generateDotnetTasks(csprojRelativePath);
     newTasks = newTasks.filter(t1 => !existingTasks.find(t2 => {
         return t1.label === t2.label;
     }));
@@ -72,10 +73,12 @@ async function tryGetTargetFramework(projFilePath: string): Promise<string | und
     return matches === null ? undefined : matches[1];
 }
 
-function generateDotnetTasks(subfolder: string): TaskDefinition[] {
-    // always use posix for debug config because it's committed to source control and works on all OS's
+function generateDotnetTasks(csprojRelativePath: string): TaskDefinition[] {
+    // Use the specific .csproj file path instead of the directory to avoid MSB1050
+    // when the folder contains multiple project or solution files.
+    // Always use posix for debug config because it's committed to source control and works on all OS's
     // eslint-disable-next-line no-template-curly-in-string
-    const cwd: string = path.posix.join('${workspaceFolder}', subfolder);
+    const projectPath: string = path.posix.join('${workspaceFolder}', csprojRelativePath.split(path.sep).join(path.posix.sep));
 
     const cleanTask: TaskDefinition = {
         label: cleanId,
@@ -83,7 +86,7 @@ function generateDotnetTasks(subfolder: string): TaskDefinition[] {
         type: "process",
         args: [
             'clean',
-            cwd,
+            projectPath,
             "/property:GenerateFullPaths=true",
             "/consoleloggerparameters:NoSummary"
         ],
@@ -96,7 +99,7 @@ function generateDotnetTasks(subfolder: string): TaskDefinition[] {
         type: "process",
         args: [
             'publish',
-            cwd,
+            projectPath,
             '--configuration',
             'Release',
             "/property:GenerateFullPaths=true",
