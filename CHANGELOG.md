@@ -1,6 +1,6 @@
 # Change Log
 
-## 0.26.5 - 2026-03-12
+## 0.26.5 - 2026-03-20
 
 ### Added
 * [[2824](https://github.com/microsoft/vscode-azureappservice/pull/2824)] Add Application Insights Code Optimizations support for .NET web apps, surfacing profiler-detected performance issues directly in VS Code with Copilot Chat integration.
