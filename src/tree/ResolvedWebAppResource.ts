@@ -42,7 +42,7 @@ export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTre
 
     public contextValuesToAdd?: string[] | undefined;
     public maskedValuesToAdd: string[] = [];
-    public childTypeLabel?: string = localize('resourceLabel', 'resource');
+    public childTypeLabel?: string = localize('resourceLabel', 'Resource');
 
     public static webAppContextValue: string = 'azAppWebApp';
     public static slotContextValue: string = 'azAppSlot';

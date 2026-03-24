@@ -9,8 +9,8 @@ import { webAppFilter } from "../constants";
 import { ext } from "../extensionVariables";
 import { localize } from "../localize";
 import { CodeOptimizationsIssueTreeItem } from "../tree/CodeOptimizationTreeItem";
-import { installExtension } from "../utils/installExtension";
 import { findBuggyFile, getInsightPromptForGenericLLM } from "../utils/fixInsightsUtils";
+import { installExtension } from "../utils/installExtension";
 
 const csharpExtensionId = 'ms-dotnettools.csharp';
 const csharpDevKitExtensionId = 'ms-dotnettools.csdevkit';
@@ -26,9 +26,9 @@ const csharpDevKitExtensionId = 'ms-dotnettools.csdevkit';
  */
 export async function fixInsight(context: IActionContext, node?: CodeOptimizationsIssueTreeItem | undefined): Promise<void> {
     if (!vscode.extensions.getExtension(csharpExtensionId) && !vscode.extensions.getExtension(csharpDevKitExtensionId)) {
-        const install = localize('install', 'Install');
+        const install = { title: localize('install', 'Install') };
         const message = localize('csharpRequired', 'The C# extension is required to fix Code Optimization issues.');
-        void vscode.window.showWarningMessage(message, install).then(async (selection) => {
+        void context.ui.showWarningMessage(message, install).then(async (selection) => {
             if (selection === install) {
                 await installExtension(csharpExtensionId);
             }
