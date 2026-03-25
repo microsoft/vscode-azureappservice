@@ -325,6 +325,22 @@
                 {
                     "command": "appService.ViewProperties",
                     "when": "never"
+                },
+                {
+                    "command": "appService.enableProfilerCodeOptimization",
+                    "when": "never"
+                },
+                {
+                    "command": "appService.enableAppInsights",
+                    "when": "never"
+                },
+                {
+                    "command": "appService.learnMoreCodeOptimizations",
+                    "when": "never"
+                },
+                {
+                    "command": "appService.promptAddProfilerLinux",
+                    "when": "never"
                 }
             ],
             "appService.submenus.workspaceActions": [

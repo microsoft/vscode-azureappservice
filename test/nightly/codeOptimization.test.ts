@@ -5,7 +5,7 @@
 
 
 import * as assert from 'assert';
-import { runWithTestActionContext } from 'node_modules/@microsoft/vscode-azext-utils';
+import { runWithTestActionContext } from '@microsoft/vscode-azext-utils';
 import { fixInsight } from '../../src/commands/fixInsight';
 import { findBuggyFile } from '../../src/utils/fixInsightsUtils';
 import { DataplaneIssue } from '../../src/utils/perfIssuesUtils';
@@ -275,5 +275,51 @@ suite('Code Optimization - fixInsight end-to-end', function (this: Mocha.Suite):
             assert.strictEqual(context.telemetry.properties.codeOptimizationChatOpened, 'true');
             assert.strictEqual(context.telemetry.properties.codeOptimizationCodeFound, 'true');
         });
+    });
+});
+
+suite('Code Optimization - fixInsight C# extension guard', function (this: Mocha.Suite): void {
+    test('fixInsight shows warning and exits early when C# extension is not installed', async function () {
+        // Temporarily stub getExtension to simulate neither C# extension being present
+        const originalGetExtension = vscode.extensions.getExtension;
+        (vscode.extensions as any).getExtension = (id: string) => {
+            if (id === 'ms-dotnettools.csharp' || id === 'ms-dotnettools.csdevkit') {
+                return undefined;
+            }
+            return originalGetExtension.call(vscode.extensions, id);
+        };
+
+        try {
+            const issue = mockIssues.toListInStringValidation;
+            const mockNode = { issue } as any;
+
+            await runWithTestActionContext('appService.fixCodeOptimization', async context => {
+                // Spy on showWarningMessage to verify it is called and prevent unhandled rejection
+                let warningMessageShown = '';
+                (context.ui as any).showWarningMessage = async (message: string) => {
+                    warningMessageShown = message;
+                    return undefined;
+                };
+
+                await fixInsight(context, mockNode);
+
+                // Verify warning was shown with the expected message
+                assert.ok(warningMessageShown, 'A warning message should be displayed');
+                assert.ok(
+                    warningMessageShown.includes('C# extension'),
+                    `Warning should mention "C# extension", got: "${warningMessageShown}"`
+                );
+
+                // Verify no symbol lookup or chat telemetry was set (early exit)
+                assert.strictEqual(context.telemetry.properties.codeOptimizationIssueId, undefined,
+                    'Should not set codeOptimizationIssueId (no symbol lookup)');
+                assert.strictEqual(context.telemetry.properties.codeOptimizationCodeFound, undefined,
+                    'Should not set codeOptimizationCodeFound (no symbol lookup)');
+                assert.strictEqual(context.telemetry.properties.codeOptimizationChatOpened, undefined,
+                    'Should not set codeOptimizationChatOpened (no chat opened)');
+            });
+        } finally {
+            (vscode.extensions as any).getExtension = originalGetExtension;
+        }
     });
 });

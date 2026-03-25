@@ -10,6 +10,10 @@ import { ext } from "../extensionVariables";
 import { localize } from "../localize";
 import { CodeOptimizationsIssueTreeItem } from "../tree/CodeOptimizationTreeItem";
 import { findBuggyFile, getInsightPromptForGenericLLM } from "../utils/fixInsightsUtils";
+import { installExtension } from "../utils/installExtension";
+
+const csharpExtensionId = 'ms-dotnettools.csharp';
+const csharpDevKitExtensionId = 'ms-dotnettools.csdevkit';
 
 /**
  * Handles the "fix insight" command for a code optimization issue.
@@ -21,6 +25,17 @@ import { findBuggyFile, getInsightPromptForGenericLLM } from "../utils/fixInsigh
  *               the user will be prompted to select one.
  */
 export async function fixInsight(context: IActionContext, node?: CodeOptimizationsIssueTreeItem | undefined): Promise<void> {
+    if (!vscode.extensions.getExtension(csharpExtensionId) && !vscode.extensions.getExtension(csharpDevKitExtensionId)) {
+        const install = { title: localize('install', 'Install') };
+        const message = localize('csharpRequired', 'The C# extension is required to fix Code Optimization issues.');
+        void context.ui.showWarningMessage(message, install).then(async (selection) => {
+            if (selection === install) {
+                await installExtension(csharpExtensionId);
+            }
+        });
+        return;
+    }
+
     // If no tree item was passed (e.g. invoked from the command palette), prompt the user to pick one
     if (!node) {
         const noItemFoundErrorMessage: string = localize('noCodeOptimizationIssue', 'Select a code optimization issue to fix.');

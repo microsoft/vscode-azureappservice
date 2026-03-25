@@ -18,6 +18,7 @@ export class CodeOptimizationsTreeItem extends AzExtParentTreeItem {
     public readonly label: string = label;
     public static contextValue: string = 'codeOptimizations';
     public readonly contextValue: string = CodeOptimizationsTreeItem.contextValue;
+    public readonly childTypeLabel: string = localize('codeOptimization', 'Code Optimization');
     declare public parent: SiteTreeItem;
     private _appInsightsComponent: ApplicationInsightsComponent | undefined;
 

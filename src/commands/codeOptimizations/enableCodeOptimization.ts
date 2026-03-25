@@ -70,7 +70,7 @@ export async function promptAddProfilerLinux(context: IActionContext, node?: Gen
         const noItemFoundErrorMessage: string = localize('noEnabledProfilerLinux', 'Select a web app to prompt adding profiler support');
         siteTreeItem = await ext.rgApi.pickAppResource<SiteTreeItem>({ ...context, noItemFoundErrorMessage }, {
             filter: webAppFilter,
-            expectedChildContextValue: new RegExp("profilerNotEnabled")
+            expectedChildContextValue: new RegExp("codeOptimizationNoResultLinux")
         });
     } else {
         siteTreeItem = node.parent.parent;
