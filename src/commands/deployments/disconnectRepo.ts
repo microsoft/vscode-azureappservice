@@ -11,6 +11,7 @@ import { OperationNotSupportedError } from '../../errors';
 import { ext } from "../../extensionVariables";
 import { localize } from "../../localize";
 import { isResolvedWebAppResource } from "../../tree/ResolvedWebAppResource";
+import { SiteTreeItem } from "../../tree/SiteTreeItem";
 
 export async function disconnectRepo(context: IActionContext, node?: DeploymentsTreeItem): Promise<void> {
     if (!node) {
@@ -32,6 +33,9 @@ export async function disconnectRepo(context: IActionContext, node?: Deployments
         
         await disconnectRepository(context, node.parent.site, node.subscription);
         await ext.rgApi.appResourceTree.refresh(context, node.parent);
+    } else if (node.parent instanceof SiteTreeItem) {
+        await disconnectRepository(context, node.parent.site, node.parent.subscription);
+        await node.parent.refresh(context);
     } else {
         throw new OperationNotSupportedError(context);
     }
