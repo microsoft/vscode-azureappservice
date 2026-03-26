@@ -18,7 +18,7 @@ import { nonNullValue } from '../utils/nonNull';
 import { openUrl } from '../utils/openUrl';
 import { getIconPath, getThemedIconPath } from '../utils/pathUtils';
 import { type AppServiceDataModel } from '../WebAppResolver';
-import { CodeOptimizationsTreeItem } from './CodeOptimizationTreeItem';
+import { CodeOptimizationsIssueTreeItem, CodeOptimizationsTreeItem } from './CodeOptimizationTreeItem';
 import { DeploymentSlotsNATreeItem, DeploymentSlotsTreeItem } from './DeploymentSlotsTreeItem';
 import { type ISiteTreeItem } from './ISiteTreeItem';
 import { NotAvailableTreeItem } from './NotAvailableTreeItem';
@@ -224,8 +224,8 @@ export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTre
 
         try {
             if (await this.isDotnetProject(context)) {
-                const codeOptimizationsNode = new CodeOptimizationsTreeItem(proxyTree);
-                children.push(codeOptimizationsNode);
+                this._codeOptimizationsNode = new CodeOptimizationsTreeItem(proxyTree);
+                children.push(this._codeOptimizationsNode);
             }
         } catch (_err) { /* empty */ }
 
@@ -288,6 +288,10 @@ export class ResolvedWebAppResource implements ResolvedAppResourceBase, ISiteTre
                 }
                 if (matchContextValue(expectedContextValue, [FolderTreeItem.contextValue])) {
                     return this._siteFilesNode;
+                }
+                const codeOptimizationsContextValues = [CodeOptimizationsTreeItem.contextValue, CodeOptimizationsIssueTreeItem.contextValue];
+                if (matchContextValue(expectedContextValue, codeOptimizationsContextValues)) {
+                    return this._codeOptimizationsNode;
                 }
             }
 
