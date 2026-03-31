@@ -21,21 +21,22 @@ export async function disconnectRepo(context: IActionContext, node?: Deployments
         });
     }
 
-    if (isResolvedWebAppResource(node.parent)) {
-        // Check if the app is already disconnected from any repository
+    if (isResolvedWebAppResource(node.parent) || node.parent instanceof SiteTreeItem) {
         const client = await node.parent.site.createClient(context);
         const siteConfig = await client.getSiteConfig();
-        
+
         if (siteConfig.scmType === ScmType.None) {
             void window.showWarningMessage(localize('notConnectedToRepo', 'This app is not connected to any repository.'));
             throw new UserCancelledError('notConnectedToRepo');
         }
-        
-        await disconnectRepository(context, node.parent.site, node.subscription);
-        await ext.rgApi.appResourceTree.refresh(context, node.parent);
-    } else if (node.parent instanceof SiteTreeItem) {
-        await disconnectRepository(context, node.parent.site, node.parent.subscription);
-        await node.parent.refresh(context);
+
+        await disconnectRepository(context, node.parent.site, node.parent instanceof SiteTreeItem ? node.parent.subscription : node.subscription);
+
+        if (isResolvedWebAppResource(node.parent)) {
+            await ext.rgApi.appResourceTree.refresh(context, node.parent);
+        } else {
+            await node.parent.refresh(context);
+        }
     } else {
         throw new OperationNotSupportedError(context);
     }
