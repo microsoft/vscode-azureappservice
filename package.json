@@ -832,7 +832,7 @@
         "@microsoft/vscode-azureresources-api": "^2.6.2",
         "@opi-perf/json": "^1.0.0-alpha10",
         "dotenv": "^6.2.0",
-        "fast-xml-parser": "^5.5.7",
+        "fast-xml-parser": "^5.7.1",
         "open": "^8.0.4",
         "vscode-nls": "^4.1.1"
     },
