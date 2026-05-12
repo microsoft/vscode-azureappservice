@@ -6,7 +6,7 @@
 import { registerSiteCommand } from '@microsoft/vscode-azext-azureappservice';
 import { type AppSettingTreeItem } from '@microsoft/vscode-azext-azureappsettings';
 import { openInPortal as uiOpenInPortal } from '@microsoft/vscode-azext-azureutils';
-import { nonNullValue, registerCommandWithTreeNodeUnwrapping, unwrapTreeNodeCommandCallback, type AzExtTreeItem, type IActionContext } from '@microsoft/vscode-azext-utils';
+import { nonNullValue, registerCommand, registerCommandWithTreeNodeUnwrapping, unwrapTreeNodeCommandCallback, type AzExtTreeItem, type IActionContext } from '@microsoft/vscode-azext-utils';
 import { ext } from '../extensionVariables';
 import { type DeploymentSlotsNATreeItem, type ScaleUpTreeItem } from '../tree/DeploymentSlotsTreeItem';
 import { openUrl } from '../utils/openUrl';
@@ -25,6 +25,7 @@ import { createWebApp, createWebAppAdvanced } from './createWebApp/createWebApp'
 import { deleteWebApp } from './deleteWebApp';
 import { deploy } from './deploy/deploy';
 import { deploySlot } from './deploy/deploySlot';
+import { deployImageToAppService } from './deployImage/deployImageToAppService';
 import { connectToGitHub } from './deployments/connectToGitHub';
 import { disconnectRepo } from './deployments/disconnectRepo';
 import { editScmType } from './deployments/editScmType';
@@ -86,6 +87,7 @@ export function registerCommands(): void {
     registerCommandWithTreeNodeUnwrapping('appService.toggleAppSettingVisibility', async (actionContext: IActionContext, node?: AppSettingTreeItem) => { await nonNullValue(node).toggleValueVisibility(actionContext); }, 250);
     registerCommandWithTreeNodeUnwrapping('appService.ViewCommitInGitHub', viewCommitInGitHub);
     registerCommandWithTreeNodeUnwrapping('appService.ViewProperties', viewProperties);
+    registerCommand('appService.deployImageApi', deployImageToAppService);
     registerSiteCommand('appService.Deploy', unwrapTreeNodeCommandCallback(deploy));
     registerSiteCommand('appService.DeploySlot', unwrapTreeNodeCommandCallback(deploySlot));
     registerSiteCommand('appService.Redeploy', unwrapTreeNodeCommandCallback(redeployDeployment));

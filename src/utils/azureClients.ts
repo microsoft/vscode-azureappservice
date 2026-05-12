@@ -4,6 +4,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { type WebSiteManagementClient } from '@azure/arm-appservice';
+import { type AuthorizationManagementClient } from '@azure/arm-authorization';
+import { type ContainerRegistryManagementClient } from '@azure/arm-containerregistry';
 import { type ResourceGraphClient } from '@azure/arm-resourcegraph';
 import { type ResourceManagementClient } from '@azure/arm-resources';
 import { AzExtClientType, createAzureClient, createAzureSubscriptionClient, type AzExtClientContext } from '@microsoft/vscode-azext-azureutils';
@@ -21,4 +23,12 @@ export async function createResourceClient(clientContext: AzExtClientContext): P
 
 export async function createResourceGraphClient(context: AzExtClientContext): Promise<ResourceGraphClient> {
     return createAzureSubscriptionClient(context, (await import('@azure/arm-resourcegraph')).ResourceGraphClient);
+}
+
+export async function createContainerRegistryClient(clientContext: AzExtClientContext): Promise<ContainerRegistryManagementClient> {
+    return createAzureClient(clientContext, (await import('@azure/arm-containerregistry')).ContainerRegistryManagementClient as unknown as AzExtClientType<ContainerRegistryManagementClient>);
+}
+
+export async function createAuthorizationManagementClient(clientContext: AzExtClientContext): Promise<AuthorizationManagementClient> {
+    return createAzureClient(clientContext, (await import('@azure/arm-authorization')).AuthorizationManagementClient as unknown as AzExtClientType<AuthorizationManagementClient>);
 }

@@ -284,6 +284,11 @@
                 "command": "appService.ViewProperties",
                 "title": "%appService.ViewProperties%",
                 "category": "Azure App Service"
+            },
+            {
+                "command": "appService.deployImageApi",
+                "title": "%appService.deployImageApi%",
+                "category": "Azure App Service"
             }
         ],
         "submenus": [
@@ -340,6 +345,10 @@
                 },
                 {
                     "command": "appService.promptAddProfilerLinux",
+                    "when": "never"
+                },
+                {
+                    "command": "appService.deployImageApi",
                     "when": "never"
                 }
             ],
@@ -821,6 +830,8 @@
     "dependencies": {
         "@azure/arm-appinsights": "^5.0.0-beta.4",
         "@azure/arm-appservice": "^18.0.0",
+        "@azure/arm-authorization": "^9.0.0",
+        "@azure/arm-containerregistry": "^11.0.0",
         "@azure/arm-resourcegraph": "^5.0.0-beta.3",
         "@azure/arm-resources": "^5.0.0",
         "@azure/core-client": "^1.7.3",
