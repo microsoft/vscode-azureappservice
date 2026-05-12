@@ -56,8 +56,14 @@ export class DeployImageCreateStep extends AzureWizardExecuteStepWithActivityOut
             // ACR Arc: fetch admin credentials
             const acrClient: ContainerRegistryManagementClient = await createContainerRegistryClient(context);
             const registryShortName = nonNullProp(options, 'acrResourceName');
+            const acrResourceGroup = nonNullProp(options, 'acrResourceGroup');
+            const registry = await acrClient.registries.get(acrResourceGroup, registryShortName);
+            if (!registry.adminUserEnabled) {
+                context.errorHandling.suppressReportIssue = true;
+                throw new Error(localize('adminUserDisabled', 'The admin user is not enabled on registry "{0}". Enable it in the Azure Portal under Access keys, then try again.', registryShortName));
+            }
             const credentials = await acrClient.registries.listCredentials(
-                nonNullProp(options, 'acrResourceGroup'),
+                acrResourceGroup,
                 registryShortName,
             );
             const adminUsername = credentials.username ?? '';

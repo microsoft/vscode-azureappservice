@@ -85,18 +85,18 @@ export class CreateWebhookStep extends AzureWizardExecuteStepWithActivityOutput<
         const colonIndex = imageWithoutRegistry.lastIndexOf(':');
         const repoName = colonIndex > -1 ? imageWithoutRegistry.substring(0, colonIndex) : imageWithoutRegistry;
 
-        // Copy webhook URL to clipboard
-        await vscode.env.clipboard.writeText(webhookTargetUri);
-
         const dockerHubUrl = `https://cloud.docker.com/repository/docker/${repoName}/webHooks`;
+        const copyWebhookUrl = localize('copyWebhookUrl', 'Copy Webhook URL');
         const openDockerHub = localize('openDockerHub', 'Open Docker Hub');
         const message = localize(
             'dockerHubWebhook',
-            'The webhook URL has been copied to your clipboard. Please add it manually in Docker Hub to enable CI/CD.',
+            'To enable CI/CD, add the webhook URL in Docker Hub.',
         );
 
-        void vscode.window.showInformationMessage(message, openDockerHub).then(async (result) => {
-            if (result === openDockerHub) {
+        void vscode.window.showInformationMessage(message, copyWebhookUrl, openDockerHub).then(async (result) => {
+            if (result === copyWebhookUrl) {
+                await vscode.env.clipboard.writeText(webhookTargetUri);
+            } else if (result === openDockerHub) {
                 await vscode.env.openExternal(vscode.Uri.parse(dockerHubUrl));
             }
         });

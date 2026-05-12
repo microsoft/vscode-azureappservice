@@ -13,8 +13,11 @@ export class ContainerPortStep extends AzureWizardPromptStep<IDeployImageWizardC
             prompt: localize('containerPort', 'Enter the port that the container listens on'),
             value: '80',
             validateInput: (value: string): string | undefined => {
+                if (!/^\d+$/.test(value.trim())) {
+                    return localize('invalidPort', 'Please enter a valid port number (1-65535)');
+                }
                 const port = parseInt(value, 10);
-                if (isNaN(port) || port < 1 || port > 65535) {
+                if (port < 1 || port > 65535) {
                     return localize('invalidPort', 'Please enter a valid port number (1-65535)');
                 }
                 return undefined;
