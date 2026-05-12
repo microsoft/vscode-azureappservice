@@ -14,6 +14,7 @@ export interface DeployImageToAppServiceOptionsContract {
     secret?: string;
     acrResourceGroup?: string;
     acrResourceId?: string;
+    acrResourceName?: string;
 }
 
 export interface IDeployImageWizardContext extends ISubscriptionActionContext, IAppServiceWizardContext, ExecuteActivityContext {

@@ -53,7 +53,7 @@ export class CreateWebhookStep extends AzureWizardExecuteStepWithActivityOutput<
     private async createAcrWebhook(context: IDeployImageWizardContext, webhookTargetUri: string): Promise<void> {
         const options = context.deployImageOptions;
         const acrResourceGroup = nonNullProp(options, 'acrResourceGroup');
-        const registryShortName = options.registryName.split('.')[0];
+        const registryShortName = nonNullProp(options, 'acrResourceName');
 
         const registryClient: ContainerRegistryManagementClient = await createContainerRegistryClient(context);
         const registry = await registryClient.registries.get(acrResourceGroup, registryShortName);

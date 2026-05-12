@@ -27,7 +27,7 @@ export class AssignAcrPullRoleStep extends AzureWizardExecuteStepWithActivityOut
         const options = context.deployImageOptions;
         const siteName: string = nonNullProp(context, 'newSiteName');
         const rgName: string = nonNullProp(nonNullProp(context, 'resourceGroup'), 'name');
-        const registryShortName = options.registryName.split('.')[0];
+        const registryShortName = nonNullProp(options, 'acrResourceName');
         const acrResourceGroup = nonNullProp(options, 'acrResourceGroup');
         const acrResourceId = nonNullProp(options, 'acrResourceId');
 

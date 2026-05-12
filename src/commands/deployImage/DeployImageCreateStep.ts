@@ -55,7 +55,7 @@ export class DeployImageCreateStep extends AzureWizardExecuteStepWithActivityOut
         } else if (isAcrRegistry && isArc) {
             // ACR Arc: fetch admin credentials
             const acrClient: ContainerRegistryManagementClient = await createContainerRegistryClient(context);
-            const registryShortName = options.registryName.split('.')[0];
+            const registryShortName = nonNullProp(options, 'acrResourceName');
             const credentials = await acrClient.registries.listCredentials(
                 nonNullProp(options, 'acrResourceGroup'),
                 registryShortName,
