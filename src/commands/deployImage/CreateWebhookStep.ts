@@ -12,7 +12,7 @@ import * as vscode from 'vscode';
 import { localize } from '../../localize';
 import { createWebSiteClient } from '../../utils/azureClients';
 import { getRandomHexString } from '../../utils/randomUtils';
-import { type IDeployImageWizardContext } from './IDeployImageContext';
+import type { DeployImageToAppServiceOptionsContract, IDeployImageWizardContext } from './IDeployImageContext';
 
 function isDockerHub(registryName: string): boolean {
     return registryName.endsWith('docker.io');
@@ -89,10 +89,8 @@ export class CreateWebhookStep extends AzureWizardExecuteStepWithActivityOutput<
         }
     }
 
-    private async showDockerHubWebhookMessage(options: IDeployImageWizardContext['deployImageOptions'], webhookTargetUri: string): Promise<void> {
-        const repoName = options.repositoryName;
-
-        const dockerHubUrl = `https://cloud.docker.com/repository/docker/${repoName}/webHooks`;
+    private async showDockerHubWebhookMessage(options: DeployImageToAppServiceOptionsContract, webhookTargetUri: string): Promise<void> {
+        const dockerHubUrl = `https://cloud.docker.com/repository/docker/${options.repositoryName}/webHooks`;
         const copyAndOpen = localize('copyAndOpen', 'Copy & Open');
         const message = localize(
             'dockerHubWebhook',
