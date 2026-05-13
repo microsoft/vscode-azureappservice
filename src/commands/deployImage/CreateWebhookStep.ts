@@ -94,7 +94,8 @@ export class CreateWebhookStep extends AzureWizardExecuteStepWithActivityOutput<
         const copyAndOpen = localize('copyAndOpen', 'Copy & Open');
         const message = localize(
             'dockerHubWebhook',
-            'To enable CI/CD, add the webhook URL in Docker Hub.',
+            'To enable CI/CD, add the webhook URL in Docker Hub. Select "{0}" to copy the URL and open Docker Hub.',
+            copyAndOpen,
         );
 
         void vscode.window.showInformationMessage(message, copyAndOpen).then(async (result) => {
