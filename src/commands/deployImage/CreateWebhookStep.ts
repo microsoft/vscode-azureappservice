@@ -4,11 +4,13 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { type WebSiteManagementClient } from '@azure/arm-appservice';
-import { type ContainerRegistryManagementClient } from '@azure/arm-containerregistry';
+import { type ServiceClient } from '@azure/core-client';
+import { createHttpHeaders, createPipelineRequest } from '@azure/core-rest-pipeline';
+import { createGenericClient } from '@microsoft/vscode-azext-azureutils';
 import { AzureWizardExecuteStepWithActivityOutput, nonNullProp } from '@microsoft/vscode-azext-utils';
 import * as vscode from 'vscode';
 import { localize } from '../../localize';
-import { createContainerRegistryClient, createWebSiteClient } from '../../utils/azureClients';
+import { createWebSiteClient } from '../../utils/azureClients';
 import { getRandomHexString } from '../../utils/randomUtils';
 import { type IDeployImageWizardContext } from './IDeployImageContext';
 
@@ -38,7 +40,7 @@ export class CreateWebhookStep extends AzureWizardExecuteStepWithActivityOutput<
         const publishCreds = await webClient.webApps.beginListPublishingCredentialsAndWait(rgName, siteName);
         const webhookTargetUri = `${publishCreds.scmUri}/api/registry/webhook`;
 
-        if (options.acrResourceId) {
+        if (options.acrRegistry) {
             await this.createAcrWebhook(context, webhookTargetUri);
         } else if (isDockerHub(options.registryName)) {
             await this.showDockerHubWebhookMessage(options, webhookTargetUri);
@@ -47,16 +49,12 @@ export class CreateWebhookStep extends AzureWizardExecuteStepWithActivityOutput<
 
     public shouldExecute(context: IDeployImageWizardContext): boolean {
         const options = context.deployImageOptions;
-        return !!context.site && (!!options.acrResourceId || isDockerHub(options.registryName));
+        return !!context.site && (!!options.acrRegistry || isDockerHub(options.registryName));
     }
 
     private async createAcrWebhook(context: IDeployImageWizardContext, webhookTargetUri: string): Promise<void> {
         const options = context.deployImageOptions;
-        const acrResourceGroup = nonNullProp(options, 'acrResourceGroup');
-        const registryShortName = nonNullProp(options, 'acrResourceName');
-
-        const registryClient: ContainerRegistryManagementClient = await createContainerRegistryClient(context);
-        const registry = await registryClient.registries.get(acrResourceGroup, registryShortName);
+        const acrRegistry = nonNullProp(options, 'acrRegistry');
 
         const repoName = options.repositoryName;
         const tagName = options.tag || 'latest';
@@ -66,13 +64,23 @@ export class CreateWebhookStep extends AzureWizardExecuteStepWithActivityOutput<
         const truncatedName = sanitizedName.substring(0, 44);
         const webhookName = `${truncatedName}${getRandomHexString(6)}`;
 
-        await registryClient.webhooks.beginCreateAndWait(acrResourceGroup, registryShortName, webhookName, {
-            location: nonNullProp(registry, 'location'),
-            serviceUri: webhookTargetUri,
-            scope: `${repoName}:${tagName}`,
-            actions: ['push'],
-            status: 'enabled',
-        });
+        // Use a generic ARM PUT instead of the containerregistry SDK to avoid a package dependency
+        const client: ServiceClient = await createGenericClient(context, context);
+        await client.sendRequest(createPipelineRequest({
+            method: 'PUT',
+            url: `${acrRegistry.id}/webhooks/${webhookName}?api-version=2023-07-01`,
+            // eslint-disable-next-line @typescript-eslint/naming-convention
+            headers: createHttpHeaders({ 'Content-Type': 'application/json' }),
+            body: JSON.stringify({
+                location: acrRegistry.location,
+                properties: {
+                    serviceUri: webhookTargetUri,
+                    scope: `${repoName}:${tagName}`,
+                    actions: ['push'],
+                    status: 'enabled',
+                },
+            }),
+        }));
     }
 
     private async showDockerHubWebhookMessage(options: IDeployImageWizardContext['deployImageOptions'], webhookTargetUri: string): Promise<void> {

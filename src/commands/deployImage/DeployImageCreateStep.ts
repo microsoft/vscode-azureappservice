@@ -3,15 +3,14 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { type NameValuePair, type Site, type SiteConfig, type WebSiteManagementClient } from '@azure/arm-appservice';
-import { type ContainerRegistryManagementClient } from '@azure/arm-containerregistry';
+import type { NameValuePair, Site, SiteConfig, WebSiteManagementClient } from '@azure/arm-appservice';
 import { LocationListStep } from '@microsoft/vscode-azext-azureutils';
 import { AzureWizardExecuteStepWithActivityOutput, nonNullProp } from '@microsoft/vscode-azext-utils';
 import { type AppResource } from '@microsoft/vscode-azext-utils/hostapi';
 import { type Progress } from 'vscode';
 import { webProvider } from '../../constants';
 import { localize } from '../../localize';
-import { createContainerRegistryClient, createWebSiteClient } from '../../utils/azureClients';
+import { createWebSiteClient } from '../../utils/azureClients';
 import { type IDeployImageWizardContext } from './IDeployImageContext';
 
 export class DeployImageCreateStep extends AzureWizardExecuteStepWithActivityOutput<IDeployImageWizardContext> {
@@ -44,7 +43,7 @@ export class DeployImageCreateStep extends AzureWizardExecuteStepWithActivityOut
         const location = await LocationListStep.getLocation(context, webProvider);
         const options = context.deployImageOptions;
         const isArc = !!context.customLocation;
-        const isAcrRegistry = !!options.acrResourceId;
+        const isAcrRegistry = !!options.acrRegistry;
         const siteConfig: SiteConfig = {};
         const appSettings: NameValuePair[] = [];
 
@@ -53,25 +52,15 @@ export class DeployImageCreateStep extends AzureWizardExecuteStepWithActivityOut
             siteConfig.acrUseManagedIdentityCreds = true;
             appSettings.push({ name: 'DOCKER_ENABLE_CI', value: 'true' });
         } else if (isAcrRegistry && isArc) {
-            // ACR Arc: fetch admin credentials
-            const acrClient: ContainerRegistryManagementClient = await createContainerRegistryClient(context);
-            const registryShortName = nonNullProp(options, 'acrResourceName');
-            const acrResourceGroup = nonNullProp(options, 'acrResourceGroup');
-            const registry = await acrClient.registries.get(acrResourceGroup, registryShortName);
-            if (!registry.adminUserEnabled) {
+            // ACR Arc: use admin credentials passed in from the caller
+            if (!options.username || !options.secret) {
                 context.errorHandling.suppressReportIssue = true;
-                throw new Error(localize('adminUserDisabled', 'The admin user is not enabled on registry "{0}". Enable it in the Azure Portal under Access keys, then try again.', registryShortName));
+                throw new Error(localize('adminCredsRequired', 'Admin credentials are required for deploying ACR images to Azure Arc. Enable the admin user on registry "{0}" in the Azure Portal under Access keys, then try again.', options.acrRegistry!.name)); // eslint-disable-line @typescript-eslint/no-non-null-assertion
             }
-            const credentials = await acrClient.registries.listCredentials(
-                acrResourceGroup,
-                registryShortName,
-            );
-            const adminUsername = credentials.username ?? '';
-            const adminPassword = credentials.passwords?.[0]?.value ?? '';
 
             appSettings.push(
-                { name: 'DOCKER_REGISTRY_SERVER_USERNAME', value: adminUsername },
-                { name: 'DOCKER_REGISTRY_SERVER_PASSWORD', value: adminPassword },
+                { name: 'DOCKER_REGISTRY_SERVER_USERNAME', value: options.username },
+                { name: 'DOCKER_REGISTRY_SERVER_PASSWORD', value: options.secret },
                 { name: 'DOCKER_REGISTRY_SERVER_URL', value: `https://${options.registryName}` },
             );
             siteConfig.linuxFxVersion = `DOCKER|${options.image}`;

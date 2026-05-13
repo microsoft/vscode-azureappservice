@@ -14,9 +14,14 @@ export interface DeployImageToAppServiceOptionsContract {
     tag: string;
     username?: string;
     secret?: string;
-    acrResourceGroup?: string;
-    acrResourceId?: string;
-    acrResourceName?: string;
+    acrRegistry?: AcrRegistryPropertiesContract;
+}
+
+interface AcrRegistryPropertiesContract {
+    name: string;
+    id: string;
+    location: string;
+    resourceGroup: string;
 }
 
 export interface IDeployImageWizardContext extends ISubscriptionActionContext, IAppServiceWizardContext, ExecuteActivityContext {
