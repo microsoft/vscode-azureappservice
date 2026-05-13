@@ -6,10 +6,10 @@
 import { type WebSiteManagementClient } from '@azure/arm-appservice';
 import { type AuthorizationManagementClient } from '@azure/arm-authorization';
 import { AzureWizardExecuteStepWithActivityOutput, nonNullProp } from '@microsoft/vscode-azext-utils';
+import * as crypto from 'crypto';
 import { type Progress } from 'vscode';
 import { localize } from '../../localize';
 import { createAuthorizationManagementClient, createWebSiteClient } from '../../utils/azureClients';
-import { getRandomHexString } from '../../utils/randomUtils';
 import { type IDeployImageWizardContext } from './IDeployImageContext';
 
 export class AssignAcrPullRoleStep extends AzureWizardExecuteStepWithActivityOutput<IDeployImageWizardContext> {
@@ -52,7 +52,7 @@ export class AssignAcrPullRoleStep extends AzureWizardExecuteStepWithActivityOut
         }
 
         // 3. Create role assignment
-        const roleAssignmentName = getRandomHexString(32);
+        const roleAssignmentName = crypto.randomUUID();
         await authClient.roleAssignments.create(acrResourceId, roleAssignmentName, {
             principalId,
             roleDefinitionId: acrPullRoleId,
