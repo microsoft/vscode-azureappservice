@@ -34,6 +34,7 @@
     "appService.SwapSlots": "Swap Deployment Slot...",
     "appService.ViewCommitInGitHub": "View Commit in GitHub",
     "appService.ViewProperties": "View Properties",
+    "appService.deployImageApi": "Deploy Image to Web App",
     "appService.appSettings.Add": "Add New Setting...",
     "appService.appSettings.Delete": "Delete...",
     "appService.appSettings.Download": "Download Remote Settings...",
