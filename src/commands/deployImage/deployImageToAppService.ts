@@ -19,6 +19,10 @@ import { DeployImageCreateStep } from './DeployImageCreateStep';
 import { type DeployImageToAppServiceOptionsContract, type IDeployImageWizardContext } from './IDeployImageContext';
 
 export async function deployImageToAppService(context: IActionContext, options: DeployImageToAppServiceOptionsContract): Promise<void> {
+    if (!options?.image || !options.registryName || !options.repositoryName || !options.tag) {
+        throw new Error(localize('missingRequiredOptions', 'Missing required deploy image options. Expected image, registryName, repositoryName, and tag.'));
+    }
+
     const node = <SubscriptionTreeItemBase>await ext.rgApi.tree.showTreeItemPicker(SubscriptionTreeItemBase.contextValue, context);
 
     const wizardContext: IDeployImageWizardContext = Object.assign(context, node.subscription, {

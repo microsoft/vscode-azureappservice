@@ -68,7 +68,7 @@ export class CreateWebhookStep extends AzureWizardExecuteStepWithActivityOutput<
 
         // Use a generic ARM PUT instead of the containerregistry SDK to avoid a package dependency
         const client: ServiceClient = await createGenericClient(context, context);
-        await client.sendRequest(createPipelineRequest({
+        const response = await client.sendRequest(createPipelineRequest({
             method: 'PUT',
             url: `${acrRegistry.id}/webhooks/${webhookName}?api-version=2023-07-01`,
             // eslint-disable-next-line @typescript-eslint/naming-convention
@@ -83,6 +83,10 @@ export class CreateWebhookStep extends AzureWizardExecuteStepWithActivityOutput<
                 },
             }),
         }));
+
+        if (response.status < 200 || response.status >= 300) {
+            throw new Error(localize('webhookFailed', 'Failed to create ACR webhook (HTTP {0}): {1}', response.status, response.bodyAsText ?? ''));
+        }
     }
 
     private async showDockerHubWebhookMessage(options: IDeployImageWizardContext['deployImageOptions'], webhookTargetUri: string): Promise<void> {
