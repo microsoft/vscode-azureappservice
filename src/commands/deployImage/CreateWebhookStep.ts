@@ -58,12 +58,8 @@ export class CreateWebhookStep extends AzureWizardExecuteStepWithActivityOutput<
         const registryClient: ContainerRegistryManagementClient = await createContainerRegistryClient(context);
         const registry = await registryClient.registries.get(acrResourceGroup, registryShortName);
 
-        // Parse repository and tag from image name
-        // Image format: "myacr.azurecr.io/myapp:latest" or "myacr.azurecr.io/ns/myapp:latest"
-        const imageWithoutRegistry = options.image.replace(`${options.registryName}/`, '');
-        const colonIndex = imageWithoutRegistry.lastIndexOf(':');
-        const repoName = colonIndex > -1 ? imageWithoutRegistry.substring(0, colonIndex) : imageWithoutRegistry;
-        const tagName = colonIndex > -1 ? imageWithoutRegistry.substring(colonIndex + 1) : 'latest';
+        const repoName = options.repositoryName;
+        const tagName = options.tag || 'latest';
 
         // Webhook name: sanitize site name (alphanumeric only), truncate to 44 chars, append 6 random hex chars
         const sanitizedName = nonNullProp(context, 'newSiteName').replace(/[^a-zA-Z0-9]/g, '');
@@ -80,10 +76,7 @@ export class CreateWebhookStep extends AzureWizardExecuteStepWithActivityOutput<
     }
 
     private async showDockerHubWebhookMessage(options: IDeployImageWizardContext['deployImageOptions'], webhookTargetUri: string): Promise<void> {
-        // Parse repository name from image for Docker Hub URL
-        const imageWithoutRegistry = options.image.replace(`${options.registryName}/`, '');
-        const colonIndex = imageWithoutRegistry.lastIndexOf(':');
-        const repoName = colonIndex > -1 ? imageWithoutRegistry.substring(0, colonIndex) : imageWithoutRegistry;
+        const repoName = options.repositoryName;
 
         const dockerHubUrl = `https://cloud.docker.com/repository/docker/${repoName}/webHooks`;
         const copyWebhookUrl = localize('copyWebhookUrl', 'Copy Webhook URL');

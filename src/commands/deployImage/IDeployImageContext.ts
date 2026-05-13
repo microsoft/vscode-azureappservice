@@ -10,6 +10,8 @@ import { type ExecuteActivityContext, type ISubscriptionActionContext } from '@m
 export interface DeployImageToAppServiceOptionsContract {
     image: string;
     registryName: string;
+    repositoryName: string;
+    tag: string;
     username?: string;
     secret?: string;
     acrResourceGroup?: string;
