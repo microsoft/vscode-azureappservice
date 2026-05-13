@@ -35,8 +35,10 @@ export class CreateWebhookStep extends AzureWizardExecuteStepWithActivityOutput<
 
         progress.report({ message: localize('configuringWebhook', 'Configuring CI/CD webhook...') });
 
-        // Get publish credentials to construct webhook target URI
+        // Enable SCM basic auth so that publish credentials (used for the webhook)
+        // are not redacted. Newer Azure subscriptions disable basic auth by default.
         const webClient: WebSiteManagementClient = await createWebSiteClient(context);
+        await webClient.webApps.updateScmAllowed(rgName, siteName, { allow: true });
         const publishCreds = await webClient.webApps.beginListPublishingCredentialsAndWait(rgName, siteName);
         const webhookTargetUri = `${publishCreds.scmUri}/api/registry/webhook`;
 
@@ -87,17 +89,15 @@ export class CreateWebhookStep extends AzureWizardExecuteStepWithActivityOutput<
         const repoName = options.repositoryName;
 
         const dockerHubUrl = `https://cloud.docker.com/repository/docker/${repoName}/webHooks`;
-        const copyWebhookUrl = localize('copyWebhookUrl', 'Copy Webhook URL');
-        const openDockerHub = localize('openDockerHub', 'Open Docker Hub');
+        const copyAndOpen = localize('copyAndOpen', 'Copy & Open');
         const message = localize(
             'dockerHubWebhook',
             'To enable CI/CD, add the webhook URL in Docker Hub.',
         );
 
-        void vscode.window.showInformationMessage(message, copyWebhookUrl, openDockerHub).then(async (result) => {
-            if (result === copyWebhookUrl) {
+        void vscode.window.showInformationMessage(message, copyAndOpen).then(async (result) => {
+            if (result === copyAndOpen) {
                 await vscode.env.clipboard.writeText(webhookTargetUri);
-            } else if (result === openDockerHub) {
                 await vscode.env.openExternal(vscode.Uri.parse(dockerHubUrl));
             }
         });
