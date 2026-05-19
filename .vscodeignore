@@ -1,5 +1,5 @@
 # These files are excluded during vsce package
-.azure-pipelines/**
+.config/**
 .eslintignore
 .eslintrc.js
 .github/**

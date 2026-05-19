@@ -15,13 +15,13 @@ schedules:
       include:
         - main
 
-# `resources` specifies the location of templates to pick up, use it to get AzExt templates
 resources:
   repositories:
+    # Use the shared templates from microsoft/vscode-azuretools
     - repository: azExtTemplates
       type: github
       name: microsoft/vscode-azuretools
-      ref: main
+      ref: azext-pt/v1
       endpoint: GitHub-AzureTools # The service connection to use when accessing this repository
 
 parameters:
@@ -31,12 +31,12 @@ parameters:
     default: true
 
 variables:
-  # Required by MicroBuild template
-  - name: TeamName
-    value: "Azure Tools for VS Code"
+  # Pick up shared AZCode variables
+  - template: azdo-pipelines/azcode.variables.yml@azExtTemplates
 
-# Use those templates
 extends:
-  template: azure-pipelines/1esmain.yml@azExtTemplates
+  template: azdo-pipelines/1es-mb-main.yml@azExtTemplates # Use the main build template
   parameters:
-    useAzureFederatedCredentials: ${{ parameters.enableLongRunningTests }}
+    npmFeed: ${{ variables.npmFeed }}
+    ${{ if eq(parameters.enableLongRunningTests, true) }}:
+      testARMServiceConnection: ${{ variables.testARMServiceConnection }}
