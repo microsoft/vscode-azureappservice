@@ -11,10 +11,6 @@ import { ext } from '../src/extensionVariables';
 const longRunningLocalTestsEnabled: boolean = !/^(false|0)?$/i.test(process.env.AzCode_EnableLongRunningTestsLocal || '');
 const longRunningRemoteTestsEnabled: boolean =
     !!process.env.FC_SERVICE_CONNECTION_NAME
-    || !!process.env.FC_SERVICE_CONNECTION_ID
-    || !!process.env.FC_SERVICE_CONNECTION_CLIENT_ID
-    || !!process.env.FC_SERVICE_CONNECTION_TENANT_ID
-    || !!process.env.SYSTEM_ACCESSTOKEN
     || !/^(false|0)?$/i.test(process.env.AzCode_UseAzureFederatedCredentials || '');
 
 export const longRunningTestsEnabled: boolean = longRunningLocalTestsEnabled || longRunningRemoteTestsEnabled;
