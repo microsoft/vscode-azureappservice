@@ -1,5 +1,28 @@
 # Change Log
 
+## 0.27.0 - 2026-05-28
+
+### Overview
+This release introduces **container image deployment** for App Service, along with code optimization improvements and several bug fixes around deployment slots and disconnecting repos.
+
+### Added
+* [[2871](https://github.com/microsoft/vscode-azureappservice/pull/2871)] Support **deployment of container images** to App Service
+
+### Changed
+* [[2854](https://github.com/microsoft/vscode-azureappservice/pull/2854)] Skip the **code optimization quick pick** when fixing a code optimization via the command palette
+
+### Fixed
+* [[2860](https://github.com/microsoft/vscode-azureappservice/pull/2860)] Surface the missing warning when disconnecting a repo on a slot with no repo connected
+* [[2855](https://github.com/microsoft/vscode-azureappservice/pull/2855)] Check for **deployment slots** when disconnecting a repo
+* [[2849](https://github.com/microsoft/vscode-azureappservice/pull/2849)] Fix various **code optimization** bugs
+
+### Security
+* [[2859](https://github.com/microsoft/vscode-azureappservice/pull/2859)] Resolve npm security vulnerabilities via `npm audit fix`
+
+### Engineering
+* [[2874](https://github.com/microsoft/vscode-azureappservice/pull/2874)] Remove obsolete nightly .NET deploy test targets (3.1 / 5.0 / 6.0)
+* [[2865](https://github.com/microsoft/vscode-azureappservice/pull/2865)] Remove Shields.io badges from `README.md`
+
 ## 0.26.5 - 2026-03-20
 
 ### Added
