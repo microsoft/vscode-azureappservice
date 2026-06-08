@@ -147,7 +147,7 @@ suite('Create Web App and deploy', function (this: Mocha.Suite): void {
         });
 
         const hostUrl: string | undefined = (<SiteTreeItem>await ext.rgApi.tree.findTreeItem(<string>createdApp?.id, await createTestActionContext())).site.defaultHostUrl;
-        const client: ServiceClient = await createGenericClient(await createTestActionContext(), undefined);
+        const client: ServiceClient = await createGenericClient(await createTestActionContext(), undefined, { redirectOptions: { allowCrossOriginRedirects: true } });
         const response: AzExtPipelineResponse = await client.sendRequest(createPipelineRequest({ method: 'GET', url: hostUrl }));
         assert.strictEqual(response.bodyAsText, `Version: ${expectedVersion}`);
     }
