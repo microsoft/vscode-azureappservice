@@ -96,7 +96,7 @@ async function getStacks(context: IWebAppWizardContext & { stacks?: WebAppStack[
     if (!context.stacks) {
         let stacksArmResponse: StacksArmResponse;
         try {
-            const client: ServiceClient = await createGenericClient(context, context);
+            const client: ServiceClient = await createGenericClient(context, context, { redirectOptions: { allowCrossOriginRedirects: true } });
             const result: AzExtPipelineResponse = await client.sendRequest(createPipelineRequest({
                 method: 'GET',
                 url: createRequestUrl('/providers/Microsoft.Web/webappstacks', {
