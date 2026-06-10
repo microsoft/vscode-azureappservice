@@ -36,7 +36,7 @@ export async function validateWebSite(originalContext: IActionContext, deploymen
         let currentStatusCode: number | undefined;
         const statusCodes: { code: number | undefined, elapsed: number }[] = [];
 
-        const client: ServiceClient = await createGenericClient(context, undefined);
+        const client: ServiceClient = await createGenericClient(context, undefined, { redirectOptions: { allowCrossOriginRedirects: true } });
 
 
         while (true) {
