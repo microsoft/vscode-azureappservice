@@ -1,5 +1,15 @@
 # Change Log
 
+## 0.27.1 - 2026-06-11
+
+### Fixed
+* [[2889](https://github.com/microsoft/vscode-azureappservice/pull/2889)] Fix "You are not signed in to an Azure account" error when deploying while already signed in, by picking up the audience-consent fix in `@microsoft/vscode-azext-azureappservice` 5.0.2 (see [microsoft/vscode-azurefunctions#5073](https://github.com/microsoft/vscode-azurefunctions/issues/5073))
+* [[2888](https://github.com/microsoft/vscode-azureappservice/pull/2888)] Opt in to cross-origin redirects at known call sites (web app stack picker and post-deploy site validation) to fix requests broken by the same-origin redirect restriction in `@azure/core-rest-pipeline` 1.23.0
+
+### Engineering
+* [[2886](https://github.com/microsoft/vscode-azureappservice/pull/2886)] Remove the redundant `npmFeed` parameter from the build pipeline
+* [[2885](https://github.com/microsoft/vscode-azureappservice/pull/2885)] Add `feedBaseUrl` passthrough to 1ES build template parameters
+
 ## 0.27.0 - 2026-05-28
 
 ### Overview
