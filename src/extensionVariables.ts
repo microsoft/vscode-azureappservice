@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { type IAzExtOutputChannel, type IExperimentationServiceAdapter } from "@microsoft/vscode-azext-utils";
+import { type IAzExtOutputChannel } from "@microsoft/vscode-azext-utils";
 import { type AzureHostExtensionApi } from "@microsoft/vscode-azext-utils/hostapi";
 import { type ExtensionContext } from "vscode";
 import { type AppServiceFileSystem } from "./AppServiceFileSystem";
@@ -20,6 +20,5 @@ export namespace ext {
     export const prefix: string = 'appService';
 
     export let azureAccountTreeItem: AzureAccountTreeItem;
-    export let experimentationService: IExperimentationServiceAdapter;
     export let rgApi: AzureHostExtensionApi;
 }
