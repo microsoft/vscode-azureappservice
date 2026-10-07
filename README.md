@@ -16,8 +16,6 @@ for VS Code to quickly create, manage, and deploy your websites.
 
 ## Installation
 
-Requires Visual Studio Code 1.106.0 or later.
-
 1. Download and install the [Azure App Service extension](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-azureappservice) for Visual Studio Code
     > If you're interested in deploying single page web apps or progressive web apps (something **without** an express server), install the [Azure Storage extension](https://marketplace.visualstudio.com/items?itemName=ms-azuretools.vscode-azurestorage)
 2. Wait for the extension to finish installing then reload Visual Studio Code when prompted
