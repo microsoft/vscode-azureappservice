@@ -19,6 +19,6 @@ export async function showFile(context: IActionContext, treeItem?: FileTreeItem)
     } else {
         // ensure node.id is defined
         node.id = node.fullId;
-        await ext.fileSystem.showTextDocument(node as FileSystemItem);
+        await ext.fileSystem.showFile(node as FileSystemItem);
     }
 }
