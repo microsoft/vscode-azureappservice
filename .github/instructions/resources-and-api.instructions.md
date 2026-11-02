@@ -7,6 +7,24 @@ applyTo: "src/extension.ts,src/extensionVariables.ts,src/WebAppResolver.ts,src/t
 - `extension.ts` registers `WebAppResolver` through the Azure Resources host API;
   `utils/getExtensionApi.ts` negotiates the host API version. Preserve activation
   order, shared extension-variable registration, and disposable ownership.
+- Azure Resources owns account/subscription selection and uses
+  `@microsoft/vscode-azext-azureauth`, which calls `vscode.authentication.getSession`
+  through the built-in Microsoft Authentication extension. The configured
+  provider is `microsoft` for public Azure or `microsoft-sovereign-cloud` for
+  sovereign/custom clouds; let the auth package choose provider/scopes/tenant.
+- `pickWebApp.ts` delegates to `ext.rgApi.pickAppResource`.
+  `WebAppResolver.resolveResource` receives the host's `ISubscriptionContext`;
+  `ResolvedWebAppResource` retains it for lazy initialization and `ParsedSite`.
+  Creation wizards copy the selected node's subscription context. Preserve
+  credentials, `createCredentialsForScopes`, authentication when supplied,
+  account/tenant identity, subscription, environment, and custom-cloud metadata
+  when passing contexts to shared factories; do not reconstruct partial contexts.
+- For auth bugs, follow host selection -> auth package session/credential ->
+  subscription-context conversion -> local/shared client factory. Check Azure
+  Resources and Microsoft Authentication logs without exposing tokens or account
+  details. CLI login or federated test credentials do not verify interactive
+  VS Code sign-in; do not add `DefaultAzureCredential` or an independent login
+  fallback to work around missing host sessions.
 - `WebAppResolver.ts` uses paginated Resource Graph results, a short-lived cache,
   a shared in-flight load, lowercased resource-ID keys, and an ARM fallback for
   newly created apps not yet visible in the graph. Retain these behaviors when

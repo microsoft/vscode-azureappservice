@@ -17,7 +17,7 @@ resource-tree refresh, activity/output, and focused tests.
 | --- | --- | --- |
 | Activation and dependencies | `main.js`, `src/extension.ts`, `src/extensionVariables.ts`, `src/utils/getExtensionApi.ts` | The handwritten entrypoint measures bundle load time; activation registers shared extension variables, commands, the Azure Resources resolver, and the filesystem. |
 | Resource resolution and tree | `src/WebAppResolver.ts`, `src/tree/ResolvedWebAppResource.ts`, `src/tree/SiteTreeItem.ts`, `src/tree/DeploymentSlotsTreeItem.ts` | Resource Graph supplies lightweight models; ARM lazily initializes `ParsedSite`. `SiteTreeItem` delegates to the resolved resource for child/slot compatibility. |
-| Azure clients and resource picking | `src/utils/azureClients.ts`, `src/utils/pickWebApp.ts`, `src/constants.ts` | Shared factories supply authentication/cloud context; initialized sites supply slot-aware clients. |
+| Authentication, Azure clients, and resource picking | `src/extension.ts`, `src/utils/getExtensionApi.ts`, `src/utils/pickWebApp.ts`, `src/WebAppResolver.ts`, `src/utils/azureClients.ts` | Azure Resources supplies authenticated subscription contexts; shared factories consume their credentials and cloud endpoints. Initialized sites supply slot-aware clients. |
 | Create apps and slots | `src/commands/createWebApp/`, `src/commands/createSlot.ts`, `src/commands/swapSlots.ts` | Wizard contexts/steps coordinate runtime, OS, plan, Insights, custom locations, and slot behavior. |
 | Deploy code and configure sources | `src/commands/deploy/`, `src/commands/deployments/`, `src/commands/postDeploy/` | Local workspace/tasks feed shared deployment helpers; post-deploy health checks are separate from upload completion. |
 | Deploy containers | `src/commands/deployImage/` | Container Tools command contract, Linux creation, ACR identity/role assignment, Arc credentials, and CI/CD webhooks. |
@@ -28,6 +28,28 @@ resource-tree refresh, activity/output, and focused tests.
 | Tests | `test/global.test.ts`, `test/remoteDebug/getRemoteDebugLanguage.test.ts`, `test/parseDetectorTables.test.ts`, `test/nightly/` | VS Code-hosted Mocha tests; Azure integration fixtures and their currently skipped resource setup. |
 | Engineering | `package.json`, `esbuild.mjs`, `.vscode-test.mjs`, `eslint.config.mjs`, `.github/workflows/main.yml`, `.config/` | Shared `vscode-azext-eng` tooling and `vscode-azuretools` pipeline templates. |
 
+## Authentication flow
+
+`activateInternal` -> `getResourceGroupsApi` -> Azure Resources host API ->
+`@microsoft/vscode-azext-azureauth` -> `vscode.authentication` ->
+VS Code's built-in Microsoft Authentication provider.
+
+Azure Resources owns account/subscription discovery and selection. App Service
+consumes its picker/tree API and the `ISubscriptionContext` passed to
+`WebAppResolver.resolveResource`; creation wizards inherit `node.subscription`.
+That context carries credentials, scope-specific credential creation, tenant,
+subscription, and Azure environment. `src/utils/azureClients.ts` delegates to
+shared Azure Utils factories; `ParsedSite.createClient(context)` uses the site's
+same subscription context for site/slot operations, not a separate sign-in.
+
+Investigate sign-in, session, tenant, or missing-subscription problems in Azure
+Resources, the auth package, and Microsoft Authentication first; investigate a
+wrong client identity/cloud in the context handoff and client factories here.
+Public Azure uses provider `microsoft`; sovereign/custom environments use
+`microsoft-sovereign-cloud`. Azure CLI login does not establish a VS Code session.
+Developer authentication is separate from the deployed app's managed identity,
+registry credentials, or publishing/SCM authentication.
+
 ## External ownership
 
 - `@microsoft/vscode-azext-azureappservice` owns shared `ParsedSite`, site clients,
@@ -36,5 +58,7 @@ resource-tree refresh, activity/output, and focused tests.
 - `@microsoft/vscode-azext-utils` and `@microsoft/vscode-azext-azureutils` own action
   handling, wizards, activities, client factories, and common Azure UI.
 - The Azure Resources extension hosts the resource explorer and picker API.
-  Do not build a parallel account/tree implementation here.
+  It obtains developer authentication through `@microsoft/vscode-azext-azureauth`,
+  backed by VS Code Microsoft Authentication, not the legacy Azure Account
+  extension. Do not build a parallel account/tree implementation here.
 - Human review ownership is recorded in [.github/CODEOWNERS](.github/CODEOWNERS).
