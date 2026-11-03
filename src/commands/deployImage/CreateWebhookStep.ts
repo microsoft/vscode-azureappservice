@@ -15,7 +15,7 @@ import { getRandomHexString } from '../../utils/randomUtils';
 import type { DeployImageToAppServiceOptionsContract, IDeployImageWizardContext } from './IDeployImageContext';
 
 function isDockerHub(registryName: string): boolean {
-    return registryName.endsWith('docker.io');
+    return registryName.toLowerCase() === 'docker.io';
 }
 
 export class CreateWebhookStep extends AzureWizardExecuteStepWithActivityOutput<IDeployImageWizardContext> {
