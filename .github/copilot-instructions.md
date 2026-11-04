@@ -91,14 +91,37 @@ The exact package scripts are:
 - Update directly affected documentation. Documentation-only changes need path,
   link, instruction-frontmatter, and whitespace inspection, not product builds.
 
+## Pull request descriptions
+
+- Keep the body brief: `Fixes #<issue>` for each issue actually fixed, a
+  human-readable one- or two-line reason for the change, then labeled **Before**
+  and **After** screenshots showing the reproduced bug and the working fix.
+  Use `Fixes owner/repo#<issue>` for issues in another repository; do not invent
+  an issue link when none applies.
+- Capture the same scenario on the base without the PR changes, then on the
+  candidate build. Use real screenshots, redact sensitive data, and label mocked
+  versus live Azure evidence. Do not substitute passing tests for visual proof.
+- For documentation-only or nonvisual changes, say briefly why screenshots do
+  not apply and give the relevant validation. If reproduction or capture is
+  blocked, state the blocker and missing evidence; do not claim verification.
+
 ## Pull request review
 
+- First exercise the feature on the base without the branch's changes and take
+  a screenshot, then repeat the same scenario on the candidate build and take
+  a screenshot demonstrating the feature or fix. Keep the environment and inputs
+  comparable and identify the builds. Use isolated worktrees/profiles as needed;
+  preserve other work and do not mutate Azure resources without authorization.
+- Include labeled baseline and candidate screenshots with the review. Apply
+  the same redaction, evidence-labeling, nonvisual, and blocker rules above.
 - Report concrete regressions introduced by the diff, not stylistic preferences,
   speculative Azure behavior, or unrelated existing issues. Follow callers and
   shared contracts before declaring a bug; distinguish evidence from uncertainty.
-- For each finding, provide severity, the smallest useful changed file/line range,
-  a realistic triggering scenario, observable user impact, and the smallest viable
-  fix. Explain why existing guards or tests do not prevent it.
+- Write each finding as one human-readable line with severity, trigger, impact,
+  and the smallest viable fix, attached to the smallest useful changed line range.
+  Attach a real screenshot showing each reported bug. If capture is blocked,
+  disclose the missing screenshot and the concrete evidence; do not claim a visual
+  reproduction. Check existing guards and tests before reporting the finding.
 - Prioritize wrong app/subscription/slot mutations; overwritten settings/files;
   credential exposure; broken deployment modes; OS/runtime/plan incompatibility;
   missed refresh/cancellation/cleanup; and command/API contract breaks.
