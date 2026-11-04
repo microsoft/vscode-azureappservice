@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { type IActionContext } from "@microsoft/vscode-azext-utils";
+import { DialogResponses, type IActionContext } from "@microsoft/vscode-azext-utils";
 import { ext } from "../extensionVariables";
 import { localize } from "../localize";
 import { type SiteTreeItem } from "../tree/SiteTreeItem";
@@ -15,6 +15,12 @@ export async function stopWebApp(context: IActionContext, node?: SiteTreeItem): 
     }
 
     await node.initSite(context);
+
+    if (!node.site.isSlot) {
+        const confirmMessage: string = localize('confirmStop', 'Stop web app "{0}"? Traffic will be interrupted.', node.site.fullName);
+        await context.ui.showWarningMessage(confirmMessage, { modal: true, stepName: 'confirmStop' }, DialogResponses.yes, DialogResponses.cancel);
+    }
+
     const client = await node.site.createClient(context);
     const stoppingApp: string = localize('stoppingApp', 'Stopping "{0}"...', node.site.fullName);
     const stoppedApp: string = localize('stoppedApp', '"{0}" has been stopped. App Service plan charges still apply.', node.site.fullName);
