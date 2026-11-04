@@ -26,6 +26,14 @@ the architecture map and `instructions/*.instructions.md` for subsystem contract
   Azure client factories for ARM/Resource Graph operations. Preserve subscription,
   tenant, cloud, resource group, and slot identity; do not hardcode public-cloud
   management endpoints or introduce a separate credential flow.
+- Developer sign-in comes from Azure Resources through
+  `@microsoft/vscode-azext-azureauth` and VS Code's built-in Microsoft
+  Authentication provider, not Azure CLI or the legacy Azure Account extension.
+  Reuse the host's subscription context, credentials, and scope-specific
+  credential helpers; preserve account, tenant, subscription, and cloud.
+  Trace session/subscription failures upstream before changing App Service
+  clients. Do not confuse developer authentication with the deployed app's
+  managed identity or registry/publishing credentials.
 - Distinguish the extension host OS from the target app OS. Preserve Windows/Linux,
   runtime, plan-tier, production/slot, and Azure/custom-location differences.
   Deployment may start from a folder, archive, tree item, or saved workspace target.
