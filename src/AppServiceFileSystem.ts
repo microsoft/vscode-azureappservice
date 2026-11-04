@@ -3,7 +3,7 @@
  *  Licensed under the MIT License. See License.txt in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
-import { getFile, putFile, type FileTreeItem, type ISiteFile } from "@microsoft/vscode-azext-azureappservice";
+import { getFileBytes, putFile, type FileTreeItem, type ISiteFileBytes } from "@microsoft/vscode-azext-azureappservice";
 import { AzExtTreeFileSystem, DialogResponses, UserCancelledError, parseError, type IActionContext, type IParsedError } from '@microsoft/vscode-azext-utils';
 import { FileType, type FileStat, type MessageItem, type Uri } from "vscode";
 import { ext } from "./extensionVariables";
@@ -29,9 +29,9 @@ export class AppServiceFileSystem extends AzExtTreeFileSystem<FileSystemItem> {
     }
 
     public async readFileImpl(context: IActionContext, node: FileSystemItem): Promise<Uint8Array> {
-        const result: ISiteFile = await getFile(context, node.site, node.url);
+        const result: ISiteFileBytes = await getFileBytes(context, node.site, node.url);
         this._etags.set(node.fullId, result.etag);
-        return Buffer.from(result.data);
+        return result.data;
     }
 
     public async writeFileImpl(context: IActionContext, node: FileSystemItem, content: Uint8Array, _originalUri: Uri): Promise<void> {
@@ -62,7 +62,7 @@ export class AppServiceFileSystem extends AzExtTreeFileSystem<FileSystemItem> {
             throw error;
         }
 
-        etag = (await getFile(context, node.site, node.url)).etag;
+        etag = (await getFileBytes(context, node.site, node.url)).etag;
         this._etags.set(node.fullId, etag);
         await node.refresh(context);
     }
