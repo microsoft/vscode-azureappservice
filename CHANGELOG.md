@@ -1,5 +1,10 @@
 # Change Log
 
+## Unreleased
+
+### Fixed
+* Use the native restart operation for web apps and deployment slots instead of stopping and starting them separately ([#2898](https://github.com/microsoft/vscode-azureappservice/issues/2898)).
+
 ## 0.27.0 - 2026-05-28
 
 ### Overview
