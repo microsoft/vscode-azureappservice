@@ -836,7 +836,7 @@
         "@azure/arm-resources": "^5.0.0",
         "@azure/core-client": "^1.7.3",
         "@azure/core-rest-pipeline": "^1.23.0",
-        "@microsoft/vscode-azext-azureappservice": "^6.1.0",
+        "@microsoft/vscode-azext-azureappservice": "^6.1.1",
         "@microsoft/vscode-azext-azureappsettings": "^2.0.0",
         "@microsoft/vscode-azext-azureutils": "^5.0.0",
         "@microsoft/vscode-azext-utils": "^5.1.0",
