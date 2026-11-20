@@ -10,11 +10,14 @@
         "sourceMap": true,
         "rootDir": ".",
         "strict": true,
-        "baseUrl": "./",
+        "types": [
+            "node",
+            "mocha"
+        ],
         "paths": {
             "*": [
-                "node_modules/@types/*",
-                "*"
+                "./node_modules/@types/*",
+                "./*"
             ]
         },
         "resolveJsonModule": true
